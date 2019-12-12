@@ -1,0 +1,53 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: su-se-bakover
+  namespace: default
+  labels:
+    team: {{team}}
+spec:
+  image: {{image}}:{{tag}}
+  port: 8080
+  liveness:
+    path: isalive
+    initialDelay: 5
+  readiness:
+    path: isready
+    initialDelay: 5
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1024Mi
+    requests:
+      cpu: 50m
+      memory: 512Mi
+  replicas:
+    min: 1
+    max: 1
+    cpuThresholdPercentage: 90
+  prometheus:
+    enabled: true
+    path: /metrics
+  webproxy: true
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /kv/preprod/fss/su-se-bakover/default
+      - mountPath: /var/run/secrets/nais.io/azure
+        kvPath: /azuread/data/dev/creds/su-se-bakover
+  secureLogs:
+    enabled: true
+  env:
+  - name: KAFKA_BOOTSTRAP_SERVERS
+    value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
+  - name: DATABASE_HOST
+    value: b27dbvl008.preprod.local
+  - name: DATABASE_PORT
+    value: "5432"
+  - name: DATABASE_NAME
+    value: su-se-bakover
+  - name: VAULT_MOUNTPATH
+    value: postgresql/preprod-fss/
+  - name: AZURE_CONFIG_URL
+    value: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
