@@ -28,26 +28,10 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  webproxy: true
   vault:
     enabled: true
     paths:
       - mountPath: /var/run/secrets/nais.io/vault
         kvPath: /kv/prod/fss/su-se-bakover/default
-      - mountPath: /var/run/secrets/nais.io/azure
-        kvPath: /azuread/data/prod/creds/su-se-bakover
   secureLogs:
     enabled: true
-  env:
-  - name: KAFKA_BOOTSTRAP_SERVERS
-    value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
-  - name: DATABASE_HOST
-    value: a01dbvl010.adeo.no
-  - name: DATABASE_PORT
-    value: "5432"
-  - name: DATABASE_NAME
-    value: su-se-bakover
-  - name: VAULT_MOUNTPATH
-    value: postgresql/prod-fss/
-  - name: AZURE_CONFIG_URL
-    value: https://login.microsoftonline.com/62366534-1ec3-4962-8869-9b5535279d0b/v2.0/.well-known/openid-configuration

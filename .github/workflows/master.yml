@@ -39,9 +39,8 @@ jobs:
         AWAIT_SECONDS: 0
       with:
         cluster: dev-fss
-        team: tbd
+        team: supstonad
         resources: deploy/preprod.yaml
-        rawresources: deploy/alerts-preprod.yaml
     - name: deploy to prod
       uses: navikt/deployment-cli/action@0.4.1
       env:
@@ -49,6 +48,5 @@ jobs:
         AWAIT_SECONDS: 0
       with:
         cluster: prod-fss
-        team: tbd
+        team: supstonad
         resources: deploy/prod.yaml
-        rawresources: deploy/alerts-prod.yaml
