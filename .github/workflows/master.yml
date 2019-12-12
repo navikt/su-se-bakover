@@ -30,7 +30,7 @@ jobs:
            docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
            docker push ${IMAGE}
 
-  deploy-to-dev:
+  deploy-to-both:
     name: Deploy to NAIS
     needs: build
     if: github.ref == 'refs/heads/master'
