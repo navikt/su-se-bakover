@@ -1,0 +1,9 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+   name: su-se-bakover
+   namespace: default
+   labels:
+      team: supstonad
+spec:
+   image: {{ image }}
