@@ -7,3 +7,5 @@ metadata:
       team: supstonad
 spec:
    image: {{ image }}
+   ingresses:
+      - {{ ingress }}
