@@ -10,7 +10,7 @@ spec:
    ingresses:
       - {{ ingress }}
    env:
-     {{#each env}}
-         - name: {{@key}}
-      value: "{{this}}"
+      {{#each env}}
+       - name: {{@key}}
+         value: "{{this}}"
       {{/each}}
