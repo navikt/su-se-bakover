@@ -1,3 +1,6 @@
 {
-  "ingress": "https://su-se-bakover.nais.preprod.local"
+  "ingress": "https://su-se-bakover.nais.preprod.local",
+  "env": {
+    "ALLOW_CORS_ORIGIN": "su-se-framover.nais.preprod.local"
+  }
 }

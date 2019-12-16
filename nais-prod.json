@@ -1,3 +1,6 @@
 {
-  "ingress": "https://su-se-bakover.nais.adeo.no"
+  "ingress": "https://su-se-bakover.nais.adeo.no",
+  "env": {
+    "ALLOW_CORS_ORIGIN": "su-se-framover.nais.adeo.no"
+  }
 }
