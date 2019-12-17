@@ -4,7 +4,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     companion object {
         const val CORS_KEY = "ALLOW_CORS_ORIGIN"
-        const val SU_PERSON_URL = "http://su-inntekt"
+        const val SU_PERSON_URL = "http://su-person"
     }
 
     val allowCorsOrigin: String = envVar(CORS_KEY)
@@ -12,5 +12,4 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     private fun envVar(key: String, defaultValue: String? = null): String {
         return map[key] ?: defaultValue ?: throw RuntimeException("Missing required variable \"$key\"")
     }
-
 }

@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.Environment.Companion.SU_PERSON_URL
 
 class SuPersonClient {
     fun person(): String {
-        return SU_PERSON_URL + "/isalive".httpGet().responseString()
+        val url = "$SU_PERSON_URL/isalive"
+        val(_,_,result) = url.httpGet().responseString()
+        return result.get()
     }
 }
