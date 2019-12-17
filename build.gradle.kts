@@ -1,6 +1,7 @@
 val ktorVersion = "1.2.6"
 val junitJupiterVersion = "5.6.0-M1"
 val fuelVersion = "2.2.1"
+val mockkVersion = "1.9.3"
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
@@ -19,9 +20,12 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
 
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
 }
 
 java {

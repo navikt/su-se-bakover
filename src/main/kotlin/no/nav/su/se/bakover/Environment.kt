@@ -4,6 +4,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     companion object {
         const val CORS_KEY = "ALLOW_CORS_ORIGIN"
+        const val SU_PERSON_URL = "http://su-inntekt"
     }
 
     val allowCorsOrigin: String = envVar(CORS_KEY)
