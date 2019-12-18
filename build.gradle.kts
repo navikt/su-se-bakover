@@ -21,7 +21,9 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
 
     testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion"){
+        exclude(group = "junit")
+    }
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
