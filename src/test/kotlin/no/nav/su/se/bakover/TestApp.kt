@@ -3,10 +3,11 @@ package no.nav.su.se.bakover
 import io.ktor.application.Application
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
 
-fun Application.testApp(environment: Environment = configureDefaultEnv(), suPersonClient: SuPersonClient = mockk()) {
-    return susebakover(environment, suPersonClient)
+fun Application.testApp(environment: Environment = configureDefaultEnv(), suPersonClient: SuPersonClient = mockk(), suInntektClient: SuInntektClient = mockk()) {
+    return susebakover(environment, suPersonClient, suInntektClient)
 }
 
 fun configureDefaultEnv(): Environment {

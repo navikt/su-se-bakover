@@ -16,7 +16,7 @@ const val origin = "host.server.no"
 val testEnvironment = Environment(mapOf(CORS_KEY to origin))
 
 fun testServer(test: ApplicationEngine.() -> Unit) = embeddedServer(Netty, 8088) {
-    susebakover(testEnvironment, suPersonClient = configureDefaultSuPersonMock())
+    testApp(testEnvironment)
 }.apply {
     val stopper = GlobalScope.launch {
         delay(10000)
@@ -29,10 +29,4 @@ fun testServer(test: ApplicationEngine.() -> Unit) = embeddedServer(Netty, 8088)
         stopper.cancel()
         stop(0, 0, TimeUnit.SECONDS)
     }
-}
-
-fun configureDefaultSuPersonMock(): SuPersonClient {
-    val suPersonClient = mockk<SuPersonClient>();
-    every { suPersonClient.person() } returns "ALIVE"
-    return suPersonClient;
 }

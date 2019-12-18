@@ -9,10 +9,11 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
 import java.util.concurrent.TimeUnit
 
-fun Application.susebakover(env: Environment = Environment(), suPersonClient: SuPersonClient) {
+fun Application.susebakover(env: Environment = Environment(), suPersonClient: SuPersonClient, suInntektClient: SuInntektClient) {
     install(DefaultHeaders) {
         header("Access-Control-Allow-Origin", env.allowCorsOrigin)
     }
@@ -25,7 +26,8 @@ fun Application.susebakover(env: Environment = Environment(), suPersonClient: Su
         }
         get("/hello") {
             val person = suPersonClient.person()
-            call.respond("is it me you're looking for?, i.. i.. i... i... I'am staying $person")
+            val inntekt = suInntektClient.inntekt()
+            call.respond("is it me you're looking for? great, cause i.. i.. i... i... I'm staying $person and i have $inntekt in the bank")
         }
     }
 }
@@ -33,7 +35,8 @@ fun Application.susebakover(env: Environment = Environment(), suPersonClient: Su
 fun main() {
     val app = embeddedServer(Netty, 8080) {
         val suPersonClient = SuPersonClient()
-        susebakover(suPersonClient = suPersonClient)
+        val suInntektClient = SuInntektClient()
+        susebakover(suPersonClient = suPersonClient, suInntektClient = suInntektClient)
     }.start(false)
 
     Runtime.getRuntime().addShutdownHook(Thread {
