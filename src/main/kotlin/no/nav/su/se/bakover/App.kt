@@ -27,7 +27,12 @@ fun Application.susebakover(env: Environment = Environment(), suPersonClient: Su
         get("/hello") {
             val person = suPersonClient.person()
             val inntekt = suInntektClient.inntekt()
-            call.respond("is it me you're looking for? great, cause i.. i.. i... i... I'm staying $person and i have $inntekt in the bank")
+            call.respond("""
+{
+    "greeting": "is it me you're looking for? great, cause i.. i.. i... i... I'm staying $person and i have $inntekt in the bank"
+}
+""".trimIndent()
+            )
         }
     }
 }
