@@ -24,6 +24,9 @@ fun Application.susebakover(env: Environment = Environment(), suPersonClient: Su
         get("/isready") {
             call.respond("READY")
         }
+        get("/secretest") {
+            call.respond("This is the most secret: ${env.theSecret}")
+        }
         get("/hello") {
             val person = suPersonClient.person()
             val inntekt = suInntektClient.inntekt()

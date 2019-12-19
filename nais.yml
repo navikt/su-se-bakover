@@ -9,6 +9,11 @@ spec:
    image: {{ image }}
    ingresses:
       - {{ ingress }}
+   vault:
+      enabled: true
+      paths:
+         - mountPath: /var/run/secrets/nais.io/vault
+           kvPath: /secret/supstonad/{{ secret_env }}
    env:
       {{#each env}}
        - name: {{@key}}
