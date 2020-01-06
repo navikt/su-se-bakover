@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover
 
-import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwk.UrlJwkProvider
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -29,10 +28,6 @@ fun Application.susebakover(
     install(DefaultHeaders) {
         header("Access-Control-Allow-Origin", env.allowCorsOrigin)
     }
-    val jwkProvider = JwkProviderBuilder(URL(env.jwksUrl))
-        .cached(10, 24, TimeUnit.HOURS)
-        .rateLimited(10, 1, TimeUnit.MINUTES)
-        .build()
     install(Authentication) {
         jwt {
             realm = "supstonad"
