@@ -61,6 +61,6 @@ fun Application.module(
 }
 
 @KtorExperimentalAPI
-fun Application.fromEnvironment(path: String): String = this.environment.config.property(path).getString()
+fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)

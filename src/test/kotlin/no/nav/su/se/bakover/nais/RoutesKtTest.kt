@@ -28,7 +28,7 @@ internal class RoutesKtTest {
         withTestApplication(
             {
                 testEnv()
-                this.module(suPersonClient, suInntektClient)
+                module(suPersonClient, suInntektClient)
             }
         ) {
             handleRequest(HttpMethod.Get, "/hello")

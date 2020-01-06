@@ -16,7 +16,7 @@ internal class NaisRoutesKtTest {
         withTestApplication(
             {
                 testEnv()
-                this.susebakover()
+                susebakover()
             }
         ) {
             handleRequest(HttpMethod.Get, "/isalive").apply {
@@ -35,7 +35,7 @@ internal class NaisRoutesKtTest {
         withTestApplication(
             {
                 testEnv()
-                this.susebakover()
+                susebakover()
             }
         ) {
             handleRequest(HttpMethod.Get, "/notfound").apply {
