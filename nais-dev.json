@@ -1,6 +1,7 @@
 {
   "ingress": "https://su-se-bakover.nais.preprod.local",
   "secret_env": "dev",
+  "cluster": "preprod",
   "env": {
     "ALLOW_CORS_ORIGIN": "https://su-se-framover.nais.preprod.local"
   }

@@ -1,6 +1,7 @@
 {
   "ingress": "https://su-se-bakover.nais.adeo.no",
   "secret_env": "prod",
+  "cluster": "prod",
   "env": {
     "ALLOW_CORS_ORIGIN": "https://su-se-framover.nais.adeo.no"
   }

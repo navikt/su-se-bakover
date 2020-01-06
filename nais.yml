@@ -14,6 +14,8 @@ spec:
       paths:
          - mountPath: /var/run/secrets/nais.io/vault
            kvPath: /secret/supstonad/{{ secret_env }}
+         - mountPath: /var/run/secrets/nais.io/vault/su-se-bakover
+           kvPath: /kv/{{ cluster }}/fss/su-se-bakover/default
    env:
       {{#each env}}
        - name: {{@key}}

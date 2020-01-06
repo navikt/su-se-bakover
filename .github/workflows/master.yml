@@ -11,7 +11,6 @@ env:
   IMAGE: docker.pkg.github.com/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-
   build:
     name: Build and push Docker container
     runs-on: ubuntu-latest
@@ -42,8 +41,8 @@ jobs:
           docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
           docker push ${IMAGE}
 
-  deploy-to-both:
-    name: Deploy to NAIS
+  deploy_to_dev:
+    name: Deploy to dev
     needs: build
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
@@ -55,9 +54,17 @@ jobs:
           CLUSTER: dev-fss
           RESOURCE: nais.yml
           VARS: nais-dev.json
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-fss
-          RESOURCE: nais.yml
-          VARS: nais-prod.json
+
+    deploy_to_prod:
+      name: Deploy to prod
+      needs: build
+      if: github.ref == 'refs/heads/master'
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v1
+        - uses: nais/deploy/actions/deploy@v1
+          env:
+            APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+            CLUSTER: prod-fss
+            RESOURCE: nais.yml
+            VARS: nais-prod.json
