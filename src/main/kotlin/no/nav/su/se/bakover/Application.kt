@@ -32,7 +32,9 @@ fun Application.module(
     setupAuthentication(
         jwksUrl = "https://login.microsoftonline.com/$azureTenant/discovery/v2.0/keys",
         jwtIssuer = "https://login.microsoftonline.com/$azureTenant/v2.0",
-        jwtRealm = "su-se-bakover"
+        jwtRealm = "su-se-bakover",
+        requiredGroup = fromEnvironment("azure.requiredGroup"),
+        clientId = fromEnvironment("azure.clientId")
     )
     routing {
         get("/isalive") {

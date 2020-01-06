@@ -12,21 +12,24 @@ import java.net.URL
 fun Application.setupAuthentication(
     jwksUrl: String,
     jwtIssuer: String,
-    jwtRealm: String
+    jwtRealm: String,
+    requiredGroup: String,
+    clientId: String
 ) {
     install(Authentication) {
         jwt {
             realm = jwtRealm
             verifier(UrlJwkProvider(URL(jwksUrl)), jwtIssuer)
             validate { credential ->
-                val validAudience = true
-                val validSubject = true
+                val validAudience = clientId in credential.payload.audience // should be ... su-se-bakover sin client_id
+                val groups = credential.payload.getClaim("groups").asList(String::class.java)
+                val validGroup = requiredGroup in groups
 
-                if (validAudience && validSubject) {
+                if (validAudience && validGroup) {
                     JWTPrincipal(credential.payload)
                 } else {
                     if (!validAudience) log.info("Invalid audience: ${credential.payload.audience}")
-                    if (!validSubject) log.info("Invalid subject: ${credential.payload.subject}")
+                    if (!validGroup) log.info("Subject in groups $groups, but not in required group $requiredGroup")
                     null
                 }
             }
