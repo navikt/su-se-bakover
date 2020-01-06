@@ -1,28 +1,47 @@
 package no.nav.su.se.bakover.nais
 
-import com.github.kittinunf.fuel.httpGet
-import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.testServer
+import io.ktor.config.MapApplicationConfig
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
+import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.susebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
+@KtorExperimentalAPI
 internal class NaisRoutesKtTest {
+
     @Test
     fun naisRoutes() {
-        testServer {
-            val (_, _, isalive) = "http://localhost:8088/isalive".httpGet().responseString()
-            assertEquals("ALIVE", isalive.get())
-
-            val (_, _, isready) = "http://localhost:8088/isready".httpGet().responseString()
-            assertEquals("READY", isready.get())
+        withTestApplication(
+            {
+                testEnv()
+                this.susebakover()
+            }
+        ) {
+            handleRequest(HttpMethod.Get, "/isalive").apply {
+                assertEquals(200, response.status()!!.value)
+                assertEquals("ALIVE", response.content!!)
+            }
+            handleRequest(HttpMethod.Get, "/isready").apply {
+                assertEquals(200, response.status()!!.value)
+                assertEquals("READY", response.content!!)
+            }
         }
     }
 
     @Test
-    fun httpCodes() {
-        testServer {
-            val (_, notFound, _) = "http://localhost:8088/notfound".httpGet().responseString()
-            assertEquals(HttpStatusCode.NotFound.value, notFound.statusCode)
+    fun notFound() {
+        withTestApplication(
+            {
+                testEnv()
+                this.susebakover()
+            }
+        ) {
+            handleRequest(HttpMethod.Get, "/notfound").apply {
+                assertEquals(false, requestHandled)
+            }
         }
     }
 }
