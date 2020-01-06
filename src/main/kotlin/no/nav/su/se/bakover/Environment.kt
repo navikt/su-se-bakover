@@ -14,4 +14,9 @@ data class Environment(
 private fun getEnvVar(varName: String) = getOptionalEnvVar(varName) ?: throw Exception("mangler verdi for $varName")
 
 private fun getOptionalEnvVar(varName: String): String? = System.getenv(varName)
+    val allowCorsOrigin: String = envVar(CORS_KEY)
+    val authorizedUsers: List<String> = envVar("ALLOWED_ROLES").split(",")
+    val azureTenant = envVar("AZURE_TENANT_ID")
+    val jwtIssuer: String = "https://login.microsoftonline.com/$azureTenant/v2.0"
+    val jwksUrl: String = "https://login.microsoftonline.com/$azureTenant/discovery/v2.0/keys"
 
