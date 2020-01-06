@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover
 
+const val corsKey: String = "ALLOW_CORS_ORIGIN"
+
 data class Environment(
-        val corsKey: String = "ALLOW_CORS_ORIGIN",
         val suPersonUrl: String = "http://su-person",
         val suInntektUrl: String = "http://su-inntekt",
         val oidcConfigUrl: String = getEnvVar("OIDC_CONFIG_URL"),

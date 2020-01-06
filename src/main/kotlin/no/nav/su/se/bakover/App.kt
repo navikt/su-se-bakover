@@ -39,8 +39,9 @@ fun Application.susebakover(env: Environment = Environment(), suPersonClient: Su
 
 fun main() {
     val app = embeddedServer(Netty, 8080) {
-        val suPersonClient = SuPersonClient()
-        val suInntektClient = SuInntektClient()
+        val env = Environment()
+        val suPersonClient = SuPersonClient(env)
+        val suInntektClient = SuInntektClient(env)
         susebakover(suPersonClient = suPersonClient, suInntektClient = suInntektClient)
     }.start(false)
 

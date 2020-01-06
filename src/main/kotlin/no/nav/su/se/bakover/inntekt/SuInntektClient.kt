@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.inntekt
 
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.Environment.Companion.SU_INNTEKT_URL
+import no.nav.su.se.bakover.Environment
 
-class SuInntektClient {
+class SuInntektClient(private val environment: Environment) {
     fun inntekt(): String {
-        val url = "$SU_INNTEKT_URL/inntekt"
+        val url = "${environment.suInntektUrl}/inntekt"
         val (_, _, result) = url.httpGet().responseString()
         return result.get()
     }
