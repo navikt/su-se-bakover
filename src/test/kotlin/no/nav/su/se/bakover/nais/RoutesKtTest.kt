@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.nais
 
-import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -12,7 +11,6 @@ import io.mockk.mockk
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.module
 import no.nav.su.se.bakover.person.SuPersonClient
-import no.nav.su.se.bakover.susebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
