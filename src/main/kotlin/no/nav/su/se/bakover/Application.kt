@@ -32,10 +32,12 @@ fun Application.module(
     setupAuthentication(
         jwksUrl = "https://login.microsoftonline.com/$azureTenant/discovery/v2.0/keys",
         jwtIssuer = "https://login.microsoftonline.com/$azureTenant/v2.0",
-        jwtRealm = "su-se-bakover",
         requiredGroup = fromEnvironment("azure.requiredGroup"),
-        clientId = fromEnvironment("azure.clientId")
+        clientId = fromEnvironment("azure.clientId"),
+        clientSecret = fromEnvironment("azure.clientSecret"),
+        tenant = azureTenant
     )
+    oauthRoutes()
     routing {
         get("/isalive") {
             call.respond("ALIVE")
@@ -43,7 +45,7 @@ fun Application.module(
         get("/isready") {
             call.respond("READY")
         }
-        authenticate {
+        authenticate("jwt") {
             get("/secretest") {
                 call.respond("This is the most secret: bla bla")
             }
