@@ -20,6 +20,8 @@ fun Application.susebakover() {
     )
 }
 
+const val personPath = "/person"
+
 @KtorExperimentalAPI
 fun Application.module(
         suPerson: SuPersonClient,
@@ -36,6 +38,7 @@ fun Application.module(
             tenant = fromEnvironment("azure.tenant")
     )
     oauthRoutes()
+
     routing {
         get("/isalive") {
             call.respond("ALIVE")
@@ -45,6 +48,9 @@ fun Application.module(
         }
         authenticate("jwt") {
             get("/secretest") {
+                call.respond("This is the most secret: bla bla")
+            }
+            get(personPath) {
                 call.respond("This is the most secret: bla bla")
             }
         }
