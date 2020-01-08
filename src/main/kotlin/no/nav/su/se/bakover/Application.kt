@@ -15,26 +15,23 @@ import no.nav.su.se.bakover.person.SuPersonClient
 @KtorExperimentalAPI
 fun Application.susebakover() {
     module(
-        SuPersonClient(fromEnvironment("integrations.suPerson.url")),
-        SuInntektClient(fromEnvironment("integrations.suInntekt.url"))
+            SuPersonClient(fromEnvironment("integrations.suPerson.url")),
+            SuInntektClient(fromEnvironment("integrations.suInntekt.url"))
     )
 }
 
 @KtorExperimentalAPI
 fun Application.module(
-    suPerson: SuPersonClient,
-    suInntekt: SuInntektClient
+        suPerson: SuPersonClient,
+        suInntekt: SuInntektClient
 ) {
     install(DefaultHeaders) {
         header("Access-Control-Allow-Origin", fromEnvironment("allowCorsOrigin"))
     }
-    val azureTenant = fromEnvironment("azure.tenant")
     setupAuthentication(
-        jwksUrl = "https://login.microsoftonline.com/$azureTenant/discovery/v2.0/keys",
-        jwtIssuer = "https://login.microsoftonline.com/$azureTenant/v2.0",
-        jwtRealm = "su-se-bakover",
-        requiredGroup = fromEnvironment("azure.requiredGroup"),
-        clientId = fromEnvironment("azure.clientId")
+            wellKnownUrl = fromEnvironment("azure.wellknownUrl"),
+            requiredGroup = fromEnvironment("azure.requiredGroup"),
+            clientId = fromEnvironment("azure.clientId")
     )
     routing {
         get("/isalive") {
@@ -52,7 +49,7 @@ fun Application.module(
             val person = suPerson.person()
             val inntekt = suInntekt.inntekt()
             call.respond(
-                """
+                    """
 {
     "greeting": "is it me you're looking for? great, cause i.. i.. i... i... I'm staying $person and i have $inntekt in the bank"
 }
