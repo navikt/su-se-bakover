@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.person
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.JwtStub
+import no.nav.su.se.bakover.nais.SU_PERSON_PATH
 import no.nav.su.se.bakover.nais.testEnv
 import no.nav.su.se.bakover.personPath
 import no.nav.su.se.bakover.susebakover
@@ -50,6 +52,29 @@ internal class PersonComponentTest {
             handleRequest(HttpMethod.Get, personPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
+        }
+    }
+
+    @Test
+    fun `kan hente persondata`() {
+        WireMock.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo("$SU_PERSON_PATH/isalive")).willReturn(
+                WireMock.ok("123")
+            )
+        )
+
+        val token = jwtStub.createTokenFor()
+
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            handleRequest(HttpMethod.Get, personPath) {
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }.apply {
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertEquals("123", response.content!!)
         }
     }
 

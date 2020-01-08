@@ -51,7 +51,7 @@ fun Application.module(
                 call.respond("This is the most secret: bla bla")
             }
             get(personPath) {
-                call.respond("This is the most secret: bla bla")
+                call.respond(suPerson.person())
             }
         }
         get("/hello") {
