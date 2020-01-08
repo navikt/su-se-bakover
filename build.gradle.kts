@@ -24,6 +24,8 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-json:$fuelVersion")
     implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
     implementation("org.json:json:$orgJsonVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion"){

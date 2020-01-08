@@ -31,8 +31,11 @@ fun Application.module(
     setupAuthentication(
             wellKnownUrl = fromEnvironment("azure.wellknownUrl"),
             requiredGroup = fromEnvironment("azure.requiredGroup"),
-            clientId = fromEnvironment("azure.clientId")
+            clientId = fromEnvironment("azure.clientId"),
+            clientSecret = fromEnvironment("azure.clientSecret"),
+            tenant = fromEnvironment("azure.tenant")
     )
+    oauthRoutes()
     routing {
         get("/isalive") {
             call.respond("ALIVE")
@@ -40,7 +43,7 @@ fun Application.module(
         get("/isready") {
             call.respond("READY")
         }
-        authenticate {
+        authenticate("jwt") {
             get("/secretest") {
                 call.respond("This is the most secret: bla bla")
             }

@@ -6,6 +6,7 @@ import io.ktor.config.MapApplicationConfig
 import io.ktor.util.KtorExperimentalAPI
 
 const val AZURE_CLIENT_ID = "clientId"
+const val AZURE_CLIENT_SECRET = "secret"
 const val AZURE_REQUIRED_GROUP = "su-group"
 const val AZURE_WELL_KNOWN_URL = "/.well-known"
 const val AZURE_JWKS_PATH = "/keys"
@@ -26,6 +27,7 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("azure.tenant", AZURE_TENANT)
         put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
         put("azure.clientId", AZURE_CLIENT_ID)
+        put("azure.clientSecret", AZURE_CLIENT_SECRET)
         put("azure.wellknownUrl", "$baseUrl$AZURE_WELL_KNOWN_URL")
         put("issuer", AZURE_ISSUER)
     }
