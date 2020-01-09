@@ -39,7 +39,7 @@ fun Application.module(
     install(CORS) {
         method(Options)
         header(Authorization)
-        host(fromEnvironment("cors.allow.origin"))
+        host(fromEnvironment("cors.allow.origin"), listOf("http","https"))
     }
 
     setupAuthentication(
