@@ -25,6 +25,8 @@ fun Application.susebakover() {
     )
 }
 
+const val personPath = "/person"
+
 @KtorExperimentalAPI
 fun Application.module(
         suPerson: SuPersonClient,
@@ -66,6 +68,9 @@ fun Application.module(
                         "data": "Congrats ${principal.getClaim("name").asString()}, you are successfully authenticated with a JWT token"
                     }
                 """.trimIndent())
+            }
+            get(personPath) {
+                call.respond(suPerson.person())
             }
         }
     }
