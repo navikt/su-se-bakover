@@ -19,6 +19,7 @@ const val SU_INNTEKT_PATH = "/inntekt"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
 
+
 @KtorExperimentalAPI
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.let { it.baseUrl() } ?: SU_FRONTEND_ORIGIN
