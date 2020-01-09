@@ -8,12 +8,26 @@ import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.features.CORS
 import io.ktor.features.CallLogging
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.metrics.micrometer.MicrometerMetrics
 import io.ktor.response.respond
+import io.ktor.response.respondTextWriter
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.exporter.common.TextFormat
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
 
@@ -32,6 +46,8 @@ fun Application.module(
         suPerson: SuPersonClient,
         suInntekt: SuInntektClient
 ) {
+    val collectorRegistry = CollectorRegistry.defaultRegistry
+
     install(CallLogging) {
         //default level TRACE
     }
@@ -40,6 +56,22 @@ fun Application.module(
         method(Options)
         header(Authorization)
         host(fromEnvironment("cors.allow.origin"))
+    }
+
+    install(MicrometerMetrics) {
+        registry = PrometheusMeterRegistry(
+                PrometheusConfig.DEFAULT,
+                collectorRegistry,
+                Clock.SYSTEM
+        )
+        meterBinders = listOf(
+                ClassLoaderMetrics(),
+                JvmMemoryMetrics(),
+                JvmGcMetrics(),
+                ProcessorMetrics(),
+                JvmThreadMetrics(),
+                LogbackMetrics()
+        )
     }
 
     setupAuthentication(
@@ -57,9 +89,18 @@ fun Application.module(
         get("/isalive") {
             call.respond("ALIVE")
         }
+
         get("/isready") {
             call.respond("READY")
         }
+
+        get("/metrics") {
+            val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: emptySet()
+            call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
+                TextFormat.write004(this, collectorRegistry.filteredMetricFamilySamples(names))
+            }
+        }
+
         authenticate("jwt") {
             get("/authenticated") {
                 var principal = (call.authentication.principal as JWTPrincipal).payload
