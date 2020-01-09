@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
@@ -19,13 +19,13 @@ import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 
-const val secureEndpoint = "/secretest"
+const val secureEndpoint = "/authenticated"
 
 @KtorExperimentalAPI
 internal class AuthenticationComponentTest {
 
     @Test
-    fun `secretest krever autentisering`() {
+    fun `secure endpoint krever autentisering`() {
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -37,7 +37,7 @@ internal class AuthenticationComponentTest {
     }
 
     @Test
-    fun `secretest ok med gyldig token`() {
+    fun `secure endpoint ok med gyldig token`() {
         val token = jwtStub.createTokenFor()
 
         withTestApplication({
@@ -48,7 +48,7 @@ internal class AuthenticationComponentTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            assertEquals(HttpStatusCode.OK, response.status())
+            assertEquals(OK, response.status())
         }
     }
 

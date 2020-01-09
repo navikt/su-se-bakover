@@ -19,11 +19,10 @@ internal class NaisRoutesKtTest {
 
     @Test
     fun naisRoutes() {
-        withTestApplication(
-                {
-                    testEnv(wireMockServer)
-                    susebakover()
-                }
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }
         ) {
             handleRequest(HttpMethod.Get, "/isalive").apply {
                 assertEquals(200, response.status()!!.value)

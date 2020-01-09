@@ -12,12 +12,9 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import io.ktor.http.Cookie
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
+import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondRedirect
-import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import org.json.JSONObject
@@ -32,7 +29,8 @@ fun Application.setupAuthentication(
         requiredGroup: String,
         clientId: String,
         clientSecret: String,
-        tenant: String
+        tenant: String,
+        backendCallbackUrl: String
 ) {
     install(Authentication) {
         oauth("azure") {
@@ -42,13 +40,13 @@ fun Application.setupAuthentication(
                         name = "azure",
                         authorizeUrl = "https://login.microsoftonline.com/$tenant/oauth2/authorize?resource=$clientId",
                         accessTokenUrl = "https://login.microsoftonline.com/$tenant/oauth2/token?resource=$clientId",
-                        requestMethod = HttpMethod.Post,
+                        requestMethod = Post,
                         clientId = clientId,
                         clientSecret = clientSecret,
                         defaultScopes = listOf("$clientId/.default", "openid")
                 )
             }
-            urlProvider = { "http://localhost:8080/callback" }
+            urlProvider = { backendCallbackUrl }
         }
 
         jwt("jwt") {
@@ -74,31 +72,15 @@ fun Application.setupAuthentication(
     }
 }
 
-fun Application.oauthRoutes() {
+fun Application.oauthRoutes(frontendRedirectUrl: String) {
     routing {
-
-        get("/whee") {
-            val cookie = call.request.cookies["isso"]
-            println(cookie)
-            call.respondText { "This is your cookie: \n$cookie" }
-        }
         authenticate("azure") {
-            get("/hemli") {
-                val principal: OAuthAccessTokenResponse.OAuth2 =
-                        call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
-                println(principal)
-                call.respond("this is secured by bill himself.")
+            get("/login") {
+                //Initiate login sequence
             }
             get("/callback") {
-                val principal = call.authentication.principal<OAuthAccessTokenResponse>()
-                call.response.cookies.append(
-                        Cookie(
-                                name = "isso",
-                                httpOnly = true,
-                                value = (principal as OAuthAccessTokenResponse.OAuth2).accessToken
-                        )
-                )
-                call.respondRedirect("/whee")
+                val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>()
+                call.respondRedirect("$frontendRedirectUrl#${(tokenResponse as OAuthAccessTokenResponse.OAuth2).accessToken}")
             }
         }
     }
@@ -106,7 +88,7 @@ fun Application.oauthRoutes() {
 
 private fun getJWKConfig(oidcConfigUrl: String): JSONObject {
     val (_, response, result) = oidcConfigUrl.httpGet().responseJson()
-    if (response.statusCode != HttpStatusCode.OK.value) {
+    if (response.statusCode != OK.value) {
         throw RuntimeException("Could not get JWK config from url ${oidcConfigUrl}, got statuscode=${response.statusCode}")
     } else {
         return result.get().obj()

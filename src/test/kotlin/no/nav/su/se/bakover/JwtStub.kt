@@ -29,7 +29,7 @@ class JwtStub(private val wireMockServer: WireMockServer) {
 
     fun createTokenFor(
             subject: String = SUBJECT,
-            groups: List<String> = listOf(AZURE_REQUIRED_GROUP),
+            groups: List<String> = listOf(OIDC_REQUIRED_GROUP),
             audience: String = AZURE_CLIENT_ID,
             expiresAt: Date = Date.from(Instant.now().plusSeconds(3600))
     ): String {

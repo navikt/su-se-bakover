@@ -4,7 +4,12 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
-import io.ktor.features.DefaultHeaders
+import io.ktor.auth.authentication
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.features.CORS
+import io.ktor.features.CallLogging
+import io.ktor.http.HttpHeaders.Authorization
+import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -25,17 +30,27 @@ fun Application.module(
         suPerson: SuPersonClient,
         suInntekt: SuInntektClient
 ) {
-    install(DefaultHeaders) {
-        header("Access-Control-Allow-Origin", fromEnvironment("allowCorsOrigin"))
+    install(CallLogging) {
+        //default level TRACE
     }
+
+    install(CORS) {
+        method(Options)
+        header(Authorization)
+        host(fromEnvironment("cors.allow.origin"))
+    }
+
     setupAuthentication(
             wellKnownUrl = fromEnvironment("azure.wellknownUrl"),
             requiredGroup = fromEnvironment("azure.requiredGroup"),
             clientId = fromEnvironment("azure.clientId"),
             clientSecret = fromEnvironment("azure.clientSecret"),
-            tenant = fromEnvironment("azure.tenant")
+            tenant = fromEnvironment("azure.tenant"),
+            backendCallbackUrl = fromEnvironment("azure.backendCallbackUrl")
     )
-    oauthRoutes()
+    oauthRoutes(
+            frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl")
+    )
     routing {
         get("/isalive") {
             call.respond("ALIVE")
@@ -44,20 +59,14 @@ fun Application.module(
             call.respond("READY")
         }
         authenticate("jwt") {
-            get("/secretest") {
-                call.respond("This is the most secret: bla bla")
+            get("/authenticated") {
+                var principal = (call.authentication.principal as JWTPrincipal).payload
+                call.respond("""
+                    {
+                        "data": "Congrats ${principal.getClaim("name").asString()}, you are successfully authenticated with a JWT token"
+                    }
+                """.trimIndent())
             }
-        }
-        get("/hello") {
-            val person = suPerson.person()
-            val inntekt = suInntekt.inntekt()
-            call.respond(
-                    """
-{
-    "greeting": "is it me you're looking for? great, cause i.. i.. i... i... I'm staying $person and i have $inntekt in the bank"
-}
-""".trimIndent()
-            )
         }
     }
 }
