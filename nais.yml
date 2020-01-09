@@ -9,6 +9,7 @@ spec:
    image: {{ image }}
    ingresses:
       - {{ ingress }}
+   webproxy: true
    vault:
       enabled: true
       paths:
