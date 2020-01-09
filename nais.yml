@@ -10,6 +10,9 @@ spec:
    ingresses:
       - {{ ingress }}
    webproxy: true
+   prometheus:
+      enabled: true
+      path: /metrics
    vault:
       enabled: true
       paths:
