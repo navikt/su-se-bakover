@@ -7,6 +7,8 @@ metadata:
       team: supstonad
 spec:
    image: {{ image }}
+   replicas:
+      min: 1
    ingresses:
       - {{ ingress }}
    webproxy: true
