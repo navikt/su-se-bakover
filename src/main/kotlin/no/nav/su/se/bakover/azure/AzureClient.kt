@@ -18,7 +18,7 @@ class AzureClient(
     }
 
     fun exchangeToken(toExchange: String): String {
-        var (_, _, result) = tokenEndpoint.httpPost()
+        val (_, _, result) = tokenEndpoint.httpPost()
                 .header(ContentType, FormUrlEncoded)
                 .body(JSONObject(mapOf(
                         "grant_type" to GRANT_TYPE,

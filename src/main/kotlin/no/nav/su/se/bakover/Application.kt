@@ -42,6 +42,7 @@ fun Application.susebakover() {
 }
 
 const val personPath = "/person"
+const val inntektPath = "/inntekt"
 const val identLabel = "ident"
 
 @KtorExperimentalAPI
@@ -111,17 +112,23 @@ fun Application.module(
         }
 
         authenticate("jwt") {
-            get("/authenticated") {
-                var principal = (call.authentication.principal as JWTPrincipal).payload
+            get(path = "/authenticated") {
+                val principal = (call.authentication.principal as JWTPrincipal).payload
                 call.respond("""
                     {
                         "data": "Congrats ${principal.getClaim("name").asString()}, you are successfully authenticated with a JWT token"
                     }
                 """.trimIndent())
             }
-            get(personPath) {
+
+            get(path = personPath) {
                     val suPersonToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
                     call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
+            }
+
+            get(path = inntektPath) {
+                val suInntektToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
+                call.respond(suInntekt.inntekt(ident = call.parameters[identLabel]!!, suInntektToken = suInntektToken))
             }
         }
     }
