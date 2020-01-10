@@ -11,6 +11,8 @@ import java.security.interfaces.RSAPublicKey
 import java.time.Instant
 import java.util.*
 
+const val ON_BEHALF_OF_TOKEN = "ONBEHALFOFTOKEN"
+
 class JwtStub(private val wireMockServer: WireMockServer) {
     private val privateKey: RSAPrivateKey
     private val publicKey: RSAPublicKey
@@ -72,4 +74,15 @@ class JwtStub(private val wireMockServer: WireMockServer) {
 """.trimIndent()
             )
     )
+
+    fun stubbedTokenExchange() = WireMock.post(WireMock.urlPathEqualTo(AZURE_WELL_KNOWN_URL)).willReturn(
+        WireMock.okJson("""
+{
+    "jwks_uri": "${wireMockServer.baseUrl()}$AZURE_JWKS_PATH",
+    "access_token": "$ON_BEHALF_OF_TOKEN"
+}
+""".trimIndent()
+        )
+    )
+
 }

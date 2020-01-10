@@ -12,6 +12,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.metrics.micrometer.MicrometerMetrics
+import io.ktor.request.authorization
 import io.ktor.response.respond
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.get
@@ -28,6 +29,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
+import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
 
@@ -55,7 +57,7 @@ fun Application.module(
     install(CORS) {
         method(Options)
         header(Authorization)
-        host(fromEnvironment("cors.allow.origin"), listOf("http","https"))
+        host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
     }
 
     install(MicrometerMetrics) {
@@ -73,6 +75,12 @@ fun Application.module(
                 LogbackMetrics()
         )
     }
+
+    val azureClient = AzureClient(
+        fromEnvironment("azure.clientId"),
+        fromEnvironment("azure.clientSecret"),
+        fromEnvironment("azure.wellknownUrl")
+    )
 
     setupAuthentication(
             wellKnownUrl = fromEnvironment("azure.wellknownUrl"),
@@ -111,7 +119,10 @@ fun Application.module(
                 """.trimIndent())
             }
             get(personPath) {
-                call.respond(suPerson.person())
+                call.request.authorization()?.let { suBakoverToken: String ->
+                    val suPersonToken = azureClient.exchangeToken(suBakoverToken)
+                    call.respond(suPerson.person(suPersonToken))
+                } ?: throw Exception("Dette var uventet - Fant ikke token på innkommende kall")
             }
         }
     }

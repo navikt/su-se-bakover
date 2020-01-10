@@ -2,14 +2,16 @@ package no.nav.su.se.bakover.person
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.JwtStub
+import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.nais.SU_PERSON_PATH
 import no.nav.su.se.bakover.nais.testEnv
 import no.nav.su.se.bakover.personPath
@@ -34,6 +36,7 @@ internal class PersonComponentTest {
             wireMockServer.start()
             WireMock.stubFor(jwtStub.stubbedJwkProvider())
             WireMock.stubFor(jwtStub.stubbedConfigProvider())
+            WireMock.stubFor(jwtStub.stubbedTokenExchange())
         }
 
         @AfterAll
@@ -58,8 +61,10 @@ internal class PersonComponentTest {
     @Test
     fun `kan hente persondata`() {
         WireMock.stubFor(
-            WireMock.get(WireMock.urlPathEqualTo("$SU_PERSON_PATH/isalive")).willReturn(
-                WireMock.ok("123")
+            get(urlPathEqualTo("$SU_PERSON_PATH/isalive"))
+                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .willReturn(
+                ok("123")
             )
         )
 
@@ -70,7 +75,7 @@ internal class PersonComponentTest {
             susebakover()
         }) {
             handleRequest(HttpMethod.Get, personPath) {
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
+                addHeader(Authorization, "Bearer $token")
             }
         }.apply {
             assertEquals(HttpStatusCode.OK, response.status())
