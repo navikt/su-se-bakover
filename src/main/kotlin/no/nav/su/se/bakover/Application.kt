@@ -12,7 +12,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.metrics.micrometer.MicrometerMetrics
-import io.ktor.request.authorization
+import io.ktor.request.header
 import io.ktor.response.respond
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.get
@@ -42,6 +42,7 @@ fun Application.susebakover() {
 }
 
 const val personPath = "/person"
+const val identLabel = "ident"
 
 @KtorExperimentalAPI
 fun Application.module(
@@ -119,10 +120,8 @@ fun Application.module(
                 """.trimIndent())
             }
             get(personPath) {
-                call.request.authorization()?.let { suBakoverToken: String ->
-                    val suPersonToken = azureClient.exchangeToken(suBakoverToken)
-                    call.respond(suPerson.person(suPersonToken))
-                } ?: throw Exception("Dette var uventet - Fant ikke token på innkommende kall")
+                    val suPersonToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
+                    call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
             }
         }
     }

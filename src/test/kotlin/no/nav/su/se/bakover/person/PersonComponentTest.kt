@@ -10,12 +10,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.JwtStub
-import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.nais.SU_PERSON_PATH
 import no.nav.su.se.bakover.nais.testEnv
-import no.nav.su.se.bakover.personPath
-import no.nav.su.se.bakover.susebakover
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -60,12 +57,14 @@ internal class PersonComponentTest {
 
     @Test
     fun `kan hente persondata`() {
+        val testIdent = "12345678910"
         WireMock.stubFor(
-            get(urlPathEqualTo("$SU_PERSON_PATH/isalive"))
+            get(urlPathEqualTo(SU_PERSON_PATH))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .withQueryParam(suPersonIdentLabel, equalTo(testIdent))
                 .willReturn(
-                ok("123")
-            )
+                    okJson("""{"ident"="$testIdent"}""")
+                )
         )
 
         val token = jwtStub.createTokenFor()
@@ -74,12 +73,12 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(HttpMethod.Get, personPath) {
+            handleRequest(HttpMethod.Get, "$personPath?$identLabel=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
             assertEquals(HttpStatusCode.OK, response.status())
-            assertEquals("123", response.content!!)
+            assertEquals("""{"ident"="$testIdent"}""", response.content!!)
         }
     }
 
