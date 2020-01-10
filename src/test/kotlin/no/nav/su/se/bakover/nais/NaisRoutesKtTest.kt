@@ -32,6 +32,9 @@ internal class NaisRoutesKtTest {
                 assertEquals(200, response.status()!!.value)
                 assertEquals("READY", response.content!!)
             }
+            handleRequest(HttpMethod.Get, "/metrics").apply {
+                assertEquals(200, response.status()!!.value)
+            }
         }
     }
 
