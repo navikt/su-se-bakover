@@ -9,13 +9,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.JwtStub
-import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.nais.DEFAULT_CALL_ID
-import no.nav.su.se.bakover.nais.SU_PERSON_PATH
 import no.nav.su.se.bakover.nais.testEnv
 import no.nav.su.se.bakover.nais.withDefaultHeaders
-import no.nav.su.se.bakover.susebakover
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -39,10 +36,10 @@ internal class PersonComponentTest {
     @Test
     fun `kan hente persondata`() {
         val testIdent = "12345678910"
-        stubFor(get(urlPathEqualTo(SU_PERSON_PATH))
+        stubFor(get(urlPathEqualTo("/person"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
                 .withHeader(XRequestId, equalTo(DEFAULT_CALL_ID))
-                .withQueryParam(suPersonIdentLabel, equalTo(testIdent))
+                .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(
                         okJson("""{"ident"="$testIdent"}""")
                 )

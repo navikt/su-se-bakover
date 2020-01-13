@@ -12,7 +12,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.JwtStub
 import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.nais.DEFAULT_CALL_ID
-import no.nav.su.se.bakover.nais.SU_INNTEKT_PATH
 import no.nav.su.se.bakover.nais.testEnv
 import no.nav.su.se.bakover.nais.withDefaultHeaders
 import no.nav.su.se.bakover.susebakover
@@ -39,10 +38,10 @@ internal class InntektComponentTest {
     @Test
     fun `kan hente inntekt`() {
         val testIdent = "12345678910"
-        stubFor(get(urlPathEqualTo(SU_INNTEKT_PATH))
+        stubFor(get(urlPathEqualTo("/inntekt"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
                 .withHeader(XRequestId, equalTo(DEFAULT_CALL_ID))
-                .withQueryParam(suInntektIdentLabel, equalTo(testIdent))
+                .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(
                         okJson("""{"ident"="$testIdent"}""")
                 )
