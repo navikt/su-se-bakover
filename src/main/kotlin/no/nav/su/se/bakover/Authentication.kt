@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover
 
-import com.auth0.jwk.JwkProviderBuilder
-import com.github.kittinunf.fuel.httpGet
-import com.github.kittinunf.fuel.json.responseJson
+import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -12,25 +10,19 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
+import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
-import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.util.KtorExperimentalAPI
 import org.json.JSONObject
-import java.net.URL
 
-private const val ISSUER = "issuer"
-private const val JWKS_URI = "jwks_uri"
-private const val JWT_REALM = "su-se-bakover"
-
+@KtorExperimentalAPI
 fun Application.setupAuthentication(
-        wellKnownUrl: String,
-        requiredGroup: String,
-        clientId: String,
-        clientSecret: String,
-        tenant: String,
-        backendCallbackUrl: String
+        jwkConfig: JSONObject,
+        jwkProvider: JwkProvider,
+        config: ApplicationConfig
 ) {
     install(Authentication) {
         oauth("azure") {
@@ -38,33 +30,29 @@ fun Application.setupAuthentication(
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                         name = "azure",
-                        authorizeUrl = "https://login.microsoftonline.com/$tenant/oauth2/authorize?resource=$clientId",
-                        accessTokenUrl = "https://login.microsoftonline.com/$tenant/oauth2/token?resource=$clientId",
+                        authorizeUrl = jwkConfig.getString("authorization_endpoint"),
+                        accessTokenUrl = jwkConfig.getString("token_endpoint"),
                         requestMethod = Post,
-                        clientId = clientId,
-                        clientSecret = clientSecret,
-                        defaultScopes = listOf("$clientId/.default", "openid")
+                        clientId = config.getProperty("azure.clientId"),
+                        clientSecret = config.getProperty("azure.clientSecret"),
+                        defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid")
                 )
             }
-            urlProvider = { backendCallbackUrl }
+            urlProvider = { config.getProperty("azure.backendCallbackUrl") }
         }
 
         jwt("jwt") {
-            val jwkConfig = getJWKConfig(wellKnownUrl)
-            val jwkProvider = JwkProviderBuilder(URL(jwkConfig.getString(JWKS_URI))).build()
-
-            realm = JWT_REALM
-            verifier(jwkProvider, jwkConfig.getString(ISSUER))
+            verifier(jwkProvider, jwkConfig.getString("issuer"))
             validate { credential ->
-                val validAudience = clientId in credential.payload.audience
+                val validAudience = config.getProperty("azure.clientId") in credential.payload.audience
                 val groups = credential.payload.getClaim("groups").asList(String::class.java)
-                val validGroup = requiredGroup in groups
+                val validGroup = config.getProperty("azure.requiredGroup") in groups
 
                 if (validAudience && validGroup) {
                     JWTPrincipal(credential.payload)
                 } else {
                     if (!validAudience) log.info("Invalid audience: ${credential.payload.audience}")
-                    if (!validGroup) log.info("Subject in groups $groups, but not in required group $requiredGroup")
+                    if (!validGroup) log.info("Subject in groups $groups, but not in required group")
                     null
                 }
             }
@@ -83,14 +71,5 @@ fun Application.oauthRoutes(frontendRedirectUrl: String) {
                 call.respondRedirect("$frontendRedirectUrl#${(tokenResponse as OAuthAccessTokenResponse.OAuth2).accessToken}")
             }
         }
-    }
-}
-
-private fun getJWKConfig(oidcConfigUrl: String): JSONObject {
-    val (_, response, result) = oidcConfigUrl.httpGet().responseJson()
-    if (response.statusCode != OK.value) {
-        throw RuntimeException("Could not get JWK config from url ${oidcConfigUrl}, got statuscode=${response.statusCode}")
-    } else {
-        return result.get().obj()
     }
 }

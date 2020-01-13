@@ -75,14 +75,18 @@ class JwtStub(private val wireMockServer: WireMockServer) {
             )
     )
 
-    fun stubbedTokenExchange() = WireMock.post(WireMock.urlPathEqualTo(AZURE_WELL_KNOWN_URL)).willReturn(
-        WireMock.okJson("""
+    fun stubbedTokenExchange() = WireMock.post(WireMock.urlPathEqualTo(AZURE_TOKEN_URL)).willReturn(
+            WireMock.okJson("""
 {
-    "jwks_uri": "${wireMockServer.baseUrl()}$AZURE_JWKS_PATH",
-    "access_token": "$ON_BEHALF_OF_TOKEN"
+  "token_type": "Bearer",
+  "scope": "exchanged scope",
+  "expires_in": 3269,
+  "ext_expires_in": 0,
+  "access_token": "ONBEHALFOFTOKEN",
+  "refresh_token": "exchanged refresh token"
 }
 """.trimIndent()
-        )
+            )
     )
 
 }

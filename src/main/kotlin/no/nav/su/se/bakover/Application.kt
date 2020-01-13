@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover
 
+import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.config.ApplicationConfig
 import io.ktor.features.CORS
 import io.ktor.features.CallLogging
 import io.ktor.http.ContentType
@@ -30,8 +32,10 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
+import java.net.URL
 
 @KtorExperimentalAPI
 fun Application.susebakover() {
@@ -77,19 +81,19 @@ fun Application.module(
         )
     }
 
+    val jwkConfig = getJWKConfig(fromEnvironment("azure.wellknownUrl"))
+    val jwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
+
     val azureClient = AzureClient(
-        fromEnvironment("azure.clientId"),
-        fromEnvironment("azure.clientSecret"),
-        fromEnvironment("azure.wellknownUrl")
+            fromEnvironment("azure.clientId"),
+            fromEnvironment("azure.clientSecret"),
+            jwkConfig.getString("token_endpoint")
     )
 
     setupAuthentication(
-            wellKnownUrl = fromEnvironment("azure.wellknownUrl"),
-            requiredGroup = fromEnvironment("azure.requiredGroup"),
-            clientId = fromEnvironment("azure.clientId"),
-            clientSecret = fromEnvironment("azure.clientSecret"),
-            tenant = fromEnvironment("azure.tenant"),
-            backendCallbackUrl = fromEnvironment("azure.backendCallbackUrl")
+            jwkConfig = jwkConfig,
+            jwkProvider = jwkProvider,
+            config = environment.config
     )
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl")
@@ -120,8 +124,8 @@ fun Application.module(
                 """.trimIndent())
             }
             get(personPath) {
-                    val suPersonToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
-                    call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
+                val suPersonToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
+                call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
             }
         }
     }
@@ -129,5 +133,8 @@ fun Application.module(
 
 @KtorExperimentalAPI
 fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
+
+@KtorExperimentalAPI
+fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)

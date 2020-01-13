@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.person
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
@@ -31,9 +30,9 @@ internal class PersonComponentTest {
         @JvmStatic
         fun start() {
             wireMockServer.start()
-            WireMock.stubFor(jwtStub.stubbedJwkProvider())
-            WireMock.stubFor(jwtStub.stubbedConfigProvider())
-            WireMock.stubFor(jwtStub.stubbedTokenExchange())
+            stubFor(jwtStub.stubbedJwkProvider())
+            stubFor(jwtStub.stubbedConfigProvider())
+            stubFor(jwtStub.stubbedTokenExchange())
         }
 
         @AfterAll
@@ -58,13 +57,13 @@ internal class PersonComponentTest {
     @Test
     fun `kan hente persondata`() {
         val testIdent = "12345678910"
-        WireMock.stubFor(
-            get(urlPathEqualTo(SU_PERSON_PATH))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withQueryParam(suPersonIdentLabel, equalTo(testIdent))
-                .willReturn(
-                    okJson("""{"ident"="$testIdent"}""")
-                )
+        stubFor(
+                get(urlPathEqualTo(SU_PERSON_PATH))
+                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withQueryParam(suPersonIdentLabel, equalTo(testIdent))
+                        .willReturn(
+                                okJson("""{"ident"="$testIdent"}""")
+                        )
         )
 
         val token = jwtStub.createTokenFor()

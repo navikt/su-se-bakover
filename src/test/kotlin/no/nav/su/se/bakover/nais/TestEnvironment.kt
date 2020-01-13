@@ -11,8 +11,8 @@ const val AZURE_REQUIRED_GROUP = "su-group"
 const val AZURE_WELL_KNOWN_URL = "/.well-known"
 const val AZURE_JWKS_PATH = "/keys"
 const val AZURE_ISSUER = "azure"
-const val AZURE_TENANT = "tenant"
 const val AZURE_BACKEND_CALLBACK_URL = "/callback"
+const val AZURE_TOKEN_URL = "/token"
 const val SUBJECT = "enSaksbehandler"
 const val SU_PERSON_PATH = "/person"
 const val SU_INNTEKT_PATH = "/inntekt"
@@ -28,7 +28,6 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("integrations.suPerson.url", "$baseUrl$SU_PERSON_PATH")
         put("integrations.suInntekt.url", "$baseUrl$SU_INNTEKT_PATH")
         put("integrations.suSeFramover.redirectUrl", "$baseUrl$SU_FRONTEND_REDIRECT_URL")
-        put("azure.tenant", AZURE_TENANT)
         put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
         put("azure.clientId", AZURE_CLIENT_ID)
         put("azure.clientSecret", AZURE_CLIENT_SECRET)

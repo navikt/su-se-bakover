@@ -4,7 +4,6 @@
   "cluster": "prod",
   "env": {
     "ALLOW_CORS_ORIGIN": "su-se-framover.nais.adeo.no",
-    "AZURE_TENANT_ID": "62366534-1ec3-4962-8869-9b5535279d0b",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.adeo.no/callback",
     "FRONTEND_REDIRECT_URL": "https://su-se-framover.nais.adeo.no/auth/complete"
   }

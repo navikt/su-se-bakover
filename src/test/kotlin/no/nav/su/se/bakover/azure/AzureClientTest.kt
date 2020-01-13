@@ -14,7 +14,7 @@ const val CLIENT_ID = "clientId"
 const val CLIENT_SECRET = "clientSecret"
 const val TOKEN_TO_EXCHANGE = "eyJabc123"
 const val EXCHANGED_TOKEN = "exchanged"
-const val TOKEN_ENDPOINT_PATH = "/tenant/oauth2/v2.0/token"
+const val TOKEN_ENDPOINT_PATH = "/oauth2/v2.0/token"
 
 internal class AzureClientKtTest {
 
