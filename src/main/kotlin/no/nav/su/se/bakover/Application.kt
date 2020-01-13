@@ -13,7 +13,6 @@ import io.ktor.features.*
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
-import io.ktor.request.header
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -22,7 +21,9 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.inntekt.SuInntektClient
+import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.SuPersonClient
+import no.nav.su.se.bakover.person.personRoutes
 import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
@@ -35,14 +36,10 @@ fun Application.susebakover() {
     )
 }
 
-const val personPath = "/person"
-const val inntektPath = "/inntekt"
-const val identLabel = "ident"
-
 @KtorExperimentalAPI
 fun Application.module(
-        suPerson: SuPersonClient,
-        suInntekt: SuInntektClient
+        personClient: SuPersonClient,
+        inntektClient: SuInntektClient
 ) {
 
     install(CORS) {
@@ -97,15 +94,9 @@ fun Application.module(
                     }
                 """.trimIndent())
             }
-            get(personPath) {
-                val suPersonToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, fromEnvironment("integrations.suPerson.clientId"))
-                call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
-            }
 
-            get(path = inntektPath) {
-                val suInntektToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, fromEnvironment("integrations.suInntekt.clientId"))
-                call.respond(suInntekt.inntekt(ident = call.parameters[identLabel]!!, suInntektToken = suInntektToken))
-            }
+            personRoutes(environment.config, azureClient, personClient)
+            inntektRoutes(environment.config, azureClient, inntektClient)
         }
     }
 }

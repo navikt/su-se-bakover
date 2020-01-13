@@ -8,10 +8,12 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.JwtStub
+import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.nais.SU_INNTEKT_PATH
 import no.nav.su.se.bakover.nais.testEnv
 import no.nav.su.se.bakover.nais.withDefaultHeaders
+import no.nav.su.se.bakover.susebakover
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
