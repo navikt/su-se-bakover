@@ -1,18 +1,17 @@
 package no.nav.su.se.bakover.inntekt
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.nais.SU_INNTEKT_PATH
 import no.nav.su.se.bakover.nais.testEnv
+import no.nav.su.se.bakover.nais.withDefaultHeaders
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -49,7 +48,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(HttpMethod.Get, inntektPath)
+            withDefaultHeaders(HttpMethod.Get, inntektPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -59,12 +58,12 @@ internal class InntektComponentTest {
     fun `kan hente inntekt`() {
         val testIdent = "12345678910"
         stubFor(
-            get(urlPathEqualTo(SU_INNTEKT_PATH))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withQueryParam(suInntektIdentLabel, equalTo(testIdent))
-                .willReturn(
-                    okJson("""{"ident"="$testIdent"}""")
-                )
+                get(urlPathEqualTo(SU_INNTEKT_PATH))
+                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withQueryParam(suInntektIdentLabel, equalTo(testIdent))
+                        .willReturn(
+                                okJson("""{"ident"="$testIdent"}""")
+                        )
         )
 
         val token = jwtStub.createTokenFor()
@@ -73,7 +72,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(HttpMethod.Get, "$inntektPath?$identLabel=$testIdent") {
+            withDefaultHeaders(HttpMethod.Get, "$inntektPath?$identLabel=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

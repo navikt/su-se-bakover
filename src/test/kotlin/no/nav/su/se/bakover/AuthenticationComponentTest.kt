@@ -7,10 +7,10 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.nais.testEnv
+import no.nav.su.se.bakover.nais.withDefaultHeaders
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -30,7 +30,7 @@ internal class AuthenticationComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(Get, secureEndpoint)
+            withDefaultHeaders(Get, secureEndpoint)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -44,7 +44,7 @@ internal class AuthenticationComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(Get, secureEndpoint) {
+            withDefaultHeaders(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -60,7 +60,7 @@ internal class AuthenticationComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(Get, secureEndpoint) {
+            withDefaultHeaders(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -76,7 +76,7 @@ internal class AuthenticationComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(Get, secureEndpoint) {
+            withDefaultHeaders(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -92,7 +92,7 @@ internal class AuthenticationComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(Get, secureEndpoint) {
+            withDefaultHeaders(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

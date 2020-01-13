@@ -6,12 +6,12 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.nais.SU_PERSON_PATH
 import no.nav.su.se.bakover.nais.testEnv
+import no.nav.su.se.bakover.nais.withDefaultHeaders
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -48,7 +48,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(HttpMethod.Get, personPath)
+            withDefaultHeaders(HttpMethod.Get, personPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -72,7 +72,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            handleRequest(HttpMethod.Get, "$personPath?$identLabel=$testIdent") {
+            withDefaultHeaders(HttpMethod.Get, "$personPath?$identLabel=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

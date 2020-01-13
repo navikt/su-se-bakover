@@ -3,6 +3,12 @@ package no.nav.su.se.bakover.nais
 import com.github.tomakehurst.wiremock.WireMockServer
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.TestApplicationCall
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.TestApplicationRequest
+import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -38,5 +44,16 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("azure.wellknownUrl", "$baseUrl$AZURE_WELL_KNOWN_URL")
         put("azure.backendCallbackUrl", "$baseUrl$AZURE_BACKEND_CALLBACK_URL")
         put("issuer", AZURE_ISSUER)
+    }
+}
+
+fun TestApplicationEngine.withDefaultHeaders(
+        method: HttpMethod,
+        uri: String,
+        setup: TestApplicationRequest.() -> Unit = {}
+): TestApplicationCall {
+    return handleRequest(method, uri) {
+        addHeader(HttpHeaders.XRequestId, "callId")
+        setup()
     }
 }

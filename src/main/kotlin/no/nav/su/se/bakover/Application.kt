@@ -9,9 +9,12 @@ import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
 import io.ktor.features.CORS
+import io.ktor.features.CallId
 import io.ktor.features.CallLogging
+import io.ktor.features.RejectedCallIdException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
+import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.metrics.micrometer.MicrometerMetrics
 import io.ktor.request.header
@@ -35,6 +38,7 @@ import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
+import org.slf4j.event.Level
 import java.net.URL
 
 @KtorExperimentalAPI
@@ -56,8 +60,10 @@ fun Application.module(
 ) {
     val collectorRegistry = CollectorRegistry.defaultRegistry
 
+
     install(CallLogging) {
         //default level TRACE
+        level = Level.INFO
     }
 
     install(CORS) {
@@ -116,6 +122,13 @@ fun Application.module(
         }
 
         authenticate("jwt") {
+            install(CallId) {
+                header(XRequestId)
+                generate { "invalid" }
+                verify { callId: String ->
+                    if (callId == "invalid") throw RejectedCallIdException(callId) else true
+                }
+            }
             get(path = "/authenticated") {
                 val principal = (call.authentication.principal as JWTPrincipal).payload
                 call.respond("""
