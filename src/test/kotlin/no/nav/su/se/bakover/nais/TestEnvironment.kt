@@ -26,6 +26,7 @@ const val SU_INNTEKT_PATH = "/inntekt"
 const val SU_INNTEKT_AZURE_CLIENT_ID = "inntektClientId"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
+const val DEFAULT_CALL_ID = "callId"
 
 
 @KtorExperimentalAPI
@@ -53,7 +54,7 @@ fun TestApplicationEngine.withDefaultHeaders(
         setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
-        addHeader(HttpHeaders.XRequestId, "callId")
+        addHeader(HttpHeaders.XRequestId, DEFAULT_CALL_ID)
         setup()
     }
 }
