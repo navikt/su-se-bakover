@@ -15,7 +15,9 @@ const val AZURE_BACKEND_CALLBACK_URL = "/callback"
 const val AZURE_TOKEN_URL = "/token"
 const val SUBJECT = "enSaksbehandler"
 const val SU_PERSON_PATH = "/person"
+const val SU_PERSON_AZURE_CLIENT_ID = "personClientId"
 const val SU_INNTEKT_PATH = "/inntekt"
+const val SU_INNTEKT_AZURE_CLIENT_ID = "inntektClientId"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
 
@@ -26,7 +28,9 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suPerson.url", "$baseUrl$SU_PERSON_PATH")
+        put("integrations.suPerson.clientId", SU_PERSON_AZURE_CLIENT_ID)
         put("integrations.suInntekt.url", "$baseUrl$SU_INNTEKT_PATH")
+        put("integrations.suInntekt.clientId", SU_INNTEKT_AZURE_CLIENT_ID)
         put("integrations.suSeFramover.redirectUrl", "$baseUrl$SU_FRONTEND_REDIRECT_URL")
         put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
         put("azure.clientId", AZURE_CLIENT_ID)

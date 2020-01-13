@@ -125,12 +125,12 @@ fun Application.module(
                 """.trimIndent())
             }
             get(personPath) {
-                val suPersonToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
+                val suPersonToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, fromEnvironment("integrations.suPerson.clientId"))
                 call.respond(suPerson.person(ident = call.parameters[identLabel]!!, suPersonToken = suPersonToken))
             }
 
             get(path = inntektPath) {
-                val suInntektToken = azureClient.exchangeToken(call.request.header(Authorization)!!)
+                val suInntektToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, fromEnvironment("integrations.suInntekt.clientId"))
                 call.respond(suInntekt.inntekt(ident = call.parameters[identLabel]!!, suInntektToken = suInntektToken))
             }
         }

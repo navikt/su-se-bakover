@@ -20,15 +20,15 @@ class AzureClient(
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    fun exchangeToken(toExchange: String): String {
+    fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
         val (_, _, result) = tokenEndpoint.httpPost()
                 .header(ContentType, FormUrlEncoded)
                 .body(JSONObject(mapOf(
                         "grant_type" to GRANT_TYPE,
                         "client_id" to clientId,
                         "client_secret" to clientSecret,
-                        "assertion" to toExchange,
-                        "scope" to "some scope",
+                        "assertion" to originalToken,
+                        "scope" to "api://$otherAppId",
                         "requested_token_use" to REQUESTED_TOKEN_USE
                 )).toString()).responseString()
 
