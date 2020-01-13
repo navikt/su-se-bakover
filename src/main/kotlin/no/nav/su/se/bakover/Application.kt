@@ -2,16 +2,14 @@ package no.nav.su.se.bakover
 
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
-import io.ktor.features.CORS
-import io.ktor.features.CallId
-import io.ktor.features.CallLogging
-import io.ktor.features.RejectedCallIdException
+import io.ktor.features.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
@@ -38,6 +36,7 @@ import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
+import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
 
@@ -59,12 +58,6 @@ fun Application.module(
         suInntekt: SuInntektClient
 ) {
     val collectorRegistry = CollectorRegistry.defaultRegistry
-
-
-    install(CallLogging) {
-        //default level TRACE
-        level = Level.INFO
-    }
 
     install(CORS) {
         method(Options)
@@ -129,6 +122,13 @@ fun Application.module(
                     if (callId == "invalid") throw RejectedCallIdException(callId) else true
                 }
             }
+            install(CallLogging) {
+                level = Level.INFO
+                intercept(ApplicationCallPipeline.Monitoring) {
+                    MDC.put(XRequestId, call.callId)
+                }
+            }
+
             get(path = "/authenticated") {
                 val principal = (call.authentication.principal as JWTPrincipal).payload
                 call.respond("""
