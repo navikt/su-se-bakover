@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import no.nav.su.se.bakover.nais.*
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
@@ -13,13 +12,15 @@ import java.util.*
 
 const val ON_BEHALF_OF_TOKEN = "ONBEHALFOFTOKEN"
 
-class JwtStub(private val wireMockServer: WireMockServer) {
+class JwtStub(private val wireMockServer: WireMockServer? = null) {
     private val privateKey: RSAPrivateKey
-    private val publicKey: RSAPublicKey
+    val publicKey: RSAPublicKey
 
     init {
-        val client = WireMock.create().port(wireMockServer.port()).build()
-        WireMock.configureFor(client)
+        wireMockServer?.apply {
+            val client = WireMock.create().port(wireMockServer.port()).build()
+            WireMock.configureFor(client)
+        }
 
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
         keyPairGenerator.initialize(512)
@@ -67,8 +68,8 @@ class JwtStub(private val wireMockServer: WireMockServer) {
     fun stubbedConfigProvider() = WireMock.get(WireMock.urlPathEqualTo(AZURE_WELL_KNOWN_URL)).willReturn(
             WireMock.okJson("""
 {
-    "jwks_uri": "${wireMockServer.baseUrl()}$AZURE_JWKS_PATH",
-    "token_endpoint": "${wireMockServer.baseUrl()}/token",
+    "jwks_uri": "${wireMockServer?.baseUrl()}$AZURE_JWKS_PATH",
+    "token_endpoint": "${wireMockServer?.baseUrl()}/token",
     "issuer": "$AZURE_ISSUER"
 }
 """.trimIndent()

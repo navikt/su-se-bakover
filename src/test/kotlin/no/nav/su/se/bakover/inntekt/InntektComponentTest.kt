@@ -5,16 +5,12 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
-import io.ktor.http.HttpMethod
+import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.JwtStub
-import no.nav.su.se.bakover.ON_BEHALF_OF_TOKEN
-import no.nav.su.se.bakover.nais.DEFAULT_CALL_ID
-import no.nav.su.se.bakover.nais.testEnv
-import no.nav.su.se.bakover.nais.withDefaultHeaders
-import no.nav.su.se.bakover.susebakover
+import no.nav.su.se.bakover.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -29,7 +25,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withDefaultHeaders(HttpMethod.Get, inntektPath)
+            withCallId(Get, inntektPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -53,11 +49,11 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withDefaultHeaders(HttpMethod.Get, "$inntektPath?$identLabel=$testIdent") {
+            withCallId(Get, "$inntektPath?$identLabel=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            assertEquals(HttpStatusCode.OK, response.status())
+            assertEquals(OK, response.status())
             assertEquals("""{"ident"="$testIdent"}""", response.content!!)
         }
     }

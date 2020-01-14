@@ -1,15 +1,24 @@
-package no.nav.su.se.bakover.nais
+package no.nav.su.se.bakover
 
+import com.auth0.jwk.Jwk
+import com.auth0.jwk.JwkProvider
 import com.github.tomakehurst.wiremock.WireMockServer
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
-import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import io.mockk.every
+import io.mockk.mockk
+import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.inntekt.SuInntektClient
+import no.nav.su.se.bakover.person.SuPersonClient
+import org.json.JSONObject
+import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
 const val AZURE_CLIENT_SECRET = "secret"
@@ -46,13 +55,40 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     }
 }
 
-fun TestApplicationEngine.withDefaultHeaders(
+val jwtStub = JwtStub()
+@KtorExperimentalAPI
+fun Application.usingMocks(
+        jwkConfig: JSONObject = mockk(relaxed = true),
+        jwkProvider: JwkProvider = mockk(relaxed = true),
+        personClient: SuPersonClient = mockk(relaxed = true),
+        inntektClient: SuInntektClient = mockk(relaxed = true),
+        azureClient: AzureClient = mockk(relaxed = true)
+) {
+    val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExponent.toByteArray())
+    val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
+    every {
+        jwkProvider.get(any())
+    }.returns(Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n)))
+    every {
+        jwkConfig.getString("issuer")
+    }.returns(AZURE_ISSUER)
+
+    susebakover(
+            jwkConfig = jwkConfig,
+            jwkProvider = jwkProvider,
+            personClient = personClient,
+            inntektClient = inntektClient,
+            azureClient = azureClient
+    )
+}
+
+fun TestApplicationEngine.withCallId(
         method: HttpMethod,
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
-        addHeader(HttpHeaders.XRequestId, DEFAULT_CALL_ID)
+        addHeader(XRequestId, DEFAULT_CALL_ID)
         setup()
     }
 }

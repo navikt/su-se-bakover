@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCallPipeline
@@ -24,22 +25,18 @@ import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
+import org.json.JSONObject
 import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
 
 @KtorExperimentalAPI
-fun Application.susebakover() {
-    module(
-            SuPersonClient(fromEnvironment("integrations.suPerson.url")),
-            SuInntektClient(fromEnvironment("integrations.suInntekt.url"))
-    )
-}
-
-@KtorExperimentalAPI
-fun Application.module(
-        personClient: SuPersonClient,
-        inntektClient: SuInntektClient
+fun Application.susebakover(
+        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+        personClient: SuPersonClient = SuPersonClient(fromEnvironment("integrations.suPerson.url")),
+        inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url")),
+        azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint"))
 ) {
 
     install(CORS) {
@@ -51,15 +48,6 @@ fun Application.module(
     val collectorRegistry = CollectorRegistry.defaultRegistry
     installMetrics(collectorRegistry)
     naisRoutes(collectorRegistry)
-
-    val jwkConfig = getJWKConfig(fromEnvironment("azure.wellknownUrl"))
-    val jwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
-
-    val azureClient = AzureClient(
-            fromEnvironment("azure.clientId"),
-            fromEnvironment("azure.clientSecret"),
-            jwkConfig.getString("token_endpoint")
-    )
 
     setupAuthentication(
             jwkConfig = jwkConfig,
