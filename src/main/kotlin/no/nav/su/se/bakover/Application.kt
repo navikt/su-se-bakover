@@ -62,7 +62,7 @@ fun Application.susebakover(
         authenticate("jwt") {
             install(CallId) {
                 header(XRequestId)
-                generate { "invalid" }
+                generate(17)
                 verify { callId: String ->
                     if (callId == "invalid") throw RejectedCallIdException(callId) else true
                 }

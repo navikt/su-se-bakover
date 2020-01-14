@@ -14,20 +14,6 @@ import kotlin.test.assertEquals
 class CallIdTest {
 
     @Test
-    fun `return 400 when missing callId on authenticated calls`() {
-        withTestApplication({
-            testEnv()
-            usingMocks()
-        }) {
-            handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, "Bearer ${jwtStub.createTokenFor()}")
-            }
-        }.apply {
-            assertEquals(BadRequest, response.status())
-        }
-    }
-
-    @Test
     fun `callId ok`() {
         withTestApplication({
             testEnv()
