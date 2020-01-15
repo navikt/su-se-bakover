@@ -30,7 +30,7 @@ fun Application.setupAuthentication(
             client = HttpClient(Apache){
                 engine {
                     customizeClient {
-                        setProxy(HttpHost("webproxy-nais.nav.no", 8088, "https"))
+                        useSystemProperties()
                     }
                 }
             }
