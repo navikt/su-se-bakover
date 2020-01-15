@@ -63,9 +63,6 @@ fun Application.susebakover(
             install(CallId) {
                 header(XRequestId)
                 generate(17)
-                verify { callId: String ->
-                    if (callId == "invalid") throw RejectedCallIdException(callId) else true
-                }
             }
             install(CallLogging) {
                 level = Level.INFO

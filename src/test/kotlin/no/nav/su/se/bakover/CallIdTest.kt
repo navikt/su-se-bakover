@@ -1,20 +1,20 @@
 package no.nav.su.se.bakover
 
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @KtorExperimentalAPI
 class CallIdTest {
 
     @Test
-    fun `callId ok`() {
+    fun `should add X-Request-Id header to response`() {
         withTestApplication({
             testEnv()
             usingMocks()
@@ -24,6 +24,7 @@ class CallIdTest {
             }
         }.apply {
             assertEquals(OK, response.status())
+            assertNotNull(response.headers[XRequestId])
         }
     }
 }
