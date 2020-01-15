@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.person
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Get
@@ -35,7 +36,7 @@ internal class PersonComponentTest {
         val testIdent = "12345678910"
         stubFor(get(urlPathEqualTo("/person"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XRequestId, equalTo(DEFAULT_CALL_ID))
+                .withHeader(XRequestId, AnythingPattern())
                 .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(
                         okJson("""{"ident"="$testIdent"}""")
