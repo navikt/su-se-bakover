@@ -16,6 +16,7 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import org.apache.http.HttpHost
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -26,7 +27,13 @@ fun Application.setupAuthentication(
 ) {
     install(Authentication) {
         oauth("azure") {
-            client = HttpClient(Apache)
+            client = HttpClient(Apache){
+                engine {
+                    customizeClient {
+                        setProxy(HttpHost("webproxy.nais", 8088, "https"))
+                    }
+                }
+            }
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                         name = "azure",
