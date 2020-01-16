@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.azure
 
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
-import com.github.kittinunf.fuel.json.responseJson
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -48,10 +47,10 @@ class AzureClient(
 
 
 fun getJWKConfig(wellKnownUrl: String): JSONObject {
-    val (_, response, result) = wellKnownUrl.httpGet().responseJson()
+    val (_, response, result) = wellKnownUrl.httpGet().responseString()
     if (response.statusCode != OK.value) {
         throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, got statuscode=${response.statusCode}")
     } else {
-        return result.get().obj()
+        return JSONObject(result.get())
     }
 }
