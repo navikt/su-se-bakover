@@ -4,7 +4,6 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpStatusCode.Companion.OK
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -29,16 +28,15 @@ class AzureClient(
                         "assertion" to originalToken,
                         "scope" to "api://$otherAppId",
                         "requested_token_use" to REQUESTED_TOKEN_USE
-                )).toString()).responseString()
+                )).toString())
+                .responseString()
 
-        val (json, error) = result
-
-        json.let { res ->
-            JSONObject(res)
-        }.also {
+        result.fold(
+                { JSONObject(it) },
+                { throw RuntimeException("Error while exchanging token in Azure, error:$it}") }
+        ).also {
             if (it.has("error")) {
-                LOG.error("Error while exchanging token in Azure: ${it.toString(2)}")
-                throw RuntimeException("Error while exchanging token in Azure: ${it.getString("error_description")}")
+                throw RuntimeException("Error while exchanging token in Azure, error:$it}")
             }
             return it.getString("access_token")
         }
@@ -47,10 +45,9 @@ class AzureClient(
 
 
 fun getJWKConfig(wellKnownUrl: String): JSONObject {
-    val (_, response, result) = wellKnownUrl.httpGet().responseString()
-    if (response.statusCode != OK.value) {
-        throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, got statuscode=${response.statusCode}")
-    } else {
-        return JSONObject(result.get())
-    }
+    val (_, _, result) = wellKnownUrl.httpGet().responseString()
+    return result.fold(
+            { JSONObject(it) },
+            { throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, error:${it}") }
+    )
 }
