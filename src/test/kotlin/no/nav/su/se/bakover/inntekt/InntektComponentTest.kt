@@ -35,10 +35,10 @@ internal class InntektComponentTest {
     @Test
     fun `kan hente inntekt`() {
         val testIdent = "12345678910"
-        stubFor(get(urlPathEqualTo("/inntekt"))
+        stubFor(
+            post(urlPathEqualTo("/inntekt"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
                 .withHeader(XRequestId, AnythingPattern())
-                .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(
                         okJson("""{"ident"="$testIdent"}""")
                 )
