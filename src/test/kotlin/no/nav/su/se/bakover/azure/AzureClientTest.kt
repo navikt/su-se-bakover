@@ -8,6 +8,8 @@ import io.ktor.http.HttpHeaders.ContentType
 import no.nav.su.se.bakover.azure.AzureClient.Companion.GRANT_TYPE
 import no.nav.su.se.bakover.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
 import org.junit.jupiter.api.*
+import java.net.URLEncoder
+import java.nio.charset.Charset
 import kotlin.test.assertEquals
 
 private const val CLIENT_ID = "clientId"
@@ -15,7 +17,7 @@ private const val CLIENT_SECRET = "clientSecret"
 private const val TOKEN_TO_EXCHANGE = "eyJabc123"
 private const val EXCHANGED_TOKEN = "exchanged"
 private const val TOKEN_ENDPOINT_PATH = "/oauth2/v2.0/token"
-private const val SCOPE = "api://personClientId"
+private const val SCOPE = "personClientId"
 
 internal class AzureClientKtTest {
 
@@ -25,12 +27,12 @@ internal class AzureClientKtTest {
     fun `exchange token ok response`() {
         stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
                 .withHeader(ContentType, equalTo(FormUrlEncoded.toString()))
-                .withRequestBody(matchingJsonPath("$[?(@.grant_type == '$GRANT_TYPE')]"))
-                .withRequestBody(matchingJsonPath("$[?(@.client_id == '$CLIENT_ID')]"))
-                .withRequestBody(matchingJsonPath("$[?(@.client_secret == '$CLIENT_SECRET')]"))
-                .withRequestBody(matchingJsonPath("$[?(@.assertion == '$TOKEN_TO_EXCHANGE')]"))
-                .withRequestBody(matchingJsonPath("$[?(@.scope == '$SCOPE')]"))
-                .withRequestBody(matchingJsonPath("$[?(@.requested_token_use == '$REQUESTED_TOKEN_USE')]"))
+                .withRequestBody(containing("grant_type=${urlEncode(GRANT_TYPE)}"))
+                .withRequestBody(containing("client_id=$CLIENT_ID"))
+                .withRequestBody(containing("client_secret=$CLIENT_SECRET"))
+                .withRequestBody(containing("assertion=$TOKEN_TO_EXCHANGE"))
+                .withRequestBody(containing("scope=$SCOPE${urlEncode("/.default")}"))
+                .withRequestBody(containing("requested_token_use=$REQUESTED_TOKEN_USE"))
                 .willReturn(okJson(okAzureResponse)))
 
         val exchangedToken: String = azureClient.onBehalfOFToken(TOKEN_TO_EXCHANGE, "personClientId")
@@ -44,6 +46,10 @@ internal class AzureClientKtTest {
         assertThrows<RuntimeException> {
             azureClient.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId")
         }
+    }
+
+    private fun urlEncode(string: String): String {
+        return URLEncoder.encode(string, Charset.defaultCharset())
     }
 
     val okAzureResponse = """

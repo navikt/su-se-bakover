@@ -19,27 +19,19 @@ class AzureClient(
     }
 
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
-        val (_, _, result) = tokenEndpoint.httpPost()
+        val (_, _, result) = tokenEndpoint.httpPost(listOf(
+                "grant_type" to GRANT_TYPE,
+                "client_id" to clientId,
+                "client_secret" to clientSecret,
+                "assertion" to originalToken.replace("Bearer ", ""),
+                "scope" to "$otherAppId/.default",
+                "requested_token_use" to REQUESTED_TOKEN_USE))
                 .header(ContentType, FormUrlEncoded)
-                .body(JSONObject(mapOf(
-                        "grant_type" to GRANT_TYPE,
-                        "client_id" to clientId,
-                        "client_secret" to clientSecret,
-                        "assertion" to originalToken,
-                        "scope" to "api://$otherAppId",
-                        "requested_token_use" to REQUESTED_TOKEN_USE
-                )).toString())
                 .responseString()
-
-        result.fold(
-                { JSONObject(it) },
-                { throw RuntimeException("Error while exchanging token in Azure, error:$it}") }
-        ).also {
-            if (it.has("error")) {
-                throw RuntimeException("Error while exchanging token in Azure, error:$it}")
-            }
-            return it.getString("access_token")
-        }
+        return result.fold(
+                { JSONObject(it).getString("access_token") },
+                { throw RuntimeException("Error while exchanging token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
+        )
     }
 }
 
