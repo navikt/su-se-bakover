@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.inntekt
 
-import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
+import io.ktor.application.Application
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
+import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 class SuInntektClient(suInntektBaseUrl: String) {
@@ -21,6 +22,10 @@ class SuInntektClient(suInntektBaseUrl: String) {
             .header(Authorization, "Bearer $suInntektToken")
             .header(XRequestId, MDC.get(XRequestId))
             .responseString()
+
+        if (result.component2() != null) {
+           LoggerFactory.getLogger(SuInntektClient::class.java).warn("Kunne ikke hente inntekter. ${result.component2()!!.response.statusCode} : ${result.component2()!!.response.responseMessage}")
+        }
         return result.get()
     }
 }
