@@ -21,13 +21,16 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 
+val PATH_ISALIVE = "/isalive"
+val PATH_ISREADY = "/isready"
+
 fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     routing {
-        get("/isalive") {
+        get(PATH_ISALIVE) {
             call.respond("ALIVE")
         }
 
-        get("/isready") {
+        get(PATH_ISREADY) {
             call.respond("READY")
         }
 

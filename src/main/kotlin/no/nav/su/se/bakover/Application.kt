@@ -14,6 +14,7 @@ import io.ktor.features.*
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -69,6 +70,8 @@ fun Application.susebakover(
                 intercept(ApplicationCallPipeline.Monitoring) {
                     MDC.put(XRequestId, call.callId)
                 }
+                filter { call -> !call.request.path().startsWith(PATH_ISALIVE) }
+                filter { call -> !call.request.path().startsWith(PATH_ISREADY) }
             }
 
             get(path = "/authenticated") {
