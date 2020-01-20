@@ -12,6 +12,7 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
 import io.ktor.features.*
 import io.ktor.http.HttpHeaders.Authorization
+import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.request.path
@@ -43,6 +44,7 @@ fun Application.susebakover(
     install(CORS) {
         method(Options)
         header(Authorization)
+        exposeHeader(WWWAuthenticate)
         host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
     }
 
