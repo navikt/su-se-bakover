@@ -21,20 +21,21 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 
-val PATH_ISALIVE = "/isalive"
-val PATH_ISREADY = "/isready"
+val IS_ALIVE_PATH = "/isalive"
+val IS_READY_PATH = "/isready"
+val METRICS_PATH = "/metrics"
 
 fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     routing {
-        get(PATH_ISALIVE) {
+        get(IS_ALIVE_PATH) {
             call.respond("ALIVE")
         }
 
-        get(PATH_ISREADY) {
+        get(IS_READY_PATH) {
             call.respond("READY")
         }
 
-        get("/metrics") {
+        get(METRICS_PATH) {
             val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: emptySet()
             call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
                 TextFormat.write004(this, collectorRegistry.filteredMetricFamilySamples(names))

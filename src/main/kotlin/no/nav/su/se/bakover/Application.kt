@@ -70,8 +70,11 @@ fun Application.susebakover(
                 intercept(ApplicationCallPipeline.Monitoring) {
                     MDC.put(XRequestId, call.callId)
                 }
-                filter { call -> !call.request.path().startsWith(PATH_ISALIVE) }
-                filter { call -> !call.request.path().startsWith(PATH_ISREADY) }
+                filter { call ->
+                    listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
+                        call.request.path().startsWith(it)
+                    }
+                }
             }
 
             get(path = "/authenticated") {
