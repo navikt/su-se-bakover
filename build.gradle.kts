@@ -68,7 +68,7 @@ tasks.withType<Wrapper> {
 }
 
 tasks.named<Jar>("jar") {
-    baseName = "app"
+    archiveBaseName.set("app")
 
     manifest {
         attributes["Main-Class"] = "no.nav.su.se.bakover.ApplicationKt"
