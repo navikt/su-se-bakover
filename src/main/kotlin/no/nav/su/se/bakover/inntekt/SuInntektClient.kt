@@ -17,7 +17,7 @@ class SuInntektClient(suInntektBaseUrl: String) {
         val (_, _, result) = inntektResource.httpPost(
             listOf(
                 suInntektIdentLabel to ident,
-                "fom" to "2001-01",
+                "fom" to "2019-01",
                 "tom" to "2019-12"
             )
         )
