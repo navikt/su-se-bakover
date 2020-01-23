@@ -15,6 +15,8 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -32,6 +34,7 @@ import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
 
+@KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 fun Application.susebakover(
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
@@ -60,6 +63,8 @@ fun Application.susebakover(
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl")
     )
+
+    install(Locations)
     routing {
 
         authenticate("jwt") {

@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
@@ -20,28 +20,33 @@ import kotlin.test.assertEquals
 @KtorExperimentalAPI
 internal class InntektComponentTest {
 
+    private val ident = "12345678910"
+    private val fomDato = "2020-01-01"
+    private val tomDato = "2020-01-30"
+    private val path = "/inntekt?ident=$ident&fomDato=$fomDato&tomDato=$tomDato"
+
     @Test
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, inntektPath)
+            withCallId(Get, path)
         }.apply {
-            assertEquals(HttpStatusCode.Unauthorized, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 
     @Test
     fun `kan hente inntekt`() {
-        val testIdent = "12345678910"
         stubFor(
-            post(urlPathEqualTo("/inntekt"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XRequestId, AnythingPattern())
-                .willReturn(
-                        okJson("""{"ident"="$testIdent"}""")
-                )
+                post(urlPathEqualTo("/inntekt"))
+                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
+                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withHeader(XRequestId, AnythingPattern())
+                        .willReturn(
+                                okJson("""{"ident"="$ident"}""")
+                        )
         )
 
         val token = jwtStub.createTokenFor()
@@ -50,12 +55,12 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, "$inntektPath?$identLabel=$testIdent") {
+            withCallId(Get, path) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
             assertEquals(OK, response.status())
-            assertEquals("""{"ident"="$testIdent"}""", response.content!!)
+            assertEquals("""{"ident"="$ident"}""", response.content!!)
         }
     }
 
