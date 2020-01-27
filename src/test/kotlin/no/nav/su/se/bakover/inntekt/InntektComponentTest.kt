@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.withTestApplication
@@ -61,6 +62,34 @@ internal class InntektComponentTest {
         }.apply {
             assertEquals(OK, response.status())
             assertEquals("""{"ident"="$ident"}""", response.content!!)
+        }
+    }
+
+    @Test
+    fun `håndterer og viderefomidler feil`() {
+        val errorMessage = """{"message": "nich gut"}"""
+        stubFor(
+                post(urlPathEqualTo("/inntekt"))
+                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
+                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withHeader(XRequestId, AnythingPattern())
+                        .willReturn(
+                                aResponse().withBody(errorMessage).withStatus(500)
+                        )
+        )
+
+        val token = jwtStub.createTokenFor()
+
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            withCallId(Get, path) {
+                addHeader(Authorization, "Bearer $token")
+            }
+        }.apply {
+            assertEquals(InternalServerError, response.status())
+            assertEquals(errorMessage, response.content!!)
         }
     }
 

@@ -13,6 +13,8 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.Feil
+import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.getProperty
 import org.slf4j.LoggerFactory
@@ -31,8 +33,8 @@ fun Route.personRoutes(config: ApplicationConfig, azureClient: AzureClient, pers
             val suPersonToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, config.getProperty("integrations.suPerson.clientId"))
 
             when (val response = personClient.person(personIdent, suPersonToken)) {
-                is SuPersonOk -> call.respond(OK, response.json)
-                is SuPersonFeil -> call.respond(fromValue(response.httpCode), response.message)
+                is Ok -> call.respond(OK, response.json)
+                is Feil -> call.respond(fromValue(response.httpCode), response.message)
             }
         } ?: call.respond(BadRequest, "query param '$identLabel' må oppgis")
     }

@@ -63,11 +63,12 @@ internal class PersonComponentTest {
     @Test
     fun `skal propagere httpStatus fra PDL kall`() {
         val testIdent = "12345678910"
+        val errorMessage = "beklager, det gikk dårlig"
         stubFor(get(urlPathEqualTo("/person"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
                 .withHeader(XRequestId, AnythingPattern())
                 .withQueryParam("ident", equalTo(testIdent))
-                .willReturn(unauthorized())
+                .willReturn(aResponse().withBody(errorMessage).withStatus(401))
         )
 
         val token = jwtStub.createTokenFor()
@@ -81,6 +82,7 @@ internal class PersonComponentTest {
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
+            assertEquals(errorMessage, response.content!!)
         }
     }
 

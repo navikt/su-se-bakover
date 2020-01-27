@@ -2,9 +2,14 @@ package no.nav.su.se.bakover.inntekt
 
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded
+import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XRequestId
+import no.nav.su.se.bakover.Feil
+import no.nav.su.se.bakover.Ok
+import no.nav.su.se.bakover.Result
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
@@ -12,7 +17,7 @@ class SuInntektClient(suInntektBaseUrl: String) {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    fun inntekt(ident: String, suInntektToken: String, fomDato: String, tomDato: String): String {
+    internal fun inntekt(ident: String, suInntektToken: String, fomDato: String, tomDato: String): Result {
         val (_, _, result) = inntektResource.httpPost(
                 listOf(
                         suInntektIdentLabel to ident,
@@ -25,10 +30,18 @@ class SuInntektClient(suInntektBaseUrl: String) {
                 .header(ContentType, FormUrlEncoded)
                 .responseString()
 
-        if (result.component2() != null) {
-            LoggerFactory.getLogger(SuInntektClient::class.java)
-                    .warn("Kunne ikke hente inntekter. ${result.component2()!!.response.statusCode} : ${result.component2()!!.response.responseMessage}")
-        }
-        return result.get()
+        return result.fold(
+                { Ok(it) },
+                {
+                    val errorMessage = it.response.body().asString(Json.toString())
+                    val statusCode = it.response.statusCode
+                    logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
+                    Feil(statusCode, errorMessage)
+                }
+        )
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(SuInntektClient::class.java)
     }
 }
