@@ -8,6 +8,8 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
@@ -53,10 +55,35 @@ internal class PersonComponentTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            assertEquals(HttpStatusCode.OK, response.status())
+            assertEquals(OK, response.status())
             assertEquals("""{"ident"="$testIdent"}""", response.content!!)
         }
     }
+
+    @Test
+    fun `skal propagere httpStatus fra PDL kall`() {
+        val testIdent = "12345678910"
+        stubFor(get(urlPathEqualTo("/person"))
+                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .withHeader(XRequestId, AnythingPattern())
+                .withQueryParam("ident", equalTo(testIdent))
+                .willReturn(unauthorized())
+        )
+
+        val token = jwtStub.createTokenFor()
+
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            withCallId(Get, "$personPath?$identLabel=$testIdent") {
+                addHeader(Authorization, "Bearer $token")
+            }
+        }.apply {
+            assertEquals(Unauthorized, response.status())
+        }
+    }
+
 
     companion object {
         private val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())

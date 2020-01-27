@@ -9,11 +9,18 @@ class SuPersonClient(suPersonBaseUrl: String) {
     private val personResource = "$suPersonBaseUrl/person"
     private val suPersonIdentLabel = "ident"
 
-    fun person(ident: String, suPersonToken: String): String {
+    internal fun person(ident: String, suPersonToken: String): SuPersonResponse {
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident))
                 .header(Authorization, "Bearer $suPersonToken")
                 .header(XRequestId, MDC.get(XRequestId))
                 .responseString()
-        return result.get()
+        return result.fold(
+                { SuPersonOk(it) },
+                { SuPersonFeil(it.response.statusCode, it.message ?: it.toString()) }
+        )
     }
 }
+
+internal sealed class SuPersonResponse
+internal class SuPersonOk(val json: String) : SuPersonResponse()
+internal class SuPersonFeil(val httpCode: Int, val message: String) : SuPersonResponse()
