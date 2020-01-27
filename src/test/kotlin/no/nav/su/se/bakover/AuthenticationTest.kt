@@ -4,6 +4,7 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Assertions
@@ -14,6 +15,7 @@ import kotlin.test.assertEquals
 
 const val secureEndpoint = "/authenticated"
 
+@KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal class AuthenticationTest {
 

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.nais
 
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.usingMocks
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
+@KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal class NaisRoutesKtTest {
 

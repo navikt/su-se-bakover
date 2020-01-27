@@ -7,6 +7,7 @@ import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
@@ -38,7 +39,7 @@ const val DEFAULT_CALL_ID = "callId"
 
 @KtorExperimentalAPI
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
-    val baseUrl = wireMockServer?.let { it.baseUrl() } ?: SU_FRONTEND_ORIGIN
+    val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suPerson.url", baseUrl)
@@ -56,6 +57,8 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
 }
 
 val jwtStub = JwtStub()
+
+@KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 fun Application.usingMocks(
         jwkConfig: JSONObject = mockk(relaxed = true),
