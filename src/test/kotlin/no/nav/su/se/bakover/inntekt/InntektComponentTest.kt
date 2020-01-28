@@ -91,7 +91,7 @@ internal class InntektComponentTest {
             }
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals(errorMessage, response.content!!)
+            assertEquals("""{"message":"$errorMessage"}""", response.content!!)
         }
     }
 

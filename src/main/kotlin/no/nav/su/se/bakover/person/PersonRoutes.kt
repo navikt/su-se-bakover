@@ -4,14 +4,12 @@ import io.ktor.application.call
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
-import io.ktor.http.ContentType.Text
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.fromValue
 import io.ktor.request.header
 import io.ktor.response.respond
-import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
@@ -36,7 +34,7 @@ fun Route.personRoutes(config: ApplicationConfig, azureClient: AzureClient, pers
 
             when (val response = personClient.person(personIdent, suPersonToken)) {
                 is Ok -> call.respond(OK, response.json)
-                is Feil -> call.respondText(response.message, Text.Plain, fromValue(response.httpCode))
+                is Feil -> call.respond(fromValue(response.httpCode), response.toJson())
             }
         } ?: call.respond(BadRequest, "query param '$identLabel' må oppgis")
     }

@@ -14,10 +14,10 @@ import io.ktor.request.header
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.getProperty
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
+import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.getProperty
 import org.slf4j.LoggerFactory
 
 private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
@@ -39,7 +39,7 @@ fun Route.inntektRoutes(config: ApplicationConfig, azureClient: AzureClient, inn
 
         when (response) {
             is Ok -> call.respond(OK, response.json)
-            is Feil -> call.respond(fromValue(response.httpCode), response.message)
+            is Feil -> call.respond(fromValue(response.httpCode), response.toJson())
         }
     }
 }
