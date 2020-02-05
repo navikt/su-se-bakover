@@ -5,6 +5,10 @@ val mockkVersion = "1.9.3"
 val wireMockVersion = "2.23.2"
 val orgJsonVersion = "20180813"
 val micrometerRegistryPrometheusVersion = "1.3.2"
+val flywayVersion = "6.2.1"
+val hikariVersion = "3.3.1"
+val vaultJdbcVersion = "1.3.1"
+val kotliqueryVersion = "1.3.1"
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
@@ -30,6 +34,11 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
 
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
@@ -41,6 +50,7 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
         exclude(group = "junit")
     }
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
 
 }
 

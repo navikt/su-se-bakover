@@ -25,6 +25,7 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.getJWKConfig
+import no.nav.su.se.bakover.db.DataSourceBuilder
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.SuPersonClient
@@ -43,6 +44,8 @@ fun Application.susebakover(
         inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url")),
         azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint"))
 ) {
+
+    val dataSourceBuilder = DataSourceBuilder(env)
 
     install(CORS) {
         method(Options)
