@@ -45,7 +45,7 @@ fun Application.susebakover(
         azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint"))
 ) {
 
-    val dataSourceBuilder = DataSourceBuilder(env)
+    // TODO val dataSourceBuilder = DataSourceBuilder(env)
 
     install(CORS) {
         method(Options)
