@@ -1,7 +1,6 @@
 val ktorVersion = "1.2.6"
 val junitJupiterVersion = "5.6.0-M1"
 val fuelVersion = "2.2.1"
-val mockkVersion = "1.9.3"
 val wireMockVersion = "2.23.2"
 val orgJsonVersion = "20180813"
 val micrometerRegistryPrometheusVersion = "1.3.2"
@@ -30,7 +29,6 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
 
-    testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
