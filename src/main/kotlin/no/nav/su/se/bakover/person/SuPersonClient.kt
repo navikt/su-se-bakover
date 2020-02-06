@@ -28,9 +28,9 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
             .responseString()
         return result.fold(
             { Ok(it) },
-            {
-                val errorMessage = it.response.body().asString(ContentType.Application.Json.toString())
-                val statusCode = it.response.statusCode
+            { error ->
+                val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
+                val statusCode = error.response.statusCode
                 logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage");
                 Feil(statusCode, errorMessage)
             }

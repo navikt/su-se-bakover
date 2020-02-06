@@ -39,8 +39,8 @@ internal class SuInntektClient(
         val (_, _, result) = inntektResource.httpPost(
             listOf(
                 suInntektIdentLabel to ident,
-                "fom" to fomDato.substring(0, 7),
-                "tom" to tomDato.substring(0, 7)
+                "fom" to fomDato.daymonthSubstring(),
+                "tom" to tomDato.daymonthSubstring()
             )
         )
             .header(Authorization, "Bearer $onBehalfOfToken")
@@ -50,9 +50,9 @@ internal class SuInntektClient(
 
         return result.fold(
             { Ok(it) },
-            {
-                val errorMessage = it.response.body().asString(Json.toString())
-                val statusCode = it.response.statusCode
+            { error ->
+                val errorMessage = error.response.body().asString(Json.toString())
+                val statusCode = error.response.statusCode
                 logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
                 Feil(statusCode, errorMessage)
             }
@@ -63,4 +63,6 @@ internal class SuInntektClient(
         val logger: Logger = LoggerFactory.getLogger(SuInntektClient::class.java)
     }
 }
+
+private fun String.daymonthSubstring() = substring(0, 7)
 
