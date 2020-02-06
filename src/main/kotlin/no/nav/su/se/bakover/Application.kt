@@ -49,7 +49,9 @@ fun Application.susebakover(
         fromEnvironment("integrations.suPerson.clientId"),
         azureClient
     ),
-    inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url"))
+    inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url"),
+        fromEnvironment("integrations.suInntekt.clientId"),
+        azureClient)
 ) {
 
     install(CORS) {
@@ -102,7 +104,7 @@ fun Application.susebakover(
             }
 
             personRoutes(personClient)
-            inntektRoutes(environment.config, azureClient, inntektClient)
+            inntektRoutes(inntektClient)
         }
     }
 }

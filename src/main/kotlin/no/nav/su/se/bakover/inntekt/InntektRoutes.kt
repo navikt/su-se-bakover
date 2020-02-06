@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.inntekt
 import io.ktor.application.call
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.fromValue
@@ -16,27 +15,22 @@ import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
-import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.getProperty
 import org.slf4j.LoggerFactory
 
 private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-fun Route.inntektRoutes(config: ApplicationConfig, azureClient: AzureClient, inntektClient: SuInntektClient) {
+fun Route.inntektRoutes(inntektClient: SuInntektClient) {
     get<InntektPath> { inntektPath ->
         val principal = (call.authentication.principal as JWTPrincipal).payload
         sikkerLogg.info("${principal.subject} slår opp inntekt for person ${inntektPath.ident}")
-        val suInntektToken = azureClient.onBehalfOFToken(call.request.header(Authorization)!!, config.getProperty("integrations.suInntekt.clientId"))
-
         val response = inntektClient.inntekt(
-                ident = inntektPath.ident,
-                suInntektToken = suInntektToken,
-                fomDato = inntektPath.fomDato,
-                tomDato = inntektPath.tomDato
+            ident = inntektPath.ident,
+            innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
+            fomDato = inntektPath.fomDato,
+            tomDato = inntektPath.tomDato
         )
-
         when (response) {
             is Ok -> call.respond(OK, response.json)
             is Feil -> call.respond(fromValue(response.httpCode), response.toJson())

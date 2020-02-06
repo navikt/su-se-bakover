@@ -9,35 +9,41 @@ import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
+import no.nav.su.se.bakover.azure.AzureClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-class SuInntektClient(suInntektBaseUrl: String) {
+class SuInntektClient(
+    suInntektBaseUrl: String,
+    private val suInntektClientId: String,
+    private val azureClient: AzureClient
+) {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    internal fun inntekt(ident: String, suInntektToken: String, fomDato: String, tomDato: String): Result {
+    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
+        val onBehalfOfToken = azureClient.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
-                listOf(
-                        suInntektIdentLabel to ident,
-                        "fom" to fomDato.substring(0, 7),
-                        "tom" to tomDato.substring(0, 7)
-                )
+            listOf(
+                suInntektIdentLabel to ident,
+                "fom" to fomDato.substring(0, 7),
+                "tom" to tomDato.substring(0, 7)
+            )
         )
-                .header(Authorization, "Bearer $suInntektToken")
-                .header(XRequestId, MDC.get(XRequestId))
-                .header(ContentType, FormUrlEncoded)
-                .responseString()
+            .header(Authorization, "Bearer $onBehalfOfToken")
+            .header(XRequestId, MDC.get(XRequestId))
+            .header(ContentType, FormUrlEncoded)
+            .responseString()
 
         return result.fold(
-                { Ok(it) },
-                {
-                    val errorMessage = it.response.body().asString(Json.toString())
-                    val statusCode = it.response.statusCode
-                    logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Feil(statusCode, errorMessage)
-                }
+            { Ok(it) },
+            {
+                val errorMessage = it.response.body().asString(Json.toString())
+                val statusCode = it.response.statusCode
+                logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
+                Feil(statusCode, errorMessage)
+            }
         )
     }
 
