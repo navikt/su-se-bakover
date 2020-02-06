@@ -12,11 +12,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.auth.HttpAuthHeader
+import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
-import org.apache.http.HttpHost
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -27,7 +28,7 @@ internal fun Application.setupAuthentication(
 ) {
     install(Authentication) {
         oauth("azure") {
-            client = HttpClient(Apache){
+            client = HttpClient(Apache) {
                 engine {
                     customizeClient {
                         useSystemProperties()
@@ -62,6 +63,19 @@ internal fun Application.setupAuthentication(
                     if (!validGroup) log.info("Subject in groups $groups, but not in required group")
                     null
                 }
+            }
+            challenge { defaultScheme, realm ->
+                val errors: Map<Any, AuthenticationFailedCause> = call.authentication.errors
+                val response = when (errors.values.singleOrNull()) {
+                    AuthenticationFailedCause.InvalidCredentials ->
+                        ForbiddenResponse()
+                    else ->
+                        UnauthorizedResponse(HttpAuthHeader.Parameterized(
+                                defaultScheme,
+                                mapOf(HttpAuthHeader.Parameters.Realm to realm)
+                        ))
+                }
+                call.respond(response)
             }
         }
     }
