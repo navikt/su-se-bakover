@@ -9,8 +9,6 @@ import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
-import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.person.SuPersonClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -18,20 +16,20 @@ import org.slf4j.MDC
 internal class SuInntektClient(
     suInntektBaseUrl: String,
     private val suInntektClientId: String,
-    private val azure: AzureClient,
-    private val personClient: Persontilgang
+    private val exchange: TokenExchange,
+    private val persontilgang: Persontilgang
 ) {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result = finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
-        /*when (val personSvar = personClient.person(ident, innloggetSaksbehandlerToken)) {
+    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result =
+        when (val personSvar = persontilgang.person(ident, innloggetSaksbehandlerToken)) {
             is Ok -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
             is Feil -> personSvar
-        }*/
+        }
 
     private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
-        val onBehalfOfToken = azure.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
+        val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
             listOf(
                 suInntektIdentLabel to ident,
@@ -62,4 +60,7 @@ internal class SuInntektClient(
 
 internal interface Persontilgang {
     fun person(ident: String, innloggetSaksbehandlerToken: String): Result
+}
+internal interface TokenExchange {
+    fun onBehalfOFToken(originalToken: String, otherAppId: String): String
 }

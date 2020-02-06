@@ -42,6 +42,14 @@ internal class InntektComponentTest {
 
     @Test
     fun `kan hente inntekt`() {
+        stubFor(get(urlPathEqualTo("/person"))
+            .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+            .withHeader(XRequestId, AnythingPattern())
+            .withQueryParam("ident", equalTo(ident))
+            .willReturn(
+                okJson("""{"ident"="$ident"}""")
+            )
+        )
         stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
@@ -68,8 +76,16 @@ internal class InntektComponentTest {
     }
 
     @Test
-    fun `håndterer og viderefomidler feil`() {
+    fun `håndterer og videreformidler feil`() {
         val errorMessage = """{"message": "nich gut"}"""
+        stubFor(get(urlPathEqualTo("/person"))
+            .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+            .withHeader(XRequestId, AnythingPattern())
+            .withQueryParam("ident", equalTo(ident))
+            .willReturn(
+                okJson("""{"ident"="$ident"}""")
+            )
+        )
         stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))

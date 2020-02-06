@@ -3,19 +3,20 @@ package no.nav.su.se.bakover.azure
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
+import no.nav.su.se.bakover.inntekt.TokenExchange
 import org.json.JSONObject
 
 class AzureClient(
     private val thisClientId: String,
     private val thisClientSecret: String,
     private val tokenEndpoint: String
-) {
+): TokenExchange {
     companion object {
         const val GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
+    override fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
         val (_, _, result) = tokenEndpoint.httpPost(listOf(
                 "grant_type" to GRANT_TYPE,
                 "client_id" to thisClientId,
