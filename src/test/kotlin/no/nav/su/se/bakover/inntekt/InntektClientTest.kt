@@ -16,6 +16,21 @@ import java.net.URL
 import kotlin.test.assertEquals
 
 internal class InntektClientTest {
+
+    @Test
+    fun `skal ikke kalle inntekt om person gir feil`() {
+        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
+        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
+        assertEquals(Feil(403, "Du hakke lov"), result)
+    }
+
+    @Test
+    fun `skal kalle inntekt om person gir OK`() {
+        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
+        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
+        assertEquals(Ok(""), result)
+    }
+    
     private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
@@ -42,20 +57,6 @@ internal class InntektClientTest {
     fun tearDown() {
         MDC.clear()
         FuelManager.instance.client = HttpClient(FuelManager.instance.proxy, hook = FuelManager.instance.hook)
-    }
-
-    @Test
-    fun `skal ikke kalle inntekt om person gir feil`() {
-        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
-        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Feil(403, "Du hakke lov"), result)
-    }
-
-    @Test
-    fun `skal kalle inntekt om person gir OK`() {
-        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
-        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Ok(""), result)
     }
 
     private fun okResponseFromInntekt() = Response(
