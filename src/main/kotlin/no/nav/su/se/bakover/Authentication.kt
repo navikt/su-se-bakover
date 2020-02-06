@@ -20,6 +20,7 @@ import io.ktor.util.KtorExperimentalAPI
 import org.json.JSONObject
 import java.time.Instant
 import java.util.*
+import java.util.Base64.getDecoder
 
 @KtorExperimentalAPI
 internal fun Application.setupAuthentication(
@@ -68,12 +69,13 @@ internal fun Application.setupAuthentication(
             challenge { defaultScheme, realm ->
                 val errors: Map<Any, AuthenticationFailedCause> = call.authentication.errors
                 when (errors.values.singleOrNull()) {
-                    AuthenticationFailedCause.InvalidCredentials ->
-                        if (tokenHasExpired(call.request) == true) {
-                            call.respond(HttpStatusCode.Unauthorized, errorMessage(call.request))
-                        } else {
-                            call.respond(HttpStatusCode.Forbidden)
-                        }
+                    AuthenticationFailedCause.InvalidCredentials -> {
+                        getExpiry(call.request)
+                                ?.takeIf(::tokenHasExpired)
+                                ?.also {
+                                    call.respond(HttpStatusCode.Unauthorized, errorMessage(it).also(log::debug))
+                                } ?: call.respond(HttpStatusCode.Forbidden)
+                    }
                     else ->
                         call.respond(UnauthorizedResponse(HttpAuthHeader.Parameterized(
                                 defaultScheme,
@@ -87,19 +89,16 @@ internal fun Application.setupAuthentication(
 
 private fun getExpiry(request: ApplicationRequest) =
         request.headers["Authorization"]?.substringAfter("Bearer ")
-                ?.let { token -> String(Base64.getDecoder().decode(token.split(".")[1]), Charsets.UTF_8) }
-                ?.let { claimsString -> JSONObject(claimsString) }
-                ?.let { claims ->
-                    val expirySeconds = (claims["exp"] as Int).toLong()
-                    Date.from(Instant.ofEpochSecond(expirySeconds))
-                }
+                ?.let { String(getDecoder().decode(it.split(".")[1]), Charsets.UTF_8) }
+                ?.let(::JSONObject)
+                ?.let { it["exp"] as Int }
+                ?.let { Date.from(Instant.ofEpochSecond(it.toLong())) }
 
-private fun tokenHasExpired(request: ApplicationRequest) =
-        getExpiry(request)?.before(Date.from(Instant.now()))
+private fun tokenHasExpired(date: Date) = date.before(Date.from(Instant.now()))
 
-private fun Application.errorMessage(request: ApplicationRequest) =
-        if (tokenHasExpired(request) == true) {
-            "The token expired at ${getExpiry(request)}".also { log.debug(it) }
+private fun Application.errorMessage(date: Date) =
+        if (tokenHasExpired(date)) {
+            "The token expired at $date"
         } else ""
 
 internal fun Application.oauthRoutes(frontendRedirectUrl: String) {
