@@ -5,7 +5,7 @@ import com.github.kittinunf.fuel.toolbox.HttpClient
 import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
-import no.nav.su.se.bakover.Result
+import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.junit.jupiter.api.AfterEach
@@ -30,15 +30,15 @@ internal class InntektClientTest {
         val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Ok(""), result)
     }
-    
+
     private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: String, innloggetSaksbehandlerToken: String): Result =
+        override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
             Ok("""{"ting": "OK"}""")
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: String, innloggetSaksbehandlerToken: String): Result =
+        override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
             Feil(403, "Du hakke lov")
     }
     private val tokenExchange = object : TokenExchange {

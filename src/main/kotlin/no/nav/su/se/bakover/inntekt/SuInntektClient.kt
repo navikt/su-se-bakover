@@ -8,7 +8,7 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
-import no.nav.su.se.bakover.Result
+import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.slf4j.Logger
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 internal interface InntektOppslag {
-    fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result
+    fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat
 }
 
 internal class SuInntektClient(
@@ -28,13 +28,13 @@ internal class SuInntektClient(
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result =
+    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
         when (val personSvar = personOppslag.person(ident, innloggetSaksbehandlerToken)) {
             is Ok -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
             is Feil -> personSvar
         }
 
-    private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
+    private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
             listOf(
