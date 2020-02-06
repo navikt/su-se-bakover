@@ -9,7 +9,7 @@ internal interface TokenExchange {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
 }
 
-class AzureClient(
+internal class AzureClient(
     private val thisClientId: String,
     private val thisClientSecret: String,
     private val tokenEndpoint: String

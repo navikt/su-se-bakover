@@ -40,4 +40,4 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
 
 @KtorExperimentalLocationsAPI
 @Location("/inntekt")
-data class InntektPath(val ident: String, val fomDato: String, val tomDato: String)
+internal data class InntektPath(val ident: String, val fomDato: String, val tomDato: String)

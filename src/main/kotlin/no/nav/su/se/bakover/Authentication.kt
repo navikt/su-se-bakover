@@ -20,7 +20,7 @@ import org.apache.http.HttpHost
 import org.json.JSONObject
 
 @KtorExperimentalAPI
-fun Application.setupAuthentication(
+internal fun Application.setupAuthentication(
         jwkConfig: JSONObject,
         jwkProvider: JwkProvider,
         config: ApplicationConfig
@@ -67,7 +67,7 @@ fun Application.setupAuthentication(
     }
 }
 
-fun Application.oauthRoutes(frontendRedirectUrl: String) {
+internal fun Application.oauthRoutes(frontendRedirectUrl: String) {
     routing {
         authenticate("azure") {
             get("/login") {
@@ -80,3 +80,6 @@ fun Application.oauthRoutes(frontendRedirectUrl: String) {
         }
     }
 }
+
+@KtorExperimentalAPI
+private fun ApplicationConfig.getProperty(key: String): String = property(key).getString()

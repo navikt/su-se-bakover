@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import org.slf4j.LoggerFactory
 
-const val personPath = "/person"
-const val identLabel = "ident"
+internal const val personPath = "/person"
+internal const val identLabel = "ident"
 
 private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 

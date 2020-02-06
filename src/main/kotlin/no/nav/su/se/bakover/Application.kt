@@ -115,14 +115,11 @@ internal fun Application.susebakover(
 }
 
 @KtorExperimentalAPI
-fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
-
-@KtorExperimentalAPI
-fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
+internal fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
-fun getJWKConfig(wellKnownUrl: String): JSONObject {
+private fun getJWKConfig(wellKnownUrl: String): JSONObject {
     val (_, _, result) = wellKnownUrl.httpGet().responseString()
     return result.fold(
         { JSONObject(it) },

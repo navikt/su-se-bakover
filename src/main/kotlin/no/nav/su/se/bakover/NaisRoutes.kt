@@ -25,7 +25,7 @@ val IS_ALIVE_PATH = "/isalive"
 val IS_READY_PATH = "/isready"
 val METRICS_PATH = "/metrics"
 
-fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
+internal fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     routing {
         get(IS_ALIVE_PATH) {
             call.respond("ALIVE")
@@ -44,7 +44,7 @@ fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     }
 }
 
-fun Application.installMetrics(collectorRegistry: CollectorRegistry) {
+internal fun Application.installMetrics(collectorRegistry: CollectorRegistry) {
     install(MicrometerMetrics) {
         registry = PrometheusMeterRegistry(
                 PrometheusConfig.DEFAULT,

@@ -15,14 +15,14 @@ import org.slf4j.MDC
 internal interface PersonOppslag {
     fun person(ident: String, innloggetSaksbehandlerToken: String): Result
 }
-
+private const val suPersonIdentLabel = "ident"
 internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClientId: String, private val tokenExchange: TokenExchange) :
     PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
     override fun person(ident: String, innloggetSaksbehandlerToken: String): Result {
         val onBehalfOfToken = tokenExchange.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
-        val (_, _, result) = personResource.httpGet(listOf(Companion.suPersonIdentLabel to ident))
+        val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident))
             .header(Authorization, "Bearer $onBehalfOfToken")
             .header(XRequestId, MDC.get(XRequestId))
             .responseString()
@@ -39,7 +39,6 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(SuPersonClient::class.java)
-        private const val suPersonIdentLabel = "ident"
     }
 }
 
