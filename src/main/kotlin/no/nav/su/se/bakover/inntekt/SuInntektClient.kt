@@ -14,16 +14,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-class SuInntektClient(
-    suInntektBaseUrl: String,
-    private val suInntektClientId: String,
-    private val azureClient: AzureClient
-) {
+class SuInntektClient(suInntektBaseUrl: String, private val suInntektClientId: String, private val azure: AzureClient) {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
     internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
-        val onBehalfOfToken = azureClient.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
+        val onBehalfOfToken = azure.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
             listOf(
                 suInntektIdentLabel to ident,
