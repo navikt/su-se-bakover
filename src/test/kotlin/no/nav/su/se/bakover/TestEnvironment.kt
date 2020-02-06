@@ -3,6 +3,9 @@ package no.nav.su.se.bakover
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XRequestId
@@ -18,7 +21,11 @@ import io.mockk.mockk
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
+import org.flywaydb.core.Flyway
 import org.json.JSONObject
+import org.junit.jupiter.api.BeforeEach
+import org.postgresql.PGProperty
+import java.sql.Connection
 import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -35,11 +42,21 @@ const val SU_INNTEKT_AZURE_CLIENT_ID = "inntektClientId"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
 const val DEFAULT_CALL_ID = "callId"
+const val DB_USERNAME = "postgres"
+const val DB_PASSWORD = "postgres"
+const val DB_VAULT_MOUNTPATH = "LOCAL"
+const val DB_NAME = "postgres"
+const val DB_HOST = "localhost"
 
 
 @KtorExperimentalAPI
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
+
+    val embeddedPostgres = EmbeddedPostgres.builder()
+            .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
+            .start()
+
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suPerson.url", baseUrl)
@@ -53,6 +70,13 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("azure.wellknownUrl", "$baseUrl$AZURE_WELL_KNOWN_URL")
         put("azure.backendCallbackUrl", "$baseUrl$AZURE_BACKEND_CALLBACK_URL")
         put("issuer", AZURE_ISSUER)
+        put("db.username", DB_USERNAME)
+        put("db.password", DB_PASSWORD)
+        put("db.jdbcUrl", embeddedPostgres.getJdbcUrl(DB_USERNAME, DB_NAME))
+        put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
+        put("db.name", DB_NAME)
+        put("db.host", DB_HOST)
+        put("db.port", embeddedPostgres.port.toString())
     }
 }
 

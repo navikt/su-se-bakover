@@ -26,6 +26,7 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.db.DataSourceBuilder
+import no.nav.su.se.bakover.db.PostgresRepository
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.SuPersonClient
@@ -34,19 +35,27 @@ import org.json.JSONObject
 import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
+import javax.sql.DataSource
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 fun Application.susebakover(
+        dataSource: DataSource = DataSourceBuilder(mapOf(
+                "DATABASE_USERNAME" to fromEnvironment("db.username"),
+                "DATABASE_PASSWORD" to fromEnvironment("db.password"),
+                "DATABASE_JDBC_URL" to fromEnvironment("db.jdbcUrl"),
+                "VAULT_MOUNTPATH" to fromEnvironment("db.vaultMountPath"),
+                "DATABASE_NAME" to fromEnvironment("db.name"),
+                "DATABASE_HOST" to fromEnvironment("db.host"),
+                "DATABASE_PORT" to fromEnvironment("db.port")
+        )).getDataSource(),
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
         personClient: SuPersonClient = SuPersonClient(fromEnvironment("integrations.suPerson.url")),
         inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url")),
-        azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint"))
+        azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint")),
+        postgresRepository: PostgresRepository = PostgresRepository(dataSource)
 ) {
-
-    // TODO val dataSourceBuilder = DataSourceBuilder(env)
-
     install(CORS) {
         method(Options)
         header(Authorization)
