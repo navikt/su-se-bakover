@@ -2,6 +2,7 @@ package no.nav.su.se.bakover
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import com.github.kittinunf.fuel.httpGet
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
@@ -24,7 +25,6 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.SuPersonClient
@@ -106,3 +106,11 @@ fun Application.fromEnvironment(path: String): String = environment.config.prope
 fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+
+fun getJWKConfig(wellKnownUrl: String): JSONObject {
+    val (_, _, result) = wellKnownUrl.httpGet().responseString()
+    return result.fold(
+        { JSONObject(it) },
+        { throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, error:${it}") }
+    )
+}
