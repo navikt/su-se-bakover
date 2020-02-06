@@ -1,10 +1,7 @@
 package no.nav.su.se.bakover
 
 import com.auth0.jwk.JwkProvider
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.application.log
+import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
@@ -12,13 +9,17 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.auth.HttpAuthHeader
+import io.ktor.request.ApplicationRequest
 import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import org.json.JSONObject
+import java.time.Instant
+import java.util.*
 
 @KtorExperimentalAPI
 internal fun Application.setupAuthentication(
@@ -66,20 +67,40 @@ internal fun Application.setupAuthentication(
             }
             challenge { defaultScheme, realm ->
                 val errors: Map<Any, AuthenticationFailedCause> = call.authentication.errors
-                val response = when (errors.values.singleOrNull()) {
+                when (errors.values.singleOrNull()) {
                     AuthenticationFailedCause.InvalidCredentials ->
-                        ForbiddenResponse()
+                        if (tokenHasExpired(call.request) == true) {
+                            call.respond(HttpStatusCode.Unauthorized, errorMessage(call.request))
+                        } else {
+                            call.respond(HttpStatusCode.Forbidden)
+                        }
                     else ->
-                        UnauthorizedResponse(HttpAuthHeader.Parameterized(
+                        call.respond(UnauthorizedResponse(HttpAuthHeader.Parameterized(
                                 defaultScheme,
                                 mapOf(HttpAuthHeader.Parameters.Realm to realm)
-                        ))
+                        )))
                 }
-                call.respond(response)
             }
         }
     }
 }
+
+private fun getExpiry(request: ApplicationRequest) =
+        request.headers["Authorization"]?.substringAfter("Bearer ")
+                ?.let { token -> String(Base64.getDecoder().decode(token.split(".")[1]), Charsets.UTF_8) }
+                ?.let { claimsString -> JSONObject(claimsString) }
+                ?.let { claims ->
+                    val expirySeconds = (claims["exp"] as Int).toLong()
+                    Date.from(Instant.ofEpochSecond(expirySeconds))
+                }
+
+private fun tokenHasExpired(request: ApplicationRequest) =
+        getExpiry(request)?.before(Date.from(Instant.now()))
+
+private fun Application.errorMessage(request: ApplicationRequest) =
+        if (tokenHasExpired(request) == true) {
+            "The token expired at ${getExpiry(request)}".also { log.debug(it) }
+        } else ""
 
 internal fun Application.oauthRoutes(frontendRedirectUrl: String) {
     routing {

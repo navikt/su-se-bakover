@@ -2,6 +2,7 @@ package no.nav.su.se.bakover
 
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -48,7 +49,7 @@ internal class AuthenticationTest {
     }
 
     @Test
-    fun `forespørsel uten påkrevet audience skal svare med 401`() {
+    fun `forespørsel uten påkrevet audience skal svare med 403`() {
         val token = jwtStub.createTokenFor(audience = "wrong_audience")
 
         withTestApplication({
@@ -59,12 +60,12 @@ internal class AuthenticationTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            Assertions.assertEquals(Unauthorized, response.status())
+            Assertions.assertEquals(Forbidden, response.status())
         }
     }
 
     @Test
-    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
+    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 403`() {
         val token = jwtStub.createTokenFor(groups = listOf("WRONG_GROUP_UUID"))
 
         withTestApplication({
@@ -75,7 +76,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            Assertions.assertEquals(Unauthorized, response.status())
+            Assertions.assertEquals(Forbidden, response.status())
         }
     }
 
@@ -92,6 +93,7 @@ internal class AuthenticationTest {
             }
         }.apply {
             Assertions.assertEquals(Unauthorized, response.status())
+            Assertions.assertTrue(response.content?.contains("The token expired at") ?: false)
         }
     }
 }
