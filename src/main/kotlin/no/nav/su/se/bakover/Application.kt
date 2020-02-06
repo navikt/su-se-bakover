@@ -37,11 +37,19 @@ import java.net.URL
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 fun Application.susebakover(
-        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        personClient: SuPersonClient = SuPersonClient(fromEnvironment("integrations.suPerson.url")),
-        inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url")),
-        azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint"))
+    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+    azureClient: AzureClient = AzureClient(
+        fromEnvironment("azure.clientId"),
+        fromEnvironment("azure.clientSecret"),
+        jwkConfig.getString("token_endpoint")
+    ),
+    personClient: SuPersonClient = SuPersonClient(
+        fromEnvironment("integrations.suPerson.url"),
+        fromEnvironment("integrations.suPerson.clientId"),
+        azureClient
+    ),
+    inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url"))
 ) {
 
     install(CORS) {
@@ -93,7 +101,7 @@ fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(environment.config, azureClient, personClient)
+            personRoutes(personClient)
             inntektRoutes(environment.config, azureClient, inntektClient)
         }
     }

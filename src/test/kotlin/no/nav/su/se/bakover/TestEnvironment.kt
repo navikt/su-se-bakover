@@ -77,11 +77,11 @@ fun Application.usingMocks(
     }.returns(AZURE_ISSUER)
 
     susebakover(
-            jwkConfig = jwkConfig,
-            jwkProvider = jwkProvider,
-            personClient = personClient,
-            inntektClient = inntektClient,
-            azureClient = azureClient
+        jwkConfig = jwkConfig,
+        jwkProvider = jwkProvider,
+        azureClient = azureClient,
+        personClient = personClient,
+        inntektClient = inntektClient
     )
 }
 
