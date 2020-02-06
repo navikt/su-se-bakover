@@ -8,15 +8,17 @@ import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
 import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.inntekt.Persontilgang
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-class SuPersonClient(suPersonBaseUrl: String, private val suPersonClientId: String, private val azure: AzureClient) {
+internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClientId: String, private val azure: AzureClient) :
+    Persontilgang {
     private val personResource = "$suPersonBaseUrl/person"
     private val suPersonIdentLabel = "ident"
 
-    internal fun person(ident: String, innloggetSaksbehandlerToken: String): Result {
+    override fun person(ident: String, innloggetSaksbehandlerToken: String): Result {
         val onBehalfOfToken = azure.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident))
             .header(Authorization, "Bearer $onBehalfOfToken")

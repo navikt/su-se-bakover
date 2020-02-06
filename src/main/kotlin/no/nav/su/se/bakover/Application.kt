@@ -36,7 +36,7 @@ import java.net.URL
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-fun Application.susebakover(
+internal fun Application.susebakover(
     jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     azureClient: AzureClient = AzureClient(
@@ -51,7 +51,8 @@ fun Application.susebakover(
     ),
     inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url"),
         fromEnvironment("integrations.suInntekt.clientId"),
-        azureClient)
+        azureClient,
+        personClient)
 ) {
 
     install(CORS) {

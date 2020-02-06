@@ -10,15 +10,27 @@ import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
 import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.person.SuPersonClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
-class SuInntektClient(suInntektBaseUrl: String, private val suInntektClientId: String, private val azure: AzureClient) {
+internal class SuInntektClient(
+    suInntektBaseUrl: String,
+    private val suInntektClientId: String,
+    private val azure: AzureClient,
+    private val personClient: Persontilgang
+) {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
+    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result = finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
+        /*when (val personSvar = personClient.person(ident, innloggetSaksbehandlerToken)) {
+            is Ok -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
+            is Feil -> personSvar
+        }*/
+
+    private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result {
         val onBehalfOfToken = azure.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
             listOf(
@@ -46,4 +58,8 @@ class SuInntektClient(suInntektBaseUrl: String, private val suInntektClientId: S
     companion object {
         val logger: Logger = LoggerFactory.getLogger(SuInntektClient::class.java)
     }
+}
+
+internal interface Persontilgang {
+    fun person(ident: String, innloggetSaksbehandlerToken: String): Result
 }

@@ -22,7 +22,7 @@ const val identLabel = "ident"
 private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 
 @KtorExperimentalAPI
-fun Route.personRoutes(personClient: SuPersonClient) {
+internal fun Route.personRoutes(personClient: SuPersonClient) {
     get(personPath) {
         call.parameters[identLabel]?.let { personIdent ->
             val principal = (call.authentication.principal as JWTPrincipal).payload

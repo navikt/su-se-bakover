@@ -60,7 +60,7 @@ val jwtStub = JwtStub()
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-fun Application.usingMocks(
+internal fun Application.usingMocks(
         jwkConfig: JSONObject = mockk(relaxed = true),
         jwkProvider: JwkProvider = mockk(relaxed = true),
         personClient: SuPersonClient = mockk(relaxed = true),
