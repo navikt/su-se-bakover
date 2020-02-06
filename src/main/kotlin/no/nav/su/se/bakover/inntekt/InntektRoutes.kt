@@ -21,11 +21,11 @@ private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal fun Route.inntektRoutes(inntektClient: SuInntektClient) {
+internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
     get<InntektPath> { inntektPath ->
         val principal = (call.authentication.principal as JWTPrincipal).payload
         sikkerLogg.info("${principal.subject} slår opp inntekt for person ${inntektPath.ident}")
-        val response = inntektClient.inntekt(
+        val response = oppslag.inntekt(
             ident = inntektPath.ident,
             innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
             fomDato = inntektPath.fomDato,

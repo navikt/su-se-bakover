@@ -25,8 +25,11 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
+import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
 import org.json.JSONObject
@@ -39,20 +42,21 @@ import java.net.URL
 internal fun Application.susebakover(
     jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    azureClient: AzureClient = AzureClient(
+    tokenExchange: TokenExchange = AzureClient(
         fromEnvironment("azure.clientId"),
         fromEnvironment("azure.clientSecret"),
         jwkConfig.getString("token_endpoint")
     ),
-    personClient: SuPersonClient = SuPersonClient(
+    personOppslag: PersonOppslag = SuPersonClient(
         fromEnvironment("integrations.suPerson.url"),
         fromEnvironment("integrations.suPerson.clientId"),
-        azureClient
+        tokenExchange
     ),
-    inntektClient: SuInntektClient = SuInntektClient(fromEnvironment("integrations.suInntekt.url"),
+    inntektOppslag: InntektOppslag = SuInntektClient(
+        fromEnvironment("integrations.suInntekt.url"),
         fromEnvironment("integrations.suInntekt.clientId"),
-        azureClient,
-        personClient)
+        tokenExchange,
+        personOppslag)
 ) {
 
     install(CORS) {
@@ -104,8 +108,8 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(personClient)
-            inntektRoutes(inntektClient)
+            personRoutes(personOppslag)
+            inntektRoutes(inntektOppslag)
         }
     }
 }

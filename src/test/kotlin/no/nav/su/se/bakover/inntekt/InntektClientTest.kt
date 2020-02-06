@@ -2,11 +2,12 @@ package no.nav.su.se.bakover.inntekt
 
 import com.github.kittinunf.fuel.core.*
 import com.github.kittinunf.fuel.toolbox.HttpClient
-import com.github.tomakehurst.wiremock.http.Body
 import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
+import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.person.PersonOppslag
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,13 +16,13 @@ import java.net.URL
 import kotlin.test.assertEquals
 
 internal class InntektClientTest {
-    private val url = "http://some.url"
+    private val url = "http://some.place"
     private val clientId = "inntektclientid"
-    private val persontilgang200 = object : Persontilgang {
+    private val persontilgang200 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Result =
             Ok("""{"ting": "OK"}""")
     }
-    private val persontilgang403 = object : Persontilgang {
+    private val persontilgang403 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Result =
             Feil(403, "Du hakke lov")
     }
@@ -52,7 +53,6 @@ internal class InntektClientTest {
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
-
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Ok(""), result)

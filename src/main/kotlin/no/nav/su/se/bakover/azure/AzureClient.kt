@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.azure
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
-import no.nav.su.se.bakover.inntekt.TokenExchange
 import org.json.JSONObject
+
+internal interface TokenExchange {
+    fun onBehalfOFToken(originalToken: String, otherAppId: String): String
+}
 
 class AzureClient(
     private val thisClientId: String,

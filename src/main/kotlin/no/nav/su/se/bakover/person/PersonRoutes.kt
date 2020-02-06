@@ -22,12 +22,12 @@ const val identLabel = "ident"
 private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 
 @KtorExperimentalAPI
-internal fun Route.personRoutes(personClient: SuPersonClient) {
+internal fun Route.personRoutes(oppslag: PersonOppslag) {
     get(personPath) {
         call.parameters[identLabel]?.let { personIdent ->
             val principal = (call.authentication.principal as JWTPrincipal).payload
             sikkerLogg.info("${principal.subject} gjør oppslag på person $personIdent")
-            when (val response = personClient.person(personIdent, call.request.header(Authorization)!!)) {
+            when (val response = oppslag.person(personIdent, call.request.header(Authorization)!!)) {
                 is Ok -> call.respond(OK, response.json)
                 is Feil -> call.respond(fromValue(response.httpCode), response.toJson())
             }

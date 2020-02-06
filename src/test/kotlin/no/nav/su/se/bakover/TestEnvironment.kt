@@ -13,11 +13,9 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import io.mockk.every
-import io.mockk.mockk
-import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.inntekt.SuInntektClient
-import no.nav.su.se.bakover.person.SuPersonClient
+import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.inntekt.InntektOppslag
+import no.nav.su.se.bakover.person.PersonOppslag
 import org.json.JSONObject
 import java.util.*
 
@@ -58,30 +56,35 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
 
 val jwtStub = JwtStub()
 
+private val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExponent.toByteArray())
+private val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
+private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
+private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
+private val defaultAzure = object: TokenExchange {
+    override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
+}
+private val failingPersonClient = object: PersonOppslag {
+    override fun person(ident: String, innloggetSaksbehandlerToken: String): Result = Feil(501, "dette var en autogenerert feil fra person")
+}
+private val failingInntektClient = object: InntektOppslag {
+    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result = Feil(501, "dette var en autogenerert feil fra inntekt")
+}
+
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.usingMocks(
-        jwkConfig: JSONObject = mockk(relaxed = true),
-        jwkProvider: JwkProvider = mockk(relaxed = true),
-        personClient: SuPersonClient = mockk(relaxed = true),
-        inntektClient: SuInntektClient = mockk(relaxed = true),
-        azureClient: AzureClient = mockk(relaxed = true)
+    jwkConfig: JSONObject = defaultJwkConfig,
+    jwkProvider: JwkProvider = JwkProvider { defaultJwk },
+    personClient: PersonOppslag = failingPersonClient,
+    inntektClient: InntektOppslag = failingInntektClient,
+    azureClient: TokenExchange = defaultAzure
 ) {
-    val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExponent.toByteArray())
-    val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
-    every {
-        jwkProvider.get(any())
-    }.returns(Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n)))
-    every {
-        jwkConfig.getString("issuer")
-    }.returns(AZURE_ISSUER)
-
     susebakover(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
-        azureClient = azureClient,
-        personClient = personClient,
-        inntektClient = inntektClient
+        tokenExchange = azureClient,
+        personOppslag = personClient,
+        inntektOppslag = inntektClient
     )
 }
 

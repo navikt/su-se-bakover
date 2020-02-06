@@ -9,21 +9,27 @@ import io.ktor.http.HttpHeaders.XRequestId
 import no.nav.su.se.bakover.Feil
 import no.nav.su.se.bakover.Ok
 import no.nav.su.se.bakover.Result
+import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.person.PersonOppslag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+
+internal interface InntektOppslag {
+    fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result
+}
 
 internal class SuInntektClient(
     suInntektBaseUrl: String,
     private val suInntektClientId: String,
     private val exchange: TokenExchange,
-    private val persontilgang: Persontilgang
-) {
+    private val personOppslag: PersonOppslag
+): InntektOppslag {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    internal fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result =
-        when (val personSvar = persontilgang.person(ident, innloggetSaksbehandlerToken)) {
+    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Result =
+        when (val personSvar = personOppslag.person(ident, innloggetSaksbehandlerToken)) {
             is Ok -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
             is Feil -> personSvar
         }
@@ -58,9 +64,3 @@ internal class SuInntektClient(
     }
 }
 
-internal interface Persontilgang {
-    fun person(ident: String, innloggetSaksbehandlerToken: String): Result
-}
-internal interface TokenExchange {
-    fun onBehalfOFToken(originalToken: String, otherAppId: String): String
-}
