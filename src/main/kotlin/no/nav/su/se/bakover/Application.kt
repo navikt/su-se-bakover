@@ -11,6 +11,7 @@ import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.features.*
+import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XRequestId
@@ -85,8 +86,13 @@ internal fun Application.susebakover(
     )
 
     install(Locations)
-    routing {
 
+    install(ContentNegotiation){
+        gson {
+            setPrettyPrinting()
+        }
+    }
+    routing {
         authenticate("jwt") {
             install(CallId) {
                 header(XRequestId)
