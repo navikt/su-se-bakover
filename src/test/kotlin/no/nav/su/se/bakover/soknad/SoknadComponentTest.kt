@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.soknad
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.google.gson.Gson
+import com.google.gson.JsonParser
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
@@ -11,8 +11,10 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.JwtStub
 import no.nav.su.se.bakover.susebakover
 import no.nav.su.se.bakover.testEnv
@@ -23,12 +25,39 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
+@KtorExperimentalAPI
+@KtorExperimentalLocationsAPI
 internal class SoknadComponentTest {
-    private val gson = Gson()
+
     @Test
     fun `lagrer og henter søknad`() {
         val token = jwtStub.createTokenFor()
-        var id: Long?
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            val lagreSøknadResponse = withCallId(Post, soknadPath) {
+                addHeader(Authorization, "Bearer $token")
+                addHeader(ContentType, Json.toString())
+                setBody(soknadJson)
+            }.apply {
+                assertEquals(Created, response.status())
+            }.response
+
+            val søknadId = JSONObject(lagreSøknadResponse.content).getLong("søknadId")
+
+            withCallId(Get, "$soknadPath/$søknadId") {
+                addHeader(Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(OK, response.status())
+                assertEquals(JsonParser().parse(soknadJson), JsonParser().parse(response.content)) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
+            }
+        }
+    }
+
+    @Test
+    fun `lagrer og henter søknad på fnr`() {
+        val token = jwtStub.createTokenFor()
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -38,19 +67,14 @@ internal class SoknadComponentTest {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
             }.apply {
-                id = JSONObject(response.content).getLong("søknadId")
-                assertEquals(1L, id)
                 assertEquals(Created, response.status())
             }
 
-            withCallId(Get, "$soknadPath/$id") {
+            withCallId(Get, "$soknadPath?$identLabel=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
-                val input = JSONObject(soknadJson)
-                val output = JSONObject(response.content)
-                assertEquals(input.getJSONObject("personopplysninger").getString("mellomnavn"), output.getJSONObject("personopplysninger").getString("mellomnavn"))
-                //TODO make it possible to compare JSON!?? wtff
                 assertEquals(OK, response.status())
+                assertEquals(JsonParser().parse(soknadJson), JsonParser().parse(response.content))
             }
         }
     }
@@ -77,10 +101,12 @@ internal class SoknadComponentTest {
         }
     }
 
-    private val soknadJson = """
+    val fnr = "234123345"
+    private val soknadJson =
+    """
     {
       "personopplysninger": {
-        "fnr": "234123345",
+        "fnr": $fnr,
         "fornavn": "fornavn",
         "mellomnavn": "ØÆÅ",
         "etternavn": "etternavn",

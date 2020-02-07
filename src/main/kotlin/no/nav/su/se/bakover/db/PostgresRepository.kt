@@ -11,9 +11,9 @@ class PostgresRepository(
 
     fun hentSoknadForPerson(fnr: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
-            session.run(queryOf("SELECT json FROM soknad WHERE json->>'fnr'='$fnr'").map {
+            session.run(queryOf("SELECT json FROM soknad WHERE json#>>'{personopplysninger,fnr}'='$fnr'").map {
                 it.string("json")
-            }.asSingle)
+            }.asSingle) //TODO skriv om til liste
         }?.let {
             Søknad(it)
         }

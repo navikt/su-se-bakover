@@ -28,7 +28,7 @@ private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
 @KtorExperimentalAPI
 internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
     get(soknadPath) {
-        call.parameters["ident"]?.let { personIdent ->
+        call.parameters[identLabel]?.let { personIdent ->
             val principal = (call.authentication.principal as JWTPrincipal).payload
             sikkerLogg.info("${principal.subject} henter søknad for person: $personIdent")
             postgresRepository.hentSoknadForPerson(personIdent)?.let {
