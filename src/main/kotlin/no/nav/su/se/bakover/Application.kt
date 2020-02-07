@@ -25,7 +25,6 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.TokenExchange
-import no.nav.su.se.bakover.azure.getJWKConfig
 import no.nav.su.se.bakover.db.DataSourceBuilder
 import no.nav.su.se.bakover.db.PostgresRepository
 import no.nav.su.se.bakover.inntekt.InntektOppslag
