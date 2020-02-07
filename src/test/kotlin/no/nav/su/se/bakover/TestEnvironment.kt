@@ -77,7 +77,7 @@ fun configureEmbeddedPostgres(): EmbeddedPostgres {
     val embeddedPostgres = EmbeddedPostgres.builder()
             .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
             .start()
-    embeddedPostgres.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute() //Flyway migrations
+    embeddedPostgres.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
     return embeddedPostgres
 }
 

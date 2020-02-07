@@ -16,7 +16,7 @@ class FlywayMigrator(
     private fun runMigration(dataSource: DataSource) =
             Flyway.configure()
                     .dataSource(dataSource)
-                    .initSql("SET ROLE \"$databaseName-$Admin\"")
+                    .initSql("SET ROLE \"$databaseName-$Admin\"")//Pga roterende credentials i preprod/prod må tabeller opprettes/endres av samme rolle hver gang. Se https://github.com/navikt/utvikling/blob/master/PostgreSQL.md#hvordan-kj%C3%B8re-flyway-migreringerendre-p%C3%A5-databaseskjemaet
                     .load()
                     .migrate()
 }
