@@ -7,6 +7,8 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.Instant
