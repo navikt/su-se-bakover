@@ -8,13 +8,15 @@ internal sealed class Resultat {
     abstract suspend fun svar(call: ApplicationCall): Unit
 }
 
-internal class Ok(private val json: String) : Resultat() {
-    override fun equals(other: Any?): Boolean = other is Ok && other.json == this.json
+internal class Suksess(private val httpCode: HttpStatusCode, private val json: String) : Resultat() {
+    override fun equals(other: Any?): Boolean = other is Suksess && other.json == this.json
     override fun hashCode(): Int = json.hashCode()
-    override suspend fun svar(call: ApplicationCall) = call.respond(HttpStatusCode.OK, json)
+    override suspend fun svar(call: ApplicationCall) = call.respond(httpCode, json)
 }
 
 internal class Feil(private val httpCode: Int, private val message: String) : Resultat() {
+    constructor(httpCode: HttpStatusCode, message: String) : this(httpCode.value, message)
+
     private fun toJson() = """{"message":"$message"}"""
     override fun equals(other: Any?) = other is Feil && other.httpCode == this.httpCode && other.message == this.message
     override fun hashCode(): Int = 31 * httpCode + message.hashCode()
