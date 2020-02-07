@@ -4,8 +4,6 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XRequestId
@@ -19,13 +17,10 @@ import io.ktor.util.KtorExperimentalAPI
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.person.SuPersonClient
-import org.flywaydb.core.Flyway
 import org.json.JSONObject
-import org.junit.jupiter.api.BeforeEach
-import org.postgresql.PGProperty
-import java.sql.Connection
 import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -53,9 +48,7 @@ const val DB_HOST = "localhost"
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
 
-    val embeddedPostgres = EmbeddedPostgres.builder()
-            .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
-            .start()
+    val embeddedPostgres = configureEmbeddedPostgres()
 
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
@@ -78,6 +71,14 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("db.host", DB_HOST)
         put("db.port", embeddedPostgres.port.toString())
     }
+}
+
+fun configureEmbeddedPostgres(): EmbeddedPostgres {
+    val embeddedPostgres = EmbeddedPostgres.builder()
+            .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
+            .start()
+    embeddedPostgres.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute() //Flyway migrations
+    return embeddedPostgres
 }
 
 val jwtStub = JwtStub()

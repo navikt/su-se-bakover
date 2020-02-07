@@ -40,15 +40,7 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 fun Application.susebakover(
-        dataSource: DataSource = DataSourceBuilder(mapOf(
-                "DATABASE_USERNAME" to fromEnvironment("db.username"),
-                "DATABASE_PASSWORD" to fromEnvironment("db.password"),
-                "DATABASE_JDBC_URL" to fromEnvironment("db.jdbcUrl"),
-                "VAULT_MOUNTPATH" to fromEnvironment("db.vaultMountPath"),
-                "DATABASE_NAME" to fromEnvironment("db.name"),
-                "DATABASE_HOST" to fromEnvironment("db.host"),
-                "DATABASE_PORT" to fromEnvironment("db.port")
-        )).getDataSource(),
+        dataSource: DataSource = dataSourceBuilder().getDataSource(),
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
         personClient: SuPersonClient = SuPersonClient(fromEnvironment("integrations.suPerson.url")),
@@ -56,6 +48,8 @@ fun Application.susebakover(
         azureClient: AzureClient = AzureClient(fromEnvironment("azure.clientId"), fromEnvironment("azure.clientSecret"), jwkConfig.getString("token_endpoint")),
         postgresRepository: PostgresRepository = PostgresRepository(dataSource)
 ) {
+    FlywayMigrator(dataSourceBuilder(), fromEnvironment("db.name")).migrate()
+
     install(CORS) {
         method(Options)
         header(Authorization)
@@ -113,6 +107,19 @@ fun Application.susebakover(
 
 @KtorExperimentalAPI
 fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
+
+@KtorExperimentalAPI
+fun Application.dataSourceBuilder(): DataSourceBuilder {
+    return DataSourceBuilder(mapOf(
+            "DATABASE_USERNAME" to fromEnvironment("db.username"),
+            "DATABASE_PASSWORD" to fromEnvironment("db.password"),
+            "DATABASE_JDBC_URL" to fromEnvironment("db.jdbcUrl"),
+            "VAULT_MOUNTPATH" to fromEnvironment("db.vaultMountPath"),
+            "DATABASE_NAME" to fromEnvironment("db.name"),
+            "DATABASE_HOST" to fromEnvironment("db.host"),
+            "DATABASE_PORT" to fromEnvironment("db.port")
+    ))
+}
 
 @KtorExperimentalAPI
 fun ApplicationConfig.getProperty(key: String): String = property(key).getString()

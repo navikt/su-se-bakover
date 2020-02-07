@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
-import org.flywaydb.core.Flyway
-import org.postgresql.ds.PGPoolingDataSource.getDataSource
 import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
@@ -45,7 +43,6 @@ class DataSourceBuilder(env: Map<String, String>) {
             check(null == env["DATABASE_PASSWORD"]) { "password must not be set when vault is enabled" }
             checkNotNull(env["DATABASE_NAME"]) { "database name must be set when vault is enabled" }
         }
-        migrate()
     }
 
     fun getDataSource(role: Role = Role.User): DataSource {
@@ -56,22 +53,6 @@ class DataSourceBuilder(env: Map<String, String>) {
                 "$databaseName-$role"
         )
     }
-
-    fun migrate() {
-        var initSql: String? = null
-        if (shouldGetCredentialsFromVault) {
-            initSql = "SET ROLE \"$databaseName-${Role.Admin}\""
-        }
-
-        runMigration(getDataSource(Role.Admin), initSql)
-    }
-
-    private fun runMigration(dataSource: DataSource, initSql: String? = null) =
-            Flyway.configure()
-                    .dataSource(dataSource)
-                    .initSql(initSql)
-                    .load()
-                    .migrate()
 
     enum class Role {
         Admin, User, ReadOnly;
