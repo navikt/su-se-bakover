@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
+import no.nav.su.se.bakover.soknad.soknadRoutes
 import org.json.JSONObject
 import org.slf4j.MDC
 import org.slf4j.event.Level
@@ -87,7 +88,7 @@ internal fun Application.susebakover(
 
     install(Locations)
 
-    install(ContentNegotiation){
+    install(ContentNegotiation) {
         gson {
             setPrettyPrinting()
         }
@@ -121,6 +122,7 @@ internal fun Application.susebakover(
 
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
+            soknadRoutes(postgresRepository)
         }
     }
 }
