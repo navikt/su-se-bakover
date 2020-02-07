@@ -26,6 +26,7 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.db.DataSourceBuilder
+import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.db.PostgresRepository
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient

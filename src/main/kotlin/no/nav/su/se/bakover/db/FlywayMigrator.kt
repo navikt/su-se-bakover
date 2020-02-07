@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.db
 
-import no.nav.su.se.bakover.db.DataSourceBuilder
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
