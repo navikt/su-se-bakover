@@ -6,10 +6,8 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XRequestId
-import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Feil
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.Suksess
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.slf4j.Logger
@@ -30,10 +28,10 @@ internal class SuInntektClient(
     private val suInntektIdentLabel = "fnr"
 
     override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
-            when (val personSvar = personOppslag.person(ident, innloggetSaksbehandlerToken)) {
-                is Suksess -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
-                is Feil -> personSvar
-            }
+        personOppslag.person(ident, innloggetSaksbehandlerToken).fold(
+            success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
+            error = { it }
+        )
 
     private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
@@ -50,12 +48,12 @@ internal class SuInntektClient(
                 .responseString()
 
         return result.fold(
-                { Suksess(OK, it) },
+                { Resultat.ok(it) },
                 { error ->
                     val errorMessage = error.response.body().asString(Json.toString())
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Feil(statusCode, errorMessage)
+                    Resultat.resultatMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
                 }
         )
     }
