@@ -5,11 +5,11 @@ import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 class FlywayMigrator(
-        private val dataSourceBuilder: DataSourceBuilder,
+        private val dataSource: DataSource,
         private val databaseName: String
 ) {
     fun migrate() {
-        runMigration(dataSourceBuilder.getDataSource(Admin))
+        runMigration(dataSource)
     }
 
     private fun runMigration(dataSource: DataSource) =

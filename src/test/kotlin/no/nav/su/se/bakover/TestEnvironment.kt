@@ -37,9 +37,8 @@ const val SU_FRONTEND_ORIGIN = "localhost"
 const val DEFAULT_CALL_ID = "callId"
 const val DB_USERNAME = "postgres"
 const val DB_PASSWORD = "postgres"
-const val DB_VAULT_MOUNTPATH = "LOCAL"
+const val DB_VAULT_MOUNTPATH = ""
 const val DB_NAME = "postgres"
-const val DB_HOST = "localhost"
 
 
 @KtorExperimentalAPI
@@ -66,7 +65,6 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("db.jdbcUrl", embeddedPostgres.getJdbcUrl(DB_USERNAME, DB_NAME))
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
-        put("db.host", DB_HOST)
         put("db.port", embeddedPostgres.port.toString())
     }
 }

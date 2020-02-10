@@ -10,7 +10,6 @@
     "SU_INNTEKT_AZURE_CLIENT_ID": "added321-62ff-4c30-9599-81dc343f749b",
     "VAULT_MOUNTPATH": "postgresql/prod-fss/",
     "DATABASE_NAME": "supstonad-db-prod",
-    "DATABASE_HOST": "A01DBVL011.adeo.no",
-    "DATABASE_PORT": "5432"
+    "DATABASE_JDBC_URL": "jdbc:postgresql://A01DBVL011.adeo.no:5432/supstonad-db-prod"
   }
 }

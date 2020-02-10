@@ -2,56 +2,19 @@ package no.nav.su.se.bakover.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
-class DataSourceBuilder(env: Map<String, String>) {
-    private val databaseName = env["DATABASE_NAME"]
-
-    private val vaultMountPath = env["VAULT_MOUNTPATH"]
-    private val shouldGetCredentialsFromVault = vaultMountPath != null && vaultMountPath != "LOCAL"
-
-    // username and password is only needed when vault is not enabled,
-    // since we rotate credentials automatically when vault is enabled
-    private val hikariConfig = HikariConfig().apply {
-        jdbcUrl = env["DATABASE_JDBC_URL"] ?: String.format(
-                "jdbc:postgresql://%s:%s/%s%s",
-                requireNotNull(env["DATABASE_HOST"]) { "database host must be set if jdbc url is not provided" },
-                requireNotNull(env["DATABASE_PORT"]) { "database port must be set if jdbc url is not provided" },
-                requireNotNull(databaseName) { "database name must be set if jdbc url is not provided" },
-                env["DATABASE_USERNAME"]?.let { "?user=$it" } ?: "")
-
-        env["DATABASE_USERNAME"]?.let { this.username = it }
-        env["DATABASE_PASSWORD"]?.let { this.password = it }
-
-        maximumPoolSize = 3
-        minimumIdle = 1
-        idleTimeout = 10001
-        connectionTimeout = 1000
-        maxLifetime = 30001
-    }
-
-    init {
-        if (!shouldGetCredentialsFromVault) {
-            if (!env.containsKey("DATABASE_JDBC_URL")) {
-                checkNotNull(env["DATABASE_USERNAME"]) { "username must be set when vault is disabled" }
-                checkNotNull(env["DATABASE_PASSWORD"]) { "password must be set when vault is disabled" }
-            }
-        } else {
-            check(null == env["DATABASE_USERNAME"]) { "username must not be set when vault is enabled" }
-            check(null == env["DATABASE_PASSWORD"]) { "password must not be set when vault is enabled" }
-            checkNotNull(env["DATABASE_NAME"]) { "database name must be set when vault is enabled" }
+class DataSourceBuilder(private val env: Map<String, String>) {
+    fun build(): AbstractDatasource {
+        val vaultMountPath: String = env["VAULT_MOUNTPATH"] ?: error("VAULT_MOUNTPATH påkrevd (bruk tom string \"\" for embedded postgres)")
+        return when (vaultMountPath.let { it != "" }) {
+            true -> VaultPostgres(env)
+            else -> EmbeddedPostgres(env)
         }
-    }
-
-    fun getDataSource(role: Role = Role.User): DataSource {
-        if (!shouldGetCredentialsFromVault) return HikariDataSource(hikariConfig)
-        return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-                hikariConfig,
-                vaultMountPath,
-                "$databaseName-$role"
-        )
     }
 
     enum class Role {
@@ -59,4 +22,40 @@ class DataSourceBuilder(env: Map<String, String>) {
 
         override fun toString() = name.toLowerCase()
     }
+}
+
+abstract class AbstractDatasource(env: Map<String, String>) {
+    private val jdbcUrl: String = env["DATABASE_JDBC_URL"] ?: error("DATABASE_JDBC_URL er påkrevd")
+    protected val hikariConfig: HikariConfig = HikariConfig().apply {
+        jdbcUrl = this@AbstractDatasource.jdbcUrl
+        maximumPoolSize = 3
+        minimumIdle = 1
+        idleTimeout = 10001
+        connectionTimeout = 1000
+        maxLifetime = 30001
+    }
+
+    abstract fun getDatasource(role: Role = User): DataSource
+}
+
+class EmbeddedPostgres(env: Map<String, String>) : AbstractDatasource(env) {
+    private val username: String = env["DATABASE_USERNAME"] ?: error("DATABASE_USERNAME påkrevd for embedded postgres")
+    private val password: String = env["DATABASE_PASSWORD"] ?: error("DATABASE_PASSWORD påkrevd for embedded postgres")
+    override fun getDatasource(role: Role) = HikariDataSource(hikariConfig.apply {
+        username = this@EmbeddedPostgres.username
+        password = this@EmbeddedPostgres.password
+    })
+
+}
+
+class VaultPostgres(env: Map<String, String>) : AbstractDatasource(env) {
+    private val vaultMountPath: String = env["VAULT_MOUNTPATH"] ?: error("VAULT_MOUNTPATH påkrevd for integrasjon mot vault")
+    private val databaseName: String = env["DATABASE_NAME"] ?: error("DATABASE_NAME pågrevd ved integrasjon mot vault")
+    override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
+            hikariConfig,
+            vaultMountPath,
+            "$databaseName-$role"
+
+    )
+
 }

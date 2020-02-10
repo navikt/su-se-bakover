@@ -27,6 +27,9 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.db.DataSourceBuilder
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
+import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.db.PostgresRepository
 import no.nav.su.se.bakover.inntekt.InntektOppslag
@@ -45,7 +48,7 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        dataSource: DataSource = dataSourceBuilder().getDataSource(), jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        dataSource: DataSource = getDatasource(), jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
         tokenExchange: TokenExchange = AzureClient(
                 fromEnvironment("azure.clientId"),
@@ -64,7 +67,7 @@ internal fun Application.susebakover(
                 personOppslag),
         postgresRepository: PostgresRepository = PostgresRepository(dataSource)
 ) {
-    FlywayMigrator(dataSourceBuilder(), fromEnvironment("db.name")).migrate()
+    FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     install(CORS) {
         method(Options)
@@ -131,16 +134,14 @@ internal fun Application.susebakover(
 fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
 
 @KtorExperimentalAPI
-fun Application.dataSourceBuilder(): DataSourceBuilder {
+fun Application.getDatasource(role: Role = User): DataSource {
     return DataSourceBuilder(mapOf(
             "DATABASE_USERNAME" to fromEnvironment("db.username"),
             "DATABASE_PASSWORD" to fromEnvironment("db.password"),
             "DATABASE_JDBC_URL" to fromEnvironment("db.jdbcUrl"),
             "VAULT_MOUNTPATH" to fromEnvironment("db.vaultMountPath"),
-            "DATABASE_NAME" to fromEnvironment("db.name"),
-            "DATABASE_HOST" to fromEnvironment("db.host"),
-            "DATABASE_PORT" to fromEnvironment("db.port")
-    ))
+            "DATABASE_NAME" to fromEnvironment("db.name")
+    )).build().getDatasource(role)
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
