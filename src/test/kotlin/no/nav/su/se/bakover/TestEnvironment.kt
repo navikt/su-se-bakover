@@ -8,6 +8,7 @@ import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
@@ -89,10 +90,10 @@ private val defaultAzure = object : TokenExchange {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
 }
 private val failingPersonClient = object : PersonOppslag {
-    override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat = Feil(501, "dette var en autogenerert feil fra person")
+    override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat = Resultat.feilMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
 }
 private val failingInntektClient = object : InntektOppslag {
-    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Feil(501, "dette var en autogenerert feil fra inntekt")
+    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.feilMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")
 }
 
 @KtorExperimentalLocationsAPI

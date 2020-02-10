@@ -4,10 +4,8 @@ import com.github.kittinunf.fuel.httpGet
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
-import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Feil
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.Suksess
 import no.nav.su.se.bakover.azure.TokenExchange
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,12 +28,12 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
                 .header(XRequestId, MDC.get(XRequestId))
                 .responseString()
         return result.fold(
-                { Suksess(OK, it) },
+                { Resultat.ok(it) },
                 { error ->
                     val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Feil(statusCode, errorMessage)
+                    Resultat.feilMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
                 }
         )
     }

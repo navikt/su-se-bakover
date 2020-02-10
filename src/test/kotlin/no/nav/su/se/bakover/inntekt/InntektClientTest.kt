@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.inntekt
 import com.github.kittinunf.fuel.core.*
 import com.github.kittinunf.fuel.toolbox.HttpClient
 import io.ktor.http.HttpHeaders.XRequestId
-import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Feil
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.Suksess
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.junit.jupiter.api.AfterEach
@@ -22,25 +20,25 @@ internal class InntektClientTest {
     fun `skal ikke kalle inntekt om person gir feil`() {
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
         val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Feil(403, "Du hakke lov"), result)
+        assertEquals(Resultat.feilMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Suksess(OK, ""), result)
+        assertEquals(Resultat.ok(""), result)
     }
 
     private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
-                Suksess(OK, """{"ting": "OK"}""")
+            Resultat.ok("""{"ting": "OK"}""")
     }
     private val persontilgang403 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
-                Feil(403, "Du hakke lov")
+            Resultat.feilMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov")
     }
     private val tokenExchange = object : TokenExchange {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
@@ -61,10 +59,10 @@ internal class InntektClientTest {
     }
 
     private fun okResponseFromInntekt() = Response(
-            url = URL("http://some.place"),
-            contentLength = 0,
-            headers = Headers(),
-            responseMessage = "Thumbs up",
-            statusCode = 200
+        url = URL("http://some.place"),
+        contentLength = 0,
+        headers = Headers(),
+        responseMessage = "Thumbs up",
+        statusCode = 200
     )
 }

@@ -2,25 +2,25 @@ package no.nav.su.se.bakover
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.ktor.response.respond
 
-internal sealed class Resultat {
-    abstract suspend fun svar(call: ApplicationCall): Unit
-}
+/* forstår seg på hvordan et resultat med en melding blir til en http-response */
+internal class Resultat private constructor(private val httpCode: HttpStatusCode, private val json: String) {
+    override fun equals(other: Any?) = other is Resultat && other.httpCode == this.httpCode && other.json == this.json
+    override fun hashCode(): Int = 31 * httpCode.value + json.hashCode()
+    suspend fun svar(call: ApplicationCall) = call.respond(httpCode, json)
 
-internal class Suksess(private val httpCode: HttpStatusCode, private val json: String) : Resultat() {
-    override fun equals(other: Any?): Boolean = other is Suksess && other.json == this.json
-    override fun hashCode(): Int = json.hashCode()
-    override suspend fun svar(call: ApplicationCall) = call.respond(httpCode, json)
-}
+    fun fold(success: () -> Resultat, error: (Resultat) -> Resultat): Resultat = when {
+        httpCode.isSuccess() -> success()
+        else -> error(this)
+    }
 
-internal class Feil(private val httpCode: Int, private val message: String) : Resultat() {
-    constructor(httpCode: HttpStatusCode, message: String) : this(httpCode.value, message)
-
-    private fun toJson() = """{"message":"$message"}"""
-    override fun equals(other: Any?) = other is Feil && other.httpCode == this.httpCode && other.message == this.message
-    override fun hashCode(): Int = 31 * httpCode + message.hashCode()
-    override suspend fun svar(call: ApplicationCall) = call.respond(HttpStatusCode.fromValue(httpCode), toJson())
+    companion object {
+        fun feilMedMelding(httpCode: HttpStatusCode, melding: String) = Resultat(httpCode, """{"message": "$melding"}""")
+        fun ok(json: String) = Resultat(HttpStatusCode.OK, json)
+        fun created(json: String) = Resultat(HttpStatusCode.Created, json)
+    }
 }
 
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

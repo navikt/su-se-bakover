@@ -84,7 +84,7 @@ internal class PersonComponentTest {
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
-            assertEquals("""{"message":"$errorMessage"}""", response.content!!)
+            assertEquals("""{"message": "$errorMessage"}""", response.content!!)
         }
     }
 
