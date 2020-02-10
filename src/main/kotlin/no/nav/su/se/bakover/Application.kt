@@ -3,10 +3,7 @@ package no.nav.su.se.bakover
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.github.kittinunf.fuel.httpGet
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.call
-import io.ktor.application.install
+import io.ktor.application.*
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -41,6 +38,7 @@ import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
 import no.nav.su.se.bakover.soknad.soknadRoutes
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
@@ -136,6 +134,11 @@ fun Application.fromEnvironment(path: String): String = environment.config.prope
 
 @KtorExperimentalAPI
 internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
+
+internal fun ApplicationCall.audit(msg: String) {
+    val principal = (this.authentication.principal as JWTPrincipal).payload
+    LoggerFactory.getLogger("sikkerLogg").info("${principal.subject} $msg")
+}
 
 @KtorExperimentalAPI
 fun Application.getDatasource(role: Role = User): DataSource {
