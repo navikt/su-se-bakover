@@ -66,7 +66,6 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("db.jdbcUrl", embeddedPostgres.getJdbcUrl(DB_USERNAME, DB_NAME))
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
-        put("db.port", embeddedPostgres.port.toString())
     }
 }
 
