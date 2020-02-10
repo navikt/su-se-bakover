@@ -2,15 +2,19 @@ package no.nav.su.se.bakover.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.config.ApplicationConfig
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
+import no.nav.su.se.bakover.getProperty
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
-class DataSourceBuilder(private val env: Map<String, String>) {
+@KtorExperimentalAPI
+class DataSourceBuilder(private val env: ApplicationConfig) {
     fun build(): AbstractDatasource {
-        val vaultMountPath: String = env["VAULT_MOUNTPATH"] ?: error("VAULT_MOUNTPATH påkrevd (bruk tom string \"\" for embedded postgres)")
+        val vaultMountPath: String = env.getProperty("db.vaultMountPath")
         return when (vaultMountPath.let { it != "" }) {
             true -> VaultPostgres(env)
             else -> EmbeddedPostgres(env)
@@ -24,8 +28,9 @@ class DataSourceBuilder(private val env: Map<String, String>) {
     }
 }
 
-abstract class AbstractDatasource(env: Map<String, String>) {
-    private val jdbcUrl: String = env["DATABASE_JDBC_URL"] ?: error("DATABASE_JDBC_URL er påkrevd")
+@KtorExperimentalAPI
+abstract class AbstractDatasource(env: ApplicationConfig) {
+    private val jdbcUrl: String = env.getProperty("db.jdbcUrl")
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
         maximumPoolSize = 3
@@ -38,9 +43,10 @@ abstract class AbstractDatasource(env: Map<String, String>) {
     abstract fun getDatasource(role: Role = User): DataSource
 }
 
-class EmbeddedPostgres(env: Map<String, String>) : AbstractDatasource(env) {
-    private val username: String = env["DATABASE_USERNAME"] ?: error("DATABASE_USERNAME påkrevd for embedded postgres")
-    private val password: String = env["DATABASE_PASSWORD"] ?: error("DATABASE_PASSWORD påkrevd for embedded postgres")
+@KtorExperimentalAPI
+class EmbeddedPostgres(env: ApplicationConfig) : AbstractDatasource(env) {
+    private val username: String = env.getProperty("db.username")
+    private val password: String = env.getProperty("db.password")
     override fun getDatasource(role: Role) = HikariDataSource(hikariConfig.apply {
         username = this@EmbeddedPostgres.username
         password = this@EmbeddedPostgres.password
@@ -48,9 +54,10 @@ class EmbeddedPostgres(env: Map<String, String>) : AbstractDatasource(env) {
 
 }
 
-class VaultPostgres(env: Map<String, String>) : AbstractDatasource(env) {
-    private val vaultMountPath: String = env["VAULT_MOUNTPATH"] ?: error("VAULT_MOUNTPATH påkrevd for integrasjon mot vault")
-    private val databaseName: String = env["DATABASE_NAME"] ?: error("DATABASE_NAME pågrevd ved integrasjon mot vault")
+@KtorExperimentalAPI
+class VaultPostgres(env: ApplicationConfig) : AbstractDatasource(env) {
+    private val vaultMountPath: String = env.getProperty("db.vaultMountPath")
+    private val databaseName: String = env.getProperty("db.name")
     override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
             hikariConfig,
             vaultMountPath,

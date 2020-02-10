@@ -1,84 +1,89 @@
 package no.nav.su.se.bakover.db
 
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import io.ktor.config.ApplicationConfigurationException
+import io.ktor.config.MapApplicationConfig
+import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertTrue
 
+@KtorExperimentalAPI
 internal class DataSourceBuilderTest {
 
     @Test
     internal fun `bygger riktig datasource basert på vaultMountPath`() {
-        val env = mapOf(
-                "DATABASE_JDBC_URL" to "postgresql://localhost",
-                "DATABASE_USERNAME" to "postgres",
-                "DATABASE_PASSWORD" to "postgres",
-                "DATABASE_NAME" to "dbName"
+        val env = MapApplicationConfig(
+                "db.jdbcUrl" to "postgresql://localhost",
+                "db.username" to "postgres",
+                "db.password" to "postgres",
+                "db.name" to "dbName"
         )
-        assertTrue(DataSourceBuilder(env + mapOf("VAULT_MOUNTPATH" to "")).build() is EmbeddedPostgres)
-        assertTrue(DataSourceBuilder(env + mapOf("VAULT_MOUNTPATH" to "theREALPath")).build() is VaultPostgres)
+
+        assertTrue(DataSourceBuilder(env.apply { this.put("db.vaultMountPath", "") }).build() is EmbeddedPostgres)
+        assertTrue(DataSourceBuilder(env.apply { this.put("db.vaultMountPath", "thePath") }).build() is VaultPostgres)
     }
 
     @Test
     internal fun `kaster ikke exception når tilkobling konfigureres riktig`() {
         assertDoesNotThrow {
-            DataSourceBuilder(mapOf(
-                    "DATABASE_JDBC_URL" to "foobar",
-                    "VAULT_MOUNTPATH" to "foobar",
-                    "DATABASE_NAME" to "foobar"
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.jdbcUrl" to "foobar",
+                    "db.vaultMountPath" to "foobar",
+                    "db.name" to "foobar"
             )).build()
         }
 
         assertDoesNotThrow {
-            DataSourceBuilder(mapOf(
-                    "DATABASE_JDBC_URL" to "foobar",
-                    "VAULT_MOUNTPATH" to "",
-                    "DATABASE_USERNAME" to "foobar",
-                    "DATABASE_PASSWORD" to "foobar"
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.jdbcUrl" to "foobar",
+                    "db.vaultMountPath" to "",
+                    "db.username" to "foobar",
+                    "db.password" to "foobar"
             )).build()
         }
     }
 
     @Test
     internal fun `kaster exception ved mangende konfig`() {
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(emptyMap()).build()
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig()).build()
         }
 
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(mapOf(
-                    "DATABASE_NAME" to "foobar",
-                    "DATABASE_USERNAME" to "foobar"
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.name" to "foobar",
+                    "db.username" to "foobar"
             )
             ).build()
         }
 
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(mapOf(
-                    "DATABASE_JDBC_URL" to "foobar",
-                    "VAULT_MOUNTPATH" to "foobar"
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.jdbcUrl" to "foobar",
+                    "db.vaultMountPath" to "foobar"
             )).build()
         }
 
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(mapOf(
-                    "VAULT_MOUNTPATH" to "foobar",
-                    "DATABASE_USERNAME" to "foobar"
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.vaultMountPath" to "foobar",
+                    "db.username" to "foobar"
             )).build()
         }
 
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(mapOf(
-                    "VAULT_MOUNTPATH" to "",
-                    "DATABASE_PASSWORD" to "foobar"
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.vaultMountPath" to "",
+                    "db.password" to "foobar"
             )).build()
         }
 
-        assertThrows<IllegalStateException> {
-            DataSourceBuilder(mapOf(
-                    "DATABASE_JDBC_URL" to "foobar",
-                    "DATABASE_PASSWORD" to "foobar",
-                    "VAULT_MOUNTPATH" to ""
+        assertThrows<ApplicationConfigurationException> {
+            DataSourceBuilder(MapApplicationConfig(
+                    "db.jdbcUrl" to "foobar",
+                    "db.password" to "foobar",
+                    "db.vaultMountPath" to ""
             )).build()
         }
     }

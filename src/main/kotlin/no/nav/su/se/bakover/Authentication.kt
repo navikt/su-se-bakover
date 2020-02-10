@@ -16,7 +16,6 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
-import org.apache.http.HttpHost
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -27,7 +26,7 @@ internal fun Application.setupAuthentication(
 ) {
     install(Authentication) {
         oauth("azure") {
-            client = HttpClient(Apache){
+            client = HttpClient(Apache) {
                 engine {
                     customizeClient {
                         useSystemProperties()
@@ -80,6 +79,3 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String) {
         }
     }
 }
-
-@KtorExperimentalAPI
-private fun ApplicationConfig.getProperty(key: String): String = property(key).getString()

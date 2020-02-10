@@ -10,6 +10,7 @@ import io.ktor.application.install
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.config.ApplicationConfig
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders.Authorization
@@ -134,14 +135,11 @@ internal fun Application.susebakover(
 fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
 
 @KtorExperimentalAPI
+internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
+
+@KtorExperimentalAPI
 fun Application.getDatasource(role: Role = User): DataSource {
-    return DataSourceBuilder(mapOf(
-            "DATABASE_USERNAME" to fromEnvironment("db.username"),
-            "DATABASE_PASSWORD" to fromEnvironment("db.password"),
-            "DATABASE_JDBC_URL" to fromEnvironment("db.jdbcUrl"),
-            "VAULT_MOUNTPATH" to fromEnvironment("db.vaultMountPath"),
-            "DATABASE_NAME" to fromEnvironment("db.name")
-    )).build().getDatasource(role)
+    return DataSourceBuilder(environment.config).build().getDatasource(role)
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
