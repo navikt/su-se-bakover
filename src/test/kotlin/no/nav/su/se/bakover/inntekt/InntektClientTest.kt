@@ -20,7 +20,7 @@ internal class InntektClientTest {
     fun `skal ikke kalle inntekt om person gir feil`() {
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
         val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Resultat.feilMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
+        assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
@@ -38,7 +38,7 @@ internal class InntektClientTest {
     }
     private val persontilgang403 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
-            Resultat.feilMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov")
+            Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov")
     }
     private val tokenExchange = object : TokenExchange {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"

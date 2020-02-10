@@ -33,7 +33,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
                     val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Resultat.feilMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
+                    Resultat.resultatMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
                 }
         )
     }

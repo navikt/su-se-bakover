@@ -53,7 +53,7 @@ internal class SuInntektClient(
                     val errorMessage = error.response.body().asString(Json.toString())
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Resultat.feilMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
+                    Resultat.resultatMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
                 }
         )
     }

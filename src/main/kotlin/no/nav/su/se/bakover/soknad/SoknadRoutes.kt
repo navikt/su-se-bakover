@@ -30,8 +30,8 @@ internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
             sikkerLogg.info("${principal.subject} henter søknad for person: $personIdent")
             postgresRepository.hentSoknadForPerson(personIdent)?.let {
                 call.svar(Resultat.ok(it.søknadJson))
-            } ?: call.svar(Resultat.feilMedMelding(NotFound, "Fant ikke søknad for person: $personIdent"))
-        } ?: call.svar(Resultat.feilMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
+            } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad for person: $personIdent"))
+        } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
     }
 
     get("$soknadPath/{soknadId}") {
@@ -41,8 +41,8 @@ internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
             soknadId.toLongOrNull()?.let { søknadIdAsLong ->
                 postgresRepository.hentSøknad(søknadIdAsLong)?.let { søknad ->
                     call.svar(Resultat.ok(søknad.søknadJson))
-                } ?: call.svar(Resultat.feilMedMelding(NotFound, "Fant ikke søknad med id: $soknadId"))
-            } ?: call.svar(Resultat.feilMedMelding(BadRequest, "Søknad Id må være et tall"))
+                } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad med id: $soknadId"))
+            } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Søknad Id må være et tall"))
         }
     }
 
@@ -51,7 +51,7 @@ internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
             val principal = (call.authentication.principal as JWTPrincipal).payload
             postgresRepository.lagreSøknad(json.toString())?.let { søknadId ->
                 call.svar(Resultat.created("""{"søknadId":$søknadId}"""))
-            } ?: call.svar(Resultat.feilMedMelding(InternalServerError, "Kunne ikke lagre søknad"))
+            } ?: call.svar(Resultat.resultatMedMelding(InternalServerError, "Kunne ikke lagre søknad"))
         }
     }
 }

@@ -10,8 +10,8 @@ class ResultatTest {
     fun `equalitytests`() {
         assertEquals(Resultat.ok("blabla"), Resultat.ok("blabla"))
         assertEquals(
-            Resultat.feilMedMelding(HttpStatusCode.Conflict, "blabla"),
-            Resultat.feilMedMelding(HttpStatusCode.Conflict, "blabla")
+            Resultat.resultatMedMelding(HttpStatusCode.Conflict, "blabla"),
+            Resultat.resultatMedMelding(HttpStatusCode.Conflict, "blabla")
         )
         assertNotEquals<Resultat>(Resultat.ok("blabla"), Resultat.ok("blabla2"))
     }
