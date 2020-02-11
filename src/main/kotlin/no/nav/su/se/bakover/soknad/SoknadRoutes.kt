@@ -12,18 +12,17 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.audit
-import no.nav.su.se.bakover.db.PostgresRepository
 import no.nav.su.se.bakover.svar
 
 internal const val soknadPath = "/soknad"
 internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
-internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
+internal fun Route.soknadRoutes(søknadRepository: SøknadRepository) {
     get(soknadPath) {
         call.parameters[identLabel]?.let { personIdent ->
             call.audit("Henter søknad for person: $personIdent")
-            postgresRepository.hentSoknadForPerson(personIdent)?.let {
+            søknadRepository.hentSoknadForPerson(personIdent)?.let {
                 call.svar(Resultat.ok(it.søknadJson))
             } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad for person: $personIdent"))
         } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
@@ -33,7 +32,7 @@ internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
         call.parameters["soknadId"]?.let { soknadId ->
             call.audit("Henter søknad med id: $soknadId")
             soknadId.toLongOrNull()?.let { søknadIdAsLong ->
-                postgresRepository.hentSøknad(søknadIdAsLong)?.let { søknad ->
+                søknadRepository.hentSøknad(søknadIdAsLong)?.let { søknad ->
                     call.svar(Resultat.ok(søknad.søknadJson))
                 } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad med id: $soknadId"))
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Søknad Id må være et tall"))
@@ -43,7 +42,7 @@ internal fun Route.soknadRoutes(postgresRepository: PostgresRepository) {
     post(soknadPath) {
         call.receive<JsonObject>().let { json ->
             call.audit("Lagrer søknad for person: ${json.getAsJsonObject("personopplysninger").get("fnr")}")
-            postgresRepository.lagreSøknad(json.toString())?.let { søknadId ->
+            søknadRepository.lagreSøknad(json.toString())?.let { søknadId ->
                 call.svar(Resultat.created("""{"søknadId":$søknadId}"""))
             } ?: call.svar(Resultat.resultatMedMelding(InternalServerError, "Kunne ikke lagre søknad"))
         }

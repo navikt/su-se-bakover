@@ -1,12 +1,11 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover.soknad
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.su.se.bakover.soknad.Søknad
 import javax.sql.DataSource
 
-class PostgresRepository(
+class SøknadRepository(
         private val dataSource: DataSource) {
 
     fun hentSoknadForPerson(fnr: String): Søknad? {
@@ -29,7 +28,7 @@ class PostgresRepository(
         }
     }
 
-    fun lagreSøknad(søknadJson: String) : Long? {
+    fun lagreSøknad(søknadJson: String): Long? {
         return using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.run(
                     queryOf(

@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.su.se.bakover.db.FlywayMigrator
-import no.nav.su.se.bakover.db.PostgresRepository
+import no.nav.su.se.bakover.soknad.SøknadRepository
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
@@ -64,7 +64,7 @@ internal fun Application.susebakover(
                 fromEnvironment("integrations.suInntekt.clientId"),
                 tokenExchange,
                 personOppslag),
-        postgresRepository: PostgresRepository = PostgresRepository(dataSource)
+        søknadRepository: SøknadRepository = SøknadRepository(dataSource)
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
@@ -124,7 +124,7 @@ internal fun Application.susebakover(
 
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
-            soknadRoutes(postgresRepository)
+            soknadRoutes(søknadRepository)
         }
     }
 }
