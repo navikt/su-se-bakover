@@ -1,0 +1,18 @@
+version: '2'
+services:
+  postgres:
+    image: "postgres:latest"
+    restart: "always"
+    volumes:
+      - "supstonad-db-local:/var/lib/postgresql/data"
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pwd"
+      POSTGRES_DB: "supstonad-db-local"
+    mem_limit: "2g"
+
+volumes:
+  supstonad-db-local:
