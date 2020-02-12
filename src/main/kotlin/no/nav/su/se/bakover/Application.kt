@@ -29,13 +29,15 @@ import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.su.se.bakover.db.FlywayMigrator
-import no.nav.su.se.bakover.soknad.SøknadRepository
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
+import no.nav.su.se.bakover.sak.SakRepository
+import no.nav.su.se.bakover.sak.sakRoutes
+import no.nav.su.se.bakover.soknad.SøknadRepository
 import no.nav.su.se.bakover.soknad.soknadRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -64,7 +66,8 @@ internal fun Application.susebakover(
                 fromEnvironment("integrations.suInntekt.clientId"),
                 tokenExchange,
                 personOppslag),
-        søknadRepository: SøknadRepository = SøknadRepository(dataSource)
+        søknadRepository: SøknadRepository = SøknadRepository(dataSource),
+        sakRepository: SakRepository = SakRepository(dataSource)
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
@@ -125,6 +128,7 @@ internal fun Application.susebakover(
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
             soknadRoutes(søknadRepository)
+            sakRoutes(sakRepository)
         }
     }
 }
