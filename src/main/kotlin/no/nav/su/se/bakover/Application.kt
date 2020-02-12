@@ -74,6 +74,7 @@ internal fun Application.susebakover(
     install(CORS) {
         method(Options)
         header(Authorization)
+        allowNonSimpleContentTypes = true
         exposeHeader(WWWAuthenticate)
         host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
     }
