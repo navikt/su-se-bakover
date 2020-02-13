@@ -130,9 +130,9 @@ internal fun Application.susebakover(
 
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
-        }
             sakRoutes(sakRepository, søknadRepository)
             soknadRoutes(søknadRepository, søknadService)
+        }
     }
 }
 
