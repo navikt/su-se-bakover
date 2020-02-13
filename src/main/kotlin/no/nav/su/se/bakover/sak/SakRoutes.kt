@@ -11,13 +11,17 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.audit
+import no.nav.su.se.bakover.soknad.SøknadRepository
 import no.nav.su.se.bakover.svar
 
 internal const val sakPath = "/sak"
 internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
-internal fun Route.sakRoutes(sakRepository: SakRepository) {
+internal fun Route.sakRoutes(
+        sakRepository: SakRepository,
+        søknadRepository: SøknadRepository
+) {
     get(sakPath) {
         call.parameters[identLabel]?.let { fnr ->
             call.audit("Henter sak for person: $fnr")
@@ -35,6 +39,17 @@ internal fun Route.sakRoutes(sakRepository: SakRepository) {
                     call.svar(Resultat.ok(sak.toJson()))
                 } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke sak med id: $id"))
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Sak id må være et tall"))
+        }
+    }
+
+    get("$sakPath/{id}/soknad") {
+        call.parameters["id"]?.let { sakId ->
+            call.audit("Henter søknad for sakId: $sakId")
+            sakId.toLongOrNull()?.let { sakIdAsLong ->
+                søknadRepository.hentSøknaderForSak(sakIdAsLong).let { søknader ->
+                    call.svar(Resultat.ok(Gson().toJson(søknader)))
+                }
+            } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "sakId må være et tall"))
         }
     }
 

@@ -18,12 +18,12 @@ internal const val soknadPath = "/soknad"
 internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
-internal fun Route.soknadRoutes(søknadRepository: SøknadRepository) {
+internal fun Route.soknadRoutes(søknadRepository: SøknadRepository, søknadService: SøknadService) {
     get(soknadPath) {
         call.parameters[identLabel]?.let { personIdent ->
             call.audit("Henter søknad for person: $personIdent")
             søknadRepository.hentSoknadForPerson(personIdent)?.let {
-                call.svar(Resultat.ok(it.søknadJson))
+                call.svar(Resultat.ok(it.toJson()))
             } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad for person: $personIdent"))
         } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
     }
@@ -33,7 +33,7 @@ internal fun Route.soknadRoutes(søknadRepository: SøknadRepository) {
             call.audit("Henter søknad med id: $soknadId")
             soknadId.toLongOrNull()?.let { søknadIdAsLong ->
                 søknadRepository.hentSøknad(søknadIdAsLong)?.let { søknad ->
-                    call.svar(Resultat.ok(søknad.søknadJson))
+                    call.svar(Resultat.ok(søknad.toJson()))
                 } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke søknad med id: $soknadId"))
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Søknad Id må være et tall"))
         }
@@ -42,7 +42,7 @@ internal fun Route.soknadRoutes(søknadRepository: SøknadRepository) {
     post(soknadPath) {
         call.receive<JsonObject>().let { json ->
             call.audit("Lagrer søknad for person: ${json.getAsJsonObject("personopplysninger").get("fnr")}")
-            søknadRepository.lagreSøknad(json.toString())?.let { søknadId ->
+            søknadService.lagreSøknad(json.toString())?.let { søknadId ->
                 call.svar(Resultat.created("""{"søknadId":$søknadId}"""))
             } ?: call.svar(Resultat.resultatMedMelding(InternalServerError, "Kunne ikke lagre søknad"))
         }

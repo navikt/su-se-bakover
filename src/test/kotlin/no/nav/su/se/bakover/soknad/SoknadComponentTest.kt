@@ -16,9 +16,11 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.JwtStub
+import no.nav.su.se.bakover.sak.sakPath
 import no.nav.su.se.bakover.susebakover
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.withCallId
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -28,6 +30,8 @@ import kotlin.test.assertEquals
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
 internal class SoknadComponentTest {
+
+    private val parser = JsonParser()
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -50,7 +54,8 @@ internal class SoknadComponentTest {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                assertEquals(JsonParser().parse(soknadJson), JsonParser().parse(response.content)) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
+                val json = JSONObject(response.content)
+                assertEquals(parser.parse(soknadJson), parser.parse(json.getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
             }
         }
     }
@@ -74,7 +79,35 @@ internal class SoknadComponentTest {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                assertEquals(JsonParser().parse(soknadJson), JsonParser().parse(response.content))
+                val json = JSONObject(response.content)
+                assertEquals(parser.parse(soknadJson), parser.parse(json.getJSONObject("json").toString()))
+            }
+        }
+    }
+
+    @Test
+    fun `knytter søknad til sak ved innsending`() {
+        val token = jwtStub.createTokenFor()
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            withCallId(Post, soknadPath) {
+                addHeader(Authorization, "Bearer $token")
+                addHeader(ContentType, Json.toString())
+                setBody(soknadJson)
+            }.apply {
+                assertEquals(Created, response.status())
+                assertEquals("""{"søknadId":1}""", response.content)
+            }
+
+            withCallId(Get, "$sakPath/1/soknad") {
+                addHeader(Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(OK, response.status())
+                val sak = JSONArray(response.content)
+                assertEquals(sak.getJSONObject(0).getInt("id"), 1)
+                assertEquals(sak.getJSONObject(0).getInt("sakId"), 1)
             }
         }
     }
@@ -103,10 +136,10 @@ internal class SoknadComponentTest {
 
     val fnr = "234123345"
     private val soknadJson =
-    """
+            """
     {
       "personopplysninger": {
-        "fnr": $fnr,
+        "fnr": "$fnr",
         "fornavn": "fornavn",
         "mellomnavn": "ØÆÅ",
         "etternavn": "etternavn",
