@@ -91,7 +91,8 @@ internal fun Application.susebakover(
             config = environment.config
     )
     oauthRoutes(
-            frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl")
+            frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
+            tokenExchange = tokenExchange
     )
 
     install(Locations)

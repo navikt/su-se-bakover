@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.person.PersonOppslag
+import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -34,14 +35,15 @@ internal class InntektClientTest {
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
-            Resultat.ok("""{"ting": "OK"}""")
+                Resultat.ok("""{"ting": "OK"}""")
     }
     private val persontilgang403 = object : PersonOppslag {
         override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
-            Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov")
+                Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov")
     }
     private val tokenExchange = object : TokenExchange {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
+        override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
     }
 
     @BeforeEach
@@ -59,10 +61,10 @@ internal class InntektClientTest {
     }
 
     private fun okResponseFromInntekt() = Response(
-        url = URL("http://some.place"),
-        contentLength = 0,
-        headers = Headers(),
-        responseMessage = "Thumbs up",
-        statusCode = 200
+            url = URL("http://some.place"),
+            contentLength = 0,
+            headers = Headers(),
+            responseMessage = "Thumbs up",
+            statusCode = 200
     )
 }

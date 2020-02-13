@@ -7,11 +7,11 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.*
-import kotlin.test.assertEquals
 
 const val secureEndpoint = "/authenticated"
 
@@ -59,7 +59,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            Assertions.assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 
@@ -75,7 +75,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            Assertions.assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 
@@ -91,7 +91,23 @@ internal class AuthenticationTest {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
-            Assertions.assertEquals(Unauthorized, response.status())
+            assertEquals(Unauthorized, response.status())
+        }
+    }
+
+    @Test
+    fun `kan refreshe tokens`() {
+        withTestApplication({
+            testEnv()
+            usingMocks()
+        }) {
+            withCallId(Get, "auth/refresh") {
+                addHeader("refresh_token", "my.refresh.token")
+            }
+        }.apply {
+            assertTrue(response.headers.contains("access_token"))
+            assertTrue(response.headers.contains("refresh_token"))
+            assertEquals(OK, response.status())
         }
     }
 }

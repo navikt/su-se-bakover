@@ -7,13 +7,14 @@ import org.json.JSONObject
 
 internal interface TokenExchange {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
+    fun refreshTokens(refreshToken: String): JSONObject
 }
 
 internal class AzureClient(
-    private val thisClientId: String,
-    private val thisClientSecret: String,
-    private val tokenEndpoint: String
-): TokenExchange {
+        private val thisClientId: String,
+        private val thisClientSecret: String,
+        private val tokenEndpoint: String
+) : TokenExchange {
     companion object {
         const val GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
@@ -32,6 +33,20 @@ internal class AzureClient(
         return result.fold(
                 { JSONObject(it).getString("access_token") },
                 { throw RuntimeException("Error while exchanging token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
+        )
+    }
+
+    override fun refreshTokens(refreshToken: String): JSONObject {
+        val (_, _, result) = tokenEndpoint.httpPost(listOf(
+                "grant_type" to "refresh_token",
+                "client_id" to thisClientId,
+                "client_secret" to thisClientSecret,
+                "refresh_token" to refreshToken))
+                .header(ContentType, FormUrlEncoded)
+                .responseString()
+        return result.fold(
+                { JSONObject(it) },
+                { throw RuntimeException("Error while refreshing token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
         )
     }
 }

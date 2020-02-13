@@ -85,6 +85,7 @@ private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null
 private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
 private val defaultAzure = object : TokenExchange {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
+    override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
 }
 private val failingPersonClient = object : PersonOppslag {
     override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")

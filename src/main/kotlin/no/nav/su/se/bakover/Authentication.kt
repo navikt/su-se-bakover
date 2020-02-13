@@ -12,10 +12,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.response.header
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.azure.TokenExchange
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -41,7 +44,7 @@ internal fun Application.setupAuthentication(
                         requestMethod = Post,
                         clientId = config.getProperty("azure.clientId"),
                         clientSecret = config.getProperty("azure.clientSecret"),
-                        defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid")
+                        defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid", "offline_access")
                 )
             }
             urlProvider = { config.getProperty("azure.backendCallbackUrl") }
@@ -66,16 +69,24 @@ internal fun Application.setupAuthentication(
     }
 }
 
-internal fun Application.oauthRoutes(frontendRedirectUrl: String) {
+internal fun Application.oauthRoutes(frontendRedirectUrl: String, tokenExchange: TokenExchange) {
     routing {
         authenticate("azure") {
             get("/login") {
                 //Initiate login sequence
             }
             get("/callback") {
-                val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>()
-                call.respondRedirect("$frontendRedirectUrl#${(tokenResponse as OAuthAccessTokenResponse.OAuth2).accessToken}")
+                val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
+                call.respondRedirect("$frontendRedirectUrl#${tokenResponse.accessToken}#${tokenResponse.refreshToken}")
             }
+        }
+        get("/auth/refresh") {
+            call.request.headers["refresh_token"]?.let {
+                val refreshedTokens = tokenExchange.refreshTokens(it)
+                call.response.header("access_token", refreshedTokens.getString("access_token"))
+                call.response.header("refresh_token", refreshedTokens.getString("refresh_token"))
+                call.svar(Resultat.ok("Tokens refreshed successfully"))
+            } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Header \"refresh_token\" mangler"))
         }
     }
 }
