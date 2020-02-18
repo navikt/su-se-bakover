@@ -14,6 +14,7 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.http.headersOf
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
 import io.ktor.request.path
@@ -76,8 +77,11 @@ internal fun Application.susebakover(
     install(CORS) {
         method(Options)
         header(Authorization)
+        header("refresh_token")
         allowNonSimpleContentTypes = true
         exposeHeader(WWWAuthenticate)
+        exposeHeader("access_token")
+        exposeHeader("refresh_token")
         host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
     }
 
