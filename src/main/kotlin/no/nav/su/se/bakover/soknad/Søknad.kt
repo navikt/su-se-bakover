@@ -1,13 +1,10 @@
 package no.nav.su.se.bakover.soknad
 
-import no.nav.su.se.bakover.domain.PrimaryKey
-
 class Søknad(
-        private val id: Long,
+        internal val id: Long,
         private val søknadJson: String,
         private val sakId: Long
-) : PrimaryKey {
-    override fun id() = id
+) {
     fun toJson() = """
         {
             "id":"$id",

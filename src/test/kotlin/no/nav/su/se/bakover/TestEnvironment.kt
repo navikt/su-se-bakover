@@ -69,6 +69,7 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     }
 }
 
+@KtorExperimentalAPI
 fun configureEmbeddedPostgres(): EmbeddedPostgres {
     val embeddedPostgres = EmbeddedPostgres.builder()
             .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
