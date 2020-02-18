@@ -9,16 +9,27 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import javax.sql.DataSource
 
-class SakRepository(
+interface SakRepo {
+    fun opprettSak(fnr: String): Long
+    fun hentSak(fnr: String): Sak?
+    fun hentSak(id: Long): Sak?
+    fun hentAlleSaker(): List<Sak>
+    fun hentSoknadForPerson(fnr: String): Søknad?
+    fun hentSøknad(søknadId: Long): Søknad?
+    fun lagreSøknad(søknadJson: JsonObject, sakId: Long): Long?
+    fun hentSøknaderForSak(sakId: Long): List<Søknad>
+}
+
+internal class SakRepository(
         private val dataSource: DataSource
-) {
-    fun opprettSak(fnr: String): Long {
+) : SakRepo {
+    override fun opprettSak(fnr: String): Long {
         return using(sessionOf(dataSource, returnGeneratedKey = true)) {
             it.run(queryOf("insert into sak (fnr) values ($fnr)").asUpdateAndReturnGeneratedKey)
         }!! // Her bør det finnes en sak, hvis ikke bør vi feile.
     }
 
-    fun hentSak(fnr: String): Sak? {
+    override fun hentSak(fnr: String): Sak? {
         return using(sessionOf(dataSource)) {
             it.run(queryOf("select * from sak where fnr='$fnr'").map { row ->
                 toSak(row)
@@ -26,7 +37,7 @@ class SakRepository(
         }
     }
 
-    fun hentSak(id: Long): Sak? {
+    override fun hentSak(id: Long): Sak? {
         return using(sessionOf(dataSource)) {
             it.run(queryOf("select * from sak where id=$id").map { row ->
                 toSak(row)
@@ -34,7 +45,7 @@ class SakRepository(
         }
     }
 
-    fun hentAlleSaker(): List<Sak> {
+    override fun hentAlleSaker(): List<Sak> {
         return using(sessionOf(dataSource)) {
             it.run(queryOf("select * from sak").map { row ->
                 toSak(row)
@@ -42,7 +53,7 @@ class SakRepository(
         }
     }
 
-    fun hentSoknadForPerson(fnr: String): Søknad? {
+    override fun hentSoknadForPerson(fnr: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(queryOf("SELECT * FROM søknad WHERE json#>>'{personopplysninger,fnr}'='$fnr'").map {
                 toSøknad(it)
@@ -50,7 +61,7 @@ class SakRepository(
         }
     }
 
-    fun hentSøknad(søknadId: Long): Søknad? {
+    override fun hentSøknad(søknadId: Long): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(queryOf("SELECT * FROM søknad WHERE id=$søknadId").map {
                 toSøknad(it)
@@ -58,7 +69,7 @@ class SakRepository(
         }
     }
 
-    fun lagreSøknad(søknadJson: JsonObject, sakId: Long): Long? {
+    override fun lagreSøknad(søknadJson: JsonObject, sakId: Long): Long? {
         return using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.run(
                 queryOf(
@@ -69,7 +80,7 @@ class SakRepository(
         }
     }
 
-    fun hentSøknaderForSak(sakId: Long): List<Søknad> {
+    override fun hentSøknaderForSak(sakId: Long): List<Søknad> {
         return using(sessionOf(dataSource)) { session ->
             session.run(queryOf("SELECT * FROM søknad WHERE sakId=${sakId}").map {
                 toSøknad(it)
