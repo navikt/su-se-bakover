@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.db
 
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
@@ -12,6 +13,7 @@ class FlywayMigrator(
         runMigration(dataSource)
     }
 
+    @KtorExperimentalAPI
     private fun runMigration(dataSource: DataSource) =
             Flyway.configure()
                     .dataSource(dataSource)
