@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.soknad
+package no.nav.su.se.bakover.domain
 
 class Søknad(
         internal val id: Long,

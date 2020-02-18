@@ -11,7 +11,6 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.audit
-import no.nav.su.se.bakover.soknad.SøknadRepository
 import no.nav.su.se.bakover.svar
 
 internal const val sakPath = "/sak"
@@ -19,13 +18,12 @@ internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-        sakRepository: SakRepository,
-        søknadRepository: SøknadRepository
+    sakService: SakService
 ) {
     get(sakPath) {
         call.parameters[identLabel]?.let { fnr ->
             call.audit("Henter sak for person: $fnr")
-            sakRepository.hentSak(fnr)?.let {
+            sakService.hentSak(fnr)?.let {
                 call.svar(Resultat.ok(it.toJson()))
             } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke sak for person: $fnr"))
         } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
@@ -35,7 +33,7 @@ internal fun Route.sakRoutes(
         call.parameters["id"]?.let { id ->
             call.audit("Henter sak med id: $id")
             id.toLongOrNull()?.let { idAsLong ->
-                sakRepository.hentSak(idAsLong)?.let { sak ->
+                sakService.hentSak(idAsLong)?.let { sak ->
                     call.svar(Resultat.ok(sak.toJson()))
                 } ?: call.svar(Resultat.resultatMedMelding(NotFound, "Fant ikke sak med id: $id"))
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Sak id må være et tall"))
@@ -46,7 +44,7 @@ internal fun Route.sakRoutes(
         call.parameters["id"]?.let { sakId ->
             call.audit("Henter søknad for sakId: $sakId")
             sakId.toLongOrNull()?.let { sakIdAsLong ->
-                søknadRepository.hentSøknaderForSak(sakIdAsLong).let { søknader ->
+                sakService.hentSøknaderForSak(sakIdAsLong).let { søknader ->
                     call.svar(Resultat.ok("""${søknader.map { it.toJson() }}"""))
                 }
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "sakId må være et tall"))
@@ -54,15 +52,15 @@ internal fun Route.sakRoutes(
     }
 
     get("$sakPath/list") {
-        call.svar(Resultat.ok(Gson().toJson(sakRepository.hentAlleSaker())))
+        call.svar(Resultat.ok(Gson().toJson(sakService.hentAlleSaker())))
     }
 
     post(sakPath) {
         call.parameters[identLabel]?.let { fnr ->
             call.audit("Oppretter sak for person: $fnr")
-            sakRepository.opprettSak(fnr)?.let {
+            sakService.opprettSak(fnr).let {
                 call.svar(Resultat.created("""{"id":$it}"""))
-            } ?: call.svar(Resultat.resultatMedMelding(InternalServerError, "kunne ikke opprette sak"))
+            }
         } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "query param '$identLabel' må oppgis"))
     }
 }
