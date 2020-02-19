@@ -36,23 +36,16 @@ internal class PostgresRepository(
         it.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
     }
 
-    override fun hentSak(fnr: String): Sak? = "select * from sak where fnr=:fnr".hent(mapOf("fnr" to fnr)) { toSak(it) }
-    override fun hentSak(id: Long): Sak? = "select * from sak where id=:id".hent(mapOf("id" to id)) { toSak(it) }
-    override fun hentAlleSaker(): List<Sak> = "select * from sak".hentListe { toSak(it) }
+    override fun hentSak(fnr: String): Sak? = "select * from sak where fnr=:fnr".hent(mapOf("fnr" to fnr), Row::somSak)
+    override fun hentSak(id: Long): Sak? = "select * from sak where id=:id".hent(mapOf("id" to id), Row::somSak)
+    override fun hentAlleSaker(): List<Sak> = "select * from sak".hentListe(rowMapping = Row::somSak)
     override fun opprettSak(fnr: String): Long = "insert into sak (fnr) values (:fnr::varchar)".oppdatering(mapOf("fnr" to fnr))!!
     // TODO: List not single
-    override fun hentSoknadForPerson(fnr: String): Søknad? = "SELECT * FROM søknad WHERE json#>>'{personopplysninger,fnr}'=:fnr".hent(mapOf("fnr" to fnr)) { toSøknad(it) }
-    override fun hentSøknaderForSak(sakId: Long): List<Søknad> = "SELECT * FROM søknad WHERE sakId=:sakId".hentListe(mapOf("sakId" to sakId)) { toSøknad(it) }
-    override fun hentSøknad(søknadId: Long): Søknad? = "SELECT * FROM søknad WHERE id=:id".hent(mapOf("id" to søknadId)) { toSøknad(it) }
+    override fun hentSoknadForPerson(fnr: String): Søknad? = "SELECT * FROM søknad WHERE json#>>'{personopplysninger,fnr}'=:fnr".hent(mapOf("fnr" to fnr), Row::somSøknad)
+    override fun hentSøknaderForSak(sakId: Long): List<Søknad> = "SELECT * FROM søknad WHERE sakId=:sakId".hentListe(mapOf("sakId" to sakId), Row::somSøknad)
+    override fun hentSøknad(søknadId: Long): Søknad? = "SELECT * FROM søknad WHERE id=:id".hent(mapOf("id" to søknadId), Row::somSøknad)
     override fun lagreSøknad(søknadJson: JsonObject, sakId: Long): Long? = "INSERT INTO søknad (json, sakId) VALUES (to_json(:soknad::json), :sakId)".oppdatering(mapOf("soknad" to søknadJson.toString(), "sakId" to sakId))
-}
 
-private fun toSak(row: Row): Sak {
-    return Sak(row.long("id"), row.string("fnr"))
 }
-
-private fun toSøknad(row: Row) = Søknad(
-    row.long("id"),
-    row.string("json"),
-    row.long("sakId")
-)
+private fun Row.somSøknad() = Søknad(id = long("id"), søknadJson = string("json"), sakId = long("sakId"))
+private fun Row.somSak(): Sak = Sak(id = long("id"),  fnr = string("fnr"))
