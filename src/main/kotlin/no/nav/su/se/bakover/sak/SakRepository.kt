@@ -23,52 +23,28 @@ interface SakRepo {
 internal class SakRepository(
         private val dataSource: DataSource
 ) : SakRepo {
-    override fun opprettSak(fnr: String): Long {
-        return using(sessionOf(dataSource, returnGeneratedKey = true)) {
-            it.run(queryOf("insert into sak (fnr) values ($fnr)").asUpdateAndReturnGeneratedKey)
-        }!! // Her bør det finnes en sak, hvis ikke bør vi feile.
-    }
 
-    override fun hentSak(fnr: String): Sak? {
-        return using(sessionOf(dataSource)) {
-            it.run(queryOf("select * from sak where fnr='$fnr'").map { row ->
-                toSak(row)
-            }.asSingle) //TODO skriv om til liste
+    private fun String.oppdatering():Long? =
+        using(sessionOf(dataSource, returnGeneratedKey = true)) {
+            it.run(queryOf(this).asUpdateAndReturnGeneratedKey)
         }
+
+    private fun <T> String.hent(rowMapping: (Row) -> T): T? = using(sessionOf(dataSource)) {
+        it.run(queryOf(this).map { row -> rowMapping(row) }.asSingle)
     }
 
-    override fun hentSak(id: Long): Sak? {
-        return using(sessionOf(dataSource)) {
-            it.run(queryOf("select * from sak where id=$id").map { row ->
-                toSak(row)
-            }.asSingle)
-        }
+    private fun <T> String.hentListe(rowMapping: (Row) -> T): List<T> = using(sessionOf(dataSource)) {
+        it.run(queryOf(this).map { row -> rowMapping(row) }.asList)
     }
 
-    override fun hentAlleSaker(): List<Sak> {
-        return using(sessionOf(dataSource)) {
-            it.run(queryOf("select * from sak").map { row ->
-                toSak(row)
-            }.asList)
-        }
-    }
-
-    override fun hentSoknadForPerson(fnr: String): Søknad? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(queryOf("SELECT * FROM søknad WHERE json#>>'{personopplysninger,fnr}'='$fnr'").map {
-                toSøknad(it)
-            }.asSingle) //TODO skriv om til liste
-        }
-    }
-
-    override fun hentSøknad(søknadId: Long): Søknad? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(queryOf("SELECT * FROM søknad WHERE id=$søknadId").map {
-                toSøknad(it)
-            }.asSingle)
-        }
-    }
-
+    override fun hentSak(fnr: String): Sak? = "select * from sak where fnr='$fnr'".hent { toSak(it) }
+    override fun hentSak(id: Long): Sak? = "select * from sak where id=$id".hent { toSak(it) }
+    override fun hentAlleSaker(): List<Sak> = "select * from sak".hentListe { toSak(it) }
+    override fun opprettSak(fnr: String): Long = "insert into sak (fnr) values ($fnr)".oppdatering()!! // Her bør det finnes en sak, hvis ikke bør vi feile.
+    // TODO: List not single
+    override fun hentSoknadForPerson(fnr: String): Søknad? = "SELECT * FROM søknad WHERE json#>>'{personopplysninger,fnr}'='$fnr'".hent { toSøknad(it) }
+    override fun hentSøknaderForSak(sakId: Long): List<Søknad> = "SELECT * FROM søknad WHERE sakId=${sakId}".hentListe { toSøknad(it) }
+    override fun hentSøknad(søknadId: Long): Søknad? = "SELECT * FROM søknad WHERE id=$søknadId".hent { toSøknad(it) }
     override fun lagreSøknad(søknadJson: JsonObject, sakId: Long): Long? {
         return using(sessionOf(dataSource, returnGeneratedKey = true)) { session ->
             session.run(
@@ -79,15 +55,6 @@ internal class SakRepository(
             )
         }
     }
-
-    override fun hentSøknaderForSak(sakId: Long): List<Søknad> {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(queryOf("SELECT * FROM søknad WHERE sakId=${sakId}").map {
-                toSøknad(it)
-            }.asList)
-        }
-    }
-
 }
 
 private fun toSak(row: Row): Sak {
