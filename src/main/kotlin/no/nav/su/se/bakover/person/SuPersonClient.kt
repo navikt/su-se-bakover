@@ -5,8 +5,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.json
+import no.nav.su.se.bakover.tekst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -28,12 +31,12 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
                 .header(XRequestId, MDC.get(XRequestId))
                 .responseString()
         return result.fold(
-                { Resultat.ok(it) },
+                { OK.json(it) },
                 { error ->
                     val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
                     val statusCode = error.response.statusCode
-                    logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage");
-                    Resultat.resultatMedMelding(HttpStatusCode.fromValue(statusCode), errorMessage)
+                    logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage")
+                    HttpStatusCode.fromValue(statusCode).tekst(errorMessage)
                 }
         )
     }

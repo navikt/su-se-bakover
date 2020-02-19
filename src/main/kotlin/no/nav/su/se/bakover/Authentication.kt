@@ -13,6 +13,7 @@ import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.header
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
@@ -85,8 +86,8 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String, tokenExchange:
                 val refreshedTokens = tokenExchange.refreshTokens(it)
                 call.response.header("access_token", refreshedTokens.getString("access_token"))
                 call.response.header("refresh_token", refreshedTokens.getString("refresh_token"))
-                call.svar(Resultat.ok("Tokens refreshed successfully"))
-            } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "Header \"refresh_token\" mangler"))
+                call.svar(OK.tekst("Tokens refreshed successfully"))
+            } ?: call.svar(BadRequest.tekst("Header \"refresh_token\" mangler"))
         }
     }
 }

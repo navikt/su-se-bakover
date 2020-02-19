@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.OK
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -8,11 +9,11 @@ import kotlin.test.assertNotEquals
 class ResultatTest {
     @Test
     fun `equalitytests`() {
-        assertEquals(Resultat.ok("blabla"), Resultat.ok("blabla"))
+        assertEquals(OK.tekst("blabla"), OK.tekst("blabla"))
         assertEquals(
-            Resultat.resultatMedMelding(HttpStatusCode.Conflict, "blabla"),
-            Resultat.resultatMedMelding(HttpStatusCode.Conflict, "blabla")
+            HttpStatusCode.Conflict.json("blabla"),
+            HttpStatusCode.Conflict.json("blabla")
         )
-        assertNotEquals<Resultat>(Resultat.ok("blabla"), Resultat.ok("blabla2"))
+        assertNotEquals(OK.tekst("blabla"), OK.tekst("blabla2"))
     }
 }

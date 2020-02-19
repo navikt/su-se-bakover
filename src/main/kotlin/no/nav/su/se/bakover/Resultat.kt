@@ -18,9 +18,10 @@ internal class Resultat private constructor(private val httpCode: HttpStatusCode
 
     companion object {
         fun resultatMedMelding(httpCode: HttpStatusCode, melding: String) = Resultat(httpCode, """{"message": "$melding"}""")
-        fun ok(json: String) = Resultat(HttpStatusCode.OK, json)
-        fun created(json: String) = Resultat(HttpStatusCode.Created, json)
+        fun resultatMedJson(httpCode: HttpStatusCode, json: String) = Resultat(httpCode, json)
     }
 }
 
+internal fun HttpStatusCode.json(json: String) = Resultat.resultatMedJson(this, json)
+internal fun HttpStatusCode.tekst(renTekst: String) = Resultat.resultatMedMelding(this, renTekst)
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)
