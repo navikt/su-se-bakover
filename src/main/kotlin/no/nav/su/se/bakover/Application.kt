@@ -14,7 +14,6 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpMethod.Companion.Options
-import io.ktor.http.headersOf
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
 import io.ktor.request.path
@@ -36,7 +35,7 @@ import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
-import no.nav.su.se.bakover.sak.SakRepository
+import no.nav.su.se.bakover.sak.PostgresRepository
 import no.nav.su.se.bakover.sak.SakService
 import no.nav.su.se.bakover.sak.sakRoutes
 import no.nav.su.se.bakover.soknad.soknadRoutes
@@ -50,25 +49,25 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        dataSource: DataSource = getDatasource(), jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        tokenExchange: TokenExchange = AzureClient(
+    dataSource: DataSource = getDatasource(), jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+    tokenExchange: TokenExchange = AzureClient(
                 fromEnvironment("azure.clientId"),
                 fromEnvironment("azure.clientSecret"),
                 jwkConfig.getString("token_endpoint")
         ),
-        personOppslag: PersonOppslag = SuPersonClient(
+    personOppslag: PersonOppslag = SuPersonClient(
                 fromEnvironment("integrations.suPerson.url"),
                 fromEnvironment("integrations.suPerson.clientId"),
                 tokenExchange
         ),
-        inntektOppslag: InntektOppslag = SuInntektClient(
+    inntektOppslag: InntektOppslag = SuInntektClient(
                 fromEnvironment("integrations.suInntekt.url"),
                 fromEnvironment("integrations.suInntekt.clientId"),
                 tokenExchange,
                 personOppslag),
-        sakRepository: SakRepository = SakRepository(dataSource),
-        sakService: SakService = SakService(sakRepository)
+    postgresRepository: PostgresRepository = PostgresRepository(dataSource),
+    sakService: SakService = SakService(postgresRepository)
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import javax.sql.DataSource
 
-interface SakRepo {
+interface Repository {
     fun opprettSak(fnr: String): Long
     fun hentSak(fnr: String): Sak?
     fun hentSak(id: Long): Sak?
@@ -20,9 +20,9 @@ interface SakRepo {
     fun hentSøknaderForSak(sakId: Long): List<Søknad>
 }
 
-internal class SakRepository(
+internal class PostgresRepository(
         private val dataSource: DataSource
-) : SakRepo {
+) : Repository {
     private fun String.oppdatering(params: Map<String, Any>):Long? =
         using(sessionOf(dataSource, returnGeneratedKey = true)) {
             it.run(queryOf(this, params).asUpdateAndReturnGeneratedKey)
