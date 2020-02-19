@@ -47,7 +47,7 @@ internal fun Route.sakRoutes(
             call.audit("Henter søknad for sakId: $sakId")
             sakId.toLongOrNull()?.let { sakIdAsLong ->
                 søknadRepository.hentSøknaderForSak(sakIdAsLong).let { søknader ->
-                    call.svar(Resultat.ok(Gson().toJson(søknader)))
+                    call.svar(Resultat.ok("""${søknader.map { it.toJson() }}"""))
                 }
             } ?: call.svar(Resultat.resultatMedMelding(BadRequest, "sakId må være et tall"))
         }
