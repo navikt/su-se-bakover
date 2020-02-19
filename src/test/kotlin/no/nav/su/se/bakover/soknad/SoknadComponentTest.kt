@@ -15,14 +15,12 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.JwtStub
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.sak.sakPath
-import no.nav.su.se.bakover.susebakover
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.withCallId
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -32,6 +30,11 @@ import kotlin.test.assertEquals
 internal class SoknadComponentTest {
 
     private val parser = JsonParser()
+
+    @AfterEach
+    fun `reset database with great fury`() {
+        EmbeddedDatabase.refresh()
+    }
 
     @Test
     fun `lagrer og henter søknad`() {

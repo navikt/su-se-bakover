@@ -15,15 +15,10 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationResponse
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.JwtStub
-import no.nav.su.se.bakover.susebakover
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.withCallId
+import no.nav.su.se.bakover.*
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
@@ -33,6 +28,10 @@ internal class SakComponentTest {
     private val jwt = "Bearer ${jwtStub.createTokenFor()}"
     private val sakFnr = "12345678910"
 
+    @AfterEach
+    fun `reset database with great fury`() {
+        EmbeddedDatabase.refresh()
+    }
 
     @Test
     fun `oppretter og henter sak med id og fnr`() {

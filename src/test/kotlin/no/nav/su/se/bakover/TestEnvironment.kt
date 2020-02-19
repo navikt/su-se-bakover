@@ -4,6 +4,8 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XRequestId
@@ -15,10 +17,14 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.person.PersonOppslag
+import org.flywaydb.core.Flyway
 import org.json.JSONObject
 import java.util.*
 
@@ -46,8 +52,6 @@ const val DB_NAME = "postgres"
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
 
-    val embeddedPostgres = configureEmbeddedPostgres()
-
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suPerson.url", baseUrl)
@@ -63,19 +67,37 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("issuer", AZURE_ISSUER)
         put("db.username", DB_USERNAME)
         put("db.password", DB_PASSWORD)
-        put("db.jdbcUrl", embeddedPostgres.getJdbcUrl(DB_USERNAME, DB_NAME))
+        put("db.jdbcUrl", EmbeddedDatabase.instance.getJdbcUrl(DB_USERNAME, DB_NAME))
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
     }
 }
 
 @KtorExperimentalAPI
-fun configureEmbeddedPostgres(): EmbeddedPostgres {
-    val embeddedPostgres = EmbeddedPostgres.builder()
+class EmbeddedDatabase {
+    companion object {
+        val instance: EmbeddedPostgres = EmbeddedPostgres.builder()
             .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
-            .start()
-    embeddedPostgres.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
-    return embeddedPostgres
+            .start()!!
+        init {
+            instance.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
+        }
+        fun refresh() {
+            val dataSource =
+            using(sessionOf(HikariDataSource(createHikariConfig(instance.getJdbcUrl(DB_NAME, DB_NAME))))) {
+                it.run(queryOf("truncate sak restart identity cascade").asExecute)
+            }
+        }
+        private fun createHikariConfig(jdbcUrl: String) =
+            HikariConfig().apply {
+                this.jdbcUrl = jdbcUrl
+                maximumPoolSize = 3
+                minimumIdle = 1
+                idleTimeout = 10001
+                connectionTimeout = 1000
+                maxLifetime = 30001
+            }
+    }
 }
 
 val jwtStub = JwtStub()
