@@ -7,18 +7,14 @@ internal class SakService(
     private val postgresRepository: PostgresRepository
 ): Repository by postgresRepository {
 
-    fun lagreSøknad(fnr: String, søknad: JsonObject): Long? {
-        return finnSak(fnr).lagreSøknad(søknad)
-    }
+    fun lagreSøknad(fnr: String, søknad: JsonObject): Long? = finnSak(fnr).lagreSøknad(søknad)
 
-    private fun finnSak(fnr: String): Sak {
-        return postgresRepository.hentSak(fnr) ?: postgresRepository.opprettSak(fnr).let {
-            postgresRepository.hentSak(it)!! // Her bør den saken vi nettopp opprettet eksistere...
+    private fun finnSak(fnr: String): Sak =
+        postgresRepository.hentSak(fnr)
+        ?: postgresRepository.opprettSak(fnr).let {
+           postgresRepository.hentSak(it)!! // Her bør den saken vi nettopp opprettet eksistere...
         }
-    }
 
-    private fun Sak.lagreSøknad(søknad: JsonObject): Long? {
-        return postgresRepository.lagreSøknad(sakId = this.id, søknadJson = søknad)
-    }
+    private fun Sak.lagreSøknad(søknad: JsonObject): Long? = postgresRepository.lagreSøknad(sakId = this.id, søknadJson = søknad)
 
 }
