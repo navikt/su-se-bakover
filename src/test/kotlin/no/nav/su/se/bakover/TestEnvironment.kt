@@ -83,7 +83,6 @@ class EmbeddedDatabase {
             instance.getDatabase(DB_NAME, DB_NAME).connection.prepareStatement("""create role "$DB_NAME-$Admin" """).execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
         }
         fun refresh() {
-            val dataSource =
             using(sessionOf(HikariDataSource(createHikariConfig(instance.getJdbcUrl(DB_NAME, DB_NAME))))) {
                 it.run(queryOf("truncate sak restart identity cascade").asExecute)
             }
