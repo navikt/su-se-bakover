@@ -29,7 +29,7 @@ spec:
       - mountPath: /var/run/secrets/nais.io/azuread
         kvPath: /azuread/data/{{ secret_env }}/creds/su-se-bakover
   env:
-    {{#each env}}
-       - name: {{@key}}
-    value: "{{this}}"
-    {{/each}}
+     {{#each env}}
+      - name: {{@key}}
+        value: "{{this}}"
+     {{/each}}
