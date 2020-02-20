@@ -8,6 +8,7 @@ val flywayVersion = "6.2.1"
 val hikariVersion = "3.3.1"
 val vaultJdbcVersion = "1.3.1"
 val kotliqueryVersion = "1.3.1"
+
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("ch.qos.logback:logback-classic:1.2.3")
