@@ -8,3 +8,4 @@
  */
 
 rootProject.name = "su-se-bakover"
+include("core")

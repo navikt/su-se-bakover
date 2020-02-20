@@ -13,7 +13,6 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.audit
 import no.nav.su.se.bakover.sak.SakService
 import no.nav.su.se.bakover.svar
