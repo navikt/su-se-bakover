@@ -1,33 +1,35 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-   name: su-se-bakover
-   namespace: default
-   labels:
-      team: supstonad
+  name: su-se-bakover
+  namespace: default
+  labels:
+    team: supstonad
 spec:
-   image: {{ image }}
-   replicas:
-      min: 1
-   ingresses:
-      - {{ ingress }}
-   webproxy: true
-   prometheus:
-      enabled: true
-      path: /metrics
-   secureLogs:
-      enabled: true
-   vault:
-      enabled: true
-      paths:
-         - mountPath: /var/run/secrets/nais.io/vault
-           kvPath: /secret/supstonad/{{ secret_env }}
-         - mountPath: /var/run/secrets/nais.io/vault/su-se-bakover
-           kvPath: /kv/{{ cluster }}/fss/su-se-bakover/default
-         - mountPath: /var/run/secrets/nais.io/azuread
-           kvPath: /azuread/data/{{ secret_env }}/creds/su-se-bakover
-   env:
-      {{#each env}}
+  image: {{ image }}
+  replicas:
+    min: 1
+  ingresses:
+    - {{ ingress }}
+  webproxy: true
+  prometheus:
+    enabled: true
+    path: /metrics
+  secureLogs:
+    enabled: true
+  vault:
+    enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /secret/supstonad/{{ secret_env }}
+      - mountPath: /var/run/secrets/nais.io/vault/su-se-bakover
+        kvPath: /kv/{{ cluster }}/fss/su-se-bakover/default
+      - mountPath: /var/run/secrets/nais.io/srvuser
+        kvPath: /serviceuser/data/{{ secret_env }}/srvsupstonad
+      - mountPath: /var/run/secrets/nais.io/azuread
+        kvPath: /azuread/data/{{ secret_env }}/creds/su-se-bakover
+  env:
+    {{#each env}}
        - name: {{@key}}
-         value: "{{this}}"
-      {{/each}}
+    value: "{{this}}"
+    {{/each}}

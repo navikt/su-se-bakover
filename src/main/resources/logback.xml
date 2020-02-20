@@ -4,7 +4,7 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="STDOUT_JSON"/>
     </root>
 
@@ -18,10 +18,10 @@
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <maxFileSize>50MB</maxFileSize>
         </triggeringPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
     <logger name="sikkerLogg" level="INFO" additivity="false">
-        <appender-ref ref="secureAppender" />
+        <appender-ref ref="secureAppender"/>
     </logger>
 </configuration>

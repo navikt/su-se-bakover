@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
+import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
@@ -39,6 +40,8 @@ import no.nav.su.se.bakover.sak.PostgresRepository
 import no.nav.su.se.bakover.sak.SakService
 import no.nav.su.se.bakover.sak.sakRoutes
 import no.nav.su.se.bakover.soknad.soknadRoutes
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.common.serialization.StringSerializer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -49,25 +52,33 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    dataSource: DataSource = getDatasource(), jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    tokenExchange: TokenExchange = AzureClient(
+        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerConfig(), StringSerializer(), StringSerializer()),
+        dataSource: DataSource = getDatasource(),
+        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+        tokenExchange: TokenExchange = AzureClient(
                 fromEnvironment("azure.clientId"),
                 fromEnvironment("azure.clientSecret"),
                 jwkConfig.getString("token_endpoint")
         ),
-    personOppslag: PersonOppslag = SuPersonClient(
+        personOppslag: PersonOppslag = SuPersonClient(
                 fromEnvironment("integrations.suPerson.url"),
                 fromEnvironment("integrations.suPerson.clientId"),
                 tokenExchange
         ),
-    inntektOppslag: InntektOppslag = SuInntektClient(
+        inntektOppslag: InntektOppslag = SuInntektClient(
                 fromEnvironment("integrations.suInntekt.url"),
                 fromEnvironment("integrations.suInntekt.clientId"),
                 tokenExchange,
-                personOppslag),
-    postgresRepository: PostgresRepository = PostgresRepository(dataSource),
-    sakService: SakService = SakService(postgresRepository)
+                personOppslag
+        ),
+        postgresRepository: PostgresRepository = PostgresRepository(dataSource),
+        sakService: SakService = SakService(
+                postgresRepository,
+                hendelseProducer
+
+        )
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 

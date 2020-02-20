@@ -16,13 +16,18 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
+import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
 import no.nav.su.se.bakover.sak.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import java.time.Duration.of
+import java.time.temporal.ChronoUnit.MILLIS
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
@@ -60,6 +65,36 @@ internal class SoknadComponentTest {
                 val json = JSONObject(response.content)
                 assertEquals(parser.parse(soknadJson), parser.parse(json.getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
             }
+        }
+    }
+
+    @Test
+    fun `produserer kafka hendelse når søknad lagres på sak`() {
+        val token = jwtStub.createTokenFor()
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            val lagreSøknadResponse = withCallId(Post, soknadPath) {
+                addHeader(Authorization, "Bearer $token")
+                addHeader(ContentType, Json.toString())
+                setBody(soknadJson)
+            }.apply {
+                assertEquals(Created, response.status())
+            }.response
+
+            val søknadId = JSONObject(lagreSøknadResponse.content).getLong("søknadId")
+
+            val records = kafkaConsumer.poll(of(1000, MILLIS))
+                    .filter { it.topic() == SOKNAD_TOPIC }
+            assertFalse(records.isEmpty())
+            assertEquals(JsonParser().parse("""
+                {
+                    "soknadId":$søknadId,
+                    "sakId":1,
+                    "soknad":$soknadJson
+                }
+            """), JsonParser().parse(records.first().value()))
         }
     }
 

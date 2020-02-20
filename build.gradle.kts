@@ -8,6 +8,7 @@ val flywayVersion = "6.2.1"
 val hikariVersion = "3.3.1"
 val vaultJdbcVersion = "1.3.1"
 val kotliqueryVersion = "1.3.1"
+val kafkaVersion = "2.3.0"
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
@@ -16,6 +17,7 @@ plugins {
 repositories {
     jcenter()
     maven("https://dl.bintray.com/kotlin/ktor")
+    maven("http://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -32,7 +34,8 @@ dependencies {
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
-    implementation ("io.ktor:ktor-gson:$ktorVersion")
+    implementation("io.ktor:ktor-gson:$ktorVersion")
+    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
@@ -50,6 +53,7 @@ dependencies {
         exclude(group = "junit")
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("no.nav:kafka-embedded-env:2.2.3")
 
 }
 

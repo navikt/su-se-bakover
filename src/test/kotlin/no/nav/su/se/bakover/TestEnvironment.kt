@@ -42,7 +42,6 @@ const val DB_NAME = "postgres"
 @KtorExperimentalAPI
 fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
-
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suPerson.url", baseUrl)
@@ -61,6 +60,11 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("db.jdbcUrl", EmbeddedDatabase.instance.getJdbcUrl(DB_USERNAME, DB_NAME))
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
+        put("kafka.username", "kafkaUser")
+        put("kafka.password", "kafkaPassword")
+        put("kafka.bootstrap", EmbeddedKafka.kafkaInstance.brokersURL)
+        put("kafka.trustStorePath", "")
+        put("kafka.trustStorePassword", "")
     }
 }
 
