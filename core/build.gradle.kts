@@ -23,6 +23,9 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation ("io.ktor:ktor-gson:$ktorVersion")
+    implementation("org.apache.kafka:kafka-streams:2.3.0")
+
+
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
@@ -40,6 +43,7 @@ dependencies {
         exclude(group = "junit")
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("no.nav:kafka-embedded-env:2.2.3")
 }
 tasks.named<Jar>("jar") {
     archiveBaseName.set("app")

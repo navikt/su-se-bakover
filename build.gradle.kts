@@ -2,13 +2,6 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
 }
 
-val kafkaVersion = "2.3.0"
-
-dependencies {
-    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
-    testImplementation("no.nav:kafka-embedded-env:2.2.3")
-}
-
 allprojects {
     version = "0.0.1"
     apply(plugin = "org.jetbrains.kotlin.jvm")
