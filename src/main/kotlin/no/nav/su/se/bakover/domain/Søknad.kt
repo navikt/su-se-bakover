@@ -28,8 +28,8 @@ internal class SøknadFactory(private val repository: Repository, private val ob
     fun forSak(sakId: Long, søknadstekst: String): Søknad = Søknad(json = søknadstekst, observers = observers).lagreSøknad(sakId, repository)
     fun alleForSak(sakId: Long): List<Søknad> = repository.søknaderForSak(sakId).map { Søknad(id = it.first, json = it.second, observers = observers) }
     fun forId(søknadId: Long): Either<String, Søknad> = repository.søknadForId(søknadId)?.let {
-        Value(Søknad(id = it.first, json = it.second, observers = observers))
-    } ?: Error("Fant ingen søknad med id $søknadId")
+        Right(Søknad(id = it.first, json = it.second, observers = observers))
+    } ?: Left("Fant ingen søknad med id $søknadId")
 }
 
 internal interface SøknadObserver {

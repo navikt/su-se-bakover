@@ -18,8 +18,8 @@ internal const val personPath = "/person"
 internal fun Route.personRoutes(oppslag: PersonOppslag) {
     get(personPath) {
         Fødselsnummer.extract(call).fold(
-            onError = { call.respond(BadRequest, it)},
-            onValue = {
+            left = { call.respond(BadRequest, it)},
+            right = {
                 call.audit("Gjør oppslag på person: $it")
                 call.svar(oppslag.person(it, call.request.header(Authorization)!!))
             }

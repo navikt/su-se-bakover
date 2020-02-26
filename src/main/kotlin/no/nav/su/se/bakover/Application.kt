@@ -184,8 +184,8 @@ private fun getJWKConfig(wellKnownUrl: String): JSONObject {
 internal fun ApplicationCall.extractLong(name: String): Either<String, Long> {
     val maybeAnyhing = parameters[name]
     return when {
-        maybeAnyhing == null -> Either.Error("Parameter $name mangler")
-        maybeAnyhing.toLongOrNull() == null -> Either.Error("Paramenter $name må være et tall")
-        else -> Either.Value(maybeAnyhing.toLong())
+        maybeAnyhing == null -> Either.Left("Parameter $name mangler")
+        maybeAnyhing.toLongOrNull() == null -> Either.Left("Paramenter $name må være et tall")
+        else -> Either.Right(maybeAnyhing.toLong())
     }
 }

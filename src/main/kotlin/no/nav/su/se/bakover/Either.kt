@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover
 
-sealed class Either<out E, out V> {
-    data class Error<E>(val error: E): Either<E, Nothing>()
-    data class Value<V>(val value: V): Either<Nothing, V>()
+sealed class Either<out L, out R> {
+    data class Left<E>(val left: E): Either<E, Nothing>()
+    data class Right<V>(val right: V): Either<Nothing, V>()
 
     inline fun <A> fold(
-        onError: (E) -> A,
-        onValue: (V) -> A
+        left: (L) -> A,
+        right: (R) -> A
     ): A = when(this) {
-        is Error -> onError(this.error)
-        is Value -> onValue(this.value)
+        is Left -> left(this.left)
+        is Right -> right(this.right)
     }
 }

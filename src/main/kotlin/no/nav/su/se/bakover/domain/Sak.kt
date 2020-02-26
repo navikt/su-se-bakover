@@ -28,8 +28,8 @@ internal class Sak internal constructor(
 
     // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.
     fun gjeldendeSøknad(): Either<String, Søknad> = when {
-        søknader.isEmpty() -> Error("Sak $id har ingen søknader")
-        else -> Value(søknader.last())
+        søknader.isEmpty() -> Left("Sak $id har ingen søknader")
+        else -> Right(søknader.last())
     }
 
     fun toJson() = """
@@ -60,8 +60,8 @@ internal class SakFactory(
     fun forId(sakId: Long): Either<String, Sak> {
         val repoFnr = repository.fnrForSakId(sakId)
         return when(repoFnr) {
-            null -> Error("Det finnes ingen sak med id $sakId")
-            else -> Value(Sak(fnr = repoFnr, id = sakId, observers = sakObservers, søknadFactory = søknadFactory))
+            null -> Left("Det finnes ingen sak med id $sakId")
+            else -> Right(Sak(fnr = repoFnr, id = sakId, observers = sakObservers, søknadFactory = søknadFactory))
         }
     }
 

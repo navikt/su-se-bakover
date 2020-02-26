@@ -58,8 +58,8 @@ internal class SakTest {
             sakObservers = emptyList()
         ).forId(nySakId)
         when(eitherSakOrNothing) {
-            is Either.Error -> assertTrue(true)
-            is Either.Value -> fail("Skulle ikke ha funnet en sak")
+            is Either.Left -> assertTrue(true)
+            is Either.Right -> fail("Skulle ikke ha funnet en sak")
         }
     }
 
@@ -71,8 +71,8 @@ internal class SakTest {
             sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when(eitherSakOrNothing) {
-            is Either.Error -> fail("Skulle ikke ha fått feil fra søknadFactory")
-            is Either.Value -> assertTrue(true)
+            is Either.Left -> fail("Skulle ikke ha fått feil fra søknadFactory")
+            is Either.Right -> assertTrue(true)
         }
     }
 

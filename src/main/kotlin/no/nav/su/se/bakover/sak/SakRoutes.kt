@@ -21,8 +21,8 @@ internal fun Route.sakRoutes(
 ) {
     get(sakPath) {
         Fødselsnummer.extract(call).fold(
-            onError = { call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]""")) },
-            onValue = {
+            left = { call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]""")) },
+            right = {
                 call.audit("Henter sak for person: $it")
                 call.svar(OK.json(sakFactory.forFnr(it).toJson()))
             }
@@ -31,12 +31,12 @@ internal fun Route.sakRoutes(
 
     get("$sakPath/{id}") {
         call.extractLong("id").fold(
-            onError = { call.svar(BadRequest.tekst(it)) },
-            onValue = { id ->
+            left = { call.svar(BadRequest.tekst(it)) },
+            right = { id ->
                 call.audit("Henter sak med id: $id")
                 sakFactory.forId(id).fold(
-                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
-                    onValue = { call.svar(OK.json(it.toJson())) })
+                    left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
+                    right = { call.svar(OK.json(it.toJson())) })
             }
         )
     }
@@ -44,12 +44,12 @@ internal fun Route.sakRoutes(
     // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
     get("$sakPath/{id}/soknad") {
         call.extractLong("id").fold(
-            onError = { call.svar(BadRequest.tekst(it)) },
-            onValue = { id ->
+            left = { call.svar(BadRequest.tekst(it)) },
+            right = { id ->
                 call.audit("Henter søknad for sakId: $id")
                 sakFactory.forId(id).fold(
-                    onValue = { call.svar(OK.json(it.alleSøknaderSomEnJsonListe())) },
-                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) }
+                    right = { call.svar(OK.json(it.alleSøknaderSomEnJsonListe())) },
+                    left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) }
                 )
             }
         )

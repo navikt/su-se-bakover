@@ -27,11 +27,11 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
 
     get(soknadPath) {
         Fødselsnummer.extract(call).fold(
-            onError = { call.svar(BadRequest.tekst(it)) },
-            onValue = {
+            left = { call.svar(BadRequest.tekst(it)) },
+            right = {
                 sakFactory.forFnr(it).gjeldendeSøknad().fold(
-                    onError = { call.svar(NotFound.tekst(it)) },
-                    onValue = { call.svar(OK.json(it.toJson())) }
+                    left = { call.svar(NotFound.tekst(it)) },
+                    right = { call.svar(OK.json(it.toJson())) }
                 )
             }
         )
@@ -39,12 +39,12 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
 
     get("$soknadPath/{soknadId}") {
         call.extractLong("soknadId").fold(
-            onError = { call.svar(BadRequest.tekst(it)) },
-            onValue = { id ->
+            left = { call.svar(BadRequest.tekst(it)) },
+            right = { id ->
                 call.audit("Henter søknad med id: $id")
                 søknadFactory.forId(id).fold(
-                    onError = { call.svar(NotFound.tekst(it)) },
-                    onValue = { call.svar(OK.json(it.toJson()))}
+                    left = { call.svar(NotFound.tekst(it)) },
+                    right = { call.svar(OK.json(it.toJson()))}
                 )
             }
         )
@@ -53,8 +53,8 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     post(soknadPath) {
         call.receive<JsonObject>().let { json ->
             Fødselsnummer.fraString(json.getAsJsonObject("personopplysninger")?.get("fnr")?.asString).fold(
-                onError = { call.svar(BadRequest.tekst(it)) },
-                onValue = {
+                left = { call.svar(BadRequest.tekst(it)) },
+                right = {
                     call.audit("Lagrer søknad for person: $it")
                     call.svar(Created.json(sakFactory.forFnr(it).nySøknad(json.toString()).toJson()))
                 }
