@@ -28,7 +28,7 @@ internal class SakTest {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
                 repository = TomtRepository(),
-                søknadObservers = emptyList(),
+                søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
                 sakObservers = listOf(nySakTest))
             .forFnr(førstegangssøker)
 
@@ -41,7 +41,7 @@ internal class SakTest {
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
                 repository = repository,
-                søknadObservers = listOf(nySøknadTest),
+                søknadFactory = SøknadFactory(repository, listOf(nySøknadTest)),
                 sakObservers = emptyList())
             .forFnr(andregangssøker)
             .nySøknad(søknadstekst)
@@ -53,7 +53,7 @@ internal class SakTest {
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
             repository = TomtRepository(),
-            søknadObservers = emptyList(),
+            søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
             sakObservers = emptyList()
         ).forId(nySakId)
         when(eitherSakOrNothing) {
@@ -66,7 +66,7 @@ internal class SakTest {
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
             repository = RepositoryForNySøknad(),
-            søknadObservers = emptyList(),
+            søknadFactory = SøknadFactory(RepositoryForNySøknad(), emptyList()),
             sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when(eitherSakOrNothing) {
@@ -84,6 +84,7 @@ internal class TomtRepository : Repository {
     override fun fnrForSakId(sakId: Long): String? = null
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
     override fun alleSaker(): List<Pair<Long, String>> = emptyList()
+    override fun søknadForId(søknadId: Long): Pair<Long, String>? = null
 }
 
 internal class RepositoryForNySøknad: Repository {
@@ -93,6 +94,7 @@ internal class RepositoryForNySøknad: Repository {
     override fun fnrForSakId(sakId: Long): String? = andregangssøker
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
     override fun alleSaker(): List<Pair<Long, String>> = emptyList()
+    override fun søknadForId(søknadId: Long): Pair<Long, String>? = null
 }
 
 internal class AssertNySakOpprettet : SakObserver {

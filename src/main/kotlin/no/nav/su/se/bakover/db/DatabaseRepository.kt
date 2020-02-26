@@ -13,6 +13,7 @@ internal class DatabaseRepository(private val dataSource: DataSource): Repositor
     override fun fnrForSakId(sakId: Long): String? = "select fnr from sak where id=:id".hent(mapOf("id" to sakId)) { row -> row.string("fnr") }
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = "select id, json from søknad where sakId=:sakId".hentListe(mapOf("sakId" to sakId)) { row -> Pair(row.long("id"), row.string("json")) }
     override fun alleSaker(): List<Pair<Long, String>> = "select id, fnr from sak".hentListe { row -> Pair(row.long("id"), row.string("fnr")) }
+    override fun søknadForId(id: Long): Pair<Long, String>? = "select id, json from søknad where id=:id".hent(mapOf("id" to id)) { row -> Pair(row.long("id"), row.string("json"))}
 
     private fun String.oppdatering(params: Map<String, Any>):Long? = using(sessionOf(dataSource, returnGeneratedKey = true)) { it.run(queryOf(this, params).asUpdateAndReturnGeneratedKey) }
     private fun <T> String.hent(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): T? = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle) }

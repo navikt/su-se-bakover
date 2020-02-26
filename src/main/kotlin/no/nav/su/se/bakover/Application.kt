@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.db.DatabaseRepository
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.SøknadFactory
 import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
@@ -84,7 +85,8 @@ internal fun Application.susebakover(
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver =
         SøknadMottattEmitter(hendelseProducer)
-    val sakFactory = SakFactory(databaseRepo, emptyList(), listOf(kafkaEmittingSøknadObserver))
+    val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
+    val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
 
     install(CORS) {
         method(Options)
@@ -148,7 +150,7 @@ internal fun Application.susebakover(
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
             sakRoutes(sakFactory)
-            soknadRoutes(sakFactory)
+            soknadRoutes(sakFactory, søknadFactory)
         }
     }
 }

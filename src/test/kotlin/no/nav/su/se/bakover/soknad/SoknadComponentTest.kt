@@ -48,7 +48,7 @@ internal class SoknadComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            val lagreSøknadResponse = withCallId(Post, soknadPath) {
+            withCallId(Post, soknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
@@ -141,7 +141,6 @@ internal class SoknadComponentTest {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                val sak = JSONObject()
                 assertEquals(JSONArray(response.content).getJSONObject(0).getInt("id"), 1)
             }
         }

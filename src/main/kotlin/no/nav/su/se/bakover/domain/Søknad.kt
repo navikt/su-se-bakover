@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.Either
+import no.nav.su.se.bakover.Either.*
 import no.nav.su.se.bakover.db.Repository
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
@@ -23,8 +25,11 @@ internal class Søknad internal constructor(
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
 internal class SøknadFactory(private val repository: Repository, private val observers: List<SøknadObserver>) {
-    fun forSak(sakId: Long, søknadstekst: String) = Søknad(json = søknadstekst, observers = observers).lagreSøknad(sakId, repository)
+    fun forSak(sakId: Long, søknadstekst: String): Søknad = Søknad(json = søknadstekst, observers = observers).lagreSøknad(sakId, repository)
     fun alleForSak(sakId: Long): List<Søknad> = repository.søknaderForSak(sakId).map { Søknad(id = it.first, json = it.second, observers = observers) }
+    fun forId(søknadId: Long): Either<String, Søknad> = repository.søknadForId(søknadId)?.let {
+        Value(Søknad(id = it.first, json = it.second, observers = observers))
+    } ?: Error("Fant ingen søknad med id $søknadId")
 }
 
 internal interface SøknadObserver {

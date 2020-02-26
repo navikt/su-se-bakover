@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.sak
 
-import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound

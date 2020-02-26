@@ -27,7 +27,7 @@ internal class Sak internal constructor(
 
     // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.
     fun gjeldendeSøknad(): Either<String, Søknad> = when {
-        søknader.isEmpty() -> Error("Saken har ingen søknader")
+        søknader.isEmpty() -> Error("Sak $id har ingen søknader")
         else -> Value(søknader.last())
     }
 
@@ -46,10 +46,8 @@ internal class Sak internal constructor(
 internal class SakFactory(
     private val repository: Repository,
     private val sakObservers: List<SakObserver>,
-    søknadObservers: List<SøknadObserver>
+    private val søknadFactory: SøknadFactory
 ) {
-    private val søknadFactory = SøknadFactory(repository, søknadObservers)
-
     fun forFnr(fnr: String): Sak {
         val repoId = repository.sakIdForFnr(fnr)
         return when (repoId) {
