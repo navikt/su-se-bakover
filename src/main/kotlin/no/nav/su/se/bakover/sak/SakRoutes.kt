@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.sak
 
+import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -36,5 +37,22 @@ internal fun Route.sakRoutes(
                           onValue = { call.svar(OK.json(it.toJson())) })
             } ?: call.svar(BadRequest.tekst("Sak id må være et tall"))
         }
+    }
+
+    // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
+    get("$sakPath/{id}/soknad") {
+        call.parameters["id"]?.let { sakId ->
+            call.audit("Henter søknad for sakId: $sakId")
+            sakId.toLongOrNull()?.let { sakIdAsLong ->
+                sakFactory.forId(sakIdAsLong).fold(
+                    onValue = { call.svar(OK.json(it.alleSøknaderSomEnJsonListe())) },
+                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $sakIdAsLong")) }
+                )
+            } ?: call.svar(BadRequest.tekst("sakId må være et tall"))
+        }
+    }
+
+    get("$sakPath/list") {
+        call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]"""))
     }
 }

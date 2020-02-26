@@ -25,6 +25,7 @@ internal class Sak internal constructor(
         søknader = søknader + søknadFactory.forSak(id, søknadstekst)
     }
 
+    // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.
     fun gjeldendeSøknad(): Either<String, Søknad> = when {
         søknader.isEmpty() -> Error("Saken har ingen søknader")
         else -> Value(søknader.last())
@@ -34,9 +35,11 @@ internal class Sak internal constructor(
         {
             "id":"$id",
             "fnr":"$fnr",
-            "søknader": [ ${søknader.joinToString(",") { it.toJson() }}]
+            "søknader": [ ${alleSøknaderSomEnJsonListe()}]
         }
     """.trimIndent()
+
+    fun alleSøknaderSomEnJsonListe(): String = "[ ${søknader.joinToString(",") { it.toJson() }} ]"
 }
 
 // forstår hvordan man konstruerer en sak.
