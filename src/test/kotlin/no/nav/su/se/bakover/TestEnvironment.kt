@@ -95,11 +95,11 @@ internal fun Application.usingMocks(
         azureClient: TokenExchange = defaultAzure
 ) {
     susebakover(
-            jwkConfig = jwkConfig,
-            jwkProvider = jwkProvider,
-            tokenExchange = azureClient,
-            personOppslag = personClient,
-            inntektOppslag = inntektClient
+        jwkConfig = jwkConfig,
+        jwkProvider = jwkProvider,
+        tokenExchange = azureClient,
+        personOppslag = personClient,
+        inntektOppslag = inntektClient
     )
 }
 

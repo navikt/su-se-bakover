@@ -29,6 +29,9 @@ import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
 import no.nav.su.se.bakover.db.FlywayMigrator
+import no.nav.su.se.bakover.db.DatabaseRepository
+import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
@@ -36,8 +39,6 @@ import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
-import no.nav.su.se.bakover.sak.PostgresRepository
-import no.nav.su.se.bakover.sak.SakService
 import no.nav.su.se.bakover.sak.sakRoutes
 import no.nav.su.se.bakover.soknad.soknadRoutes
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -52,35 +53,38 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerConfig(), StringSerializer(), StringSerializer()),
-        dataSource: DataSource = getDatasource(),
-        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        tokenExchange: TokenExchange = AzureClient(
-                fromEnvironment("azure.clientId"),
-                fromEnvironment("azure.clientSecret"),
-                jwkConfig.getString("token_endpoint")
-        ),
-        personOppslag: PersonOppslag = SuPersonClient(
-                fromEnvironment("integrations.suPerson.url"),
-                fromEnvironment("integrations.suPerson.clientId"),
-                tokenExchange
-        ),
-        inntektOppslag: InntektOppslag = SuInntektClient(
-                fromEnvironment("integrations.suInntekt.url"),
-                fromEnvironment("integrations.suInntekt.clientId"),
-                tokenExchange,
-                personOppslag
-        ),
-        postgresRepository: PostgresRepository = PostgresRepository(dataSource),
-        sakService: SakService = SakService(
-                postgresRepository,
-                hendelseProducer
-
-        )
+    kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+    hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
+        kafkaConfig.producerConfig(),
+        StringSerializer(),
+        StringSerializer()
+    ),
+    dataSource: DataSource = getDatasource(),
+    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+    tokenExchange: TokenExchange = AzureClient(
+        fromEnvironment("azure.clientId"),
+        fromEnvironment("azure.clientSecret"),
+        jwkConfig.getString("token_endpoint")
+    ),
+    personOppslag: PersonOppslag = SuPersonClient(
+        fromEnvironment("integrations.suPerson.url"),
+        fromEnvironment("integrations.suPerson.clientId"),
+        tokenExchange
+    ),
+    inntektOppslag: InntektOppslag = SuInntektClient(
+        fromEnvironment("integrations.suInntekt.url"),
+        fromEnvironment("integrations.suInntekt.clientId"),
+        tokenExchange,
+        personOppslag
+    )
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
+
+    val databaseRepo = DatabaseRepository(dataSource)
+    val kafkaEmittingSøknadObserver =
+        SøknadMottattEmitter(hendelseProducer)
+    val sakFactory = SakFactory(databaseRepo, emptyList(), listOf(kafkaEmittingSøknadObserver))
 
     install(CORS) {
         method(Options)
@@ -143,8 +147,8 @@ internal fun Application.susebakover(
 
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
-            sakRoutes(sakService)
-            soknadRoutes(sakService)
+            sakRoutes(sakFactory)
+            soknadRoutes(sakFactory)
         }
     }
 }

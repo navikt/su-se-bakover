@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
 import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
 import no.nav.su.se.bakover.sak.sakPath
-import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -56,9 +55,7 @@ internal class SoknadComponentTest {
                 assertEquals(Created, response.status())
             }.response
 
-            val søknadId = JSONObject(lagreSøknadResponse.content).getLong("søknadId")
-
-            withCallId(Get, "$soknadPath/$søknadId") {
+            withCallId(Get, "$soknadPath?ident=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
@@ -83,7 +80,7 @@ internal class SoknadComponentTest {
                 assertEquals(Created, response.status())
             }.response
 
-            val søknadId = JSONObject(lagreSøknadResponse.content).getLong("søknadId")
+            val søknadId = JSONObject(lagreSøknadResponse.content).getJSONArray("søknader").getJSONObject(0).getInt("id")
 
             val records = kafkaConsumer.poll(of(1000, MILLIS))
                     .filter { it.topic() == SOKNAD_TOPIC }
@@ -136,16 +133,16 @@ internal class SoknadComponentTest {
                 setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
-                assertEquals("""{"søknadId":1}""", response.content)
+                assertEquals(1, JSONObject(response.content).getJSONArray("søknader").getJSONObject(0).getInt("id"))
             }
 
-            withCallId(Get, "$sakPath/1/soknad") {
+            withCallId(Get, "$sakPath/1") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                val sak = JSONArray(response.content)
-                assertEquals(sak.getJSONObject(0).getInt("id"), 1)
-                assertEquals(sak.getJSONObject(0).getInt("sakId"), 1)
+                val sak = JSONObject(response.content)
+                assertEquals(sak.getInt("id"), 1)
+                assertEquals((sak.getJSONArray("søknader").get(0) as JSONObject).getInt("id"), 1)
             }
         }
     }

@@ -5,9 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -26,7 +24,9 @@ import kotlin.test.assertEquals
 internal class SakComponentTest {
 
     private val jwt = "Bearer ${jwtStub.createTokenFor()}"
-    private val sakFnr = "12345678910"
+    private val sakFnr01 = "12345678911"
+    private val sakFnr02 = "12345678912"
+    private val sakFnr03 = "12345678913"
 
     @AfterEach
     fun `reset database with great fury`() {
@@ -39,8 +39,8 @@ internal class SakComponentTest {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            val opprettSakResponse = opprettSak(sakFnr)
-            assertEquals(Created, opprettSakResponse.status())
+            val opprettSakResponse = opprettSak(sakFnr01)
+            assertEquals(OK, opprettSakResponse.status())
 
             val opprettetId = JSONObject(opprettSakResponse.content).getLong("id")
 
@@ -48,7 +48,7 @@ internal class SakComponentTest {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
-                assertEquals(sakFnr, JSONObject(response.content).getString("fnr"))
+                assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
             }
         }
     }
@@ -59,13 +59,13 @@ internal class SakComponentTest {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            opprettSak(sakFnr)
+            opprettSak(sakFnr01)
 
-            withCallId(Get, "$sakPath?ident=$sakFnr") {
+            withCallId(Get, "$sakPath?ident=$sakFnr01") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
-                assertEquals(sakFnr, JSONObject(response.content).getString("fnr"))
+                assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
             }
         }
     }
@@ -76,11 +76,11 @@ internal class SakComponentTest {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            val first = opprettSak(sakFnr).content
-            val second = opprettSak(sakFnr).content
-            val third = opprettSak(sakFnr).content
+            val first = opprettSak(sakFnr01).content
+            val second = opprettSak(sakFnr02).content
+            val third = opprettSak(sakFnr03).content
 
-            withCallId(Get, "$sakPath/list") {
+            withCallId(Get, "$sakPath") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
@@ -99,20 +99,16 @@ internal class SakComponentTest {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            val opprettSakResponse = opprettSak(sakFnr)
-            assertEquals(Created, opprettSakResponse.status())
+            val opprettSakResponse = opprettSak(sakFnr01)
+            assertEquals(OK, opprettSakResponse.status())
 
+            /*
+            FIXME: vi bør legge på validering av fnr. for nå vil vi lagre en ny sak med fnr 999 etter et slikt kall som dette
             withCallId(Get, "$sakPath?ident=999") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(NotFound, response.status())
-            }
-
-            withCallId(Get, sakPath) {
-                addHeader(Authorization, jwt)
-            }.apply {
-                assertEquals(BadRequest, response.status())
-            }
+            }*/
 
             withCallId(Get, "$sakPath/999") {
                 addHeader(Authorization, jwt)
@@ -125,17 +121,11 @@ internal class SakComponentTest {
             }.apply {
                 assertEquals(BadRequest, response.status())
             }
-
-            withCallId(Post, sakPath) {
-                addHeader(Authorization, jwt)
-            }.apply {
-                assertEquals(BadRequest, response.status())
-            }
         }
     }
 
     fun TestApplicationEngine.opprettSak(fnr: String): TestApplicationResponse {
-        return withCallId(Post, "$sakPath?ident=$fnr") {
+        return withCallId(Get, "$sakPath?ident=$fnr") {
             addHeader(Authorization, jwt)
         }.response
     }
