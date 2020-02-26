@@ -38,7 +38,7 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     }
 
     get("$soknadPath/{soknadId}") {
-        call.extractLong("soknadId").fold(
+        Long.extract(call, "soknadId").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter søknad med id: $id")

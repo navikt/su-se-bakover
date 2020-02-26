@@ -30,7 +30,7 @@ internal fun Route.sakRoutes(
     }
 
     get("$sakPath/{id}") {
-        call.extractLong("id").fold(
+        Long.extract(call, "id").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter sak med id: $id")
@@ -43,7 +43,7 @@ internal fun Route.sakRoutes(
 
     // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
     get("$sakPath/{id}/soknad") {
-        call.extractLong("id").fold(
+        Long.extract(call, "id").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter søknad for sakId: $id")
