@@ -30,27 +30,29 @@ internal fun Route.sakRoutes(
     }
 
     get("$sakPath/{id}") {
-        call.parameters["id"]?.let { id ->
-            id.toLongOrNull()?.let { idAsLong ->
-                call.audit("Henter sak med id: $idAsLong")
-                sakFactory.forId(idAsLong)
-                    .fold(onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
-                          onValue = { call.svar(OK.json(it.toJson())) })
-            } ?: call.svar(BadRequest.tekst("Sak id må være et tall"))
-        }
+        call.extractLong("id").fold(
+            onError = { call.svar(BadRequest.tekst(it)) },
+            onValue = { id ->
+                call.audit("Henter sak med id: $id")
+                sakFactory.forId(id).fold(
+                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
+                    onValue = { call.svar(OK.json(it.toJson())) })
+            }
+        )
     }
 
     // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
     get("$sakPath/{id}/soknad") {
-        call.parameters["id"]?.let { sakId ->
-            sakId.toLongOrNull()?.let { sakIdAsLong ->
-                call.audit("Henter søknad for sakId: $sakId")
-                sakFactory.forId(sakIdAsLong).fold(
+        call.extractLong("id").fold(
+            onError = { call.svar(BadRequest.tekst(it)) },
+            onValue = { id ->
+                call.audit("Henter søknad for sakId: $id")
+                sakFactory.forId(id).fold(
                     onValue = { call.svar(OK.json(it.alleSøknaderSomEnJsonListe())) },
-                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $sakIdAsLong")) }
+                    onError = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) }
                 )
-            } ?: call.svar(BadRequest.tekst("sakId må være et tall"))
-        }
+            }
+        )
     }
 
     get("$sakPath/list") {

@@ -180,3 +180,12 @@ private fun getJWKConfig(wellKnownUrl: String): JSONObject {
             { throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, error:${it}") }
     )
 }
+
+internal fun ApplicationCall.extractLong(name: String): Either<String, Long> {
+    val maybeAnyhing = parameters[name]
+    return when {
+        maybeAnyhing == null -> Either.Error("Parameter $name mangler")
+        maybeAnyhing.toLongOrNull() == null -> Either.Error("Paramenter $name må være et tall")
+        else -> Either.Value(maybeAnyhing.toLong())
+    }
+}

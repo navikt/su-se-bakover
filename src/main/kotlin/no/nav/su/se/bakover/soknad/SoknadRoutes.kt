@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.soknad
 
 import com.google.gson.JsonObject
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -37,15 +38,16 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     }
 
     get("$soknadPath/{soknadId}") {
-        call.parameters["soknadId"]?.let { søknadId ->
-            søknadId.toLongOrNull()?.let { søknadIdAsLong ->
-            call.audit("Henter søknad med id: $søknadIdAsLong")
-                søknadFactory.forId(søknadIdAsLong).fold(
+        call.extractLong("soknadId").fold(
+            onError = { call.svar(BadRequest.tekst(it)) },
+            onValue = { id ->
+                call.audit("Henter søknad med id: $id")
+                søknadFactory.forId(id).fold(
                     onError = { call.svar(NotFound.tekst(it)) },
                     onValue = { call.svar(OK.json(it.toJson()))}
                 )
-            } ?: call.svar(BadRequest.tekst("Søknad Id må være et tall"))
-        }
+            }
+        )
     }
 
     post(soknadPath) {
@@ -60,4 +62,3 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
         }
     }
 }
-
