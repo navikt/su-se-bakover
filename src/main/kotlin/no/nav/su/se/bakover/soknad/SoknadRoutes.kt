@@ -35,9 +35,9 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     }
 
     get("$soknadPath/{soknadId}") {
-        call.parameters["soknadId"]?.let { soknadId ->
-            call.audit("Henter søknad med id: $soknadId")
-            soknadId.toLongOrNull()?.let { søknadIdAsLong ->
+        call.parameters["soknadId"]?.let { søknadId ->
+            søknadId.toLongOrNull()?.let { søknadIdAsLong ->
+            call.audit("Henter søknad med id: $søknadIdAsLong")
                 søknadFactory.forId(søknadIdAsLong).fold(
                     onError = { call.svar(NotFound.tekst(it)) },
                     onValue = { call.svar(OK.json(it.toJson()))}

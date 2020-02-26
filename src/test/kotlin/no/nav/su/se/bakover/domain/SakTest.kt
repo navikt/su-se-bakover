@@ -84,7 +84,7 @@ internal class TomtRepository : Repository {
     override fun fnrForSakId(sakId: Long): String? = null
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
     override fun alleSaker(): List<Pair<Long, String>> = emptyList()
-    override fun søknadForId(søknadId: Long): Pair<Long, String>? = null
+    override fun søknadForId(id: Long): Pair<Long, String>? = null
 }
 
 internal class RepositoryForNySøknad: Repository {
@@ -94,7 +94,7 @@ internal class RepositoryForNySøknad: Repository {
     override fun fnrForSakId(sakId: Long): String? = andregangssøker
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
     override fun alleSaker(): List<Pair<Long, String>> = emptyList()
-    override fun søknadForId(søknadId: Long): Pair<Long, String>? = null
+    override fun søknadForId(id: Long): Pair<Long, String>? = null
 }
 
 internal class AssertNySakOpprettet : SakObserver {

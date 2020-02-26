@@ -8,5 +8,5 @@ internal interface Repository {
     fun fnrForSakId(sakId: Long): String?
     fun søknaderForSak(sakId: Long): List<Pair<Long, String>>
     fun alleSaker(): List<Pair<Long, String>>
-    fun søknadForId(søknadId: Long): Pair<Long, String>?
+    fun søknadForId(id: Long): Pair<Long, String>?
 }
