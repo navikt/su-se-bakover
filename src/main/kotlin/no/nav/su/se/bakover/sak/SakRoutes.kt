@@ -14,17 +14,19 @@ import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.svar
 
 internal const val sakPath = "/sak"
-internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
     sakFactory: SakFactory
 ) {
     get(sakPath) {
-        call.parameters[identLabel]?.let { fnr ->
-            call.audit("Henter sak for person: $fnr")
-            call.svar(OK.json(sakFactory.forFnr(fnr).toJson()))
-        } ?: call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]"""))
+        Fødselsnummer.extract(call).fold(
+            onError = { call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]""")) },
+            onValue = {
+                call.audit("Henter sak for person: $it")
+                call.svar(OK.json(sakFactory.forFnr(it).toJson()))
+            }
+        )
     }
 
     get("$sakPath/{id}") {

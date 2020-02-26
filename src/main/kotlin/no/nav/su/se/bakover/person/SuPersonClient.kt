@@ -6,6 +6,7 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.json
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 internal interface PersonOppslag {
-    fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat
+    fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat
 }
 
 private const val suPersonIdentLabel = "ident"
@@ -24,9 +25,9 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
-    override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat {
+    override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat {
         val onBehalfOfToken = tokenExchange.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
-        val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident))
+        val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
                 .header(XRequestId, MDC.get(XRequestId))
                 .responseString()

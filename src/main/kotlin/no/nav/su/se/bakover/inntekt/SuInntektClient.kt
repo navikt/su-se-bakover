@@ -8,6 +8,7 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.json
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 internal interface InntektOppslag {
-    fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat
+    fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat
 }
 
 internal class SuInntektClient(
@@ -30,17 +31,17 @@ internal class SuInntektClient(
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
+    override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
         personOppslag.person(ident, innloggetSaksbehandlerToken).fold(
             success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
             error = { it }
         )
 
-    private fun finnInntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
+    private fun finnInntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
                 listOf(
-                        suInntektIdentLabel to ident,
+                        suInntektIdentLabel to ident.toString(),
                         "fom" to fomDato.daymonthSubstring(),
                         "tom" to tomDato.daymonthSubstring()
                 )

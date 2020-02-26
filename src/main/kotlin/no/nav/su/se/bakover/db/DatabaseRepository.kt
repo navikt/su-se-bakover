@@ -4,15 +4,16 @@ import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.su.se.bakover.Fødselsnummer
 import javax.sql.DataSource
 
 internal class DatabaseRepository(private val dataSource: DataSource): Repository {
-    override fun nySak(fnr: String): Long = "insert into sak (fnr) values (:fnr::varchar)".oppdatering(mapOf("fnr" to fnr))!!
+    override fun nySak(fnr: Fødselsnummer): Long = "insert into sak (fnr) values (:fnr::varchar)".oppdatering(mapOf("fnr" to fnr.toString()))!!
     override fun nySøknad(sakId: Long, json: String): Long = "insert into søknad (json, sakId) values (to_json(:soknad::json), :sakId)".oppdatering(mapOf("soknad" to json, "sakId" to sakId))!!
-    override fun sakIdForFnr(fnr: String): Long? = "select id from sak where fnr=:fnr".hent(mapOf("fnr" to fnr)) { row -> row.long("id") }
-    override fun fnrForSakId(sakId: Long): String? = "select fnr from sak where id=:id".hent(mapOf("id" to sakId)) { row -> row.string("fnr") }
+    override fun sakIdForFnr(fnr: Fødselsnummer): Long? = "select id from sak where fnr=:fnr".hent(mapOf("fnr" to fnr.toString())) { row -> row.long("id") }
+    override fun fnrForSakId(sakId: Long): Fødselsnummer? = "select fnr from sak where id=:id".hent(mapOf("id" to sakId)) { row -> Fødselsnummer.fraString(row.string("fnr")).fold(onError = { null }, onValue = { it }) }
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = "select id, json from søknad where sakId=:sakId".hentListe(mapOf("sakId" to sakId)) { row -> Pair(row.long("id"), row.string("json")) }
-    override fun alleSaker(): List<Pair<Long, String>> = "select id, fnr from sak".hentListe { row -> Pair(row.long("id"), row.string("fnr")) }
+    override fun alleSaker(): List<Pair<Long, Fødselsnummer>> = "select id, fnr from sak".hentListe { row -> Pair(row.long("id"), Fødselsnummer(row.string("fnr"))) }
     override fun søknadForId(id: Long): Pair<Long, String>? = "select id, json from søknad where id=:id".hent(mapOf("id" to id)) { row -> Pair(row.long("id"), row.string("json"))}
 
     private fun String.oppdatering(params: Map<String, Any>):Long? = using(sessionOf(dataSource, returnGeneratedKey = true)) { it.run(queryOf(this, params).asUpdateAndReturnGeneratedKey) }

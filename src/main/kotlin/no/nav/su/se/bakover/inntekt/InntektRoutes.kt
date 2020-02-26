@@ -8,6 +8,7 @@ import io.ktor.locations.get
 import io.ktor.request.header
 import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.audit
 import no.nav.su.se.bakover.svar
 
@@ -17,7 +18,7 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
     get<InntektPath> { inntektPath ->
         call.audit("slår opp inntekt for person: ${inntektPath.ident}")
         val resultat = oppslag.inntekt(
-                ident = inntektPath.ident,
+                ident = Fødselsnummer(inntektPath.ident),
                 innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
                 fomDato = inntektPath.fomDato,
                 tomDato = inntektPath.tomDato

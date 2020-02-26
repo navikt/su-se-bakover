@@ -8,18 +8,21 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.audit
 import no.nav.su.se.bakover.svar
 
 internal const val personPath = "/person"
-internal const val identLabel = "ident"
 
 @KtorExperimentalAPI
 internal fun Route.personRoutes(oppslag: PersonOppslag) {
     get(personPath) {
-        call.parameters[identLabel]?.let { personIdent ->
-            call.audit("Gjør oppslag på person: $personIdent")
-            call.svar(oppslag.person(personIdent, call.request.header(Authorization)!!))
-        } ?: call.respond(BadRequest, "query param '$identLabel' må oppgis")
+        Fødselsnummer.extract(call).fold(
+            onError = { call.respond(BadRequest, it)},
+            onValue = {
+                call.audit("Gjør oppslag på person: $it")
+                call.svar(oppslag.person(it, call.request.header(Authorization)!!))
+            }
+        )
     }
 }

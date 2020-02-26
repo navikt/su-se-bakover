@@ -2,11 +2,12 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.Either
 import no.nav.su.se.bakover.Either.*
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.db.Repository
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 internal class Sak internal constructor(
-    private val fnr: String,
+    private val fnr: Fødselsnummer,
     private var id: Long = NO_SUCH_IDENTITY,
     private var søknader:List<Søknad> = emptyList(),
     private val observers: List<SakObserver>,
@@ -48,7 +49,7 @@ internal class SakFactory(
     private val sakObservers: List<SakObserver>,
     private val søknadFactory: SøknadFactory
 ) {
-    fun forFnr(fnr: String): Sak {
+    fun forFnr(fnr: Fødselsnummer): Sak {
         val repoId = repository.sakIdForFnr(fnr)
         return when (repoId) {
             null -> Sak(fnr = fnr, observers = sakObservers, søknadFactory = søknadFactory).lagreNySak(repository)
@@ -68,6 +69,6 @@ internal class SakFactory(
 }
 
 internal interface SakObserver {
-    data class NySakEvent(val fnr: String, val id: Long)
+    data class NySakEvent(val fnr: Fødselsnummer, val id: Long)
     fun nySakOpprettet(event: NySakEvent)
 }

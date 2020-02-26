@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.toolbox.HttpClient
 import io.ktor.http.HttpHeaders.XRequestId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.json
@@ -23,25 +24,25 @@ internal class InntektClientTest {
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
-        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
+        val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
         val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
-        val result = inntektClient.inntekt("noen", "innlogget bruker", "2000-01", "2000-12")
+        val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(OK.json(""), result)
     }
 
     private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
+        override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
                 OK.json("""{"ting": "OK"}""")
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat =
+        override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
                 HttpStatusCode.fromValue(403).tekst("Du hakke lov")
     }
     private val tokenExchange = object : TokenExchange {

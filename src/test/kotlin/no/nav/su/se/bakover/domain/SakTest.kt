@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.Either
+import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.db.Repository
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
@@ -8,12 +9,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-val nySakId = Random.nextLong()
-val nySøknadId = Random.nextLong()
-val førstegangssøker = "01010112345"
-val eksisterendeSakId = Random.nextLong()
-val andregangssøker = "09090912345"
-val søknadstekst = """
+internal val nySakId = Random.nextLong()
+internal val nySøknadId = Random.nextLong()
+internal val førstegangssøker = Fødselsnummer("01010112345")
+internal val eksisterendeSakId = Random.nextLong()
+internal val andregangssøker = Fødselsnummer("09090912345")
+internal val søknadstekst = """
     {
     "hei": "jeg skulle gjerne hatt litt supplerende stønad",
     "erdetmulig": false,
@@ -78,22 +79,22 @@ internal class SakTest {
 }
 
 internal class TomtRepository : Repository {
-    override fun nySak(fnr: String): Long = nySakId
-    override fun sakIdForFnr(fnr: String): Long? = null
+    override fun nySak(fnr: Fødselsnummer): Long = nySakId
+    override fun sakIdForFnr(fnr: Fødselsnummer): Long? = null
     override fun nySøknad(sakId: Long, json: String): Long = nySøknadId
-    override fun fnrForSakId(sakId: Long): String? = null
+    override fun fnrForSakId(sakId: Long): Fødselsnummer? = null
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
-    override fun alleSaker(): List<Pair<Long, String>> = emptyList()
+    override fun alleSaker(): List<Pair<Long, Fødselsnummer>> = emptyList()
     override fun søknadForId(id: Long): Pair<Long, String>? = null
 }
 
 internal class RepositoryForNySøknad: Repository {
-    override fun nySak(fnr: String): Long = throw RuntimeException("Skulle ikke lagre sak")
-    override fun sakIdForFnr(fnr: String): Long? = eksisterendeSakId
+    override fun nySak(fnr: Fødselsnummer): Long = throw RuntimeException("Skulle ikke lagre sak")
+    override fun sakIdForFnr(fnr: Fødselsnummer): Long? = eksisterendeSakId
     override fun nySøknad(sakId: Long, json: String): Long = nySøknadId
-    override fun fnrForSakId(sakId: Long): String? = andregangssøker
+    override fun fnrForSakId(sakId: Long): Fødselsnummer? = andregangssøker
     override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
-    override fun alleSaker(): List<Pair<Long, String>> = emptyList()
+    override fun alleSaker(): List<Pair<Long, Fødselsnummer>> = emptyList()
     override fun søknadForId(id: Long): Pair<Long, String>? = null
 }
 

@@ -53,7 +53,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, "$personPath?$identLabel=$testIdent") {
+            withCallId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -79,7 +79,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, "$personPath?$identLabel=$testIdent") {
+            withCallId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

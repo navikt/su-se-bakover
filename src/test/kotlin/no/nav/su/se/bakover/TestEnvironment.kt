@@ -79,10 +79,10 @@ private val defaultAzure = object : TokenExchange {
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
 }
 private val failingPersonClient = object : PersonOppslag {
-    override fun person(ident: String, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
+    override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
 }
 private val failingInntektClient = object : InntektOppslag {
-    override fun inntekt(ident: String, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")
+    override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")
 }
 
 @KtorExperimentalLocationsAPI

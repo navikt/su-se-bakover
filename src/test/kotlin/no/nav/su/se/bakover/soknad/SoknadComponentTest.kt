@@ -111,7 +111,7 @@ internal class SoknadComponentTest {
                 assertEquals(Created, response.status())
             }
 
-            withCallId(Get, "$soknadPath?$identLabel=$fnr") {
+            withCallId(Get, "$soknadPath?${Fødselsnummer.identLabel}=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
@@ -168,7 +168,7 @@ internal class SoknadComponentTest {
         }
     }
 
-    val fnr = "234123345"
+    val fnr = "01010112345"
     private val soknadJson =
             """
     {
