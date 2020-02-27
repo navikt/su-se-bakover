@@ -20,7 +20,7 @@ internal fun Route.sakRoutes(
     sakFactory: SakFactory
 ) {
     get(sakPath) {
-        Fødselsnummer.extract(call).fold(
+        Fødselsnummer.lesParameter(call).fold(
             left = { call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]""")) },
             right = {
                 call.audit("Henter sak for person: $it")
@@ -30,7 +30,7 @@ internal fun Route.sakRoutes(
     }
 
     get("$sakPath/{id}") {
-        Long.extract(call, "id").fold(
+        Long.lesParameter(call, "id").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter sak med id: $id")
@@ -43,7 +43,7 @@ internal fun Route.sakRoutes(
 
     // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
     get("$sakPath/{id}/soknad") {
-        Long.extract(call, "id").fold(
+        Long.lesParameter(call, "id").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter søknad for sakId: $id")

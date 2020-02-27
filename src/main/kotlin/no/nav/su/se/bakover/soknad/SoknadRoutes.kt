@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.soknad
 
 import com.google.gson.JsonObject
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -26,7 +25,7 @@ internal const val soknadPath = "/soknad"
 internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadFactory) {
 
     get(soknadPath) {
-        Fødselsnummer.extract(call).fold(
+        Fødselsnummer.lesParameter(call).fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = {
                 sakFactory.forFnr(it).gjeldendeSøknad().fold(
@@ -38,7 +37,7 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     }
 
     get("$soknadPath/{soknadId}") {
-        Long.extract(call, "soknadId").fold(
+        Long.lesParameter(call, "soknadId").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
                 call.audit("Henter søknad med id: $id")

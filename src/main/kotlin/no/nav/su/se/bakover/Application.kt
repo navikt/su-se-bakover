@@ -22,6 +22,8 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
+import no.nav.su.se.bakover.Either.Left
+import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.db.DataSourceBuilder
@@ -181,9 +183,9 @@ private fun getJWKConfig(wellKnownUrl: String): JSONObject {
     )
 }
 
-internal fun Long.Companion.extract(call: ApplicationCall, name: String): Either<String, Long> =
+internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
     call.parameters[name]?.let {
         it.toLongOrNull()?.let {
-            Either.Right(it)
-        } ?: Either.Left("$name er ikke et tall")
-    } ?: Either.Left("$name er ikke et parameter")
+            Right(it)
+        } ?: Left("$name er ikke et tall")
+    } ?: Left("$name er ikke et parameter")

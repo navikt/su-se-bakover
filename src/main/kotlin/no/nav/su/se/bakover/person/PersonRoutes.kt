@@ -17,7 +17,7 @@ internal const val personPath = "/person"
 @KtorExperimentalAPI
 internal fun Route.personRoutes(oppslag: PersonOppslag) {
     get(personPath) {
-        Fødselsnummer.extract(call).fold(
+        Fødselsnummer.lesParameter(call).fold(
             left = { call.respond(BadRequest, it)},
             right = {
                 call.audit("Gjør oppslag på person: $it")
