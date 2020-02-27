@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.person
 import com.github.kittinunf.fuel.httpGet
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
@@ -29,7 +29,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         val onBehalfOfToken = tokenExchange.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XRequestId, MDC.get(XRequestId))
+                .header(XCorrelationId, MDC.get(XCorrelationId))
                 .responseString()
         return result.fold(
                 { OK.json(it) },

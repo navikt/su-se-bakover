@@ -12,7 +12,7 @@ import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
@@ -30,15 +30,15 @@ import no.nav.su.se.bakover.db.DataSourceBuilder
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
-import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.db.DatabaseRepository
+import no.nav.su.se.bakover.db.FlywayMigrator
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadFactory
-import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
+import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.person.SuPersonClient
 import no.nav.su.se.bakover.person.personRoutes
@@ -56,37 +56,37 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-    hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
-        kafkaConfig.producerConfig(),
-        StringSerializer(),
-        StringSerializer()
-    ),
-    dataSource: DataSource = getDatasource(),
-    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    tokenExchange: TokenExchange = AzureClient(
-        fromEnvironment("azure.clientId"),
-        fromEnvironment("azure.clientSecret"),
-        jwkConfig.getString("token_endpoint")
-    ),
-    personOppslag: PersonOppslag = SuPersonClient(
-        fromEnvironment("integrations.suPerson.url"),
-        fromEnvironment("integrations.suPerson.clientId"),
-        tokenExchange
-    ),
-    inntektOppslag: InntektOppslag = SuInntektClient(
-        fromEnvironment("integrations.suInntekt.url"),
-        fromEnvironment("integrations.suInntekt.clientId"),
-        tokenExchange,
-        personOppslag
-    )
+        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
+                kafkaConfig.producerConfig(),
+                StringSerializer(),
+                StringSerializer()
+        ),
+        dataSource: DataSource = getDatasource(),
+        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+        tokenExchange: TokenExchange = AzureClient(
+                fromEnvironment("azure.clientId"),
+                fromEnvironment("azure.clientSecret"),
+                jwkConfig.getString("token_endpoint")
+        ),
+        personOppslag: PersonOppslag = SuPersonClient(
+                fromEnvironment("integrations.suPerson.url"),
+                fromEnvironment("integrations.suPerson.clientId"),
+                tokenExchange
+        ),
+        inntektOppslag: InntektOppslag = SuInntektClient(
+                fromEnvironment("integrations.suInntekt.url"),
+                fromEnvironment("integrations.suInntekt.clientId"),
+                tokenExchange,
+                personOppslag
+        )
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver =
-        SøknadMottattEmitter(hendelseProducer)
+            SøknadMottattEmitter(hendelseProducer)
     val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
     val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
 
@@ -125,13 +125,13 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             install(CallId) {
-                header(XRequestId)
+                header(XCorrelationId)
                 generate(17)
             }
             install(CallLogging) {
                 level = Level.INFO
                 intercept(ApplicationCallPipeline.Monitoring) {
-                    MDC.put(XRequestId, call.callId)
+                    MDC.put(XCorrelationId, call.callId)
                 }
                 filter { call ->
                     listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
@@ -184,8 +184,8 @@ private fun getJWKConfig(wellKnownUrl: String): JSONObject {
 }
 
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
-    call.parameters[name]?.let {
-        it.toLongOrNull()?.let {
-            Right(it)
-        } ?: Left("$name er ikke et tall")
-    } ?: Left("$name er ikke et parameter")
+        call.parameters[name]?.let {
+            it.toLongOrNull()?.let {
+                Right(it)
+            } ?: Left("$name er ikke et tall")
+        } ?: Left("$name er ikke et parameter")

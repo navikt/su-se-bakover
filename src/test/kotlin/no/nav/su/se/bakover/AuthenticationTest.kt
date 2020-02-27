@@ -25,7 +25,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, secureEndpoint)
+            withCorrelationId(Get, secureEndpoint)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -39,7 +39,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, secureEndpoint) {
+            withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -55,7 +55,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, secureEndpoint) {
+            withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -71,7 +71,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, secureEndpoint) {
+            withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -87,7 +87,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, secureEndpoint) {
+            withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -101,7 +101,7 @@ internal class AuthenticationTest {
             testEnv()
             usingMocks()
         }) {
-            withCallId(Get, "auth/refresh") {
+            withCorrelationId(Get, "auth/refresh") {
                 addHeader("refresh_token", "my.refresh.token")
             }
         }.apply {

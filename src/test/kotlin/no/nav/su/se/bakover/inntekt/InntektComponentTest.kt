@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -34,7 +34,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, path)
+            withCorrelationId(Get, path)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -43,18 +43,18 @@ internal class InntektComponentTest {
     @Test
     fun `kan hente inntekt`() {
         stubFor(get(urlPathEqualTo("/person"))
-            .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-            .withHeader(XRequestId, AnythingPattern())
-            .withQueryParam("ident", equalTo(ident))
-            .willReturn(
-                okJson("""{"ident"="$ident"}""")
-            )
+                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .withHeader(XCorrelationId, AnythingPattern())
+                .withQueryParam("ident", equalTo(ident))
+                .willReturn(
+                        okJson("""{"ident"="$ident"}""")
+                )
         )
         stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
                         .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                        .withHeader(XRequestId, AnythingPattern())
+                        .withHeader(XCorrelationId, AnythingPattern())
                         .willReturn(
                                 okJson("""{"ident"="$ident"}""")
                         )
@@ -66,7 +66,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, path) {
+            withCorrelationId(Get, path) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -79,18 +79,18 @@ internal class InntektComponentTest {
     fun `håndterer og videreformidler feil`() {
         val errorMessage = """{"message": "nich gut"}"""
         stubFor(get(urlPathEqualTo("/person"))
-            .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-            .withHeader(XRequestId, AnythingPattern())
-            .withQueryParam("ident", equalTo(ident))
-            .willReturn(
-                okJson("""{"ident"="$ident"}""")
-            )
+                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .withHeader(XCorrelationId, AnythingPattern())
+                .withQueryParam("ident", equalTo(ident))
+                .willReturn(
+                        okJson("""{"ident"="$ident"}""")
+                )
         )
         stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
                         .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                        .withHeader(XRequestId, AnythingPattern())
+                        .withHeader(XCorrelationId, AnythingPattern())
                         .willReturn(
                                 aResponse().withBody(errorMessage).withStatus(500)
                         )
@@ -102,7 +102,7 @@ internal class InntektComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, path) {
+            withCorrelationId(Get, path) {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

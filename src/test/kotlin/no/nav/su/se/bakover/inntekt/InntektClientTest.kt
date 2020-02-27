@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.inntekt
 
 import com.github.kittinunf.fuel.core.*
 import com.github.kittinunf.fuel.toolbox.HttpClient
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
@@ -52,7 +52,7 @@ internal class InntektClientTest {
 
     @BeforeEach
     fun setup() {
-        MDC.put(XRequestId, "a request id")
+        MDC.put(XCorrelationId, "a request id")
         FuelManager.instance.client = object : Client {
             override fun executeRequest(request: Request): Response = okResponseFromInntekt()
         }

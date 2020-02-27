@@ -5,7 +5,7 @@ import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
@@ -32,10 +32,10 @@ internal class SuInntektClient(
     private val suInntektIdentLabel = "fnr"
 
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
-        personOppslag.person(ident, innloggetSaksbehandlerToken).fold(
-            success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
-            error = { it }
-        )
+            personOppslag.person(ident, innloggetSaksbehandlerToken).fold(
+                    success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
+                    error = { it }
+            )
 
     private fun finnInntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
@@ -47,7 +47,7 @@ internal class SuInntektClient(
                 )
         )
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XRequestId, MDC.get(XRequestId))
+                .header(XCorrelationId, MDC.get(XCorrelationId))
                 .header(ContentType, FormUrlEncoded)
                 .responseString()
 

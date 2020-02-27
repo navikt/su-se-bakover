@@ -5,7 +5,7 @@ import com.auth0.jwk.JwkProvider
 import com.github.tomakehurst.wiremock.WireMockServer
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -95,21 +95,21 @@ internal fun Application.usingMocks(
         azureClient: TokenExchange = defaultAzure
 ) {
     susebakover(
-        jwkConfig = jwkConfig,
-        jwkProvider = jwkProvider,
-        tokenExchange = azureClient,
-        personOppslag = personClient,
-        inntektOppslag = inntektClient
+            jwkConfig = jwkConfig,
+            jwkProvider = jwkProvider,
+            tokenExchange = azureClient,
+            personOppslag = personClient,
+            inntektOppslag = inntektClient
     )
 }
 
-fun TestApplicationEngine.withCallId(
+fun TestApplicationEngine.withCorrelationId(
         method: HttpMethod,
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
-        addHeader(XRequestId, DEFAULT_CALL_ID)
+        addHeader(XCorrelationId, DEFAULT_CALL_ID)
         setup()
     }
 }

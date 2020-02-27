@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XRequestId
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -29,7 +29,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, personPath)
+            withCorrelationId(Get, personPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -40,7 +40,7 @@ internal class PersonComponentTest {
         val testIdent = "12345678910"
         stubFor(get(urlPathEqualTo("/person"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XRequestId, AnythingPattern())
+                .withHeader(XCorrelationId, AnythingPattern())
                 .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(
                         okJson("""{"ident"="$testIdent"}""")
@@ -53,7 +53,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
+            withCorrelationId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -68,7 +68,7 @@ internal class PersonComponentTest {
         val errorMessage = "beklager, det gikk dårlig"
         stubFor(get(urlPathEqualTo("/person"))
                 .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XRequestId, AnythingPattern())
+                .withHeader(XCorrelationId, AnythingPattern())
                 .withQueryParam("ident", equalTo(testIdent))
                 .willReturn(aResponse().withBody(errorMessage).withStatus(401))
         )
@@ -79,7 +79,7 @@ internal class PersonComponentTest {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCallId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
+            withCorrelationId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

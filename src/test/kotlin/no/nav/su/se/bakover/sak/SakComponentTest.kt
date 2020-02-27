@@ -44,7 +44,7 @@ internal class SakComponentTest {
 
             val opprettetId = JSONObject(opprettSakResponse.content).getLong("id")
 
-            withCallId(Get, "$sakPath/$opprettetId") {
+            withCorrelationId(Get, "$sakPath/$opprettetId") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
@@ -61,7 +61,7 @@ internal class SakComponentTest {
         })) {
             opprettSak(sakFnr01)
 
-            withCallId(Get, "$sakPath?ident=$sakFnr01") {
+            withCorrelationId(Get, "$sakPath?ident=$sakFnr01") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
@@ -80,7 +80,7 @@ internal class SakComponentTest {
             val second = opprettSak(sakFnr02).content
             val third = opprettSak(sakFnr03).content
 
-            withCallId(Get, "$sakPath") {
+            withCorrelationId(Get, "$sakPath") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
@@ -110,13 +110,13 @@ internal class SakComponentTest {
                 assertEquals(NotFound, response.status())
             }*/
 
-            withCallId(Get, "$sakPath/999") {
+            withCorrelationId(Get, "$sakPath/999") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(NotFound, response.status())
             }
 
-            withCallId(Get, "$sakPath/abcd") {
+            withCorrelationId(Get, "$sakPath/abcd") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(BadRequest, response.status())
@@ -125,7 +125,7 @@ internal class SakComponentTest {
     }
 
     fun TestApplicationEngine.opprettSak(fnr: String): TestApplicationResponse {
-        return withCallId(Get, "$sakPath?ident=$fnr") {
+        return withCorrelationId(Get, "$sakPath?ident=$fnr") {
             addHeader(Authorization, jwt)
         }.response
     }
