@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.soknad
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.google.gson.JsonParser
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
@@ -21,10 +18,8 @@ import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
 import no.nav.su.se.bakover.sak.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.time.Duration.of
 import java.time.temporal.ChronoUnit.MILLIS
@@ -32,7 +27,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SoknadComponentTest {
+internal class SoknadComponentTest : ComponentTest() {
 
     private val parser = JsonParser()
 
@@ -143,28 +138,6 @@ internal class SoknadComponentTest {
                 assertEquals(OK, response.status())
                 assertEquals(JSONArray(response.content).getJSONObject(0).getInt("id"), 1)
             }
-        }
-    }
-
-    companion object {
-        private val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-        private val jwtStub by lazy {
-            JwtStub(wireMockServer)
-        }
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            WireMock.stubFor(jwtStub.stubbedJwkProvider())
-            WireMock.stubFor(jwtStub.stubbedConfigProvider())
-            WireMock.stubFor(jwtStub.stubbedTokenExchange())
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
         }
     }
 

@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.sak
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -16,14 +13,14 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SakComponentTest {
+internal class SakComponentTest: ComponentTest() {
 
-    private val jwt = "Bearer ${jwtStub.createTokenFor()}"
     private val sakFnr01 = "12345678911"
     private val sakFnr02 = "12345678912"
     private val sakFnr03 = "12345678913"
@@ -128,24 +125,5 @@ internal class SakComponentTest {
         return withCorrelationId(Get, "$sakPath?ident=$fnr") {
             addHeader(Authorization, jwt)
         }.response
-    }
-
-    companion object {
-        private val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-        private val jwtStub by lazy { JwtStub(wireMockServer) }
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            WireMock.stubFor(jwtStub.stubbedJwkProvider())
-            WireMock.stubFor(jwtStub.stubbedConfigProvider())
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
     }
 }

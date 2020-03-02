@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.person
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -14,14 +12,12 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class PersonComponentTest {
+internal class PersonComponentTest: ComponentTest() {
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
@@ -85,29 +81,6 @@ internal class PersonComponentTest {
         }.apply {
             assertEquals(Unauthorized, response.status())
             assertEquals("""{"message": "$errorMessage"}""", response.content!!)
-        }
-    }
-
-
-    companion object {
-        private val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-        private val jwtStub by lazy {
-            JwtStub(wireMockServer)
-        }
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            stubFor(jwtStub.stubbedJwkProvider())
-            stubFor(jwtStub.stubbedConfigProvider())
-            stubFor(jwtStub.stubbedTokenExchange())
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
         }
     }
 
