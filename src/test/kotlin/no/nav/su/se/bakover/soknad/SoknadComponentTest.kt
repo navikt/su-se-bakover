@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import java.time.Duration.of
 import java.time.temporal.ChronoUnit.MILLIS
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
@@ -31,14 +32,10 @@ internal class SoknadComponentTest : ComponentTest() {
 
     private val parser = JsonParser()
 
-    @AfterEach
-    fun `reset database with great fury`() {
-        EmbeddedDatabase.refresh()
-    }
-
     @Test
     fun `lagrer og henter søknad`() {
         val token = jwtStub.createTokenFor()
+        val fnr = Fødselsnummer("01010100001")
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -46,17 +43,18 @@ internal class SoknadComponentTest : ComponentTest() {
             withCorrelationId(Post, soknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
+                setBody(soknadJson(fnr))
             }.apply {
+                println(response)
                 assertEquals(Created, response.status())
             }.response
 
-            withCorrelationId(Get, "$soknadPath?ident=$fnr") {
+            withCorrelationId(Get, "$soknadPath?${Fødselsnummer.identLabel}=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
                 val json = JSONObject(response.content)
-                assertEquals(parser.parse(soknadJson), parser.parse(json.getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
+                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
             }
         }
     }
@@ -64,6 +62,7 @@ internal class SoknadComponentTest : ComponentTest() {
     @Test
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val token = jwtStub.createTokenFor()
+        val fnr = Fødselsnummer("01010100002")
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -71,29 +70,33 @@ internal class SoknadComponentTest : ComponentTest() {
             val lagreSøknadResponse = withCorrelationId(Post, soknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
+                setBody(soknadJson(fnr))
             }.apply {
                 assertEquals(Created, response.status())
             }.response
 
-            val søknadId = JSONObject(lagreSøknadResponse.content).getInt("id")
-
+            val sakId = JSONObject(lagreSøknadResponse.content).getInt("id")
+            val søknadId = JSONObject(lagreSøknadResponse.content).getJSONArray("søknader").getJSONObject(0).getInt("id")
             val records = kafkaConsumer.poll(of(1000, MILLIS))
                     .filter { it.topic() == SOKNAD_TOPIC }
             assertFalse(records.isEmpty())
+
+            val ourRecords = records.filter { r -> r.key() == "$sakId" }
+            assertEquals(1, ourRecords.size)
             assertEquals(JsonParser().parse("""
                 {
                     "soknadId":$søknadId,
-                    "sakId":1,
-                    "soknad":$soknadJson
+                    "sakId":$sakId,
+                    "soknad":${soknadJson(fnr)}
                 }
-            """), JsonParser().parse(records.first().value()))
+            """), JsonParser().parse(ourRecords.first().value()))
         }
     }
 
     @Test
     fun `lagrer og henter søknad på fnr`() {
         val token = jwtStub.createTokenFor()
+        val fnr = Fødselsnummer("01010100003")
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -101,7 +104,7 @@ internal class SoknadComponentTest : ComponentTest() {
             withCorrelationId(Post, soknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
+                setBody(soknadJson(fnr))
             }.apply {
                 assertEquals(Created, response.status())
             }
@@ -111,7 +114,7 @@ internal class SoknadComponentTest : ComponentTest() {
             }.apply {
                 assertEquals(OK, response.status())
                 val json = JSONObject(response.content)
-                assertEquals(parser.parse(soknadJson), parser.parse(json.getJSONObject("json").toString()))
+                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("json").toString()))
             }
         }
     }
@@ -119,6 +122,8 @@ internal class SoknadComponentTest : ComponentTest() {
     @Test
     fun `knytter søknad til sak ved innsending`() {
         val token = jwtStub.createTokenFor()
+        val fnr = Fødselsnummer("01010100004")
+        var sakNr: Int
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -126,23 +131,23 @@ internal class SoknadComponentTest : ComponentTest() {
             withCorrelationId(Post, soknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
+                setBody(soknadJson(fnr))
             }.apply {
                 assertEquals(Created, response.status())
-                assertEquals(1, JSONObject(response.content).getInt("id"))
+                sakNr = JSONObject(response.content).getInt("id")
             }
 
-            withCorrelationId(Get, "$sakPath/1/soknad") {
+            // /soknad henter en liste... FIXME: skulle hete /soknader
+            withCorrelationId(Get, "$sakPath/$sakNr/soknad") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                assertEquals(JSONArray(response.content).getJSONObject(0).getInt("id"), 1)
+                assertTrue(JSONArray(response.content).getJSONObject(0).getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
     }
 
-    val fnr = "01010112345"
-    private val soknadJson =
+    private fun soknadJson(fnr: Fødselsnummer) =
             """
     {
       "personopplysninger": {

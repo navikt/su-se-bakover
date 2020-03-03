@@ -36,7 +36,7 @@ internal class Sak internal constructor(
         {
             "id":"$id",
             "fnr":"$fnr",
-            "søknader": [ ${alleSøknaderSomEnJsonListe()}]
+            "søknader": ${alleSøknaderSomEnJsonListe()}
         }
     """.trimIndent()
 

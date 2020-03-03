@@ -16,6 +16,7 @@ import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
@@ -24,11 +25,6 @@ internal class SakComponentTest: ComponentTest() {
     private val sakFnr01 = "12345678911"
     private val sakFnr02 = "12345678912"
     private val sakFnr03 = "12345678913"
-
-    @AfterEach
-    fun `reset database with great fury`() {
-        EmbeddedDatabase.refresh()
-    }
 
     @Test
     fun `oppretter og henter sak med id og fnr`() {
@@ -73,22 +69,23 @@ internal class SakComponentTest: ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            val first = opprettSak(sakFnr01).content
-            val second = opprettSak(sakFnr02).content
-            val third = opprettSak(sakFnr03).content
+            val first = JSONObject(opprettSak(sakFnr01).content)
+            val second = JSONObject(opprettSak(sakFnr02).content)
+            val third = JSONObject(opprettSak(sakFnr03).content)
 
             withCorrelationId(Get, "$sakPath") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
                 val saker = JSONArray(response.content)
-                assertEquals(3, saker.length())
-                assertEquals(JSONObject(first).getInt("id"), saker.getJSONObject(0).getInt("id"))
-                assertEquals(JSONObject(second).getInt("id"), saker.getJSONObject(1).getInt("id"))
-                assertEquals(JSONObject(third).getInt("id"), saker.getJSONObject(2).getInt("id"))
+                assertHarSakMedId(saker, first.getInt("id"))
+                assertHarSakMedId(saker, second.getInt("id"))
+                assertHarSakMedId(saker, third.getInt("id"))
             }
         }
     }
+
+    private fun assertHarSakMedId(saker: JSONArray, expectedId: Int) = assertTrue(saker.filter { it is JSONObject && it.getInt("id") == expectedId }.isNotEmpty())
 
     @Test
     fun `error handling`() {

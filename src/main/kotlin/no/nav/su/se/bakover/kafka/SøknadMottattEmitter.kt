@@ -11,7 +11,9 @@ internal class SøknadMottattEmitter(private val kafka: KafkaProducer<String, St
     override fun søknadMottatt(event: SøknadObserver.SøknadMottattEvent) {
         kafka.send(
             ProducerRecord(
-                KafkaConfigBuilder.Topics.SOKNAD_TOPIC, """
+                KafkaConfigBuilder.Topics.SOKNAD_TOPIC,
+                "${event.sakId}",
+                """
                 {
                     "soknadId":${event.søknadId},
                     "sakId":${event.sakId},

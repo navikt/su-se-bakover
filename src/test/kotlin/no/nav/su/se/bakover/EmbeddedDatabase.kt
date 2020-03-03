@@ -22,19 +22,5 @@ class EmbeddedDatabase {
                 .prepareStatement("""create role "$DB_NAME-${DataSourceBuilder.Role.Admin}" """)
                 .execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
         }
-        fun refresh() {
-            using(sessionOf(HikariDataSource(configure(instance.getJdbcUrl(DB_NAME, DB_NAME))))) {
-                it.run(queryOf("truncate sak restart identity cascade").asExecute)
-            }
-        }
-        private fun configure(jdbcUrl: String) =
-            HikariConfig().apply {
-                this.jdbcUrl = jdbcUrl
-                maximumPoolSize = 3
-                minimumIdle = 1
-                idleTimeout = 10001
-                connectionTimeout = 1000
-                maxLifetime = 30001
-            }
     }
 }
