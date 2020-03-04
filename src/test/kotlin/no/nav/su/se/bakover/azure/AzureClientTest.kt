@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
-import no.nav.su.se.bakover.azure.AzureClient.Companion.GRANT_TYPE
+import no.nav.su.se.bakover.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
 import org.junit.jupiter.api.*
 import java.net.URLEncoder
@@ -27,7 +27,7 @@ internal class AzureClientKtTest {
     fun `exchange token ok response`() {
         stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
                 .withHeader(ContentType, equalTo(FormUrlEncoded.toString()))
-                .withRequestBody(containing("grant_type=${urlEncode(GRANT_TYPE)}"))
+                .withRequestBody(containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
                 .withRequestBody(containing("client_id=$CLIENT_ID"))
                 .withRequestBody(containing("client_secret=$CLIENT_SECRET"))
                 .withRequestBody(containing("assertion=$TOKEN_TO_EXCHANGE"))

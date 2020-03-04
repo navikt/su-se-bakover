@@ -23,7 +23,7 @@ internal class Sak internal constructor(
     }
 
     fun nySøknad(søknadstekst: String): Sak = this.also {
-        søknader = søknader + søknadFactory.forSak(id, søknadstekst)
+        søknader = søknader + søknadFactory.forSak(id, søknadstekst, fnr)
     }
 
     // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.

@@ -4,6 +4,9 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import no.nav.su.se.bakover.azure.AzureClient
+import java.net.URLEncoder
+import java.nio.charset.Charset
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
@@ -76,8 +79,9 @@ class JwtStub(private val wireMockServer: WireMockServer? = null) {
             )
     )
 
-    fun stubbedTokenExchange() = WireMock.post(WireMock.urlPathEqualTo(AZURE_TOKEN_URL)).willReturn(
-            WireMock.okJson("""
+    fun stubbedOnBehalfOfToken() = WireMock.post(WireMock.urlPathEqualTo(AZURE_TOKEN_URL))
+            .withRequestBody(WireMock.containing("grant_type=${URLEncoder.encode(AzureClient.AZURE_ON_BEHALF_OF_GRANT_TYPE, Charset.defaultCharset())}"))
+            .willReturn(WireMock.okJson("""
 {
   "token_type": "Bearer",
   "scope": "exchanged scope",
@@ -88,6 +92,17 @@ class JwtStub(private val wireMockServer: WireMockServer? = null) {
 }
 """.trimIndent()
             )
-    )
+            )
 
+    fun stubbedToken() = WireMock.post(WireMock.urlPathEqualTo(AZURE_TOKEN_URL))
+            .withRequestBody(WireMock.containing("grant_type=client_credentials"))
+            .willReturn(WireMock.okJson("""
+{
+  "token_type": "Bearer",
+  "expires_in": 3269,
+  "access_token": "ONBEHALFOFTOKEN"
+}
+""".trimIndent()
+            )
+            )
 }

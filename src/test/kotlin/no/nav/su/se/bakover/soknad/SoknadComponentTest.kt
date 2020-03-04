@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.soknad
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import com.google.gson.JsonParser
 import io.ktor.http.ContentType.Application.Json
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod.Companion.Get
@@ -18,7 +21,6 @@ import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
 import no.nav.su.se.bakover.sak.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import java.time.Duration.of
@@ -31,11 +33,13 @@ import kotlin.test.assertTrue
 internal class SoknadComponentTest : ComponentTest() {
 
     private val parser = JsonParser()
+    private val stubAktoerId = "12345"
 
     @Test
     fun `lagrer og henter søknad`() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100001")
+        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -63,6 +67,7 @@ internal class SoknadComponentTest : ComponentTest() {
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100002")
+        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -87,7 +92,8 @@ internal class SoknadComponentTest : ComponentTest() {
                 {
                     "soknadId":$søknadId,
                     "sakId":$sakId,
-                    "soknad":${soknadJson(fnr)}
+                    "soknad":${soknadJson(fnr)},
+                    "aktoerId":"$stubAktoerId"
                 }
             """), JsonParser().parse(ourRecords.first().value()))
         }
@@ -97,6 +103,7 @@ internal class SoknadComponentTest : ComponentTest() {
     fun `lagrer og henter søknad på fnr`() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100003")
+        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -124,6 +131,7 @@ internal class SoknadComponentTest : ComponentTest() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100004")
         var sakNr: Int
+        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
@@ -145,6 +153,20 @@ internal class SoknadComponentTest : ComponentTest() {
                 assertTrue(JSONArray(response.content).getJSONObject(0).getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
+    }
+
+    fun stubPdl(testIdent: Fødselsnummer) {
+        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person"))
+                .withHeader(Authorization, WireMock.equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                .withHeader(HttpHeaders.XCorrelationId, AnythingPattern())
+                .withQueryParam("ident", WireMock.equalTo(testIdent.toString()))
+                .willReturn(WireMock.okJson("""
+                    {
+                        "aktoerId":"$stubAktoerId"
+                    }
+                """.trimIndent()))
+        )
+
     }
 
     private fun soknadJson(fnr: Fødselsnummer) =

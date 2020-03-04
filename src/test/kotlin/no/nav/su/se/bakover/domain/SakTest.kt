@@ -111,9 +111,10 @@ internal class AssertNySøknadMottat : SøknadObserver {
     override fun søknadMottatt(event: SøknadObserver.SøknadMottattEvent) {
         nySøknad = true
         assertEquals(SøknadObserver.SøknadMottattEvent(
-            sakId = eksisterendeSakId,
-            søknadId = nySøknadId,
-            søknadstekst = søknadstekst
+                sakId = eksisterendeSakId,
+                søknadId = nySøknadId,
+                søknadstekst = søknadstekst,
+                fnr = andregangssøker
         ), event)
     }
 }

@@ -17,7 +17,8 @@ internal open class ComponentTest {
         wireMockServer.start()
         WireMock.stubFor(jwtStub.stubbedJwkProvider())
         WireMock.stubFor(jwtStub.stubbedConfigProvider())
-        WireMock.stubFor(jwtStub.stubbedTokenExchange())
+        WireMock.stubFor(jwtStub.stubbedOnBehalfOfToken())
+        WireMock.stubFor(jwtStub.stubbedToken())
         jwt = "Bearer ${jwtStub.createTokenFor()}"
     }
 

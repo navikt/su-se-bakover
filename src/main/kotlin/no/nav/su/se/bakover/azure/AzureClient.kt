@@ -8,6 +8,7 @@ import org.json.JSONObject
 internal interface TokenExchange {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
+    fun token(otherAppId: String): String
 }
 
 internal class AzureClient(
@@ -16,13 +17,13 @@ internal class AzureClient(
         private val tokenEndpoint: String
 ) : TokenExchange {
     companion object {
-        const val GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
+        const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
         val (_, _, result) = tokenEndpoint.httpPost(listOf(
-                "grant_type" to GRANT_TYPE,
+                "grant_type" to AZURE_ON_BEHALF_OF_GRANT_TYPE,
                 "client_id" to thisClientId,
                 "client_secret" to thisClientSecret,
                 "assertion" to originalToken.replace("Bearer ", ""),
@@ -47,6 +48,20 @@ internal class AzureClient(
         return result.fold(
                 { JSONObject(it) },
                 { throw RuntimeException("Error while refreshing token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
+        )
+    }
+
+    override fun token(otherAppId: String): String {
+        val (_, _, result) = tokenEndpoint.httpPost(listOf(
+                        "grant_type" to "client_credentials",
+                        "client_id" to thisClientId,
+                        "client_secret" to thisClientSecret,
+                        "scope" to "$otherAppId/.default"))
+                .header(ContentType, FormUrlEncoded)
+                .responseString()
+        return result.fold(
+                { JSONObject(it).getString("access_token") },
+                { throw RuntimeException("Error while getting token from Azure, message:${it.message}}, error:${String(it.errorData)}") }
         )
     }
 }

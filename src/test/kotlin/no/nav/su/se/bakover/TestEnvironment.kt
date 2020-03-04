@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.json.JSONObject
+import java.lang.RuntimeException
 import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -77,9 +78,11 @@ private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
 private val defaultAzure = object : TokenExchange {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
+    override fun token(otherAppId: String): String = "token"
 }
 private val failingPersonClient = object : PersonOppslag {
     override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
+    override fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String = throw RuntimeException("Kall mot PDL feilet")
 }
 private val failingInntektClient = object : InntektOppslag {
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")

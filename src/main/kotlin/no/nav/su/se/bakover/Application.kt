@@ -85,8 +85,7 @@ internal fun Application.susebakover(
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
-    val kafkaEmittingSøknadObserver =
-            SøknadMottattEmitter(hendelseProducer)
+    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, tokenExchange, fromEnvironment("integrations.suPerson.clientId"), personOppslag)
     val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
     val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
 
