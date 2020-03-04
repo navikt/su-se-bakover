@@ -9,10 +9,19 @@ java {
     targetCompatibility = JavaVersion.VERSION_12
 }
 
+val githubUser: String? by project
+val githubPassword: String? by project
 repositories {
     jcenter()
     maven("https://dl.bintray.com/kotlin/ktor")
     maven("http://packages.confluent.io/maven/")
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/su-meldinger")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
 }
 
 val ktorVersion = "1.2.6"
@@ -42,6 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation ("io.ktor:ktor-gson:$ktorVersion")
     implementation("org.apache.kafka:kafka-streams:2.3.0")
+    implementation("no.nav:su-meldinger:e41cd63db2bba5587d0eb94e44e0b7ebb6479e4f")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")

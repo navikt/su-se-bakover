@@ -2,7 +2,7 @@ package no.nav.su.se.bakover
 
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.common.KafkaEnvironment
-import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
+import no.nav.su.meldinger.kafka.Topics.SOKNAD_TOPIC
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -44,6 +44,4 @@ class EmbeddedKafka {
             }
         }
     }
-
-
 }

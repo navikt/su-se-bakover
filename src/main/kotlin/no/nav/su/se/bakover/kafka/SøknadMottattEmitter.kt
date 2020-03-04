@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.kafka
 
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.AzureClient
+import no.nav.su.meldinger.kafka.MessageBuilder.Companion.toProducerRecord
+import no.nav.su.meldinger.kafka.Topics
+import no.nav.su.meldinger.kafka.soknad.NySoknad
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.domain.SøknadObserver
 import no.nav.su.se.bakover.person.PersonOppslag
-import no.nav.su.se.bakover.person.SuPersonClient
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 
 @KtorExperimentalAPI
 internal class SøknadMottattEmitter(
@@ -20,19 +20,15 @@ internal class SøknadMottattEmitter(
         val token = azureClient.token(suPersonClientId)
         val aktoerId = personClient.aktoerId(event.fnr, token)
 
-        kafka.send(
-                ProducerRecord(
-                        KafkaConfigBuilder.Topics.SOKNAD_TOPIC,
-                        "${event.sakId}",
-                        """
-                {
-                    "soknadId":${event.søknadId},
-                    "sakId":${event.sakId},
-                    "soknad":${event.søknadstekst},
-                    "aktoerId":"$aktoerId"
-                }
-            """.trimIndent())
+        kafka.send(NySoknad(
+                fnr = event.fnr.toString(),
+                sakId = "${event.sakId}",
+                aktoerId = aktoerId,
+                soknadId = "${event.søknadId}",
+                soknad = event.søknadstekst
+        ).toProducerRecord(Topics.SOKNAD_TOPIC)
         )
+
     }
 }
 

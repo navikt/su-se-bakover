@@ -15,9 +15,11 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.meldinger.kafka.MessageBuilder.Companion.fromConsumerRecord
+import no.nav.su.meldinger.kafka.Topics.SOKNAD_TOPIC
+import no.nav.su.meldinger.kafka.soknad.NySoknad
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.kafka.KafkaConfigBuilder.Topics.SOKNAD_TOPIC
 import no.nav.su.se.bakover.sak.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
@@ -88,14 +90,13 @@ internal class SoknadComponentTest : ComponentTest() {
 
             val ourRecords = records.filter { r -> r.key() == "$sakId" }
             assertEquals(1, ourRecords.size)
-            assertEquals(JsonParser().parse("""
-                {
-                    "soknadId":$søknadId,
-                    "sakId":$sakId,
-                    "soknad":${soknadJson(fnr)},
-                    "aktoerId":"$stubAktoerId"
-                }
-            """), JsonParser().parse(ourRecords.first().value()))
+            assertEquals(NySoknad(
+                    soknadId = "$søknadId",
+                    soknad = soknadJson(fnr),
+                    sakId = "$sakId",
+                    aktoerId = stubAktoerId,
+                    fnr = fnr.toString()
+            ), fromConsumerRecord(ourRecords.first()))
         }
     }
 
@@ -169,8 +170,7 @@ internal class SoknadComponentTest : ComponentTest() {
 
     }
 
-    private fun soknadJson(fnr: Fødselsnummer) =
-            """
+    private fun soknadJson(fnr: Fødselsnummer) = """
     {
       "personopplysninger": {
         "fnr": "$fnr",
