@@ -51,7 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation ("io.ktor:ktor-gson:$ktorVersion")
     implementation("org.apache.kafka:kafka-streams:2.3.0")
-    implementation("no.nav:su-meldinger:e41cd63db2bba5587d0eb94e44e0b7ebb6479e4f")
+    implementation("no.nav:su-meldinger:cad2c4f4aecc26a3ad2081e22e2f0b58b988e321")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")

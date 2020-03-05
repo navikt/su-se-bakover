@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.kafka
 
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.MessageBuilder.Companion.toProducerRecord
 import no.nav.su.meldinger.kafka.Topics
+import no.nav.su.meldinger.kafka.soknad.KafkaMessage.Companion.toProducerRecord
 import no.nav.su.meldinger.kafka.soknad.NySoknad
 import no.nav.su.se.bakover.azure.TokenExchange
 import no.nav.su.se.bakover.domain.SøknadObserver

@@ -15,9 +15,9 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.MessageBuilder.Companion.fromConsumerRecord
 import no.nav.su.meldinger.kafka.Topics.SOKNAD_TOPIC
 import no.nav.su.meldinger.kafka.soknad.NySoknad
+import no.nav.su.meldinger.kafka.soknad.SoknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
 import no.nav.su.se.bakover.sak.sakPath
