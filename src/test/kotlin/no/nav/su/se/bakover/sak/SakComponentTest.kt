@@ -98,7 +98,7 @@ internal class SakComponentTest: ComponentTest() {
 
             /*
             FIXME: vi bør legge på validering av fnr. for nå vil vi lagre en ny sak med fnr 999 etter et slikt kall som dette
-            withCallId(Get, "$sakPath?ident=999") {
+            withCorrelationId(Get, "$sakPath?ident=999") {
                 addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(NotFound, response.status())

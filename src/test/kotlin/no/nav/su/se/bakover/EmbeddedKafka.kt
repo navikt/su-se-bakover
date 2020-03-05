@@ -2,7 +2,7 @@ package no.nav.su.se.bakover
 
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.common.KafkaEnvironment
-import no.nav.su.meldinger.kafka.Topics.SOKNAD_TOPIC
+import no.nav.su.meldinger.kafka.Topics.SØKNAD_TOPIC
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -16,7 +16,7 @@ class EmbeddedKafka {
         val kafkaInstance = KafkaEnvironment(
                 autoStart = false,
                 noOfBrokers = 1,
-                topicInfos = listOf(KafkaEnvironment.TopicInfo(name = SOKNAD_TOPIC, partitions = 1)),
+                topicInfos = listOf(KafkaEnvironment.TopicInfo(name = SØKNAD_TOPIC, partitions = 1)),
                 withSchemaRegistry = false,
                 withSecurity = false,
                 brokerConfigOverrides = Properties().apply {
@@ -31,7 +31,7 @@ class EmbeddedKafka {
                 consumerProperties(),
                 StringDeserializer(),
                 StringDeserializer()).also {
-            it.subscribe(listOf(SOKNAD_TOPIC))
+            it.subscribe(listOf(SØKNAD_TOPIC))
         }
 
         private fun consumerProperties(): MutableMap<String, Any>? {

@@ -15,9 +15,9 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.Topics.SOKNAD_TOPIC
-import no.nav.su.meldinger.kafka.soknad.NySoknad
-import no.nav.su.meldinger.kafka.soknad.SoknadMelding.Companion.fromConsumerRecord
+import no.nav.su.meldinger.kafka.Topics.SØKNAD_TOPIC
+import no.nav.su.meldinger.kafka.soknad.NySøknad
+import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
 import no.nav.su.se.bakover.sak.sakPath
@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
 internal class SoknadComponentTest : ComponentTest() {
 
     private val parser = JsonParser()
-    private val stubAktoerId = "12345"
+    private val stubAktørId = "12345"
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -85,16 +85,16 @@ internal class SoknadComponentTest : ComponentTest() {
             val sakId = JSONObject(lagreSøknadResponse.content).getInt("id")
             val søknadId = JSONObject(lagreSøknadResponse.content).getJSONArray("søknader").getJSONObject(0).getInt("id")
             val records = kafkaConsumer.poll(of(1000, MILLIS))
-                    .filter { it.topic() == SOKNAD_TOPIC }
+                    .filter { it.topic() == SØKNAD_TOPIC }
             assertFalse(records.isEmpty())
 
             val ourRecords = records.filter { r -> r.key() == "$sakId" }
             assertEquals(1, ourRecords.size)
-            assertEquals(NySoknad(
-                    soknadId = "$søknadId",
-                    soknad = soknadJson(fnr),
+            assertEquals(NySøknad(
+                    søknadId = "$søknadId",
+                    søknad = soknadJson(fnr),
                     sakId = "$sakId",
-                    aktoerId = stubAktoerId,
+                    aktørId = stubAktørId,
                     fnr = fnr.toString()
             ), fromConsumerRecord(ourRecords.first()))
         }
@@ -163,7 +163,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 .withQueryParam("ident", WireMock.equalTo(testIdent.toString()))
                 .willReturn(WireMock.okJson("""
                     {
-                        "aktoerId":"$stubAktoerId"
+                        "aktoerId":"$stubAktørId"
                     }
                 """.trimIndent()))
         )
