@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.svar
 import no.nav.su.se.bakover.tekst
 
-internal const val soknadPath = "/soknad"
+internal const val søknadPath = "/soknad"
 
 @KtorExperimentalAPI
 internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadFactory) {
 
-    get(soknadPath) {
+    get(søknadPath) {
         Fødselsnummer.lesParameter(call).fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = {
@@ -36,7 +36,7 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
         )
     }
 
-    get("$soknadPath/{soknadId}") {
+    get("$søknadPath/{soknadId}") {
         Long.lesParameter(call, "soknadId").fold(
             left = { call.svar(BadRequest.tekst(it)) },
             right = { id ->
@@ -49,7 +49,7 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
         )
     }
 
-    post(soknadPath) {
+    post(søknadPath) {
         call.receive<JsonObject>().let { json ->
             Fødselsnummer.fraString(json.getAsJsonObject("personopplysninger")?.get("fnr")?.asString).fold(
                 left = { call.svar(BadRequest.tekst(it)) },

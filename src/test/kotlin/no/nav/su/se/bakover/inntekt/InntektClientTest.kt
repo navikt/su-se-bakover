@@ -40,12 +40,12 @@ internal class InntektClientTest {
     private val persontilgang200 = object : PersonOppslag {
         override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
                 OK.json("""{"ting": "OK"}""")
-        override fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
+        override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
     }
     private val persontilgang403 = object : PersonOppslag {
         override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
                 HttpStatusCode.fromValue(403).tekst("Du hakke lov")
-        override fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
+        override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
     }
     private val tokenExchange = object : TokenExchange {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"

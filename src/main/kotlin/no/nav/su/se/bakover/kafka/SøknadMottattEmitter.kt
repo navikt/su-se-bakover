@@ -18,17 +18,8 @@ internal class SøknadMottattEmitter(
 ) : SøknadObserver {
     override fun søknadMottatt(event: SøknadObserver.SøknadMottattEvent) {
         val token = azureClient.token(suPersonClientId)
-        val aktoerId = personClient.aktoerId(event.fnr, token)
-
-        kafka.send(NySoknad(
-                fnr = event.fnr.toString(),
-                sakId = "${event.sakId}",
-                aktoerId = aktoerId,
-                soknadId = "${event.søknadId}",
-                soknad = event.søknadstekst
-        ).toProducerRecord(Topics.SOKNAD_TOPIC)
-        )
-
+        val aktørId = personClient.aktørId(event.fnr, token)
+        kafka.send(event.somNySøknad(aktørId).toProducerRecord(Topics.SOKNAD_TOPIC))
     }
 }
-
+private fun SøknadObserver.SøknadMottattEvent.somNySøknad(aktørId: String): NySoknad = NySoknad(fnr = fnr.toString(), sakId = "${sakId}", aktoerId = aktørId, soknadId = "${søknadId}", soknad = søknadstekst)

@@ -82,7 +82,7 @@ private val defaultAzure = object : TokenExchange {
 }
 private val failingPersonClient = object : PersonOppslag {
     override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
-    override fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String = throw RuntimeException("Kall mot PDL feilet")
+    override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = throw RuntimeException("Kall mot PDL feilet")
 }
 private val failingInntektClient = object : InntektOppslag {
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")

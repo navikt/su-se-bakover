@@ -46,7 +46,7 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Post, soknadPath) {
+            withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
@@ -55,7 +55,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 assertEquals(Created, response.status())
             }.response
 
-            withCorrelationId(Get, "$soknadPath?${Fødselsnummer.identLabel}=$fnr") {
+            withCorrelationId(Get, "$søknadPath?${Fødselsnummer.identLabel}=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
@@ -74,7 +74,7 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            val lagreSøknadResponse = withCorrelationId(Post, soknadPath) {
+            val lagreSøknadResponse = withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
@@ -109,7 +109,7 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Post, soknadPath) {
+            withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
@@ -117,7 +117,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 assertEquals(Created, response.status())
             }
 
-            withCorrelationId(Get, "$soknadPath?${Fødselsnummer.identLabel}=$fnr") {
+            withCorrelationId(Get, "$søknadPath?${Fødselsnummer.identLabel}=$fnr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
@@ -137,7 +137,7 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Post, soknadPath) {
+            withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))

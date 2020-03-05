@@ -18,7 +18,7 @@ import org.slf4j.MDC
 
 internal interface PersonOppslag {
     fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat
-    fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String
+    fun aktørId(ident: Fødselsnummer, srvUserToken: String): String
 }
 
 private const val suPersonIdentLabel = "ident"
@@ -44,7 +44,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         )
     }
 
-    override fun aktoerId(ident: Fødselsnummer, srvUserToken: String): String {
+    override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String {
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $srvUserToken")
                 .header(XCorrelationId, MDC.get(XCorrelationId))

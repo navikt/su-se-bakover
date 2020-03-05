@@ -50,18 +50,18 @@ internal class SakFactory(
     private val søknadFactory: SøknadFactory
 ) {
     fun forFnr(fnr: Fødselsnummer): Sak {
-        val repoId = repository.sakIdForFnr(fnr)
-        return when (repoId) {
+        val eksisterendeIdentitet = repository.sakIdForFnr(fnr)
+        return when (eksisterendeIdentitet) {
             null -> Sak(fnr = fnr, observers = sakObservers, søknadFactory = søknadFactory).lagreNySak(repository)
-            else -> Sak(fnr = fnr, id = repoId, observers = sakObservers, søknadFactory = søknadFactory)
+            else -> Sak(fnr = fnr, id = eksisterendeIdentitet, observers = sakObservers, søknadFactory = søknadFactory)
         }
     }
 
     fun forId(sakId: Long): Either<String, Sak> {
-        val repoFnr = repository.fnrForSakId(sakId)
-        return when(repoFnr) {
+        val eksisterendeFødelsnummer = repository.fnrForSakId(sakId)
+        return when(eksisterendeFødelsnummer) {
             null -> Left("Det finnes ingen sak med id $sakId")
-            else -> Right(Sak(fnr = repoFnr, id = sakId, observers = sakObservers, søknadFactory = søknadFactory))
+            else -> Right(Sak(fnr = eksisterendeFødelsnummer, id = sakId, observers = sakObservers, søknadFactory = søknadFactory))
         }
     }
 
