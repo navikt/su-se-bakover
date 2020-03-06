@@ -1,3 +1,11 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath( "org.ajoberstar:grgit:1.1.0")
+    }
+}
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
 }
@@ -75,6 +83,7 @@ dependencies {
 tasks.named<Jar>("jar") {
     archiveBaseName.set("app")
     archiveVersion.set("")
+    dependsOn.add("generateVersion")
     manifest {
         attributes["Main-Class"] = "no.nav.su.se.bakover.ApplicationKt"
         attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
@@ -107,4 +116,27 @@ tasks.withType<Test> {
 
 tasks.withType<Wrapper> {
     gradleVersion = "6.2.2"
+}
+
+tasks {
+    val generateVersion by registering(VersionTask::class) {
+        val grgit = org.ajoberstar.grgit.Grgit.open(project.rootDir)
+        val currentCommit = grgit.head().id
+        version.set(currentCommit)
+        rootFile.set(File("${buildDir.absolutePath}/resources/main"))
+    }
+    val jar by existing
+    jar.get().dependsOn ( generateVersion )
+}
+
+open class VersionTask(): DefaultTask() {
+    val version: Property<String> = project.objects.property()
+    val rootFile: Property<File> = project.objects.property()
+    @TaskAction
+    fun writeGitSHAToFile() {
+        val versionFile = File(rootFile.get(), "VERSION")
+        if (versionFile.exists()) versionFile.delete()
+        versionFile.createNewFile()
+        versionFile.writeText("commit.sha=${version.get()}")
+    }
 }
