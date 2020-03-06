@@ -26,12 +26,12 @@ import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.db.DataSourceBuilder
-import no.nav.su.se.bakover.db.DataSourceBuilder.Role
-import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
-import no.nav.su.se.bakover.db.DataSourceBuilder.Role.User
+import no.nav.su.se.bakover.db.Postgres
+import no.nav.su.se.bakover.db.Postgres.Role
+import no.nav.su.se.bakover.db.Postgres.Role.Admin
+import no.nav.su.se.bakover.db.Postgres.Role.User
 import no.nav.su.se.bakover.db.DatabaseRepository
-import no.nav.su.se.bakover.db.FlywayMigrator
+import no.nav.su.se.bakover.db.Flyway
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadFactory
 import no.nav.su.se.bakover.inntekt.InntektOppslag
@@ -83,7 +83,7 @@ internal fun Application.susebakover(
                 personOppslag
         )
 ) {
-    FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
+    Flyway(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, oAuth, fromEnvironment("integrations.suPerson.clientId"), personOppslag)
@@ -169,8 +169,8 @@ internal fun ApplicationCall.audit(msg: String) {
 }
 
 @KtorExperimentalAPI
-fun Application.getDatasource(role: Role = User): DataSource {
-    return DataSourceBuilder(environment.config).build().getDatasource(role)
+internal fun Application.getDatasource(role: Role = User): DataSource {
+    return Postgres(environment.config).build().getDatasource(role)
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)

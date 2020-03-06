@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertTrue
 
 @KtorExperimentalAPI
-internal class DataSourceBuilderTest {
+internal class PostgresTest {
 
     @Test
     internal fun `bygger riktig datasource basert på vaultMountPath`() {
@@ -20,14 +20,14 @@ internal class DataSourceBuilderTest {
                 "db.name" to "dbName"
         )
 
-        assertTrue(DataSourceBuilder(env.apply { this.put("db.vaultMountPath", "") }).build() is EmbeddedPostgres)
-        assertTrue(DataSourceBuilder(env.apply { this.put("db.vaultMountPath", "thePath") }).build() is VaultPostgres)
+        assertTrue(Postgres(env.apply { this.put("db.vaultMountPath", "") }).build() is EmbeddedPostgres)
+        assertTrue(Postgres(env.apply { this.put("db.vaultMountPath", "thePath") }).build() is VaultPostgres)
     }
 
     @Test
     internal fun `kaster ikke exception når tilkobling konfigureres riktig`() {
         assertDoesNotThrow {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.jdbcUrl" to "foobar",
                     "db.vaultMountPath" to "foobar",
                     "db.name" to "foobar"
@@ -35,7 +35,7 @@ internal class DataSourceBuilderTest {
         }
 
         assertDoesNotThrow {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.jdbcUrl" to "foobar",
                     "db.vaultMountPath" to "",
                     "db.username" to "foobar",
@@ -47,11 +47,11 @@ internal class DataSourceBuilderTest {
     @Test
     internal fun `kaster exception ved mangende konfig`() {
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig()).build()
+            Postgres(MapApplicationConfig()).build()
         }
 
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.name" to "foobar",
                     "db.username" to "foobar"
             )
@@ -59,28 +59,28 @@ internal class DataSourceBuilderTest {
         }
 
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.jdbcUrl" to "foobar",
                     "db.vaultMountPath" to "foobar"
             )).build()
         }
 
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.vaultMountPath" to "foobar",
                     "db.username" to "foobar"
             )).build()
         }
 
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.vaultMountPath" to "",
                     "db.password" to "foobar"
             )).build()
         }
 
         assertThrows<ApplicationConfigurationException> {
-            DataSourceBuilder(MapApplicationConfig(
+            Postgres(MapApplicationConfig(
                     "db.jdbcUrl" to "foobar",
                     "db.password" to "foobar",
                     "db.vaultMountPath" to ""

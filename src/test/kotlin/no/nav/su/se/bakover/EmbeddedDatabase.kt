@@ -1,13 +1,8 @@
 package no.nav.su.se.bakover
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.KtorExperimentalAPI
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
-import no.nav.su.se.bakover.db.DataSourceBuilder
+import no.nav.su.se.bakover.db.Postgres
 
 /** understands the need for a postgres db in memory that can live and die with our component tests*/
 @KtorExperimentalAPI
@@ -19,7 +14,7 @@ class EmbeddedDatabase {
         init {
             instance.getDatabase(DB_NAME, DB_NAME)
                 .connection
-                .prepareStatement("""create role "$DB_NAME-${DataSourceBuilder.Role.Admin}" """)
+                .prepareStatement("""create role "$DB_NAME-${Postgres.Role.Admin}" """)
                 .execute()//Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
         }
     }
