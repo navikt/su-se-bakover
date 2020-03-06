@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
+import java.util.*
 import javax.sql.DataSource
 
 @KtorExperimentalLocationsAPI
@@ -188,3 +189,9 @@ internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): E
                 Right(it)
             } ?: Left("$name er ikke et tall")
         } ?: Left("$name er ikke et parameter")
+
+internal fun byggVersion(): String {
+    val versionProps = Properties()
+    versionProps.load(Application::class.java.getResourceAsStream("/VERSION"))
+    return versionProps.getProperty("commit.sha", "ikke satt")
+}
