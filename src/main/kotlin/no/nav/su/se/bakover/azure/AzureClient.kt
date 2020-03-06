@@ -5,7 +5,7 @@ import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
 import org.json.JSONObject
 
-internal interface TokenExchange {
+internal interface OAuth {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
     fun token(otherAppId: String): String
@@ -15,7 +15,7 @@ internal class AzureClient(
         private val thisClientId: String,
         private val thisClientSecret: String,
         private val tokenEndpoint: String
-) : TokenExchange {
+) : OAuth {
     companion object {
         const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
         const val REQUESTED_TOKEN_USE = "on_behalf_of"

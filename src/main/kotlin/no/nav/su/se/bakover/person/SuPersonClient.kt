@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.tekst
 import org.json.JSONObject
@@ -23,12 +23,12 @@ internal interface PersonOppslag {
 
 private const val suPersonIdentLabel = "ident"
 
-internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClientId: String, private val tokenExchange: TokenExchange) :
+internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClientId: String, private val OAuth: OAuth) :
         PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
     override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat {
-        val onBehalfOfToken = tokenExchange.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
+        val onBehalfOfToken = OAuth.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
                 .header(XCorrelationId, MDC.get(XCorrelationId))

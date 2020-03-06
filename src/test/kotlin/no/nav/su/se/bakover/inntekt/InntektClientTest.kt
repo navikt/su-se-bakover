@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.tekst
@@ -47,7 +47,7 @@ internal class InntektClientTest {
                 HttpStatusCode.fromValue(403).tekst("Du hakke lov")
         override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
     }
-    private val tokenExchange = object : TokenExchange {
+    private val tokenExchange = object : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
         override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
         override fun token(otherAppId: String): String = "token"

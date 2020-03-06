@@ -28,9 +28,10 @@ internal class SakTest {
     fun `factory må klare å lage en ny sak fra et fnr, når det ikke finnes en sak fra før`() {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
-                repository = TomtRepository(),
-                søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
-                sakObservers = listOf(nySakTest))
+            repository = TomtRepository(),
+            søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
+            sakObservers = listOf(nySakTest)
+        )
             .forFnr(førstegangssøker)
 
         assertTrue(nySakTest.nySak, "Ny sak event skulle blitt trigget")
@@ -41,9 +42,13 @@ internal class SakTest {
         val repository = RepositoryForNySøknad()
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
-                repository = repository,
-                søknadFactory = SøknadFactory(repository, listOf(nySøknadTest)),
-                sakObservers = emptyList())
+            repository = repository,
+            søknadFactory = SøknadFactory(
+                repository,
+                listOf(nySøknadTest)
+            ),
+            sakObservers = emptyList()
+        )
             .forFnr(andregangssøker)
             .nySøknad(søknadstekst)
 
@@ -67,7 +72,10 @@ internal class SakTest {
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
             repository = RepositoryForNySøknad(),
-            søknadFactory = SøknadFactory(RepositoryForNySøknad(), emptyList()),
+            søknadFactory = SøknadFactory(
+                RepositoryForNySøknad(),
+                emptyList()
+            ),
             sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when(eitherSakOrNothing) {
@@ -110,7 +118,8 @@ internal class AssertNySøknadMottat : SøknadObserver {
     var nySøknad = false
     override fun søknadMottatt(event: SøknadObserver.SøknadMottattEvent) {
         nySøknad = true
-        assertEquals(SøknadObserver.SøknadMottattEvent(
+        assertEquals(
+            SøknadObserver.SøknadMottattEvent(
                 sakId = eksisterendeSakId,
                 søknadId = nySøknadId,
                 søknadstekst = søknadstekst,

@@ -14,7 +14,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.json.JSONObject
@@ -75,7 +75,7 @@ private val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExpon
 private val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
 private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
 private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
-private val defaultAzure = object : TokenExchange {
+private val defaultOAuth = object : OAuth {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
     override fun token(otherAppId: String): String = "token"
@@ -95,12 +95,12 @@ internal fun Application.usingMocks(
         jwkProvider: JwkProvider = JwkProvider { defaultJwk },
         personClient: PersonOppslag = failingPersonClient,
         inntektClient: InntektOppslag = failingInntektClient,
-        azureClient: TokenExchange = defaultAzure
+        oAuth: OAuth = defaultOAuth
 ) {
     susebakover(
             jwkConfig = jwkConfig,
             jwkProvider = jwkProvider,
-            tokenExchange = azureClient,
+            oAuth = oAuth,
             personOppslag = personClient,
             inntektOppslag = inntektClient
     )

@@ -19,7 +19,7 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -70,7 +70,7 @@ internal fun Application.setupAuthentication(
     }
 }
 
-internal fun Application.oauthRoutes(frontendRedirectUrl: String, tokenExchange: TokenExchange) {
+internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) {
     routing {
         authenticate("azure") {
             get("/login") {
@@ -83,7 +83,7 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String, tokenExchange:
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {
-                val refreshedTokens = tokenExchange.refreshTokens(it)
+                val refreshedTokens = oAuth.refreshTokens(it)
                 call.response.header("access_token", refreshedTokens.getString("access_token"))
                 call.response.header("refresh_token", refreshedTokens.getString("refresh_token"))
                 call.svar(OK.tekst("Tokens refreshed successfully"))

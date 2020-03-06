@@ -25,7 +25,7 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.db.DataSourceBuilder
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role
 import no.nav.su.se.bakover.db.DataSourceBuilder.Role.Admin
@@ -56,36 +56,36 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
+    kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+    hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
                 kafkaConfig.producerConfig(),
                 StringSerializer(),
                 StringSerializer()
         ),
-        dataSource: DataSource = getDatasource(),
-        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        tokenExchange: TokenExchange = AzureClient(
+    dataSource: DataSource = getDatasource(),
+    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+    oAuth: OAuth = AzureClient(
                 fromEnvironment("azure.clientId"),
                 fromEnvironment("azure.clientSecret"),
                 jwkConfig.getString("token_endpoint")
         ),
-        personOppslag: PersonOppslag = SuPersonClient(
+    personOppslag: PersonOppslag = SuPersonClient(
                 fromEnvironment("integrations.suPerson.url"),
                 fromEnvironment("integrations.suPerson.clientId"),
-                tokenExchange
+                oAuth
         ),
-        inntektOppslag: InntektOppslag = SuInntektClient(
+    inntektOppslag: InntektOppslag = SuInntektClient(
                 fromEnvironment("integrations.suInntekt.url"),
                 fromEnvironment("integrations.suInntekt.clientId"),
-                tokenExchange,
+                oAuth,
                 personOppslag
         )
 ) {
     FlywayMigrator(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
-    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, tokenExchange, fromEnvironment("integrations.suPerson.clientId"), personOppslag)
+    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, oAuth, fromEnvironment("integrations.suPerson.clientId"), personOppslag)
     val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
     val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
 
@@ -111,7 +111,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
-            tokenExchange = tokenExchange
+            oAuth = oAuth
     )
 
     install(Locations)

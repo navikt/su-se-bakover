@@ -10,7 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.Resultat
-import no.nav.su.se.bakover.azure.TokenExchange
+import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.person.PersonOppslag
 import no.nav.su.se.bakover.tekst
@@ -23,10 +23,10 @@ internal interface InntektOppslag {
 }
 
 internal class SuInntektClient(
-        suInntektBaseUrl: String,
-        private val suInntektClientId: String,
-        private val exchange: TokenExchange,
-        private val personOppslag: PersonOppslag
+    suInntektBaseUrl: String,
+    private val suInntektClientId: String,
+    private val exchange: OAuth,
+    private val personOppslag: PersonOppslag
 ) : InntektOppslag {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
