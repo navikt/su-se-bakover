@@ -89,14 +89,17 @@ internal class SoknadComponentTest : ComponentTest() {
             assertFalse(records.isEmpty())
 
             val ourRecords = records.filter { r -> r.key() == "$sakId" }
+            val first = fromConsumerRecord(ourRecords.first()) as NySøknad
+            assertEquals(first.correlationId, DEFAULT_CALL_ID)
             assertEquals(1, ourRecords.size)
             assertEquals(NySøknad(
+                    correlationId = DEFAULT_CALL_ID,
                     søknadId = "$søknadId",
                     søknad = soknadJson(fnr),
                     sakId = "$sakId",
                     aktørId = stubAktørId,
                     fnr = fnr.toString()
-            ), fromConsumerRecord(ourRecords.first()))
+            ), first)
         }
     }
 
@@ -171,92 +174,96 @@ internal class SoknadComponentTest : ComponentTest() {
     }
 
     private fun soknadJson(fnr: Fødselsnummer) = """
-    {
-      "personopplysninger": {
-        "fnr": "$fnr",
-        "fornavn": "fornavn",
-        "mellomnavn": "ØÆÅ",
-        "etternavn": "etternavn",
-        "telefonnummer": "90011900",
-        "gateadresse": "storgata 1",
-        "bruksenhet": "20e",
-        "postnummer": "0909",
-        "poststed": "Oslo",
-        "bokommune": "Oslo",
-        "statsborgerskap": "Tunisisk",
-        "flyktning": "true",
-        "bofastnorge": "true"
-      },
-      "boforhold": {
-        "borSammenMed": [
-          "over18"
-        ],
-        "delerBoligMed": [
-          {
-            "navn": "Turid Schønberg",
-            "fødselsnummer": "12312312312312"
-          }
-        ],
-        "delerDuBolig": "true"
-      },
-      "utenlandsopphold": {
-        "utenlandsoppholdArray": [
-          {
-            "utreisedato": "31122019",
-            "innreisedato": "04012020"
-          }
-        ],
-        "PlanlagtUtenlandsoppholdArray": [
-          {
-            "planlagtUtreisedato": "01032020",
-            "planlagtInnreisedato": "05032020"
-          },
-          {
-            "planlagtUtreisedato": "01042020",
-            "planlagtInnreisedato": "05042020"
-          }
-        ],
-        "utenlandsopphold": "true",
-        "planlagtUtenlandsopphold": "true"
-      },
-      "oppholdstillatelse": {
-        "varigopphold": "false",
-        "oppholdstillatelseUtløpsdato": "30/10/2024",
-        "soektforlengelse": "false"
-      },
-      "inntektPensjonFormue": {
-        "pensjonsOrdning": [
-          {
-            "ordning": "KLP",
-            "beløp": "99"
-          },
-          {
-            "ordning": "SPK",
-            "beløp": "98"
-          }
-        ],
-        "kravannenytelse": "true",
-        "kravannenytelseBegrunnelse": "Hundepensjon",
-        "arbeidselleranneninntekt": "true",
-        "arbeidselleranneninntektBegrunnelse": "2500",
-        "hardupensjon": "true",
-        "sumPersoninntekt": "30000",
-        "harduformueeiendom": "true",
-        "formueBeløp": "2323",
-        "hardufinansformue": "false",
-        "harduannenformueeiendom": "true",
-        "typeFormue": "hytte i afrika",
-        "samletSkattetakst": "3500",
-        "sosialstonad": "true"
-      },
-      "forNAV": {
-        "maalform": "nynorsk",
-        "personligmote": "ja",
-        "fullmektigmote": "ja",
-        "passsjekk": "ja",
-        "forNAVmerknader": "Trivelig type"
-      }
-    }
-""".trimIndent()
+        {
+            "personopplysninger": {
+                "fnr": "$fnr",
+                "fornavn": "kake",
+                "mellomnavn": "kjeks",
+                "etternavn": "mannen",
+                "telefonnummer": "12345678",
+                "gateadresse": "gaten",
+                "postnummer": "0050",
+                "poststed": "Oslo",
+                "bruksenhet": "50",
+                "bokommune": "Oslo",
+                "flyktning": true,
+                "borFastINorge": true,
+                "statsborgerskap": "NOR"
+            },
+            "boforhold": {
+                "delerBolig": true,
+                "borSammenMed": [
+                    "voksen",
+                    "barn"
+                ],
+                "delerBoligMed": [
+                    {
+                        "fnr": "voksen1",
+                        "navn": "voksen jensen"
+                    },
+                    {
+                        "fnr": "voksen2",
+                        "navn": "voksen hansen"
+                    }
+                ]
+            },
+            "utenlandsopphold": {
+                "utenlandsopphold": true,
+                "registrertePerioder": [
+                    {
+                        "utreisedato": "2020-03-10",
+                        "innreisedato": "2020-03-10"
+                    }
+                ],
+                "planlagteUtenlandsopphold": true,
+                "planlagtePerioder": [
+                    {
+                        "utreisedato": "2020-03-10",
+                        "innreisedato": "2020-03-10"
+                    }
+                ]
+            },
+            "oppholdstillatelse": {
+                "harVarigOpphold": false,
+                "utløpsdato": "2020-03-10",
+                "søktOmForlengelse": true
+            },
+            "inntektPensjonFormue": {
+                "framsattKravAnnenYtelse": true,
+                "framsattKravAnnenYtelseBegrunnelse": "annen ytelse begrunnelse",
+                "harInntekt": true,
+                "inntektBeløp": 2500.0,
+                "harPensjon": true,
+                "pensjonsOrdning": [
+                    {
+                        "ordning": "KLP",
+                        "beløp": 2000.0
+                    },
+                    {
+                        "ordning": "SPK",
+                        "beløp": 5000.0
+                    }
+                ],
+                "sumInntektOgPensjon": 7000.0,
+                "harFormueEiendom": true,
+                "harFinansFormue": true,
+                "formueBeløp": 1000.0,
+                "harAnnenFormue": true,
+                "annenFormue": [
+                    {
+                        "typeFormue": "juveler",
+                        "skattetakst": 2000.0
+                    }
+                ]
+            },
+            "forNav": {
+                "målform": "norsk",
+                "søkerMøttPersonlig": true,
+                "harFullmektigMøtt": false,
+                "erPassSjekket": true,
+                "forNAVMerknader": "intet å bemerke"
+            }
+        }
+    """.trimIndent()
 }
 
