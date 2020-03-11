@@ -1,22 +1,26 @@
 package no.nav.su.se.bakover.domain
 
+import io.ktor.http.HttpHeaders.XCorrelationId
 import no.nav.su.se.bakover.Either
-import no.nav.su.se.bakover.Either.*
+import no.nav.su.se.bakover.Either.Left
+import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.db.Repository
+import org.slf4j.MDC
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
+
 internal class Søknad internal constructor(
-    private var id: Long = NO_SUCH_IDENTITY,
-    private val json: String,
-    private val observers: List<SøknadObserver>
+        private var id: Long = NO_SUCH_IDENTITY,
+        private val json: String,
+        private val observers: List<SøknadObserver>
 ) {
     internal fun lagreSøknad(sakId: Long, repository: Repository, fnr: Fødselsnummer): Søknad = this.also {
         id = repository.nySøknad(sakId, json)
         observers.forEach { it.søknadMottatt(SøknadObserver.SøknadMottattEvent(sakId = sakId, søknadId = id, søknadstekst = json, fnr = fnr)) }
     }
 
-    fun toJson():String = """
+    fun toJson(): String = """
         {
             "id": $id,
             "json": $json
@@ -34,6 +38,7 @@ internal class SøknadFactory(private val repository: Repository, private val ob
 }
 
 internal interface SøknadObserver {
-    data class SøknadMottattEvent(val sakId: Long, val søknadId: Long, val søknadstekst: String, val fnr: Fødselsnummer)
+    data class SøknadMottattEvent(val correlationId: String = MDC.get(XCorrelationId), val sakId: Long, val søknadId: Long, val søknadstekst: String, val fnr: Fødselsnummer)
+
     fun søknadMottatt(event: SøknadMottattEvent)
 }
