@@ -5,10 +5,12 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
 @KtorExperimentalLocationsAPI
@@ -16,7 +18,7 @@ import kotlin.test.assertNotNull
 class CallIdTest {
 
     @Test
-    fun `should add X-Request-Id header to response`() {
+    fun `should add provided X-Correlation-ID header to response`() {
         withTestApplication({
             testEnv()
             usingMocks()
@@ -26,7 +28,23 @@ class CallIdTest {
             }
         }.apply {
             assertEquals(OK, response.status())
+            assertEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
+        }
+    }
+
+    @Test
+    fun `should generate X-Correlation-ID header if not present`() {
+        withTestApplication({
+            testEnv()
+            usingMocks()
+        }) {
+            handleRequest(Get, secureEndpoint) {
+                addHeader(HttpHeaders.Authorization, "Bearer ${jwtStub.createTokenFor()}")
+            }
+        }.apply {
+            assertEquals(OK, response.status())
             assertNotNull(response.headers[XCorrelationId])
+            assertNotEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
         }
     }
 }

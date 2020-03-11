@@ -26,12 +26,12 @@ import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.OAuth
+import no.nav.su.se.bakover.db.DatabaseRepository
+import no.nav.su.se.bakover.db.Flyway
 import no.nav.su.se.bakover.db.Postgres
 import no.nav.su.se.bakover.db.Postgres.Role
 import no.nav.su.se.bakover.db.Postgres.Role.Admin
 import no.nav.su.se.bakover.db.Postgres.Role.User
-import no.nav.su.se.bakover.db.DatabaseRepository
-import no.nav.su.se.bakover.db.Flyway
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadFactory
 import no.nav.su.se.bakover.inntekt.InntektOppslag
@@ -57,26 +57,26 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-    hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
+        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
                 kafkaConfig.producerConfig(),
                 StringSerializer(),
                 StringSerializer()
         ),
-    dataSource: DataSource = getDatasource(),
-    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    oAuth: OAuth = AzureClient(
+        dataSource: DataSource = getDatasource(),
+        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+        oAuth: OAuth = AzureClient(
                 fromEnvironment("azure.clientId"),
                 fromEnvironment("azure.clientSecret"),
                 jwkConfig.getString("token_endpoint")
         ),
-    personOppslag: PersonOppslag = SuPersonClient(
+        personOppslag: PersonOppslag = SuPersonClient(
                 fromEnvironment("integrations.suPerson.url"),
                 fromEnvironment("integrations.suPerson.clientId"),
                 oAuth
         ),
-    inntektOppslag: InntektOppslag = SuInntektClient(
+        inntektOppslag: InntektOppslag = SuInntektClient(
                 fromEnvironment("integrations.suInntekt.url"),
                 fromEnvironment("integrations.suInntekt.clientId"),
                 oAuth,
@@ -127,6 +127,7 @@ internal fun Application.susebakover(
             install(CallId) {
                 header(XCorrelationId)
                 generate(17)
+                verify { it.isNotEmpty() }
             }
             install(CallLogging) {
                 level = Level.INFO
