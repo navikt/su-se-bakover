@@ -17,6 +17,8 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics.SØKNAD_TOPIC
 import no.nav.su.meldinger.kafka.soknad.NySøknad
+import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
+import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
@@ -36,6 +38,7 @@ internal class SoknadComponentTest : ComponentTest() {
 
     private val parser = JsonParser()
     private val stubAktørId = "12345"
+    fun soknadJson(fnr: Fødselsnummer) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -170,100 +173,5 @@ internal class SoknadComponentTest : ComponentTest() {
                     }
                 """.trimIndent()))
         )
-
     }
-
-    private fun soknadJson(fnr: Fødselsnummer) = """
-        {
-            "personopplysninger": {
-                "fnr": "$fnr",
-                "fornavn": "kake",
-                "mellomnavn": "kjeks",
-                "etternavn": "mannen",
-                "telefonnummer": "12345678",
-                "gateadresse": "gaten",
-                "postnummer": "0050",
-                "poststed": "Oslo",
-                "bruksenhet": "50",
-                "bokommune": "Oslo",
-                "flyktning": true,
-                "borFastINorge": true,
-                "statsborgerskap": "NOR"
-            },
-            "boforhold": {
-                "delerBolig": true,
-                "borSammenMed": [
-                    "voksen",
-                    "barn"
-                ],
-                "delerBoligMed": [
-                    {
-                        "fnr": "voksen1",
-                        "navn": "voksen jensen"
-                    },
-                    {
-                        "fnr": "voksen2",
-                        "navn": "voksen hansen"
-                    }
-                ]
-            },
-            "utenlandsopphold": {
-                "utenlandsopphold": true,
-                "registrertePerioder": [
-                    {
-                        "utreisedato": "2020-03-10",
-                        "innreisedato": "2020-03-10"
-                    }
-                ],
-                "planlagteUtenlandsopphold": true,
-                "planlagtePerioder": [
-                    {
-                        "utreisedato": "2020-03-10",
-                        "innreisedato": "2020-03-10"
-                    }
-                ]
-            },
-            "oppholdstillatelse": {
-                "harVarigOpphold": false,
-                "utløpsdato": "2020-03-10",
-                "søktOmForlengelse": true
-            },
-            "inntektPensjonFormue": {
-                "framsattKravAnnenYtelse": true,
-                "framsattKravAnnenYtelseBegrunnelse": "annen ytelse begrunnelse",
-                "harInntekt": true,
-                "inntektBeløp": 2500.0,
-                "harPensjon": true,
-                "pensjonsOrdning": [
-                    {
-                        "ordning": "KLP",
-                        "beløp": 2000.0
-                    },
-                    {
-                        "ordning": "SPK",
-                        "beløp": 5000.0
-                    }
-                ],
-                "sumInntektOgPensjon": 7000.0,
-                "harFormueEiendom": true,
-                "harFinansFormue": true,
-                "formueBeløp": 1000.0,
-                "harAnnenFormue": true,
-                "annenFormue": [
-                    {
-                        "typeFormue": "juveler",
-                        "skattetakst": 2000.0
-                    }
-                ]
-            },
-            "forNav": {
-                "målform": "norsk",
-                "søkerMøttPersonlig": true,
-                "harFullmektigMøtt": false,
-                "erPassSjekket": true,
-                "forNAVMerknader": "intet å bemerke"
-            }
-        }
-    """.trimIndent()
 }
-
