@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain
 
 import io.ktor.http.HttpHeaders.XCorrelationId
+import no.nav.su.se.bakover.ContextHolder
+import no.nav.su.se.bakover.ContextHolder.MdcContext
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.Either
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.db.Repository
 import org.junit.jupiter.api.Test
-import org.slf4j.MDC
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -42,7 +43,7 @@ internal class SakTest {
 
     @Test
     fun `factory må klare å hente en sak fra repository, og så legge på en ny søknad`() {
-        MDC.put(XCorrelationId, DEFAULT_CALL_ID)
+        ContextHolder.setMdcContext(MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         val repository = RepositoryForNySøknad()
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(

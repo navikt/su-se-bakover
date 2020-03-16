@@ -8,31 +8,27 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.Resultat
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.person.PersonOppslag
-import no.nav.su.se.bakover.tekst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal interface InntektOppslag {
     fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat
 }
 
 internal class SuInntektClient(
-    suInntektBaseUrl: String,
-    private val suInntektClientId: String,
-    private val exchange: OAuth,
-    private val personOppslag: PersonOppslag
+        suInntektBaseUrl: String,
+        private val suInntektClientId: String,
+        private val exchange: OAuth,
+        private val personOppslag: PersonOppslag
 ) : InntektOppslag {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
-            personOppslag.person(ident, innloggetSaksbehandlerToken).fold(
+            personOppslag.person(ident).fold(
                     success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
                     error = { it }
             )
@@ -40,14 +36,14 @@ internal class SuInntektClient(
     private fun finnInntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, _, result) = inntektResource.httpPost(
-                listOf(
-                        suInntektIdentLabel to ident.toString(),
-                        "fom" to fomDato.daymonthSubstring(),
-                        "tom" to tomDato.daymonthSubstring()
+                        listOf(
+                                suInntektIdentLabel to ident.toString(),
+                                "fom" to fomDato.daymonthSubstring(),
+                                "tom" to tomDato.daymonthSubstring()
+                        )
                 )
-        )
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, MDC.get(XCorrelationId))
+                .header(XCorrelationId, ContextHolder.getMdc(XCorrelationId))
                 .header(ContentType, FormUrlEncoded)
                 .responseString()
 

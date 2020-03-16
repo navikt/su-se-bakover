@@ -8,22 +8,23 @@ import io.ktor.locations.get
 import io.ktor.request.header
 import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.audit
-import no.nav.su.se.bakover.svar
+import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.ContextHolder.SecurityContext
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
     get<InntektPath> { inntektPath ->
-        call.audit("slår opp inntekt for person: ${inntektPath.ident}")
-        val resultat = oppslag.inntekt(
-                ident = Fødselsnummer(inntektPath.ident),
-                innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
-                fomDato = inntektPath.fomDato,
-                tomDato = inntektPath.tomDato
-        )
-        call.svar(resultat)
+        launchWithContext(SecurityContext(call.authHeader())) {
+            call.audit("slår opp inntekt for person: ${inntektPath.ident}")
+            val resultat = oppslag.inntekt(
+                    ident = Fødselsnummer(inntektPath.ident),
+                    innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
+                    fomDato = inntektPath.fomDato,
+                    tomDato = inntektPath.tomDato
+            )
+            call.svar(resultat)
+        }
     }
 }
 

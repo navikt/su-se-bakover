@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.json.JSONObject
-import java.lang.RuntimeException
 import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -81,8 +80,8 @@ private val defaultOAuth = object : OAuth {
     override fun token(otherAppId: String): String = "token"
 }
 private val failingPersonClient = object : PersonOppslag {
-    override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
-    override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = throw RuntimeException("Kall mot PDL feilet")
+    override fun person(ident: Fødselsnummer): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
+    override fun aktørId(ident: Fødselsnummer): String = throw RuntimeException("Kall mot PDL feilet")
 }
 private val failingInntektClient = object : InntektOppslag {
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")

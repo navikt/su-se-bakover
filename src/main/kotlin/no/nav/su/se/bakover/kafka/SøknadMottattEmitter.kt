@@ -17,8 +17,7 @@ internal class SøknadMottattEmitter(
         private val personClient: PersonOppslag
 ) : SøknadObserver {
     override fun søknadMottatt(event: SøknadMottattEvent) {
-        val token = azureClient.token(suPersonClientId)
-        val aktørId = personClient.aktørId(event.fnr, token)
+        val aktørId = personClient.aktørId(event.fnr)
         kafka.send(event.somNySøknad(aktørId).toProducerRecord(Topics.SØKNAD_TOPIC))
     }
 }
