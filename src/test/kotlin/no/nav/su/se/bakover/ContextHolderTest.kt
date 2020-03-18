@@ -1,13 +1,25 @@
 package no.nav.su.se.bakover
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType.Application.Json
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.Parameters
+import io.ktor.http.RequestConnectionPoint
+import io.ktor.http.headersOf
+import io.ktor.request.ApplicationReceivePipeline
+import io.ktor.request.ApplicationRequest
+import io.ktor.request.RequestCookies
 import io.ktor.request.header
+import io.ktor.response.ApplicationResponse
 import io.ktor.server.testing.*
+import io.ktor.util.Attributes
+import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
@@ -34,12 +46,12 @@ internal class ContextHolderTest : ComponentTest() {
         runBlocking {
             ContextHolder.setSecurityContext(SecurityContext("outer"))
             val outer = Thread.currentThread()
-            launchWithContext(SecurityContext("inner")) {
+            launchWithContext(callWithAuth("inner")) {
                 val inner = Thread.currentThread()
                 assertEquals("inner", ContextHolder.getSecurityContext().token)
                 assertEquals(DEFAULT_CALL_ID, ContextHolder.getMdc(XCorrelationId))
                 assertNotEquals(outer, inner)
-                launchWithContext(SecurityContext("furtherin")) {
+                launchWithContext(callWithAuth("furtherin")) {
                     assertEquals("furtherin", ContextHolder.getSecurityContext().token)
                     assertEquals(DEFAULT_CALL_ID, ContextHolder.getMdc(XCorrelationId))
                 }
@@ -91,6 +103,38 @@ internal class ContextHolderTest : ComponentTest() {
                 addHeader(ContentType, Json.toString())
                 setBody(build(personopplysninger = personopplysninger("01010100001")).toJson())
             }
+        }
+    }
+
+    class callWithAuth(val token: String) : ApplicationCall {
+        override val application: Application
+            get() = throw NotImplementedError()
+        override val attributes: Attributes
+            get() = throw NotImplementedError()
+        override val parameters: Parameters
+            get() = throw NotImplementedError()
+        override val request: ApplicationRequest
+            get() = DummyRequest(token)
+        override val response: ApplicationResponse
+            get() = throw NotImplementedError()
+    }
+
+    class DummyRequest(val token: String) : ApplicationRequest {
+        override val call: ApplicationCall
+            get() = throw NotImplementedError()
+        override val cookies: RequestCookies
+            get() = throw NotImplementedError()
+        override val headers: Headers
+            get() = headersOf(Authorization, token)
+        override val local: RequestConnectionPoint
+            get() = throw NotImplementedError()
+        override val pipeline: ApplicationReceivePipeline
+            get() = throw NotImplementedError()
+        override val queryParameters: Parameters
+            get() = throw NotImplementedError()
+
+        override fun receiveChannel(): ByteReadChannel {
+            throw NotImplementedError()
         }
     }
 }

@@ -13,7 +13,6 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadFactory
 import org.json.JSONObject
@@ -49,7 +48,7 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
     }
 
     post(søknadPath) {
-        launchWithContext(SecurityContext(call.authHeader())) {
+        launchWithContext(call) {
             call.receiveTextUTF8().let {
                 val søknadInnhold = SøknadInnhold.fromJson(JSONObject(it))
                 Fødselsnummer.fraString(søknadInnhold.personopplysninger.fnr).fold(

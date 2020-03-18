@@ -23,10 +23,7 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import no.nav.su.se.bakover.ContextHolder.MdcContext
 import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import no.nav.su.se.bakover.Either.Left
@@ -203,10 +200,10 @@ internal fun byggVersion(): String {
     return versionProps.getProperty("commit.sha", "ikke satt")
 }
 
-suspend fun launchWithContext(securityContext: SecurityContext, mdcContext: MdcContext = ContextHolder.getMdcContext(), block: suspend CoroutineScope.() -> Unit) {
+suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
     val coroutineContext = Dispatchers.Default +
-            ContextHolder.getSecurityContextElement(securityContext) +
-            ContextHolder.getMdcContextElement(mdcContext)
+            ContextHolder.getSecurityContextElement(SecurityContext(call.authHeader())) +
+            ContextHolder.getMdcContextElement(ContextHolder.getMdcContext())
     coroutineScope { launch(context = coroutineContext, block = block).join() }
 }
 

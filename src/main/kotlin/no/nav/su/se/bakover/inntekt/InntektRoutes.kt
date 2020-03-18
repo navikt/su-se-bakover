@@ -8,14 +8,16 @@ import io.ktor.locations.get
 import io.ktor.request.header
 import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.ContextHolder.SecurityContext
+import no.nav.su.se.bakover.Fødselsnummer
+import no.nav.su.se.bakover.audit
+import no.nav.su.se.bakover.launchWithContext
+import no.nav.su.se.bakover.svar
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
     get<InntektPath> { inntektPath ->
-        launchWithContext(SecurityContext(call.authHeader())) {
+        launchWithContext(call) {
             call.audit("slår opp inntekt for person: ${inntektPath.ident}")
             val resultat = oppslag.inntekt(
                     ident = Fødselsnummer(inntektPath.ident),
