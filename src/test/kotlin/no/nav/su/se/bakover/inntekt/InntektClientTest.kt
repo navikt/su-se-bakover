@@ -5,12 +5,9 @@ import com.github.kittinunf.fuel.toolbox.HttpClient
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.Resultat
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.person.PersonOppslag
-import no.nav.su.se.bakover.tekst
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -38,14 +35,16 @@ internal class InntektClientTest {
     private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
+        override fun person(ident: Fødselsnummer): Resultat =
                 OK.json("""{"ting": "OK"}""")
-        override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
+
+        override fun aktørId(ident: Fødselsnummer): String = "aktoerId"
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat =
+        override fun person(ident: Fødselsnummer): Resultat =
                 HttpStatusCode.fromValue(403).tekst("Du hakke lov")
-        override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String = "aktoerId"
+
+        override fun aktørId(ident: Fødselsnummer): String = "aktoerId"
     }
     private val tokenExchange = object : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
@@ -55,7 +54,7 @@ internal class InntektClientTest {
 
     @BeforeEach
     fun setup() {
-        MDC.put(XCorrelationId, "a request id")
+        ContextHolder.setMdcContext(ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         FuelManager.instance.client = object : Client {
             override fun executeRequest(request: Request): Response = okResponseFromInntekt()
         }

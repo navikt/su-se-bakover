@@ -16,12 +16,16 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
+import io.ktor.request.header
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
+import kotlinx.coroutines.*
+import no.nav.su.se.bakover.ContextHolder.MdcContext
+import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
@@ -48,7 +52,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
@@ -86,7 +89,7 @@ internal fun Application.susebakover(
     Flyway(getDatasource(Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
-    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, oAuth, fromEnvironment("integrations.suPerson.clientId"), personOppslag)
+    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
     val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
     val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
 
@@ -132,7 +135,7 @@ internal fun Application.susebakover(
             install(CallLogging) {
                 level = Level.INFO
                 intercept(ApplicationCallPipeline.Monitoring) {
-                    MDC.put(XCorrelationId, call.callId)
+                    ContextHolder.setMdcContext(MdcContext(mapOf(XCorrelationId to call.callId.toString())))
                 }
                 filter { call ->
                     listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
@@ -196,3 +199,13 @@ internal fun byggVersion(): String {
     versionProps.load(Application::class.java.getResourceAsStream("/VERSION"))
     return versionProps.getProperty("commit.sha", "ikke satt")
 }
+
+suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
+    val coroutineContext = Dispatchers.Default +
+            ContextHolder.getSecurityContextElement(SecurityContext(call.authHeader())) +
+            ContextHolder.getMdcContextElement(ContextHolder.getMdcContext())
+    coroutineScope { launch(context = coroutineContext, block = block).join() }
+}
+
+
+fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()

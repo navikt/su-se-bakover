@@ -6,19 +6,15 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.Resultat
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.json
-import no.nav.su.se.bakover.tekst
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal interface PersonOppslag {
-    fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat
-    fun aktørId(ident: Fødselsnummer, srvUserToken: String): String
+    fun person(ident: Fødselsnummer): Resultat
+    fun aktørId(ident: Fødselsnummer): String
 }
 
 private const val suPersonIdentLabel = "ident"
@@ -27,11 +23,11 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
-    override fun person(ident: Fødselsnummer, innloggetSaksbehandlerToken: String): Resultat {
-        val onBehalfOfToken = OAuth.onBehalfOFToken(innloggetSaksbehandlerToken, suPersonClientId)
+    override fun person(ident: Fødselsnummer): Resultat {
+        val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.getSecurityContext().token, suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, MDC.get(XCorrelationId))
+                .header(XCorrelationId, ContextHolder.getMdc(XCorrelationId))
                 .responseString()
         return result.fold(
                 { OK.json(it) },
@@ -44,10 +40,11 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         )
     }
 
-    override fun aktørId(ident: Fødselsnummer, srvUserToken: String): String {
+    override fun aktørId(ident: Fødselsnummer): String {
+        val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.getSecurityContext().token, suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
-                .header(Authorization, "Bearer $srvUserToken")
-                .header(XCorrelationId, MDC.get(XCorrelationId))
+                .header(Authorization, "Bearer $onBehalfOfToken")
+                .header(XCorrelationId, ContextHolder.getMdc(XCorrelationId))
                 .responseString()
         return result.fold(
                 { JSONObject(it).getString("aktoerId") },
