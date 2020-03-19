@@ -49,15 +49,16 @@ internal fun Route.soknadRoutes(sakFactory: SakFactory, søknadFactory: SøknadF
 
     post(søknadPath) {
         launchWithContext(call) {
-            call.receiveTextUTF8().let {
-                val søknadInnhold = SøknadInnhold.fromJson(JSONObject(it))
-                Fødselsnummer.fraString(søknadInnhold.personopplysninger.fnr).fold(
-                        left = { call.svar(BadRequest.tekst(it)) },
-                        right = {
-                            call.audit("Lagrer søknad for person: $it")
-                            call.svar(Created.json(sakFactory.forFnr(it).nySøknad(søknadInnhold.toJson()).toJson()))
-                        }
-                )
+            call.receiveTextUTF8().let { json ->
+                SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
+                    Fødselsnummer.fraString(søknadInnhold.personopplysninger.fnr).fold(
+                            left = { call.svar(BadRequest.tekst(it)) },
+                            right = {
+                                call.audit("Lagrer søknad for person: $it")
+                                call.svar(Created.json(sakFactory.forFnr(it).nySøknad(søknadInnhold).toJson()))
+                            }
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import io.ktor.http.HttpHeaders.XCorrelationId
+import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.ContextHolder
 import no.nav.su.se.bakover.ContextHolder.MdcContext
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
@@ -18,13 +19,7 @@ internal val nySøknadId = Random.nextLong()
 internal val førstegangssøker = Fødselsnummer("01010112345")
 internal val eksisterendeSakId = Random.nextLong()
 internal val andregangssøker = Fødselsnummer("09090912345")
-internal val søknadstekst = """
-    {
-    "hei": "jeg skulle gjerne hatt litt supplerende stønad",
-    "erdetmulig": false,
-    "men": -1
-    }
-""".trimIndent()
+internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
 internal class SakTest {
 
@@ -55,7 +50,7 @@ internal class SakTest {
                 sakObservers = emptyList()
         )
                 .forFnr(andregangssøker)
-                .nySøknad(søknadstekst)
+                .nySøknad(søknadInnhold)
 
         assertTrue(nySøknadTest.nySøknad, "Søknad mottatt event skulle blitt trigget")
     }
@@ -127,7 +122,7 @@ internal class AssertNySøknadMottat : SøknadObserver {
                 SøknadObserver.SøknadMottattEvent(
                         sakId = eksisterendeSakId,
                         søknadId = nySøknadId,
-                        søknadstekst = søknadstekst,
+                        søknadInnhold = søknadInnhold,
                         fnr = andregangssøker
                 ), event)
     }

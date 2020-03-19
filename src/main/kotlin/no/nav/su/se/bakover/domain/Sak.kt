@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.Either
 import no.nav.su.se.bakover.Either.*
 import no.nav.su.se.bakover.Fødselsnummer
@@ -22,8 +23,8 @@ internal class Sak internal constructor(
         observers.forEach { it.nySakOpprettet(SakObserver.NySakEvent(fnr, id)) }
     }
 
-    fun nySøknad(søknadstekst: String): Sak = this.also {
-        søknader = søknader + søknadFactory.forSak(id, søknadstekst, fnr)
+    fun nySøknad(søknadInnhold: SøknadInnhold): Sak = this.also {
+        søknader = søknader + søknadFactory.forSak(id, søknadInnhold, fnr)
     }
 
     // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.

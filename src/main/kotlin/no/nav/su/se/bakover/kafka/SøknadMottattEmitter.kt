@@ -19,4 +19,11 @@ internal class SøknadMottattEmitter(
     }
 }
 
-private fun SøknadMottattEvent.somNySøknad(aktørId: String): NySøknad = NySøknad(correlationId = correlationId, fnr = fnr.toString(), sakId = "${sakId}", aktørId = aktørId, søknadId = "${søknadId}", søknad = søknadstekst)
+private fun SøknadMottattEvent.somNySøknad(aktørId: String): NySøknad = NySøknad(
+        correlationId = correlationId,
+        fnr = fnr.toString(),
+        sakId = "${sakId}",
+        aktørId = aktørId,
+        søknadId = "${søknadId}",
+        søknad = søknadInnhold.toJson()
+)
