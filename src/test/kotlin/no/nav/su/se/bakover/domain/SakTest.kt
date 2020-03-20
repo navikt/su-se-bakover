@@ -15,11 +15,14 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 internal val nySakId = Random.nextLong()
+internal val nyStønadsperiodeId = Random.nextLong()
 internal val nySøknadId = Random.nextLong()
 internal val førstegangssøker = Fødselsnummer("01010112345")
 internal val eksisterendeSakId = Random.nextLong()
 internal val andregangssøker = Fødselsnummer("09090912345")
 internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+internal val tomtRepository = TomtRepository()
+internal val repositoryForSøknad = RepositoryForNySøknad()
 
 internal class SakTest {
 
@@ -28,7 +31,7 @@ internal class SakTest {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
                 repository = TomtRepository(),
-                søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
+                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyList())),
                 sakObservers = listOf(nySakTest)
         )
                 .forFnr(førstegangssøker)
@@ -43,10 +46,7 @@ internal class SakTest {
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
                 repository = repository,
-                søknadFactory = SøknadFactory(
-                        repository,
-                        listOf(nySøknadTest)
-                ),
+                stønadsperiodeFactory = StønadsperiodeFactory(repository, SøknadFactory(repository, listOf(nySøknadTest))),
                 sakObservers = emptyList()
         )
                 .forFnr(andregangssøker)
@@ -59,7 +59,7 @@ internal class SakTest {
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
                 repository = TomtRepository(),
-                søknadFactory = SøknadFactory(TomtRepository(), emptyList()),
+                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyList())),
                 sakObservers = emptyList()
         ).forId(nySakId)
         when (eitherSakOrNothing) {
@@ -72,10 +72,7 @@ internal class SakTest {
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
                 repository = RepositoryForNySøknad(),
-                søknadFactory = SøknadFactory(
-                        RepositoryForNySøknad(),
-                        emptyList()
-                ),
+                stønadsperiodeFactory = StønadsperiodeFactory(repositoryForSøknad, SøknadFactory(repositoryForSøknad, emptyList())),
                 sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when (eitherSakOrNothing) {
@@ -89,21 +86,25 @@ internal class SakTest {
 internal class TomtRepository : Repository {
     override fun nySak(fnr: Fødselsnummer): Long = nySakId
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = null
-    override fun nySøknad(sakId: Long, json: String): Long = nySøknadId
+    override fun lagreSøknad(json: String): Long = nySøknadId
     override fun fnrForSakId(sakId: Long): Fødselsnummer? = null
-    override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
+    override fun søknadForStønadsperiode(stønadsperiodeId: Long): Pair<Long, String>? = null
     override fun alleSaker(): List<Pair<Long, Fødselsnummer>> = emptyList()
     override fun søknadForId(id: Long): Pair<Long, String>? = null
+    override fun lagreStønadsperiode(sakId: Long, søknadId: Long): Long = nyStønadsperiodeId
+    override fun stønadsperioderForSak(sakId: Long): List<Long> = emptyList()
 }
 
 internal class RepositoryForNySøknad : Repository {
     override fun nySak(fnr: Fødselsnummer): Long = throw RuntimeException("Skulle ikke lagre sak")
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = eksisterendeSakId
-    override fun nySøknad(sakId: Long, json: String): Long = nySøknadId
+    override fun lagreSøknad(json: String): Long = nySøknadId
     override fun fnrForSakId(sakId: Long): Fødselsnummer? = andregangssøker
-    override fun søknaderForSak(sakId: Long): List<Pair<Long, String>> = emptyList()
+    override fun søknadForStønadsperiode(stønadsperiodeId: Long): Pair<Long, String>? = Pair(nySøknadId, SøknadInnholdTestdataBuilder.build().toJson())
     override fun alleSaker(): List<Pair<Long, Fødselsnummer>> = emptyList()
     override fun søknadForId(id: Long): Pair<Long, String>? = null
+    override fun lagreStønadsperiode(sakId: Long, søknadId: Long): Long = nyStønadsperiodeId
+    override fun stønadsperioderForSak(sakId: Long): List<Long> = listOf(nyStønadsperiodeId)
 }
 
 internal class AssertNySakOpprettet : SakObserver {
@@ -122,8 +123,7 @@ internal class AssertNySøknadMottat : SøknadObserver {
                 SøknadObserver.SøknadMottattEvent(
                         sakId = eksisterendeSakId,
                         søknadId = nySøknadId,
-                        søknadInnhold = søknadInnhold,
-                        fnr = andregangssøker
+                        søknadInnhold = søknadInnhold
                 ), event)
     }
 }

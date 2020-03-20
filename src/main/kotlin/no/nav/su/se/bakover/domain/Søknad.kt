@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.ContextHolder
 import no.nav.su.se.bakover.Either
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
-import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.db.Repository
 import org.json.JSONObject
 
@@ -17,9 +16,16 @@ internal class Søknad internal constructor(
         private val søknadInnhold: SøknadInnhold,
         private val observers: List<SøknadObserver>
 ) {
-    internal fun lagreSøknad(sakId: Long, repository: Repository, fnr: Fødselsnummer): Søknad = this.also {
-        id = repository.nySøknad(sakId, søknadInnhold.toJson())
-        observers.forEach { it.søknadMottatt(SøknadObserver.SøknadMottattEvent(sakId = sakId, søknadId = id, søknadInnhold = søknadInnhold, fnr = fnr)) }
+    internal fun lagreSøknad(sakId: Long, repository: Repository): Pair<Long, Søknad> {
+        id = repository.lagreSøknad(søknadInnhold.toJson())
+        observers.forEach {
+            it.søknadMottatt(SøknadObserver.SøknadMottattEvent(
+                    sakId = sakId,
+                    søknadId = id,
+                    søknadInnhold = søknadInnhold)
+            )
+        }
+        return Pair(id, this)
     }
 
     fun toJson(): String = """
@@ -32,8 +38,22 @@ internal class Søknad internal constructor(
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
 internal class SøknadFactory(private val repository: Repository, private val observers: List<SøknadObserver>) {
-    fun forSak(sakId: Long, søknadInnhold: SøknadInnhold, fnr: Fødselsnummer): Søknad = Søknad(søknadInnhold = søknadInnhold, observers = observers).lagreSøknad(sakId, repository, fnr)
-    fun alleForSak(sakId: Long): List<Søknad> = repository.søknaderForSak(sakId).map { Søknad(id = it.first, søknadInnhold = fromJson(it.second), observers = observers) }
+    fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold): Pair<Long, Søknad> = Søknad(
+            søknadInnhold = søknadInnhold,
+            observers = observers
+    ).lagreSøknad(sakId, repository)
+
+    fun forStønadsperiode(stønadsperiodeId: Long): Søknad {
+        return when (val søknad = repository.søknadForStønadsperiode(stønadsperiodeId)) {
+            null -> throw RuntimeException("Stønadsperiode without søknad")
+            else -> Søknad(
+                    id = søknad.first,
+                    søknadInnhold = fromJson(søknad.second),
+                    observers = observers
+            )
+        }
+    }
+
     fun forId(søknadId: Long): Either<String, Søknad> = repository.søknadForId(søknadId)?.let {
         Right(Søknad(id = it.first, søknadInnhold = fromJson(it.second), observers = observers))
     } ?: Left("Fant ingen søknad med id $søknadId")
@@ -46,8 +66,7 @@ internal interface SøknadObserver {
             val correlationId: String = ContextHolder.getMdc(XCorrelationId),
             val sakId: Long,
             val søknadId: Long,
-            val søknadInnhold: SøknadInnhold,
-            val fnr: Fødselsnummer
+            val søknadInnhold: SøknadInnhold
     )
 
     fun søknadMottatt(event: SøknadMottattEvent)

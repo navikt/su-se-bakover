@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.db.Postgres.Role
 import no.nav.su.se.bakover.db.Postgres.Role.Admin
 import no.nav.su.se.bakover.db.Postgres.Role.User
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.StønadsperiodeFactory
 import no.nav.su.se.bakover.domain.SøknadFactory
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
@@ -91,7 +92,8 @@ internal fun Application.susebakover(
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
     val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
-    val sakFactory = SakFactory(databaseRepo, emptyList(), søknadFactory)
+    val stønadsperiodeFactory = StønadsperiodeFactory(databaseRepo, søknadFactory)
+    val sakFactory = SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
 
     install(CORS) {
         method(Options)

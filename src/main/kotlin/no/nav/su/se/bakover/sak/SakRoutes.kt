@@ -48,7 +48,7 @@ internal fun Route.sakRoutes(
             right = { id ->
                 call.audit("Henter søknad for sakId: $id")
                 sakFactory.forId(id).fold(
-                    right = { call.svar(OK.json(it.alleSøknaderSomEnJsonListe())) },
+                    right = { call.svar(OK.json(it.stønadsperioderSomJsonListe())) },
                     left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) }
                 )
             }

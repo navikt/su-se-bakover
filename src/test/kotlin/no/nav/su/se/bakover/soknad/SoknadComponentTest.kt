@@ -12,6 +12,7 @@ import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.TestApplicationResponse
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
@@ -26,11 +27,11 @@ import no.nav.su.se.bakover.sak.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Duration.of
 import java.time.temporal.ChronoUnit.MILLIS
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
@@ -63,7 +64,7 @@ internal class SoknadComponentTest : ComponentTest() {
             }.apply {
                 assertEquals(OK, response.status())
                 val json = JSONObject(response.content)
-                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
+                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("søknad").getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
             }
         }
     }
@@ -77,32 +78,31 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            val lagreSøknadResponse = withCorrelationId(Post, søknadPath) {
+            withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
                 assertEquals(Created, response.status())
-            }.response
+                val sakId = JSONObject(response.content).getInt("id")
+                val søknadId = JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
+                val records = kafkaConsumer.poll(of(1000, MILLIS))
+                        .filter { it.topic() == SØKNAD_TOPIC }
+                assertFalse(records.isEmpty())
 
-            val sakId = JSONObject(lagreSøknadResponse.content).getInt("id")
-            val søknadId = JSONObject(lagreSøknadResponse.content).getJSONArray("søknader").getJSONObject(0).getInt("id")
-            val records = kafkaConsumer.poll(of(1000, MILLIS))
-                    .filter { it.topic() == SØKNAD_TOPIC }
-            assertFalse(records.isEmpty())
-
-            val ourRecords = records.filter { r -> r.key() == "$sakId" }
-            val first = fromConsumerRecord(ourRecords.first()) as NySøknad
-            assertEquals(first.correlationId, DEFAULT_CALL_ID)
-            assertEquals(1, ourRecords.size)
-            assertEquals(NySøknad(
-                    correlationId = DEFAULT_CALL_ID,
-                    søknadId = "$søknadId",
-                    søknad = soknadJson(fnr),
-                    sakId = "$sakId",
-                    aktørId = stubAktørId,
-                    fnr = fnr.toString()
-            ), first)
+                val ourRecords = records.filter { r -> r.key() == "$sakId" }
+                val first = fromConsumerRecord(ourRecords.first()) as NySøknad
+                assertEquals(first.correlationId, DEFAULT_CALL_ID)
+                assertEquals(1, ourRecords.size)
+                assertEquals(NySøknad(
+                        correlationId = DEFAULT_CALL_ID,
+                        søknadId = "$søknadId",
+                        søknad = soknadJson(fnr),
+                        sakId = "$sakId",
+                        aktørId = stubAktørId,
+                        fnr = fnr.toString()
+                ), first)
+            }
         }
     }
 
@@ -127,8 +127,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                val json = JSONObject(response.content)
-                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("json").toString()))
+                assertTrue(JSONObject(response.content).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
     }
@@ -157,7 +156,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                assertTrue(JSONArray(response.content).getJSONObject(0).getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
+                assertTrue(JSONArray(response.content).getJSONObject(0).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
     }

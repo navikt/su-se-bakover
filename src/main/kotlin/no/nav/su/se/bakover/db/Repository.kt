@@ -6,9 +6,11 @@ import no.nav.su.se.bakover.Fødselsnummer
 internal interface Repository {
     fun nySak(fnr: Fødselsnummer): Long
     fun sakIdForFnr(fnr: Fødselsnummer): Long?
-    fun nySøknad(sakId: Long, json: String): Long
+    fun lagreSøknad(json: String): Long
     fun fnrForSakId(sakId: Long): Fødselsnummer?
-    fun søknaderForSak(sakId: Long): List<Pair<Long, String>>
+    fun søknadForStønadsperiode(stønadsperiodeId: Long): Pair<Long, String>?
     fun alleSaker(): List<Pair<Long, Fødselsnummer>>
     fun søknadForId(id: Long): Pair<Long, String>?
+    fun lagreStønadsperiode(sakId: Long, søknadId: Long): Long
+    fun stønadsperioderForSak(sakId: Long): List<Long>
 }
