@@ -13,10 +13,10 @@ private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 internal class Søknad internal constructor(
         private var id: Long = NO_SUCH_IDENTITY,
-        private val søknadInnhold: SøknadInnhold,
-        private val observers: List<SøknadObserver>
-) {
-    internal fun lagreSøknad(sakId: Long, repository: Repository): Pair<Long, Søknad> {
+        private val søknadInnhold: SøknadInnhold
+) : Observable<SøknadObserver>() {
+
+    internal fun lagreSøknad(sakId: Long, repository: Repository): Søknad = this.also {
         id = repository.lagreSøknad(søknadInnhold.toJson())
         observers.forEach {
             it.søknadMottatt(SøknadObserver.SøknadMottattEvent(
@@ -25,7 +25,6 @@ internal class Søknad internal constructor(
                     søknadInnhold = søknadInnhold)
             )
         }
-        return Pair(id, this)
     }
 
     fun toJson(): String = """
@@ -37,25 +36,24 @@ internal class Søknad internal constructor(
 }
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
-internal class SøknadFactory(private val repository: Repository, private val observers: List<SøknadObserver>) {
-    fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold): Pair<Long, Søknad> = Søknad(
-            søknadInnhold = søknadInnhold,
-            observers = observers
-    ).lagreSøknad(sakId, repository)
+internal class SøknadFactory(
+        private val repository: Repository,
+        private val observers: Array<SøknadObserver>
+) {
+    fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold, observer: SøknadObserver) = Søknad(søknadInnhold = søknadInnhold)
+            .subscribe<Søknad>(*observers, observer)
+            .lagreSøknad(sakId, repository)
+            .unsubscribe<Søknad>(observer)
 
     fun forStønadsperiode(stønadsperiodeId: Long): Søknad {
         return when (val søknad = repository.søknadForStønadsperiode(stønadsperiodeId)) {
             null -> throw RuntimeException("Stønadsperiode without søknad")
-            else -> Søknad(
-                    id = søknad.first,
-                    søknadInnhold = fromJson(søknad.second),
-                    observers = observers
-            )
+            else -> Søknad(id = søknad.first, søknadInnhold = fromJson(søknad.second))
         }
     }
 
     fun forId(søknadId: Long): Either<String, Søknad> = repository.søknadForId(søknadId)?.let {
-        Right(Søknad(id = it.first, søknadInnhold = fromJson(it.second), observers = observers))
+        Right(Søknad(id = it.first, søknadInnhold = fromJson(it.second)))
     } ?: Left("Fant ingen søknad med id $søknadId")
 
     private fun fromJson(json: String) = SøknadInnhold.fromJson(JSONObject(json))
@@ -69,5 +67,5 @@ internal interface SøknadObserver {
             val søknadInnhold: SøknadInnhold
     )
 
-    fun søknadMottatt(event: SøknadMottattEvent)
+    fun søknadMottatt(event: SøknadMottattEvent): Any
 }

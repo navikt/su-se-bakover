@@ -91,7 +91,7 @@ internal fun Application.susebakover(
 
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
-    val søknadFactory = SøknadFactory(databaseRepo, listOf(kafkaEmittingSøknadObserver))
+    val søknadFactory = SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
     val stønadsperiodeFactory = StønadsperiodeFactory(databaseRepo, søknadFactory)
     val sakFactory = SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
 

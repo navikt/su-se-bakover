@@ -31,7 +31,7 @@ internal class SakTest {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
                 repository = TomtRepository(),
-                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyList())),
+                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyArray())),
                 sakObservers = listOf(nySakTest)
         )
                 .forFnr(førstegangssøker)
@@ -46,7 +46,7 @@ internal class SakTest {
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
                 repository = repository,
-                stønadsperiodeFactory = StønadsperiodeFactory(repository, SøknadFactory(repository, listOf(nySøknadTest))),
+                stønadsperiodeFactory = StønadsperiodeFactory(repository, SøknadFactory(repository, arrayOf(nySøknadTest))),
                 sakObservers = emptyList()
         )
                 .forFnr(andregangssøker)
@@ -59,7 +59,7 @@ internal class SakTest {
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
                 repository = TomtRepository(),
-                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyList())),
+                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyArray())),
                 sakObservers = emptyList()
         ).forId(nySakId)
         when (eitherSakOrNothing) {
@@ -72,7 +72,7 @@ internal class SakTest {
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
                 repository = RepositoryForNySøknad(),
-                stønadsperiodeFactory = StønadsperiodeFactory(repositoryForSøknad, SøknadFactory(repositoryForSøknad, emptyList())),
+                stønadsperiodeFactory = StønadsperiodeFactory(repositoryForSøknad, SøknadFactory(repositoryForSøknad, emptyArray())),
                 sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when (eitherSakOrNothing) {
