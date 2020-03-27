@@ -13,6 +13,8 @@ spec:
     path: /isready
   replicas:
     min: 1
+    max: 2
+  cpuThresholdPercentage: 80
   ingresses:
     - {{ ingress }}
   webproxy: true
