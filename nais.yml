@@ -7,6 +7,10 @@ metadata:
     team: supstonad
 spec:
   image: {{ image }}
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
   replicas:
     min: 1
   ingresses:
