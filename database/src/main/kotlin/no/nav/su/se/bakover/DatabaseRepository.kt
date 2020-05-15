@@ -1,14 +1,12 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover
 
 import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.Repository
 import javax.sql.DataSource
 
-internal class DatabaseRepository(private val dataSource: DataSource) :
+class DatabaseRepository(private val dataSource: DataSource) :
     Repository {
     override fun nySak(fnr: Fødselsnummer): Long = "insert into sak (fnr) values (:fnr::varchar)"
             .oppdatering(mapOf("fnr" to fnr.toString()))!!

@@ -32,10 +32,7 @@ import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.azure.AzureClient
 import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.db.DatabaseRepository
-import no.nav.su.se.bakover.db.Flyway
-import no.nav.su.se.bakover.db.Postgres
-import no.nav.su.se.bakover.db.Postgres.Role
+import no.nav.su.se.bakover.Postgres.Role
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
@@ -168,6 +165,7 @@ fun Application.fromEnvironment(path: String): String = environment.config.prope
 
 @KtorExperimentalAPI
 internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
+internal fun ApplicationConfig.getProperty(key: String, default: String): String = propertyOrNull(key)?.getString() ?: default
 
 internal fun ApplicationCall.audit(msg: String) {
     val principal = (this.authentication.principal as JWTPrincipal).payload
@@ -176,7 +174,15 @@ internal fun ApplicationCall.audit(msg: String) {
 
 @KtorExperimentalAPI
 internal fun Application.getDatasource(role: Role = Role.User): DataSource {
-    return Postgres(environment.config).build().getDatasource(role)
+    with(environment.config) {
+        return Postgres(
+            jdbcUrl = getProperty("db.jdbcUrl", ""),
+            vaultMountPath = getProperty("db.vaultMountPath", ""),
+            databaseName = getProperty("db.name", ""),
+            username = getProperty("db.username", ""),
+            password = getProperty("db.password", "")
+        ).build().getDatasource(role)
+    }
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)

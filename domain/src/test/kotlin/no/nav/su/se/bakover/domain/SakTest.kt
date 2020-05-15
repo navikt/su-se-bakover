@@ -1,15 +1,11 @@
 package no.nav.su.se.bakover.domain
 
-import io.ktor.http.HttpHeaders.XCorrelationId
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.ContextHolder.MdcContext
 import no.nav.su.se.bakover.Repository
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 internal val nySakId = Random.nextLong()
 internal val nyStønadsperiodeId = Random.nextLong()
@@ -41,7 +37,6 @@ internal class SakTest {
 
     @Test
     fun `factory må klare å hente en sak fra repository, og så legge på en ny søknad`() {
-        ContextHolder.setMdcContext(MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         val repository = RepositoryForNySøknad()
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(

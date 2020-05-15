@@ -15,7 +15,6 @@ repositories {
 }
 
 val ktorVersion = "1.2.6"
-val junitJupiterVersion = "5.6.0-M1"
 val fuelVersion = "2.2.1"
 val wireMockVersion = "2.23.2"
 val orgJsonVersion = "20180813"
@@ -28,6 +27,7 @@ val kotliqueryVersion = "1.3.1"
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":database"))
 
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
@@ -46,18 +46,10 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation ("io.ktor:ktor-gson:$ktorVersion")
 
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
-
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
     }
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
         exclude(group = "junit")
     }

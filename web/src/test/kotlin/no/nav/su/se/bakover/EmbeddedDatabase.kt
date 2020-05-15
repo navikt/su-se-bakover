@@ -2,7 +2,6 @@ package no.nav.su.se.bakover
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.db.Postgres
 
 /** understands the need for a postgres db in memory that can live and die with our component tests*/
 @KtorExperimentalAPI

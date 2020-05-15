@@ -1,23 +1,24 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.config.ApplicationConfig
-import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.db.Postgres.Role
-import no.nav.su.se.bakover.db.Postgres.Role.User
-import no.nav.su.se.bakover.getProperty
+import no.nav.su.se.bakover.Postgres.Role
+import no.nav.su.se.bakover.Postgres.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
-@KtorExperimentalAPI
-internal class Postgres(private val env: ApplicationConfig) {
+class Postgres(
+    private val jdbcUrl: String,
+    private val vaultMountPath: String,
+    private val databaseName: String,
+    private val username: String,
+    private val password: String
+) {
     fun build(): AbstractDatasource {
-        val vaultMountPath: String = env.getProperty("db.vaultMountPath")
         return when (vaultMountPath.let { it != "" }) {
-            true -> VaultPostgres(env)
-            else -> EmbeddedPostgres(env)
+            true -> VaultPostgres(jdbcUrl, vaultMountPath, databaseName)
+            else -> EmbeddedPostgres(jdbcUrl, username, password)
         }
     }
 
@@ -28,9 +29,7 @@ internal class Postgres(private val env: ApplicationConfig) {
     }
 }
 
-@KtorExperimentalAPI
-internal abstract class AbstractDatasource(env: ApplicationConfig) {
-    private val jdbcUrl: String = env.getProperty("db.jdbcUrl")
+abstract class AbstractDatasource(private val jdbcUrl: String) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
         maximumPoolSize = 3
@@ -43,10 +42,7 @@ internal abstract class AbstractDatasource(env: ApplicationConfig) {
     abstract fun getDatasource(role: Role = User): DataSource
 }
 
-@KtorExperimentalAPI
-internal class EmbeddedPostgres(env: ApplicationConfig) : AbstractDatasource(env) {
-    private val username: String = env.getProperty("db.username")
-    private val password: String = env.getProperty("db.password")
+class EmbeddedPostgres(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariDataSource(hikariConfig.apply {
         username = this@EmbeddedPostgres.username
         password = this@EmbeddedPostgres.password
@@ -54,15 +50,11 @@ internal class EmbeddedPostgres(env: ApplicationConfig) : AbstractDatasource(env
 
 }
 
-@KtorExperimentalAPI
-internal class VaultPostgres(env: ApplicationConfig) : AbstractDatasource(env) {
-    private val vaultMountPath: String = env.getProperty("db.vaultMountPath")
-    private val databaseName: String = env.getProperty("db.name")
+class VaultPostgres(private val jdbcUrl: String, private val vaultMountPath: String, private val databaseName: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
             hikariConfig,
             vaultMountPath,
             "$databaseName-$role"
 
     )
-
 }

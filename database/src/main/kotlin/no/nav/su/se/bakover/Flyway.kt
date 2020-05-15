@@ -1,11 +1,9 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover
 
-import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.db.Postgres.Role.Admin
+import no.nav.su.se.bakover.Postgres.Role.Admin
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
-@KtorExperimentalAPI
 class Flyway(
         private val dataSource: DataSource,
         private val databaseName: String

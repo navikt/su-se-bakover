@@ -35,9 +35,13 @@ allprojects {
             }
         }
     }
-
+    val junitJupiterVersion = "5.6.0-M1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
+
+        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
