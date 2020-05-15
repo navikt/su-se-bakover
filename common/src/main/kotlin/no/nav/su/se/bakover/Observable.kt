@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover
 
 abstract class Observable<I> {
     protected val observers: MutableSet<I> = mutableSetOf()

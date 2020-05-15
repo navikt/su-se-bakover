@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover
 
-import no.nav.su.se.bakover.Either.*
+import no.nav.su.se.bakover.Either.Left
+import no.nav.su.se.bakover.Either.Right
 
 class Fødselsnummer(private val fnr: String) {
     override fun toString(): String = fnr

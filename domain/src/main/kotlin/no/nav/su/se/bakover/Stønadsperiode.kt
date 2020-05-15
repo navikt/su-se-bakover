@@ -1,12 +1,11 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.se.bakover.db.Repository
-import no.nav.su.se.bakover.domain.SøknadObserver.SøknadMottattEvent
+import no.nav.su.se.bakover.SøknadObserver.SøknadMottattEvent
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
-internal class Stønadsperiode(
+class Stønadsperiode(
     private var id: Long = NO_SUCH_IDENTITY,
     private val søknadFactory: SøknadFactory,
     private val repository: Repository
@@ -35,7 +34,7 @@ internal class Stønadsperiode(
     }
 }
 
-internal class StønadsperiodeFactory(
+class StønadsperiodeFactory(
         private val repository: Repository,
         private val søknadFactory: SøknadFactory
 ) {

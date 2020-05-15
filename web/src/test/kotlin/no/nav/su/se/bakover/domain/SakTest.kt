@@ -2,12 +2,9 @@ package no.nav.su.se.bakover.domain
 
 import io.ktor.http.HttpHeaders.XCorrelationId
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.ContextHolder
+import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.ContextHolder.MdcContext
-import no.nav.su.se.bakover.DEFAULT_CALL_ID
-import no.nav.su.se.bakover.Either
-import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.db.Repository
+import no.nav.su.se.bakover.Repository
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 import kotlin.test.assertEquals
@@ -30,9 +27,12 @@ internal class SakTest {
     fun `factory må klare å lage en ny sak fra et fnr, når det ikke finnes en sak fra før`() {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
-                repository = TomtRepository(),
-                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyArray())),
-                sakObservers = listOf(nySakTest)
+            repository = TomtRepository(),
+            stønadsperiodeFactory = StønadsperiodeFactory(
+                tomtRepository,
+                SøknadFactory(tomtRepository, emptyArray())
+            ),
+            sakObservers = listOf(nySakTest)
         )
                 .forFnr(førstegangssøker)
 
@@ -45,9 +45,12 @@ internal class SakTest {
         val repository = RepositoryForNySøknad()
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
-                repository = repository,
-                stønadsperiodeFactory = StønadsperiodeFactory(repository, SøknadFactory(repository, arrayOf(nySøknadTest))),
-                sakObservers = emptyList()
+            repository = repository,
+            stønadsperiodeFactory = StønadsperiodeFactory(
+                repository,
+                SøknadFactory(repository, arrayOf(nySøknadTest))
+            ),
+            sakObservers = emptyList()
         )
                 .forFnr(andregangssøker)
                 .nySøknad(søknadInnhold)
@@ -58,9 +61,12 @@ internal class SakTest {
     @Test
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
-                repository = TomtRepository(),
-                stønadsperiodeFactory = StønadsperiodeFactory(tomtRepository, SøknadFactory(tomtRepository, emptyArray())),
-                sakObservers = emptyList()
+            repository = TomtRepository(),
+            stønadsperiodeFactory = StønadsperiodeFactory(
+                tomtRepository,
+                SøknadFactory(tomtRepository, emptyArray())
+            ),
+            sakObservers = emptyList()
         ).forId(nySakId)
         when (eitherSakOrNothing) {
             is Either.Left -> assertTrue(true)
@@ -71,9 +77,12 @@ internal class SakTest {
     @Test
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
-                repository = RepositoryForNySøknad(),
-                stønadsperiodeFactory = StønadsperiodeFactory(repositoryForSøknad, SøknadFactory(repositoryForSøknad, emptyArray())),
-                sakObservers = emptyList()
+            repository = RepositoryForNySøknad(),
+            stønadsperiodeFactory = StønadsperiodeFactory(
+                repositoryForSøknad,
+                SøknadFactory(repositoryForSøknad, emptyArray())
+            ),
+            sakObservers = emptyList()
         ).forId(eksisterendeSakId)
         when (eitherSakOrNothing) {
             is Either.Left -> fail("Skulle ikke ha fått feil fra søknadFactory")
@@ -121,6 +130,7 @@ internal class AssertNySøknadMottat : SøknadObserver {
         nySøknad = true
         assertEquals(
                 SøknadObserver.SøknadMottattEvent(
+                        correlationId = "her skulle vi sikkert hatt en korrelasjonsid",
                         sakId = eksisterendeSakId,
                         søknadId = nySøknadId,
                         søknadInnhold = søknadInnhold

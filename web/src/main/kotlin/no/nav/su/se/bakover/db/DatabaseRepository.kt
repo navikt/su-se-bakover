@@ -5,6 +5,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.Fødselsnummer
+import no.nav.su.se.bakover.Repository
 import javax.sql.DataSource
 
 internal class DatabaseRepository(private val dataSource: DataSource) :

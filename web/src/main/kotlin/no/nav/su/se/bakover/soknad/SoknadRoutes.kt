@@ -13,8 +13,8 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.SøknadFactory
+import no.nav.su.se.bakover.SakFactory
+import no.nav.su.se.bakover.SøknadFactory
 import org.json.JSONObject
 
 internal const val søknadPath = "/soknad"

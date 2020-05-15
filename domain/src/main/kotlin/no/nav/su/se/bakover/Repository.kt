@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover
 
 import no.nav.su.se.bakover.Fødselsnummer
 
 // forstår hvordan man kan lagre og hente saker fra et persistenslag
-internal interface Repository {
+interface Repository {
     fun nySak(fnr: Fødselsnummer): Long
     fun sakIdForFnr(fnr: Fødselsnummer): Long?
     fun lagreSøknad(json: String): Long

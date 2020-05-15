@@ -4,8 +4,8 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.Fødselsnummer
-import no.nav.su.se.bakover.domain.SøknadObserver
-import no.nav.su.se.bakover.domain.SøknadObserver.SøknadMottattEvent
+import no.nav.su.se.bakover.SøknadObserver
+import no.nav.su.se.bakover.SøknadObserver.SøknadMottattEvent
 import no.nav.su.se.bakover.person.PersonOppslag
 import org.apache.kafka.clients.producer.KafkaProducer
 

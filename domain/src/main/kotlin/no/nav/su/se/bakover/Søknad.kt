@@ -1,17 +1,13 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover
 
-import io.ktor.http.HttpHeaders.XCorrelationId
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.se.bakover.ContextHolder
-import no.nav.su.se.bakover.Either
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
-import no.nav.su.se.bakover.db.Repository
 import org.json.JSONObject
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
-internal class Søknad internal constructor(
+class Søknad internal constructor(
     private var id: Long = NO_SUCH_IDENTITY,
     private val søknadInnhold: SøknadInnhold
 ) : Observable<SøknadObserver>() {
@@ -21,6 +17,7 @@ internal class Søknad internal constructor(
         observers.forEach {
             it.søknadMottatt(
                 SøknadObserver.SøknadMottattEvent(
+                    correlationId = "her skulle vi sikkert hatt en korrelasjonsid",
                     sakId = sakId,
                     søknadId = id,
                     søknadInnhold = søknadInnhold
@@ -38,7 +35,7 @@ internal class Søknad internal constructor(
 }
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
-internal class SøknadFactory(
+class SøknadFactory(
         private val repository: Repository,
         private val observers: Array<SøknadObserver>
 ) {
@@ -66,9 +63,9 @@ internal class SøknadFactory(
     private fun fromJson(json: String) = SøknadInnhold.fromJson(JSONObject(json))
 }
 
-internal interface SøknadObserver {
+interface SøknadObserver {
     data class SøknadMottattEvent(
-            val correlationId: String = ContextHolder.getMdc(XCorrelationId),
+            val correlationId: String,
             val sakId: Long,
             val søknadId: Long,
             val søknadInnhold: SøknadInnhold

@@ -9,7 +9,7 @@ import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.audit
-import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.SakFactory
 import no.nav.su.se.bakover.json
 import no.nav.su.se.bakover.svar
 

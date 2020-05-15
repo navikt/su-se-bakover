@@ -36,9 +36,6 @@ import no.nav.su.se.bakover.db.DatabaseRepository
 import no.nav.su.se.bakover.db.Flyway
 import no.nav.su.se.bakover.db.Postgres
 import no.nav.su.se.bakover.db.Postgres.Role
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.StønadsperiodeFactory
-import no.nav.su.se.bakover.domain.SøknadFactory
 import no.nav.su.se.bakover.inntekt.InntektOppslag
 import no.nav.su.se.bakover.inntekt.SuInntektClient
 import no.nav.su.se.bakover.inntekt.inntektRoutes
@@ -91,9 +88,12 @@ internal fun Application.susebakover(
 
     val databaseRepo = DatabaseRepository(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
-    val søknadFactory = SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
-    val stønadsperiodeFactory = StønadsperiodeFactory(databaseRepo, søknadFactory)
-    val sakFactory = SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
+    val søknadFactory =
+        SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
+    val stønadsperiodeFactory =
+        StønadsperiodeFactory(databaseRepo, søknadFactory)
+    val sakFactory =
+        SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
 
     install(CORS) {
         method(Options)
