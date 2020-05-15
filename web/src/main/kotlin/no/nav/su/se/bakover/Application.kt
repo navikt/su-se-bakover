@@ -81,6 +81,8 @@ internal fun Application.susebakover(
                 personOppslag
         )
 ) {
+    // FIXME: remove this line as soon as both environs are up and running
+    Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).repair()
     Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseRepository(dataSource)
