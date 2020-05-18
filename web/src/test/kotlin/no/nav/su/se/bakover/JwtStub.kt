@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import no.nav.su.se.bakover.azure.AzureClient
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.security.KeyPairGenerator

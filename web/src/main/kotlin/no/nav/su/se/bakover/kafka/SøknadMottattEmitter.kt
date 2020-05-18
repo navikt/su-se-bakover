@@ -6,7 +6,7 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.SøknadObserver
 import no.nav.su.se.bakover.SøknadObserver.SøknadMottattEvent
-import no.nav.su.se.bakover.person.PersonOppslag
+import no.nav.su.se.bakover.PersonOppslag
 import org.apache.kafka.clients.producer.KafkaProducer
 
 @KtorExperimentalAPI

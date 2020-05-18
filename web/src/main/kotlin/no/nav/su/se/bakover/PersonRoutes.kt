@@ -1,15 +1,11 @@
-package no.nav.su.se.bakover.person
+package no.nav.su.se.bakover
 
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.audit
-import no.nav.su.se.bakover.svar
 
 internal const val personPath = "/person"
 
@@ -27,9 +23,3 @@ internal fun Route.personRoutes(oppslag: PersonOppslag) {
         }
     }
 }
-
-internal fun Fødselsnummer.lesParameter(call: ApplicationCall): Either<String, Fødselsnummer> =
-    when {
-        Fødselsnummer.identLabel in call.parameters -> Fødselsnummer.fraString(call.parameters[Fødselsnummer.identLabel])
-        else -> Either.Left("${Fødselsnummer.identLabel} må være oppgitt")
-    }

@@ -19,7 +19,6 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.OAuth
 import org.json.JSONObject
 
 @KtorExperimentalAPI

@@ -5,8 +5,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.ContentType.Application.FormUrlEncoded
 import io.ktor.http.HttpHeaders.ContentType
-import no.nav.su.se.bakover.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
-import no.nav.su.se.bakover.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
+import no.nav.su.se.bakover.AzureClient
+import no.nav.su.se.bakover.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
+import no.nav.su.se.bakover.AzureClient.Companion.REQUESTED_TOKEN_USE
 import org.junit.jupiter.api.*
 import java.net.URLEncoder
 import java.nio.charset.Charset
@@ -21,7 +22,11 @@ private const val SCOPE = "personClientId"
 
 internal class AzureClientKtTest {
 
-    val azureClient = AzureClient(CLIENT_ID, CLIENT_SECRET, "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH")
+    val azureClient = AzureClient(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH"
+    )
 
     @Test
     fun `exchange token ok response`() {

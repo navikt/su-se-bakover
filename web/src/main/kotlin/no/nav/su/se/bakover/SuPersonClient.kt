@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.person
+package no.nav.su.se.bakover
 
 import com.github.kittinunf.fuel.httpGet
 import io.ktor.http.ContentType
@@ -6,8 +6,6 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.azure.OAuth
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

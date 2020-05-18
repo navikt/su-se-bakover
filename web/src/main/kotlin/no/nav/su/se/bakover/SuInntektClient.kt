@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.inntekt
+package no.nav.su.se.bakover
 
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded
@@ -8,9 +8,6 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.person.PersonOppslag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -19,10 +16,10 @@ internal interface InntektOppslag {
 }
 
 internal class SuInntektClient(
-        suInntektBaseUrl: String,
-        private val suInntektClientId: String,
-        private val exchange: OAuth,
-        private val personOppslag: PersonOppslag
+    suInntektBaseUrl: String,
+    private val suInntektClientId: String,
+    private val exchange: OAuth,
+    private val personOppslag: PersonOppslag
 ) : InntektOppslag {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"

@@ -30,19 +30,9 @@ import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
-import no.nav.su.se.bakover.azure.AzureClient
-import no.nav.su.se.bakover.azure.OAuth
 import no.nav.su.se.bakover.Postgres.Role
-import no.nav.su.se.bakover.inntekt.InntektOppslag
-import no.nav.su.se.bakover.inntekt.SuInntektClient
-import no.nav.su.se.bakover.inntekt.inntektRoutes
 import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
-import no.nav.su.se.bakover.person.PersonOppslag
-import no.nav.su.se.bakover.person.SuPersonClient
-import no.nav.su.se.bakover.person.personRoutes
-import no.nav.su.se.bakover.sak.sakRoutes
-import no.nav.su.se.bakover.soknad.soknadRoutes
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.json.JSONObject
@@ -65,21 +55,21 @@ internal fun Application.susebakover(
     jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     oAuth: OAuth = AzureClient(
-                fromEnvironment("azure.clientId"),
-                fromEnvironment("azure.clientSecret"),
-                jwkConfig.getString("token_endpoint")
-        ),
+        fromEnvironment("azure.clientId"),
+        fromEnvironment("azure.clientSecret"),
+        jwkConfig.getString("token_endpoint")
+    ),
     personOppslag: PersonOppslag = SuPersonClient(
-                fromEnvironment("integrations.suPerson.url"),
-                fromEnvironment("integrations.suPerson.clientId"),
-                oAuth
-        ),
+        fromEnvironment("integrations.suPerson.url"),
+        fromEnvironment("integrations.suPerson.clientId"),
+        oAuth
+    ),
     inntektOppslag: InntektOppslag = SuInntektClient(
-                fromEnvironment("integrations.suInntekt.url"),
-                fromEnvironment("integrations.suInntekt.clientId"),
-                oAuth,
-                personOppslag
-        )
+        fromEnvironment("integrations.suInntekt.url"),
+        fromEnvironment("integrations.suInntekt.clientId"),
+        oAuth,
+        personOppslag
+    )
 ) {
     Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 

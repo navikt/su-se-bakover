@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.azure
+package no.nav.su.se.bakover
 
 import com.github.kittinunf.fuel.httpPost
 import io.ktor.http.ContentType.Application.FormUrlEncoded

@@ -6,8 +6,8 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.person.PersonOppslag
+import no.nav.su.se.bakover.OAuth
+import no.nav.su.se.bakover.PersonOppslag
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -20,14 +20,16 @@ internal class InntektClientTest {
 
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
-        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang403)
+        val inntektClient =
+            SuInntektClient(url, clientId, tokenExchange, persontilgang403)
         val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
-        val inntektClient = SuInntektClient(url, clientId, tokenExchange, persontilgang200)
+        val inntektClient =
+            SuInntektClient(url, clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(OK.json(""), result)
     }

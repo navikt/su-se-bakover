@@ -14,9 +14,6 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.azure.OAuth
-import no.nav.su.se.bakover.inntekt.InntektOppslag
-import no.nav.su.se.bakover.person.PersonOppslag
 import org.json.JSONObject
 import java.util.*
 
@@ -90,11 +87,11 @@ private val failingInntektClient = object : InntektOppslag {
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.usingMocks(
-        jwkConfig: JSONObject = defaultJwkConfig,
-        jwkProvider: JwkProvider = JwkProvider { defaultJwk },
-        personClient: PersonOppslag = failingPersonClient,
-        inntektClient: InntektOppslag = failingInntektClient,
-        oAuth: OAuth = defaultOAuth
+    jwkConfig: JSONObject = defaultJwkConfig,
+    jwkProvider: JwkProvider = JwkProvider { defaultJwk },
+    personClient: PersonOppslag = failingPersonClient,
+    inntektClient: InntektOppslag = failingInntektClient,
+    oAuth: OAuth = defaultOAuth
 ) {
     susebakover(
             jwkConfig = jwkConfig,

@@ -22,7 +22,7 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.sak.sakPath
+import no.nav.su.se.bakover.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertFalse
