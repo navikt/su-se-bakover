@@ -17,7 +17,7 @@ class Sak internal constructor(
         if (id != NO_SUCH_IDENTITY) stønadsperioder = stønadsperiodeFactory.forSak(id)
     }
 
-    fun lagreNySak(repository: Repository): Sak = this.also {
+    fun lagreNySak(repository: SakRepo): Sak = this.also {
         repository.nySak(fnr).also { sakId ->
             this.id = sakId
             observers.forEach { it.nySakOpprettet(
@@ -53,7 +53,7 @@ class Sak internal constructor(
 
 // forstår hvordan man konstruerer en sak.
 class SakFactory(
-    private val repository: Repository,
+    private val repository: SakRepo,
     private val sakObservers: List<SakObserver>,
     private val stønadsperiodeFactory: StønadsperiodeFactory
 ) {
@@ -104,4 +104,11 @@ interface SakObserver {
     data class NySakEvent(val fnr: Fødselsnummer, val id: Long)
 
     fun nySakOpprettet(event: NySakEvent)
+}
+
+interface SakRepo {
+    fun nySak(fnr: Fødselsnummer): Long
+    fun sakIdForFnr(fnr: Fødselsnummer): Long?
+    fun fnrForSakId(sakId: Long): Fødselsnummer?
+    fun alleSaker(): List<Pair<Long, Fødselsnummer>>
 }

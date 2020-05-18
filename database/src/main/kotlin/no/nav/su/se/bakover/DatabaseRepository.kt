@@ -7,7 +7,7 @@ import kotliquery.using
 import javax.sql.DataSource
 
 class DatabaseRepository(private val dataSource: DataSource) :
-    Repository {
+    Repository, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = "insert into sak (fnr) values (:fnr::varchar)"
             .oppdatering(mapOf("fnr" to fnr.toString()))!!
 

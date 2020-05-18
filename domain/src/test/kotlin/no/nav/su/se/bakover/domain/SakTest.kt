@@ -87,7 +87,7 @@ internal class SakTest {
 
 }
 
-internal class TomtRepository : Repository {
+internal class TomtRepository : Repository, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = nySakId
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = null
     override fun lagreSøknad(json: String): Long = nySøknadId
@@ -99,7 +99,7 @@ internal class TomtRepository : Repository {
     override fun stønadsperioderForSak(sakId: Long): List<Long> = emptyList()
 }
 
-internal class RepositoryForNySøknad : Repository {
+internal class RepositoryForNySøknad : Repository, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = throw RuntimeException("Skulle ikke lagre sak")
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = eksisterendeSakId
     override fun lagreSøknad(json: String): Long = nySøknadId
