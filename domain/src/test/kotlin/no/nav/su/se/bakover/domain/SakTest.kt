@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.Repository
+import no.nav.su.se.bakover.SøknadRepo
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
@@ -14,8 +14,8 @@ internal val førstegangssøker = Fødselsnummer("01010112345")
 internal val eksisterendeSakId = Random.nextLong()
 internal val andregangssøker = Fødselsnummer("09090912345")
 internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-internal val tomtRepository = TomtRepository()
-internal val repositoryForSøknad = RepositoryForNySøknad()
+internal val tomtRepository = TomtSøknadRepo()
+internal val repositoryForSøknad = SøknadRepoForNySøknad()
 
 internal class SakTest {
 
@@ -23,7 +23,7 @@ internal class SakTest {
     fun `factory må klare å lage en ny sak fra et fnr, når det ikke finnes en sak fra før`() {
         val nySakTest = AssertNySakOpprettet()
         SakFactory(
-            repository = TomtRepository(),
+            repository = TomtSøknadRepo(),
             stønadsperiodeFactory = StønadsperiodeFactory(
                 tomtRepository,
                 SøknadFactory(tomtRepository, emptyArray())
@@ -37,7 +37,7 @@ internal class SakTest {
 
     @Test
     fun `factory må klare å hente en sak fra repository, og så legge på en ny søknad`() {
-        val repository = RepositoryForNySøknad()
+        val repository = SøknadRepoForNySøknad()
         val nySøknadTest = AssertNySøknadMottat()
         SakFactory(
             repository = repository,
@@ -56,7 +56,7 @@ internal class SakTest {
     @Test
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
-            repository = TomtRepository(),
+            repository = TomtSøknadRepo(),
             stønadsperiodeFactory = StønadsperiodeFactory(
                 tomtRepository,
                 SøknadFactory(tomtRepository, emptyArray())
@@ -72,7 +72,7 @@ internal class SakTest {
     @Test
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
-            repository = RepositoryForNySøknad(),
+            repository = SøknadRepoForNySøknad(),
             stønadsperiodeFactory = StønadsperiodeFactory(
                 repositoryForSøknad,
                 SøknadFactory(repositoryForSøknad, emptyArray())
@@ -87,7 +87,7 @@ internal class SakTest {
 
 }
 
-internal class TomtRepository : Repository, SakRepo {
+internal class TomtSøknadRepo : SøknadRepo, StønadsperiodeRepo, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = nySakId
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = null
     override fun lagreSøknad(json: String): Long = nySøknadId
@@ -99,7 +99,7 @@ internal class TomtRepository : Repository, SakRepo {
     override fun stønadsperioderForSak(sakId: Long): List<Long> = emptyList()
 }
 
-internal class RepositoryForNySøknad : Repository, SakRepo {
+internal class SøknadRepoForNySøknad : SøknadRepo, StønadsperiodeRepo, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = throw RuntimeException("Skulle ikke lagre sak")
     override fun sakIdForFnr(fnr: Fødselsnummer): Long? = eksisterendeSakId
     override fun lagreSøknad(json: String): Long = nySøknadId

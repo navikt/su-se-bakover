@@ -73,7 +73,7 @@ internal fun Application.susebakover(
 ) {
     Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 
-    val databaseRepo = DatabaseRepository(dataSource)
+    val databaseRepo = DatabaseSøknadRepo(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
     val søknadFactory =
         SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))

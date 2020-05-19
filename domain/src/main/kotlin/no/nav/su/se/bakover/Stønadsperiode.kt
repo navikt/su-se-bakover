@@ -8,7 +8,7 @@ private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 class Stønadsperiode(
     private var id: Long = NO_SUCH_IDENTITY,
     private val søknadFactory: SøknadFactory,
-    private val repository: Repository
+    private val søknadRepo: StønadsperiodeRepo
 ) : SøknadObserver {
     private lateinit var søknad: Søknad
 
@@ -28,28 +28,28 @@ class Stønadsperiode(
     """.trimIndent()
 
     override fun søknadMottatt(event: SøknadMottattEvent) {
-        repository.lagreStønadsperiode(sakId = event.sakId, søknadId = event.søknadId).also {
+        søknadRepo.lagreStønadsperiode(sakId = event.sakId, søknadId = event.søknadId).also {
             this.id = it
         }
     }
 }
 
 class StønadsperiodeFactory(
-        private val repository: Repository,
-        private val søknadFactory: SøknadFactory
+    private val søknadRepo: StønadsperiodeRepo,
+    private val søknadFactory: SøknadFactory
 ) {
     fun nyStønadsperiode(sakId: Long, søknadInnhold: SøknadInnhold): Stønadsperiode = Stønadsperiode(
         søknadFactory = søknadFactory,
-        repository = repository
+        søknadRepo = søknadRepo
     )
             .nySøknad(sakId, søknadInnhold)
 
-    fun forSak(sakId: Long): List<Stønadsperiode> = repository.stønadsperioderForSak(sakId)
+    fun forSak(sakId: Long): List<Stønadsperiode> = søknadRepo.stønadsperioderForSak(sakId)
             .map {
                 Stønadsperiode(
                     id = it,
                     søknadFactory = søknadFactory,
-                    repository = repository
+                    søknadRepo = søknadRepo
                 )
             }
 }

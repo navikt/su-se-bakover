@@ -12,8 +12,8 @@ class Søknad internal constructor(
     private val søknadInnhold: SøknadInnhold
 ) : Observable<SøknadObserver>() {
 
-    internal fun lagreSøknad(sakId: Long, repository: Repository): Søknad = this.also {
-        id = repository.lagreSøknad(søknadInnhold.toJson())
+    internal fun lagreSøknad(sakId: Long, søknadRepo: SøknadRepo): Søknad = this.also {
+        id = søknadRepo.lagreSøknad(søknadInnhold.toJson())
         observers.forEach {
             it.søknadMottatt(
                 SøknadObserver.SøknadMottattEvent(
@@ -36,18 +36,18 @@ class Søknad internal constructor(
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
 class SøknadFactory(
-        private val repository: Repository,
-        private val observers: Array<SøknadObserver>
+    private val søknadRepo: SøknadRepo,
+    private val observers: Array<SøknadObserver>
 ) {
     fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold, observer: SøknadObserver) = Søknad(
         søknadInnhold = søknadInnhold
     )
             .subscribe<Søknad>(*observers, observer)
-            .lagreSøknad(sakId, repository)
+            .lagreSøknad(sakId, søknadRepo)
             .unsubscribe<Søknad>(observer)
 
     fun forStønadsperiode(stønadsperiodeId: Long): Søknad {
-        return when (val søknad = repository.søknadForStønadsperiode(stønadsperiodeId)) {
+        return when (val søknad = søknadRepo.søknadForStønadsperiode(stønadsperiodeId)) {
             null -> throw RuntimeException("Stønadsperiode without søknad")
             else -> Søknad(
                 id = søknad.first,
@@ -56,7 +56,7 @@ class SøknadFactory(
         }
     }
 
-    fun forId(søknadId: Long): Either<String, Søknad> = repository.søknadForId(søknadId)?.let {
+    fun forId(søknadId: Long): Either<String, Søknad> = søknadRepo.søknadForId(søknadId)?.let {
         Right(Søknad(id = it.first, søknadInnhold = fromJson(it.second)))
     } ?: Left("Fant ingen søknad med id $søknadId")
 

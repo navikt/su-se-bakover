@@ -6,8 +6,8 @@ import kotliquery.sessionOf
 import kotliquery.using
 import javax.sql.DataSource
 
-class DatabaseRepository(private val dataSource: DataSource) :
-    Repository, SakRepo {
+class DatabaseSøknadRepo(private val dataSource: DataSource) :
+    SøknadRepo, StønadsperiodeRepo, SakRepo {
     override fun nySak(fnr: Fødselsnummer): Long = "insert into sak (fnr) values (:fnr::varchar)"
             .oppdatering(mapOf("fnr" to fnr.toString()))!!
 
