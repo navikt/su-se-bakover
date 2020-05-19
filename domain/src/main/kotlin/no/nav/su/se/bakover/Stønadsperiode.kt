@@ -53,3 +53,8 @@ class StønadsperiodeFactory(
                 )
             }
 }
+
+interface StønadsperiodeRepo {
+    fun lagreStønadsperiode(sakId: Long, søknadId: Long): Long
+    fun stønadsperioderForSak(sakId: Long): List<Long>
+}
