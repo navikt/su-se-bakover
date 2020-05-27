@@ -12,3 +12,7 @@ dependencies {
 
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
 }
+
+plugins {
+    id("com.github.hauner.jarTest") version "1.0.1" // bygger jar fil av testklassen slik at vi får tak i den fra de andre prosjektene i test
+}

@@ -14,6 +14,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.db.EmbeddedDatabase.getEmbeddedJdbcUrl
 import org.json.JSONObject
 import java.util.*
 
@@ -54,7 +55,7 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
         put("issuer", AZURE_ISSUER)
         put("db.username", DB_USERNAME)
         put("db.password", DB_PASSWORD)
-        put("db.jdbcUrl", EmbeddedDatabase.instance.getJdbcUrl(DB_USERNAME, DB_NAME))
+        put("db.jdbcUrl", getEmbeddedJdbcUrl())
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
         put("kafka.username", "kafkaUser")

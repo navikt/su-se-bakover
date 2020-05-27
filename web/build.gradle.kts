@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation(project(":database"))
+    testImplementation(project(":database", "testArchives"))
 
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
@@ -55,7 +56,6 @@ dependencies {
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
     testImplementation("no.nav:kafka-embedded-env:2.2.3")
-
 }
 
 tasks.named<Jar>("jar") {
