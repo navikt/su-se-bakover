@@ -91,7 +91,7 @@ internal class ContextHolderTest : ComponentTest() {
         }
     }
 
-    fun stubPdl() = WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person")).willReturn(WireMock.okJson("""{"aktoerId":"12345"}""".trimIndent())))
+    fun stubPdl() = WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person")).willReturn(WireMock.okJson("""{"aktorId":"12345"}""".trimIndent())))
 
     internal class CallableRequest(
             val testApplicationEngine: TestApplicationEngine,

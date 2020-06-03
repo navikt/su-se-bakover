@@ -167,7 +167,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 .withQueryParam("ident", WireMock.equalTo(testIdent.toString()))
                 .willReturn(WireMock.okJson("""
                     {
-                        "aktoerId":"$stubAktørId"
+                        "aktorId":"$stubAktørId"
                     }
                 """.trimIndent()))
         )
