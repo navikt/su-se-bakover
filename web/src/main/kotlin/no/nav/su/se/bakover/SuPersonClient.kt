@@ -45,7 +45,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
                 .header(XCorrelationId, ContextHolder.getMdc(XCorrelationId))
                 .responseString()
         return result.fold(
-                { JSONObject(it).getString("aktoerId") },
+                { JSONObject(it).getString("aktorId") },
                 { error ->
                     val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
                     val statusCode = error.response.statusCode
