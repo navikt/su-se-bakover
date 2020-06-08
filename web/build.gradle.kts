@@ -36,7 +36,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("org.json:json:$orgJsonVersion")
     implementation("org.apache.kafka:kafka-streams:2.3.0")
-    implementation("no.nav:su-meldinger:7e1f3d035dd830764448cdd7b288110dda211d61")
+    implementation("no.nav:su-meldinger")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
