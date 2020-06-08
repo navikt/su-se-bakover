@@ -160,7 +160,7 @@ internal fun ApplicationConfig.getProperty(key: String, default: String): String
 
 internal fun ApplicationCall.audit(msg: String) {
     val payload = (this.authentication.principal as JWTPrincipal).payload
-    LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid")} $msg")
+    LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid").asString()} $msg")
 }
 
 @KtorExperimentalAPI
