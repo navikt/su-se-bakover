@@ -7,11 +7,13 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
+import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
@@ -22,7 +24,6 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.sakPath
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -72,14 +73,16 @@ internal class SoknadComponentTest : ComponentTest() {
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100002")
+        val correlationId = "my random UUID or something"
         stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Post, søknadPath) {
+            handleRequest(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
+                addHeader(XCorrelationId, correlationId)
                 setBody(soknadJson(fnr))
             }.apply {
                 assertEquals(Created, response.status())
@@ -91,10 +94,10 @@ internal class SoknadComponentTest : ComponentTest() {
 
                 val ourRecords = records.filter { r -> r.key() == "$sakId" }
                 val first = fromConsumerRecord(ourRecords.first()) as NySøknad
-                assertEquals(first.correlationId, DEFAULT_CALL_ID)
+                assertEquals(first.correlationId, correlationId)
                 assertEquals(1, ourRecords.size)
                 assertEquals(NySøknad(
-                        correlationId = DEFAULT_CALL_ID,
+                        correlationId = correlationId,
                         søknadId = "$søknadId",
                         søknad = soknadJson(fnr),
                         sakId = "$sakId",

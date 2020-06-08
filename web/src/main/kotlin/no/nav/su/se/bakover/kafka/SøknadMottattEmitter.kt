@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.kafka
 
+import io.ktor.http.HttpHeaders
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics
 import no.nav.su.meldinger.kafka.soknad.NySøknad
+import no.nav.su.se.bakover.ContextHolder
 import no.nav.su.se.bakover.Fødselsnummer
+import no.nav.su.se.bakover.PersonOppslag
 import no.nav.su.se.bakover.SøknadObserver
 import no.nav.su.se.bakover.SøknadObserver.SøknadMottattEvent
-import no.nav.su.se.bakover.PersonOppslag
 import org.apache.kafka.clients.producer.KafkaProducer
 
 @KtorExperimentalAPI
@@ -21,7 +23,7 @@ internal class SøknadMottattEmitter(
 }
 
 private fun SøknadMottattEvent.somNySøknad(aktørId: String): NySøknad = NySøknad(
-        correlationId = correlationId,
+        correlationId = ContextHolder.getMdc(HttpHeaders.XCorrelationId),
         fnr = søknadInnhold.personopplysninger.fnr,
         sakId = "${sakId}",
         aktørId = aktørId,

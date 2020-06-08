@@ -8,20 +8,19 @@ import org.json.JSONObject
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Søknad internal constructor(
-    private var id: Long = NO_SUCH_IDENTITY,
-    private val søknadInnhold: SøknadInnhold
+        private var id: Long = NO_SUCH_IDENTITY,
+        private val søknadInnhold: SøknadInnhold
 ) : Observable<SøknadObserver>() {
 
     internal fun lagreSøknad(sakId: Long, søknadRepo: SøknadRepo): Søknad = this.also {
         id = søknadRepo.lagreSøknad(søknadInnhold.toJson())
         observers.forEach {
             it.søknadMottatt(
-                SøknadObserver.SøknadMottattEvent(
-                    correlationId = "her skulle vi sikkert hatt en korrelasjonsid",
-                    sakId = sakId,
-                    søknadId = id,
-                    søknadInnhold = søknadInnhold
-                )
+                    SøknadObserver.SøknadMottattEvent(
+                            sakId = sakId,
+                            søknadId = id,
+                            søknadInnhold = søknadInnhold
+                    )
             )
         }
     }
@@ -36,11 +35,11 @@ class Søknad internal constructor(
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
 class SøknadFactory(
-    private val søknadRepo: SøknadRepo,
-    private val observers: Array<SøknadObserver>
+        private val søknadRepo: SøknadRepo,
+        private val observers: Array<SøknadObserver>
 ) {
     fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold, observer: SøknadObserver) = Søknad(
-        søknadInnhold = søknadInnhold
+            søknadInnhold = søknadInnhold
     )
             .subscribe<Søknad>(*observers, observer)
             .lagreSøknad(sakId, søknadRepo)
@@ -50,8 +49,8 @@ class SøknadFactory(
         return when (val søknad = søknadRepo.søknadForStønadsperiode(stønadsperiodeId)) {
             null -> throw RuntimeException("Stønadsperiode without søknad")
             else -> Søknad(
-                id = søknad.first,
-                søknadInnhold = fromJson(søknad.second)
+                    id = søknad.first,
+                    søknadInnhold = fromJson(søknad.second)
             )
         }
     }
@@ -65,7 +64,6 @@ class SøknadFactory(
 
 interface SøknadObserver {
     data class SøknadMottattEvent(
-            val correlationId: String,
             val sakId: Long,
             val søknadId: Long,
             val søknadInnhold: SøknadInnhold
