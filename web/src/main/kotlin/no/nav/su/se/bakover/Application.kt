@@ -3,7 +3,10 @@ package no.nav.su.se.bakover
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.github.kittinunf.fuel.httpGet
-import io.ktor.application.*
+import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -27,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.ContextHolder.MdcContext
 import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
@@ -45,42 +49,42 @@ import javax.sql.DataSource
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-    hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
+        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
+        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
                 kafkaConfig.producerConfig(),
                 StringSerializer(),
                 StringSerializer()
         ),
-    dataSource: DataSource = getDatasource(),
-    jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    oAuth: OAuth = AzureClient(
-        fromEnvironment("azure.clientId"),
-        fromEnvironment("azure.clientSecret"),
-        jwkConfig.getString("token_endpoint")
-    ),
-    personOppslag: PersonOppslag = SuPersonClient(
-        fromEnvironment("integrations.suPerson.url"),
-        fromEnvironment("integrations.suPerson.clientId"),
-        oAuth
-    ),
-    inntektOppslag: InntektOppslag = SuInntektClient(
-        fromEnvironment("integrations.suInntekt.url"),
-        fromEnvironment("integrations.suInntekt.clientId"),
-        oAuth,
-        personOppslag
-    )
+        dataSource: DataSource = getDatasource(),
+        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+        oAuth: OAuth = AzureClient(
+                fromEnvironment("azure.clientId"),
+                fromEnvironment("azure.clientSecret"),
+                jwkConfig.getString("token_endpoint")
+        ),
+        personOppslag: PersonOppslag = SuPersonClient(
+                fromEnvironment("integrations.suPerson.url"),
+                fromEnvironment("integrations.suPerson.clientId"),
+                oAuth
+        ),
+        inntektOppslag: InntektOppslag = SuInntektClient(
+                fromEnvironment("integrations.suInntekt.url"),
+                fromEnvironment("integrations.suInntekt.clientId"),
+                oAuth,
+                personOppslag
+        )
 ) {
     Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseSøknadRepo(dataSource)
     val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
     val søknadFactory =
-        SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
+            SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
     val stønadsperiodeFactory =
-        StønadsperiodeFactory(databaseRepo, søknadFactory)
+            StønadsperiodeFactory(databaseRepo, søknadFactory)
     val sakFactory =
-        SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
+            SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
 
     install(CORS) {
         method(Options)
@@ -123,9 +127,6 @@ internal fun Application.susebakover(
             }
             install(CallLogging) {
                 level = Level.INFO
-                intercept(ApplicationCallPipeline.Monitoring) {
-                    ContextHolder.setMdcContext(ContextHolder.MdcContext(mapOf(XCorrelationId to call.callId.toString())))
-                }
                 filter { call ->
                     listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
                         call.request.path().startsWith(it)
@@ -166,11 +167,11 @@ internal fun ApplicationCall.audit(msg: String) {
 internal fun Application.getDatasource(role: Role = Role.User): DataSource {
     with(environment.config) {
         return Postgres(
-            jdbcUrl = getProperty("db.jdbcUrl", ""),
-            vaultMountPath = getProperty("db.vaultMountPath", ""),
-            databaseName = getProperty("db.name", ""),
-            username = getProperty("db.username", ""),
-            password = getProperty("db.password", "")
+                jdbcUrl = getProperty("db.jdbcUrl", ""),
+                vaultMountPath = getProperty("db.vaultMountPath", ""),
+                databaseName = getProperty("db.name", ""),
+                username = getProperty("db.username", ""),
+                password = getProperty("db.password", "")
         ).build().getDatasource(role)
     }
 }
@@ -200,8 +201,10 @@ internal fun byggVersion(): String {
 
 suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
     val coroutineContext = Dispatchers.Default +
-            ContextHolder.getSecurityContextElement(SecurityContext(call.authHeader())) +
-            ContextHolder.getMdcContextElement(ContextHolder.getMdcContext())
+            ContextHolder(
+                    security = SecurityContext(call.authHeader()),
+                    mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
+            ).asContextElement()
     coroutineScope { launch(context = coroutineContext, block = block).join() }
 }
 

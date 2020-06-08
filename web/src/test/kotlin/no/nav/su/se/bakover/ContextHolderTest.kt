@@ -3,15 +3,12 @@ package no.nav.su.se.bakover
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
+import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Post
-import io.ktor.http.Parameters
-import io.ktor.http.RequestConnectionPoint
-import io.ktor.http.headersOf
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.request.ApplicationReceivePipeline
 import io.ktor.request.ApplicationRequest
@@ -19,18 +16,17 @@ import io.ktor.request.RequestCookies
 import io.ktor.request.header
 import io.ktor.response.ApplicationResponse
 import io.ktor.server.testing.*
+import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
-import no.nav.su.se.bakover.ContextHolder.SecurityContext
 import org.junit.jupiter.api.Test
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
@@ -39,28 +35,26 @@ internal class ContextHolderTest : ComponentTest() {
 
     @Test
     fun `should set and get context`() {
-        ContextHolder.setSecurityContext(SecurityContext("token"))
-        assertEquals("token", ContextHolder.getSecurityContext().token)
+        ContextHolder(ContextHolder.SecurityContext("token"), ContextHolder.MdcContext(mapOf(HttpHeaders.XCorrelationId to "value")))
+        assertEquals("token", ContextHolder.authentication())
+        assertEquals("value", ContextHolder.correlationId())
     }
 
     @Test
     fun `should preserve different contexts for different scopes`() {
-        ContextHolder.setMdcContext(ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         runBlocking {
-            ContextHolder.setSecurityContext(SecurityContext("outer"))
-            val outer = Thread.currentThread()
-            launchWithContext(callWithAuth("inner")) {
-                val inner = Thread.currentThread()
-                assertEquals("inner", ContextHolder.getSecurityContext().token)
-                assertEquals(DEFAULT_CALL_ID, ContextHolder.getMdc(XCorrelationId))
-                assertNotEquals(outer, inner)
-                launchWithContext(callWithAuth("furtherin")) {
-                    assertEquals("furtherin", ContextHolder.getSecurityContext().token)
-                    assertEquals(DEFAULT_CALL_ID, ContextHolder.getMdc(XCorrelationId))
+            launchWithContext(callWithAuth("outer", DEFAULT_CALL_ID)) {
+                launchWithContext(callWithAuth("inner", DEFAULT_CALL_ID)) {
+                    assertEquals("inner", ContextHolder.authentication())
+                    assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
+                    launchWithContext(callWithAuth("furtherin", DEFAULT_CALL_ID)) {
+                        assertEquals("furtherin", ContextHolder.authentication())
+                        assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
+                    }
                 }
+                assertEquals("outer", ContextHolder.authentication())
+                assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
             }
-            assertEquals("outer", ContextHolder.getSecurityContext().token)
-            assertEquals(DEFAULT_CALL_ID, ContextHolder.getMdc(XCorrelationId))
         }
     }
 
@@ -109,11 +103,11 @@ internal class ContextHolderTest : ComponentTest() {
         }
     }
 
-    class callWithAuth(val token: String) : ApplicationCall {
+    class callWithAuth(val token: String, val correlationId: String) : ApplicationCall {
         override val application: Application
             get() = throw NotImplementedError()
         override val attributes: Attributes
-            get() = throw NotImplementedError()
+            get() = MyAttributes
         override val parameters: Parameters
             get() = throw NotImplementedError()
         override val request: ApplicationRequest
@@ -122,13 +116,24 @@ internal class ContextHolderTest : ComponentTest() {
             get() = throw NotImplementedError()
     }
 
+    object MyAttributes : Attributes {
+        override val allKeys: List<AttributeKey<*>>
+            get() = throw NotImplementedError()
+
+        override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = throw NotImplementedError()
+        override fun contains(key: AttributeKey<*>): Boolean = throw NotImplementedError()
+        override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = DEFAULT_CALL_ID as T
+        override fun <T : Any> put(key: AttributeKey<T>, value: T): Unit = throw NotImplementedError()
+        override fun <T : Any> remove(key: AttributeKey<T>): Unit = throw NotImplementedError()
+    }
+
     class DummyRequest(val token: String) : ApplicationRequest {
         override val call: ApplicationCall
             get() = throw NotImplementedError()
         override val cookies: RequestCookies
             get() = throw NotImplementedError()
         override val headers: Headers
-            get() = headersOf(Authorization, token)
+            get() = headersOf(Pair(Authorization, listOf(token)), Pair(XCorrelationId, listOf(DEFAULT_CALL_ID)))
         override val local: RequestConnectionPoint
             get() = throw NotImplementedError()
         override val pipeline: ApplicationReceivePipeline

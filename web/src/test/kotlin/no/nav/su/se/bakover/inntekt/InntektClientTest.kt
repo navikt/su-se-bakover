@@ -56,7 +56,7 @@ internal class InntektClientTest {
 
     @BeforeEach
     fun setup() {
-        ContextHolder.setMdcContext(ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
+        ContextHolder(ContextHolder.SecurityContext("token"), ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         FuelManager.instance.client = object : Client {
             override fun executeRequest(request: Request): Response = okResponseFromInntekt()
         }
