@@ -5,6 +5,6 @@ import no.nav.su.se.bakover.Either.*
 
 internal fun Fødselsnummer.Companion.lesParameter(call: ApplicationCall): Either<String, Fødselsnummer> =
     when {
-        identLabel in call.parameters -> fraString(call.parameters[identLabel])
-        else -> Left("$identLabel må være oppgitt")
+        FNR in call.parameters -> fraString(call.parameters[FNR])
+        else -> Left("$FNR må være oppgitt")
     }

@@ -61,7 +61,7 @@ internal class SøknadRouteMediator(
         private val søknadMottattEmitter: SøknadMottattEmitter
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak = sakFactory.forFnr(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        val sak = sakFactory.hentEllerOpprett(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
         val søknad = søknadFactory.nySøknad(søknadInnhold)
         stønadsperiodeFactory.nyStønadsperiode(sak, søknad)
         søknadMottattEmitter.søknadMottatt(SøknadMottattEvent(
@@ -69,7 +69,10 @@ internal class SøknadRouteMediator(
                 søknadId = søknad.id(),
                 søknadInnhold = søknadInnhold
         ))
-        return sakFactory.forFnr(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        return sakFactory.hent(Fødselsnummer(søknadInnhold.personopplysninger.fnr)).fold(
+                left = { throw RuntimeException("Sak, stønadsperiode og søknad er lagret. Kafka-melding sendt. sakId:${sak.id()}, søknadId:${søknad.id()})") },
+                right = { it }
+        )
     }
 
     fun hentSøknad(id: Long) = søknadFactory.forId(id)

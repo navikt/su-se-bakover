@@ -23,7 +23,6 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
-import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -104,12 +103,8 @@ internal class SoknadComponentTest : ComponentTest() {
         }
     }
 
-    data class LOL(
-            val abc: String
-    )
-
     @Test
-    fun `knytter søknad til sak ved innsending`() {
+    fun `knytter søknad til sak og stønadsperiode ved innsending`() {
         val token = jwtStub.createTokenFor()
         val fnr = Fødselsnummer("01010100004")
         var sakNr: Int
@@ -128,11 +123,11 @@ internal class SoknadComponentTest : ComponentTest() {
             }
 
             // /soknad henter en liste... FIXME: skulle hete /soknader
-            withCorrelationId(Get, "$sakPath/$sakNr/soknad") {
+            withCorrelationId(Get, "$sakPath/$sakNr") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                assertTrue(JSONArray(response.content).getJSONObject(0).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
+                assertTrue(JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
     }

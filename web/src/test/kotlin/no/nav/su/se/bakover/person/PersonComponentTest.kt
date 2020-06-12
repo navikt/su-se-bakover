@@ -12,12 +12,16 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.db.EmbeddedDatabase
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class PersonComponentTest: ComponentTest() {
+internal class PersonComponentTest : ComponentTest() {
+
+    private val sakRepo = DatabaseSøknadRepo(EmbeddedDatabase.database)
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
@@ -28,6 +32,23 @@ internal class PersonComponentTest: ComponentTest() {
             withCorrelationId(Get, personPath)
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
+        }
+    }
+
+    @Test
+    fun `henter sak for fnr`() {
+        withTestApplication(({
+            testEnv(wireMockServer)
+            susebakover()
+        })) {
+            val fnr = "12121212121"
+            sakRepo.nySak(Fødselsnummer(fnr))
+            withCorrelationId(Get, "$personPath/$fnr/sak") {
+                addHeader(Authorization, jwt)
+            }.apply {
+                assertEquals(OK, response.status())
+                assertEquals(fnr, JSONObject(response.content).getString("fnr"))
+            }
         }
     }
 
@@ -49,7 +70,7 @@ internal class PersonComponentTest: ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
+            withCorrelationId(Get, "$personPath?${Fødselsnummer.FNR}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -75,7 +96,7 @@ internal class PersonComponentTest: ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, "$personPath?${Fødselsnummer.identLabel}=$testIdent") {
+            withCorrelationId(Get, "$personPath?${Fødselsnummer.FNR}=$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {

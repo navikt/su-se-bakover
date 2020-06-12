@@ -29,7 +29,16 @@ class SakFactory(
         private val sakRepo: SakRepo,
         private val stønadsperiodeFactory: StønadsperiodeFactory
 ) {
-    fun forFnr(fnr: Fødselsnummer): Sak {
+    fun hent(fnr: Fødselsnummer): Either<String, Sak> {
+        val sakId = sakRepo.sakIdForFnr(fnr)
+        return when (sakId) {
+            null -> Left("Fant ingen saker for fnr:$fnr")
+            else -> Right(Sak(fnr, sakId, stønadsperiodeFactory.forSak(sakId)))
+        }
+    }
+
+
+    fun hentEllerOpprett(fnr: Fødselsnummer): Sak {
         val eksisterendeIdentitet = sakRepo.sakIdForFnr(fnr)
         return when (eksisterendeIdentitet) {
             null -> Sak(fnr, sakRepo.nySak(fnr), emptyList())
@@ -37,7 +46,7 @@ class SakFactory(
         }
     }
 
-    fun forId(sakId: Long): Either<String, Sak> {
+    fun hent(sakId: Long): Either<String, Sak> {
         val eksisterendeFødelsnummer = sakRepo.fnrForSakId(sakId)
         return when (eksisterendeFødelsnummer) {
             null -> Left("Det finnes ingen sak med id $sakId")

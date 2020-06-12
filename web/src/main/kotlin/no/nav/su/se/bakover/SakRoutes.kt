@@ -7,50 +7,23 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.Fødselsnummer.Companion.FNR
 
 internal const val sakPath = "/sak"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-    sakFactory: SakFactory
+        sakFactory: SakFactory
 ) {
-    get(sakPath) {
-        Fødselsnummer.lesParameter(call).fold(
-            left = { call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]""")) },
-            right = {
-                call.audit("Henter sak for person: $it")
-                call.svar(OK.json(sakFactory.forFnr(it).toJson()))
-            }
-        )
-    }
-
     get("$sakPath/{id}") {
         Long.lesParameter(call, "id").fold(
-            left = { call.svar(BadRequest.tekst(it)) },
-            right = { id ->
-                call.audit("Henter sak med id: $id")
-                sakFactory.forId(id).fold(
-                    left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
-                    right = { call.svar(OK.json(it.toJson())) })
-            }
+                left = { call.svar(BadRequest.tekst(it)) },
+                right = { id ->
+                    call.audit("Henter sak med id: $id")
+                    sakFactory.hent(id).fold(
+                            left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
+                            right = { call.svar(OK.json(it.toJson())) })
+                }
         )
-    }
-
-    // FIXME: Denne burde ha søknad i flertall, siden den returnerer alle søknadene registert på en sak.
-    get("$sakPath/{id}/soknad") {
-        Long.lesParameter(call, "id").fold(
-            left = { call.svar(BadRequest.tekst(it)) },
-            right = { id ->
-                call.audit("Henter søknad for sakId: $id")
-                sakFactory.forId(id).fold(
-                    right = { call.svar(OK.json(it.stønadsperioderSomJsonListe())) },
-                    left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) }
-                )
-            }
-        )
-    }
-
-    get("$sakPath/list") {
-        call.svar(OK.json("""[${sakFactory.alle().joinToString(",") { it.toJson()}}]"""))
     }
 }

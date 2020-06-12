@@ -25,7 +25,7 @@ internal class SakTest {
                         tomtRepository,
                         SøknadFactory(tomtRepository)
                 )
-        ).forFnr(førstegangssøker)
+        ).hentEllerOpprett(førstegangssøker)
         assertEquals(nySakId, sak.id())
     }
 
@@ -38,7 +38,7 @@ internal class SakTest {
                         repository,
                         SøknadFactory(repository)
                 )
-        ).forFnr(andregangssøker)
+        ).hentEllerOpprett(andregangssøker)
         assertEquals(eksisterendeSakId, sak.id())
     }
 
@@ -50,7 +50,7 @@ internal class SakTest {
                         tomtRepository,
                         SøknadFactory(tomtRepository)
                 )
-        ).forId(nySakId)
+        ).hent(nySakId)
         when (eitherSakOrNothing) {
             is Either.Left -> assertTrue(true)
             is Either.Right -> fail("Skulle ikke ha funnet en sak")
@@ -65,7 +65,7 @@ internal class SakTest {
                         repositoryForSøknad,
                         SøknadFactory(repositoryForSøknad)
                 )
-        ).forId(eksisterendeSakId)
+        ).hent(eksisterendeSakId)
         when (eitherSakOrNothing) {
             is Either.Left -> fail("Skulle ikke ha fått feil fra søknadFactory")
             is Either.Right -> assertTrue(true)

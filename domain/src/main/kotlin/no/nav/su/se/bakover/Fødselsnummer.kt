@@ -7,7 +7,7 @@ class Fødselsnummer(private val fnr: String) {
     override fun toString(): String = fnr
 
     companion object {
-        const val identLabel = "ident"
+        const val FNR = "fnr"
 
         fun fraString(str: String?): Either<String, Fødselsnummer> = when {
             str == null -> Left("Fødselsnummer kan ikke være tomt")

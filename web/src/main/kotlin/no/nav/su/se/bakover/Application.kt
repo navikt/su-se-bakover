@@ -141,7 +141,7 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(personOppslag)
+            personRoutes(personOppslag, sakFactory)
             inntektRoutes(inntektOppslag)
             sakRoutes(sakFactory)
             soknadRoutes(søknadRoutesMediator)
