@@ -78,13 +78,11 @@ internal fun Application.susebakover(
     Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 
     val databaseRepo = DatabaseSøknadRepo(dataSource)
-    val kafkaEmittingSøknadObserver = SøknadMottattEmitter(hendelseProducer, personOppslag)
-    val søknadFactory =
-            SøknadFactory(databaseRepo, arrayOf(kafkaEmittingSøknadObserver))
-    val stønadsperiodeFactory =
-            StønadsperiodeFactory(databaseRepo, søknadFactory)
-    val sakFactory =
-            SakFactory(databaseRepo, emptyList(), stønadsperiodeFactory)
+    val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, personOppslag)
+    val søknadFactory = SøknadFactory(databaseRepo)
+    val stønadsperiodeFactory = StønadsperiodeFactory(databaseRepo, søknadFactory)
+    val sakFactory = SakFactory(databaseRepo, stønadsperiodeFactory)
+    val søknadRoutesMediator = SøknadRouteMediator(sakFactory, søknadFactory, stønadsperiodeFactory, søknadMottattEmitter)
 
     install(CORS) {
         method(Options)
@@ -146,7 +144,7 @@ internal fun Application.susebakover(
             personRoutes(personOppslag)
             inntektRoutes(inntektOppslag)
             sakRoutes(sakFactory)
-            soknadRoutes(sakFactory, søknadFactory)
+            soknadRoutes(søknadRoutesMediator)
         }
     }
 }

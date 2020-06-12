@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.soknad
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
-import com.google.gson.JsonParser
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.Authorization
@@ -26,7 +25,6 @@ import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.EmbeddedKafka.Companion.kafkaConsumer
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Duration.of
@@ -37,7 +35,6 @@ import kotlin.test.assertEquals
 @KtorExperimentalLocationsAPI
 internal class SoknadComponentTest : ComponentTest() {
 
-    private val parser = JsonParser()
     private val stubAktørId = "12345"
     fun soknadJson(fnr: Fødselsnummer) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
 
@@ -50,21 +47,22 @@ internal class SoknadComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Post, søknadPath) {
+            val createResponse = withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
-                println(response)
                 assertEquals(Created, response.status())
             }.response
 
-            withCorrelationId(Get, "$søknadPath?${Fødselsnummer.identLabel}=$fnr") {
+            val søknadId = JSONObject(createResponse.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
+
+            withCorrelationId(Get, "$søknadPath/$søknadId") {
                 addHeader(Authorization, "Bearer $token")
             }.apply {
                 assertEquals(OK, response.status())
-                val json = JSONObject(response.content)
-                assertEquals(parser.parse(soknadJson(fnr)), parser.parse(json.getJSONObject("søknad").getJSONObject("json").toString())) // Må bruke JsonParser fordi json-elementene kan komme i forskjellig rekkefølge
+                val søknadInnhold = JSONObject(response.content).getJSONObject("json")
+                assertEquals(JSONObject(soknadJson(fnr)).toString(), JSONObject(søknadInnhold.toString()).toString())
             }
         }
     }
@@ -88,9 +86,7 @@ internal class SoknadComponentTest : ComponentTest() {
                 assertEquals(Created, response.status())
                 val sakId = JSONObject(response.content).getInt("id")
                 val søknadId = JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
-                val records = kafkaConsumer.poll(of(1000, MILLIS))
-                        .filter { it.topic() == SØKNAD_TOPIC }
-                assertFalse(records.isEmpty())
+                val records = kafkaConsumer.poll(of(1000, MILLIS)).records(SØKNAD_TOPIC)
 
                 val ourRecords = records.filter { r -> r.key() == "$sakId" }
                 val first = fromConsumerRecord(ourRecords.first()) as NySøknad
@@ -108,31 +104,9 @@ internal class SoknadComponentTest : ComponentTest() {
         }
     }
 
-    @Test
-    fun `lagrer og henter søknad på fnr`() {
-        val token = jwtStub.createTokenFor()
-        val fnr = Fødselsnummer("01010100003")
-        stubPdl(fnr)
-        withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
-        }) {
-            withCorrelationId(Post, søknadPath) {
-                addHeader(Authorization, "Bearer $token")
-                addHeader(ContentType, Json.toString())
-                setBody(soknadJson(fnr))
-            }.apply {
-                assertEquals(Created, response.status())
-            }
-
-            withCorrelationId(Get, "$søknadPath?${Fødselsnummer.identLabel}=$fnr") {
-                addHeader(Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(OK, response.status())
-                assertTrue(JSONObject(response.content).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
-            }
-        }
-    }
+    data class LOL(
+            val abc: String
+    )
 
     @Test
     fun `knytter søknad til sak ved innsending`() {

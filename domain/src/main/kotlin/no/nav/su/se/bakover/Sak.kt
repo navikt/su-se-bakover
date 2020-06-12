@@ -1,44 +1,17 @@
 package no.nav.su.se.bakover
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Sak internal constructor(
-    private val fnr: Fødselsnummer,
-    private var id: Long = NO_SUCH_IDENTITY,
-    private var stønadsperioder: List<Stønadsperiode> = emptyList(),
-    private val observers: List<SakObserver>,
-    private val stønadsperiodeFactory: StønadsperiodeFactory
-) {
-    init {
-        if (id != NO_SUCH_IDENTITY) stønadsperioder = stønadsperiodeFactory.forSak(id)
-    }
+        private val fnr: Fødselsnummer,
+        private var id: Long = NO_SUCH_IDENTITY,
+        private var stønadsperioder: List<Stønadsperiode> = emptyList()
+) : Persistent {
 
-    fun lagreNySak(repository: SakRepo): Sak = this.also {
-        repository.nySak(fnr).also { sakId ->
-            this.id = sakId
-            observers.forEach { it.nySakOpprettet(
-                SakObserver.NySakEvent(
-                    fnr,
-                    id
-                )
-            ) }
-        }
-
-    }
-
-    fun nySøknad(søknadInnhold: SøknadInnhold): Sak = this.also {
-        stønadsperioder += stønadsperiodeFactory.nyStønadsperiode(id, søknadInnhold)
-    }
-
-    // TODO: Denne finnes for å støtte endepunktet /soknad?fnr=ident; det vil si "gi meg søknaden til person X", som for øyeblikket ikke nødvendigvis gir mening.
-    fun gjeldendeSøknad(): Either<String, Stønadsperiode> = when {
-        stønadsperioder.isEmpty() -> Left("Sak $id har ingen stønadsperioder")
-        else -> Right(stønadsperioder.last())
-    }
+    override fun id(): Long = id
 
     fun toJson() = """
         {
@@ -53,57 +26,28 @@ class Sak internal constructor(
 
 // forstår hvordan man konstruerer en sak.
 class SakFactory(
-    private val repository: SakRepo,
-    private val sakObservers: List<SakObserver>,
-    private val stønadsperiodeFactory: StønadsperiodeFactory
+        private val sakRepo: SakRepo,
+        private val stønadsperiodeFactory: StønadsperiodeFactory
 ) {
     fun forFnr(fnr: Fødselsnummer): Sak {
-        val eksisterendeIdentitet = repository.sakIdForFnr(fnr)
+        val eksisterendeIdentitet = sakRepo.sakIdForFnr(fnr)
         return when (eksisterendeIdentitet) {
-            null -> Sak(
-                fnr = fnr,
-                observers = sakObservers,
-                stønadsperiodeFactory = stønadsperiodeFactory
-            )
-                    .lagreNySak(repository)
-            else -> Sak(
-                fnr = fnr,
-                id = eksisterendeIdentitet,
-                observers = sakObservers,
-                stønadsperiodeFactory = stønadsperiodeFactory
-            )
+            null -> Sak(fnr, sakRepo.nySak(fnr), emptyList())
+            else -> Sak(fnr, eksisterendeIdentitet, stønadsperiodeFactory.forSak(eksisterendeIdentitet))
         }
     }
 
     fun forId(sakId: Long): Either<String, Sak> {
-        val eksisterendeFødelsnummer = repository.fnrForSakId(sakId)
+        val eksisterendeFødelsnummer = sakRepo.fnrForSakId(sakId)
         return when (eksisterendeFødelsnummer) {
             null -> Left("Det finnes ingen sak med id $sakId")
-            else -> Right(
-                Sak(
-                    fnr = eksisterendeFødelsnummer,
-                    id = sakId,
-                    observers = sakObservers,
-                    stønadsperiodeFactory = stønadsperiodeFactory
-                )
-            )
+            else -> Right(Sak(eksisterendeFødelsnummer, sakId, stønadsperiodeFactory.forSak(sakId)))
         }
     }
 
-    fun alle(): List<Sak> = repository.alleSaker().map {
-        Sak(
-            fnr = it.second,
-            id = it.first,
-            observers = sakObservers,
-            stønadsperiodeFactory = stønadsperiodeFactory
-        )
+    fun alle(): List<Sak> = sakRepo.alleSaker().map {
+        Sak(fnr = it.second, id = it.first)
     }
-}
-
-interface SakObserver {
-    data class NySakEvent(val fnr: Fødselsnummer, val id: Long)
-
-    fun nySakOpprettet(event: NySakEvent)
 }
 
 interface SakRepo {

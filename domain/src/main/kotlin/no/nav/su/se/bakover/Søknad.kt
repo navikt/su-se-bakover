@@ -8,22 +8,11 @@ import org.json.JSONObject
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Søknad internal constructor(
-        private var id: Long = NO_SUCH_IDENTITY,
+        private val id: Long = NO_SUCH_IDENTITY,
         private val søknadInnhold: SøknadInnhold
-) : Observable<SøknadObserver>() {
+) : Persistent {
 
-    internal fun lagreSøknad(sakId: Long, søknadRepo: SøknadRepo): Søknad = this.also {
-        id = søknadRepo.lagreSøknad(søknadInnhold.toJson())
-        observers.forEach {
-            it.søknadMottatt(
-                    SøknadObserver.SøknadMottattEvent(
-                            sakId = sakId,
-                            søknadId = id,
-                            søknadInnhold = søknadInnhold
-                    )
-            )
-        }
-    }
+    override fun id(): Long = id
 
     fun toJson(): String = """
         {
@@ -35,15 +24,9 @@ class Søknad internal constructor(
 
 // forstår hvordan man bygger et søknads-domeneobjekt.
 class SøknadFactory(
-        private val søknadRepo: SøknadRepo,
-        private val observers: Array<SøknadObserver>
+        private val søknadRepo: SøknadRepo
 ) {
-    fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold, observer: SøknadObserver) = Søknad(
-            søknadInnhold = søknadInnhold
-    )
-            .subscribe<Søknad>(*observers, observer)
-            .lagreSøknad(sakId, søknadRepo)
-            .unsubscribe<Søknad>(observer)
+    fun nySøknad(søknadInnhold: SøknadInnhold) = Søknad(søknadRepo.lagreSøknad(søknadInnhold.toJson()), søknadInnhold)
 
     fun forStønadsperiode(stønadsperiodeId: Long): Søknad {
         return when (val søknad = søknadRepo.søknadForStønadsperiode(stønadsperiodeId)) {
@@ -60,16 +43,6 @@ class SøknadFactory(
     } ?: Left("Fant ingen søknad med id $søknadId")
 
     private fun fromJson(json: String) = SøknadInnhold.fromJson(JSONObject(json))
-}
-
-interface SøknadObserver {
-    data class SøknadMottattEvent(
-            val sakId: Long,
-            val søknadId: Long,
-            val søknadInnhold: SøknadInnhold
-    )
-
-    fun søknadMottatt(event: SøknadMottattEvent): Any
 }
 
 // forstår hvordan man kan lagre og hente saker fra et persistenslag

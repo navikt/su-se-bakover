@@ -12,7 +12,6 @@ internal val nySøknadId = Random.nextLong()
 internal val førstegangssøker = Fødselsnummer("01010112345")
 internal val eksisterendeSakId = Random.nextLong()
 internal val andregangssøker = Fødselsnummer("09090912345")
-internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 internal val tomtRepository = TomtSøknadRepo()
 internal val repositoryForSøknad = SøknadRepoForNySøknad()
 
@@ -20,47 +19,37 @@ internal class SakTest {
 
     @Test
     fun `factory må klare å lage en ny sak fra et fnr, når det ikke finnes en sak fra før`() {
-        val nySakTest = AssertNySakOpprettet()
-        SakFactory(
-                repository = TomtSøknadRepo(),
+        val sak = SakFactory(
+                sakRepo = TomtSøknadRepo(),
                 stønadsperiodeFactory = StønadsperiodeFactory(
                         tomtRepository,
-                        SøknadFactory(tomtRepository, emptyArray())
-                ),
-                sakObservers = listOf(nySakTest)
-        )
-                .forFnr(førstegangssøker)
-
-        assertTrue(nySakTest.nySak, "Ny sak event skulle blitt trigget")
+                        SøknadFactory(tomtRepository)
+                )
+        ).forFnr(førstegangssøker)
+        assertEquals(nySakId, sak.id())
     }
 
     @Test
-    fun `factory må klare å hente en sak fra repository, og så legge på en ny søknad`() {
+    fun `factory må klare å hente en eksisterende sak fra repository`() {
         val repository = SøknadRepoForNySøknad()
-        val nySøknadTest = AssertNySøknadMottat()
-        SakFactory(
-                repository = repository,
+        val sak = SakFactory(
+                sakRepo = repository,
                 stønadsperiodeFactory = StønadsperiodeFactory(
                         repository,
-                        SøknadFactory(repository, arrayOf(nySøknadTest))
-                ),
-                sakObservers = emptyList()
-        )
-                .forFnr(andregangssøker)
-                .nySøknad(søknadInnhold)
-
-        assertTrue(nySøknadTest.nySøknad, "Søknad mottatt event skulle blitt trigget")
+                        SøknadFactory(repository)
+                )
+        ).forFnr(andregangssøker)
+        assertEquals(eksisterendeSakId, sak.id())
     }
 
     @Test
     fun `factory må levere en Error ved henting av sak med en identitet som ikke finnes`() {
         val eitherSakOrNothing = SakFactory(
-                repository = TomtSøknadRepo(),
+                sakRepo = TomtSøknadRepo(),
                 stønadsperiodeFactory = StønadsperiodeFactory(
                         tomtRepository,
-                        SøknadFactory(tomtRepository, emptyArray())
-                ),
-                sakObservers = emptyList()
+                        SøknadFactory(tomtRepository)
+                )
         ).forId(nySakId)
         when (eitherSakOrNothing) {
             is Either.Left -> assertTrue(true)
@@ -71,12 +60,11 @@ internal class SakTest {
     @Test
     fun `factory må klare å hente en sak fra repository basert på en identitet`() {
         val eitherSakOrNothing = SakFactory(
-                repository = SøknadRepoForNySøknad(),
+                sakRepo = SøknadRepoForNySøknad(),
                 stønadsperiodeFactory = StønadsperiodeFactory(
                         repositoryForSøknad,
-                        SøknadFactory(repositoryForSøknad, emptyArray())
-                ),
-                sakObservers = emptyList()
+                        SøknadFactory(repositoryForSøknad)
+                )
         ).forId(eksisterendeSakId)
         when (eitherSakOrNothing) {
             is Either.Left -> fail("Skulle ikke ha fått feil fra søknadFactory")
@@ -108,25 +96,4 @@ internal class SøknadRepoForNySøknad : SøknadRepo, StønadsperiodeRepo, SakRe
     override fun søknadForId(id: Long): Pair<Long, String>? = null
     override fun lagreStønadsperiode(sakId: Long, søknadId: Long): Long = nyStønadsperiodeId
     override fun stønadsperioderForSak(sakId: Long): List<Long> = listOf(nyStønadsperiodeId)
-}
-
-internal class AssertNySakOpprettet : SakObserver {
-    var nySak: Boolean = false
-    override fun nySakOpprettet(event: SakObserver.NySakEvent) {
-        nySak = true
-        assertEquals(SakObserver.NySakEvent(fnr = førstegangssøker, id = nySakId), event)
-    }
-}
-
-internal class AssertNySøknadMottat : SøknadObserver {
-    var nySøknad = false
-    override fun søknadMottatt(event: SøknadObserver.SøknadMottattEvent) {
-        nySøknad = true
-        assertEquals(
-                SøknadObserver.SøknadMottattEvent(
-                        sakId = eksisterendeSakId,
-                        søknadId = nySøknadId,
-                        søknadInnhold = søknadInnhold
-                ), event)
-    }
 }
