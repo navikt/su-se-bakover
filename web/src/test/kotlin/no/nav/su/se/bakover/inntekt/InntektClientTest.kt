@@ -1,40 +1,31 @@
 package no.nav.su.se.bakover.inntekt
 
-import com.github.kittinunf.fuel.core.*
-import com.github.kittinunf.fuel.toolbox.HttpClient
+import com.github.tomakehurst.wiremock.client.WireMock
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.*
-import no.nav.su.se.bakover.OAuth
-import no.nav.su.se.bakover.PersonOppslag
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.slf4j.MDC
-import java.net.URL
 import kotlin.test.assertEquals
 
-internal class InntektClientTest {
+internal class InntektClientTest : ComponentTest() {
 
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
-        val inntektClient =
-            SuInntektClient(url, clientId, tokenExchange, persontilgang403)
+        val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang403)
         val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
-        val inntektClient =
-            SuInntektClient(url, clientId, tokenExchange, persontilgang200)
+        val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(OK.json(""), result)
+        assertEquals(OK.json("{}"), result)
     }
 
-    private val url = "http://some.place"
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
         override fun person(ident: Fødselsnummer): Resultat =
@@ -57,22 +48,7 @@ internal class InntektClientTest {
     @BeforeEach
     fun setup() {
         ContextHolder(ContextHolder.SecurityContext("token"), ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
-        FuelManager.instance.client = object : Client {
-            override fun executeRequest(request: Request): Response = okResponseFromInntekt()
-        }
+        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
+                .willReturn(WireMock.okJson("""{}""")))
     }
-
-    @AfterEach
-    fun tearDown() {
-        MDC.clear()
-        FuelManager.instance.client = HttpClient(FuelManager.instance.proxy, hook = FuelManager.instance.hook)
-    }
-
-    private fun okResponseFromInntekt() = Response(
-            url = URL("http://some.place"),
-            contentLength = 0,
-            headers = Headers(),
-            responseMessage = "Thumbs up",
-            statusCode = 200
-    )
 }

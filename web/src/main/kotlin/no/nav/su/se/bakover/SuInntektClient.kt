@@ -24,6 +24,7 @@ internal class SuInntektClient(
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
+    //TODO bedre håndtering av kode 6/7?
     override fun inntekt(ident: Fødselsnummer, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat =
             personOppslag.person(ident).fold(
                     success = { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) },
