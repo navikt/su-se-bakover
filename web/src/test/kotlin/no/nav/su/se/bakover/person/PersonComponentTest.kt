@@ -29,9 +29,23 @@ internal class PersonComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, personPath)
+            withCorrelationId(Get, "$personPath/12345678910")
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
+        }
+    }
+
+    @Test
+    fun `bad request ved ugyldig fnr`() {
+        withTestApplication({
+            testEnv(wireMockServer)
+            susebakover()
+        }) {
+            withCorrelationId(Get, "$personPath/qwertyuiopå"){
+                addHeader(Authorization, jwt)
+            }
+        }.apply {
+            assertEquals(HttpStatusCode.BadRequest, response.status())
         }
     }
 
@@ -70,7 +84,7 @@ internal class PersonComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, "$personPath?${Fødselsnummer.FNR}=$testIdent") {
+            withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -96,7 +110,7 @@ internal class PersonComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, "$personPath?${Fødselsnummer.FNR}=$testIdent") {
+            withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, "Bearer $token")
             }
         }.apply {
@@ -104,5 +118,4 @@ internal class PersonComponentTest : ComponentTest() {
             assertEquals("""{"message": "$errorMessage"}""", response.content!!)
         }
     }
-
 }

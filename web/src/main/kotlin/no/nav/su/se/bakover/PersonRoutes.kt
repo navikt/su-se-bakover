@@ -15,7 +15,7 @@ internal fun Route.personRoutes(
         oppslag: PersonOppslag,
         sakFactory: SakFactory
 ) {
-    get(personPath) {
+    get("$personPath/{fnr}") {
         launchWithContext(call) {
             Fødselsnummer.lesParameter(call).fold(
                     left = { call.respond(BadRequest, it) },
