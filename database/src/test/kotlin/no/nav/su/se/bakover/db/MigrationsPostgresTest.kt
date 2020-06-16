@@ -10,7 +10,7 @@ class MigrationsPostgresTest {
         EmbeddedDatabase.database.also {
             clean(it)
             val migrations = migrate(it)
-            assertEquals(1, migrations)
+            assertEquals(2, migrations)
         }
     }
 
@@ -18,7 +18,7 @@ class MigrationsPostgresTest {
     fun `migreringer skal ikke kjøre flere ganger`() {
         EmbeddedDatabase.database.also {
             clean(it)
-            assertEquals(1, migrate(it))
+            assertEquals(2, migrate(it))
             assertEquals(0, migrate(it))
         }
     }
