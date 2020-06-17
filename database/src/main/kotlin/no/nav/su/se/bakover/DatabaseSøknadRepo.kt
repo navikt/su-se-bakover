@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover
 
-import kotliquery.Row
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
+import kotliquery.*
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import org.json.JSONObject
 import javax.sql.DataSource
@@ -11,9 +8,12 @@ import javax.sql.DataSource
 class DatabaseSøknadRepo(
         private val dataSource: DataSource
 ) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver {
-    override fun hentSak(fnr: Fødselsnummer): Sak? = "select * from sak where fnr=:fnr"
-            .hent(mapOf("fnr" to fnr.toString())) {
-                it.toSak().also {
+
+    override fun hentSak(fnr: Fødselsnummer): Sak? = using(sessionOf(dataSource)) { hentSak(fnr, it) }
+
+    private fun hentSak(fnr: Fødselsnummer, session: Session): Sak? = "select * from sak where fnr=:fnr"
+            .hent(mapOf("fnr" to fnr.toString()), session) { row ->
+                row.toSak(session).also {
                     it.addObserver(this)
                 }
             }
@@ -23,15 +23,17 @@ class DatabaseSøknadRepo(
         return hentStønadsperiode(stønadsperiodeId)!!
     }
 
-    private fun Row.toSak() = Sak(
+    private fun Row.toSak(session: Session) = Sak(
             id = long("id"),
             fnr = Fødselsnummer(string("fnr")),
-            stønadsperioder = hentStønadsperioder(long("id"))
+            stønadsperioder = hentStønadsperioder(long("id"), session)
     )
 
-    override fun hentSak(sakId: Long): Sak? = "select * from sak where id=:sakId"
-            .hent(mapOf("sakId" to sakId)) { row ->
-                row.toSak().also {
+    override fun hentSak(sakId: Long): Sak? = using(sessionOf(dataSource)) { hentSak(sakId, it) }
+
+    private fun hentSak(sakId: Long, session: Session): Sak? = "select * from sak where id=:sakId"
+            .hent(mapOf("sakId" to sakId), session) { row ->
+                row.toSak(session).also {
                     it.addObserver(this)
                 }
             }
@@ -42,7 +44,6 @@ class DatabaseSøknadRepo(
     private fun opprettSøknad(søknadInnhold: SøknadInnhold): Long = "insert into søknad (json) values (to_json(:soknad::json))".oppdatering(mapOf("soknad" to søknadInnhold.toJson()))!!
 
     override fun opprettSak(fnr: Fødselsnummer): Sak {
-        println("OPPRETTER SAK FOR $fnr")
         val sakId = opprettSak(fnr.toString())
         return hentSak(sakId)!!
     }
@@ -50,37 +51,46 @@ class DatabaseSøknadRepo(
     private fun opprettSak(fnr: String): Long = "insert into sak (fnr) values (:fnr)".oppdatering(mapOf("fnr" to fnr))!!
 
 
-    fun Row.toStønadsperiode() = Stønadsperiode(
+    private fun Row.toStønadsperiode(session: Session) = Stønadsperiode(
             id = long("id"),
-            søknad = hentSøknad(long("søknadId"))!!
+            søknad = hentSøknad(long("søknadId"), session)!!
     )
 
-    override fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode> = "select * from stønadsperiode where sakId=:sakId"
-            .hentListe(mapOf("sakId" to sakId)) { row ->
-                row.toStønadsperiode().also {
+    override fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode> = using(sessionOf(dataSource)) { hentStønadsperioder(sakId, it) }
+
+    private fun hentStønadsperioder(sakId: Long, session: Session): MutableList<Stønadsperiode> = "select * from stønadsperiode where sakId=:sakId"
+            .hentListe(mapOf("sakId" to sakId), session) { row ->
+                row.toStønadsperiode(session).also {
                     it.addObserver(this)
                 }
             }.toMutableList()
 
-    override fun hentSøknad(søknadId: Long): Søknad? = "select * from søknad where id=:id"
-            .hent(mapOf("id" to søknadId)) {
+    override fun hentSøknad(søknadId: Long): Søknad? = using(sessionOf(dataSource)) { hentSøknad(søknadId, it) }
+
+    private fun hentSøknad(søknadId: Long, session: Session): Søknad? = "select * from søknad where id=:id"
+            .hent(mapOf("id" to søknadId), session) {
                 Søknad(
                         id = it.long("id"),
                         søknadInnhold = SøknadInnhold.fromJson(JSONObject(it.string("json")))
                 )
             }
 
-    override fun hentBehandling(behandlingId: Long): Behandling? = "select * from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId)) {
+    override fun hentBehandling(behandlingId: Long): Behandling? = using(sessionOf(dataSource)) { hentBehandling(behandlingId, it) }
+
+    private fun hentBehandling(behandlingId: Long, session: Session): Behandling? = "select * from behandling where id=:id"
+            .hent(mapOf("id" to behandlingId), session) {
                 Behandling(id = it.long("id"))
             }
 
-    override fun hentStønadsperiode(stønadsperiodeId: Long): Stønadsperiode? = "select * from stønadsperiode where id=:id"
-            .hent(mapOf("id" to stønadsperiodeId)) { row ->
-                row.toStønadsperiode().also {
+    override fun hentStønadsperiode(stønadsperiodeId: Long): Stønadsperiode? = using(sessionOf(dataSource)) { hentStønadsperiode(stønadsperiodeId, it) }
+
+    private fun hentStønadsperiode(stønadsperiodeId: Long, session: Session): Stønadsperiode? = "select * from stønadsperiode where id=:id"
+            .hent(mapOf("id" to stønadsperiodeId), session) { row ->
+                row.toStønadsperiode(session).also {
                     it.addObserver(this)
                 }
             }
+
 
     override fun nyBehandling(stønadsperiodeId: Long): Behandling {
         val behandlingId = opprettBehandling(stønadsperiodeId)
@@ -90,6 +100,9 @@ class DatabaseSøknadRepo(
     private fun opprettBehandling(stønadsperiodeId: Long) = "insert into behandling (stønadsperiodeId) values (:id)".oppdatering(mapOf("id" to stønadsperiodeId))!!
 
     private fun String.oppdatering(params: Map<String, Any>): Long? = using(sessionOf(dataSource, returnGeneratedKey = true)) { it.run(queryOf(this, params).asUpdateAndReturnGeneratedKey) }
-    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): T? = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle) }
-    private fun <T> String.hentListe(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): List<T> = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asList) }
+//    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): T? = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle) }
+//    private fun <T> String.hentListe(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): List<T> = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asList) }
+
+    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): T? = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle)
+    private fun <T> String.hentListe(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 }
