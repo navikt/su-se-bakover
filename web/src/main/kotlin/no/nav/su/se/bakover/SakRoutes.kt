@@ -12,16 +12,17 @@ internal const val sakPath = "/sak"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-        sakFactory: SakFactory
+        sakRepo: ObjectRepo
 ) {
     get("$sakPath/{id}") {
         Long.lesParameter(call, "id").fold(
                 left = { call.svar(BadRequest.tekst(it)) },
                 right = { id ->
                     call.audit("Henter sak med id: $id")
-                    sakFactory.hent(id).fold(
-                            left = { call.svar(NotFound.tekst("Fant ikke sak med id: $id")) },
-                            right = { call.svar(OK.json(it.toJson())) })
+                    when (val sak = sakRepo.hentSak(id)) {
+                        null -> call.svar(NotFound.tekst("Fant ikke sak med id: $id"))
+                        else -> call.svar(OK.json(sak.toJson()))
+                    }
                 }
         )
     }

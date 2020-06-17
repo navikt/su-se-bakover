@@ -27,7 +27,7 @@ internal class SakComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         })) {
-            val opprettetSakId = sakRepo.nySak(Fødselsnummer(sakFnr01))
+            val opprettetSakId = JSONObject(sakRepo.opprettSak(Fødselsnummer(sakFnr01)).toJson()).getLong("id")
 
             withCorrelationId(Get, "$sakPath/$opprettetSakId") {
                 addHeader(Authorization, jwt)

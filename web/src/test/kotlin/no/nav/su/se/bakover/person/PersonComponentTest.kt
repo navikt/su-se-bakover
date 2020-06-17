@@ -41,7 +41,7 @@ internal class PersonComponentTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            withCorrelationId(Get, "$personPath/qwertyuiopå"){
+            withCorrelationId(Get, "$personPath/qwertyuiopå") {
                 addHeader(Authorization, jwt)
             }
         }.apply {
@@ -56,7 +56,7 @@ internal class PersonComponentTest : ComponentTest() {
             susebakover()
         })) {
             val fnr = "12121212121"
-            sakRepo.nySak(Fødselsnummer(fnr))
+            sakRepo.opprettSak(Fødselsnummer(fnr))
             withCorrelationId(Get, "$personPath/$fnr/sak") {
                 addHeader(Authorization, jwt)
             }.apply {

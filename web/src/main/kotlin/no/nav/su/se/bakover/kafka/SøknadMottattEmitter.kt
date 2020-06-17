@@ -6,25 +6,24 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.ContextHolder
 import no.nav.su.se.bakover.Fødselsnummer
 import no.nav.su.se.bakover.PersonOppslag
-import no.nav.su.se.bakover.SøknadRouteMediator
+import no.nav.su.se.bakover.SakEventObserver
 import org.apache.kafka.clients.producer.KafkaProducer
 
 @KtorExperimentalAPI
 internal class SøknadMottattEmitter(
         private val kafka: KafkaProducer<String, String>,
         private val personClient: PersonOppslag
-) {
-    fun søknadMottatt(event: SøknadRouteMediator.SøknadMottattEvent) {
-        val aktørId = personClient.aktørId(Fødselsnummer(event.søknadInnhold.personopplysninger.fnr))
-        kafka.send(event.somNySøknad(aktørId).toProducerRecord(Topics.SØKNAD_TOPIC))
+) : SakEventObserver {
+    override fun nySøknadEvent(event: SakEventObserver.NySøknadEvent) {
+        val søknadInnhold = event.søknadInnhold
+        val aktørId = personClient.aktørId(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        kafka.send(NySøknad(
+                correlationId = ContextHolder.correlationId(),
+                fnr = søknadInnhold.personopplysninger.fnr,
+                sakId = "${event.sakId}",
+                aktørId = aktørId,
+                søknadId = "${event.søknadId}",
+                søknad = søknadInnhold.toJson()
+        ).toProducerRecord(Topics.SØKNAD_TOPIC))
     }
 }
-
-private fun SøknadRouteMediator.SøknadMottattEvent.somNySøknad(aktørId: String): NySøknad = NySøknad(
-        correlationId = ContextHolder.correlationId(),
-        fnr = søknadInnhold.personopplysninger.fnr,
-        sakId = "${sakId}",
-        aktørId = aktørId,
-        søknadId = "${søknadId}",
-        søknad = søknadInnhold.toJson()
-)
