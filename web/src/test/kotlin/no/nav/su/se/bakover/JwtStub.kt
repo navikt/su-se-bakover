@@ -46,6 +46,7 @@ class JwtStub(private val wireMockServer: WireMockServer? = null) {
                 .withKeyId("key-1234")
                 .withSubject(subject)
                 .withArrayClaim("groups", groups.toTypedArray())
+                .withClaim("oid", UUID.randomUUID().toString())
                 .withExpiresAt(expiresAt)
                 .sign(algorithm)
     }
