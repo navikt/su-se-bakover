@@ -3,7 +3,13 @@ package no.nav.su.se.bakover
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 
-class Fødselsnummer(private val fnr: String) {
+class Fødselsnummer(
+        private val fnr: String
+) {
+    init {
+        require(fnrPattern.matches(fnr), { "Fødselsnummer må være nøyaktig 11 siffer langt" })
+    }
+
     override fun toString(): String = fnr
 
     companion object {

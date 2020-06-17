@@ -13,7 +13,7 @@ internal const val personPath = "/person"
 @KtorExperimentalAPI
 internal fun Route.personRoutes(
         oppslag: PersonOppslag,
-        sakFactory: SakFactory
+        sakRepo: ObjectRepo
 ) {
     get("$personPath/{fnr}") {
         launchWithContext(call) {
@@ -32,10 +32,10 @@ internal fun Route.personRoutes(
                 left = { call.svar(BadRequest.tekst(it)) },
                 right = { fnr ->
                     call.audit("Henter sak for person: $fnr")
-                    sakFactory.hent(fnr).fold(
-                            left = { call.svar(HttpStatusCode.NotFound.tekst(it)) },
-                            right = { call.svar(HttpStatusCode.OK.json(it.toJson())) }
-                    )
+                    when (val sak = sakRepo.hentSak(fnr)) {
+                        null -> call.svar(HttpStatusCode.NotFound.tekst("Fant ingen sak for fnr:$fnr"))
+                        else -> call.svar(HttpStatusCode.OK.json(sak.toJson()))
+                    }
                 }
         )
     }

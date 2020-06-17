@@ -27,10 +27,10 @@ internal fun Route.soknadRoutes(
                 left = { call.svar(BadRequest.tekst(it)) },
                 right = { id ->
                     call.audit("Henter søknad med id: $id")
-                    mediator.hentSøknad(id).fold(
-                            left = { call.svar(NotFound.tekst(it)) },
-                            right = { call.svar(OK.json(it.toJson())) }
-                    )
+                    when (val søknad = mediator.hentSøknad(id)) {
+                        null -> call.svar(NotFound.tekst("Fant ikke søknad med id:$id"))
+                        else -> call.svar(OK.json(søknad.toJson()))
+                    }
                 }
         )
     }
@@ -55,32 +55,16 @@ internal fun Route.soknadRoutes(
 suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
 
 internal class SøknadRouteMediator(
-        private val sakFactory: SakFactory,
-        private val søknadFactory: SøknadFactory,
-        private val stønadsperiodeFactory: StønadsperiodeFactory,
+        private val repo: DatabaseSøknadRepo,
         private val søknadMottattEmitter: SøknadMottattEmitter
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak = sakFactory.hentEllerOpprett(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
-        val søknad = søknadFactory.nySøknad(søknadInnhold)
-        stønadsperiodeFactory.nyStønadsperiode(sak, søknad)
-        søknadMottattEmitter.søknadMottatt(SøknadMottattEvent(
-                sakId = sak.id(),
-                søknadId = søknad.id(),
-                søknadInnhold = søknadInnhold
-        ))
-        return sakFactory.hent(Fødselsnummer(søknadInnhold.personopplysninger.fnr)).fold(
-                left = { throw RuntimeException("Sak, stønadsperiode og søknad er lagret. Kafka-melding sendt. sakId:${sak.id()}, søknadId:${søknad.id()})") },
-                right = { it }
-        )
+        val sak = repo.hentSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+                ?: repo.opprettSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        sak.addObserver(søknadMottattEmitter)
+        sak.nySøknad(søknadInnhold)
+        return repo.hentSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))!!
     }
 
-    fun hentSøknad(id: Long) = søknadFactory.forId(id)
-
-
-    data class SøknadMottattEvent(
-            val sakId: Long,
-            val søknadId: Long,
-            val søknadInnhold: SøknadInnhold
-    )
+    fun hentSøknad(id: Long) = repo.hentSøknad(id)
 }

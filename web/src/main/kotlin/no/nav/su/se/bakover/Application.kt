@@ -79,10 +79,7 @@ internal fun Application.susebakover(
 
     val databaseRepo = DatabaseSøknadRepo(dataSource)
     val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, personOppslag)
-    val søknadFactory = SøknadFactory(databaseRepo)
-    val stønadsperiodeFactory = StønadsperiodeFactory(databaseRepo, søknadFactory)
-    val sakFactory = SakFactory(databaseRepo, stønadsperiodeFactory)
-    val søknadRoutesMediator = SøknadRouteMediator(sakFactory, søknadFactory, stønadsperiodeFactory, søknadMottattEmitter)
+    val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
     install(CORS) {
         method(Options)
@@ -141,9 +138,9 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(personOppslag, sakFactory)
+            personRoutes(personOppslag, databaseRepo)
             inntektRoutes(inntektOppslag)
-            sakRoutes(sakFactory)
+            sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
         }
     }

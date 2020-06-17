@@ -73,13 +73,13 @@ internal class ContextHolderTest : ComponentTest() {
             requests.map { executors.submit(it) }.also {
                 applicationCalls = it.map { it.get() }
             }
-            WireMock.verify(100, WireMock.getRequestedFor(WireMock.urlPathEqualTo("/person"))) // Expect 100 invocations to endpoint for getting aktørid
+            WireMock.verify(numRequests, WireMock.getRequestedFor(WireMock.urlPathEqualTo("/person"))) // Expect 100 invocations to endpoint for getting aktørid
             val downstreamCorrelationIds = WireMock.getAllServeEvents()
-                    .filter { it.request.url == "/person?ident=01010100001" }
+                    .filter { it.request.url.contains("/person?ident=") }
                     .map { it.request.header(XCorrelationId).firstValue() }
             val passedCorrelationIds = List(numRequests) { it.toString() }
-            assertEquals(100, passedCorrelationIds.size)
-            assertEquals(100, downstreamCorrelationIds.size)
+            assertEquals(numRequests, passedCorrelationIds.size)
+            assertEquals(numRequests, downstreamCorrelationIds.size)
             assertTrue(downstreamCorrelationIds.containsAll(passedCorrelationIds)) // Verify all correlation ids passed along to service to get aktørid
             applicationCalls!!.forEach { assertEquals(it.request.header(XCorrelationId), it.response.headers[XCorrelationId]) } // Assert responses contain input correlation id
         }
@@ -98,7 +98,7 @@ internal class ContextHolderTest : ComponentTest() {
                 addHeader(XCorrelationId, "$correlationId")
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(build(personopplysninger = personopplysninger("01010100001")).toJson())
+                setBody(build(personopplysninger = personopplysninger(FødselsnummerGenerator.random())).toJson())
             }
         }
     }

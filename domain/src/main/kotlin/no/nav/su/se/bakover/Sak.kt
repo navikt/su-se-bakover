@@ -1,17 +1,16 @@
 package no.nav.su.se.bakover
 
-import no.nav.su.se.bakover.Either.Left
-import no.nav.su.se.bakover.Either.Right
+import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
-class Sak internal constructor(
+class Sak constructor(
         private val fnr: Fødselsnummer,
-        private var id: Long = NO_SUCH_IDENTITY,
-        private var stønadsperioder: List<Stønadsperiode> = emptyList()
-) : Persistent {
-
-    override fun id(): Long = id
+        private val id: Long = NO_SUCH_IDENTITY,
+        private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
+) {
+    private val observers: MutableList<SakObserver> = mutableListOf()
+    fun addObserver(observer: SakObserver) = observers.add(observer)
 
     fun toJson() = """
         {
@@ -21,47 +20,43 @@ class Sak internal constructor(
         }
     """.trimIndent()
 
-    fun stønadsperioderSomJsonListe(): String = "[ ${stønadsperioder.joinToString(",") { it.toJson() }} ]"
+    private fun stønadsperioderSomJsonListe(): String = "[ ${stønadsperioder.joinToString(",") { it.toJson() }} ]"
+
+    fun nySøknad(søknadInnhold: SøknadInnhold) {
+        observers.filterIsInstance(SakPersistenceObserver::class.java).forEach {
+            stønadsperioder.add(it.nySøknad(id, søknadInnhold))
+        }
+        val event = sisteStønadsperiode().nySøknadEvent(id)
+        observers.filterIsInstance(SakEventObserver::class.java).forEach {
+            it.nySøknadEvent(event)
+        }
+    }
+
+    fun sisteStønadsperiode() = stønadsperioder.last()
 }
 
-// forstår hvordan man konstruerer en sak.
-class SakFactory(
-        private val sakRepo: SakRepo,
-        private val stønadsperiodeFactory: StønadsperiodeFactory
-) {
-    fun hent(fnr: Fødselsnummer): Either<String, Sak> {
-        val sakId = sakRepo.sakIdForFnr(fnr)
-        return when (sakId) {
-            null -> Left("Fant ingen saker for fnr:$fnr")
-            else -> Right(Sak(fnr, sakId, stønadsperiodeFactory.forSak(sakId)))
-        }
-    }
+interface SakObserver
 
-
-    fun hentEllerOpprett(fnr: Fødselsnummer): Sak {
-        val eksisterendeIdentitet = sakRepo.sakIdForFnr(fnr)
-        return when (eksisterendeIdentitet) {
-            null -> Sak(fnr, sakRepo.nySak(fnr), emptyList())
-            else -> Sak(fnr, eksisterendeIdentitet, stønadsperiodeFactory.forSak(eksisterendeIdentitet))
-        }
-    }
-
-    fun hent(sakId: Long): Either<String, Sak> {
-        val eksisterendeFødelsnummer = sakRepo.fnrForSakId(sakId)
-        return when (eksisterendeFødelsnummer) {
-            null -> Left("Det finnes ingen sak med id $sakId")
-            else -> Right(Sak(eksisterendeFødelsnummer, sakId, stønadsperiodeFactory.forSak(sakId)))
-        }
-    }
-
-    fun alle(): List<Sak> = sakRepo.alleSaker().map {
-        Sak(fnr = it.second, id = it.first)
-    }
+interface SakPersistenceObserver : SakObserver {
+    fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold): Stønadsperiode
 }
 
-interface SakRepo {
-    fun nySak(fnr: Fødselsnummer): Long
-    fun sakIdForFnr(fnr: Fødselsnummer): Long?
-    fun fnrForSakId(sakId: Long): Fødselsnummer?
-    fun alleSaker(): List<Pair<Long, Fødselsnummer>>
+interface SakEventObserver : SakObserver {
+    fun nySøknadEvent(nySøknadEvent: NySøknadEvent) {}
+
+    data class NySøknadEvent(
+            val sakId: Long,
+            val søknadId: Long,
+            val søknadInnhold: SøknadInnhold
+    )
+}
+
+interface ObjectRepo {
+    fun hentSak(fnr: Fødselsnummer): Sak?
+    fun hentSak(sakId: Long): Sak?
+    fun opprettSak(fnr: Fødselsnummer): Sak
+    fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode>
+    fun hentSøknad(søknadId: Long): Søknad?
+    fun hentBehandling(behandlingId: Long): Behandling?
+    fun hentStønadsperiode(stønadsperiodeId: Long): Stønadsperiode?
 }
