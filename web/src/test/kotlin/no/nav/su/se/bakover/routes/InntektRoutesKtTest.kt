@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.inntekt
+package no.nav.su.se.bakover.routes
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class InntektComponentTest: ComponentTest() {
+internal class InntektRoutesKtTest: ComponentTest() {
 
     private val ident = "12345678910"
     private val fomDato = "2020-01-01"

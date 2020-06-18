@@ -23,6 +23,7 @@ import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
+import no.nav.su.se.bakover.routes.søknadPath
 import org.junit.jupiter.api.Test
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors

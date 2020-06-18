@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.sak
+package no.nav.su.se.bakover.routes
 
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SakComponentTest : ComponentTest() {
+internal class SakRoutesKtTest : ComponentTest() {
 
     private val sakFnr01 = "12345678911"
     private val sakRepo = DatabaseSøknadRepo(EmbeddedDatabase.database)

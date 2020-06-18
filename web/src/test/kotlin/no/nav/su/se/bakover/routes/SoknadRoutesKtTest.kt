@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.soknad
+package no.nav.su.se.bakover.routes
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
@@ -32,7 +32,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SoknadComponentTest : ComponentTest() {
+internal class SoknadRoutesKtTest : ComponentTest() {
 
     private val stubAktørId = "12345"
     fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()

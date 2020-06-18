@@ -1,10 +1,12 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.routes
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.PersonOppslag
 
 internal const val personPath = "/person"
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.person
+package no.nav.su.se.bakover.routes
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.AnythingPattern
@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class PersonComponentTest : ComponentTest() {
+internal class PersonRoutesKtTest : ComponentTest() {
 
     private val sakRepo = DatabaseSøknadRepo(EmbeddedDatabase.database)
 

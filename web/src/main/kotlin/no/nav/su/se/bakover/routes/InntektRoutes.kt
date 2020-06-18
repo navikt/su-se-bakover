@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.routes
 
 import io.ktor.application.call
 import io.ktor.http.HttpHeaders.Authorization
@@ -8,6 +8,9 @@ import io.ktor.locations.get
 import io.ktor.request.header
 import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.InntektOppslag
+import no.nav.su.se.bakover.audit
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
