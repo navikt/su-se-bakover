@@ -152,6 +152,7 @@ internal fun Application.susebakover(
             sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)
+            stønadsperiodeRoutes(databaseRepo)
         }
     }
 }

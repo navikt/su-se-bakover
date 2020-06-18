@@ -9,7 +9,7 @@ import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 
-internal const val behandlingPath = "$sakPath/{sakId}/stønadsperioder/{stønadsperiodeId}/behandlinger"
+internal const val behandlingPath = "$stønadsperiodePath/{stønadsperiodeId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
