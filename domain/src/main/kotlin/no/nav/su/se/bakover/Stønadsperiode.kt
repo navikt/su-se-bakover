@@ -21,8 +21,13 @@ class Stønadsperiode(
 
     private fun behandlingerAsJson(): String = "[ ${behandlinger.joinToString(",") { it.toJson() }} ]"
 
-    fun nyBehandling() = observers.filterIsInstance(StønadsperiodePersistenceObserver::class.java).forEach {
-        behandlinger.add(it.nyBehandling(id))
+    fun nyBehandling() : Behandling {
+        lateinit var behandling: Behandling
+        observers.filterIsInstance(StønadsperiodePersistenceObserver::class.java).forEach {
+            behandling = it.nyBehandling(id)
+            behandlinger.add(behandling)
+        }
+        return behandling
     }
 
     fun nySøknadEvent(sakId: Long) = søknad.nySøknadEvent(sakId)

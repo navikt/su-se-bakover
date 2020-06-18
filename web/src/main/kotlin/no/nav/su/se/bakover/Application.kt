@@ -39,10 +39,6 @@ import no.nav.su.se.bakover.Postgres.Role
 import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.routes.*
-import no.nav.su.se.bakover.routes.SøknadRouteMediator
-import no.nav.su.se.bakover.routes.inntektRoutes
-import no.nav.su.se.bakover.routes.personRoutes
-import no.nav.su.se.bakover.routes.soknadRoutes
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.json.JSONObject
@@ -155,6 +151,7 @@ internal fun Application.susebakover(
             inntektRoutes(inntektOppslag)
             sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
+            behandlingRoutes(databaseRepo)
         }
     }
 }
