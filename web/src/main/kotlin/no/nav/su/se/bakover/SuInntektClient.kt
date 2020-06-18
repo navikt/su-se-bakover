@@ -41,7 +41,7 @@ internal class SuInntektClient(
                         )
                 )
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, ContextHolder.correlationId())
+                .header(XCorrelationId, CallContext.correlationId())
                 .header(ContentType, FormUrlEncoded)
                 .responseString()
 

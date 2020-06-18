@@ -27,12 +27,9 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import no.nav.su.se.bakover.ContextHolder.MdcContext
-import no.nav.su.se.bakover.ContextHolder.SecurityContext
+import kotlinx.coroutines.*
+import no.nav.su.se.bakover.CallContext.MdcContext
+import no.nav.su.se.bakover.CallContext.SecurityContext
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
 import no.nav.su.se.bakover.Postgres.Role
@@ -47,6 +44,7 @@ import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
 import javax.sql.DataSource
+import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
@@ -206,12 +204,18 @@ internal fun byggVersion(): String {
 }
 
 suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
-    val coroutineContext = Dispatchers.Default +
-            ContextHolder(
-                    security = SecurityContext(call.authHeader()),
-                    mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
-            ).asContextElement()
+    val callContext = CallContext(
+            security = SecurityContext(token = call.authHeader()),
+            mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
+    )
+    val coroutineContext = Dispatchers.Default + callContext.toCoroutineContext()
     coroutineScope { launch(context = coroutineContext, block = block).join() }
+}
+
+fun CallContext.toCoroutineContext(): CoroutineContext {
+    val security = securityContextElement()
+    val mdc = mdcContextElement()
+    return security.first.asContextElement(security.second) + mdc.first.asContextElement(mdc.second)
 }
 
 

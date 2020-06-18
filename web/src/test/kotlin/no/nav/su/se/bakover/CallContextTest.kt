@@ -32,13 +32,13 @@ import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class ContextHolderTest : ComponentTest() {
+internal class CallContextTest : ComponentTest() {
 
     @Test
     fun `should set and get context`() {
-        ContextHolder(ContextHolder.SecurityContext("token"), ContextHolder.MdcContext(mapOf(HttpHeaders.XCorrelationId to "value")))
-        assertEquals("token", ContextHolder.authentication())
-        assertEquals("value", ContextHolder.correlationId())
+        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf(XCorrelationId to "value")))
+        assertEquals("token", CallContext.authentication())
+        assertEquals("value", CallContext.correlationId())
     }
 
     @Test
@@ -46,15 +46,15 @@ internal class ContextHolderTest : ComponentTest() {
         runBlocking {
             launchWithContext(callWithAuth("outer", DEFAULT_CALL_ID)) {
                 launchWithContext(callWithAuth("inner", DEFAULT_CALL_ID)) {
-                    assertEquals("inner", ContextHolder.authentication())
-                    assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
+                    assertEquals("inner", CallContext.authentication())
+                    assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
                     launchWithContext(callWithAuth("furtherin", DEFAULT_CALL_ID)) {
-                        assertEquals("furtherin", ContextHolder.authentication())
-                        assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
+                        assertEquals("furtherin", CallContext.authentication())
+                        assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
                     }
                 }
-                assertEquals("outer", ContextHolder.authentication())
-                assertEquals(DEFAULT_CALL_ID, ContextHolder.correlationId())
+                assertEquals("outer", CallContext.authentication())
+                assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
             }
         }
     }

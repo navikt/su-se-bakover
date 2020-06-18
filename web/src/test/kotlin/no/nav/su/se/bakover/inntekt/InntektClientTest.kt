@@ -47,7 +47,7 @@ internal class InntektClientTest : ComponentTest() {
 
     @BeforeEach
     fun setup() {
-        ContextHolder(ContextHolder.SecurityContext("token"), ContextHolder.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
+        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
         wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
                 .willReturn(WireMock.okJson("""{}""")))
     }

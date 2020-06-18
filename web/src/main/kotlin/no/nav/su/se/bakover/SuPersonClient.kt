@@ -22,10 +22,10 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
     private val personResource = "$suPersonBaseUrl/person"
 
     override fun person(ident: Fnr): Resultat {
-        val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.authentication(), suPersonClientId)
+        val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, ContextHolder.correlationId())
+                .header(XCorrelationId, CallContext.correlationId())
                 .responseString()
         return result.fold(
                 { OK.json(it) },
@@ -39,10 +39,10 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
     }
 
     override fun aktørId(ident: Fnr): String {
-        val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.authentication(), suPersonClientId)
+        val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, ContextHolder.correlationId())
+                .header(XCorrelationId, CallContext.correlationId())
                 .responseString()
         return result.fold(
                 { JSONObject(it).getString("aktorId") },

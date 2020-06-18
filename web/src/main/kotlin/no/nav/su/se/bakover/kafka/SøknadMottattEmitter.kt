@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.kafka
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics
 import no.nav.su.meldinger.kafka.soknad.NySøknad
-import no.nav.su.se.bakover.ContextHolder
+import no.nav.su.se.bakover.CallContext
 import no.nav.su.se.bakover.Fnr
 import no.nav.su.se.bakover.PersonOppslag
 import no.nav.su.se.bakover.SakEventObserver
@@ -18,7 +18,7 @@ internal class SøknadMottattEmitter(
         val søknadInnhold = event.søknadInnhold
         val aktørId = personClient.aktørId(Fnr(søknadInnhold.personopplysninger.fnr))
         kafka.send(NySøknad(
-                correlationId = ContextHolder.correlationId(),
+                correlationId = CallContext.correlationId(),
                 fnr = søknadInnhold.personopplysninger.fnr,
                 sakId = "${event.sakId}",
                 aktørId = aktørId,
