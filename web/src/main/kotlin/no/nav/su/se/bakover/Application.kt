@@ -17,6 +17,7 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.http.HttpStatusCode
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
 import io.ktor.request.header
@@ -90,6 +91,12 @@ internal fun Application.susebakover(
         exposeHeader("access_token")
         exposeHeader("refresh_token")
         host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
+    }
+
+    install(StatusPages) {
+        exception<UgyldigFnrException> { cause ->
+            call.respond(HttpStatusCode.BadRequest, cause)
+        }
     }
 
     val collectorRegistry = CollectorRegistry.defaultRegistry
@@ -205,3 +212,5 @@ suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineSco
 
 
 fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()
+
+internal fun Fnr.Companion.lesParameter(call: ApplicationCall) = Fnr(call.parameters[FNR])

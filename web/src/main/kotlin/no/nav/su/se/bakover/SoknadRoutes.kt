@@ -39,13 +39,10 @@ internal fun Route.soknadRoutes(
         launchWithContext(call) {
             call.receiveTextUTF8().let { json ->
                 SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
-                    Fødselsnummer.fraString(søknadInnhold.personopplysninger.fnr).fold(
-                            left = { call.svar(BadRequest.tekst(it)) },
-                            right = {
-                                call.audit("Lagrer søknad for person: $it")
-                                call.svar(Created.json(mediator.nySøknad(søknadInnhold).toJson()))
-                            }
-                    )
+                    Fnr(søknadInnhold.personopplysninger.fnr).let {
+                        call.audit("Lagrer søknad for person: $it")
+                        call.svar(Created.json(mediator.nySøknad(søknadInnhold).toJson()))
+                    }
                 }
             }
         }
@@ -59,11 +56,11 @@ internal class SøknadRouteMediator(
         private val søknadMottattEmitter: SøknadMottattEmitter
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak = repo.hentSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
-                ?: repo.opprettSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))
+                ?: repo.opprettSak(Fnr(søknadInnhold.personopplysninger.fnr))
         sak.addObserver(søknadMottattEmitter)
         sak.nySøknad(søknadInnhold)
-        return repo.hentSak(Fødselsnummer(søknadInnhold.personopplysninger.fnr))!!
+        return repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))!!
     }
 
     fun hentSøknad(id: Long) = repo.hentSøknad(id)

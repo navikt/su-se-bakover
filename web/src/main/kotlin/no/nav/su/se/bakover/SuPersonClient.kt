@@ -11,8 +11,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 internal interface PersonOppslag {
-    fun person(ident: Fødselsnummer): Resultat
-    fun aktørId(ident: Fødselsnummer): String
+    fun person(ident: Fnr): Resultat
+    fun aktørId(ident: Fnr): String
 }
 
 private const val suPersonIdentLabel = "ident"
@@ -21,7 +21,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
     PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
-    override fun person(ident: Fødselsnummer): Resultat {
+    override fun person(ident: Fnr): Resultat {
         val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.authentication(), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")
@@ -38,7 +38,7 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         )
     }
 
-    override fun aktørId(ident: Fødselsnummer): String {
+    override fun aktørId(ident: Fnr): String {
         val onBehalfOfToken = OAuth.onBehalfOFToken(ContextHolder.authentication(), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
                 .header(Authorization, "Bearer $onBehalfOfToken")

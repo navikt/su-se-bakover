@@ -4,7 +4,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.ContextHolder
-import no.nav.su.se.bakover.Fødselsnummer
+import no.nav.su.se.bakover.Fnr
 import no.nav.su.se.bakover.PersonOppslag
 import no.nav.su.se.bakover.SakEventObserver
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -16,7 +16,7 @@ internal class SøknadMottattEmitter(
 ) : SakEventObserver {
     override fun nySøknadEvent(event: SakEventObserver.NySøknadEvent) {
         val søknadInnhold = event.søknadInnhold
-        val aktørId = personClient.aktørId(Fødselsnummer(søknadInnhold.personopplysninger.fnr))
+        val aktørId = personClient.aktørId(Fnr(søknadInnhold.personopplysninger.fnr))
         kafka.send(NySøknad(
                 correlationId = ContextHolder.correlationId(),
                 fnr = søknadInnhold.personopplysninger.fnr,

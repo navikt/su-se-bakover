@@ -16,7 +16,7 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
         launchWithContext(call) {
             call.audit("slår opp inntekt for person: ${inntektPath.ident}")
             val resultat = oppslag.inntekt(
-                    ident = Fødselsnummer(inntektPath.ident),
+                    ident = Fnr(inntektPath.ident),
                     innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
                     fomDato = inntektPath.fomDato,
                     tomDato = inntektPath.tomDato

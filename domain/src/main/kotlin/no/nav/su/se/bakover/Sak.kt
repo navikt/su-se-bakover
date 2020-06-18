@@ -5,7 +5,7 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Sak constructor(
-        private val fnr: Fødselsnummer,
+        private val fnr: Fnr,
         private val id: Long = NO_SUCH_IDENTITY,
         private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
 ) {
@@ -52,9 +52,9 @@ interface SakEventObserver : SakObserver {
 }
 
 interface ObjectRepo {
-    fun hentSak(fnr: Fødselsnummer): Sak?
+    fun hentSak(fnr: Fnr): Sak?
     fun hentSak(sakId: Long): Sak?
-    fun opprettSak(fnr: Fødselsnummer): Sak
+    fun opprettSak(fnr: Fnr): Sak
     fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode>
     fun hentSøknad(søknadId: Long): Søknad?
     fun hentBehandling(behandlingId: Long): Behandling?

@@ -15,29 +15,29 @@ internal class InntektClientTest : ComponentTest() {
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
         val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang403)
-        val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
+        val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
         val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang200)
-        val result = inntektClient.inntekt(Fødselsnummer("01010112345"), "innlogget bruker", "2000-01", "2000-12")
+        val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
         assertEquals(OK.json("{}"), result)
     }
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: Fødselsnummer): Resultat =
+        override fun person(ident: Fnr): Resultat =
                 OK.json("""{"ting": "OK"}""")
 
-        override fun aktørId(ident: Fødselsnummer): String = "aktoerId"
+        override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: Fødselsnummer): Resultat =
+        override fun person(ident: Fnr): Resultat =
                 HttpStatusCode.fromValue(403).tekst("Du hakke lov")
 
-        override fun aktørId(ident: Fødselsnummer): String = "aktoerId"
+        override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val tokenExchange = object : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"

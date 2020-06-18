@@ -98,7 +98,7 @@ internal class ContextHolderTest : ComponentTest() {
                 addHeader(XCorrelationId, "$correlationId")
                 addHeader(Authorization, "Bearer $token")
                 addHeader(ContentType, Json.toString())
-                setBody(build(personopplysninger = personopplysninger(FødselsnummerGenerator.random())).toJson())
+                setBody(build(personopplysninger = personopplysninger(FnrGenerator.random().toString())).toJson())
             }
         }
     }

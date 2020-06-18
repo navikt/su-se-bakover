@@ -9,9 +9,9 @@ class DatabaseSøknadRepo(
         private val dataSource: DataSource
 ) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver {
 
-    override fun hentSak(fnr: Fødselsnummer): Sak? = using(sessionOf(dataSource)) { hentSak(fnr, it) }
+    override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSak(fnr, it) }
 
-    private fun hentSak(fnr: Fødselsnummer, session: Session): Sak? = "select * from sak where fnr=:fnr"
+    private fun hentSak(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
             .hent(mapOf("fnr" to fnr.toString()), session) { row ->
                 row.toSak(session).also {
                     it.addObserver(this)
@@ -25,7 +25,7 @@ class DatabaseSøknadRepo(
 
     private fun Row.toSak(session: Session) = Sak(
             id = long("id"),
-            fnr = Fødselsnummer(string("fnr")),
+            fnr = Fnr(string("fnr")),
             stønadsperioder = hentStønadsperioder(long("id"), session)
     )
 
@@ -43,7 +43,7 @@ class DatabaseSøknadRepo(
 
     private fun opprettSøknad(søknadInnhold: SøknadInnhold): Long = "insert into søknad (json) values (to_json(:soknad::json))".oppdatering(mapOf("soknad" to søknadInnhold.toJson()))!!
 
-    override fun opprettSak(fnr: Fødselsnummer): Sak {
+    override fun opprettSak(fnr: Fnr): Sak {
         val sakId = opprettSak(fnr.toString())
         return hentSak(sakId)!!
     }

@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.db
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.DatabaseSøknadRepo
-import no.nav.su.se.bakover.Fødselsnummer
+import no.nav.su.se.bakover.Fnr
 import no.nav.su.se.bakover.Stønadsperiode
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -23,7 +23,7 @@ class BehandlingsRepoTest {
         }
     }
 
-    private fun enStønadsperiode(): Stønadsperiode = repo.opprettSak(Fødselsnummer("12345678910")).also {
+    private fun enStønadsperiode(): Stønadsperiode = repo.opprettSak(Fnr("12345678910")).also {
         it.nySøknad(SøknadInnholdTestdataBuilder.build())
     }.sisteStønadsperiode()
 }

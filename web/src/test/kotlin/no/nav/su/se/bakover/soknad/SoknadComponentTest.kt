@@ -35,12 +35,12 @@ import kotlin.test.assertEquals
 internal class SoknadComponentTest : ComponentTest() {
 
     private val stubAktørId = "12345"
-    fun soknadJson(fnr: Fødselsnummer) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
+    fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
 
     @Test
     fun `lagrer og henter søknad`() {
         val token = jwtStub.createTokenFor()
-        val fnr = Fødselsnummer("01010100001")
+        val fnr = Fnr("01010100001")
         stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
@@ -69,7 +69,7 @@ internal class SoknadComponentTest : ComponentTest() {
     @Test
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val token = jwtStub.createTokenFor()
-        val fnr = Fødselsnummer("01010100002")
+        val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
         stubPdl(fnr)
         withTestApplication({
@@ -106,7 +106,7 @@ internal class SoknadComponentTest : ComponentTest() {
     @Test
     fun `knytter søknad til sak og stønadsperiode ved innsending`() {
         val token = jwtStub.createTokenFor()
-        val fnr = Fødselsnummer("01010100004")
+        val fnr = Fnr("01010100004")
         var sakNr: Int
         stubPdl(fnr)
         withTestApplication({
@@ -132,7 +132,7 @@ internal class SoknadComponentTest : ComponentTest() {
         }
     }
 
-    fun stubPdl(testIdent: Fødselsnummer) {
+    fun stubPdl(testIdent: Fnr) {
         WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person"))
                 .withHeader(Authorization, WireMock.equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
                 .withHeader(HttpHeaders.XCorrelationId, AnythingPattern())

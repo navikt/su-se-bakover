@@ -56,7 +56,7 @@ internal class PersonComponentTest : ComponentTest() {
             susebakover()
         })) {
             val fnr = "12121212121"
-            sakRepo.opprettSak(Fødselsnummer(fnr))
+            sakRepo.opprettSak(Fnr(fnr))
             withCorrelationId(Get, "$personPath/$fnr/sak") {
                 addHeader(Authorization, jwt)
             }.apply {
