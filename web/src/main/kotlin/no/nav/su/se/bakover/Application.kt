@@ -86,6 +86,7 @@ internal fun Application.susebakover(
         method(Options)
         header(Authorization)
         header("refresh_token")
+        header(XCorrelationId)
         allowNonSimpleContentTypes = true
         exposeHeader(WWWAuthenticate)
         exposeHeader("access_token")
