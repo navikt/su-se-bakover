@@ -14,7 +14,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.db.EmbeddedDatabase.getEmbeddedJdbcUrl
+import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import org.json.JSONObject
 import java.util.*
 

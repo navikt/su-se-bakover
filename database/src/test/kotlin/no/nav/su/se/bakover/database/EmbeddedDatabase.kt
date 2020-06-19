@@ -1,12 +1,12 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover.database
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import no.nav.su.se.bakover.database.Postgres
+import no.nav.su.se.bakover.database.EmbeddedDatabase.DB_NAME
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 object EmbeddedDatabase {
-    private val DB_NAME = "postgres"
+    internal val DB_NAME = "postgres"
     private val JDBC_FORMAT = "jdbc:postgresql://localhost:%s/%s?user=%s"
     private val instance = EmbeddedPostgres.builder()
             .setLocaleConfig("locale", "en_US.UTF-8") //Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
@@ -26,18 +26,15 @@ object EmbeddedDatabase {
     fun getEmbeddedJdbcUrl() = String.format(JDBC_FORMAT, instance.port, DB_NAME, DB_NAME)
 }
 
-fun withMigratedDb(test: () -> Unit) =
-        EmbeddedDatabase.database.also { clean(it) }.also { migrate(it) }.run { test() }
+fun withMigratedDb(test: () -> Unit) {
+    EmbeddedDatabase.database.also {
+        clean(it)
+        Flyway(it, DB_NAME).migrate()
+        test()
+    }
+}
 
-fun migrate(dataSource: DataSource, initSql: String = ""): Int =
-        Flyway.configure()
-                .dataSource(dataSource)
-                .baselineOnMigrate(true)
-                .initSql(initSql)
-                .load()
-                .migrate()
-
-fun clean(dataSource: DataSource) = Flyway.configure()
+internal fun clean(dataSource: DataSource) = Flyway.configure()
         .dataSource(dataSource)
         .load()
         .clean()

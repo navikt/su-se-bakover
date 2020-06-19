@@ -1,9 +1,8 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover.database
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.Fnr
 import no.nav.su.se.bakover.Stønadsperiode
-import no.nav.su.se.bakover.database.DatabaseRepo
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test

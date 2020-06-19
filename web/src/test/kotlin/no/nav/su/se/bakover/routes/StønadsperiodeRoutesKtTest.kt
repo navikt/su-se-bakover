@@ -7,7 +7,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.db.EmbeddedDatabase
+import no.nav.su.se.bakover.database.EmbeddedDatabase
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

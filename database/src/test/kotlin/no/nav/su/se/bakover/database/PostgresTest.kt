@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.db
+package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.database.NonVaultPostgres
 import no.nav.su.se.bakover.database.Postgres
