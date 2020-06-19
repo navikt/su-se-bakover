@@ -8,6 +8,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.database.ObjectRepo
 
 internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
 

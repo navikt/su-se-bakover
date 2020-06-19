@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.db
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.DatabaseSøknadRepo
 import no.nav.su.se.bakover.Fnr
 import no.nav.su.se.bakover.Stønadsperiode
+import no.nav.su.se.bakover.database.DatabaseRepo
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
-class BehandlingsRepoTest {
+internal class BehandlingsRepoTest {
 
-    private val repo = DatabaseSøknadRepo(EmbeddedDatabase.database)
+    private val repo = DatabaseRepo(EmbeddedDatabase.database)
 
     @Test
     fun `Sjekk at vi kan lagre en behandling i basen`() {

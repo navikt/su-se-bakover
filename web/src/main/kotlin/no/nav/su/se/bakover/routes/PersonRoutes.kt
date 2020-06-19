@@ -7,6 +7,7 @@ import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.PersonOppslag
+import no.nav.su.se.bakover.database.ObjectRepo
 
 internal const val personPath = "/person"
 

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.db
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import no.nav.su.se.bakover.Postgres
+import no.nav.su.se.bakover.database.Postgres
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
@@ -13,6 +13,7 @@ object EmbeddedDatabase {
             .start()!!.also {
                 creatAdminRole(it)
             }
+
     private fun creatAdminRole(embeddedPostgres: EmbeddedPostgres) {
         embeddedPostgres.getDatabase(DB_NAME, DB_NAME)
                 .connection

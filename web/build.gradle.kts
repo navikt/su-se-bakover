@@ -1,4 +1,3 @@
-
 val githubUser: String? by project
 val githubPassword: String? by project
 repositories {
@@ -45,7 +44,7 @@ dependencies {
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
-    implementation ("io.ktor:ktor-gson:$ktorVersion")
+    implementation("io.ktor:ktor-gson:$ktorVersion")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

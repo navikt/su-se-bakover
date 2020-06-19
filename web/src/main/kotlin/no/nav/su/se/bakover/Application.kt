@@ -32,7 +32,8 @@ import no.nav.su.se.bakover.CallContext.MdcContext
 import no.nav.su.se.bakover.CallContext.SecurityContext
 import no.nav.su.se.bakover.Either.Left
 import no.nav.su.se.bakover.Either.Right
-import no.nav.su.se.bakover.Postgres.Role
+import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.routes.*
@@ -43,7 +44,6 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
-import javax.sql.DataSource
 import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalLocationsAPI
@@ -55,7 +55,13 @@ internal fun Application.susebakover(
                 StringSerializer(),
                 StringSerializer()
         ),
-        dataSource: DataSource = getDatasource(),
+        databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
+                "db.jdbcUrl" to environment.config.getProperty("db.jdbcUrl", ""),
+                "vaultMountPath" to environment.config.getProperty("db.vaultMountPath", ""),
+                "db.name" to environment.config.getProperty("db.name", ""),
+                "db.username" to environment.config.getProperty("db.username", ""),
+                "db.password" to environment.config.getProperty("db.password", "")
+        ))),
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
         oAuth: OAuth = AzureClient(
@@ -75,9 +81,7 @@ internal fun Application.susebakover(
                 personOppslag
         )
 ) {
-    Flyway(getDatasource(Role.Admin), fromEnvironment("db.name")).migrate()
 
-    val databaseRepo = DatabaseSøknadRepo(dataSource)
     val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
@@ -165,19 +169,6 @@ internal fun ApplicationConfig.getProperty(key: String, default: String): String
 internal fun ApplicationCall.audit(msg: String) {
     val payload = (this.authentication.principal as JWTPrincipal).payload
     LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid").asString()} $msg")
-}
-
-@KtorExperimentalAPI
-internal fun Application.getDatasource(role: Role = Role.User): DataSource {
-    with(environment.config) {
-        return Postgres(
-                jdbcUrl = getProperty("db.jdbcUrl", ""),
-                vaultMountPath = getProperty("db.vaultMountPath", ""),
-                databaseName = getProperty("db.name", ""),
-                username = getProperty("db.username", ""),
-                password = getProperty("db.password", "")
-        ).build().getDatasource(role)
-    }
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)

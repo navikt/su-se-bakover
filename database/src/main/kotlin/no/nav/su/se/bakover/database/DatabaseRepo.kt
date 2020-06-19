@@ -1,11 +1,12 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.database
 
 import kotliquery.*
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
+import no.nav.su.se.bakover.*
 import org.json.JSONObject
 import javax.sql.DataSource
 
-class DatabaseSøknadRepo(
+internal class DatabaseRepo(
         private val dataSource: DataSource
 ) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver {
 

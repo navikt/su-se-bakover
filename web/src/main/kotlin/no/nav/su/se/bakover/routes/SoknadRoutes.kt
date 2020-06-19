@@ -13,6 +13,7 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.kafka.SøknadMottattEmitter
 import org.json.JSONObject
 
@@ -53,7 +54,7 @@ internal fun Route.soknadRoutes(
 suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
 
 internal class SøknadRouteMediator(
-        private val repo: DatabaseSøknadRepo,
+        private val repo: ObjectRepo,
         private val søknadMottattEmitter: SøknadMottattEmitter
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {

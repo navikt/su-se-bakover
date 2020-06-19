@@ -8,6 +8,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.lesParameter
 import no.nav.su.se.bakover.svar
 import no.nav.su.se.bakover.tekst

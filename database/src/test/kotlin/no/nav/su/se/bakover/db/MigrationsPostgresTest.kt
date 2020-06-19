@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.db
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class MigrationsPostgresTest {
+internal class MigrationsPostgresTest {
 
     @Test
     fun `migreringer skal kjøre på en tom database`() {

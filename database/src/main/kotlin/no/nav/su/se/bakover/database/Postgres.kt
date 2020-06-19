@@ -1,24 +1,24 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.su.se.bakover.Postgres.Role
-import no.nav.su.se.bakover.Postgres.Role.User
+import no.nav.su.se.bakover.database.Postgres.Role
+import no.nav.su.se.bakover.database.Postgres.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
-class Postgres(
-    private val jdbcUrl: String,
-    private val vaultMountPath: String,
-    private val databaseName: String,
-    private val username: String,
-    private val password: String
+internal class Postgres(
+        private val jdbcUrl: String,
+        private val vaultMountPath: String,
+        private val databaseName: String,
+        private val username: String,
+        private val password: String
 ) {
     fun build(): AbstractDatasource {
         return when (vaultMountPath.let { it != "" }) {
             true -> VaultPostgres(jdbcUrl, vaultMountPath, databaseName)
-            else -> EmbeddedPostgres(jdbcUrl, username, password)
+            else -> NonVaultPostgres(jdbcUrl, username, password)
         }
     }
 
@@ -29,7 +29,7 @@ class Postgres(
     }
 }
 
-abstract class AbstractDatasource(private val jdbcUrl: String) {
+internal abstract class AbstractDatasource(private val jdbcUrl: String) {
     protected val hikariConfig: HikariConfig = HikariConfig().apply {
         jdbcUrl = this@AbstractDatasource.jdbcUrl
         maximumPoolSize = 3
@@ -39,18 +39,18 @@ abstract class AbstractDatasource(private val jdbcUrl: String) {
         maxLifetime = 30001
     }
 
-    abstract fun getDatasource(role: Role = User): DataSource
+    internal abstract fun getDatasource(role: Role = User): DataSource
 }
 
-class EmbeddedPostgres(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
+internal class NonVaultPostgres(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariDataSource(hikariConfig.apply {
-        username = this@EmbeddedPostgres.username
-        password = this@EmbeddedPostgres.password
+        username = this@NonVaultPostgres.username
+        password = this@NonVaultPostgres.password
     })
 
 }
 
-class VaultPostgres(private val jdbcUrl: String, private val vaultMountPath: String, private val databaseName: String) : AbstractDatasource(jdbcUrl) {
+internal class VaultPostgres(private val jdbcUrl: String, private val vaultMountPath: String, private val databaseName: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
             hikariConfig,
             vaultMountPath,

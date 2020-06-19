@@ -9,6 +9,7 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.db.EmbeddedDatabase
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -19,7 +20,7 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest : ComponentTest() {
 
     private val sakFnr01 = "12345678911"
-    private val sakRepo = DatabaseSøknadRepo(EmbeddedDatabase.database)
+    private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
 
     @Test
     fun `henter sak for sak id`() {

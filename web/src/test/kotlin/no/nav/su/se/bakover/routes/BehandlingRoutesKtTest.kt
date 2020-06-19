@@ -8,6 +8,7 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.db.EmbeddedDatabase
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -24,7 +25,7 @@ internal class BehandlingRoutesKtTest : ComponentTest() {
             testEnv(wireMockServer)
             susebakover()
         }) {
-            val repo = DatabaseSøknadRepo(EmbeddedDatabase.database)
+            val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())
 
             sak.nySøknad(SøknadInnholdTestdataBuilder.build())
