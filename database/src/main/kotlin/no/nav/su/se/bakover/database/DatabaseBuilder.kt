@@ -28,12 +28,23 @@ object DatabaseBuilder {
             val password: String
     ) {
         companion object {
-            fun fromEnv(env: Map<String, String>) = Properties(
-                    jdbcUrl = env.getOrDefault("db.jdbcUrl", ""),
-                    vaultMountPath = env.getOrDefault("db.vaultMountPath", ""),
-                    databaseName = env.getOrDefault("db.name", ""),
-                    username = env.getOrDefault("db.username", ""),
-                    password = env.getOrDefault("db.password", ""))
+            fun fromEnv(env: Map<String, String>) = env.validateKeys()
+                    .let {
+                        Properties(
+                                jdbcUrl = env.getValue("db.jdbcUrl"),
+                                vaultMountPath = env.getValue("db.vaultMountPath"),
+                                databaseName = env.getValue("db.name"),
+                                username = env.getValue("db.username"),
+                                password = env.getValue("db.password"))
+                    }
         }
     }
+}
+
+internal fun Map<String, String>.validateKeys() {
+    require(containsKey("db.jdbcUrl")) { "Missing key:db.jdbcUrl" }
+    require(containsKey("db.vaultMountPath")) { "Missing key:db.vaultMountPath" }
+    require(containsKey("db.name")) { "Missing key:db.name" }
+    require(containsKey("db.username")) { "Missing key:db.username" }
+    require(containsKey("db.password")) { "Missing key:db.password" }
 }

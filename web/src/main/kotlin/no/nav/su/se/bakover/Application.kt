@@ -56,11 +56,11 @@ internal fun Application.susebakover(
                 StringSerializer()
         ),
         databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
-                "db.jdbcUrl" to environment.config.getProperty("db.jdbcUrl", ""),
-                "vaultMountPath" to environment.config.getProperty("db.vaultMountPath", ""),
-                "db.name" to environment.config.getProperty("db.name", ""),
-                "db.username" to environment.config.getProperty("db.username", ""),
-                "db.password" to environment.config.getProperty("db.password", "")
+                "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
+                "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
+                "db.name" to fromEnvironment("db.name"),
+                "db.username" to fromEnvironment("db.username"),
+                "db.password" to fromEnvironment("db.password")
         ))),
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
