@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.nais
+package no.nav.su.se.bakover.routes
 
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.locations.KtorExperimentalLocationsAPI

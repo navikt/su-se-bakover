@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.routes
 
 import io.ktor.application.Application
 import io.ktor.application.call
