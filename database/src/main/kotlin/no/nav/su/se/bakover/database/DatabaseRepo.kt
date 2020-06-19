@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database
 
 import kotliquery.*
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.domain.*
 import org.json.JSONObject
 import javax.sql.DataSource
 

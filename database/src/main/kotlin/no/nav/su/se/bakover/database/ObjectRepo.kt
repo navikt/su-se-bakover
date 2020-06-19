@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.domain.*
 
 interface ObjectRepo {
     fun hentSak(fnr: Fnr): Sak?
