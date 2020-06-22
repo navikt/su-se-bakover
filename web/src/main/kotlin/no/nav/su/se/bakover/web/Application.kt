@@ -28,12 +28,14 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.*
+import no.nav.su.se.bakover.client.ClientBuilder
+import no.nav.su.se.bakover.client.OAuth
+import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
+import no.nav.su.se.bakover.common.Either
 import no.nav.su.se.bakover.common.Either.Left
 import no.nav.su.se.bakover.common.Either.Right
-import no.nav.su.se.bakover.common.CallContext
-import no.nav.su.se.bakover.common.Either
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -68,11 +70,11 @@ internal fun Application.susebakover(
         ))),
         jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        oAuth: OAuth = AzureClient(
-                fromEnvironment("azure.clientId"),
-                fromEnvironment("azure.clientSecret"),
-                jwkConfig.getString("token_endpoint")
-        ),
+        oAuth: OAuth = ClientBuilder.azure(mapOf(
+                "azure.clientId" to fromEnvironment("azure.clientId"),
+                "azure.clientSecret" to fromEnvironment("azure.clientSecret"),
+                "token_endpoint" to jwkConfig.getString("token_endpoint")
+        )),
         personOppslag: PersonOppslag = SuPersonClient(
                 fromEnvironment("integrations.suPerson.url"),
                 fromEnvironment("integrations.suPerson.clientId"),

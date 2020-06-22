@@ -1,11 +1,9 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.client
 
 import com.github.kittinunf.fuel.httpPost
-import io.ktor.http.ContentType.Application.FormUrlEncoded
-import io.ktor.http.HttpHeaders.ContentType
 import org.json.JSONObject
 
-internal interface OAuth {
+interface OAuth {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
     fun token(otherAppId: String): String
@@ -30,7 +28,7 @@ internal class AzureClient(
                 "scope" to "$otherAppId/.default",
                 "requested_token_use" to REQUESTED_TOKEN_USE
         ))
-                .header(ContentType, FormUrlEncoded)
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .responseString()
         return result.fold(
                 { JSONObject(it).getString("access_token") },
@@ -44,7 +42,7 @@ internal class AzureClient(
                 "client_id" to thisClientId,
                 "client_secret" to thisClientSecret,
                 "refresh_token" to refreshToken))
-                .header(ContentType, FormUrlEncoded)
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .responseString()
         return result.fold(
                 { JSONObject(it) },
@@ -54,11 +52,11 @@ internal class AzureClient(
 
     override fun token(otherAppId: String): String {
         val (_, _, result) = tokenEndpoint.httpPost(listOf(
-                        "grant_type" to "client_credentials",
-                        "client_id" to thisClientId,
-                        "client_secret" to thisClientSecret,
-                        "scope" to "$otherAppId/.default"))
-                .header(ContentType, FormUrlEncoded)
+                "grant_type" to "client_credentials",
+                "client_id" to thisClientId,
+                "client_secret" to thisClientSecret,
+                "scope" to "$otherAppId/.default"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .responseString()
         return result.fold(
                 { JSONObject(it).getString("access_token") },

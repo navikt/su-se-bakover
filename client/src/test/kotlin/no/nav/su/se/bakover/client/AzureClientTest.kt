@@ -1,16 +1,17 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.client
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.ktor.http.ContentType.Application.FormUrlEncoded
-import io.ktor.http.HttpHeaders.ContentType
-import no.nav.su.se.bakover.web.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
-import no.nav.su.se.bakover.web.AzureClient.Companion.REQUESTED_TOKEN_USE
-import org.junit.jupiter.api.*
+import no.nav.su.se.bakover.client.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
+import no.nav.su.se.bakover.client.AzureClient.Companion.REQUESTED_TOKEN_USE
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.net.URLEncoder
 import java.nio.charset.Charset
-import kotlin.test.assertEquals
 
 private const val CLIENT_ID = "clientId"
 private const val CLIENT_SECRET = "clientSecret"
@@ -29,8 +30,8 @@ internal class AzureClientKtTest {
 
     @Test
     fun `exchange token ok response`() {
-        stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
-                .withHeader(ContentType, equalTo(FormUrlEncoded.toString()))
+        wireMockServer.stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
+                .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
                 .withRequestBody(containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
                 .withRequestBody(containing("client_id=$CLIENT_ID"))
                 .withRequestBody(containing("client_secret=$CLIENT_SECRET"))
@@ -45,7 +46,7 @@ internal class AzureClientKtTest {
 
     @Test
     fun `exchange token error response`() {
-        stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
+        wireMockServer.stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
                 .willReturn(okJson(errorAzureResponse)))
         assertThrows<RuntimeException> {
             azureClient.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId")
@@ -93,10 +94,5 @@ internal class AzureClientKtTest {
         fun stop() {
             wireMockServer.stop()
         }
-    }
-
-    @BeforeEach
-    fun configure() {
-        configureFor(wireMockServer.port())
     }
 }

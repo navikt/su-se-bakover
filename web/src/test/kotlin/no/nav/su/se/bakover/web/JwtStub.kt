@@ -81,7 +81,7 @@ class JwtStub(private val wireMockServer: WireMockServer? = null) {
     )
 
     fun stubbedOnBehalfOfToken() = WireMock.post(WireMock.urlPathEqualTo(AZURE_TOKEN_URL))
-            .withRequestBody(WireMock.containing("grant_type=${URLEncoder.encode(AzureClient.AZURE_ON_BEHALF_OF_GRANT_TYPE, Charset.defaultCharset())}"))
+            .withRequestBody(WireMock.containing("grant_type=${URLEncoder.encode(AZURE_ON_BEHALF_OF_GRANT_TYPE, Charset.defaultCharset())}"))
             .willReturn(WireMock.okJson("""
 {
   "token_type": "Bearer",

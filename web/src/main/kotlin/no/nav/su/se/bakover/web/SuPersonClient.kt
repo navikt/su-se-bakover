@@ -6,6 +6,7 @@ import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import no.nav.su.se.bakover.client.OAuth
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject

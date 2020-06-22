@@ -14,6 +14,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.client.OAuth
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.*
@@ -28,6 +29,7 @@ const val AZURE_JWKS_PATH = "/keys"
 const val AZURE_ISSUER = "azure"
 const val AZURE_BACKEND_CALLBACK_URL = "/callback"
 const val AZURE_TOKEN_URL = "/token"
+const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 const val SUBJECT = "enSaksbehandler"
 const val SU_PERSON_AZURE_CLIENT_ID = "personClientId"
 const val SU_INNTEKT_AZURE_CLIENT_ID = "inntektClientId"
