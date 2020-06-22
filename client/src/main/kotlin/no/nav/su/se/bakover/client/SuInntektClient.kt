@@ -1,20 +1,12 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.client
 
 import com.github.kittinunf.fuel.httpPost
-import io.ktor.http.ContentType.Application.FormUrlEncoded
-import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpHeaders.XCorrelationId
-import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.OAuth
-import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal interface InntektOppslag {
+interface InntektOppslag {
     fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse
 }
 
@@ -45,15 +37,15 @@ internal class SuInntektClient(
                         "tom" to tomDato.daymonthSubstring()
                 )
         )
-                .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, CallContext.correlationId())
-                .header(ContentType, FormUrlEncoded)
+                .header("Authorization", "Bearer $onBehalfOfToken")
+                .header("X-Correlation-ID", CallContext.correlationId())
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .responseString()
 
         return result.fold(
                 { ClientResponse(response.statusCode, it) },
                 { error ->
-                    val errorMessage = error.response.body().asString(Json.toString())
+                    val errorMessage = error.response.body().asString("application/json")
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage")
                     ClientResponse(response.statusCode, errorMessage)

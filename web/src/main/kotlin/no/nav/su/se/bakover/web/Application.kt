@@ -29,6 +29,7 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.*
 import no.nav.su.se.bakover.client.ClientBuilder
+import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.client.OAuth
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
@@ -81,9 +82,9 @@ internal fun Application.susebakover(
                 "integrations.suPerson.clientId" to fromEnvironment("integrations.suPerson.clientId")),
                 oAuth
         ),
-        inntektOppslag: InntektOppslag = SuInntektClient(
-                fromEnvironment("integrations.suInntekt.url"),
-                fromEnvironment("integrations.suInntekt.clientId"),
+        inntektOppslag: InntektOppslag = ClientBuilder.inntekt(mapOf(
+                "integrations.suInntekt.url" to fromEnvironment("integrations.suInntekt.url"),
+                "integrations.suInntekt.clientId" to fromEnvironment("integrations.suInntekt.clientId")),
                 oAuth,
                 personOppslag
         )

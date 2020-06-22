@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.EmbeddedKafka
-import no.nav.su.se.bakover.web.InntektOppslag
+import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.web.JwtStub
 import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject

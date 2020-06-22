@@ -1,21 +1,18 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.client
 
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.OK
-import no.nav.su.se.bakover.DEFAULT_CALL_ID
-import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.OAuth
-import no.nav.su.se.bakover.client.PersonOppslag
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-internal class InntektClientTest : ComponentTest() {
+internal class InntektClientTest {
 
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
@@ -28,7 +25,7 @@ internal class InntektClientTest : ComponentTest() {
     fun `skal kalle inntekt om person gir OK`() {
         val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(ClientResponse(200,"{}"), result)
+        assertEquals(ClientResponse(200, "{}"), result)
     }
 
     private val clientId = "inntektclientid"
@@ -48,8 +45,24 @@ internal class InntektClientTest : ComponentTest() {
 
     @BeforeEach
     fun setup() {
-        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf(XCorrelationId to DEFAULT_CALL_ID)))
+        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf("X-Correlation-ID" to "some UUID")))
         wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
                 .willReturn(WireMock.okJson("""{}""")))
+    }
+
+    companion object {
+        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
+
+        @BeforeAll
+        @JvmStatic
+        fun start() {
+            wireMockServer.start()
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun stop() {
+            wireMockServer.stop()
+        }
     }
 }
