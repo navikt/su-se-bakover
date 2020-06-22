@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import com.github.kittinunf.fuel.httpGet
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -70,7 +69,7 @@ internal fun Application.susebakover(
                 "db.username" to fromEnvironment("db.username"),
                 "db.password" to fromEnvironment("db.password")
         ))),
-        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
+        jwkConfig: JSONObject = ClientBuilder.jwk(fromEnvironment("azure.wellknownUrl")).config(),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
         oAuth: OAuth = ClientBuilder.azure(mapOf(
                 "azure.clientId" to fromEnvironment("azure.clientId"),
@@ -180,14 +179,6 @@ internal fun ApplicationCall.audit(msg: String) {
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
-
-private fun getJWKConfig(wellKnownUrl: String): JSONObject {
-    val (_, _, result) = wellKnownUrl.httpGet().responseString()
-    return result.fold(
-            { JSONObject(it) },
-            { throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, error:${it}") }
-    )
-}
 
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
         call.parameters[name]?.let {

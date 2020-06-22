@@ -25,4 +25,8 @@ object ClientBuilder {
                 personOppslag
         )
     }
+
+    fun jwk(wellKnownUrl: String) : Jwk {
+        return JwkClient(wellKnownUrl)
+    }
 }
