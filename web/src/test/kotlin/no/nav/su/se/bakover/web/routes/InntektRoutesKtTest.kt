@@ -12,15 +12,16 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.ON_BEHALF_OF_TOKEN
+import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class InntektRoutesKtTest: ComponentTest() {
+internal class InntektRoutesKtTest : ComponentTest() {
 
     private val ident = "12345678910"
     private val fomDato = "2020-01-01"
@@ -106,7 +107,7 @@ internal class InntektRoutesKtTest: ComponentTest() {
             }
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals("""{"message": "$errorMessage"}""", response.content!!)
+            assertEquals(errorMessage, response.content!!)
         }
     }
 }

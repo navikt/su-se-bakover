@@ -11,13 +11,14 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -120,7 +121,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
-            assertEquals("""{"message": "$errorMessage"}""", response.content!!)
+            assertEquals(errorMessage, response.content!!)
         }
     }
 }

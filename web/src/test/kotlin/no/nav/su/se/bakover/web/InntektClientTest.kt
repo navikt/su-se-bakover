@@ -5,13 +5,15 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
+import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.OAuth
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 internal class InntektClientTest : ComponentTest() {
 
@@ -19,27 +21,23 @@ internal class InntektClientTest : ComponentTest() {
     fun `skal ikke kalle inntekt om person gir feil`() {
         val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang403)
         val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(Resultat.resultatMedMelding(HttpStatusCode.fromValue(403), "Du hakke lov"), result)
+        assertEquals(ClientResponse(403, "Du hakke lov"), result)
     }
 
     @Test
     fun `skal kalle inntekt om person gir OK`() {
         val inntektClient = SuInntektClient(wireMockServer.baseUrl(), clientId, tokenExchange, persontilgang200)
         val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(OK.json("{}"), result)
+        assertEquals(ClientResponse(200,"{}"), result)
     }
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: Fnr): Resultat =
-                OK.json("""{"ting": "OK"}""")
-
+        override fun person(ident: Fnr): ClientResponse = ClientResponse(200, """{"ting": "OK"}""")
         override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: Fnr): Resultat =
-                HttpStatusCode.fromValue(403).tekst("Du hakke lov")
-
+        override fun person(ident: Fnr): ClientResponse = ClientResponse(403, "Du hakke lov")
         override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val tokenExchange = object : OAuth {

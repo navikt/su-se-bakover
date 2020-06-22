@@ -4,6 +4,7 @@ val orgJsonVersion = "20180813"
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":domain"))
 
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")

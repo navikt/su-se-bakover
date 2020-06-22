@@ -8,4 +8,11 @@ object ClientBuilder {
                 env.getOrDefault("token_endpoint", "")
         )
     }
+    fun person(env: Map<String, String>, oAuth: OAuth) : PersonOppslag {
+        return SuPersonClient(
+                env.getOrDefault("integrations.suPerson.url", ""),
+                env.getOrDefault("integrations.suPerson.clientId", ""),
+                oAuth
+        )
+    }
 }

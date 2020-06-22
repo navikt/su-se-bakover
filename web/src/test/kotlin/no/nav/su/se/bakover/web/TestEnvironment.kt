@@ -7,17 +7,21 @@ import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.OAuth
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.*
+import no.nav.su.se.bakover.web.EmbeddedKafka
+import no.nav.su.se.bakover.web.InntektOppslag
+import no.nav.su.se.bakover.web.JwtStub
+import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
 import java.util.*
 
@@ -82,21 +86,21 @@ private val defaultOAuth = object : OAuth {
     override fun token(otherAppId: String): String = "token"
 }
 private val failingPersonClient = object : PersonOppslag {
-    override fun person(ident: Fnr): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra person")
+    override fun person(ident: Fnr): ClientResponse = ClientResponse(501, "dette var en autogenerert feil fra person")
     override fun aktørId(ident: Fnr): String = throw RuntimeException("Kall mot PDL feilet")
 }
 private val failingInntektClient = object : InntektOppslag {
-    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): Resultat = Resultat.resultatMedMelding(HttpStatusCode.fromValue(501), "dette var en autogenerert feil fra inntekt")
+    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse = ClientResponse(501, "dette var en autogenerert feil fra inntekt")
 }
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.usingMocks(
-    jwkConfig: JSONObject = defaultJwkConfig,
-    jwkProvider: JwkProvider = JwkProvider { defaultJwk },
-    personClient: PersonOppslag = failingPersonClient,
-    inntektClient: InntektOppslag = failingInntektClient,
-    oAuth: OAuth = defaultOAuth
+        jwkConfig: JSONObject = defaultJwkConfig,
+        jwkProvider: JwkProvider = JwkProvider { defaultJwk },
+        personClient: PersonOppslag = failingPersonClient,
+        inntektClient: InntektOppslag = failingInntektClient,
+        oAuth: OAuth = defaultOAuth
 ) {
     susebakover(
             jwkConfig = jwkConfig,

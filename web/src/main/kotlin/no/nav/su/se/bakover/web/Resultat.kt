@@ -4,6 +4,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.response.respond
+import no.nav.su.se.bakover.client.ClientResponse
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
 internal class Resultat private constructor(private val httpCode: HttpStatusCode, private val json: String) {
@@ -17,15 +18,12 @@ internal class Resultat private constructor(private val httpCode: HttpStatusCode
     }
 
     companion object {
-        fun resultatMedMelding(httpCode: HttpStatusCode, melding: String) =
-                Resultat(httpCode, """{"message": "$melding"}""")
-        fun resultatMedJson(httpCode: HttpStatusCode, json: String) =
-                Resultat(httpCode, json)
+        fun resultatMedMelding(httpCode: HttpStatusCode, melding: String) = Resultat(httpCode, """{"message": "$melding"}""")
+        fun resultatMedJson(httpCode: HttpStatusCode, json: String) = Resultat(httpCode, json)
+        fun from(clientResponse: ClientResponse) = resultatMedJson(HttpStatusCode.fromValue(clientResponse.httpStatus), clientResponse.content)
     }
 }
 
-internal fun HttpStatusCode.json(json: String) =
-        Resultat.resultatMedJson(this, json)
-internal fun HttpStatusCode.tekst(renTekst: String) =
-        Resultat.resultatMedMelding(this, renTekst)
+internal fun HttpStatusCode.json(json: String) = Resultat.resultatMedJson(this, json)
+internal fun HttpStatusCode.tekst(renTekst: String) = Resultat.resultatMedMelding(this, renTekst)
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

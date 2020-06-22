@@ -30,6 +30,7 @@ import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.*
 import no.nav.su.se.bakover.client.ClientBuilder
 import no.nav.su.se.bakover.client.OAuth
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
@@ -75,9 +76,9 @@ internal fun Application.susebakover(
                 "azure.clientSecret" to fromEnvironment("azure.clientSecret"),
                 "token_endpoint" to jwkConfig.getString("token_endpoint")
         )),
-        personOppslag: PersonOppslag = SuPersonClient(
-                fromEnvironment("integrations.suPerson.url"),
-                fromEnvironment("integrations.suPerson.clientId"),
+        personOppslag: PersonOppslag = ClientBuilder.person(mapOf(
+                "integrations.suPerson.url" to fromEnvironment("integrations.suPerson.url"),
+                "integrations.suPerson.clientId" to fromEnvironment("integrations.suPerson.clientId")),
                 oAuth
         ),
         inntektOppslag: InntektOppslag = SuInntektClient(
