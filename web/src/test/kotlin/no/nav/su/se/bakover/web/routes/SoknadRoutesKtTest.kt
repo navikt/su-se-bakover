@@ -21,11 +21,11 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
+import no.nav.su.se.bakover.client.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
@@ -44,7 +44,6 @@ internal class SoknadRoutesKtTest : ComponentTest() {
 
     @Test
     fun `lagrer og henter søknad`() {
-        val token = jwtStub.createTokenFor()
         val fnr = Fnr("01010100001")
         stubPdl(fnr)
         withTestApplication({
@@ -52,7 +51,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
             componentTest(wireMockServer)
         }) {
             val createResponse = withCorrelationId(Post, søknadPath) {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
@@ -62,7 +61,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
             val søknadId = JSONObject(createResponse.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
 
             withCorrelationId(Get, "$søknadPath/$søknadId") {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
                 val søknadInnhold = JSONObject(response.content).getJSONObject("json")
@@ -73,7 +72,6 @@ internal class SoknadRoutesKtTest : ComponentTest() {
 
     @Test
     fun `produserer kafka hendelse når søknad lagres på sak`() {
-        val token = jwtStub.createTokenFor()
         val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
         stubPdl(fnr)
@@ -82,7 +80,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
             componentTest(wireMockServer)
         }) {
             handleRequest(Post, søknadPath) {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
                 addHeader(ContentType, Json.toString())
                 addHeader(XCorrelationId, correlationId)
                 setBody(soknadJson(fnr))
@@ -110,7 +108,6 @@ internal class SoknadRoutesKtTest : ComponentTest() {
 
     @Test
     fun `knytter søknad til sak og stønadsperiode ved innsending`() {
-        val token = jwtStub.createTokenFor()
         val fnr = Fnr("01010100004")
         var sakNr: Int
         stubPdl(fnr)
@@ -119,7 +116,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
             componentTest(wireMockServer)
         }) {
             withCorrelationId(Post, søknadPath) {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
@@ -129,7 +126,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
 
             // /soknad henter en liste... FIXME: skulle hete /soknader
             withCorrelationId(Get, "$sakPath/$sakNr") {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
                 assertTrue(JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))

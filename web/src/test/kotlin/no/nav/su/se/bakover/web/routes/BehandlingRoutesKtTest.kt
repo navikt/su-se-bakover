@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -23,7 +22,6 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
 
     @Test
     fun `henter en behandling`() {
-        val token = jwtStub.createTokenFor()
         withTestApplication({
             testEnv(wireMockServer)
             componentTest(wireMockServer)
@@ -36,11 +34,10 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
             val behandlingsId = JSONObject(behandling.toJson()).getLong("id")
 
             withCorrelationId(Get, "$behandlingPath/$behandlingsId") {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
             }.apply {
                 assertEquals(OK, response.status())
                 assertEquals(behandlingsId, JSONObject(response.content).getLong("id"))
-
             }
         }
     }

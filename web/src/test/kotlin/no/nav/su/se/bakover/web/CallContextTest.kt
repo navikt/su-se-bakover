@@ -65,14 +65,13 @@ internal class CallContextTest : ComponentTest() {
 
     @Test
     fun `parallel requests should preserve context`() {
-        val token = jwtStub.createTokenFor()
         val numRequests = 100
         stubPdl()
         withTestApplication({
             testEnv(wireMockServer)
             componentTest(wireMockServer)
         }) {
-            val requests = List(numRequests) { CallableRequest(this, it, token) }
+            val requests = List(numRequests) { CallableRequest(this, it, jwt) }
             val executors = Executors.newFixedThreadPool(numRequests)
             var applicationCalls: List<TestApplicationCall>? = null
             requests.map { executors.submit(it) }.also {
@@ -101,7 +100,7 @@ internal class CallContextTest : ComponentTest() {
             println("Test Thread: ${Thread.currentThread()}")
             return testApplicationEngine.handleRequest(Post, søknadPath) {
                 addHeader(XCorrelationId, "$correlationId")
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, token)
                 addHeader(ContentType, Json.toString())
                 setBody(build(personopplysninger = personopplysninger(FnrGenerator.random().toString())).toJson())
             }

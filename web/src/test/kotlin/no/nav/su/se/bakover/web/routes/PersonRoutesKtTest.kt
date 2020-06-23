@@ -11,13 +11,13 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.client.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.web.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -84,14 +84,12 @@ internal class PersonRoutesKtTest : ComponentTest() {
                 )
         )
 
-        val token = jwtStub.createTokenFor()
-
         withTestApplication({
             testEnv(wireMockServer)
             componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
             }
         }.apply {
             assertEquals(OK, response.status())
@@ -110,14 +108,12 @@ internal class PersonRoutesKtTest : ComponentTest() {
                 .willReturn(aResponse().withBody(errorMessage).withStatus(401))
         )
 
-        val token = jwtStub.createTokenFor()
-
         withTestApplication({
             testEnv(wireMockServer)
             componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, jwt)
             }
         }.apply {
             assertEquals(Unauthorized, response.status())

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.client.*
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.EmbeddedKafka
-import no.nav.su.se.bakover.web.JwtStub
+import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
 import java.util.*
@@ -25,12 +25,8 @@ import java.util.*
 const val AZURE_CLIENT_ID = "clientId"
 const val AZURE_CLIENT_SECRET = "secret"
 const val AZURE_REQUIRED_GROUP = "su-group"
-const val AZURE_WELL_KNOWN_URL = "/.well-known"
-const val AZURE_JWKS_PATH = "/keys"
 const val AZURE_ISSUER = "azure"
 const val AZURE_BACKEND_CALLBACK_URL = "/callback"
-const val AZURE_TOKEN_URL = "/token"
-const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 const val SUBJECT = "enSaksbehandler"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
@@ -64,12 +60,11 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     }
 }
 
+@KtorExperimentalLocationsAPI
 fun Application.componentTest(wireMockServer: WireMockServer) = susebakover(clients = ClientBuilderTest(baseUrl = wireMockServer.baseUrl()).build())
 
-val jwtStub = JwtStub()
-
-private val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExponent.toByteArray())
-private val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
+private val e = Base64.getEncoder().encodeToString(Jwt.keys.first.publicExponent.toByteArray())
+private val n = Base64.getEncoder().encodeToString(Jwt.keys.first.modulus.toByteArray())
 private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
 private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
 private val defaultJwkClient = object : no.nav.su.se.bakover.client.Jwk {
