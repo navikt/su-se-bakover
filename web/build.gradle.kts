@@ -13,7 +13,7 @@ repositories {
     }
 }
 
-val ktorVersion = "1.2.6"
+val ktorVersion = "1.3.2"
 val fuelVersion = "2.2.1"
 val wireMockVersion = "2.23.2"
 val orgJsonVersion = "20180813"

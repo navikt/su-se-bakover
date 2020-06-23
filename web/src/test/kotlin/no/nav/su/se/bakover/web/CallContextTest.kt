@@ -19,7 +19,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.io.ByteReadChannel
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
