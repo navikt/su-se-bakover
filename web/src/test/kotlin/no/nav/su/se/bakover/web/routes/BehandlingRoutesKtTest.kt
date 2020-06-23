@@ -26,7 +26,7 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
         val token = jwtStub.createTokenFor()
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())

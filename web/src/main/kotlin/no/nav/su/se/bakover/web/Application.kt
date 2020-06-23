@@ -28,9 +28,7 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.*
 import no.nav.su.se.bakover.client.ClientBuilder
-import no.nav.su.se.bakover.client.InntektOppslag
-import no.nav.su.se.bakover.client.OAuth
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
@@ -69,27 +67,12 @@ internal fun Application.susebakover(
                 "db.username" to fromEnvironment("db.username"),
                 "db.password" to fromEnvironment("db.password")
         ))),
-        jwkConfig: JSONObject = ClientBuilder.jwk(fromEnvironment("azure.wellknownUrl")).config(),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        oAuth: OAuth = ClientBuilder.azure(mapOf(
-                "azure.clientId" to fromEnvironment("azure.clientId"),
-                "azure.clientSecret" to fromEnvironment("azure.clientSecret"),
-                "token_endpoint" to jwkConfig.getString("token_endpoint")
-        )),
-        personOppslag: PersonOppslag = ClientBuilder.person(mapOf(
-                "integrations.suPerson.url" to fromEnvironment("integrations.suPerson.url"),
-                "integrations.suPerson.clientId" to fromEnvironment("integrations.suPerson.clientId")),
-                oAuth
-        ),
-        inntektOppslag: InntektOppslag = ClientBuilder.inntekt(mapOf(
-                "integrations.suInntekt.url" to fromEnvironment("integrations.suInntekt.url"),
-                "integrations.suInntekt.clientId" to fromEnvironment("integrations.suInntekt.clientId")),
-                oAuth,
-                personOppslag
-        )
+        clients: Clients = ClientBuilder.build(),
+        jwkConfig: JSONObject = clients.jwk.config(),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
-    val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, personOppslag)
+    val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, clients.personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
     install(CORS) {
@@ -121,7 +104,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
-            oAuth = oAuth
+            oAuth = clients.oauth
     )
 
     install(Locations)
@@ -156,8 +139,8 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(personOppslag, databaseRepo)
-            inntektRoutes(inntektOppslag)
+            personRoutes(clients.personOppslag, databaseRepo)
+            inntektRoutes(clients.inntektOppslag)
             sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)

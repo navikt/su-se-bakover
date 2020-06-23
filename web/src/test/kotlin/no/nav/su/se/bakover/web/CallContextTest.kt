@@ -25,6 +25,7 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.common.CallContext
+import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.routes.søknadPath
 import org.junit.jupiter.api.Test
@@ -69,7 +70,7 @@ internal class CallContextTest : ComponentTest() {
         stubPdl()
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, token) }
             val executors = Executors.newFixedThreadPool(numRequests)

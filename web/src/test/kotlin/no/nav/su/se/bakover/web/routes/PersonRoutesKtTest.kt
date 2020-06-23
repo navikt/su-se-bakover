@@ -11,13 +11,13 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.ON_BEHALF_OF_TOKEN
-import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -33,7 +33,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/12345678910")
         }.apply {
@@ -45,7 +45,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/qwertyuiopå") {
                 addHeader(Authorization, jwt)
@@ -59,7 +59,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `henter sak for fnr`() {
         withTestApplication(({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         })) {
             val fnr = "12121212121"
             sakRepo.opprettSak(Fnr(fnr))
@@ -88,7 +88,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, "Bearer $token")
@@ -114,7 +114,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, "Bearer $token")

@@ -13,13 +13,10 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.OAuth
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.*
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.EmbeddedKafka
-import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.web.JwtStub
 import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
@@ -35,8 +32,6 @@ const val AZURE_BACKEND_CALLBACK_URL = "/callback"
 const val AZURE_TOKEN_URL = "/token"
 const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 const val SUBJECT = "enSaksbehandler"
-const val SU_PERSON_AZURE_CLIENT_ID = "personClientId"
-const val SU_INNTEKT_AZURE_CLIENT_ID = "inntektClientId"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid" // FIXME: This means that we don't test correlationID , this does not currently work
@@ -50,15 +45,10 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
-        put("integrations.suPerson.url", baseUrl)
-        put("integrations.suPerson.clientId", SU_PERSON_AZURE_CLIENT_ID)
-        put("integrations.suInntekt.url", baseUrl)
-        put("integrations.suInntekt.clientId", SU_INNTEKT_AZURE_CLIENT_ID)
         put("integrations.suSeFramover.redirectUrl", "$baseUrl$SU_FRONTEND_REDIRECT_URL")
         put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
         put("azure.clientId", AZURE_CLIENT_ID)
         put("azure.clientSecret", AZURE_CLIENT_SECRET)
-        put("azure.wellknownUrl", "$baseUrl$AZURE_WELL_KNOWN_URL")
         put("azure.backendCallbackUrl", "$baseUrl$AZURE_BACKEND_CALLBACK_URL")
         put("issuer", AZURE_ISSUER)
         put("db.username", DB_USERNAME)
@@ -74,12 +64,17 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     }
 }
 
+fun Application.componentTest(wireMockServer: WireMockServer) = susebakover(clients = ClientBuilderTest(baseUrl = wireMockServer.baseUrl()).build())
+
 val jwtStub = JwtStub()
 
 private val e = Base64.getEncoder().encodeToString(jwtStub.publicKey.publicExponent.toByteArray())
 private val n = Base64.getEncoder().encodeToString(jwtStub.publicKey.modulus.toByteArray())
 private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
 private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
+private val defaultJwkClient = object : no.nav.su.se.bakover.client.Jwk {
+    override fun config() = defaultJwkConfig
+}
 private val defaultOAuth = object : OAuth {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
@@ -96,6 +91,7 @@ private val failingInntektClient = object : InntektOppslag {
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.usingMocks(
+        jwkClient: no.nav.su.se.bakover.client.Jwk = defaultJwkClient,
         jwkConfig: JSONObject = defaultJwkConfig,
         jwkProvider: JwkProvider = JwkProvider { defaultJwk },
         personClient: PersonOppslag = failingPersonClient,
@@ -103,11 +99,14 @@ internal fun Application.usingMocks(
         oAuth: OAuth = defaultOAuth
 ) {
     susebakover(
+            clients = Clients(
+                    jwk = jwkClient,
+                    oauth = oAuth,
+                    personOppslag = personClient,
+                    inntektOppslag = inntektClient
+            ),
             jwkConfig = jwkConfig,
-            jwkProvider = jwkProvider,
-            oAuth = oAuth,
-            personOppslag = personClient,
-            inntektOppslag = inntektClient
+            jwkProvider = jwkProvider
     )
 }
 

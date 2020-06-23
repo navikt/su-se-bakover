@@ -21,6 +21,7 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
+import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
@@ -48,7 +49,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             val createResponse = withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
@@ -78,7 +79,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             handleRequest(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")
@@ -115,7 +116,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, "Bearer $token")

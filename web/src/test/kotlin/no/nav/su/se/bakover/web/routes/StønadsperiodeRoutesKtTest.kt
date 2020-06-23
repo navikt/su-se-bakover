@@ -21,7 +21,7 @@ internal class StønadsperiodeRoutesKtTest : ComponentTest() {
     fun `Opprette en ny behandling i en periode`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover()
+            componentTest(wireMockServer)
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())

@@ -5,7 +5,7 @@
 #### Gradle
 For å få tilgang til å hente ut packages for su-meldinger kreves det autentisering mot Github package registry.
 Dette kan gjøres ved å spesifisere følgende variabler i `~/.gradle/gradle.properties`:
-`githubUser=x-access-token"` og `githubPassword="mitt SSO enabled access token med repo+read/write packages access generert på github"`
+`githubUser=x-access-token` og `githubPassword="mitt SSO enabled access token med repo+read/write packages access generert på github"`
 #### Database (Postgres)
 Lokal database startes med `./docker-compose up`
 #### Starte applikasjon lokalt
