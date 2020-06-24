@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -21,12 +18,13 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
-import no.nav.su.se.bakover.client.ON_BEHALF_OF_TOKEN
-import no.nav.su.se.bakover.componentTest
-import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
+import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -45,10 +43,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
     @Test
     fun `lagrer og henter søknad`() {
         val fnr = Fnr("01010100001")
-        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             val createResponse = withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, jwt)
@@ -74,10 +71,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
-        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients(personOppslag = personoppslag()))
         }) {
             handleRequest(Post, søknadPath) {
                 addHeader(Authorization, jwt)
@@ -110,10 +106,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
     fun `knytter søknad til sak og stønadsperiode ved innsending`() {
         val fnr = Fnr("01010100004")
         var sakNr: Int
-        stubPdl(fnr)
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             withCorrelationId(Post, søknadPath) {
                 addHeader(Authorization, jwt)
@@ -134,16 +129,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         }
     }
 
-    fun stubPdl(testIdent: Fnr) {
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person"))
-                .withHeader(Authorization, WireMock.equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(HttpHeaders.XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", WireMock.equalTo(testIdent.toString()))
-                .willReturn(WireMock.okJson("""
-                    {
-                        "aktorId":"$stubAktørId"
-                    }
-                """.trimIndent()))
-        )
+    fun personoppslag() = object : PersonOppslag {
+        override fun person(ident: Fnr): ClientResponse = TODO("not implemented")
+
+        override fun aktørId(ident: Fnr): String = stubAktørId
     }
 }

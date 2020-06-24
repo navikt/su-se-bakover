@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -24,7 +25,7 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
     fun `henter en behandling`() {
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())

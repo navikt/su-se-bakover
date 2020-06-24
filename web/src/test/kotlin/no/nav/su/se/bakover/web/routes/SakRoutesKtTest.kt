@@ -8,12 +8,12 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -30,7 +30,7 @@ internal class SakRoutesKtTest : ComponentTest() {
     fun `henter sak for sak id`() {
         withTestApplication(({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         })) {
             val opprettetSakId = JSONObject(sakRepo.opprettSak(Fnr(sakFnr01)).toJson()).getLong("id")
 
@@ -47,7 +47,7 @@ internal class SakRoutesKtTest : ComponentTest() {
     fun `error handling`() {
         withTestApplication(({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         })) {
             withCorrelationId(Get, "$sakPath/999") {
                 addHeader(Authorization, jwt)

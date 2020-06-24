@@ -60,9 +60,6 @@ fun Application.testEnv(wireMockServer: WireMockServer? = null) {
     }
 }
 
-@KtorExperimentalLocationsAPI
-fun Application.componentTest(wireMockServer: WireMockServer) = susebakover(clients = ClientBuilderTest(baseUrl = wireMockServer.baseUrl()).build())
-
 private val e = Base64.getEncoder().encodeToString(Jwt.keys.first.publicExponent.toByteArray())
 private val n = Base64.getEncoder().encodeToString(Jwt.keys.first.modulus.toByteArray())
 private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))

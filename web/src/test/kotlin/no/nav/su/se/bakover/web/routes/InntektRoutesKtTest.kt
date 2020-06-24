@@ -12,9 +12,9 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.ON_BEHALF_OF_TOKEN
-import no.nav.su.se.bakover.componentTest
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -32,7 +32,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             withCorrelationId(Get, path)
         }.apply {
@@ -62,7 +62,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             withCorrelationId(Get, path) {
                 addHeader(Authorization, jwt)
@@ -96,7 +96,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            componentTest(wireMockServer)
+            susebakover(clients = buildClients())
         }) {
             withCorrelationId(Get, path) {
                 addHeader(Authorization, jwt)
