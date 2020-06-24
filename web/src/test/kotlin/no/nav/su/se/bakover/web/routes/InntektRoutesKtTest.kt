@@ -11,7 +11,6 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.client.ON_BEHALF_OF_TOKEN
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.susebakover
@@ -45,7 +44,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
         wireMockServer.stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withHeader(Authorization, equalTo("Bearer ONBEHALFOFTOKEN"))
                         .withHeader(XCorrelationId, AnythingPattern())
                         .willReturn(
                                 okJson("""{"ident"="$ident"}""")
@@ -71,7 +70,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
         wireMockServer.stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
+                        .withHeader(Authorization, equalTo("Bearer ONBEHALFOFTOKEN"))
                         .withHeader(XCorrelationId, AnythingPattern())
                         .willReturn(
                                 aResponse().withBody(errorMessage).withStatus(500)

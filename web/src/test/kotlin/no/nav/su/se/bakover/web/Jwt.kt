@@ -6,13 +6,14 @@ import no.nav.su.se.bakover.AZURE_CLIENT_ID
 import no.nav.su.se.bakover.AZURE_ISSUER
 import no.nav.su.se.bakover.AZURE_REQUIRED_GROUP
 import no.nav.su.se.bakover.SUBJECT
-import no.nav.su.se.bakover.client.AzureStub
-import no.nav.su.se.bakover.client.RSAKeyPairGenerator
+import java.security.KeyPairGenerator
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.time.Instant
 import java.util.*
 
 object Jwt {
-    val keys = RSAKeyPairGenerator.generate()
+    val keys = generate()
     fun create(
             subject: String = SUBJECT,
             groups: List<String> = listOf(AZURE_REQUIRED_GROUP),
@@ -29,5 +30,12 @@ object Jwt {
                 .withClaim("oid", UUID.randomUUID().toString())
                 .withExpiresAt(expiresAt)
                 .sign(algorithm)}"
+    }
+
+    fun generate(): Pair<RSAPublicKey, RSAPrivateKey> {
+        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+        keyPairGenerator.initialize(512)
+        val keypair = keyPairGenerator.genKeyPair()
+        return keypair.public as RSAPublicKey to keypair.private as RSAPrivateKey
     }
 }

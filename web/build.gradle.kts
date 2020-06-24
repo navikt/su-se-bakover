@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":client"))
     testImplementation(project(":database", "testArchives"))
-    testImplementation(project(":client", "testArchives"))
 
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")

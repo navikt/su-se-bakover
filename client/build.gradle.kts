@@ -17,7 +17,3 @@ dependencies {
         exclude(group = "junit")
     }
 }
-
-plugins {
-    id("com.github.hauner.jarTest") version "1.0.1"
-}
