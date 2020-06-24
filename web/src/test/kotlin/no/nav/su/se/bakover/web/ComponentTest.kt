@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.su.se.bakover.client.*
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
+import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
@@ -15,7 +16,7 @@ internal open class ComponentTest {
     internal val azureStub by lazy { AzureStub(wireMockServer) }
 
     fun buildClients(
-            azure: OAuth = ClientBuilder.azure(wellknownUrl = "${wireMockServer.baseUrl()}$AZURE_WELL_KNOWN_URL"),
+            azure: OAuth = OauthStub(),
             personOppslag: PersonOppslag = PersonOppslagStub,
             inntektOppslag: InntektOppslag = ClientBuilder.inntekt(baseUrl = wireMockServer.baseUrl(), oAuth = azure, personOppslag = personOppslag)
     ): Clients {
@@ -26,14 +27,24 @@ internal open class ComponentTest {
     fun start() {
         wireMockServer.start()
         WireMock.stubFor(azureStub.jwkProvider())
-        WireMock.stubFor(azureStub.config())
-        WireMock.stubFor(azureStub.onBehalfOfToken())
-        WireMock.stubFor(azureStub.token())
         jwt = Jwt.create(azureStub)
     }
 
     @AfterEach
     fun stop() {
         wireMockServer.stop()
+    }
+
+    inner class OauthStub : OAuth {
+        override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"
+        override fun refreshTokens(refreshToken: String) = TODO("Not yet implemented")
+        override fun token(otherAppId: String) = TODO("Not yet implemented")
+        override fun jwkConfig() = JSONObject("""
+            {
+                "jwks_uri": "${wireMockServer.baseUrl()}/keys",
+                "token_endpoint": "${wireMockServer.baseUrl()}/token",
+                "issuer": "azure"
+            }
+        """.trimIndent())
     }
 }
