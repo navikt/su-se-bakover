@@ -7,7 +7,14 @@ import io.ktor.response.respond
 import no.nav.su.se.bakover.client.ClientResponse
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
-internal class Resultat private constructor(private val httpCode: HttpStatusCode, private val json: String) {
+internal class Resultat private constructor(
+        private val httpCode: HttpStatusCode,
+        private val json: String
+) {
+    init {
+        require(httpCode in HttpStatusCode.allStatusCodes) { "Unknown http status code:$httpCode" }
+    }
+
     override fun equals(other: Any?) = other is Resultat && other.httpCode == this.httpCode && other.json == this.json
     override fun hashCode(): Int = 31 * httpCode.value + json.hashCode()
     suspend fun svar(call: ApplicationCall) = call.respond(httpCode, json)

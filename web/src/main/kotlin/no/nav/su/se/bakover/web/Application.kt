@@ -88,8 +88,11 @@ internal fun Application.susebakover(
     }
 
     install(StatusPages) {
-        exception<UgyldigFnrException> { cause ->
-            call.respond(HttpStatusCode.BadRequest, cause)
+        exception<UgyldigFnrException> {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+        exception<Throwable> {
+            call.respond(HttpStatusCode.InternalServerError, it)
         }
     }
 

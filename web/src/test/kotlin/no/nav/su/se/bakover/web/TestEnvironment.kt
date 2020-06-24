@@ -89,16 +89,16 @@ internal fun Application.usingMocks(
         jwkClient: no.nav.su.se.bakover.client.Jwk = defaultJwkClient,
         jwkConfig: JSONObject = defaultJwkConfig,
         jwkProvider: JwkProvider = JwkProvider { defaultJwk },
-        personClient: PersonOppslag = failingPersonClient,
-        inntektClient: InntektOppslag = failingInntektClient,
+        personOppslag: PersonOppslag = failingPersonClient,
+        inntektOppslag: InntektOppslag = failingInntektClient,
         oAuth: OAuth = defaultOAuth
 ) {
     susebakover(
             clients = Clients(
                     jwk = jwkClient,
                     oauth = oAuth,
-                    personOppslag = personClient,
-                    inntektOppslag = inntektClient
+                    personOppslag = personOppslag,
+                    inntektOppslag = inntektOppslag
             ),
             jwkConfig = jwkConfig,
             jwkProvider = jwkProvider
