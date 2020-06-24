@@ -15,12 +15,11 @@ internal open class ComponentTest {
     internal val azureStub by lazy { AzureStub(wireMockServer) }
 
     fun buildClients(
-            jwk: Jwk = ClientBuilder.jwk(wellKnownUrl = "${wireMockServer.baseUrl()}$AZURE_WELL_KNOWN_URL"),
-            azure: OAuth = ClientBuilder.azure(tokenEndpoint = jwk.config().getString("token_endpoint")),
+            azure: OAuth = ClientBuilder.azure(wellknownUrl = "${wireMockServer.baseUrl()}$AZURE_WELL_KNOWN_URL"),
             personOppslag: PersonOppslag = PersonOppslagStub,
             inntektOppslag: InntektOppslag = ClientBuilder.inntekt(baseUrl = wireMockServer.baseUrl(), oAuth = azure, personOppslag = personOppslag)
     ): Clients {
-        return ClientBuilder.build(jwk, azure, personOppslag, inntektOppslag)
+        return ClientBuilder.build(azure, personOppslag, inntektOppslag)
     }
 
     @BeforeEach

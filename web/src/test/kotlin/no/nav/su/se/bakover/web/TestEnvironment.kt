@@ -64,13 +64,11 @@ private val e = Base64.getEncoder().encodeToString(Jwt.keys.first.publicExponent
 private val n = Base64.getEncoder().encodeToString(Jwt.keys.first.modulus.toByteArray())
 private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
 private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
-private val defaultJwkClient = object : no.nav.su.se.bakover.client.Jwk {
-    override fun config() = defaultJwkConfig
-}
 private val defaultOAuth = object : OAuth {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
     override fun token(otherAppId: String): String = "token"
+    override fun jwkConfig() = defaultJwkConfig
 }
 private val failingPersonClient = object : PersonOppslag {
     override fun person(ident: Fnr): ClientResponse = ClientResponse(501, "dette var en autogenerert feil fra person")
@@ -83,7 +81,6 @@ private val failingInntektClient = object : InntektOppslag {
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.usingMocks(
-        jwkClient: no.nav.su.se.bakover.client.Jwk = defaultJwkClient,
         jwkConfig: JSONObject = defaultJwkConfig,
         jwkProvider: JwkProvider = JwkProvider { defaultJwk },
         personOppslag: PersonOppslag = failingPersonClient,
@@ -92,7 +89,6 @@ internal fun Application.usingMocks(
 ) {
     susebakover(
             clients = Clients(
-                    jwk = jwkClient,
                     oauth = oAuth,
                     personOppslag = personOppslag,
                     inntektOppslag = inntektOppslag

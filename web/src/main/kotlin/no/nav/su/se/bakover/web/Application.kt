@@ -68,7 +68,7 @@ internal fun Application.susebakover(
                 "db.password" to fromEnvironment("db.password")
         ))),
         clients: Clients = ClientBuilder.build(),
-        jwkConfig: JSONObject = clients.jwk.config(),
+        jwkConfig: JSONObject = clients.oauth.jwkConfig(),
         jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 

@@ -11,7 +11,6 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.client.PersonOppslag

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import org.json.JSONObject
 
@@ -7,13 +8,16 @@ interface OAuth {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
     fun token(otherAppId: String): String
+    fun jwkConfig(): JSONObject
 }
 
 internal class AzureClient(
         private val thisClientId: String,
         private val thisClientSecret: String,
-        private val tokenEndpoint: String
+        private val wellknownUrl: String
 ) : OAuth {
+    private val tokenEndpoint = jwkConfig().getString("token_endpoint")
+
     companion object {
         const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
@@ -61,6 +65,14 @@ internal class AzureClient(
         return result.fold(
                 { JSONObject(it).getString("access_token") },
                 { throw RuntimeException("Error while getting token from Azure, message:${it.message}}, error:${String(it.errorData)}") }
+        )
+    }
+
+    override fun jwkConfig(): JSONObject {
+        val (_, _, result) = wellknownUrl.httpGet().responseString()
+        return result.fold(
+                { JSONObject(it) },
+                { throw RuntimeException("Could not get JWK config from url ${wellknownUrl}, error:${it}") }
         )
     }
 }

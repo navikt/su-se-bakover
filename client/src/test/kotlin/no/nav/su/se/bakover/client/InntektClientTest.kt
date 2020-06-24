@@ -41,6 +41,7 @@ internal class InntektClientTest {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
         override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
         override fun token(otherAppId: String): String = "token"
+        override fun jwkConfig() = JSONObject()
     }
 
     @BeforeEach

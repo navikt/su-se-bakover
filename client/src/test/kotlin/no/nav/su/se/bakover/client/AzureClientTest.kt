@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.su.se.bakover.client.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.client.AzureClient.Companion.REQUESTED_TOKEN_USE
@@ -19,38 +19,44 @@ private const val TOKEN_TO_EXCHANGE = "eyJabc123"
 private const val EXCHANGED_TOKEN = "exchanged"
 private const val TOKEN_ENDPOINT_PATH = "/oauth2/v2.0/token"
 private const val SCOPE = "personClientId"
+private const val JWKS_PATH = "/keys"
+private const val WELLKNOWN_URL = "/.well-known"
+private const val ISSUER = "azure"
 
 internal class AzureClientKtTest {
 
-    val azureClient = AzureClient(
-            CLIENT_ID,
-            CLIENT_SECRET,
-            "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH"
+    val oauth: OAuth = AzureClient(
+            thisClientId = CLIENT_ID,
+            thisClientSecret = CLIENT_SECRET,
+            wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL"
     )
 
     @Test
-    fun `exchange token ok response`() {
-        wireMockServer.stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
-                .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
-                .withRequestBody(containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
-                .withRequestBody(containing("client_id=$CLIENT_ID"))
-                .withRequestBody(containing("client_secret=$CLIENT_SECRET"))
-                .withRequestBody(containing("assertion=$TOKEN_TO_EXCHANGE"))
-                .withRequestBody(containing("scope=$SCOPE${urlEncode("/.default")}"))
-                .withRequestBody(containing("requested_token_use=$REQUESTED_TOKEN_USE"))
-                .willReturn(okJson(okAzureResponse)))
+    fun `exchange to on-behalf-of token`() {
+        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo(TOKEN_ENDPOINT_PATH))
+                .withHeader("Content-Type", WireMock.equalTo("application/x-www-form-urlencoded"))
+                .withRequestBody(WireMock.containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
+                .withRequestBody(WireMock.containing("client_id=$CLIENT_ID"))
+                .withRequestBody(WireMock.containing("client_secret=$CLIENT_SECRET"))
+                .withRequestBody(WireMock.containing("assertion=$TOKEN_TO_EXCHANGE"))
+                .withRequestBody(WireMock.containing("scope=$SCOPE${urlEncode("/.default")}"))
+                .withRequestBody(WireMock.containing("requested_token_use=$REQUESTED_TOKEN_USE"))
+                .willReturn(WireMock.okJson(okAzureResponse)))
 
-        val exchangedToken: String = azureClient.onBehalfOFToken(TOKEN_TO_EXCHANGE, "personClientId")
+        val exchangedToken: String = oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "personClientId")
         assertEquals(EXCHANGED_TOKEN, exchangedToken)
     }
 
     @Test
+    fun `get jwks config`() {
+        val jwkConfig = oauth.jwkConfig()
+        assertEquals(ISSUER, jwkConfig.getString("issuer"))
+    }
+
+    @Test
     fun `exchange token error response`() {
-        wireMockServer.stubFor(post(urlPathEqualTo(TOKEN_ENDPOINT_PATH))
-                .willReturn(okJson(errorAzureResponse)))
-        assertThrows<RuntimeException> {
-            azureClient.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId")
-        }
+        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo(TOKEN_ENDPOINT_PATH)).willReturn(WireMock.okJson(errorAzureResponse)))
+        assertThrows<RuntimeException> { oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId") }
     }
 
     private fun urlEncode(string: String): String {
@@ -87,6 +93,7 @@ internal class AzureClientKtTest {
         @JvmStatic
         fun start() {
             wireMockServer.start()
+            wireMockServer.stubFor(jwkConfig())
         }
 
         @AfterAll
@@ -94,5 +101,13 @@ internal class AzureClientKtTest {
         fun stop() {
             wireMockServer.stop()
         }
+
+        fun jwkConfig() = WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(WireMock.okJson("""
+            {
+                "jwks_uri": "${wireMockServer.baseUrl()}$JWKS_PATH",
+                "token_endpoint": "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH",
+                "issuer": "$ISSUER"
+            }""".trimIndent())
+        )
     }
 }
