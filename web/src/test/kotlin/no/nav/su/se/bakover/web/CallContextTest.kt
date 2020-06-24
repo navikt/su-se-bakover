@@ -80,7 +80,7 @@ internal class CallContextTest : ComponentTest() {
 
                 override fun aktørId(ident: Fnr): String =
                         "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
-            }))
+            }), jwkProvider = JwkProviderStub)
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, jwt) }
             val executors = Executors.newFixedThreadPool(numRequests)

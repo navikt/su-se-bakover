@@ -22,7 +22,7 @@ internal class StønadsperiodeRoutesKtTest : ComponentTest() {
     fun `Opprette en ny behandling i en periode`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())

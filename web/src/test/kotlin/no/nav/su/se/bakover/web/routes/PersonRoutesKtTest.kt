@@ -30,7 +30,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/12345678910")
         }.apply {
@@ -42,7 +42,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/qwertyuiopå") {
                 addHeader(Authorization, jwt)
@@ -56,7 +56,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `henter sak for fnr`() {
         withTestApplication(({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         })) {
             val fnr = "12121212121"
             sakRepo.opprettSak(Fnr(fnr))
@@ -75,7 +75,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
+            susebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, jwt)
@@ -93,7 +93,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
+            susebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
                 addHeader(Authorization, jwt)

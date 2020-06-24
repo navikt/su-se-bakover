@@ -18,7 +18,7 @@ object Jwt {
             groups: List<String> = listOf(AZURE_REQUIRED_GROUP),
             audience: String = AZURE_CLIENT_ID,
             expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
-            algorithm: Algorithm = RSAKeyPairGenerator.generate().let { Algorithm.RSA256(keys.first, keys.second) }
+            algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
     ): String {
         return "Bearer ${JWT.create()
                 .withIssuer(AZURE_ISSUER)
@@ -30,6 +30,4 @@ object Jwt {
                 .withExpiresAt(expiresAt)
                 .sign(algorithm)}"
     }
-
-    fun create(azureStub: AzureStub) = create(algorithm = Algorithm.RSA256(azureStub.keys().first, azureStub.keys().second))
 }

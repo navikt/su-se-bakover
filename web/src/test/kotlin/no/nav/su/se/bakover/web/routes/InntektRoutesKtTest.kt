@@ -32,7 +32,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path)
         }.apply {
@@ -42,15 +42,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
     @Test
     fun `kan hente inntekt`() {
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(ident))
-                .willReturn(
-                        okJson("""{"ident"="$ident"}""")
-                )
-        )
-        stubFor(
+        wireMockServer.stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
                         .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
@@ -62,7 +54,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path) {
                 addHeader(Authorization, jwt)
@@ -76,15 +68,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
     @Test
     fun `håndterer og videreformidler feil`() {
         val errorMessage = """{"message": "nich gut"}"""
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(ident))
-                .willReturn(
-                        okJson("""{"ident"="$ident"}""")
-                )
-        )
-        stubFor(
+        wireMockServer.stubFor(
                 post(urlPathEqualTo("/inntekt"))
                         .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
                         .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
@@ -96,7 +80,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv(wireMockServer)
-            susebakover(clients = buildClients())
+            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path) {
                 addHeader(Authorization, jwt)
