@@ -67,7 +67,6 @@ private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
 private val defaultOAuth = object : OAuth {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
     override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
-    override fun token(otherAppId: String): String = "token"
     override fun jwkConfig() = defaultJwkConfig
 }
 private val failingPersonClient = object : PersonOppslag {

@@ -7,7 +7,6 @@ import org.json.JSONObject
 interface OAuth {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
-    fun token(otherAppId: String): String
     fun jwkConfig(): JSONObject
 }
 
@@ -51,20 +50,6 @@ internal class AzureClient(
         return result.fold(
                 { JSONObject(it) },
                 { throw RuntimeException("Error while refreshing token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
-        )
-    }
-
-    override fun token(otherAppId: String): String {
-        val (_, _, result) = tokenEndpoint.httpPost(listOf(
-                "grant_type" to "client_credentials",
-                "client_id" to thisClientId,
-                "client_secret" to thisClientSecret,
-                "scope" to "$otherAppId/.default"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .responseString()
-        return result.fold(
-                { JSONObject(it).getString("access_token") },
-                { throw RuntimeException("Error while getting token from Azure, message:${it.message}}, error:${String(it.errorData)}") }
         )
     }
 

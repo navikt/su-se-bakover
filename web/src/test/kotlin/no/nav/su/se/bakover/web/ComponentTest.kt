@@ -52,7 +52,6 @@ internal open class ComponentTest {
     inner class OauthStub : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"
         override fun refreshTokens(refreshToken: String) = TODO("Not yet implemented")
-        override fun token(otherAppId: String) = TODO("Not yet implemented")
         override fun jwkConfig() = JSONObject("""
             {
                 "jwks_uri": "${wireMockServer.baseUrl()}/keys",
