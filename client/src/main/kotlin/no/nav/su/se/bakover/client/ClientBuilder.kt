@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
+import org.slf4j.LoggerFactory
+
 interface ClientsBuilder {
     fun build(): Clients
 }
@@ -25,9 +28,14 @@ object ClientBuilder : ClientsBuilder {
             baseUrl: String = env.getOrDefault("SU_PERSON_URL", "http://su-person.default.svc.nais.local"),
             clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
             oAuth: OAuth
-    ): PersonOppslag {
-        return SuPersonClient(baseUrl, clientId, oAuth)
-    }
+    ): PersonOppslag =
+            when {
+                envIsLocalOrRunningTests() -> PersonOppslagStub.also { logger.warn("Using stub for ${PersonOppslag::class.java}") }
+                else -> SuPersonClient(baseUrl, clientId, oAuth)
+            }
+
+    // NAIS_CLUSTER_NAME blir satt av Nais.
+    private fun envIsLocalOrRunningTests(): Boolean = env["NAIS_CLUSTER_NAME"] == null
 
     internal fun inntekt(
             baseUrl: String = env.getOrDefault("SU_INNTEKT_URL", "http://su-inntekt.default.svc.nais.local"),
@@ -49,4 +57,6 @@ object ClientBuilder : ClientsBuilder {
         val inntektOppslag = inntekt(oAuth = azure, personOppslag = personOppslag)
         return Clients(jwk, azure, personOppslag, inntektOppslag)
     }
+}
+    private val logger = LoggerFactory.getLogger(ClientBuilder::class.java)
 }
