@@ -1,14 +1,18 @@
 package no.nav.su.se.bakover.web
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.charsets.Charsets
 import no.nav.su.se.bakover.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
@@ -72,6 +76,20 @@ class RoutesTest {
         }.apply {
             assertEquals(InternalServerError, response.status())
             assertEquals("thrown exception", JSONObject(response.content).getString("detailMessage"))
+        }
+    }
+
+    @Test
+    fun `should use content-type application-json by default`() {
+        withTestApplication({
+            testEnv()
+            usingMocks()
+        }) {
+            handleRequest(Get, "$personPath/${FnrGenerator.random()}") {
+                addHeader(HttpHeaders.Authorization, Jwt.create())
+            }
+        }.apply {
+            assertEquals("${ContentType.Application.Json}; charset=${Charsets.UTF_8}", response.contentType().toString())
         }
     }
 }

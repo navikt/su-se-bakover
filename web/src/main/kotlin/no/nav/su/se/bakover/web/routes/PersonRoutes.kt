@@ -30,7 +30,7 @@ internal fun Route.personRoutes(
         Fnr.lesParameter(call).let {
             call.audit("Henter sak for person: $it")
             when (val sak = sakRepo.hentSak(it)) {
-                null -> call.svar(HttpStatusCode.NotFound.tekst("Fant ingen sak for fnr:$it"))
+                null -> call.svar(HttpStatusCode.NotFound.message("Fant ingen sak for fnr:$it"))
                 else -> call.svar(HttpStatusCode.OK.json(sak.toJson()))
             }
         }

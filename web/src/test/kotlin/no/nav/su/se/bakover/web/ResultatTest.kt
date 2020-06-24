@@ -11,21 +11,21 @@ import kotlin.test.assertNotEquals
 class ResultatTest {
     @Test
     fun `equalitytests`() {
-        assertEquals(OK.tekst("blabla"), OK.tekst("blabla"))
+        assertEquals(OK.message("blabla"), OK.message("blabla"))
         assertEquals(
                 HttpStatusCode.Conflict.json("blabla"),
                 HttpStatusCode.Conflict.json("blabla")
         )
-        assertNotEquals(OK.tekst("blabla"), OK.tekst("blabla2"))
+        assertNotEquals(OK.message("blabla"), OK.message("blabla2"))
     }
 
     @Test
     fun `throw exception if unknown http status code`() {
         assertThrows<IllegalArgumentException> {
-            Resultat.resultatMedJson(HttpStatusCode.fromValue(-1), """{}""")
+            Resultat.json(HttpStatusCode.fromValue(-1), """{}""")
         }
         assertThrows<IllegalArgumentException> {
-            Resultat.resultatMedMelding(HttpStatusCode.fromValue(-1), """{}""")
+            Resultat.message(HttpStatusCode.fromValue(-1), """{}""")
         }
         assertThrows<IllegalArgumentException> {
             Resultat.from(ClientResponse(-1, """{}"""))

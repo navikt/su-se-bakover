@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.tekst
+import no.nav.su.se.bakover.web.message
 
 internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
 
@@ -23,11 +23,11 @@ internal fun Route.stønadsperiodeRoutes(
 
     post("$stønadsperiodePath/{stønadsperiodeId}/behandlinger") {
         Long.lesParameter(call, "stønadsperiodeId").fold(
-                left = { call.svar(BadRequest.tekst(it)) },
+                left = { call.svar(BadRequest.message(it)) },
                 right = { id ->
                     call.audit("oppretter behandling på stønadsperiode med id: $id")
                     when (val stønadsperiode = repo.hentStønadsperiode(id)) {
-                        null -> call.svar(NotFound.tekst("Fant ikke stønadsperiode med id:$id"))
+                        null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
                         else -> call.svar(Created.json(stønadsperiode.nyBehandling().toJson()))
                     }
                 }
