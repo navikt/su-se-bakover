@@ -39,7 +39,7 @@ allprojects {
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("no.nav:su-meldinger:fb29a9e7c3f6d7f062697627cf99f4bba3bbc27a")
+        implementation("no.nav:su-meldinger:68feadc4689ca4e76eebba4c8bb9d0bfab8c0a55")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
