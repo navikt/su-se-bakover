@@ -2,7 +2,6 @@ package no.nav.su.se.bakover
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
-import com.github.tomakehurst.wiremock.WireMockServer
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -37,15 +36,14 @@ const val DB_VAULT_MOUNTPATH = ""
 const val DB_NAME = "postgres"
 
 @KtorExperimentalAPI
-fun Application.testEnv(wireMockServer: WireMockServer? = null) {
-    val baseUrl = wireMockServer?.baseUrl() ?: SU_FRONTEND_ORIGIN
+fun Application.testEnv() {
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
-        put("integrations.suSeFramover.redirectUrl", "$baseUrl$SU_FRONTEND_REDIRECT_URL")
+        put("integrations.suSeFramover.redirectUrl", SU_FRONTEND_REDIRECT_URL)
         put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
         put("azure.clientId", AZURE_CLIENT_ID)
         put("azure.clientSecret", AZURE_CLIENT_SECRET)
-        put("azure.backendCallbackUrl", "$baseUrl$AZURE_BACKEND_CALLBACK_URL")
+        put("azure.backendCallbackUrl", AZURE_BACKEND_CALLBACK_URL)
         put("issuer", AZURE_ISSUER)
         put("db.username", DB_USERNAME)
         put("db.password", DB_PASSWORD)

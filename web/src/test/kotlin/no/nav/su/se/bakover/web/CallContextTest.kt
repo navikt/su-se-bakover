@@ -74,7 +74,7 @@ internal class CallContextTest : ComponentTest() {
         val downstreamCorrelationIds: MutableList<String> = synchronizedList(mutableListOf<String>())
 
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = TODO("Not yet implemented")
 

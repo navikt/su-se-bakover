@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import org.slf4j.LoggerFactory
 
@@ -31,11 +32,10 @@ object ClientBuilder : ClientsBuilder {
             baseUrl: String = env.getOrDefault("SU_PERSON_URL", "http://su-person.default.svc.nais.local"),
             clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
             oAuth: OAuth
-    ): PersonOppslag =
-            when {
-                envIsLocalOrRunningTests() -> PersonOppslagStub.also { logger.warn("Using stub for ${PersonOppslag::class.java}") }
-                else -> SuPersonClient(baseUrl, clientId, oAuth)
-            }
+    ): PersonOppslag = when (envIsLocalOrRunningTests()) {
+        true -> PersonOppslagStub.also { logger.warn("********** Using stub for ${PersonOppslag::class.java} **********") }
+        else -> SuPersonClient(baseUrl, clientId, oAuth)
+    }
 
     // NAIS_CLUSTER_NAME blir satt av Nais.
     private fun envIsLocalOrRunningTests(): Boolean = env["NAIS_CLUSTER_NAME"] == null
@@ -45,8 +45,9 @@ object ClientBuilder : ClientsBuilder {
             clientId: String = env.getOrDefault("SU_INNTEKT_AZURE_CLIENT_ID", "9cd61904-33ad-40e8-9cc8-19e4dab588c5"),
             oAuth: OAuth,
             personOppslag: PersonOppslag
-    ): InntektOppslag {
-        return SuInntektClient(baseUrl, clientId, oAuth, personOppslag)
+    ): InntektOppslag = when (envIsLocalOrRunningTests()) {
+        true -> InntektOppslagStub.also { logger.warn("********** Using stub for ${InntektOppslag::class.java} **********") }
+        else -> SuInntektClient(baseUrl, clientId, oAuth, personOppslag)
     }
 
     override fun build(

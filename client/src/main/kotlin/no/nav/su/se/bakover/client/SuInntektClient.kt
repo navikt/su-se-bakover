@@ -33,8 +33,8 @@ internal class SuInntektClient(
         val (_, response, result) = inntektResource.httpPost(
                 listOf(
                         suInntektIdentLabel to ident.toString(),
-                        "fom" to fomDato.daymonthSubstring(),
-                        "tom" to tomDato.daymonthSubstring()
+                        "fom" to fomDato.yearMonthSubstring(),
+                        "tom" to tomDato.yearMonthSubstring()
                 )
         )
                 .header("Authorization", "Bearer $onBehalfOfToken")
@@ -58,5 +58,5 @@ internal class SuInntektClient(
     }
 }
 
-private fun String.daymonthSubstring() = substring(0, 7)
+private fun String.yearMonthSubstring() = substring(0, 7)
 

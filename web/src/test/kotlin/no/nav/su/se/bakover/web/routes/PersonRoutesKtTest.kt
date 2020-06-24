@@ -29,7 +29,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/12345678910")
@@ -41,7 +41,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     @Test
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/qwertyuiopå") {
@@ -55,7 +55,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     @Test
     fun `henter sak for fnr`() {
         withTestApplication(({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         })) {
             val fnr = "12121212121"
@@ -74,7 +74,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {
@@ -92,7 +92,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
         val errorMessage = "beklager, det gikk dårlig"
 
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, "$personPath/$testIdent") {

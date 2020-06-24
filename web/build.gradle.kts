@@ -14,14 +14,8 @@ repositories {
 }
 
 val ktorVersion = "1.3.2"
-val fuelVersion = "2.2.1"
-val wireMockVersion = "2.23.2"
 val orgJsonVersion = "20180813"
 val micrometerRegistryPrometheusVersion = "1.3.2"
-val flywayVersion = "6.2.1"
-val hikariVersion = "3.3.1"
-val vaultJdbcVersion = "1.3.1"
-val kotliqueryVersion = "1.3.1"
 
 dependencies {
     implementation(project(":common"))
@@ -48,9 +42,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
-    }
-    testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
-        exclude(group = "junit")
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
     testImplementation("no.nav:kafka-embedded-env:2.2.3")

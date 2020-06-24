@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
-import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.matching.AnythingPattern
 import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -11,10 +8,14 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.InntektOppslag
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.susebakover
 import no.nav.su.se.bakover.withCorrelationId
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -30,7 +31,7 @@ internal class InntektRoutesKtTest : ComponentTest() {
     @Test
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path)
@@ -41,18 +42,8 @@ internal class InntektRoutesKtTest : ComponentTest() {
 
     @Test
     fun `kan hente inntekt`() {
-        wireMockServer.stubFor(
-                post(urlPathEqualTo("/inntekt"))
-                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer ONBEHALFOFTOKEN"))
-                        .withHeader(XCorrelationId, AnythingPattern())
-                        .willReturn(
-                                okJson("""{"ident"="$ident"}""")
-                        )
-        )
-
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path) {
@@ -60,26 +51,18 @@ internal class InntektRoutesKtTest : ComponentTest() {
             }
         }.apply {
             assertEquals(OK, response.status())
-            assertEquals("""{"ident"="$ident"}""", response.content!!)
+            assertEquals(ident, JSONObject(response.content!!).getJSONObject("ident").getString("identifikator"))
         }
     }
 
     @Test
     fun `håndterer og videreformidler feil`() {
         val errorMessage = """{"message": "nich gut"}"""
-        wireMockServer.stubFor(
-                post(urlPathEqualTo("/inntekt"))
-                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer ONBEHALFOFTOKEN"))
-                        .withHeader(XCorrelationId, AnythingPattern())
-                        .willReturn(
-                                aResponse().withBody(errorMessage).withStatus(500)
-                        )
-        )
-
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testEnv()
+            susebakover(clients = buildClients(inntektOppslag = object : InntektOppslag {
+                override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
+            }), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Get, path) {
                 addHeader(Authorization, jwt)

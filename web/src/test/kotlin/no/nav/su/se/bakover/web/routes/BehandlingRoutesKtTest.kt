@@ -24,7 +24,7 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
     @Test
     fun `henter en behandling`() {
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)

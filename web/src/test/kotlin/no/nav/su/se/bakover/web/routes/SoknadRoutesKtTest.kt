@@ -44,7 +44,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
     fun `lagrer og henter søknad`() {
         val fnr = Fnr("01010100001")
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             val createResponse = withCorrelationId(Post, søknadPath) {
@@ -72,7 +72,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(personOppslag = personoppslag()), jwkProvider = JwkProviderStub)
         }) {
             handleRequest(Post, søknadPath) {
@@ -107,7 +107,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         val fnr = Fnr("01010100004")
         var sakNr: Int
         withTestApplication({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         }) {
             withCorrelationId(Post, søknadPath) {

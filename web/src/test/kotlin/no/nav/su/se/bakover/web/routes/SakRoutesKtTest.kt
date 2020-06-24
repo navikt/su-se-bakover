@@ -29,7 +29,7 @@ internal class SakRoutesKtTest : ComponentTest() {
     @Test
     fun `henter sak for sak id`() {
         withTestApplication(({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         })) {
             val opprettetSakId = JSONObject(sakRepo.opprettSak(Fnr(sakFnr01)).toJson()).getLong("id")
@@ -46,7 +46,7 @@ internal class SakRoutesKtTest : ComponentTest() {
     @Test
     fun `error handling`() {
         withTestApplication(({
-            testEnv(wireMockServer)
+            testEnv()
             susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
         })) {
             withCorrelationId(Get, "$sakPath/999") {
