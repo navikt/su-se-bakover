@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.routes.søknadPath
 import org.junit.jupiter.api.Test
+import java.util.Collections.synchronizedList
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
@@ -70,27 +71,25 @@ internal class CallContextTest : ComponentTest() {
     @Test
     fun `parallel requests should preserve context`() {
         val numRequests = 100
-        val downstreamCorrelationIds: MutableList<String> = mutableListOf()
+        val downstreamCorrelationIds: MutableList<String> = synchronizedList(mutableListOf<String>())
 
         withTestApplication({
             testEnv(wireMockServer)
             susebakover(clients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = TODO("Not yet implemented")
 
-                override fun aktørId(ident: Fnr): String = "aktørid".also {
-                    downstreamCorrelationIds.add(CallContext.correlationId())
-                }
+                override fun aktørId(ident: Fnr): String =
+                        "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
             }))
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, jwt) }
             val executors = Executors.newFixedThreadPool(numRequests)
-            var applicationCalls: List<TestApplicationCall>? = null
-            requests.map { executors.submit(it) }.also {
-                applicationCalls = it.map { it.get() }
-            }
+            var applicationCalls: List<TestApplicationCall>? = requests
+                    .map { executors.submit(it) }
+                    .map { it.get() }
+
             val passedCorrelationIds = List(numRequests) { it.toString() }
-            assertEquals(numRequests, passedCorrelationIds.size)
-            assertEquals(numRequests, downstreamCorrelationIds.size)
+            assertEquals(numRequests, downstreamCorrelationIds.size, "downstreamCorrelationIds")
             assertTrue(downstreamCorrelationIds.containsAll(passedCorrelationIds)) // Verify all correlation ids passed along to service to get aktørid
             applicationCalls!!.forEach { assertEquals(it.request.header(XCorrelationId), it.response.headers[XCorrelationId]) } // Assert responses contain input correlation id
         }
