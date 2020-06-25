@@ -11,7 +11,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class InntektRoutesKtTest : ComponentTest() {
+internal class InntektRoutesKtTest {
 
     private val ident = "12345678910"
     private val fomDato = "2020-01-01"

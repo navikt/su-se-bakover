@@ -8,10 +8,11 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.SakEventObserver
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.Producer
 
 @KtorExperimentalAPI
 internal class SøknadMottattEmitter(
-        private val kafka: KafkaProducer<String, String>,
+        private val kafka: Producer<String, String>,
         private val personClient: PersonOppslag
 ) : SakEventObserver {
     override fun nySøknadEvent(event: SakEventObserver.NySøknadEvent) {

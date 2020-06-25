@@ -39,7 +39,7 @@ import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class CallContextTest : ComponentTest() {
+internal class CallContextTest {
 
     @Test
     fun `should set and get context`() {
@@ -74,13 +74,13 @@ internal class CallContextTest : ComponentTest() {
         withTestApplication({
             testEnv()
             testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
-                override fun person(ident: Fnr): ClientResponse = TODO("Not yet implemented")
+                override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 
                 override fun aktørId(ident: Fnr): String =
                         "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
             }))
         }) {
-            val requests = List(numRequests) { CallableRequest(this, it, jwt) }
+            val requests = List(numRequests) { CallableRequest(this, it, Jwt.create()) }
             val executors = Executors.newFixedThreadPool(numRequests)
             var applicationCalls: List<TestApplicationCall>? = requests
                     .map { executors.submit(it) }
