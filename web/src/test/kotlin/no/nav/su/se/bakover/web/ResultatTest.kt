@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import no.nav.su.se.bakover.client.ClientResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 
 class ResultatTest {
     @Test

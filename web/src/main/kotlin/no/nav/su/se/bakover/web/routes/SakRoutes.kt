@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.lesParameter
-import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.svar
 
 internal const val sakPath = "/sak"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-        sakRepo: ObjectRepo
+    sakRepo: ObjectRepo
 ) {
     get("$sakPath/{id}") {
         Long.lesParameter(call, "id").fold(

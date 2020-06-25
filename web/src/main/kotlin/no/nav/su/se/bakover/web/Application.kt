@@ -26,6 +26,9 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
+import java.net.URL
+import java.util.*
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.*
 import no.nav.su.se.bakover.client.ClientBuilder
 import no.nav.su.se.bakover.client.Clients
@@ -46,24 +49,21 @@ import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.net.URL
-import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        kafkaProducer: Producer<String, String> = KafkaClientBuilder.buildProducer(),
-        databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
-                "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
-                "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
-                "db.name" to fromEnvironment("db.name"),
-                "db.username" to fromEnvironment("db.username"),
-                "db.password" to fromEnvironment("db.password")
-        ))),
-        clients: Clients = ClientBuilder.build(),
-        jwkConfig: JSONObject = clients.oauth.jwkConfig(),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
+    kafkaProducer: Producer<String, String> = KafkaClientBuilder.buildProducer(),
+    databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
+            "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
+            "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
+            "db.name" to fromEnvironment("db.name"),
+            "db.username" to fromEnvironment("db.username"),
+            "db.password" to fromEnvironment("db.password")
+    ))),
+    clients: Clients = ClientBuilder.build(),
+    jwkConfig: JSONObject = clients.oauth.jwkConfig(),
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
     val søknadMottattEmitter = SøknadMottattEmitter(kafkaProducer, clients.personOppslag)
@@ -187,7 +187,6 @@ fun CallContext.toCoroutineContext(): CoroutineContext {
     val mdc = mdcContextElement()
     return security.first.asContextElement(security.second) + mdc.first.asContextElement(mdc.second)
 }
-
 
 fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()
 

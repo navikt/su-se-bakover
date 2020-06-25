@@ -11,15 +11,15 @@ interface InntektOppslag {
 }
 
 internal class SuInntektClient(
-        suInntektBaseUrl: String,
-        private val suInntektClientId: String,
-        private val exchange: OAuth,
-        private val personOppslag: PersonOppslag
+    suInntektBaseUrl: String,
+    private val suInntektClientId: String,
+    private val exchange: OAuth,
+    private val personOppslag: PersonOppslag
 ) : InntektOppslag {
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
-    //TODO bedre håndtering av kode 6/7?
+    // TODO bedre håndtering av kode 6/7?
     override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse {
         val oppslag = personOppslag.person(ident)
         return when (oppslag.success()) {
@@ -59,4 +59,3 @@ internal class SuInntektClient(
 }
 
 private fun String.yearMonthSubstring() = substring(0, 7)
-

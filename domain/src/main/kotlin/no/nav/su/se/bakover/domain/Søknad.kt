@@ -5,8 +5,8 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Søknad constructor(
-        private val id: Long = NO_SUCH_IDENTITY,
-        private val søknadInnhold: SøknadInnhold
+    private val id: Long = NO_SUCH_IDENTITY,
+    private val søknadInnhold: SøknadInnhold
 ) {
     fun toJson(): String = """
         {

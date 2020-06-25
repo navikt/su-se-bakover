@@ -55,4 +55,3 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         val logger: Logger = LoggerFactory.getLogger(SuPersonClient::class.java)
     }
 }
-

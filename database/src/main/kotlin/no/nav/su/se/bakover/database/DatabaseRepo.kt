@@ -1,13 +1,17 @@
 package no.nav.su.se.bakover.database
 
-import kotliquery.*
+import javax.sql.DataSource
+import kotliquery.Row
+import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.domain.*
 import org.json.JSONObject
-import javax.sql.DataSource
 
 internal class DatabaseRepo(
-        private val dataSource: DataSource
+    private val dataSource: DataSource
 ) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSak(fnr, it) }
@@ -51,7 +55,6 @@ internal class DatabaseRepo(
 
     private fun opprettSak(fnr: String): Long = "insert into sak (fnr) values (:fnr)".oppdatering(mapOf("fnr" to fnr))!!
 
-
     private fun Row.toStønadsperiode(session: Session) = Stønadsperiode(
             id = long("id"),
             søknad = hentSøknad(long("søknadId"), session)!!
@@ -91,7 +94,6 @@ internal class DatabaseRepo(
                     it.addObserver(this)
                 }
             }
-
 
     override fun nyBehandling(stønadsperiodeId: Long): Behandling {
         val behandlingId = opprettBehandling(stønadsperiodeId)

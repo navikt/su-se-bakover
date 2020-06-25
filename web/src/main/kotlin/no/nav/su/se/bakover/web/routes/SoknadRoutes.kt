@@ -15,18 +15,18 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.json
-import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.svar
 import org.json.JSONObject
 
 internal const val søknadPath = "/soknad"
 
 @KtorExperimentalAPI
 internal fun Route.soknadRoutes(
-        mediator: SøknadRouteMediator
+    mediator: SøknadRouteMediator
 ) {
 
     get("$søknadPath/{soknadId}") {
@@ -59,8 +59,8 @@ internal fun Route.soknadRoutes(
 suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
 
 internal class SøknadRouteMediator(
-        private val repo: ObjectRepo,
-        private val søknadMottattEmitter: SøknadMottattEmitter
+    private val repo: ObjectRepo,
+    private val søknadMottattEmitter: SøknadMottattEmitter
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
         val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))

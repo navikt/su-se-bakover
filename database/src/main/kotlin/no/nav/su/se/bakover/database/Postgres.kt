@@ -2,18 +2,18 @@ package no.nav.su.se.bakover.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
 import no.nav.su.se.bakover.database.Postgres.Role
 import no.nav.su.se.bakover.database.Postgres.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
-import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
 internal class Postgres(
-        private val jdbcUrl: String,
-        private val vaultMountPath: String,
-        private val databaseName: String,
-        private val username: String,
-        private val password: String
+    private val jdbcUrl: String,
+    private val vaultMountPath: String,
+    private val databaseName: String,
+    private val username: String,
+    private val password: String
 ) {
     fun build(): AbstractDatasource {
         return when (vaultMountPath.let { it != "" }) {
@@ -47,7 +47,6 @@ internal class NonVaultPostgres(jdbcUrl: String, private val username: String, p
         username = this@NonVaultPostgres.username
         password = this@NonVaultPostgres.password
     })
-
 }
 
 internal class VaultPostgres(private val jdbcUrl: String, private val vaultMountPath: String, private val databaseName: String) : AbstractDatasource(jdbcUrl) {

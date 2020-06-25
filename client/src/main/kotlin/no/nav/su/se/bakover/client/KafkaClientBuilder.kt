@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client
 
+import java.io.File
+import java.util.Properties
 import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -9,8 +11,6 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.util.*
 
 interface KafkaClientsBuilder {
     fun buildProducer(): Producer<String, String>

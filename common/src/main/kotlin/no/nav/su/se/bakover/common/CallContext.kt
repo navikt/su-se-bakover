@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.common
 
 class CallContext(
-        private val security: SecurityContext,
-        private val mdc: MdcContext
+    private val security: SecurityContext,
+    private val mdc: MdcContext
 ) {
     init {
         securityContext.set(security)
@@ -18,11 +18,11 @@ class CallContext(
     }
 
     class SecurityContext(
-            val token: String
+        val token: String
     )
 
     data class MdcContext(
-            val mdc: Map<String, String> = emptyMap()
+        val mdc: Map<String, String> = emptyMap()
     )
 
     fun securityContextElement() = Pair(securityContext, security)

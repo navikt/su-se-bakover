@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.web.routes
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
+import kotlin.test.assertEquals
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.web.*
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 internal class StønadsperiodeRoutesKtTest {
 

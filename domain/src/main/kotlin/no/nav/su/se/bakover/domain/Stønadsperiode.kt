@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.domain
 
-
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Stønadsperiode(
-        private val id: Long = NO_SUCH_IDENTITY,
-        private val søknad: Søknad,
-        private val behandlinger: MutableList<Behandling> = mutableListOf()
+    private val id: Long = NO_SUCH_IDENTITY,
+    private val søknad: Søknad,
+    private val behandlinger: MutableList<Behandling> = mutableListOf()
 ) {
     private val observers: MutableList<StønadsperiodeObserver> = mutableListOf()
     fun addObserver(observer: StønadsperiodeObserver) = observers.add(observer)
@@ -21,7 +20,7 @@ class Stønadsperiode(
 
     private fun behandlingerAsJson(): String = "[ ${behandlinger.joinToString(",") { it.toJson() }} ]"
 
-    fun nyBehandling() : Behandling {
+    fun nyBehandling(): Behandling {
         lateinit var behandling: Behandling
         observers.filterIsInstance(StønadsperiodePersistenceObserver::class.java).forEach {
             behandling = it.nyBehandling(id)

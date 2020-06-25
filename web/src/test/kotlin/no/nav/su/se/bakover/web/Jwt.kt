@@ -11,11 +11,11 @@ import java.util.*
 object Jwt {
     val keys = generate()
     fun create(
-            subject: String = SUBJECT,
-            groups: List<String> = listOf(AZURE_REQUIRED_GROUP),
-            audience: String = AZURE_CLIENT_ID,
-            expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
-            algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
+        subject: String = SUBJECT,
+        groups: List<String> = listOf(AZURE_REQUIRED_GROUP),
+        audience: String = AZURE_CLIENT_ID,
+        expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
+        algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
     ): String {
         return "Bearer ${JWT.create()
                 .withIssuer(AZURE_ISSUER)

@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
-import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.svar
 
 internal const val behandlingPath = "$stønadsperiodePath/{stønadsperiodeId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-        repo: ObjectRepo
+    repo: ObjectRepo
 ) {
 
     get("$behandlingPath/{behandlingId}") {

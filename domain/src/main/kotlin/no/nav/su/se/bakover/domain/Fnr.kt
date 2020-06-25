@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 class Fnr(
-        private val fnr: String?
+    private val fnr: String?
 ) {
     private val fnrPattern = Regex("[0-9]{11}")
 

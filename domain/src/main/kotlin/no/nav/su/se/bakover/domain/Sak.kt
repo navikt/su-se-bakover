@@ -5,9 +5,9 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Sak constructor(
-        private val fnr: Fnr,
-        private val id: Long = NO_SUCH_IDENTITY,
-        private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
+    private val fnr: Fnr,
+    private val id: Long = NO_SUCH_IDENTITY,
+    private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
 ) {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
@@ -45,8 +45,8 @@ interface SakEventObserver : SakObserver {
     fun nySøknadEvent(nySøknadEvent: NySøknadEvent) {}
 
     data class NySøknadEvent(
-            val sakId: Long,
-            val søknadId: Long,
-            val søknadInnhold: SøknadInnhold
+        val sakId: Long,
+        val søknadId: Long,
+        val søknadInnhold: SøknadInnhold
     )
 }

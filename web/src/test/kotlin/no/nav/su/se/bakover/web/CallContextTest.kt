@@ -17,10 +17,19 @@ import io.ktor.request.ApplicationRequest
 import io.ktor.request.RequestCookies
 import io.ktor.request.header
 import io.ktor.response.ApplicationResponse
-import io.ktor.server.testing.*
+import io.ktor.server.testing.TestApplicationCall
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
+import io.ktor.server.testing.withTestApplication
 import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 import io.ktor.util.KtorExperimentalAPI
+import java.util.Collections.synchronizedList
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
@@ -31,11 +40,6 @@ import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.søknadPath
 import org.junit.jupiter.api.Test
-import java.util.Collections.synchronizedList
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
@@ -77,26 +81,31 @@ internal class CallContextTest {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 
                 override fun aktørId(ident: Fnr): String =
-                        "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
+                    "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
             }))
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, Jwt.create()) }
             val executors = Executors.newFixedThreadPool(numRequests)
             var applicationCalls: List<TestApplicationCall>? = requests
-                    .map { executors.submit(it) }
-                    .map { it.get() }
+                .map { executors.submit(it) }
+                .map { it.get() }
 
             val passedCorrelationIds = List(numRequests) { it.toString() }
             assertEquals(numRequests, downstreamCorrelationIds.size, "downstreamCorrelationIds")
             assertTrue(downstreamCorrelationIds.containsAll(passedCorrelationIds)) // Verify all correlation ids passed along to service to get aktørid
-            applicationCalls!!.forEach { assertEquals(it.request.header(XCorrelationId), it.response.headers[XCorrelationId]) } // Assert responses contain input correlation id
+            applicationCalls!!.forEach {
+                assertEquals(
+                    it.request.header(XCorrelationId),
+                    it.response.headers[XCorrelationId]
+                )
+            } // Assert responses contain input correlation id
         }
     }
 
     internal class CallableRequest(
-            val testApplicationEngine: TestApplicationEngine,
-            val correlationId: Int,
-            val token: String
+        val testApplicationEngine: TestApplicationEngine,
+        val correlationId: Int,
+        val token: String
     ) : Callable<TestApplicationCall> {
         override fun call(): TestApplicationCall {
             println("Test Thread: ${Thread.currentThread()}")

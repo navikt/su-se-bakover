@@ -14,8 +14,8 @@ internal const val personPath = "/person"
 
 @KtorExperimentalAPI
 internal fun Route.personRoutes(
-        oppslag: PersonOppslag,
-        sakRepo: ObjectRepo
+    oppslag: PersonOppslag,
+    sakRepo: ObjectRepo
 ) {
     get("$personPath/{fnr}") {
         launchWithContext(call) {

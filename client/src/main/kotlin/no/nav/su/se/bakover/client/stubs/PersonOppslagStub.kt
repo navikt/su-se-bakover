@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 
-
 object PersonOppslagStub :
         PersonOppslag {
     override fun person(ident: Fnr): ClientResponse = ClientResponse(200,

@@ -13,6 +13,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import kotlin.test.assertEquals
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.web.*
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI

@@ -24,9 +24,9 @@ import org.json.JSONObject
 
 @KtorExperimentalAPI
 internal fun Application.setupAuthentication(
-        jwkConfig: JSONObject,
-        jwkProvider: JwkProvider,
-        config: ApplicationConfig
+    jwkConfig: JSONObject,
+    jwkProvider: JwkProvider,
+    config: ApplicationConfig
 ) {
     install(Authentication) {
         oauth("azure") {
@@ -74,7 +74,7 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) 
     routing {
         authenticate("azure") {
             get("/login") {
-                //Initiate login sequence
+                // Initiate login sequence
             }
             get("/callback") {
                 val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2

@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.database.NonVaultPostgres
-import no.nav.su.se.bakover.database.Postgres
-import no.nav.su.se.bakover.database.VaultPostgres
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow

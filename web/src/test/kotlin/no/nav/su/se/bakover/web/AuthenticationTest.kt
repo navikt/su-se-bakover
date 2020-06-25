@@ -8,11 +8,11 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import java.time.Instant
+import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.Instant
-import java.util.*
 
 const val secureEndpoint = "/authenticated"
 
@@ -102,5 +102,3 @@ internal class AuthenticationTest {
         }
     }
 }
-
-

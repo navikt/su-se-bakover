@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.stubs
 
+import java.time.Duration
+import java.util.concurrent.Future
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.Producer
@@ -13,8 +15,6 @@ import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.utils.Time
 import org.slf4j.LoggerFactory
-import java.time.Duration
-import java.util.concurrent.Future
 
 object KafkaProducerStub : Producer<String, String> {
     val sentRecords = mutableListOf<ProducerRecord<String, String>>()

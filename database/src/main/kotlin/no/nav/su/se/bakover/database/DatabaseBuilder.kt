@@ -21,11 +21,11 @@ object DatabaseBuilder {
     fun fromDatasource(dataSource: DataSource): ObjectRepo = DatabaseRepo(dataSource)
 
     internal data class Properties(
-            val jdbcUrl: String,
-            val vaultMountPath: String,
-            val databaseName: String,
-            val username: String,
-            val password: String
+        val jdbcUrl: String,
+        val vaultMountPath: String,
+        val databaseName: String,
+        val username: String,
+        val password: String
     ) {
         companion object {
             fun fromEnv(env: Map<String, String>) = env.validateKeys()

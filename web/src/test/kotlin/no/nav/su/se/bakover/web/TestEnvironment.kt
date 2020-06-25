@@ -11,6 +11,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
+import java.util.*
 import no.nav.su.se.bakover.client.*
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
 import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
-import java.util.*
 
 const val AZURE_CLIENT_ID = "clientId"
 const val AZURE_CLIENT_SECRET = "secret"
@@ -53,17 +53,17 @@ internal fun Application.testEnv() {
 }
 
 internal fun Application.testSusebakover(
-        clients: Clients = buildClients(),
-        jwkProvider: JwkProvider = JwkProviderStub,
-        kafkaProducer: Producer<String, String> = KafkaProducerStub
+    clients: Clients = buildClients(),
+    jwkProvider: JwkProvider = JwkProviderStub,
+    kafkaProducer: Producer<String, String> = KafkaProducerStub
 ) {
     return susebakover(clients = clients, jwkProvider = jwkProvider, kafkaProducer = kafkaProducer)
 }
 
 internal fun buildClients(
-        azure: OAuth = OauthStub(),
-        personOppslag: PersonOppslag = PersonOppslagStub,
-        inntektOppslag: InntektOppslag = InntektOppslagStub
+    azure: OAuth = OauthStub(),
+    personOppslag: PersonOppslag = PersonOppslagStub,
+    inntektOppslag: InntektOppslag = InntektOppslagStub
 ): Clients {
     return ClientBuilder.build(azure, personOppslag, inntektOppslag)
 }
@@ -95,9 +95,9 @@ internal class OauthStub : OAuth {
 }
 
 fun TestApplicationEngine.defaultRequest(
-        method: HttpMethod,
-        uri: String,
-        setup: TestApplicationRequest.() -> Unit = {}
+    method: HttpMethod,
+    uri: String,
+    setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)

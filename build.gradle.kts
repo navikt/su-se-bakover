@@ -3,16 +3,16 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath( "org.ajoberstar:grgit:1.1.0")
+        classpath("org.ajoberstar:grgit:1.1.0")
     }
 }
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
 version = "0.0.1"
-apply(plugin = "org.jetbrains.kotlin.jvm")
 java {
     sourceCompatibility = JavaVersion.VERSION_12
     targetCompatibility = JavaVersion.VERSION_12
@@ -20,7 +20,7 @@ java {
 
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
     val githubUser: String? by project
     val githubPassword: String? by project
     repositories {
@@ -63,6 +63,4 @@ allprojects {
     tasks.withType<Wrapper> {
         gradleVersion = "6.2.2"
     }
-
-
 }

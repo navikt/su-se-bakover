@@ -11,9 +11,9 @@ interface OAuth {
 }
 
 internal class AzureClient(
-        private val thisClientId: String,
-        private val thisClientSecret: String,
-        private val wellknownUrl: String
+    private val thisClientId: String,
+    private val thisClientSecret: String,
+    private val wellknownUrl: String
 ) : OAuth {
     private val tokenEndpoint = jwkConfig().getString("token_endpoint")
 
@@ -57,7 +57,7 @@ internal class AzureClient(
         val (_, _, result) = wellknownUrl.httpGet().responseString()
         return result.fold(
                 { JSONObject(it) },
-                { throw RuntimeException("Could not get JWK config from url ${wellknownUrl}, error:${it}") }
+                { throw RuntimeException("Could not get JWK config from url $wellknownUrl, error:$it") }
         )
     }
 }

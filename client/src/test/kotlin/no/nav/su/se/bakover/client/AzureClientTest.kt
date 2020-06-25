@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.client
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import java.net.URLEncoder
+import java.nio.charset.Charset
 import no.nav.su.se.bakover.client.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.client.AzureClient.Companion.REQUESTED_TOKEN_USE
 import org.junit.jupiter.api.AfterAll
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.net.URLEncoder
-import java.nio.charset.Charset
 
 private const val CLIENT_ID = "clientId"
 private const val CLIENT_SECRET = "clientSecret"

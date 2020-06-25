@@ -8,6 +8,7 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI

@@ -5,13 +5,13 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
+import kotlin.test.assertEquals
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.web.*
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
