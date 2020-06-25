@@ -5,7 +5,6 @@ import java.util.Properties
 import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
@@ -13,15 +12,21 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 
 interface KafkaClientsBuilder {
-    fun buildProducer(): Producer<String, String>
+    fun build(): SuKafkaClient
 }
 
 object KafkaClientBuilder : KafkaClientsBuilder {
     private val env = System.getenv()
 
-    override fun buildProducer(): Producer<String, String> = when (env.isLocalOrRunningTests()) {
-        true -> KafkaProducerStub
-        else -> KafkaProducer(KafkaConfigBuilder(env).producerConfig(), StringSerializer(), StringSerializer())
+    override fun build(): SuKafkaClient = when (env.isLocalOrRunningTests()) {
+        true -> SuKafkaClientImpl(KafkaProducerStub())
+        else -> SuKafkaClientImpl(
+            KafkaProducer(
+                KafkaConfigBuilder(env).producerConfig(),
+                StringSerializer(),
+                StringSerializer()
+            )
+        )
     }
 }
 
@@ -38,7 +43,10 @@ internal class KafkaConfigBuilder(private val env: Map<String, String>) {
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "PLAINTEXT")
         val username = env.getOrDefault("username", "kafkaUser")
         val password = env.getOrDefault("password", "kafkaPassword")
-        put(SaslConfigs.SASL_JAAS_CONFIG, "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";")
+        put(
+            SaslConfigs.SASL_JAAS_CONFIG,
+            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";"
+        )
         put(SaslConfigs.SASL_MECHANISM, "PLAIN")
 
         val truststorePath = env.getOrDefault("NAV_TRUSTSTORE_PATH", "")

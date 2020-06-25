@@ -33,6 +33,7 @@ import kotlinx.coroutines.*
 import no.nav.su.se.bakover.client.ClientBuilder
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.KafkaClientBuilder
+import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
@@ -45,7 +46,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.routes.*
-import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -53,7 +53,7 @@ import org.slf4j.event.Level
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    kafkaProducer: Producer<String, String> = KafkaClientBuilder.buildProducer(),
+    kafkaClient: SuKafkaClient = KafkaClientBuilder.build(),
     databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
             "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
             "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
@@ -66,7 +66,7 @@ internal fun Application.susebakover(
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
-    val søknadMottattEmitter = SøknadMottattEmitter(kafkaProducer, clients.personOppslag)
+    val søknadMottattEmitter = SøknadMottattEmitter(kafkaClient, clients.personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
     install(CORS) {

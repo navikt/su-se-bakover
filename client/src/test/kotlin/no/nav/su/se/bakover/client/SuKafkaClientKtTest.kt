@@ -1,13 +1,32 @@
 package no.nav.su.se.bakover.client
 
+import java.lang.RuntimeException
+import java.util.concurrent.Future
+import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.Callback
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 
-internal class KafkaClientBuilderTest {
+internal class SuKafkaClientKtTest {
+
+    @Test
+    fun `test`() {
+        assertDoesNotThrow { SuKafkaClientImpl(KafkaProducerStub()).send(KafkaMessage("topic", "key", "value")) }
+        assertDoesNotThrow { SuKafkaClientImpl(object : KafkaProducerStub() {
+            override fun send(record: ProducerRecord<String, String>?, callback: Callback?): Future<RecordMetadata> {
+                throw RuntimeException("Error")
+            }
+        }).send(KafkaMessage("topic", "key", "value"))
+        }
+    }
+
     @Test
     fun `should configure producer without SSL`() {
         val config = KafkaConfigBuilder(mapOf(

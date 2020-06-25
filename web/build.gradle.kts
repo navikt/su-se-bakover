@@ -27,7 +27,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
     implementation("org.json:json:$orgJsonVersion")
-    implementation("org.apache.kafka:kafka-streams:2.3.0")
     implementation("no.nav:su-meldinger")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")

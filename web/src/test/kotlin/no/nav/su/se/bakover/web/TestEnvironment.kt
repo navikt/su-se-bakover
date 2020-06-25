@@ -11,13 +11,17 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import java.util.*
-import no.nav.su.se.bakover.client.*
+import java.util.Base64
+import no.nav.su.se.bakover.client.ClientBuilder
+import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.InntektOppslag
+import no.nav.su.se.bakover.client.OAuth
+import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.SuKafkaClientStub
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
-import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -28,7 +32,8 @@ const val AZURE_BACKEND_CALLBACK_URL = "/callback"
 const val SUBJECT = "enSaksbehandler"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
-const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid" // FIXME: This means that we don't test correlationID , this does not currently work
+const val DEFAULT_CALL_ID =
+    "her skulle vi sikkert hatt en korrelasjonsid" // FIXME: This means that we don't test correlationID , this does not currently work
 const val DB_USERNAME = "postgres"
 const val DB_PASSWORD = "postgres"
 const val DB_VAULT_MOUNTPATH = ""
@@ -55,9 +60,9 @@ internal fun Application.testEnv() {
 internal fun Application.testSusebakover(
     clients: Clients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
-    kafkaProducer: Producer<String, String> = KafkaProducerStub
+    kafkaClient: SuKafkaClient = SuKafkaClientStub
 ) {
-    return susebakover(clients = clients, jwkProvider = jwkProvider, kafkaProducer = kafkaProducer)
+    return susebakover(clients = clients, jwkProvider = jwkProvider, kafkaClient = kafkaClient)
 }
 
 internal fun buildClients(
@@ -70,28 +75,33 @@ internal fun buildClients(
 
 internal object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(
-            "key-1234",
-            "RSA",
-            "RS256",
-            null,
-            emptyList(),
-            null,
-            null,
-            null,
-            mapOf("e" to String(Base64.getEncoder().encode(Jwt.keys.first.publicExponent.toByteArray())), "n" to String(Base64.getEncoder().encode(Jwt.keys.first.modulus.toByteArray())))
+        "key-1234",
+        "RSA",
+        "RS256",
+        null,
+        emptyList(),
+        null,
+        null,
+        null,
+        mapOf(
+            "e" to String(Base64.getEncoder().encode(Jwt.keys.first.publicExponent.toByteArray())),
+            "n" to String(Base64.getEncoder().encode(Jwt.keys.first.modulus.toByteArray()))
+        )
     )
 }
 
 internal class OauthStub : OAuth {
     override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"
     override fun refreshTokens(refreshToken: String) = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
-    override fun jwkConfig() = JSONObject("""
+    override fun jwkConfig() = JSONObject(
+        """
             {
                 "jwks_uri": "http://localhost/keys",
                 "token_endpoint": "http://localhost/token",
                 "issuer": "azure"
             }
-        """.trimIndent())
+        """.trimIndent()
+    )
 }
 
 fun TestApplicationEngine.defaultRequest(
