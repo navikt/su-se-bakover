@@ -74,7 +74,7 @@ internal class CallContextTest {
         withTestApplication({
             testEnv()
             testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
-                override fun person(ident: Fnr): ClientResponse = TODO("Not yet implemented")
+                override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 
                 override fun aktørId(ident: Fnr): String =
                         "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }

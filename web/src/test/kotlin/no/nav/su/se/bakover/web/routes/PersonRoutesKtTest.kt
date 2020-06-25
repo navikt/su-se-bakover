@@ -101,6 +101,6 @@ internal class PersonRoutesKtTest {
             else -> ClientResponse(500, "funkitj")
         }
 
-        override fun aktørId(ident: Fnr): String = TODO("Not yet implemented")
+        override fun aktørId(ident: Fnr): String = throw NotImplementedError()
     }
 }

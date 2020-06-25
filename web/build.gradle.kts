@@ -44,7 +44,6 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
-    testImplementation("no.nav:kafka-embedded-env:2.2.3")
 }
 
 tasks.named<Jar>("jar") {

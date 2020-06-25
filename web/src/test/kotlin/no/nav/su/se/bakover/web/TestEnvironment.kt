@@ -13,8 +13,10 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.*
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
+import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
 import java.util.*
 
@@ -47,19 +49,15 @@ internal fun Application.testEnv() {
         put("db.jdbcUrl", getEmbeddedJdbcUrl())
         put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
         put("db.name", DB_NAME)
-        put("kafka.username", "kafkaUser")
-        put("kafka.password", "kafkaPassword")
-        put("kafka.bootstrap", EmbeddedKafka.kafkaInstance.brokersURL)
-        put("kafka.trustStorePath", "")
-        put("kafka.trustStorePassword", "")
     }
 }
 
 internal fun Application.testSusebakover(
         clients: Clients = buildClients(),
-        jwkProvider: JwkProvider = JwkProviderStub
+        jwkProvider: JwkProvider = JwkProviderStub,
+        kafkaProducer: Producer<String, String> = KafkaProducerStub
 ) {
-    return susebakover(clients = clients, jwkProvider = jwkProvider)
+    return susebakover(clients = clients, jwkProvider = jwkProvider, kafkaProducer = kafkaProducer)
 }
 
 internal fun buildClients(

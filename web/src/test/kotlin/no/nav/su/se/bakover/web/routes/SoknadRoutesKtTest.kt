@@ -13,24 +13,17 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.Topics.SØKNAD_TOPIC
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
-import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRecord
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.*
-import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.web.buildClients
-import no.nav.su.se.bakover.web.testEnv
-import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.Duration.of
-import java.time.temporal.ChronoUnit.MILLIS
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
@@ -68,10 +61,11 @@ internal class SoknadRoutesKtTest {
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
+
         withTestApplication({
             testEnv()
             testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
-                override fun person(ident: Fnr): ClientResponse = TODO("not implemented")
+                override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
                 override fun aktørId(ident: Fnr): String = stubAktørId
             }))
         }) {
@@ -84,11 +78,9 @@ internal class SoknadRoutesKtTest {
                 assertEquals(Created, response.status())
                 val sakId = JSONObject(response.content).getInt("id")
                 val søknadId = JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
-                val records = kafkaConsumer.poll(of(1000, MILLIS)).records(SØKNAD_TOPIC)
 
-                val ourRecords = records.filter { r -> r.key() == "$sakId" }
-                val first = fromConsumerRecord(ourRecords.first()) as NySøknad
-                assertEquals(first.correlationId, correlationId)
+                val ourRecords = KafkaProducerStub.sentRecords.filter { it.key() == "$sakId" }
+                val first = NySøknad.fromJson(ourRecords.first().value(), emptyMap())
                 assertEquals(1, ourRecords.size)
                 assertEquals(NySøknad(
                         correlationId = correlationId,
