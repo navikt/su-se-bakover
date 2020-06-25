@@ -11,7 +11,7 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-internal class StønadsperiodeRoutesKtTest : ComponentTest() {
+internal class StønadsperiodeRoutesKtTest {
 
     @Test
     fun `Opprette en ny behandling i en periode`() {

@@ -10,7 +10,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
@@ -20,7 +19,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SakRoutesKtTest : ComponentTest() {
+internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
     private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)

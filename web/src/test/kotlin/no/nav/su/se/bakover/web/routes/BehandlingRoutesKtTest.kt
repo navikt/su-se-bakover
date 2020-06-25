@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class BehandlingRoutesKtTest : ComponentTest() {
+internal class BehandlingRoutesKtTest {
 
     @Test
     fun `henter en behandling`() {

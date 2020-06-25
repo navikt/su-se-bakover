@@ -21,9 +21,9 @@ import no.nav.su.meldinger.kafka.soknad.SøknadMelding.Companion.fromConsumerRec
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.ComponentTest
+import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SoknadRoutesKtTest : ComponentTest() {
+internal class SoknadRoutesKtTest {
 
     private val stubAktørId = "12345"
     fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
@@ -76,7 +76,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
             }))
         }) {
             handleRequest(Post, søknadPath) {
-                addHeader(Authorization, jwt)
+                addHeader(Authorization, Jwt.create())
                 addHeader(ContentType, Json.toString())
                 addHeader(XCorrelationId, correlationId)
                 setBody(soknadJson(fnr))

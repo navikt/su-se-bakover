@@ -13,9 +13,8 @@ import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.web.*
+import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.testEnv
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -23,14 +22,14 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class PersonRoutesKtTest : ComponentTest() {
+internal class PersonRoutesKtTest {
     private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
             handleRequest(Get, "$personPath/12345678910")
         }.apply {
@@ -42,7 +41,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
             defaultRequest(Get, "$personPath/qwertyuiopå")
         }.apply {
@@ -54,7 +53,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `henter sak for fnr`() {
         withTestApplication(({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         })) {
             val fnr = "12121212121"
             sakRepo.opprettSak(Fnr(fnr))
@@ -71,7 +70,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)), jwkProvider = JwkProviderStub)
+            testSusebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -87,7 +86,7 @@ internal class PersonRoutesKtTest : ComponentTest() {
 
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)), jwkProvider = JwkProviderStub)
+            testSusebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
