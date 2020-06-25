@@ -54,13 +54,7 @@ import org.slf4j.event.Level
 @KtorExperimentalAPI
 internal fun Application.susebakover(
     kafkaClient: SuKafkaClient = KafkaClientBuilder.build(),
-    databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
-            "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
-            "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
-            "db.name" to fromEnvironment("db.name"),
-            "db.username" to fromEnvironment("db.username"),
-            "db.password" to fromEnvironment("db.password")
-    ))),
+    databaseRepo: ObjectRepo = DatabaseBuilder.build(),
     clients: Clients = ClientBuilder.build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()

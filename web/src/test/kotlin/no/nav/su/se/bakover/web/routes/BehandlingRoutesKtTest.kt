@@ -23,7 +23,7 @@ internal class BehandlingRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
+            val repo = DatabaseBuilder.build(EmbeddedDatabase.instance())
             val sak = repo.opprettSak(FnrGenerator.random())
 
             sak.nySøknad(SøknadInnholdTestdataBuilder.build())

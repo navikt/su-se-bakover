@@ -21,7 +21,9 @@ import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.SuKafkaClientStub
-import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
+import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.ObjectRepo
 import org.json.JSONObject
 
 const val AZURE_CLIENT_ID = "clientId"
@@ -32,12 +34,7 @@ const val AZURE_BACKEND_CALLBACK_URL = "/callback"
 const val SUBJECT = "enSaksbehandler"
 const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
-const val DEFAULT_CALL_ID =
-    "her skulle vi sikkert hatt en korrelasjonsid" // FIXME: This means that we don't test correlationID , this does not currently work
-const val DB_USERNAME = "postgres"
-const val DB_PASSWORD = "postgres"
-const val DB_VAULT_MOUNTPATH = ""
-const val DB_NAME = "postgres"
+const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
 @KtorExperimentalAPI
 internal fun Application.testEnv() {
@@ -49,20 +46,21 @@ internal fun Application.testEnv() {
         put("azure.clientSecret", AZURE_CLIENT_SECRET)
         put("azure.backendCallbackUrl", AZURE_BACKEND_CALLBACK_URL)
         put("issuer", AZURE_ISSUER)
-        put("db.username", DB_USERNAME)
-        put("db.password", DB_PASSWORD)
-        put("db.jdbcUrl", getEmbeddedJdbcUrl())
-        put("db.vaultMountPath", DB_VAULT_MOUNTPATH)
-        put("db.name", DB_NAME)
     }
 }
 
 internal fun Application.testSusebakover(
     clients: Clients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
-    kafkaClient: SuKafkaClient = SuKafkaClientStub
+    kafkaClient: SuKafkaClient = SuKafkaClientStub,
+    databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 ) {
-    return susebakover(clients = clients, jwkProvider = jwkProvider, kafkaClient = kafkaClient)
+    return susebakover(
+        clients = clients,
+        jwkProvider = jwkProvider,
+        kafkaClient = kafkaClient,
+        databaseRepo = databaseRepo
+    )
 }
 
 internal fun buildClients(

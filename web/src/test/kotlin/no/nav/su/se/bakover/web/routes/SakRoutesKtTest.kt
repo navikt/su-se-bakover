@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
+    private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
     fun `henter sak for sak id`() {

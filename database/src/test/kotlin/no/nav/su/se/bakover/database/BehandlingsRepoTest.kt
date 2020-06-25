@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 internal class BehandlingsRepoTest {
 
-    private val repo = DatabaseRepo(EmbeddedDatabase.database)
+    private val repo = DatabaseRepo(EmbeddedDatabase.instance())
 
     @Test
     fun `Sjekk at vi kan lagre en behandling i basen`() {

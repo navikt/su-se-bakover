@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal class PersonRoutesKtTest {
-    private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
+    private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {

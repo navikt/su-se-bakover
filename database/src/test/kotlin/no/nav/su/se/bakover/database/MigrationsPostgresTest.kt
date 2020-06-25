@@ -7,7 +7,7 @@ internal class MigrationsPostgresTest {
 
     @Test
     fun `migreringer skal kjøre på en tom database`() {
-        EmbeddedDatabase.database.also {
+        EmbeddedDatabase.instance().also {
             clean(it)
             val migrations = Flyway(it, "postgres").migrate()
             assertEquals(2, migrations)
@@ -16,7 +16,7 @@ internal class MigrationsPostgresTest {
 
     @Test
     fun `migreringer skal ikke kjøre flere ganger`() {
-        EmbeddedDatabase.database.also {
+        EmbeddedDatabase.instance().also {
             clean(it)
             assertEquals(2, Flyway(it, "postgres").migrate())
             assertEquals(0, Flyway(it, "postgres").migrate())

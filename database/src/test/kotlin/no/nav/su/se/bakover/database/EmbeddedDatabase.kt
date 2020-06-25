@@ -7,7 +7,6 @@ import org.flywaydb.core.Flyway
 
 object EmbeddedDatabase {
     internal val DB_NAME = "postgres"
-    private val JDBC_FORMAT = "jdbc:postgresql://localhost:%s/%s?user=%s"
     private val instance = EmbeddedPostgres.builder()
             .setLocaleConfig("locale", "en_US.UTF-8") // Feiler med Process [/var/folders/l2/q666s90d237c37rwkw9x71bw0000gn/T/embedded-pg/PG-73dc0043fe7bdb624d5e8726bc457b7e/bin/initdb ...  hvis denne ikke er med.
             .start()!!.also {
@@ -21,13 +20,11 @@ object EmbeddedDatabase {
                 .execute() // Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
     }
 
-    val database = instance.getDatabase(DB_NAME, DB_NAME)
-
-    fun getEmbeddedJdbcUrl() = String.format(JDBC_FORMAT, instance.port, DB_NAME, DB_NAME)
+    fun instance(): DataSource = instance.getDatabase(DB_NAME, DB_NAME)
 }
 
 fun withMigratedDb(test: () -> Unit) {
-    EmbeddedDatabase.database.also {
+    EmbeddedDatabase.instance().also {
         clean(it)
         Flyway(it, DB_NAME).migrate()
         test()
