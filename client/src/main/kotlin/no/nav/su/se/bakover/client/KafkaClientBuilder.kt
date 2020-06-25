@@ -5,6 +5,7 @@ import java.util.Properties
 import no.nav.su.se.bakover.client.stubs.KafkaProducerStub
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
@@ -16,10 +17,11 @@ interface KafkaClientsBuilder {
 }
 
 object KafkaClientBuilder : KafkaClientsBuilder {
+    private val logger = LoggerFactory.getLogger(KafkaClientBuilder::class.java)
     private val env = System.getenv()
 
     override fun build(): SuKafkaClient = when (env.isLocalOrRunningTests()) {
-        true -> SuKafkaClientImpl(KafkaProducerStub())
+        true -> SuKafkaClientImpl(KafkaProducerStub()).also { logger.warn("********** Using stub for ${Producer::class.java} **********") }
         else -> SuKafkaClientImpl(
             KafkaProducer(
                 KafkaConfigBuilder(env).producerConfig(),
