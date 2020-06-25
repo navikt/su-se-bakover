@@ -1,26 +1,22 @@
-package no.nav.su.se.bakover.web.kafka
+package no.nav.su.se.bakover.client
 
-import io.ktor.config.MapApplicationConfig
-import io.ktor.util.KtorExperimentalAPI
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
-@KtorExperimentalAPI
-internal class KafkaConfigBuilderTest {
+internal class KafkaClientBuilderTest {
     @Test
     fun `should configure producer without SSL`() {
-        val env = MapApplicationConfig(
-                "kafka.username" to "kafkaUser",
-                "kafka.password" to "kafkaPassword",
-                "kafka.bootstrap" to "bootstrappers",
-                "kafka.trustStorePath" to "",
-                "kafka.trustStorePassword" to ""
-        )
-        val config = KafkaConfigBuilder(env).producerConfig()
+        val config = KafkaConfigBuilder(mapOf(
+                "username" to "kafkaUser",
+                "password" to "kafkaPassword",
+                "KAFKA_BOOTSTRAP_SERVERS" to "bootstrappers",
+                "NAV_TRUSTSTORE_PATH" to "",
+                "NAV_TRUSTSTORE_PASSWORD" to ""
+        )).producerConfig()
         assertTrue(config.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG) == "bootstrappers")
         assertTrue(config.getProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG) == "PLAINTEXT")
         assertTrue(config.getProperty(SaslConfigs.SASL_JAAS_CONFIG).contains("kafkaUser"))
@@ -32,14 +28,14 @@ internal class KafkaConfigBuilderTest {
 
     @Test
     fun `should configure producer with SSL`() {
-        val env = MapApplicationConfig(
-                "kafka.username" to "kafkaUser",
-                "kafka.password" to "kafkaPassword",
-                "kafka.bootstrap" to "bootstrappers",
-                "kafka.trustStorePath" to "truststorePath",
-                "kafka.trustStorePassword" to "truststorePassword"
-        )
-        val config = KafkaConfigBuilder(env).producerConfig()
+        val config = KafkaConfigBuilder(mapOf(
+                "username" to "kafkaUser",
+                "password" to "kafkaPassword",
+                "KAFKA_BOOTSTRAP_SERVERS" to "bootstrappers",
+                "NAV_TRUSTSTORE_PATH" to "truststorePath",
+                "NAV_TRUSTSTORE_PASSWORD" to "truststorePassword"
+        )).producerConfig()
+
         assertTrue(config.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG) == "bootstrappers")
         assertTrue(config.getProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG) == "SASL_SSL")
         assertTrue(config.getProperty(SaslConfigs.SASL_JAAS_CONFIG).contains("kafkaUser"))

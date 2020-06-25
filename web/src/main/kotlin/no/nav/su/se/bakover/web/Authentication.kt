@@ -19,6 +19,7 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.client.OAuth
 import org.json.JSONObject
 
 @KtorExperimentalAPI
@@ -85,8 +86,8 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) 
                 val refreshedTokens = oAuth.refreshTokens(it)
                 call.response.header("access_token", refreshedTokens.getString("access_token"))
                 call.response.header("refresh_token", refreshedTokens.getString("refresh_token"))
-                call.svar(OK.tekst("Tokens refreshed successfully"))
-            } ?: call.svar(BadRequest.tekst("Header \"refresh_token\" mangler"))
+                call.svar(OK.message("Tokens refreshed successfully"))
+            } ?: call.svar(BadRequest.message("Header \"refresh_token\" mangler"))
         }
     }
 }

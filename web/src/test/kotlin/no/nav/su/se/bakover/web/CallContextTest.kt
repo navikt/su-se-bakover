@@ -1,14 +1,16 @@
 package no.nav.su.se.bakover.web
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
-import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.Parameters
+import io.ktor.http.RequestConnectionPoint
+import io.ktor.http.headersOf
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.request.ApplicationReceivePipeline
 import io.ktor.request.ApplicationRequest
@@ -23,11 +25,13 @@ import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
-import no.nav.su.se.bakover.DEFAULT_CALL_ID
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
-import no.nav.su.se.bakover.testEnv
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.søknadPath
 import org.junit.jupiter.api.Test
+import java.util.Collections.synchronizedList
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
@@ -35,7 +39,7 @@ import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class CallContextTest : ComponentTest() {
+internal class CallContextTest {
 
     @Test
     fun `should set and get context`() {
@@ -64,32 +68,30 @@ internal class CallContextTest : ComponentTest() {
 
     @Test
     fun `parallel requests should preserve context`() {
-        val token = jwtStub.createTokenFor()
         val numRequests = 100
-        stubPdl()
+        val downstreamCorrelationIds: MutableList<String> = synchronizedList(mutableListOf<String>())
+
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
+                override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
+
+                override fun aktørId(ident: Fnr): String =
+                        "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
+            }))
         }) {
-            val requests = List(numRequests) { CallableRequest(this, it, token) }
+            val requests = List(numRequests) { CallableRequest(this, it, Jwt.create()) }
             val executors = Executors.newFixedThreadPool(numRequests)
-            var applicationCalls: List<TestApplicationCall>? = null
-            requests.map { executors.submit(it) }.also {
-                applicationCalls = it.map { it.get() }
-            }
-            WireMock.verify(numRequests, WireMock.getRequestedFor(WireMock.urlPathEqualTo("/person"))) // Expect 100 invocations to endpoint for getting aktørid
-            val downstreamCorrelationIds = WireMock.getAllServeEvents()
-                    .filter { it.request.url.contains("/person?ident=") }
-                    .map { it.request.header(XCorrelationId).firstValue() }
+            var applicationCalls: List<TestApplicationCall>? = requests
+                    .map { executors.submit(it) }
+                    .map { it.get() }
+
             val passedCorrelationIds = List(numRequests) { it.toString() }
-            assertEquals(numRequests, passedCorrelationIds.size)
-            assertEquals(numRequests, downstreamCorrelationIds.size)
+            assertEquals(numRequests, downstreamCorrelationIds.size, "downstreamCorrelationIds")
             assertTrue(downstreamCorrelationIds.containsAll(passedCorrelationIds)) // Verify all correlation ids passed along to service to get aktørid
             applicationCalls!!.forEach { assertEquals(it.request.header(XCorrelationId), it.response.headers[XCorrelationId]) } // Assert responses contain input correlation id
         }
     }
-
-    fun stubPdl() = WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/person")).willReturn(WireMock.okJson("""{"aktorId":"12345"}""".trimIndent())))
 
     internal class CallableRequest(
             val testApplicationEngine: TestApplicationEngine,
@@ -100,7 +102,7 @@ internal class CallContextTest : ComponentTest() {
             println("Test Thread: ${Thread.currentThread()}")
             return testApplicationEngine.handleRequest(Post, søknadPath) {
                 addHeader(XCorrelationId, "$correlationId")
-                addHeader(Authorization, "Bearer $token")
+                addHeader(Authorization, token)
                 addHeader(ContentType, Json.toString())
                 setBody(build(personopplysninger = personopplysninger(FnrGenerator.random().toString())).toJson())
             }

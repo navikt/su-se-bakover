@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.tekst
+import no.nav.su.se.bakover.web.message
 
 internal const val behandlingPath = "$stønadsperiodePath/{stønadsperiodeId}/behandlinger"
 
@@ -23,11 +23,11 @@ internal fun Route.behandlingRoutes(
 
     get("$behandlingPath/{behandlingId}") {
         Long.lesParameter(call, "behandlingId").fold(
-                left = { call.svar(BadRequest.tekst(it)) },
+                left = { call.svar(BadRequest.message(it)) },
                 right = { id ->
                     call.audit("Henter behandling med id: $id")
                     when (val behandling = repo.hentBehandling(id)) {
-                        null -> call.svar(NotFound.tekst("Fant ikke behandling med id:$id"))
+                        null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                         else -> call.svar(OK.json(behandling.toJson()))
                     }
                 }

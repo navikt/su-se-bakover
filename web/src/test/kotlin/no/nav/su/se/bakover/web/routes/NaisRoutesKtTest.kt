@@ -5,8 +5,8 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.usingMocks
+import no.nav.su.se.bakover.web.testEnv
+import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -18,7 +18,7 @@ internal class NaisRoutesKtTest {
     fun naisRoutes() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }
         ) {
             handleRequest(Get, "/isalive").apply {

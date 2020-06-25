@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.tekst
+import no.nav.su.se.bakover.web.message
 
 internal const val sakPath = "/sak"
 
@@ -22,11 +22,11 @@ internal fun Route.sakRoutes(
 ) {
     get("$sakPath/{id}") {
         Long.lesParameter(call, "id").fold(
-                left = { call.svar(BadRequest.tekst(it)) },
+                left = { call.svar(BadRequest.message(it)) },
                 right = { id ->
                     call.audit("Henter sak med id: $id")
                     when (val sak = sakRepo.hentSak(id)) {
-                        null -> call.svar(NotFound.tekst("Fant ikke sak med id: $id"))
+                        null -> call.svar(NotFound.message("Fant ikke sak med id: $id"))
                         else -> call.svar(OK.json(sak.toJson()))
                     }
                 }

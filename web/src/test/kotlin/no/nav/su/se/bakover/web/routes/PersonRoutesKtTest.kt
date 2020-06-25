@@ -1,40 +1,37 @@
 package no.nav.su.se.bakover.web.routes
 
-import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.matching.AnythingPattern
-import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.*
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.web.ON_BEHALF_OF_TOKEN
-import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.web.*
+import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.testEnv
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class PersonRoutesKtTest : ComponentTest() {
-
+internal class PersonRoutesKtTest {
     private val sakRepo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, "$personPath/12345678910")
+            handleRequest(Get, "$personPath/12345678910")
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -43,12 +40,10 @@ internal class PersonRoutesKtTest : ComponentTest() {
     @Test
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, "$personPath/qwertyuiopå") {
-                addHeader(Authorization, jwt)
-            }
+            defaultRequest(Get, "$personPath/qwertyuiopå")
         }.apply {
             assertEquals(HttpStatusCode.BadRequest, response.status())
         }
@@ -57,14 +52,12 @@ internal class PersonRoutesKtTest : ComponentTest() {
     @Test
     fun `henter sak for fnr`() {
         withTestApplication(({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         })) {
             val fnr = "12121212121"
             sakRepo.opprettSak(Fnr(fnr))
-            withCorrelationId(Get, "$personPath/$fnr/sak") {
-                addHeader(Authorization, jwt)
-            }.apply {
+            defaultRequest(Get, "$personPath/$fnr/sak").apply {
                 assertEquals(OK, response.status())
                 assertEquals(fnr, JSONObject(response.content).getString("fnr"))
             }
@@ -72,29 +65,17 @@ internal class PersonRoutesKtTest : ComponentTest() {
     }
 
     @Test
-    fun `kan hente persondata`() {
+    fun `kan hente data gjennom PersonOppslag`() {
         val testIdent = "12345678910"
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(testIdent))
-                .willReturn(
-                        okJson("""{"ident"="$testIdent"}""")
-                )
-        )
-
-        val token = jwtStub.createTokenFor()
 
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
         }) {
-            withCorrelationId(Get, "$personPath/$testIdent") {
-                addHeader(Authorization, "Bearer $token")
-            }
+            defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
             assertEquals(OK, response.status())
-            assertEquals("""{"ident"="$testIdent"}""", response.content!!)
+            assertEquals(testIdent, response.content!!)
         }
     }
 
@@ -102,25 +83,24 @@ internal class PersonRoutesKtTest : ComponentTest() {
     fun `skal propagere httpStatus fra PDL kall`() {
         val testIdent = "12345678910"
         val errorMessage = "beklager, det gikk dårlig"
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(testIdent))
-                .willReturn(aResponse().withBody(errorMessage).withStatus(401))
-        )
-
-        val token = jwtStub.createTokenFor()
 
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
         }) {
-            withCorrelationId(Get, "$personPath/$testIdent") {
-                addHeader(Authorization, "Bearer $token")
-            }
+            defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
             assertEquals(Unauthorized, response.status())
-            assertEquals("""{"message": "$errorMessage"}""", response.content!!)
+            assertEquals(errorMessage, response.content!!)
         }
+    }
+
+    fun personoppslag(statusCode: Int, responseBody: String, testIdent: String) = object : PersonOppslag {
+        override fun person(ident: Fnr): ClientResponse = when (testIdent) {
+            ident.toString() -> ClientResponse(statusCode, responseBody)
+            else -> ClientResponse(500, "funkitj")
+        }
+
+        override fun aktørId(ident: Fnr): String = throw NotImplementedError()
     }
 }

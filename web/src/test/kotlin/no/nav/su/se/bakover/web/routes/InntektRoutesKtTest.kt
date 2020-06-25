@@ -1,26 +1,27 @@
 package no.nav.su.se.bakover.web.routes
 
-import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.matching.AnythingPattern
-import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.web.*
-import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.withCorrelationId
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.InntektOppslag
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.testEnv
+import no.nav.su.se.bakover.web.testSusebakover
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-internal class InntektRoutesKtTest: ComponentTest() {
+internal class InntektRoutesKtTest {
 
     private val ident = "12345678910"
     private val fomDato = "2020-01-01"
@@ -30,10 +31,10 @@ internal class InntektRoutesKtTest: ComponentTest() {
     @Test
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, path)
+            handleRequest(Get, path)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -41,72 +42,30 @@ internal class InntektRoutesKtTest: ComponentTest() {
 
     @Test
     fun `kan hente inntekt`() {
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(ident))
-                .willReturn(
-                        okJson("""{"ident"="$ident"}""")
-                )
-        )
-        stubFor(
-                post(urlPathEqualTo("/inntekt"))
-                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                        .withHeader(XCorrelationId, AnythingPattern())
-                        .willReturn(
-                                okJson("""{"ident"="$ident"}""")
-                        )
-        )
-
-        val token = jwtStub.createTokenFor()
-
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, path) {
-                addHeader(Authorization, "Bearer $token")
-            }
+            defaultRequest(Get, path)
         }.apply {
             assertEquals(OK, response.status())
-            assertEquals("""{"ident"="$ident"}""", response.content!!)
+            assertEquals(ident, JSONObject(response.content!!).getJSONObject("ident").getString("identifikator"))
         }
     }
 
     @Test
     fun `håndterer og videreformidler feil`() {
         val errorMessage = """{"message": "nich gut"}"""
-        stubFor(get(urlPathEqualTo("/person"))
-                .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                .withHeader(XCorrelationId, AnythingPattern())
-                .withQueryParam("ident", equalTo(ident))
-                .willReturn(
-                        okJson("""{"ident"="$ident"}""")
-                )
-        )
-        stubFor(
-                post(urlPathEqualTo("/inntekt"))
-                        .withRequestBody(matching("fnr=$ident&fom=2020-01&tom=2020-01"))
-                        .withHeader(Authorization, equalTo("Bearer $ON_BEHALF_OF_TOKEN"))
-                        .withHeader(XCorrelationId, AnythingPattern())
-                        .willReturn(
-                                aResponse().withBody(errorMessage).withStatus(500)
-                        )
-        )
-
-        val token = jwtStub.createTokenFor()
-
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover(clients = buildClients(inntektOppslag = object : InntektOppslag {
+                override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
+            }))
         }) {
-            withCorrelationId(Get, path) {
-                addHeader(Authorization, "Bearer $token")
-            }
+            defaultRequest(Get, path)
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals("""{"message": "$errorMessage"}""", response.content!!)
+            assertEquals(errorMessage, response.content!!)
         }
     }
 }

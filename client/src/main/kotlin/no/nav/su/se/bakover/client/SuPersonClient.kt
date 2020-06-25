@@ -1,19 +1,14 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.client
 
 import com.github.kittinunf.fuel.httpGet
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders.Authorization
-import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.OK
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal interface PersonOppslag {
-    fun person(ident: Fnr): Resultat
+interface PersonOppslag {
+    fun person(ident: Fnr): ClientResponse
     fun aktørId(ident: Fnr): String
 }
 
@@ -23,19 +18,19 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
         PersonOppslag {
     private val personResource = "$suPersonBaseUrl/person"
 
-    override fun person(ident: Fnr): Resultat {
+    override fun person(ident: Fnr): ClientResponse {
         val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
-        val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
-                .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, CallContext.correlationId())
+        val (_, response, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
+                .header("Authorization", "Bearer $onBehalfOfToken")
+                .header("X-Correlation-ID", CallContext.correlationId())
                 .responseString()
         return result.fold(
-                { OK.json(it) },
+                { ClientResponse(response.statusCode, it) },
                 { error ->
-                    val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
+                    val errorMessage = error.response.body().asString("application/json")
                     val statusCode = error.response.statusCode
                     logger.debug("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage")
-                    HttpStatusCode.fromValue(statusCode).tekst(errorMessage)
+                    ClientResponse(response.statusCode, errorMessage)
                 }
         )
     }
@@ -43,13 +38,13 @@ internal class SuPersonClient(suPersonBaseUrl: String, private val suPersonClien
     override fun aktørId(ident: Fnr): String {
         val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
-                .header(Authorization, "Bearer $onBehalfOfToken")
-                .header(XCorrelationId, CallContext.correlationId())
+                .header("Authorization", "Bearer $onBehalfOfToken")
+                .header("X-Correlation-ID", CallContext.correlationId())
                 .responseString()
         return result.fold(
                 { JSONObject(it).getString("aktorId") },
                 { error ->
-                    val errorMessage = error.response.body().asString(ContentType.Application.Json.toString())
+                    val errorMessage = error.response.body().asString("application/json")
                     val statusCode = error.response.statusCode
                     throw RuntimeException("Kall mot PDL feilet, statuskode: $statusCode, feilmelding: $errorMessage")
                 }

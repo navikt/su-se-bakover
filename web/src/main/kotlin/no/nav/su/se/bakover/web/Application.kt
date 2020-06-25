@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import com.github.kittinunf.fuel.httpGet
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -28,21 +27,22 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import kotlinx.coroutines.*
+import no.nav.su.se.bakover.client.ClientBuilder
+import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.KafkaClientBuilder
+import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
+import no.nav.su.se.bakover.common.Either
 import no.nav.su.se.bakover.common.Either.Left
 import no.nav.su.se.bakover.common.Either.Right
-import no.nav.su.se.bakover.common.CallContext
-import no.nav.su.se.bakover.common.Either
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.web.kafka.KafkaConfigBuilder
 import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.routes.*
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.kafka.clients.producer.Producer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -53,12 +53,7 @@ import kotlin.coroutines.CoroutineContext
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-        kafkaConfig: KafkaConfigBuilder = KafkaConfigBuilder(environment.config),
-        hendelseProducer: KafkaProducer<String, String> = KafkaProducer(
-                kafkaConfig.producerConfig(),
-                StringSerializer(),
-                StringSerializer()
-        ),
+        kafkaProducer: Producer<String, String> = KafkaClientBuilder.buildProducer(),
         databaseRepo: ObjectRepo = DatabaseBuilder.fromEnv((mapOf(
                 "db.jdbcUrl" to fromEnvironment("db.jdbcUrl"),
                 "db.vaultMountPath" to fromEnvironment("db.vaultMountPath"),
@@ -66,27 +61,12 @@ internal fun Application.susebakover(
                 "db.username" to fromEnvironment("db.username"),
                 "db.password" to fromEnvironment("db.password")
         ))),
-        jwkConfig: JSONObject = getJWKConfig(fromEnvironment("azure.wellknownUrl")),
-        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-        oAuth: OAuth = AzureClient(
-                fromEnvironment("azure.clientId"),
-                fromEnvironment("azure.clientSecret"),
-                jwkConfig.getString("token_endpoint")
-        ),
-        personOppslag: PersonOppslag = SuPersonClient(
-                fromEnvironment("integrations.suPerson.url"),
-                fromEnvironment("integrations.suPerson.clientId"),
-                oAuth
-        ),
-        inntektOppslag: InntektOppslag = SuInntektClient(
-                fromEnvironment("integrations.suInntekt.url"),
-                fromEnvironment("integrations.suInntekt.clientId"),
-                oAuth,
-                personOppslag
-        )
+        clients: Clients = ClientBuilder.build(),
+        jwkConfig: JSONObject = clients.oauth.jwkConfig(),
+        jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
-    val søknadMottattEmitter = SøknadMottattEmitter(hendelseProducer, personOppslag)
+    val søknadMottattEmitter = SøknadMottattEmitter(kafkaProducer, clients.personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
     install(CORS) {
@@ -102,8 +82,11 @@ internal fun Application.susebakover(
     }
 
     install(StatusPages) {
-        exception<UgyldigFnrException> { cause ->
-            call.respond(HttpStatusCode.BadRequest, cause)
+        exception<UgyldigFnrException> {
+            call.respond(HttpStatusCode.BadRequest, it)
+        }
+        exception<Throwable> {
+            call.respond(HttpStatusCode.InternalServerError, it)
         }
     }
 
@@ -118,7 +101,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
-            oAuth = oAuth
+            oAuth = clients.oauth
     )
 
     install(Locations)
@@ -153,8 +136,8 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(personOppslag, databaseRepo)
-            inntektRoutes(inntektOppslag)
+            personRoutes(clients.personOppslag, databaseRepo)
+            inntektRoutes(clients.inntektOppslag)
             sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)
@@ -176,14 +159,6 @@ internal fun ApplicationCall.audit(msg: String) {
 }
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
-
-private fun getJWKConfig(wellKnownUrl: String): JSONObject {
-    val (_, _, result) = wellKnownUrl.httpGet().responseString()
-    return result.fold(
-            { JSONObject(it) },
-            { throw RuntimeException("Could not get JWK config from url ${wellKnownUrl}, error:${it}") }
-    )
-}
 
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
         call.parameters[name]?.let {

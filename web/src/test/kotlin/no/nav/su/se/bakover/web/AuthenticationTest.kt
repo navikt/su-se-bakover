@@ -5,12 +5,9 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.jwtStub
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.usingMocks
-import no.nav.su.se.bakover.withCorrelationId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -27,9 +24,9 @@ internal class AuthenticationTest {
     fun `secure endpoint krever autentisering`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint)
+            handleRequest(Get, secureEndpoint)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -37,15 +34,11 @@ internal class AuthenticationTest {
 
     @Test
     fun `secure endpoint ok med gyldig token`() {
-        val token = jwtStub.createTokenFor()
-
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(Authorization, "Bearer $token")
-            }
+            defaultRequest(Get, secureEndpoint)
         }.apply {
             assertEquals(OK, response.status())
         }
@@ -53,14 +46,12 @@ internal class AuthenticationTest {
 
     @Test
     fun `forespørsel uten påkrevet audience skal svare med 401`() {
-        val token = jwtStub.createTokenFor(audience = "wrong_audience")
-
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(Authorization, "Bearer $token")
+            handleRequest(Get, secureEndpoint) {
+                addHeader(Authorization, Jwt.create(audience = "wrong_audience"))
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
@@ -69,14 +60,12 @@ internal class AuthenticationTest {
 
     @Test
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
-        val token = jwtStub.createTokenFor(groups = listOf("WRONG_GROUP_UUID"))
-
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(Authorization, "Bearer $token")
+            handleRequest(Get, secureEndpoint) {
+                addHeader(Authorization, Jwt.create(groups = listOf("WRONG_GROUP_UUID")))
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
@@ -85,14 +74,12 @@ internal class AuthenticationTest {
 
     @Test
     fun `forespørsel med utgått token skal svare med 401`() {
-        val token = jwtStub.createTokenFor(expiresAt = Date.from(Instant.now().minusSeconds(1)))
-
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(Authorization, "Bearer $token")
+            handleRequest(Get, secureEndpoint) {
+                addHeader(Authorization, Jwt.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
@@ -103,9 +90,9 @@ internal class AuthenticationTest {
     fun `kan refreshe tokens`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
-            withCorrelationId(Get, "auth/refresh") {
+            defaultRequest(Get, "auth/refresh") {
                 addHeader("refresh_token", "my.refresh.token")
             }
         }.apply {

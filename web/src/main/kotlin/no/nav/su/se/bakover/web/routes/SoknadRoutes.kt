@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.tekst
+import no.nav.su.se.bakover.web.message
 import org.json.JSONObject
 
 internal const val søknadPath = "/soknad"
@@ -31,11 +31,11 @@ internal fun Route.soknadRoutes(
 
     get("$søknadPath/{soknadId}") {
         Long.lesParameter(call, "soknadId").fold(
-                left = { call.svar(BadRequest.tekst(it)) },
+                left = { call.svar(BadRequest.message(it)) },
                 right = { id ->
                     call.audit("Henter søknad med id: $id")
                     when (val søknad = mediator.hentSøknad(id)) {
-                        null -> call.svar(NotFound.tekst("Fant ikke søknad med id:$id"))
+                        null -> call.svar(NotFound.message("Fant ikke søknad med id:$id"))
                         else -> call.svar(OK.json(søknad.toJson()))
                     }
                 }

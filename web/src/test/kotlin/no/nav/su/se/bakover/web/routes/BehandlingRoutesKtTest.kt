@@ -1,32 +1,27 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.*
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.web.*
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class BehandlingRoutesKtTest :  ComponentTest() {
+internal class BehandlingRoutesKtTest {
 
     @Test
     fun `henter en behandling`() {
-        val token = jwtStub.createTokenFor()
         withTestApplication({
-            testEnv(wireMockServer)
-            susebakover()
+            testEnv()
+            testSusebakover()
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())
@@ -35,12 +30,9 @@ internal class BehandlingRoutesKtTest :  ComponentTest() {
             val behandling = sak.sisteStønadsperiode().nyBehandling()
             val behandlingsId = JSONObject(behandling.toJson()).getLong("id")
 
-            withCorrelationId(Get, "$behandlingPath/$behandlingsId") {
-                addHeader(Authorization, "Bearer $token")
-            }.apply {
+            defaultRequest(Get, "$behandlingPath/$behandlingsId").apply {
                 assertEquals(OK, response.status())
                 assertEquals(behandlingsId, JSONObject(response.content).getLong("id"))
-
             }
         }
     }
