@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.susebakover
-import no.nav.su.se.bakover.withCorrelationId
+import no.nav.su.se.bakover.web.testEnv
+import no.nav.su.se.bakover.web.withCorrelationId
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

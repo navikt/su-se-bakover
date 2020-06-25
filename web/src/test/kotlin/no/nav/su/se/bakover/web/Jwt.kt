@@ -2,10 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import no.nav.su.se.bakover.AZURE_CLIENT_ID
-import no.nav.su.se.bakover.AZURE_ISSUER
-import no.nav.su.se.bakover.AZURE_REQUIRED_GROUP
-import no.nav.su.se.bakover.SUBJECT
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey

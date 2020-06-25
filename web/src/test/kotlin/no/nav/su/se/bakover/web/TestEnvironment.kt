@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover
+package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
@@ -6,18 +6,15 @@ import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod
-import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.*
+import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.database.EmbeddedDatabase.getEmbeddedJdbcUrl
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.EmbeddedKafka
-import no.nav.su.se.bakover.web.Jwt
-import no.nav.su.se.bakover.web.susebakover
 import org.json.JSONObject
 import java.util.*
 
@@ -36,7 +33,7 @@ const val DB_VAULT_MOUNTPATH = ""
 const val DB_NAME = "postgres"
 
 @KtorExperimentalAPI
-fun Application.testEnv() {
+internal fun Application.testEnv() {
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
         put("integrations.suSeFramover.redirectUrl", SU_FRONTEND_REDIRECT_URL)
@@ -58,41 +55,45 @@ fun Application.testEnv() {
     }
 }
 
-private val e = Base64.getEncoder().encodeToString(Jwt.keys.first.publicExponent.toByteArray())
-private val n = Base64.getEncoder().encodeToString(Jwt.keys.first.modulus.toByteArray())
-private val defaultJwk = Jwk("key-1234", "RSA", "RS256", null, emptyList(), null, null, null, mapOf("e" to e, "n" to n))
-private val defaultJwkConfig = JSONObject("""{"issuer": "azure"}""")
-private val defaultOAuth = object : OAuth {
-    override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
-    override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
-    override fun jwkConfig() = defaultJwkConfig
-}
-private val failingPersonClient = object : PersonOppslag {
-    override fun person(ident: Fnr): ClientResponse = ClientResponse(501, "dette var en autogenerert feil fra person")
-    override fun aktørId(ident: Fnr): String = throw RuntimeException("Kall mot PDL feilet")
-}
-private val failingInntektClient = object : InntektOppslag {
-    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse = ClientResponse(501, "dette var en autogenerert feil fra inntekt")
+internal fun Application.testSusebakover(
+        clients: Clients = buildClients(),
+        jwkProvider: JwkProvider = JwkProviderStub
+) {
+    return susebakover(clients = clients, jwkProvider = jwkProvider)
 }
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
-internal fun Application.usingMocks(
-        jwkConfig: JSONObject = defaultJwkConfig,
-        jwkProvider: JwkProvider = JwkProvider { defaultJwk },
-        personOppslag: PersonOppslag = failingPersonClient,
-        inntektOppslag: InntektOppslag = failingInntektClient,
-        oAuth: OAuth = defaultOAuth
-) {
-    susebakover(
-            clients = Clients(
-                    oauth = oAuth,
-                    personOppslag = personOppslag,
-                    inntektOppslag = inntektOppslag
-            ),
-            jwkConfig = jwkConfig,
-            jwkProvider = jwkProvider
+internal fun buildClients(
+        azure: OAuth = OauthStub(),
+        personOppslag: PersonOppslag = PersonOppslagStub,
+        inntektOppslag: InntektOppslag = InntektOppslagStub
+): Clients {
+    return ClientBuilder.build(azure, personOppslag, inntektOppslag)
+}
+
+internal object JwkProviderStub : JwkProvider {
+    override fun get(keyId: String?) = Jwk(
+            "key-1234",
+            "RSA",
+            "RS256",
+            null,
+            emptyList(),
+            null,
+            null,
+            null,
+            mapOf("e" to String(Base64.getEncoder().encode(Jwt.keys.first.publicExponent.toByteArray())), "n" to String(Base64.getEncoder().encode(Jwt.keys.first.modulus.toByteArray())))
     )
+}
+
+internal class OauthStub : OAuth {
+    override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"
+    override fun refreshTokens(refreshToken: String) = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
+    override fun jwkConfig() = JSONObject("""
+            {
+                "jwks_uri": "http://localhost/keys",
+                "token_endpoint": "http://localhost/token",
+                "issuer": "azure"
+            }
+        """.trimIndent())
 }
 
 fun TestApplicationEngine.withCorrelationId(

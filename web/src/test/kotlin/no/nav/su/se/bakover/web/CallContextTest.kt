@@ -25,12 +25,10 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
-import no.nav.su.se.bakover.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.testEnv
 import no.nav.su.se.bakover.web.routes.søknadPath
 import org.junit.jupiter.api.Test
 import java.util.Collections.synchronizedList

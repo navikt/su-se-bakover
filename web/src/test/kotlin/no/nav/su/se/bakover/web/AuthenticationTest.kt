@@ -7,9 +7,6 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.testEnv
-import no.nav.su.se.bakover.usingMocks
-import no.nav.su.se.bakover.withCorrelationId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -26,7 +23,7 @@ internal class AuthenticationTest {
     fun `secure endpoint krever autentisering`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, secureEndpoint)
         }.apply {
@@ -38,7 +35,7 @@ internal class AuthenticationTest {
     fun `secure endpoint ok med gyldig token`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create())
@@ -52,7 +49,7 @@ internal class AuthenticationTest {
     fun `forespørsel uten påkrevet audience skal svare med 401`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(audience = "wrong_audience"))
@@ -66,7 +63,7 @@ internal class AuthenticationTest {
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(groups = listOf("WRONG_GROUP_UUID")))
@@ -80,7 +77,7 @@ internal class AuthenticationTest {
     fun `forespørsel med utgått token skal svare med 401`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
@@ -94,7 +91,7 @@ internal class AuthenticationTest {
     fun `kan refreshe tokens`() {
         withTestApplication({
             testEnv()
-            usingMocks()
+            testSusebakover()
         }) {
             withCorrelationId(Get, "auth/refresh") {
                 addHeader("refresh_token", "my.refresh.token")
