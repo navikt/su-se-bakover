@@ -1,20 +1,20 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.ComponentTest
-import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
-import no.nav.su.se.bakover.web.withCorrelationId
+import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -32,9 +32,9 @@ internal class InntektRoutesKtTest : ComponentTest() {
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
-            withCorrelationId(Get, path)
+            handleRequest(Get, path)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -44,11 +44,9 @@ internal class InntektRoutesKtTest : ComponentTest() {
     fun `kan hente inntekt`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
-            withCorrelationId(Get, path) {
-                addHeader(Authorization, jwt)
-            }
+            defaultRequest(Get, path)
         }.apply {
             assertEquals(OK, response.status())
             assertEquals(ident, JSONObject(response.content!!).getJSONObject("ident").getString("identifikator"))
@@ -60,13 +58,11 @@ internal class InntektRoutesKtTest : ComponentTest() {
         val errorMessage = """{"message": "nich gut"}"""
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(inntektOppslag = object : InntektOppslag {
+            testSusebakover(clients = buildClients(inntektOppslag = object : InntektOppslag {
                 override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
-            }), jwkProvider = JwkProviderStub)
+            }))
         }) {
-            withCorrelationId(Get, path) {
-                addHeader(Authorization, jwt)
-            }
+            defaultRequest(Get, path)
         }.apply {
             assertEquals(InternalServerError, response.status())
             assertEquals(errorMessage, response.content!!)

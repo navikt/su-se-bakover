@@ -13,7 +13,7 @@ repositories {
     }
 }
 
-val ktorVersion = "1.3.2"
+val ktorVersion = "1.2.6"
 val orgJsonVersion = "20180813"
 val micrometerRegistryPrometheusVersion = "1.3.2"
 

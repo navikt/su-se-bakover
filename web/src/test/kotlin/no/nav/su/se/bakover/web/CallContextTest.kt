@@ -21,7 +21,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 import io.ktor.util.KtorExperimentalAPI
-import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
@@ -73,12 +73,12 @@ internal class CallContextTest : ComponentTest() {
 
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = TODO("Not yet implemented")
 
                 override fun aktørId(ident: Fnr): String =
                         "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
-            }), jwkProvider = JwkProviderStub)
+            }))
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, jwt) }
             val executors = Executors.newFixedThreadPool(numRequests)

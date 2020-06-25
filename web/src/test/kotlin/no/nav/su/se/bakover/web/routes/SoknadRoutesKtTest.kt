@@ -23,9 +23,9 @@ import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.ComponentTest
 import no.nav.su.se.bakover.web.EmbeddedKafka.Companion.kafkaConsumer
-import no.nav.su.se.bakover.web.susebakover
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
-import no.nav.su.se.bakover.web.withCorrelationId
+import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -45,10 +45,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         val fnr = Fnr("01010100001")
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
-            val createResponse = withCorrelationId(Post, søknadPath) {
-                addHeader(Authorization, jwt)
+            val createResponse = defaultRequest(Post, søknadPath) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
@@ -57,9 +56,7 @@ internal class SoknadRoutesKtTest : ComponentTest() {
 
             val søknadId = JSONObject(createResponse.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
 
-            withCorrelationId(Get, "$søknadPath/$søknadId") {
-                addHeader(Authorization, jwt)
-            }.apply {
+            defaultRequest(Get, "$søknadPath/$søknadId").apply {
                 assertEquals(OK, response.status())
                 val søknadInnhold = JSONObject(response.content).getJSONObject("json")
                 assertEquals(JSONObject(soknadJson(fnr)).toString(), JSONObject(søknadInnhold.toString()).toString())
@@ -73,7 +70,10 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         val correlationId = "my random UUID or something"
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(personOppslag = personoppslag()), jwkProvider = JwkProviderStub)
+            testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
+                override fun person(ident: Fnr): ClientResponse = TODO("not implemented")
+                override fun aktørId(ident: Fnr): String = stubAktørId
+            }))
         }) {
             handleRequest(Post, søknadPath) {
                 addHeader(Authorization, jwt)
@@ -108,10 +108,9 @@ internal class SoknadRoutesKtTest : ComponentTest() {
         var sakNr: Int
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
-            withCorrelationId(Post, søknadPath) {
-                addHeader(Authorization, jwt)
+            defaultRequest(Post, søknadPath) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {
@@ -119,19 +118,10 @@ internal class SoknadRoutesKtTest : ComponentTest() {
                 sakNr = JSONObject(response.content).getInt("id")
             }
 
-            // /soknad henter en liste... FIXME: skulle hete /soknader
-            withCorrelationId(Get, "$sakPath/$sakNr") {
-                addHeader(Authorization, jwt)
-            }.apply {
+            defaultRequest(Get, "$sakPath/$sakNr").apply {
                 assertEquals(OK, response.status())
                 assertTrue(JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getJSONObject("json").similar(JSONObject(soknadJson(fnr))))
             }
         }
-    }
-
-    fun personoppslag() = object : PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse = TODO("not implemented")
-
-        override fun aktørId(ident: Fnr): String = stubAktørId
     }
 }

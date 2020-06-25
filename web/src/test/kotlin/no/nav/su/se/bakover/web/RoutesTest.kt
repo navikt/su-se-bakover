@@ -11,7 +11,6 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import io.ktor.utils.io.charsets.Charsets
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
@@ -31,9 +30,7 @@ class RoutesTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, Jwt.create())
-            }
+            defaultRequest(Get, secureEndpoint)
         }.apply {
             assertEquals(OK, response.status())
             assertEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
@@ -65,9 +62,7 @@ class RoutesTest {
                 override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
             }))
         }) {
-            handleRequest(Get, "$personPath/${FnrGenerator.random()}") {
-                addHeader(HttpHeaders.Authorization, Jwt.create())
-            }
+            defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
             assertEquals(InternalServerError, response.status())
             assertEquals("thrown exception", JSONObject(response.content).getString("detailMessage"))
@@ -80,9 +75,7 @@ class RoutesTest {
             testEnv()
             testSusebakover()
         }) {
-            handleRequest(Get, "$personPath/${FnrGenerator.random()}") {
-                addHeader(HttpHeaders.Authorization, Jwt.create())
-            }
+            defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
             assertEquals("${ContentType.Application.Json}; charset=${Charsets.UTF_8}", response.contentType().toString())
         }

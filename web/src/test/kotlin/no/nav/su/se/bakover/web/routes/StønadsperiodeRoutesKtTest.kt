@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
@@ -18,7 +17,7 @@ internal class StønadsperiodeRoutesKtTest : ComponentTest() {
     fun `Opprette en ny behandling i en periode`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())
@@ -26,11 +25,7 @@ internal class StønadsperiodeRoutesKtTest : ComponentTest() {
 
             val stønadsperiodeId = JSONObject(sak.sisteStønadsperiode().toJson()).getLong("id")
 
-            withCorrelationId(
-                    HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger"
-            ) {
-                addHeader(HttpHeaders.Authorization, jwt)
-            }.also {
+            defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
                 assertEquals(HttpStatusCode.Created, it.response.status())
             }
         }

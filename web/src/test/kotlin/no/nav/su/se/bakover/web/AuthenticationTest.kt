@@ -5,6 +5,7 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,7 +26,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint)
+            handleRequest(Get, secureEndpoint)
         }.apply {
             assertEquals(Unauthorized, response.status())
         }
@@ -37,9 +38,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create())
-            }
+            defaultRequest(Get, secureEndpoint)
         }.apply {
             assertEquals(OK, response.status())
         }
@@ -51,7 +50,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
+            handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(audience = "wrong_audience"))
             }
         }.apply {
@@ -65,7 +64,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
+            handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(groups = listOf("WRONG_GROUP_UUID")))
             }
         }.apply {
@@ -79,7 +78,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, secureEndpoint) {
+            handleRequest(Get, secureEndpoint) {
                 addHeader(Authorization, Jwt.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
             }
         }.apply {
@@ -93,7 +92,7 @@ internal class AuthenticationTest {
             testEnv()
             testSusebakover()
         }) {
-            withCorrelationId(Get, "auth/refresh") {
+            defaultRequest(Get, "auth/refresh") {
                 addHeader("refresh_token", "my.refresh.token")
             }
         }.apply {

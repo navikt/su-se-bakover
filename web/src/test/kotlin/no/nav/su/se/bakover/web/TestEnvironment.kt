@@ -4,7 +4,7 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
 import io.ktor.config.MapApplicationConfig
-import io.ktor.http.HttpHeaders.XCorrelationId
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
@@ -96,13 +96,14 @@ internal class OauthStub : OAuth {
         """.trimIndent())
 }
 
-fun TestApplicationEngine.withCorrelationId(
+fun TestApplicationEngine.defaultRequest(
         method: HttpMethod,
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
-        addHeader(XCorrelationId, DEFAULT_CALL_ID)
+        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+        addHeader(HttpHeaders.Authorization, Jwt.create())
         setup()
     }
 }

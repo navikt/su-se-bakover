@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -22,7 +21,7 @@ internal class BehandlingRoutesKtTest : ComponentTest() {
     fun `henter en behandling`() {
         withTestApplication({
             testEnv()
-            susebakover(clients = buildClients(), jwkProvider = JwkProviderStub)
+            testSusebakover()
         }) {
             val repo = DatabaseBuilder.fromDatasource(EmbeddedDatabase.database)
             val sak = repo.opprettSak(FnrGenerator.random())
@@ -31,9 +30,7 @@ internal class BehandlingRoutesKtTest : ComponentTest() {
             val behandling = sak.sisteStønadsperiode().nyBehandling()
             val behandlingsId = JSONObject(behandling.toJson()).getLong("id")
 
-            withCorrelationId(Get, "$behandlingPath/$behandlingsId") {
-                addHeader(Authorization, jwt)
-            }.apply {
+            defaultRequest(Get, "$behandlingPath/$behandlingsId").apply {
                 assertEquals(OK, response.status())
                 assertEquals(behandlingsId, JSONObject(response.content).getLong("id"))
             }
