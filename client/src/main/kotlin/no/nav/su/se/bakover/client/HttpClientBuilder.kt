@@ -9,10 +9,10 @@ interface HttpClientsBuilder {
         azure: OAuth = HttpClientBuilder.azure(),
         personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag)
-    ): Clients
+    ): HttpClients
 }
 
-data class Clients(
+data class HttpClients(
     val oauth: OAuth,
     val personOppslag: PersonOppslag,
     val inntektOppslag: InntektOppslag
@@ -54,8 +54,8 @@ object HttpClientBuilder : HttpClientsBuilder {
         azure: OAuth,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag
-    ): Clients {
-        return Clients(azure, personOppslag, inntektOppslag)
+    ): HttpClients {
+        return HttpClients(azure, personOppslag, inntektOppslag)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)

@@ -10,7 +10,13 @@ import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
-import io.ktor.features.*
+import io.ktor.features.CORS
+import io.ktor.features.CallId
+import io.ktor.features.CallLogging
+import io.ktor.features.ContentNegotiation
+import io.ktor.features.StatusPages
+import io.ktor.features.callId
+import io.ktor.features.generate
 import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
@@ -26,12 +32,13 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
-import java.net.URL
-import java.util.*
-import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.*
-import no.nav.su.se.bakover.client.Clients
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asContextElement
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.HttpClientBuilder
+import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.KafkaClientBuilder
 import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
@@ -45,22 +52,36 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
-import no.nav.su.se.bakover.web.routes.*
+import no.nav.su.se.bakover.web.routes.IS_ALIVE_PATH
+import no.nav.su.se.bakover.web.routes.IS_READY_PATH
+import no.nav.su.se.bakover.web.routes.METRICS_PATH
+import no.nav.su.se.bakover.web.routes.SøknadRouteMediator
+import no.nav.su.se.bakover.web.routes.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.inntektRoutes
+import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.naisRoutes
+import no.nav.su.se.bakover.web.routes.personRoutes
+import no.nav.su.se.bakover.web.routes.sakRoutes
+import no.nav.su.se.bakover.web.routes.soknadRoutes
+import no.nav.su.se.bakover.web.routes.stønadsperiodeRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.net.URL
+import java.util.Properties
+import kotlin.coroutines.CoroutineContext
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
     kafkaClient: SuKafkaClient = KafkaClientBuilder.build(),
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
-    clients: Clients = HttpClientBuilder.build(),
-    jwkConfig: JSONObject = clients.oauth.jwkConfig(),
+    httpClients: HttpClients = HttpClientBuilder.build(),
+    jwkConfig: JSONObject = httpClients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
-    val søknadMottattEmitter = SøknadMottattEmitter(kafkaClient, clients.personOppslag)
+    val søknadMottattEmitter = SøknadMottattEmitter(kafkaClient, httpClients.personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
 
     install(CORS) {
@@ -95,7 +116,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
             frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
-            oAuth = clients.oauth
+            oAuth = httpClients.oauth
     )
 
     install(Locations)
@@ -130,8 +151,8 @@ internal fun Application.susebakover(
                 """.trimIndent())
             }
 
-            personRoutes(clients.personOppslag, databaseRepo)
-            inntektRoutes(clients.inntektOppslag)
+            personRoutes(httpClients.personOppslag, databaseRepo)
+            inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             soknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)

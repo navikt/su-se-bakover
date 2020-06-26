@@ -57,7 +57,7 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testEnv()
-            testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
                 override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
             }))

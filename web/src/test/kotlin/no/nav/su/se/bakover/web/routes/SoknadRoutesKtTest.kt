@@ -63,7 +63,7 @@ internal class SoknadRoutesKtTest {
         val correlationId = "my random UUID or something"
         withTestApplication({
             testEnv()
-            testSusebakover(clients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
                 override fun aktørId(ident: Fnr): String = stubAktørId
             }))

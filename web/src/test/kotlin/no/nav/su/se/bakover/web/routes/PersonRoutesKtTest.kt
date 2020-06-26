@@ -70,7 +70,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(clients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
+            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -86,7 +86,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(clients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
+            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {

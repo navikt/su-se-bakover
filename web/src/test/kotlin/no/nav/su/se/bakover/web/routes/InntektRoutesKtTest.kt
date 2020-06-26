@@ -58,7 +58,7 @@ internal class InntektRoutesKtTest {
         val errorMessage = """{"message": "nich gut"}"""
         withTestApplication({
             testEnv()
-            testSusebakover(clients = buildClients(inntektOppslag = object : InntektOppslag {
+            testSusebakover(httpClients = buildClients(inntektOppslag = object : InntektOppslag {
                 override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
             }))
         }) {

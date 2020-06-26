@@ -12,7 +12,7 @@ import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
 import java.util.Base64
-import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.InntektOppslag
 import no.nav.su.se.bakover.client.OAuth
@@ -50,13 +50,13 @@ internal fun Application.testEnv() {
 }
 
 internal fun Application.testSusebakover(
-    clients: Clients = buildClients(),
+    httpClients: HttpClients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
     kafkaClient: SuKafkaClient = SuKafkaClientStub,
     databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 ) {
     return susebakover(
-        clients = clients,
+        httpClients = httpClients,
         jwkProvider = jwkProvider,
         kafkaClient = kafkaClient,
         databaseRepo = databaseRepo
@@ -67,7 +67,7 @@ internal fun buildClients(
     azure: OAuth = OauthStub(),
     personOppslag: PersonOppslag = PersonOppslagStub,
     inntektOppslag: InntektOppslag = InntektOppslagStub
-): Clients {
+): HttpClients {
     return HttpClientBuilder.build(azure, personOppslag, inntektOppslag)
 }
 
