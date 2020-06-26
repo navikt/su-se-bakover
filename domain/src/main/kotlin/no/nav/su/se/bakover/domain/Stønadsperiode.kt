@@ -26,6 +26,7 @@ class Stønadsperiode(
             behandling = it.nyBehandling(id)
             behandlinger.add(behandling)
         }
+        behandling.opprettVilkårsvurderinger()
         return behandling
     }
 

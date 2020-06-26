@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.domain.*
+import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Stønadsperiode
+import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.Vilkårsvurdering
 
 interface ObjectRepo {
     fun hentSak(fnr: Fnr): Sak?
@@ -10,4 +15,5 @@ interface ObjectRepo {
     fun hentSøknad(søknadId: Long): Søknad?
     fun hentBehandling(behandlingId: Long): Behandling?
     fun hentStønadsperiode(stønadsperiodeId: Long): Stønadsperiode?
+    fun hentVilkårsvurderinger(behandlingId: Long): MutableList<Vilkårsvurdering>
 }
