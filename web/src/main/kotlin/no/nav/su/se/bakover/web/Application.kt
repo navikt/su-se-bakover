@@ -30,8 +30,8 @@ import java.net.URL
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.*
-import no.nav.su.se.bakover.client.ClientBuilder
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.KafkaClientBuilder
 import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
@@ -55,7 +55,7 @@ import org.slf4j.event.Level
 internal fun Application.susebakover(
     kafkaClient: SuKafkaClient = KafkaClientBuilder.build(),
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
-    clients: Clients = ClientBuilder.build(),
+    clients: Clients = HttpClientBuilder.build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {

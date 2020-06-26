@@ -4,11 +4,11 @@ import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import org.slf4j.LoggerFactory
 
-interface ClientsBuilder {
+interface HttpClientsBuilder {
     fun build(
-        azure: OAuth = ClientBuilder.azure(),
-        personOppslag: PersonOppslag = ClientBuilder.person(oAuth = azure),
-        inntektOppslag: InntektOppslag = ClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag)
+        azure: OAuth = HttpClientBuilder.azure(),
+        personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
+        inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag)
     ): Clients
 }
 
@@ -18,17 +18,20 @@ data class Clients(
     val inntektOppslag: InntektOppslag
 )
 
-object ClientBuilder : ClientsBuilder {
+object HttpClientBuilder : HttpClientsBuilder {
     private val env = System.getenv()
-    fun azure(
+    internal fun azure(
         clientId: String = env.getOrDefault("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e"),
         clientSecret: String = env.getOrDefault("AZURE_CLIENT_SECRET", "secret"),
-        wellknownUrl: String = env.getOrDefault("AZURE_WELLKNOWN_URL", "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration")
+        wellknownUrl: String = env.getOrDefault(
+            "AZURE_WELLKNOWN_URL",
+            "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+        )
     ): OAuth {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
 
-    fun person(
+    internal fun person(
         baseUrl: String = env.getOrDefault("SU_PERSON_URL", "http://su-person.default.svc.nais.local"),
         clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
         oAuth: OAuth
@@ -37,7 +40,7 @@ object ClientBuilder : ClientsBuilder {
         else -> SuPersonClient(baseUrl, clientId, oAuth)
     }
 
-    fun inntekt(
+    internal fun inntekt(
         baseUrl: String = env.getOrDefault("SU_INNTEKT_URL", "http://su-inntekt.default.svc.nais.local"),
         clientId: String = env.getOrDefault("SU_INNTEKT_AZURE_CLIENT_ID", "9cd61904-33ad-40e8-9cc8-19e4dab588c5"),
         oAuth: OAuth,
@@ -55,5 +58,5 @@ object ClientBuilder : ClientsBuilder {
         return Clients(azure, personOppslag, inntektOppslag)
     }
 
-    private val logger = LoggerFactory.getLogger(ClientBuilder::class.java)
+    private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
 }
