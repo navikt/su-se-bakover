@@ -17,6 +17,15 @@ class Behandling constructor(
         vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE)))
         return vilkårsvurderinger
     }
+
+    fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): List<Vilkårsvurdering> {
+        oppdatertListe.forEach { oppdatert ->
+            vilkårsvurderinger
+                .single { it == oppdatert }
+                .apply { oppdater(oppdatert) }
+        }
+        return vilkårsvurderinger
+    }
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {

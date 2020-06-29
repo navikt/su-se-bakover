@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain
 class Vilkårsvurdering(
     id: Long,
     private val vilkår: Vilkår,
-    private val begrunnelse: String,
-    private val status: Status
-) : PersistentDomainObject<VoidObserver>(id) {
+    private var begrunnelse: String,
+    private var status: Status
+) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id) {
     //language=JSON
     fun toJson() = """
         {
@@ -21,8 +21,30 @@ class Vilkårsvurdering(
         IKKE_OK,
         IKKE_VURDERT
     }
+
+    fun oppdater(vilkårsvurdering: Vilkårsvurdering) {
+        this.begrunnelse = vilkårsvurdering.begrunnelse
+        this.status = vilkårsvurdering.status
+        persistenceObserver.oppdaterVilkårsvurdering(id, begrunnelse, status)
+    }
+
+    override fun equals(other: Any?) =
+        other is Vilkårsvurdering && id == other.id && vilkår == other.vilkår
 }
 
 enum class Vilkår {
     UFØRE
 }
+
+interface  lol {
+    fun tull()
+}
+
+interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
+    fun oppdaterVilkårsvurdering(
+        vilkårsvurderingsId: Long,
+        begrunnelse: String,
+        status: Vilkårsvurdering.Status
+    ): Vilkårsvurdering
+}
+
