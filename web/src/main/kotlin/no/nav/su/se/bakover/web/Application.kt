@@ -6,6 +6,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.application.log
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -98,9 +99,11 @@ internal fun Application.susebakover(
 
     install(StatusPages) {
         exception<UgyldigFnrException> {
+            log.error(it.toString())
             call.respond(HttpStatusCode.BadRequest, it)
         }
         exception<Throwable> {
+            log.error(it.toString())
             call.respond(HttpStatusCode.InternalServerError, it)
         }
     }
