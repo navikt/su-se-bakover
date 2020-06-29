@@ -9,6 +9,7 @@ class Vilkårsvurdering(
     //language=JSON
     fun toJson() = """
         {
+            "id": $id,
             "vilkår": "$vilkår",
             "begrunnelse" : "$begrunnelse",
             "status": "$status"
