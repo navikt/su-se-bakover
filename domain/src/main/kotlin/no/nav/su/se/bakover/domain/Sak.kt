@@ -8,7 +8,7 @@ class Sak constructor(
     private val fnr: Fnr,
     private val id: Long = NO_SUCH_IDENTITY,
     private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
-) {
+) : PersistentDomainObject<SakPersistenceObserver>() {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
@@ -23,9 +23,8 @@ class Sak constructor(
     private fun stønadsperioderSomJsonListe(): String = "[ ${stønadsperioder.joinToString(",") { it.toJson() }} ]"
 
     fun nySøknad(søknadInnhold: SøknadInnhold) {
-        observers.filterIsInstance(SakPersistenceObserver::class.java).forEach {
-            stønadsperioder.add(it.nySøknad(id, søknadInnhold))
-        }
+        stønadsperioder.add(persistenceObserver.nySøknad(id, søknadInnhold))
+
         val event = sisteStønadsperiode().nySøknadEvent(id)
         observers.filterIsInstance(SakEventObserver::class.java).forEach {
             it.nySøknadEvent(event)
@@ -37,7 +36,7 @@ class Sak constructor(
 
 interface SakObserver
 
-interface SakPersistenceObserver : SakObserver {
+interface SakPersistenceObserver : PersistenceObserver {
     fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold): Stønadsperiode
 }
 

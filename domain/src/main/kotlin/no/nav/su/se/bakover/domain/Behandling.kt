@@ -3,9 +3,7 @@ package no.nav.su.se.bakover.domain
 class Behandling constructor(
     private val id: Long,
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
-) {
-    private val observers: MutableList<BehandlingPersistenceObserver> = mutableListOf()
-    fun addObserver(observer: BehandlingPersistenceObserver) = observers.add(observer)
+) : PersistentDomainObject<BehandlingPersistenceObserver>() {
     fun toJson() = """
         {
             "id": $id,
@@ -16,13 +14,12 @@ class Behandling constructor(
     private fun vilkårsvurderingerAsJsonList(): String = "[ ${vilkårsvurderinger.joinToString(",") { it.toJson() }} ]"
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
-        val persistent = observers.first().opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE))
-        this.vilkårsvurderinger.addAll(persistent)
+        vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE)))
         return vilkårsvurderinger
     }
 }
 
-interface BehandlingPersistenceObserver {
+interface BehandlingPersistenceObserver : PersistenceObserver {
     fun opprettVilkårsvurderinger(
         behandlingId: Long,
         vilkår: List<Vilkår>

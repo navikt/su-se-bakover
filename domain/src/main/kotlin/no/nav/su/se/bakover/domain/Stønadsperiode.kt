@@ -6,9 +6,7 @@ class Stønadsperiode(
     private val id: Long = NO_SUCH_IDENTITY,
     private val søknad: Søknad,
     private val behandlinger: MutableList<Behandling> = mutableListOf()
-) {
-    private val observers: MutableList<StønadsperiodeObserver> = mutableListOf()
-    fun addObserver(observer: StønadsperiodeObserver) = observers.add(observer)
+) : PersistentDomainObject<StønadsperiodePersistenceObserver>() {
 
     fun toJson() = """
         {
@@ -21,11 +19,8 @@ class Stønadsperiode(
     private fun behandlingerAsJson(): String = "[ ${behandlinger.joinToString(",") { it.toJson() }} ]"
 
     fun nyBehandling(): Behandling {
-        lateinit var behandling: Behandling
-        observers.filterIsInstance(StønadsperiodePersistenceObserver::class.java).forEach {
-            behandling = it.nyBehandling(id)
-            behandlinger.add(behandling)
-        }
+        val behandling = persistenceObserver.nyBehandling(id)
+        behandlinger.add(behandling)
         behandling.opprettVilkårsvurderinger()
         return behandling
     }
@@ -33,8 +28,6 @@ class Stønadsperiode(
     fun nySøknadEvent(sakId: Long) = søknad.nySøknadEvent(sakId)
 }
 
-interface StønadsperiodeObserver
-
-interface StønadsperiodePersistenceObserver : StønadsperiodeObserver {
+interface StønadsperiodePersistenceObserver : PersistenceObserver {
     fun nyBehandling(stønadsperiodeId: Long): Behandling
 }
