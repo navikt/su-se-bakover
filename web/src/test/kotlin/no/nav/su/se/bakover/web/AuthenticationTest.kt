@@ -2,17 +2,18 @@ package no.nav.su.se.bakover.web
 
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import java.time.Instant
-import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.Instant
+import java.util.Date
 
 const val secureEndpoint = "/authenticated"
 
@@ -45,7 +46,7 @@ internal class AuthenticationTest {
     }
 
     @Test
-    fun `forespørsel uten påkrevet audience skal svare med 401`() {
+    fun `forespørsel uten påkrevet audience skal svare med 403`() {
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -54,12 +55,12 @@ internal class AuthenticationTest {
                 addHeader(Authorization, Jwt.create(audience = "wrong_audience"))
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Forbidden, response.status())
         }
     }
 
     @Test
-    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
+    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 403`() {
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -68,7 +69,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, Jwt.create(groups = listOf("WRONG_GROUP_UUID")))
             }
         }.apply {
-            assertEquals(Unauthorized, response.status())
+            assertEquals(Forbidden, response.status())
         }
     }
 
