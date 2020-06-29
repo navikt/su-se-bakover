@@ -9,14 +9,14 @@ import org.junit.jupiter.api.assertThrows
 internal class PersistentDomainObjectTest {
     @Test
     fun `throw exception if multiple persistence observers assigned`() {
-        val sak = Sak(Fnr("12345678910"), 1L, mutableListOf())
+        val sak = Sak(1L, Fnr("12345678910"), mutableListOf())
         assertDoesNotThrow { sak.addObserver(someObserver) }
         assertThrows<PersistenceObserverException> { sak.addObserver(someObserver) }
     }
 
     @Test
     fun `throw exception if unassigned persistence observer is invoked`() {
-        val sak = Sak(Fnr("12345678910"), 1L, mutableListOf())
+        val sak = Sak(1L, Fnr("12345678910"), mutableListOf())
         assertThrows<UninitializedPropertyAccessException> { sak.nySøknad(SøknadInnholdTestdataBuilder.build()) }
     }
 

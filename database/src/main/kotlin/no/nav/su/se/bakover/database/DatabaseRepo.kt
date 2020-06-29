@@ -142,6 +142,7 @@ internal class DatabaseRepo(
         }.toMutableList()
 
     private fun Row.toVilkårsvurdering(session: Session) = Vilkårsvurdering(
+        id = long("id"),
         vilkår = Vilkår.valueOf(string("vilkår")),
         begrunnelse = string("begrunnelse"),
         status = Vilkårsvurdering.Status.valueOf(string("status"))

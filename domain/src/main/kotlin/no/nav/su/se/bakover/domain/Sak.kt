@@ -2,13 +2,11 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 
-private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
-
-class Sak constructor(
+class Sak(
+    id: Long,
     private val fnr: Fnr,
-    private val id: Long = NO_SUCH_IDENTITY,
     private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
-) : PersistentDomainObject<SakPersistenceObserver>() {
+) : PersistentDomainObject<SakPersistenceObserver>(id) {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 

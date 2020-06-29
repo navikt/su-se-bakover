@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 class Behandling constructor(
-    private val id: Long,
+    id: Long,
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
-) : PersistentDomainObject<BehandlingPersistenceObserver>() {
+) : PersistentDomainObject<BehandlingPersistenceObserver>(id) {
     fun toJson() = """
         {
             "id": $id,

@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 
-private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
-
 class Søknad constructor(
-    private val id: Long = NO_SUCH_IDENTITY,
+    id: Long,
     private val søknadInnhold: SøknadInnhold
-) {
+) : PersistentDomainObject<VoidObserver>(id) {
     fun toJson(): String = """
         {
             "id": $id,
@@ -16,8 +14,8 @@ class Søknad constructor(
     """.trimIndent()
 
     fun nySøknadEvent(sakId: Long) = SakEventObserver.NySøknadEvent(
-            sakId = sakId,
-            søknadId = id,
-            søknadInnhold = søknadInnhold
+        sakId = sakId,
+        søknadId = id,
+        søknadInnhold = søknadInnhold
     )
 }

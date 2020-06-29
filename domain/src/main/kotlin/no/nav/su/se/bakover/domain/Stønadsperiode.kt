@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.domain
 private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
 
 class Stønadsperiode(
-    private val id: Long = NO_SUCH_IDENTITY,
+    id: Long,
     private val søknad: Søknad,
     private val behandlinger: MutableList<Behandling> = mutableListOf()
-) : PersistentDomainObject<StønadsperiodePersistenceObserver>() {
+) : PersistentDomainObject<StønadsperiodePersistenceObserver>(id) {
 
     fun toJson() = """
         {

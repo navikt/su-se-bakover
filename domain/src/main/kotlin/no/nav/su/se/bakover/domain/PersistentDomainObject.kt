@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain
 
-abstract class PersistentDomainObject<T : PersistenceObserver> {
+abstract class PersistentDomainObject<T : PersistenceObserver>(
+    protected val id: Long
+) {
     protected lateinit var persistenceObserver: T
     fun addObserver(observer: T) {
         if (this::persistenceObserver.isInitialized) throw PersistenceObserverException()
@@ -13,3 +15,4 @@ class PersistenceObserverException(
 ) : RuntimeException(message)
 
 interface PersistenceObserver
+interface VoidObserver : PersistenceObserver
