@@ -30,14 +30,16 @@ class Vilkårsvurdering(
 
     override fun equals(other: Any?) =
         other is Vilkårsvurdering && id == other.id && vilkår == other.vilkår
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + vilkår.hashCode()
+        return result
+    }
 }
 
 enum class Vilkår {
     UFØRE
-}
-
-interface  lol {
-    fun tull()
 }
 
 interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
@@ -47,4 +49,3 @@ interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
         status: Vilkårsvurdering.Status
     ): Vilkårsvurdering
 }
-
