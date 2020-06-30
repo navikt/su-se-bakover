@@ -9,7 +9,9 @@ object EmbeddedDatabase {
     internal val DB_NAME = "postgres"
     private val instance = EmbeddedPostgres.builder()
             // Don't explicit set locale here, because it will auto-detect differently on mac osx, windows and linux.
+            // See PR: https://github.com/opentable/otj-pg-embedded/pull/89/files
             // If you locale is set to C, you have to fix your locale: https://stackoverflow.com/questions/7165108/in-os-x-lion-lang-is-not-set-to-utf-8-how-to-fix-it
+            // E.g. add `export LANG=nb_NO.UTF-8` in .zshrc/.bash_profile/.profile/config.fish
             .start()!!.also {
                 creatAdminRole(it)
             }
