@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain
 
-private const val NO_SUCH_IDENTITY = Long.MIN_VALUE
-
 class Stønadsperiode(
     id: Long,
     private val søknad: Søknad,
