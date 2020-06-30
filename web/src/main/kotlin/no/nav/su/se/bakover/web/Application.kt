@@ -18,12 +18,13 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
 import io.ktor.features.callId
 import io.ktor.features.generate
-import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
+import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
+import io.ktor.jackson.jackson
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
 import io.ktor.request.header
@@ -65,6 +66,7 @@ import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sakRoutes
 import no.nav.su.se.bakover.web.routes.soknadRoutes
 import no.nav.su.se.bakover.web.routes.stønadsperiodeRoutes
+import no.nav.su.se.bakover.web.routes.vilkårsvurderingRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -87,6 +89,7 @@ internal fun Application.susebakover(
 
     install(CORS) {
         method(Options)
+        method(Patch)
         header(Authorization)
         header("refresh_token")
         header(XCorrelationId)
@@ -125,9 +128,7 @@ internal fun Application.susebakover(
     install(Locations)
 
     install(ContentNegotiation) {
-        gson {
-            setPrettyPrinting()
-        }
+        jackson {}
     }
     routing {
         authenticate("jwt") {
@@ -160,6 +161,7 @@ internal fun Application.susebakover(
             soknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)
             stønadsperiodeRoutes(databaseRepo)
+            vilkårsvurderingRoutes(databaseRepo)
         }
     }
 }

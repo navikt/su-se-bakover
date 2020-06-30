@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.web.routes
 
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -18,30 +16,30 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-@KtorExperimentalAPI
-@KtorExperimentalLocationsAPI
-internal class BehandlingRoutesKtTest {
+internal class VilkårsvurderingRoutesKtTest {
 
     private val repo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
-    fun `henter en behandling`() {
+    fun `oppdater vilkårsvurdering for behandling`() {
         withTestApplication({
             testEnv()
             testSusebakover()
         }) {
-            val behandlingsId = JSONObject(setupForBehandling().toJson()).getLong("id")
-
-            defaultRequest(HttpMethod.Get, "$behandlingPath/$behandlingsId").apply {
-                val json = JSONObject(response.content)
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals(behandlingsId, json.getLong("id"))
-                assertEquals(1, json.getJSONArray("vilkårsvurderinger").count())
-                assertEquals(
-                    Vilkårsvurdering.Status.IKKE_VURDERT.name,
-                    json.getJSONArray("vilkårsvurderinger").getJSONObject(0).getString("status")
-                )
+            val behandlingJson = JSONObject(setupForBehandling().toJson())
+            val behandlingsId = behandlingJson.getLong("id")
+            val oppdatering = behandlingJson.getJSONArray("vilkårsvurderinger").getJSONObject(0).apply {
+                this.put("status", Vilkårsvurdering.Status.OK.name)
+                this.put("begrunnelse", "Dette kravet er ok")
+            }.toString()
+            defaultRequest(HttpMethod.Patch, "$behandlingPath/$behandlingsId/vilkarsvurderinger") {
+                setBody("""[$oppdatering]""")
             }
+            val oppdatert = JSONObject(repo.hentBehandling(behandlingsId)!!.toJson()).getJSONArray("vilkårsvurderinger")
+                .getJSONObject(0)
+            assertEquals(behandlingsId, oppdatert.getLong("id"))
+            assertEquals(Vilkårsvurdering.Status.OK.name, oppdatert.getString("status"))
+            assertEquals("Dette kravet er ok", oppdatert.getString("begrunnelse"))
         }
     }
 
