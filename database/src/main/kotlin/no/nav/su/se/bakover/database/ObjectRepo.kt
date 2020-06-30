@@ -14,6 +14,7 @@ interface ObjectRepo {
     fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode>
     fun hentSøknad(søknadId: Long): Søknad?
     fun hentBehandling(behandlingId: Long): Behandling?
+    fun hentBehandlinger(stønadsperiodeId: Long): MutableList<Behandling>
     fun hentStønadsperiode(stønadsperiodeId: Long): Stønadsperiode?
     fun hentVilkårsvurderinger(behandlingId: Long): MutableList<Vilkårsvurdering>
 }

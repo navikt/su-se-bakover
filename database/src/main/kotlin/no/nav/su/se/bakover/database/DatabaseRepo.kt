@@ -68,7 +68,8 @@ internal class DatabaseRepo(
 
     private fun Row.toStønadsperiode(session: Session) = Stønadsperiode(
         id = long("id"),
-        søknad = hentSøknad(long("søknadId"), session)!!
+        søknad = hentSøknad(long("søknadId"), session)!!,
+        behandlinger = hentBehandlinger(long("id"), session)
     )
 
     override fun hentStønadsperioder(sakId: Long): MutableList<Stønadsperiode> =
@@ -97,9 +98,21 @@ internal class DatabaseRepo(
 
     private fun hentBehandling(behandlingId: Long, session: Session): Behandling? =
         "select * from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId), session) {
-                it.toBehandling(session)
-            }!!.also { it.addObserver(this) }
+            .hent(mapOf("id" to behandlingId), session) { row ->
+                row.toBehandling(session).also { it.addObserver(this) }
+            }
+
+    override fun hentBehandlinger(stønadsperiodeId: Long) = using(sessionOf(dataSource)) {
+        hentBehandlinger(stønadsperiodeId, it)
+    }
+
+    private fun hentBehandlinger(stønadsperiodeId: Long, session: Session) =
+        "select * from behandling where stønadsperiodeId=:stonadsperiodeId".hentListe(
+            mapOf("stonadsperiodeId" to stønadsperiodeId),
+            session
+        ) { row ->
+            row.toBehandling(session).also { it.addObserver(this) }
+        }.toMutableList()
 
     private fun Row.toBehandling(session: Session) = Behandling(
         id = long("id"),
