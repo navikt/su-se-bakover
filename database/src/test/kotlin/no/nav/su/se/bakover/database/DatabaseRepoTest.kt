@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal class DatabaseRepoTest {
@@ -45,7 +47,7 @@ internal class DatabaseRepoTest {
                 ).first().toJson()
             )
 
-            val fromRepo = JSONObject(repo.hentVilkårsvurdering(beforeUpdate.getLong("id")).toJson())
+            val fromRepo = JSONObject(repo.hentVilkårsvurdering(beforeUpdate.getLong("id"))!!.toJson())
 
             assertNotEquals(beforeUpdate.toString(), fromFunction.toString())
             assertNotEquals(beforeUpdate.toString(), fromRepo.toString())
@@ -53,6 +55,20 @@ internal class DatabaseRepoTest {
             assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromFunction.getString("status"))
             assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromRepo.getString("status"))
             assertEquals(fromFunction.getLong("id"), fromRepo.getLong("id"))
+        }
+    }
+
+    @Test
+    fun `unknown entities`() {
+        withMigratedDb {
+            assertNull(repo.hentSak(FnrGenerator.random()))
+            assertNull(repo.hentSak(Long.MAX_VALUE))
+            assertNull(repo.hentStønadsperiode(Long.MAX_VALUE))
+            assertTrue(repo.hentStønadsperioder(Long.MAX_VALUE).isEmpty())
+            assertNull(repo.hentVilkårsvurdering(Long.MAX_VALUE))
+            assertTrue(repo.hentVilkårsvurderinger(Long.MAX_VALUE).isEmpty())
+            assertNull(repo.hentBehandling(Long.MAX_VALUE))
+            assertNull(repo.hentSøknad(Long.MAX_VALUE))
         }
     }
 

@@ -98,10 +98,11 @@ internal class DatabaseRepo(
         using(sessionOf(dataSource)) { hentBehandling(behandlingId, it) }
 
     private fun hentBehandling(behandlingId: Long, session: Session): Behandling? =
-        "select * from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId), session) {
-                it.toBehandling(session)
-            }!!.also { it.addObserver(this) }
+        "select * from behandling where id=:id".hent(mapOf("id" to behandlingId), session) { row ->
+            row.toBehandling(session).also {
+                it.addObserver(this)
+            }
+        }
 
     private fun Row.toBehandling(session: Session) = Behandling(
         id = long("id"),
@@ -193,15 +194,17 @@ internal class DatabaseRepo(
         status: Vilkårsvurdering.Status
     ): Vilkårsvurdering {
         val id = oppdaterVilkår(vilkårsvurderingsId, begrunnelse, status)
-        return hentVilkårsvurdering(id)
+        return hentVilkårsvurdering(id)!!
     }
 
-    override fun hentVilkårsvurdering(id: Long) = using(sessionOf(dataSource)) { hentVilkårsvurdering(id, it) }
+    override fun hentVilkårsvurdering(id: Long): Vilkårsvurdering? = using(sessionOf(dataSource)) {
+        hentVilkårsvurdering(id, it)
+    }
 
     private fun hentVilkårsvurdering(id: Long, session: Session) =
         "select * from vilkårsvurdering where id = :id".hent(mapOf("id" to id), session) { row ->
             row.toVilkårsvurdering(session).also {
                 it.addObserver(this)
             }
-        }!!
+        }
 }
