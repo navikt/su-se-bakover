@@ -30,7 +30,9 @@ internal fun Route.stønadsperiodeRoutes(
                     call.audit("oppretter behandling på stønadsperiode med id: $id")
                     when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                         null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
-                        else -> call.svar(Created.json(stønadsperiode.nyBehandling().toJson()))
+                        else -> call.svar(Created.json(stønadsperiode.nyBehandling().toDto().let {
+                            mapper.writeValueAsString(it)
+                        }))
                     }
                 }
         )

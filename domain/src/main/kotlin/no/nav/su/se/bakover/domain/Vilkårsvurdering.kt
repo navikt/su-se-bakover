@@ -16,6 +16,8 @@ class Vilkårsvurdering(
         }
     """.trimIndent()
 
+    fun toDto() = VilkårsvurderingDto(id, vilkår, begrunnelse, status)
+
     enum class Status {
         OK,
         IKKE_OK,
@@ -48,4 +50,19 @@ interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
         begrunnelse: String,
         status: Vilkårsvurdering.Status
     ): Vilkårsvurdering
+}
+
+data class VilkårsvurderingDto(
+    val id: Long,
+    val vilkår: Vilkår,
+    val begrunnelse: String,
+    val status: Vilkårsvurdering.Status
+) {
+    fun formatter() = vilkår to Value(id, begrunnelse, status)
+
+    data class Value(
+        val id: Long,
+        val begrunnelse: String,
+        val status: Vilkårsvurdering.Status
+    )
 }

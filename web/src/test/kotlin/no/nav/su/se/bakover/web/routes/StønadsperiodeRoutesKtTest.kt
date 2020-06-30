@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -32,6 +33,24 @@ internal class StønadsperiodeRoutesKtTest {
 
             defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
                 assertEquals(HttpStatusCode.Created, it.response.status())
+                println(it.response.content!!)
+                JSONAssert.assertEquals(
+                    //language=JSON
+                    """
+                       {
+                            "id": 1,
+                            "vilkårsvurderinger": {
+                                "UFØRE":{
+                                    "id": 1,
+                                    "begrunnelse": "",
+                                    "status": "IKKE_VURDERT"
+                                }
+                            }
+                        }
+                    """.trimIndent(),
+                    it.response.content!!,
+                    true
+                )
             }
         }
     }
