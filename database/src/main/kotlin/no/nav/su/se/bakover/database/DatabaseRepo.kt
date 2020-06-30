@@ -1,14 +1,29 @@
 package no.nav.su.se.bakover.database
 
-import kotliquery.*
+import kotliquery.Row
+import kotliquery.Session
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.se.bakover.domain.*
+import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Stønadsperiode
+import no.nav.su.se.bakover.domain.StønadsperiodePersistenceObserver
+import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.Vilkår
+import no.nav.su.se.bakover.domain.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import org.json.JSONObject
 import javax.sql.DataSource
 
 internal class DatabaseRepo(
     private val dataSource: DataSource
-) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver, BehandlingPersistenceObserver, VilkårsvurderingPersistenceObserver {
+) : ObjectRepo, SakPersistenceObserver, StønadsperiodePersistenceObserver, BehandlingPersistenceObserver,
+    VilkårsvurderingPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSak(fnr, it) }
 
@@ -124,8 +139,8 @@ internal class DatabaseRepo(
         "select * from vilkårsvurdering where behandlingId=:behandlingId".hentListe(
             mapOf("behandlingId" to behandlingId),
             session
-        ) {
-            it.toVilkårsvurdering(session).also {
+        ) { row ->
+            row.toVilkårsvurdering(session).also {
                 it.addObserver(this)
             }
         }.toMutableList()
@@ -169,9 +184,14 @@ internal class DatabaseRepo(
     ): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 
     private fun oppdaterVilkår(id: Long, begrunnelse: String, status: Vilkårsvurdering.Status) =
-        "update vilkårsvurdering set begrunnelse = :begrunnelse, status = CAST(:status AS VILKÅR_VURDERING_STATUS) where id = :id".oppdatering(mapOf("id" to id, "begrunnelse" to begrunnelse, "status" to status.name))!!
+        "update vilkårsvurdering set begrunnelse = :begrunnelse, status = CAST(:status AS VILKÅR_VURDERING_STATUS) where id = :id"
+            .oppdatering(mapOf("id" to id, "begrunnelse" to begrunnelse, "status" to status.name))!!
 
-    override fun oppdaterVilkårsvurdering(vilkårsvurderingsId: Long, begrunnelse: String, status: Vilkårsvurdering.Status): Vilkårsvurdering {
+    override fun oppdaterVilkårsvurdering(
+        vilkårsvurderingsId: Long,
+        begrunnelse: String,
+        status: Vilkårsvurdering.Status
+    ): Vilkårsvurdering {
         val id = oppdaterVilkår(vilkårsvurderingsId, begrunnelse, status)
         return hentVilkårsvurdering(id)
     }
@@ -179,7 +199,9 @@ internal class DatabaseRepo(
     override fun hentVilkårsvurdering(id: Long) = using(sessionOf(dataSource)) { hentVilkårsvurdering(id, it) }
 
     private fun hentVilkårsvurdering(id: Long, session: Session) =
-        "select * from vilkårsvurdering where id = :id".hent(mapOf("id" to id), session){it.toVilkårsvurdering(session).also {
-            it.addObserver(this)
-        }}!!
+        "select * from vilkårsvurdering where id = :id".hent(mapOf("id" to id), session) { row ->
+            row.toVilkårsvurdering(session).also {
+                it.addObserver(this)
+            }
+        }!!
 }
