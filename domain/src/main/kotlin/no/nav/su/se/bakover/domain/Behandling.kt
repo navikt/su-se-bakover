@@ -26,6 +26,9 @@ class Behandling constructor(
         }
         return vilkårsvurderinger
     }
+
+    override fun equals(other: Any?) = other is Behandling && id == other.id
+    override fun hashCode() = id.hashCode()
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
