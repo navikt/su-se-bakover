@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
+import io.kotest.assertions.json.shouldMatchJson
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
@@ -33,8 +34,8 @@ internal class StønadsperiodeRoutesKtTest {
 
             defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
                 assertEquals(HttpStatusCode.Created, it.response.status())
-                println(it.response.content!!)
-                JSONAssert.assertEquals(
+
+                it.response.content!!.shouldMatchJson(
                     //language=JSON
                     """
                        {
@@ -42,14 +43,12 @@ internal class StønadsperiodeRoutesKtTest {
                             "vilkårsvurderinger": {
                                 "UFØRE":{
                                     "id": 1,
-                                    "begrunnelse": "",
+                                    "begrunnelse":     "",
                                     "status": "IKKE_VURDERT"
                                 }
                             }
                         }
-                    """.trimIndent(),
-                    it.response.content!!,
-                    true
+                    """.trimIndent()
                 )
             }
         }
