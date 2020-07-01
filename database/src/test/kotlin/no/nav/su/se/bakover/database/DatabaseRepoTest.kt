@@ -38,7 +38,7 @@ internal class DatabaseRepoTest {
                     listOf(
                         Vilkårsvurdering(
                             id = 1,
-                            vilkår = Vilkår.UFØRE,
+                            vilkår = Vilkår.UFØRHET,
                             begrunnelse = "begrunnelse",
                             status = Vilkårsvurdering.Status.IKKE_OK
                         )

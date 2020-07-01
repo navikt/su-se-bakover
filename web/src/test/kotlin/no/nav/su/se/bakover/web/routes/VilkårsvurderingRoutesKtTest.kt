@@ -9,6 +9,7 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
@@ -30,7 +31,7 @@ internal class VilkårsvurderingRoutesKtTest {
         }) {
             val behandling = setupForBehandling().toDto()
             val behandlingsId = behandling.id
-            val vilkårsvurdering = behandling.vilkårsvurderinger.first()
+            val vilkårsvurdering = behandling.vilkårsvurderinger.first { it.vilkår == Vilkår.UFØRHET }
             val oppdatering = mapOf(
                 vilkårsvurdering.vilkår.name to VilkårsvurderingData(
                     id = vilkårsvurdering.id,
@@ -45,8 +46,9 @@ internal class VilkårsvurderingRoutesKtTest {
             }
             val oppdatert = repo.hentBehandling(behandlingsId)!!.toDto()
             assertEquals(behandlingsId, oppdatert.id)
-            assertEquals(Vilkårsvurdering.Status.OK, oppdatert.vilkårsvurderinger.first().status)
-            assertEquals("Dette kravet er ok", oppdatert.vilkårsvurderinger.first().begrunnelse)
+            val uførhetVilkår = oppdatert.vilkårsvurderinger.first { it.vilkår == Vilkår.UFØRHET }
+            assertEquals(Vilkårsvurdering.Status.OK, uførhetVilkår.status)
+            assertEquals("Dette kravet er ok", uførhetVilkår.begrunnelse)
         }
     }
 

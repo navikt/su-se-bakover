@@ -16,7 +16,7 @@ class Behandling constructor(
     fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
-        vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE)))
+        vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, Vilkår.values().toList()))
         return vilkårsvurderinger
     }
 

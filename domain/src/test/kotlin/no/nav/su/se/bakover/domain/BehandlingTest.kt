@@ -9,7 +9,7 @@ internal class BehandlingTest {
     @Test
     fun equals() {
         val a = Behandling(1, mutableListOf())
-        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRE, "", Vilkårsvurdering.Status.OK)))
+        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRHET, "", Vilkårsvurdering.Status.OK)))
         val c = Behandling(2, mutableListOf())
         assertEquals(a, b)
         assertNotEquals(a, c)
@@ -21,7 +21,7 @@ internal class BehandlingTest {
     @Test
     fun hashcode() {
         val a = Behandling(1, mutableListOf())
-        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRE, "", Vilkårsvurdering.Status.OK)))
+        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRHET, "", Vilkårsvurdering.Status.OK)))
         val c = Behandling(2, mutableListOf())
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())

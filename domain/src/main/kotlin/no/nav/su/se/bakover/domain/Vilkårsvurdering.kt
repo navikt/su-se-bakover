@@ -41,7 +41,7 @@ class Vilkårsvurdering(
 }
 
 enum class Vilkår {
-    UFØRE
+    UFØRHET, FLYKTNING, OPPHOLDSTILLATELSE, PERSONLIG_OPPMØTE, FORMUE
 }
 
 interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
