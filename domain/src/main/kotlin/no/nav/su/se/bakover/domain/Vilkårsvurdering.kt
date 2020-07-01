@@ -57,12 +57,4 @@ data class VilkårsvurderingDto(
     val vilkår: Vilkår,
     val begrunnelse: String,
     val status: Vilkårsvurdering.Status
-) {
-    fun formatter() = vilkår to Value(id, begrunnelse, status)
-
-    data class Value(
-        val id: Long,
-        val begrunnelse: String,
-        val status: Vilkårsvurdering.Status
-    )
-}
+)

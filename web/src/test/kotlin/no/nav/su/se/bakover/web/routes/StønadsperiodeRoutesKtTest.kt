@@ -7,6 +7,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Stønadsperiode
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -29,27 +29,29 @@ internal class StønadsperiodeRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val stønadsperiodeJson = JSONObject(setupForStønadsperiode().toJson())
-            val stønadsperiodeId = stønadsperiodeJson.getLong("id")
+            withMigratedDb {
+                val stønadsperiodeJson = JSONObject(setupForStønadsperiode().toJson())
+                val stønadsperiodeId = stønadsperiodeJson.getLong("id")
 
-            defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
-                assertEquals(HttpStatusCode.Created, it.response.status())
+                defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
+                    assertEquals(HttpStatusCode.Created, it.response.status())
 
-                it.response.content!!.shouldMatchJson(
-                    //language=JSON
-                    """
+                    it.response.content!!.shouldMatchJson(
+                        //language=JSON
+                        """
                        {
                             "id": 1,
                             "vilkårsvurderinger": {
                                 "UFØRE":{
                                     "id": 1,
-                                    "begrunnelse":     "",
+                                    "begrunnelse": "",
                                     "status": "IKKE_VURDERT"
                                 }
                             }
                         }
                     """.trimIndent()
-                )
+                    )
+                }
             }
         }
     }

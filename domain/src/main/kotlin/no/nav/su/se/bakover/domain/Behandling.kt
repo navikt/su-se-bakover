@@ -13,12 +13,7 @@ class Behandling constructor(
 
     private fun vilkårsvurderingerAsJsonList(): String = "[ ${vilkårsvurderinger.joinToString(",") { it.toJson() }} ]"
 
-    fun toDto() = BehandlingDto(
-        id,
-        vilkårsvurderinger.map {
-            it.toDto().formatter()
-        }.toMap()
-    )
+    fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
         vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE)))
@@ -47,5 +42,5 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
 
 data class BehandlingDto(
     val id: Long,
-    val vilkårsvurderinger: Map<Vilkår, VilkårsvurderingDto.Value> = emptyMap()
+    val vilkårsvurderinger: List<VilkårsvurderingDto>
 )

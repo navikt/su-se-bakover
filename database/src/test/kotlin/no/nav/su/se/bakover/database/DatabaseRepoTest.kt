@@ -32,10 +32,9 @@ internal class DatabaseRepoTest {
     fun `Sjekk at vi kan oppdatere vilkårsvurdering i en behandling`() {
         withMigratedDb {
             val behandling = enBehandling()
-            val beforeUpdate = JSONObject(behandling.toJson()).getJSONArray("vilkårsvurderinger").getJSONObject(0)
+            val beforeUpdate = behandling.toDto().vilkårsvurderinger.first()
 
-            val fromFunction = JSONObject(
-                behandling.oppdaterVilkårsvurderinger(
+            val fromFunction = behandling.oppdaterVilkårsvurderinger(
                     listOf(
                         Vilkårsvurdering(
                             id = 1,
@@ -44,17 +43,16 @@ internal class DatabaseRepoTest {
                             status = Vilkårsvurdering.Status.IKKE_OK
                         )
                     )
-                ).first().toJson()
-            )
+                ).first().toDto()
 
-            val fromRepo = JSONObject(repo.hentVilkårsvurdering(beforeUpdate.getLong("id"))!!.toJson())
+            val fromRepo = repo.hentVilkårsvurdering(beforeUpdate.id)!!.toDto()
 
-            assertNotEquals(beforeUpdate.toString(), fromFunction.toString())
-            assertNotEquals(beforeUpdate.toString(), fromRepo.toString())
-            assertEquals(fromFunction.toString(), fromRepo.toString())
-            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromFunction.getString("status"))
-            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromRepo.getString("status"))
-            assertEquals(fromFunction.getLong("id"), fromRepo.getLong("id"))
+            assertNotEquals(beforeUpdate, fromFunction)
+            assertNotEquals(beforeUpdate, fromRepo)
+            assertEquals(fromFunction, fromRepo)
+            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromFunction.status.name)
+            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromRepo.status.name)
+            assertEquals(fromFunction.id, fromRepo.id)
         }
     }
 

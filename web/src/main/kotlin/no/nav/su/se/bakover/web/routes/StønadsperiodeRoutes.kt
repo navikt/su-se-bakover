@@ -10,6 +10,7 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.lesParameter
@@ -25,16 +26,16 @@ internal fun Route.stønadsperiodeRoutes(
 
     post("$stønadsperiodePath/{stønadsperiodeId}/behandlinger") {
         Long.lesParameter(call, "stønadsperiodeId").fold(
-                left = { call.svar(BadRequest.message(it)) },
-                right = { id ->
-                    call.audit("oppretter behandling på stønadsperiode med id: $id")
-                    when (val stønadsperiode = repo.hentStønadsperiode(id)) {
-                        null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
-                        else -> call.svar(Created.json(stønadsperiode.nyBehandling().toDto().let {
-                            mapper.writeValueAsString(it)
-                        }))
-                    }
+            left = { call.svar(BadRequest.message(it)) },
+            right = { id ->
+                call.audit("oppretter behandling på stønadsperiode med id: $id")
+                when (val stønadsperiode = repo.hentStønadsperiode(id)) {
+                    null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
+                    else -> call.svar(Created.json(stønadsperiode.nyBehandling().toDto().toJson().let {
+                        mapper.writeValueAsString(it)
+                    }))
                 }
+            }
         )
     }
 
@@ -51,3 +52,21 @@ internal fun Route.stønadsperiodeRoutes(
         )
     }
 }
+
+data class BehandlingJson(
+    val id: Long,
+    val vilkårsvurderinger: Map<String, VilkårsvurderingData>
+)
+
+data class VilkårsvurderingData(
+    val id: Long,
+    val begrunnelse: String,
+    val status: String
+)
+
+private fun BehandlingDto.toJson() = BehandlingJson(
+    id,
+    vilkårsvurderinger.map {
+        it.vilkår.name to VilkårsvurderingData(it.id, it.begrunnelse, it.status.name)
+    }.toMap()
+)
