@@ -11,6 +11,8 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.BehandlingDto
+import no.nav.su.se.bakover.domain.Vilkår
+import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.lesParameter
@@ -58,13 +60,22 @@ data class BehandlingJson(
     val vilkårsvurderinger: Map<String, VilkårsvurderingData>
 )
 
+fun Map<String, VilkårsvurderingData>.toVilkårsvurderinger() = this.map {
+    Vilkårsvurdering(
+        id = it.value.id,
+        vilkår = Vilkår.valueOf(it.key),
+        begrunnelse = it.value.begrunnelse,
+        status = Vilkårsvurdering.Status.valueOf(it.value.status)
+    )
+}
+
 data class VilkårsvurderingData(
     val id: Long,
     val begrunnelse: String,
     val status: String
 )
 
-private fun BehandlingDto.toJson() = BehandlingJson(
+fun BehandlingDto.toJson() = BehandlingJson(
     id,
     vilkårsvurderinger.map {
         it.vilkår.name to VilkårsvurderingData(it.id, it.begrunnelse, it.status.name)

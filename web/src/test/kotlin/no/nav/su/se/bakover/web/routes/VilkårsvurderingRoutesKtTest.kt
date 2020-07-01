@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes
 
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
@@ -12,7 +14,6 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -26,20 +27,25 @@ internal class VilkårsvurderingRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val behandlingJson = JSONObject(setupForBehandling().toJson())
-            val behandlingsId = behandlingJson.getLong("id")
-            val oppdatering = behandlingJson.getJSONArray("vilkårsvurderinger").getJSONObject(0).apply {
-                this.put("status", Vilkårsvurdering.Status.OK.name)
-                this.put("begrunnelse", "Dette kravet er ok")
-            }.toString()
+            val behandling = setupForBehandling().toDto()
+            val behandlingsId = behandling.id
+            val vilkårsvurdering = behandling.vilkårsvurderinger.first()
+            val oppdatering = mapOf(
+                vilkårsvurdering.vilkår.name to VilkårsvurderingData(
+                    id = vilkårsvurdering.id,
+                    begrunnelse = "Dette kravet er ok",
+                    status = Vilkårsvurdering.Status.OK.name
+                )
+            )
+
             defaultRequest(HttpMethod.Patch, "$behandlingPath/$behandlingsId/vilkarsvurderinger") {
-                setBody("""[$oppdatering]""")
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(mapper.writeValueAsString(oppdatering))
             }
-            val oppdatert = JSONObject(repo.hentBehandling(behandlingsId)!!.toJson()).getJSONArray("vilkårsvurderinger")
-                .getJSONObject(0)
-            assertEquals(behandlingsId, oppdatert.getLong("id"))
-            assertEquals(Vilkårsvurdering.Status.OK.name, oppdatert.getString("status"))
-            assertEquals("Dette kravet er ok", oppdatert.getString("begrunnelse"))
+            val oppdatert = repo.hentBehandling(behandlingsId)!!.toDto()
+            assertEquals(behandlingsId, oppdatert.id)
+            assertEquals(Vilkårsvurdering.Status.OK, oppdatert.vilkårsvurderinger.first().status)
+            assertEquals("Dette kravet er ok", oppdatert.vilkårsvurderinger.first().begrunnelse)
         }
     }
 
