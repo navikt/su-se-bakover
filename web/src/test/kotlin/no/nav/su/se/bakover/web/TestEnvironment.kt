@@ -52,7 +52,7 @@ internal fun Application.testEnv() {
 internal fun Application.testSusebakover(
     httpClients: HttpClients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
-    kafkaClient: SuKafkaClient = SuKafkaClientStub,
+    kafkaClient: SuKafkaClient = SuKafkaClientStub(),
     databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 ) {
     return susebakover(

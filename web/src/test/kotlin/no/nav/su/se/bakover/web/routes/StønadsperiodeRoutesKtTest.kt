@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.web.routes
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Stønadsperiode
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
@@ -27,11 +29,16 @@ internal class StønadsperiodeRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val stønadsperiodeJson = JSONObject(setupForStønadsperiode().toJson())
-            val stønadsperiodeId = stønadsperiodeJson.getLong("id")
+            withMigratedDb {
+                val stønadsperiodeJson = JSONObject(setupForStønadsperiode().toJson())
+                val stønadsperiodeId = stønadsperiodeJson.getLong("id")
 
-            defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
-                assertEquals(HttpStatusCode.Created, it.response.status())
+                defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
+                    assertEquals(HttpStatusCode.Created, it.response.status())
+                }
+
+                val stønadsperioder = repo.hentBehandlinger(stønadsperiodeId)
+                stønadsperioder shouldHaveSize 1
             }
         }
     }

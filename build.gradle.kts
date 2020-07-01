@@ -43,6 +43,8 @@ allprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testImplementation("io.kotest:kotest-assertions-core-jvm:4.1.0")
+        testImplementation("io.kotest:kotest-assertions-json-jvm:4.1.1")
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
@@ -57,6 +59,7 @@ allprojects {
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
     }
 

@@ -13,10 +13,24 @@ class Behandling constructor(
 
     private fun vilkårsvurderingerAsJsonList(): String = "[ ${vilkårsvurderinger.joinToString(",") { it.toJson() }} ]"
 
+    fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
+
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
-        vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, listOf(Vilkår.UFØRE)))
+        vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, Vilkår.values().toList()))
         return vilkårsvurderinger
     }
+
+    fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): List<Vilkårsvurdering> {
+        oppdatertListe.forEach { oppdatert ->
+            vilkårsvurderinger
+                .single { it == oppdatert }
+                .apply { oppdater(oppdatert) }
+        }
+        return vilkårsvurderinger
+    }
+
+    override fun equals(other: Any?) = other is Behandling && id == other.id
+    override fun hashCode() = id.hashCode()
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
@@ -25,3 +39,8 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
         vilkår: List<Vilkår>
     ): List<Vilkårsvurdering>
 }
+
+data class BehandlingDto(
+    val id: Long,
+    val vilkårsvurderinger: List<VilkårsvurderingDto>
+)

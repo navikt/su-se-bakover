@@ -11,14 +11,14 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
@@ -65,7 +65,7 @@ class RoutesTest {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals("thrown exception", JSONObject(response.content).getString("detailMessage"))
+            assertEquals("thrown exception", JSONObject(response.content).getString("message"))
         }
     }
 
