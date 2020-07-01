@@ -166,7 +166,7 @@ internal class DatabaseRepo(
     )
 
     private fun opprettVilkårsvurdering(behandlingId: Long, vilkår: Vilkår) {
-        "insert into vilkårsvurdering (behandlingId, vilkår, begrunnelse, status) values (:behandlingId,CAST(:vilkar AS VILKÅR),'',CAST('IKKE_VURDERT' AS VILKÅR_VURDERING_STATUS))"
+        "insert into vilkårsvurdering (behandlingId, vilkår, begrunnelse, status) values (:behandlingId,CAST(:vilkar AS vilkår),'',CAST('IKKE_VURDERT' AS vilkår_vurdering_status))"
             .oppdatering(
                 mapOf(
                     "behandlingId" to behandlingId,
@@ -197,7 +197,7 @@ internal class DatabaseRepo(
     ): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 
     private fun oppdaterVilkår(id: Long, begrunnelse: String, status: Vilkårsvurdering.Status) =
-        "update vilkårsvurdering set begrunnelse = :begrunnelse, status = CAST(:status AS VILKÅR_VURDERING_STATUS) where id = :id"
+        "update vilkårsvurdering set begrunnelse = :begrunnelse, status = CAST(:status AS vilkår_vurdering_status) where id = :id"
             .oppdatering(mapOf("id" to id, "begrunnelse" to begrunnelse, "status" to status.name))!!
 
     override fun oppdaterVilkårsvurdering(

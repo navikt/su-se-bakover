@@ -1,11 +1,11 @@
-create TYPE VILKÅR_VURDERING_STATUS AS ENUM ('OK','IKKE_OK','IKKE_VURDERT');
-create TYPE VILKÅR AS ENUM ('UFØRHET', 'FLYKTNING', 'OPPHOLDSTILLATELSE', 'PERSONLIG_OPPMØTE', 'FORMUE', 'BOR_OG_OPPHOLDER_SEG_I_NORGE');
+create TYPE vilkår_vurdering_status AS ENUM ('OK','IKKE_OK','IKKE_VURDERT');
+create TYPE vilkår AS ENUM ('UFØRHET','FLYKTNING','OPPHOLDSTILLATELSE','PERSONLIG_OPPMØTE','FORMUE','BOR_OG_OPPHOLDER_SEG_I_NORGE');
 
 create table if not exists vilkårsvurdering
 (
     id bigserial primary key,
     behandlingId bigint not null references behandling(id),
-    vilkår VILKÅR not null,
+    vilkår vilkår not null,
     begrunnelse varchar,
-    status VILKÅR_VURDERING_STATUS not null
+    status vilkår_vurdering_status not null
 );
