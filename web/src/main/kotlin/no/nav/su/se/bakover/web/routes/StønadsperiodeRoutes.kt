@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.svar
 
 internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
@@ -34,7 +35,7 @@ internal fun Route.stønadsperiodeRoutes(
                 when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                     null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
                     else -> call.svar(Created.json(stønadsperiode.nyBehandling().toDto().toJson().let {
-                        mapper.writeValueAsString(it)
+                        objectMapper.writeValueAsString(it)
                     }))
                 }
             }

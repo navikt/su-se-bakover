@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -40,7 +41,7 @@ internal class VilkårsvurderingRoutesKtTest {
 
             defaultRequest(HttpMethod.Patch, "$behandlingPath/$behandlingsId/vilkarsvurderinger") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                setBody(mapper.writeValueAsString(oppdatering))
+                setBody(objectMapper.writeValueAsString(oppdatering))
             }
             val oppdatert = repo.hentBehandling(behandlingsId)!!.toDto()
             assertEquals(behandlingsId, oppdatert.id)
