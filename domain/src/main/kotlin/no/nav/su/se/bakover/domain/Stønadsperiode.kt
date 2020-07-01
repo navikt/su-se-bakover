@@ -14,6 +14,12 @@ class Stønadsperiode(
         }
     """.trimIndent()
 
+    fun toDto() = StønadsperiodeDto(
+        id = id,
+        søknad = søknad,
+        behandlinger = behandlinger.map { it.toDto() }
+    )
+
     private fun behandlingerAsJson(): String = "[ ${behandlinger.joinToString(",") { it.toJson() }} ]"
 
     fun nyBehandling(): Behandling {
@@ -29,3 +35,9 @@ class Stønadsperiode(
 interface StønadsperiodePersistenceObserver : PersistenceObserver {
     fun nyBehandling(stønadsperiodeId: Long): Behandling
 }
+
+data class StønadsperiodeDto(
+    val id: Long,
+    val søknad: Søknad,
+    val behandlinger: List<BehandlingDto> = emptyList()
+)

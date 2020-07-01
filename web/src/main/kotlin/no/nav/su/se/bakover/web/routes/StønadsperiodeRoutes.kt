@@ -11,13 +11,18 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.BehandlingDto
+import no.nav.su.se.bakover.domain.StønadsperiodeDto
+import no.nav.su.se.bakover.domain.SøknadDto
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.json
+import no.nav.su.se.bakover.web.jsonObject
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.svar
 
 internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
@@ -49,12 +54,36 @@ internal fun Route.stønadsperiodeRoutes(
                 call.audit("Henter stønadsperiode med med id: $id")
                 when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                     null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
-                    else -> call.svar(OK.json(stønadsperiode.toJson()))
+                    else -> call.svar(OK.jsonObject(stønadsperiode.toDto().toJson()))
                 }
             }
         )
     }
 }
+
+fun StønadsperiodeDto.toJson() = StønadsperiodeJson(
+    id = id,
+    søknad = søknad.toDto().toJson(),
+    behandlinger = behandlinger.map {
+        it.toJson()
+    }
+)
+
+fun SøknadDto.toJson() = SøknadJson(
+    id = id,
+    json = søknadInnhold.toSøknadInnholdJson()
+)
+
+data class StønadsperiodeJson(
+    val id: Long,
+    val søknad: SøknadJson,
+    val behandlinger: List<BehandlingJson>
+)
+
+data class SøknadJson(
+    val id: Long,
+    val json: SøknadInnholdJson
+)
 
 data class BehandlingJson(
     val id: Long,

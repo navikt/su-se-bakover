@@ -13,9 +13,19 @@ class Søknad constructor(
         }
     """.trimIndent()
 
+    fun toDto() = SøknadDto(
+        id = id,
+        søknadInnhold = søknadInnhold
+    )
+
     fun nySøknadEvent(sakId: Long) = SakEventObserver.NySøknadEvent(
         sakId = sakId,
         søknadId = id,
         søknadInnhold = søknadInnhold
     )
 }
+
+data class SøknadDto(
+    val id: Long,
+    val søknadInnhold: SøknadInnhold
+)
