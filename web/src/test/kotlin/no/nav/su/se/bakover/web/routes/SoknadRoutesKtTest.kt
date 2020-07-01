@@ -61,12 +61,13 @@ internal class SoknadRoutesKtTest {
     fun `produserer kafka hendelse når søknad lagres på sak`() {
         val fnr = Fnr("01010100002")
         val correlationId = "my random UUID or something"
+        val kafkaClient = SuKafkaClientStub()
         withTestApplication({
             testEnv()
             testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
                 override fun aktørId(ident: Fnr): String = stubAktørId
-            }))
+            }), kafkaClient = kafkaClient)
         }) {
             handleRequest(Post, søknadPath) {
                 addHeader(Authorization, Jwt.create())
@@ -76,9 +77,13 @@ internal class SoknadRoutesKtTest {
             }.apply {
                 assertEquals(Created, response.status())
                 val sakId = JSONObject(response.content).getInt("id")
-                val søknadId = JSONObject(response.content).getJSONArray("stønadsperioder").getJSONObject(0).getJSONObject("søknad").getInt("id")
+                val søknadId = JSONObject(response.content)
+                    .getJSONArray("stønadsperioder")
+                    .getJSONObject(0)
+                    .getJSONObject("søknad")
+                    .getInt("id")
 
-                val ourRecords = SuKafkaClientStub.sentRecords.filter { it.key == "$sakId" }
+                val ourRecords = kafkaClient.sentRecords.filter { it.key == "$sakId" }
                 val first = NySøknad.fromJson(ourRecords.first().value, emptyMap())
                 assertEquals(1, ourRecords.size)
                 assertEquals(NySøknad(
