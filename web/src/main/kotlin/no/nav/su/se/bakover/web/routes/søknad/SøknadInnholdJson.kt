@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.json
+package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.meldinger.kafka.soknad.Boforhold
 import no.nav.su.meldinger.kafka.soknad.Flyktningsstatus
@@ -12,17 +12,17 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.meldinger.kafka.soknad.Uførevedtak
 import no.nav.su.meldinger.kafka.soknad.Utenlandsopphold
 import no.nav.su.meldinger.kafka.soknad.UtenlandsoppholdPeriode
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.FormueJson.Companion.toFormueJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FormueJson.Companion.toFormueJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -44,7 +44,8 @@ data class SøknadInnholdJson(
         fun toUførevedtak() = Uførevedtak(harUførevedtak)
 
         companion object {
-            fun Uførevedtak.toUførevedtakJson() = UførevedtakJson(this.harUførevedtak)
+            fun Uførevedtak.toUførevedtakJson() =
+                UførevedtakJson(this.harUførevedtak)
         }
     }
 
@@ -54,7 +55,8 @@ data class SøknadInnholdJson(
         fun toFlyktningsstatus() = Flyktningsstatus(registrertFlyktning)
 
         companion object {
-            fun Flyktningsstatus.toFlyktningsstatusJson() = FlyktningsstatusJson(this.registrertFlyktning)
+            fun Flyktningsstatus.toFlyktningsstatusJson() =
+                FlyktningsstatusJson(this.registrertFlyktning)
         }
     }
 
@@ -86,19 +88,20 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun Personopplysninger.toPersonopplysningerJson() = PersonopplysningerJson(
-                fnr = this.fnr,
-                fornavn = this.fornavn,
-                mellomnavn = this.mellomnavn,
-                etternavn = this.etternavn,
-                telefonnummer = this.telefonnummer,
-                gateadresse = this.gateadresse,
-                postnummer = this.postnummer,
-                poststed = this.poststed,
-                bruksenhet = this.bruksenhet,
-                bokommune = this.bokommune,
-                statsborgerskap = this.statsborgerskap
-            )
+            fun Personopplysninger.toPersonopplysningerJson() =
+                PersonopplysningerJson(
+                    fnr = this.fnr,
+                    fornavn = this.fornavn,
+                    mellomnavn = this.mellomnavn,
+                    etternavn = this.etternavn,
+                    telefonnummer = this.telefonnummer,
+                    gateadresse = this.gateadresse,
+                    postnummer = this.postnummer,
+                    poststed = this.poststed,
+                    bruksenhet = this.bruksenhet,
+                    bokommune = this.bokommune,
+                    statsborgerskap = this.statsborgerskap
+                )
         }
     }
 
@@ -124,28 +127,29 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun Oppholdstillatelse.toOppholdstillatelseJson() = OppholdstillatelseJson(
-                erNorskStatsborger = this.erNorskStatsborger,
-                harOppholdstillatelse = this.harOppholdstillatelse,
-                typeOppholdstillatelse = this.oppholdstillatelseType?.value,
-                oppholdstillatelseMindreEnnTreMåneder = this.oppholdstillatelseMindreEnnTreMåneder,
-                oppholdstillatelseForlengelse = this.oppholdstillatelseForlengelse,
-                statsborgerskapAndreLand = this.statsborgerskapAndreLand,
-                statsborgerskapAndreLandFritekst = this.statsborgerskapAndreLandFritekst
-            )
+            fun Oppholdstillatelse.toOppholdstillatelseJson() =
+                OppholdstillatelseJson(
+                    erNorskStatsborger = this.erNorskStatsborger,
+                    harOppholdstillatelse = this.harOppholdstillatelse,
+                    typeOppholdstillatelse = this.oppholdstillatelseType?.value,
+                    oppholdstillatelseMindreEnnTreMåneder = this.oppholdstillatelseMindreEnnTreMåneder,
+                    oppholdstillatelseForlengelse = this.oppholdstillatelseForlengelse,
+                    statsborgerskapAndreLand = this.statsborgerskapAndreLand,
+                    statsborgerskapAndreLandFritekst = this.statsborgerskapAndreLandFritekst
+                )
         }
     }
 
     data class BoforholdJson(
         val borOgOppholderSegINorge: Boolean,
-        val delerBolig: Boolean,
+        val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektemakeEllerSamboerUnder67År: Boolean? = null,
         val ektemakeEllerSamboerUførFlyktning: Boolean? = null
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
-            delerBolig = delerBolig,
+            delerBolig = delerBoligMedVoksne,
             delerBoligMed = delerBoligMed?.let {
                 Boforhold.DelerBoligMed.fromString(it)
             },
@@ -154,13 +158,14 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun Boforhold.toBoforholdJson() = BoforholdJson(
-                borOgOppholderSegINorge = this.borOgOppholderSegINorge,
-                delerBolig = this.delerBolig,
-                delerBoligMed = this.delerBoligMed?.value,
-                ektemakeEllerSamboerUnder67År = this.ektemakeEllerSamboerUnder67År,
-                ektemakeEllerSamboerUførFlyktning = this.ektemakeEllerSamboerUførFlyktning
-            )
+            fun Boforhold.toBoforholdJson() =
+                BoforholdJson(
+                    borOgOppholderSegINorge = this.borOgOppholderSegINorge,
+                    delerBoligMedVoksne = this.delerBolig,
+                    delerBoligMed = this.delerBoligMed?.value,
+                    ektemakeEllerSamboerUnder67År = this.ektemakeEllerSamboerUnder67År,
+                    ektemakeEllerSamboerUførFlyktning = this.ektemakeEllerSamboerUførFlyktning
+                )
         }
     }
 
@@ -177,10 +182,11 @@ data class SøknadInnholdJson(
 
         companion object {
 
-            fun Utenlandsopphold.toUtenlandsoppholdJson() = UtenlandsoppholdJson(
-                registrertePerioder = this.registrertePerioder.toUtenlandsoppholdPeriodeJsonList(),
-                planlagtePerioder = this.planlagtePerioder.toUtenlandsoppholdPeriodeJsonList()
-            )
+            fun Utenlandsopphold.toUtenlandsoppholdJson() =
+                UtenlandsoppholdJson(
+                    registrertePerioder = this.registrertePerioder.toUtenlandsoppholdPeriodeJsonList(),
+                    planlagtePerioder = this.planlagtePerioder.toUtenlandsoppholdPeriodeJsonList()
+                )
 
             fun List<UtenlandsoppholdPeriode>?.toUtenlandsoppholdPeriodeJsonList() =
                 this?.map { it.toUtenlandsoppholdJson() }
@@ -203,10 +209,11 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun UtenlandsoppholdPeriode.toUtenlandsoppholdJson() = UtenlandsoppholdPeriodeJson(
-                utreisedato = utreisedato.toString(),
-                innreisedato = innreisedato.toString()
-            )
+            fun UtenlandsoppholdPeriode.toUtenlandsoppholdJson() =
+                UtenlandsoppholdPeriodeJson(
+                    utreisedato = utreisedato.toString(),
+                    innreisedato = innreisedato.toString()
+                )
         }
     }
 
@@ -218,7 +225,8 @@ data class SøknadInnholdJson(
         })
 
         companion object {
-            fun ForNav.toForNavJson() = ForNavJson(this.harFullmektigEllerVerge?.value)
+            fun ForNav.toForNavJson() =
+                ForNavJson(this.harFullmektigEllerVerge?.value)
         }
     }
 
@@ -252,18 +260,19 @@ data class SøknadInnholdJson(
         }
 
         companion object {
-            fun InntektOgPensjon.toInntektOgPensjonJson() = InntektOgPensjonJson(
-                forventetInntekt = forventetInntekt,
-                tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
-                andreYtelserINav = andreYtelserINav,
-                andreYtelserINavBeløp = andreYtelserINavBeløp,
-                søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
-                sosialstønadBeløp = sosialstønadBeløp,
-                trygdeytelserIUtlandetBeløp = trygdeytelserIUtlandetBeløp,
-                trygdeytelserIUtlandet = trygdeytelserIUtlandet,
-                trygdeytelserIUtlandetFra = trygdeytelserIUtlandetFra,
-                pensjon = pensjon.toPensjonsOrdningBeløpListJson()
-            )
+            fun InntektOgPensjon.toInntektOgPensjonJson() =
+                InntektOgPensjonJson(
+                    forventetInntekt = forventetInntekt,
+                    tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
+                    andreYtelserINav = andreYtelserINav,
+                    andreYtelserINavBeløp = andreYtelserINavBeløp,
+                    søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
+                    sosialstønadBeløp = sosialstønadBeløp,
+                    trygdeytelserIUtlandetBeløp = trygdeytelserIUtlandetBeløp,
+                    trygdeytelserIUtlandet = trygdeytelserIUtlandet,
+                    trygdeytelserIUtlandetFra = trygdeytelserIUtlandetFra,
+                    pensjon = pensjon.toPensjonsOrdningBeløpListJson()
+                )
 
             fun List<PensjonsOrdningBeløp>?.toPensjonsOrdningBeløpListJson() = this?.map {
                 it.toPensjonsOrdningBeløpJson()
@@ -303,21 +312,22 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun Formue.toFormueJson() = FormueJson(
-                borIBolig = borIBolig,
-                verdiPåBolig = verdiPåBolig,
-                boligBrukesTil = boligBrukesTil,
-                depositumsBeløp = depositumsBeløp,
-                kontonummer = Kontonummer,
-                verdiPåEiendom = verdiPåEiendom,
-                eiendomBrukesTil = eiendomBrukesTil,
-                verdiPåKjøretøy = verdiPåKjøretøy,
-                kjøretøyDeEier = kjøretøyDeEier,
-                innskuddsBeløp = innskuddsBeløp,
-                verdipapirBeløp = verdipapirBeløp,
-                skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
-                kontanterBeløp = kontanterBeløp
-            )
+            fun Formue.toFormueJson() =
+                FormueJson(
+                    borIBolig = borIBolig,
+                    verdiPåBolig = verdiPåBolig,
+                    boligBrukesTil = boligBrukesTil,
+                    depositumsBeløp = depositumsBeløp,
+                    kontonummer = Kontonummer,
+                    verdiPåEiendom = verdiPåEiendom,
+                    eiendomBrukesTil = eiendomBrukesTil,
+                    verdiPåKjøretøy = verdiPåKjøretøy,
+                    kjøretøyDeEier = kjøretøyDeEier,
+                    innskuddsBeløp = innskuddsBeløp,
+                    verdipapirBeløp = verdipapirBeløp,
+                    skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
+                    kontanterBeløp = kontanterBeløp
+                )
         }
     }
 
@@ -331,10 +341,11 @@ data class SøknadInnholdJson(
         )
 
         companion object {
-            fun PensjonsOrdningBeløp.toPensjonsOrdningBeløpJson() = PensjonsOrdningBeløpJson(
-                ordning = ordning,
-                beløp = beløp
-            )
+            fun PensjonsOrdningBeløp.toPensjonsOrdningBeløpJson() =
+                PensjonsOrdningBeløpJson(
+                    ordning = ordning,
+                    beløp = beløp
+                )
         }
     }
 
@@ -351,16 +362,17 @@ data class SøknadInnholdJson(
     )
 
     companion object {
-        fun SøknadInnhold.toSøknadInnholdJson() = SøknadInnholdJson(
-            uførevedtak = uførevedtak.toUførevedtakJson(),
-            personopplysninger = personopplysninger.toPersonopplysningerJson(),
-            flyktningsstatus = flyktningsstatus.toFlyktningsstatusJson(),
-            boforhold = boforhold.toBoforholdJson(),
-            utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelseJson(),
-            inntektOgPensjon = inntektOgPensjon.toInntektOgPensjonJson(),
-            formue = formue.toFormueJson(),
-            forNav = forNav.toForNavJson()
-        )
+        fun SøknadInnhold.toSøknadInnholdJson() =
+            SøknadInnholdJson(
+                uførevedtak = uførevedtak.toUførevedtakJson(),
+                personopplysninger = personopplysninger.toPersonopplysningerJson(),
+                flyktningsstatus = flyktningsstatus.toFlyktningsstatusJson(),
+                boforhold = boforhold.toBoforholdJson(),
+                utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),
+                oppholdstillatelse = oppholdstillatelse.toOppholdstillatelseJson(),
+                inntektOgPensjon = inntektOgPensjon.toInntektOgPensjonJson(),
+                formue = formue.toFormueJson(),
+                forNav = forNav.toForNavJson()
+            )
     }
 }

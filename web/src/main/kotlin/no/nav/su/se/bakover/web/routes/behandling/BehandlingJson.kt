@@ -4,9 +4,9 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
+import no.nav.su.se.bakover.web.serialize
 
 internal data class BehandlingJson(
     val id: Long,
@@ -19,4 +19,7 @@ internal fun BehandlingDto.toJson() = BehandlingJson(
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =
-    Resultat.json(this, objectMapper.writeValueAsString(dtoConvertable.toDto().toJson()))
+    Resultat.json(this, serialize(dtoConvertable.toDto().toJson()))
+
+// internal fun serialize(dtoConvertable: DtoConvertable<BehandlingDto>) =
+//     objectMapper.writeValueAsString(dtoConvertable.toDto().toJson())

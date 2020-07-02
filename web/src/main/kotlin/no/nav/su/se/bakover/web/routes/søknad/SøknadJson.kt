@@ -5,8 +5,7 @@ import no.nav.su.se.bakover.domain.SøknadDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.objectMapper
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.Companion.toSøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 
 internal data class SøknadJson(
     val id: Long,

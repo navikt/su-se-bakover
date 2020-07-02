@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.stønadsperiode
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
@@ -13,8 +13,6 @@ import no.nav.su.se.bakover.domain.Stønadsperiode
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
-import no.nav.su.se.bakover.web.routes.stønadsperiode.StønadsperiodeJson
-import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodePath
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test

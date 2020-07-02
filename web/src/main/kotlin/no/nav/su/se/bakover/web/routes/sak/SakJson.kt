@@ -14,7 +14,7 @@ internal data class SakJson(
     val stønadsperioder: List<StønadsperiodeJson>
 )
 
-private fun SakDto.toJson() = SakJson(
+internal fun SakDto.toJson() = SakJson(
     id = id,
     fnr = fnr.toString(),
     stønadsperioder = stønadsperioder.map { it.toJson() }

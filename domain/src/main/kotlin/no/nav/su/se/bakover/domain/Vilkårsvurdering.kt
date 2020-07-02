@@ -50,4 +50,8 @@ data class VilkårsvurderingDto(
     val vilkår: Vilkår,
     val begrunnelse: String,
     val status: Vilkårsvurdering.Status
-)
+) {
+    companion object {
+        fun List<Vilkårsvurdering>.toDto() = this.map { it.toDto() }
+    }
+}
