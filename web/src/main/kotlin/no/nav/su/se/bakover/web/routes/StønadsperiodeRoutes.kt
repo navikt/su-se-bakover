@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.svar
 
-internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
+internal const val stønadsperiodePath = "$sakPath/{sakId}/stonadsperioder"
 
 @KtorExperimentalAPI
 internal fun Route.stønadsperiodeRoutes(
