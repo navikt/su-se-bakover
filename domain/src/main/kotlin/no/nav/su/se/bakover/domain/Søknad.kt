@@ -1,19 +1,14 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
 
 class Søknad constructor(
     id: Long,
     private val søknadInnhold: SøknadInnhold
-) : PersistentDomainObject<VoidObserver>(id) {
-    fun toJson(): String = """
-        {
-            "id": $id,
-            "json": ${søknadInnhold.toJson()}
-        }
-    """.trimIndent()
+) : PersistentDomainObject<VoidObserver>(id), DtoConvertable<SøknadDto> {
 
-    fun toDto() = SøknadDto(
+    override fun toDto() = SøknadDto(
         id = id,
         søknadInnhold = søknadInnhold
     )

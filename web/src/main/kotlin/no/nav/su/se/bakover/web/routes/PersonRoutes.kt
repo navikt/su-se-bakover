@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.jsonObject
 import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.sak.jsonBody
 import no.nav.su.se.bakover.web.svar
 
 internal const val personPath = "/person"
@@ -37,7 +37,7 @@ internal fun Route.personRoutes(
             call.audit("Henter sak for person: $it")
             when (val sak = sakRepo.hentSak(it)) {
                 null -> call.svar(HttpStatusCode.NotFound.message("Fant ingen sak for fnr:$it"))
-                else -> call.svar(HttpStatusCode.OK.jsonObject(sak.toDto().toJson()))
+                else -> call.svar(HttpStatusCode.OK.jsonBody(sak))
             }
         }
     }

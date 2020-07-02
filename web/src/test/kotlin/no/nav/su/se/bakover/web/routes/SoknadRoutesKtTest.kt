@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.web.routes.sak.SakJson
+import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject

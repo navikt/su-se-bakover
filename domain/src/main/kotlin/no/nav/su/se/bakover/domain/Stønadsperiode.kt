@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
+
 class Stønadsperiode(
     id: Long,
     private val søknad: Søknad,
     private val behandlinger: MutableList<Behandling> = mutableListOf()
-) : PersistentDomainObject<StønadsperiodePersistenceObserver>(id) {
+) : PersistentDomainObject<StønadsperiodePersistenceObserver>(id), DtoConvertable<StønadsperiodeDto> {
 
-    fun toDto() = StønadsperiodeDto(
+    override fun toDto() = StønadsperiodeDto(
         id = id,
         søknad = søknad.toDto(),
         behandlinger = behandlinger.map { it.toDto() }

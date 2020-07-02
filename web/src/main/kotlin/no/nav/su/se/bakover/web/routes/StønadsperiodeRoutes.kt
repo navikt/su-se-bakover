@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.Companion.toSøknadInnholdJson
+import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 
 internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"

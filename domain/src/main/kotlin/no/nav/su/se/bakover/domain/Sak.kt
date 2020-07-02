@@ -1,16 +1,17 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
 
 class Sak(
     id: Long,
     private val fnr: Fnr,
     private val stønadsperioder: MutableList<Stønadsperiode> = mutableListOf()
-) : PersistentDomainObject<SakPersistenceObserver>(id) {
+) : PersistentDomainObject<SakPersistenceObserver>(id), DtoConvertable<SakDto> {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
-    fun toDto() = SakDto(id, fnr, stønadsperioder.map { it.toDto() })
+    override fun toDto() = SakDto(id, fnr, stønadsperioder.map { it.toDto() })
 
     fun nySøknad(søknadInnhold: SøknadInnhold) {
         stønadsperioder.add(persistenceObserver.nySøknad(id, søknadInnhold))

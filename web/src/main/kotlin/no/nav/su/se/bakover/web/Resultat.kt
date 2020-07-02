@@ -19,7 +19,8 @@ internal class Resultat private constructor(
 
     override fun equals(other: Any?) = other is Resultat && other.httpCode == this.httpCode && other.json == this.json
     override fun hashCode(): Int = 31 * httpCode.value + json.hashCode()
-    suspend fun svar(call: ApplicationCall) = call.respondText(contentType = contentType, status = httpCode, text = json)
+    suspend fun svar(call: ApplicationCall) =
+        call.respondText(contentType = contentType, status = httpCode, text = json)
 
     fun fold(success: () -> Resultat, error: (Resultat) -> Resultat): Resultat = when {
         httpCode.isSuccess() -> success()
@@ -28,12 +29,17 @@ internal class Resultat private constructor(
 
     companion object {
         fun message(httpCode: HttpStatusCode, message: String) = json(httpCode, """{"message": "$message"}""")
-        fun json(httpCode: HttpStatusCode, json: String) = Resultat(httpCode, json, contentType = ContentType.Application.Json)
-        fun from(clientResponse: ClientResponse) = json(HttpStatusCode.fromValue(clientResponse.httpStatus), clientResponse.content)
+        fun json(httpCode: HttpStatusCode, json: String) =
+            Resultat(httpCode, json, contentType = ContentType.Application.Json)
+
+        fun from(clientResponse: ClientResponse) =
+            json(HttpStatusCode.fromValue(clientResponse.httpStatus), clientResponse.content)
     }
 }
 
 internal fun HttpStatusCode.json(json: String) = Resultat.json(this, json)
-internal fun HttpStatusCode.jsonObject(jsonObject: Any) = Resultat.json(this, objectMapper.writeValueAsString(jsonObject))
+internal fun HttpStatusCode.jsonObject(jsonObject: Any) =
+    Resultat.json(this, objectMapper.writeValueAsString(jsonObject))
+
 internal fun HttpStatusCode.message(nonJsonMessage: String) = Resultat.message(this, nonJsonMessage)
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
+
 class Behandling constructor(
     id: Long,
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
-) : PersistentDomainObject<BehandlingPersistenceObserver>(id) {
+) : PersistentDomainObject<BehandlingPersistenceObserver>(id), DtoConvertable<BehandlingDto> {
 
-    fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
+    override fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
         vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, Vilkår.values().toList()))

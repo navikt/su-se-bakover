@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.sak.jsonBody
 import no.nav.su.se.bakover.web.svar
 import org.json.JSONObject
 
@@ -50,7 +51,7 @@ internal fun Route.soknadRoutes(
                 SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
                     Fnr(søknadInnhold.personopplysninger.fnr).let {
                         call.audit("Lagrer søknad for person: $it")
-                        call.svar(Created.jsonObject(mediator.nySøknad(søknadInnhold).toDto().toJson()))
+                        call.svar(Created.jsonBody(mediator.nySøknad(søknadInnhold)))
                     }
                 }
             }

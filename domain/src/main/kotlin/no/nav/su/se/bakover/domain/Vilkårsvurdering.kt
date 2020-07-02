@@ -1,13 +1,15 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
+
 class Vilkårsvurdering(
     id: Long,
     private val vilkår: Vilkår,
     private var begrunnelse: String,
     private var status: Status
-) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id) {
+) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id), DtoConvertable<VilkårsvurderingDto> {
 
-    fun toDto() = VilkårsvurderingDto(id, vilkår, begrunnelse, status)
+    override fun toDto() = VilkårsvurderingDto(id, vilkår, begrunnelse, status)
 
     enum class Status {
         OK,

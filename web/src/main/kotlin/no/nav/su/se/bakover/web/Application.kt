@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
-import no.nav.su.se.bakover.web.routes.sakRoutes
+import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.soknadRoutes
 import no.nav.su.se.bakover.web.routes.stønadsperiodeRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurderingRoutes
