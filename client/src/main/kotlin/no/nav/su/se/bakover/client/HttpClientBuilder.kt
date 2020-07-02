@@ -2,7 +2,10 @@ package no.nav.su.se.bakover.client
 
 import no.nav.su.person.sts.StsClient
 import no.nav.su.person.sts.TokenOppslag
+import no.nav.su.se.bakover.client.pdf.PdfClient
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
 import org.slf4j.LoggerFactory
@@ -12,7 +15,8 @@ interface HttpClientsBuilder {
         azure: OAuth = HttpClientBuilder.azure(),
         personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
-        tokenOppslag: TokenOppslag = HttpClientBuilder.token()
+        tokenOppslag: TokenOppslag = HttpClientBuilder.token(),
+        pdfGenerator: PdfGenerator = HttpClientBuilder.pdf()
     ): HttpClients
 }
 
@@ -20,7 +24,8 @@ data class HttpClients(
     val oauth: OAuth,
     val personOppslag: PersonOppslag,
     val inntektOppslag: InntektOppslag,
-    val tokenOppslag: TokenOppslag
+    val tokenOppslag: TokenOppslag,
+    val pdfGenerator: PdfGenerator
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
@@ -64,13 +69,21 @@ object HttpClientBuilder : HttpClientsBuilder {
         else -> StsClient(baseUrl, username, password)
     }
 
+    internal fun pdf(
+        baseUrl: String = env.getOrDefault("PDFGEN_URL", "http://su-pdfgen.default.svc.nais.local")
+    ): PdfGenerator = when (env.isLocalOrRunningTests()) {
+        true -> PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
+        else -> PdfClient(baseUrl)
+    }
+
     override fun build(
         azure: OAuth,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag,
-        tokenOppslag: TokenOppslag
+        tokenOppslag: TokenOppslag,
+        pdfGenerator: PdfGenerator
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
