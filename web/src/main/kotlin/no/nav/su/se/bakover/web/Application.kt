@@ -58,7 +58,7 @@ import no.nav.su.se.bakover.web.routes.IS_ALIVE_PATH
 import no.nav.su.se.bakover.web.routes.IS_READY_PATH
 import no.nav.su.se.bakover.web.routes.METRICS_PATH
 import no.nav.su.se.bakover.web.routes.SøknadRouteMediator
-import no.nav.su.se.bakover.web.routes.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisRoutes
