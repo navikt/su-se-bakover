@@ -1,21 +1,26 @@
 package no.nav.su.se.bakover.client
 
+import no.nav.su.person.sts.StsClient
+import no.nav.su.person.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {
     fun build(
         azure: OAuth = HttpClientBuilder.azure(),
         personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
-        inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag)
+        inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
+        tokenOppslag: TokenOppslag = HttpClientBuilder.token()
     ): HttpClients
 }
 
 data class HttpClients(
     val oauth: OAuth,
     val personOppslag: PersonOppslag,
-    val inntektOppslag: InntektOppslag
+    val inntektOppslag: InntektOppslag,
+    val tokenOppslag: TokenOppslag
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
@@ -50,12 +55,22 @@ object HttpClientBuilder : HttpClientsBuilder {
         else -> SuInntektClient(baseUrl, clientId, oAuth, personOppslag)
     }
 
+    internal fun token(
+        baseUrl: String = env.getOrDefault("STS_URL", "http://security-token-service.default.svc.nais.local"),
+        username: String = env.getOrDefault("username", "username"),
+        password: String = env.getOrDefault("password", "password")
+    ): TokenOppslag = when (env.isLocalOrRunningTests()) {
+        true -> TokenOppslagStub.also { logger.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
+        else -> StsClient(baseUrl, username, password)
+    }
+
     override fun build(
         azure: OAuth,
         personOppslag: PersonOppslag,
-        inntektOppslag: InntektOppslag
+        inntektOppslag: InntektOppslag,
+        tokenOppslag: TokenOppslag
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
