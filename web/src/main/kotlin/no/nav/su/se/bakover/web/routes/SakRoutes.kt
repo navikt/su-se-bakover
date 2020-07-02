@@ -22,8 +22,8 @@ internal fun Route.sakRoutes(
 ) {
     get("$sakPath/{id}") {
         Long.lesParameter(call, "id").fold(
-                left = { call.svar(BadRequest.message(it)) },
-                right = { id ->
+                ifLeft = { call.svar(BadRequest.message(it)) },
+                ifRight = { id ->
                     call.audit("Henter sak med id: $id")
                     when (val sak = sakRepo.hentSak(id)) {
                         null -> call.svar(NotFound.message("Fant ikke sak med id: $id"))

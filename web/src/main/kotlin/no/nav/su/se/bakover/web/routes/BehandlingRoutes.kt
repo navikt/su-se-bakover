@@ -23,8 +23,8 @@ internal fun Route.behandlingRoutes(
 
     get("$behandlingPath/{behandlingId}") {
         Long.lesParameter(call, "behandlingId").fold(
-                left = { call.svar(BadRequest.message(it)) },
-                right = { id ->
+                ifLeft = { call.svar(BadRequest.message(it)) },
+                ifRight = { id ->
                     call.audit("Henter behandling med id: $id")
                     when (val behandling = repo.hentBehandling(id)) {
                         null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
