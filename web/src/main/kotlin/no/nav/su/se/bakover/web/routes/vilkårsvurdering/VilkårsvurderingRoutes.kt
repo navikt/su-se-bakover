@@ -1,5 +1,6 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.vilkårsvurdering
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -11,11 +12,8 @@ import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.objectMapper
-import no.nav.su.se.bakover.web.readMap
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
-import no.nav.su.se.bakover.web.routes.stønadsperiode.VilkårsvurderingData
-import no.nav.su.se.bakover.web.routes.stønadsperiode.toVilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknad.receiveTextUTF8
 import no.nav.su.se.bakover.web.svar
 
@@ -33,9 +31,9 @@ internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
                     when (val behandling = repo.hentBehandling(id)) {
                         null -> call.svar(HttpStatusCode.NotFound.message("Fant ikke behandling med id:$id"))
                         else -> {
-                            val vilkårsvurderinger =
-                                objectMapper.readMap<String, VilkårsvurderingData>(call.receiveTextUTF8())
-                            behandling.oppdaterVilkårsvurderinger(vilkårsvurderinger.toVilkårsvurderinger())
+                            val vilkårsvurderingJson =
+                                objectMapper.readValue<VilkårsvurderingJson>(call.receiveTextUTF8())
+                            behandling.oppdaterVilkårsvurderinger(vilkårsvurderingJson.vilkårsvurderinger.toVilkårsvurderinger())
                             call.svar(HttpStatusCode.OK.jsonBody(behandling))
                         }
                     }

@@ -10,8 +10,6 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.Vilkår
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
@@ -52,18 +50,3 @@ internal fun Route.stønadsperiodeRoutes(
         )
     }
 }
-
-fun Map<String, VilkårsvurderingData>.toVilkårsvurderinger() = this.map {
-    Vilkårsvurdering(
-        id = it.value.id,
-        vilkår = Vilkår.valueOf(it.key),
-        begrunnelse = it.value.begrunnelse,
-        status = Vilkårsvurdering.Status.valueOf(it.value.status)
-    )
-}
-
-data class VilkårsvurderingData(
-    val id: Long,
-    val begrunnelse: String,
-    val status: String
-)

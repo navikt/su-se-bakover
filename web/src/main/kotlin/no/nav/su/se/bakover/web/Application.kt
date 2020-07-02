@@ -66,7 +66,7 @@ import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodeRoutes
-import no.nav.su.se.bakover.web.routes.vilkårsvurderingRoutes
+import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
