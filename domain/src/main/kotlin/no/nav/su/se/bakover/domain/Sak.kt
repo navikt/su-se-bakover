@@ -10,15 +10,7 @@ class Sak(
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
-    fun toJson() = """
-        {
-            "id": $id,
-            "fnr":"$fnr",
-            "stønadsperioder": ${stønadsperioderSomJsonListe()}
-        }
-    """.trimIndent()
-
-    private fun stønadsperioderSomJsonListe(): String = "[ ${stønadsperioder.joinToString(",") { it.toJson() }} ]"
+    fun toDto() = SakDto(id, fnr, stønadsperioder.map { it.toDto() })
 
     fun nySøknad(søknadInnhold: SøknadInnhold) {
         stønadsperioder.add(persistenceObserver.nySøknad(id, søknadInnhold))
@@ -47,3 +39,9 @@ interface SakEventObserver : SakObserver {
         val søknadInnhold: SøknadInnhold
     )
 }
+
+data class SakDto(
+    val id: Long,
+    val fnr: Fnr,
+    val stønadsperioder: List<StønadsperiodeDto> = emptyList()
+)

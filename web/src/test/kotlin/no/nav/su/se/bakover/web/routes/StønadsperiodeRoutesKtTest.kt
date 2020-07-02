@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -11,9 +12,9 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Stønadsperiode
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -30,15 +31,12 @@ internal class StønadsperiodeRoutesKtTest {
             testSusebakover()
         }) {
             withMigratedDb {
-                val stønadsperiodeJson = JSONObject(setupForStønadsperiode().toJson())
-                val stønadsperiodeId = stønadsperiodeJson.getLong("id")
+                val stønadsperiode = setupForStønadsperiode().toDto()
 
-                defaultRequest(HttpMethod.Post, "$stønadsperiodePath/$stønadsperiodeId/behandlinger").also {
+                defaultRequest(HttpMethod.Post, "$stønadsperiodePath/${stønadsperiode.id}/behandlinger").also {
                     assertEquals(HttpStatusCode.Created, it.response.status())
                 }
-
-                val stønadsperioder = repo.hentBehandlinger(stønadsperiodeId)
-                stønadsperioder shouldHaveSize 1
+                repo.hentBehandlinger(stønadsperiode.id) shouldHaveSize 1
             }
         }
     }
@@ -51,13 +49,14 @@ internal class StønadsperiodeRoutesKtTest {
         }) {
             val stønadsperiode = setupForStønadsperiode()
             stønadsperiode.nyBehandling()
-            val stønadsperiodeId = JSONObject(stønadsperiode.toJson()).getLong("id")
+            val stønadsperiodeId = stønadsperiode.toDto().id
             defaultRequest(HttpMethod.Get, "$stønadsperiodePath/$stønadsperiodeId").also {
-                val responseJson = JSONObject(it.response.content)
+                val stønadsperiodeJson = objectMapper.readValue<StønadsperiodeJson>(it.response.content!!)
+
                 assertEquals(HttpStatusCode.OK, it.response.status())
-                assertEquals(stønadsperiodeId, responseJson.getLong("id"))
-                assertNotNull(responseJson.getJSONObject("søknad"))
-                assertTrue(responseJson.getJSONArray("behandlinger").count() > 0)
+                assertEquals(stønadsperiodeId, stønadsperiodeJson.id)
+                assertNotNull(stønadsperiodeJson.søknad)
+                assertTrue(stønadsperiodeJson.behandlinger.isNotEmpty())
             }
         }
     }

@@ -4,7 +4,6 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Stønadsperiode
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -20,11 +19,11 @@ internal class DatabaseRepoTest {
     fun `lagre og hent behandling fra databasen`() {
         withMigratedDb {
             val behandling = enBehandling()
-            val behandlingId = JSONObject(behandling.toJson()).getLong("id")
-            val fromRepo = repo.hentBehandling(behandlingId)!!
+            val behandlingDto = behandling.toDto()
+            val fromRepo = repo.hentBehandling(behandlingDto.id)!!
             assertNotNull(fromRepo)
             assertEquals(behandling, fromRepo)
-            assertFalse(JSONObject(fromRepo.toJson()).getJSONArray("vilkårsvurderinger").isEmpty)
+            assertFalse(fromRepo.toDto().vilkårsvurderinger.isEmpty())
         }
     }
 

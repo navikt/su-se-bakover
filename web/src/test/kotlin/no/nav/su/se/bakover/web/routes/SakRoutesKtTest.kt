@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import kotlin.test.assertEquals
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
@@ -30,7 +30,7 @@ internal class SakRoutesKtTest {
             testEnv()
             testSusebakover()
         })) {
-            val opprettetSakId = JSONObject(sakRepo.opprettSak(Fnr(sakFnr01)).toJson()).getLong("id")
+            val opprettetSakId = sakRepo.opprettSak(Fnr(sakFnr01)).toDto().id
 
             defaultRequest(Get, "$sakPath/$opprettetSakId").apply {
                 assertEquals(OK, response.status())

@@ -15,9 +15,11 @@ import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.web.*
-import no.nav.su.se.bakover.web.json
+import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.jsonObject
 import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
+import no.nav.su.se.bakover.web.launchWithContext
+import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.svar
 import org.json.JSONObject
@@ -36,7 +38,7 @@ internal fun Route.soknadRoutes(
                     call.audit("Henter søknad med id: $id")
                     when (val søknad = mediator.hentSøknad(id)) {
                         null -> call.svar(NotFound.message("Fant ikke søknad med id:$id"))
-                        else -> call.svar(OK.json(søknad.toJson()))
+                        else -> call.svar(OK.jsonObject(søknad.toDto().toJson()))
                     }
                 }
         )
@@ -48,7 +50,7 @@ internal fun Route.soknadRoutes(
                 SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
                     Fnr(søknadInnhold.personopplysninger.fnr).let {
                         call.audit("Lagrer søknad for person: $it")
-                        call.svar(Created.json(mediator.nySøknad(søknadInnhold).toJson()))
+                        call.svar(Created.jsonObject(mediator.nySøknad(søknadInnhold).toDto().toJson()))
                     }
                 }
             }

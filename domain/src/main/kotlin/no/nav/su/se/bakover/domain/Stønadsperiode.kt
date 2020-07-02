@@ -6,21 +6,11 @@ class Stønadsperiode(
     private val behandlinger: MutableList<Behandling> = mutableListOf()
 ) : PersistentDomainObject<StønadsperiodePersistenceObserver>(id) {
 
-    fun toJson() = """
-        {
-            "id":$id,
-            "søknad": ${søknad.toJson()},
-            "behandlinger": ${behandlingerAsJson()}
-        }
-    """.trimIndent()
-
     fun toDto() = StønadsperiodeDto(
         id = id,
-        søknad = søknad,
+        søknad = søknad.toDto(),
         behandlinger = behandlinger.map { it.toDto() }
     )
-
-    private fun behandlingerAsJson(): String = "[ ${behandlinger.joinToString(",") { it.toJson() }} ]"
 
     fun nyBehandling(): Behandling {
         val behandling = persistenceObserver.nyBehandling(id)
@@ -38,6 +28,6 @@ interface StønadsperiodePersistenceObserver : PersistenceObserver {
 
 data class StønadsperiodeDto(
     val id: Long,
-    val søknad: Søknad,
+    val søknad: SøknadDto,
     val behandlinger: List<BehandlingDto> = emptyList()
 )

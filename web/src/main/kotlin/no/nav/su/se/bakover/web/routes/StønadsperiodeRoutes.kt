@@ -63,10 +63,8 @@ internal fun Route.stønadsperiodeRoutes(
 
 fun StønadsperiodeDto.toJson() = StønadsperiodeJson(
     id = id,
-    søknad = søknad.toDto().toJson(),
-    behandlinger = behandlinger.map {
-        it.toJson()
-    }
+    søknad = søknad.toJson(),
+    behandlinger = behandlinger.map { it.toJson() }
 )
 
 fun SøknadDto.toJson() = SøknadJson(

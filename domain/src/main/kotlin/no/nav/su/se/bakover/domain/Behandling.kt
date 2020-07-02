@@ -4,14 +4,6 @@ class Behandling constructor(
     id: Long,
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(id) {
-    fun toJson() = """
-        {
-            "id": $id,
-            "vilkårsvurderinger": ${vilkårsvurderingerAsJsonList()}
-        }
-    """.trimIndent()
-
-    private fun vilkårsvurderingerAsJsonList(): String = "[ ${vilkårsvurderinger.joinToString(",") { it.toJson() }} ]"
 
     fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
 

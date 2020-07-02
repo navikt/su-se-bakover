@@ -6,15 +6,6 @@ class Vilkårsvurdering(
     private var begrunnelse: String,
     private var status: Status
 ) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id) {
-    //language=JSON
-    fun toJson() = """
-        {
-            "id": $id,
-            "vilkår": "$vilkår",
-            "begrunnelse" : "$begrunnelse",
-            "status": "$status"
-        }
-    """.trimIndent()
 
     fun toDto() = VilkårsvurderingDto(id, vilkår, begrunnelse, status)
 

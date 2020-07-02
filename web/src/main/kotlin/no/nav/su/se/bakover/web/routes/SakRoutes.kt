@@ -8,8 +8,9 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.web.*
-import no.nav.su.se.bakover.web.json
+import no.nav.su.se.bakover.domain.SakDto
+import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.jsonObject
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.svar
@@ -27,9 +28,21 @@ internal fun Route.sakRoutes(
                     call.audit("Henter sak med id: $id")
                     when (val sak = sakRepo.hentSak(id)) {
                         null -> call.svar(NotFound.message("Fant ikke sak med id: $id"))
-                        else -> call.svar(OK.json(sak.toJson()))
+                        else -> call.svar(OK.jsonObject(sak.toDto().toJson()))
                     }
                 }
         )
     }
 }
+
+fun SakDto.toJson() = SakJson(
+    id = id,
+    fnr = fnr.toString(),
+    stønadsperioder = stønadsperioder.map { it.toJson() }
+)
+
+data class SakJson(
+    val id: Long,
+    val fnr: String,
+    val stønadsperioder: List<StønadsperiodeJson>
+)
