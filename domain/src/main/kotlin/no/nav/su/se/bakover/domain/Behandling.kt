@@ -1,19 +1,13 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
+
 class Behandling constructor(
     id: Long,
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
-) : PersistentDomainObject<BehandlingPersistenceObserver>(id) {
-    fun toJson() = """
-        {
-            "id": $id,
-            "vilkårsvurderinger": ${vilkårsvurderingerAsJsonList()}
-        }
-    """.trimIndent()
+) : PersistentDomainObject<BehandlingPersistenceObserver>(id), DtoConvertable<BehandlingDto> {
 
-    private fun vilkårsvurderingerAsJsonList(): String = "[ ${vilkårsvurderinger.joinToString(",") { it.toJson() }} ]"
-
-    fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
+    override fun toDto() = BehandlingDto(id, vilkårsvurderinger.map { it.toDto() })
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
         vilkårsvurderinger.addAll(persistenceObserver.opprettVilkårsvurderinger(id, Vilkår.values().toList()))

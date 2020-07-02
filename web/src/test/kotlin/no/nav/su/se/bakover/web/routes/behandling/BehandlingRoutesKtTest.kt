@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.behandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -37,10 +38,7 @@ internal class BehandlingRoutesKtTest {
                 val behandlingJson = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandlingJson shouldBe BehandlingJson(
                     id = behandlingsId,
-                    vilkårsvurderinger = vilkårsvurderinger.map {
-                        val dto = it.toDto()
-                        dto.vilkår.name to VilkårsvurderingData(dto.id, dto.begrunnelse, dto.status.name)
-                    }.toMap()
+                    vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }.toJson()
                 )
             }
         }

@@ -55,16 +55,16 @@ import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.routes.IS_ALIVE_PATH
 import no.nav.su.se.bakover.web.routes.IS_READY_PATH
 import no.nav.su.se.bakover.web.routes.METRICS_PATH
-import no.nav.su.se.bakover.web.routes.SøknadRouteMediator
-import no.nav.su.se.bakover.web.routes.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
+import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
-import no.nav.su.se.bakover.web.routes.sakRoutes
-import no.nav.su.se.bakover.web.routes.soknadRoutes
-import no.nav.su.se.bakover.web.routes.stønadsperiodeRoutes
-import no.nav.su.se.bakover.web.routes.vilkårsvurderingRoutes
+import no.nav.su.se.bakover.web.routes.sak.sakRoutes
+import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodeRoutes
+import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -83,7 +83,10 @@ internal fun Application.susebakover(
 ) {
 
     val søknadMottattEmitter = SøknadMottattEmitter(kafkaClient, httpClients.personOppslag)
-    val søknadRoutesMediator = SøknadRouteMediator(databaseRepo, søknadMottattEmitter)
+    val søknadRoutesMediator = SøknadRouteMediator(
+        databaseRepo,
+        søknadMottattEmitter
+    )
 
     install(CORS) {
         method(Options)
@@ -156,7 +159,7 @@ internal fun Application.susebakover(
             personRoutes(httpClients.personOppslag, databaseRepo)
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
-            soknadRoutes(søknadRoutesMediator)
+            søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)
             stønadsperiodeRoutes(databaseRepo)
             vilkårsvurderingRoutes(databaseRepo)
