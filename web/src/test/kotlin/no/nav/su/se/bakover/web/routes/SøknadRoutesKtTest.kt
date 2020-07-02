@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
@@ -38,7 +39,7 @@ import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
-internal class SoknadRoutesKtTest {
+internal class SøknadRoutesKtTest {
 
     private val stubAktørId = "12345"
     fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
@@ -50,7 +51,9 @@ internal class SoknadRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val createResponse = defaultRequest(Post, søknadPath) {
+            val createResponse = defaultRequest(Post,
+                søknadPath
+            ) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson(fnr))
             }.apply {

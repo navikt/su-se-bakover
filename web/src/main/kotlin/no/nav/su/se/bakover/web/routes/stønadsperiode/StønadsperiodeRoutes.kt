@@ -10,15 +10,12 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.SøknadDto
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson
-import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 
@@ -55,16 +52,6 @@ internal fun Route.stønadsperiodeRoutes(
         )
     }
 }
-
-fun SøknadDto.toJson() = SøknadJson(
-    id = id,
-    json = søknadInnhold.toSøknadInnholdJson()
-)
-
-data class SøknadJson(
-    val id: Long,
-    val json: SøknadInnholdJson
-)
 
 fun Map<String, VilkårsvurderingData>.toVilkårsvurderinger() = this.map {
     Vilkårsvurdering(

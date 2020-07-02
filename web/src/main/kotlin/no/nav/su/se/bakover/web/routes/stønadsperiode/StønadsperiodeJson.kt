@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
+import no.nav.su.se.bakover.web.routes.søknad.toJson
 
 internal data class StønadsperiodeJson(
     val id: Long,

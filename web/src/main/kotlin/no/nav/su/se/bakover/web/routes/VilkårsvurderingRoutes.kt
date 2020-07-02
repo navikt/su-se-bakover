@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.stønadsperiode.VilkårsvurderingData
 import no.nav.su.se.bakover.web.routes.stønadsperiode.toVilkårsvurderinger
+import no.nav.su.se.bakover.web.routes.søknad.receiveTextUTF8
 import no.nav.su.se.bakover.web.svar
 
 internal const val vilkårsvurderingPath = "$behandlingPath/{behandlingId}/vilkarsvurderinger"

@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.routes.søknadPath
+import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import org.junit.jupiter.api.Test
 
 @KtorExperimentalLocationsAPI
@@ -109,7 +109,9 @@ internal class CallContextTest {
     ) : Callable<TestApplicationCall> {
         override fun call(): TestApplicationCall {
             println("Test Thread: ${Thread.currentThread()}")
-            return testApplicationEngine.handleRequest(Post, søknadPath) {
+            return testApplicationEngine.handleRequest(Post,
+                søknadPath
+            ) {
                 addHeader(XCorrelationId, "$correlationId")
                 addHeader(Authorization, token)
                 addHeader(ContentType, Json.toString())
