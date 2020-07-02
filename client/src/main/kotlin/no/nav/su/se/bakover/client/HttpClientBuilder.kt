@@ -2,8 +2,11 @@ package no.nav.su.se.bakover.client
 
 import no.nav.su.person.sts.StsClient
 import no.nav.su.person.sts.TokenOppslag
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.stubs.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
@@ -16,7 +19,8 @@ interface HttpClientsBuilder {
         personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         tokenOppslag: TokenOppslag = HttpClientBuilder.token(),
-        pdfGenerator: PdfGenerator = HttpClientBuilder.pdf()
+        pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
+        dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag)
     ): HttpClients
 }
 
@@ -25,7 +29,8 @@ data class HttpClients(
     val personOppslag: PersonOppslag,
     val inntektOppslag: InntektOppslag,
     val tokenOppslag: TokenOppslag,
-    val pdfGenerator: PdfGenerator
+    val pdfGenerator: PdfGenerator,
+    val dokArkiv: DokArkiv
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
@@ -76,14 +81,23 @@ object HttpClientBuilder : HttpClientsBuilder {
         else -> PdfClient(baseUrl)
     }
 
+    internal fun dokArkiv(
+        baseUrl: String = env.getOrDefault("DOKARKIV_URL", "http://dokarkiv.default.svc.nais.local"),
+        tokenOppslag: TokenOppslag
+    ): DokArkiv = when (env.isLocalOrRunningTests()) {
+        true -> DokArkivStub.also { logger.warn("********** Using stub for ${DokArkiv::class.java} **********") }
+        else -> DokArkivClient(baseUrl, tokenOppslag)
+    }
+
     override fun build(
         azure: OAuth,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag,
         tokenOppslag: TokenOppslag,
-        pdfGenerator: PdfGenerator
+        pdfGenerator: PdfGenerator,
+        dokArkiv: DokArkiv
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
