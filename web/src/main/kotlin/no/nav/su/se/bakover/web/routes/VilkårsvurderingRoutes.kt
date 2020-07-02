@@ -23,8 +23,8 @@ internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
     patch(vilkårsvurderingPath) {
         launchWithContext(call) {
             Long.lesParameter(call, "behandlingId").fold(
-                left = { call.svar(HttpStatusCode.BadRequest.message(it)) },
-                right = { id ->
+                ifLeft = { call.svar(HttpStatusCode.BadRequest.message(it)) },
+                ifRight = { id ->
                     call.audit("Oppdaterer vilkårsvurdering for behandling med id: $id")
                     when (val behandling = repo.hentBehandling(id)) {
                         null -> call.svar(HttpStatusCode.NotFound.message("Fant ikke behandling med id:$id"))

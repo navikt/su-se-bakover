@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import arrow.core.Either
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
@@ -46,9 +47,6 @@ import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
-import no.nav.su.se.bakover.common.Either
-import no.nav.su.se.bakover.common.Either.Left
-import no.nav.su.se.bakover.common.Either.Right
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -183,9 +181,9 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
         call.parameters[name]?.let {
             it.toLongOrNull()?.let {
-                Right(it)
-            } ?: Left("$name er ikke et tall")
-        } ?: Left("$name er ikke et parameter")
+                Either.Right(it)
+            } ?: Either.Left("$name er ikke et tall")
+        } ?: Either.Left("$name er ikke et parameter")
 
 internal fun byggVersion(): String {
     val versionProps = Properties()

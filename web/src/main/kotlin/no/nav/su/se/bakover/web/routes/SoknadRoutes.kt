@@ -31,8 +31,8 @@ internal fun Route.soknadRoutes(
 
     get("$søknadPath/{soknadId}") {
         Long.lesParameter(call, "soknadId").fold(
-                left = { call.svar(BadRequest.message(it)) },
-                right = { id ->
+                ifLeft = { call.svar(BadRequest.message(it)) },
+                ifRight = { id ->
                     call.audit("Henter søknad med id: $id")
                     when (val søknad = mediator.hentSøknad(id)) {
                         null -> call.svar(NotFound.message("Fant ikke søknad med id:$id"))
