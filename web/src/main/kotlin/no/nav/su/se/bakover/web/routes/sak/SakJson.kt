@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.domain.SakDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.objectMapper
-import no.nav.su.se.bakover.web.routes.StønadsperiodeJson
-import no.nav.su.se.bakover.web.routes.toJson
+import no.nav.su.se.bakover.web.routes.stønadsperiode.StønadsperiodeJson
+import no.nav.su.se.bakover.web.routes.stønadsperiode.toJson
 
-data class SakJson(
+internal data class SakJson(
     val id: Long,
     val fnr: String,
     val stønadsperioder: List<StønadsperiodeJson>

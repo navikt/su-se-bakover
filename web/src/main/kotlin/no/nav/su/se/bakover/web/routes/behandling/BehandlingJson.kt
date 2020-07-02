@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.objectMapper
-import no.nav.su.se.bakover.web.routes.VilkårsvurderingData
+import no.nav.su.se.bakover.web.routes.stønadsperiode.VilkårsvurderingData
 
-data class BehandlingJson(
+internal data class BehandlingJson(
     val id: Long,
     val vilkårsvurderinger: Map<String, VilkårsvurderingData>
 )
@@ -15,7 +15,11 @@ data class BehandlingJson(
 internal fun BehandlingDto.toJson() = BehandlingJson(
     id,
     vilkårsvurderinger.map {
-        it.vilkår.name to VilkårsvurderingData(it.id, it.begrunnelse, it.status.name)
+        it.vilkår.name to VilkårsvurderingData(
+            it.id,
+            it.begrunnelse,
+            it.status.name
+        )
     }.toMap()
 )
 

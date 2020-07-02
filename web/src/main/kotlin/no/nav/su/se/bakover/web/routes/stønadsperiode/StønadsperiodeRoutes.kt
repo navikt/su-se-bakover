@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.stønadsperiode
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -10,17 +10,13 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.StønadsperiodeDto
 import no.nav.su.se.bakover.domain.SøknadDto
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.jsonObject
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
-import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.json.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -53,28 +49,16 @@ internal fun Route.stønadsperiodeRoutes(
                 call.audit("Henter stønadsperiode med med id: $id")
                 when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                     null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
-                    else -> call.svar(OK.jsonObject(stønadsperiode.toDto().toJson()))
+                    else -> call.svar(OK.jsonBody(stønadsperiode))
                 }
             }
         )
     }
 }
 
-fun StønadsperiodeDto.toJson() = StønadsperiodeJson(
-    id = id,
-    søknad = søknad.toJson(),
-    behandlinger = behandlinger.map { it.toJson() }
-)
-
 fun SøknadDto.toJson() = SøknadJson(
     id = id,
     json = søknadInnhold.toSøknadInnholdJson()
-)
-
-data class StønadsperiodeJson(
-    val id: Long,
-    val søknad: SøknadJson,
-    val behandlinger: List<BehandlingJson>
 )
 
 data class SøknadJson(

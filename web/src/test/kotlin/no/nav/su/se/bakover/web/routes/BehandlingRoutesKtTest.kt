@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
+import no.nav.su.se.bakover.web.routes.stønadsperiode.VilkårsvurderingData
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -41,7 +42,11 @@ internal class BehandlingRoutesKtTest {
                     id = behandlingsId,
                     vilkårsvurderinger = vilkårsvurderinger.map {
                         val dto = it.toDto()
-                        dto.vilkår.name to VilkårsvurderingData(dto.id, dto.begrunnelse, dto.status.name)
+                        dto.vilkår.name to VilkårsvurderingData(
+                            dto.id,
+                            dto.begrunnelse,
+                            dto.status.name
+                        )
                     }.toMap()
                 )
             }
