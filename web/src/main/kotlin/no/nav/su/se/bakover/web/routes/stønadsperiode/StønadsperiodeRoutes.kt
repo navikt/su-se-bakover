@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 
-internal const val stønadsperiodePath = "$sakPath/{sakId}/stønadsperioder"
+internal const val stønadsperiodePath = "$sakPath/{sakId}/stonadsperioder"
 
 @KtorExperimentalAPI
 internal fun Route.stønadsperiodeRoutes(
@@ -26,8 +26,8 @@ internal fun Route.stønadsperiodeRoutes(
 
     post("$stønadsperiodePath/{stønadsperiodeId}/behandlinger") {
         Long.lesParameter(call, "stønadsperiodeId").fold(
-            left = { call.svar(BadRequest.message(it)) },
-            right = { id ->
+            ifLeft = { call.svar(BadRequest.message(it)) },
+            ifRight = { id ->
                 call.audit("oppretter behandling på stønadsperiode med id: $id")
                 when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                     null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
@@ -39,8 +39,8 @@ internal fun Route.stønadsperiodeRoutes(
 
     get("$stønadsperiodePath/{stønadsperiodeId}") {
         Long.lesParameter(call, "stønadsperiodeId").fold(
-            left = { call.svar(BadRequest.message(it)) },
-            right = { id ->
+            ifLeft = { call.svar(BadRequest.message(it)) },
+            ifRight = { id ->
                 call.audit("Henter stønadsperiode med med id: $id")
                 when (val stønadsperiode = repo.hentStønadsperiode(id)) {
                     null -> call.svar(NotFound.message("Fant ikke stønadsperiode med id:$id"))
