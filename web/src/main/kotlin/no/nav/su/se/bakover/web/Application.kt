@@ -42,8 +42,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
-import no.nav.su.se.bakover.client.KafkaClientBuilder
-import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.common.CallContext.MdcContext
 import no.nav.su.se.bakover.common.CallContext.SecurityContext
@@ -51,19 +49,18 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.routes.IS_ALIVE_PATH
 import no.nav.su.se.bakover.web.routes.IS_READY_PATH
 import no.nav.su.se.bakover.web.routes.METRICS_PATH
-import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
-import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodeRoutes
+import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
+import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -75,17 +72,14 @@ import kotlin.coroutines.CoroutineContext
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
-    kafkaClient: SuKafkaClient = KafkaClientBuilder.build(),
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
     httpClients: HttpClients = HttpClientBuilder.build(),
     jwkConfig: JSONObject = httpClients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
 ) {
 
-    val søknadMottattEmitter = SøknadMottattEmitter(kafkaClient, httpClients.personOppslag)
     val søknadRoutesMediator = SøknadRouteMediator(
-        databaseRepo,
-        søknadMottattEmitter
+        databaseRepo
     )
 
     install(CORS) {

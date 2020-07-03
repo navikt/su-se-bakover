@@ -11,20 +11,18 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
-import java.util.Base64
-import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.HttpClientBuilder
-import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.client.stubs.SuKafkaClientStub
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
 import org.json.JSONObject
+import java.util.Base64
 
 const val AZURE_CLIENT_ID = "clientId"
 const val AZURE_CLIENT_SECRET = "secret"
@@ -52,14 +50,12 @@ internal fun Application.testEnv() {
 internal fun Application.testSusebakover(
     httpClients: HttpClients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
-    kafkaClient: SuKafkaClient = SuKafkaClientStub(),
     databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 ) {
     return susebakover(
+        databaseRepo = databaseRepo,
         httpClients = httpClients,
-        jwkProvider = jwkProvider,
-        kafkaClient = kafkaClient,
-        databaseRepo = databaseRepo
+        jwkProvider = jwkProvider
     )
 }
 

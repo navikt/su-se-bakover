@@ -10,7 +10,6 @@
     "SU_INNTEKT_AZURE_CLIENT_ID": "9cd61904-33ad-40e8-9cc8-19e4dab588c5",
     "VAULT_MOUNTPATH": "postgresql/preprod-fss/",
     "DATABASE_NAME": "supstonad-db-dev",
-    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev",
-    "KAFKA_BOOTSTRAP_SERVERS": "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443"
+    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev"
   }
 }

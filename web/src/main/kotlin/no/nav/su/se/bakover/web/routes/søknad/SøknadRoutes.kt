@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.kafka.SøknadMottattEmitter
 import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
@@ -61,13 +60,11 @@ internal fun Route.søknadRoutes(
 suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
 
 internal class SøknadRouteMediator(
-    private val repo: ObjectRepo,
-    private val søknadMottattEmitter: SøknadMottattEmitter
+    private val repo: ObjectRepo
 ) {
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
         val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))
             ?: repo.opprettSak(Fnr(søknadInnhold.personopplysninger.fnr))
-        sak.addObserver(søknadMottattEmitter)
         sak.nySøknad(søknadInnhold)
         return repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))!!
     }
