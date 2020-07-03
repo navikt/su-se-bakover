@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.client
+package no.nav.su.se.bakover.client.inntekt
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.azure.OAuth
-import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
@@ -43,11 +43,13 @@ internal class InntektClientTest {
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse = ClientResponse(200, """{"ting": "OK"}""")
+        override fun person(ident: Fnr): ClientResponse =
+            ClientResponse(200, """{"ting": "OK"}""")
         override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse = ClientResponse(403, "Du hakke lov")
+        override fun person(ident: Fnr): ClientResponse =
+            ClientResponse(403, "Du hakke lov")
         override fun aktørId(ident: Fnr): String = "aktoerId"
     }
     private val tokenExchange = object : OAuth {
