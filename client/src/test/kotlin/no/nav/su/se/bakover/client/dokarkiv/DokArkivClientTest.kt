@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import arrow.core.left
+import arrow.core.right
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.junit.jupiter.api.AfterAll
@@ -91,45 +93,14 @@ internal class DokArkivClientTest {
                     )
                 )
         )
-        val client = DokArkivClient(wireMockServer.baseUrl(),
+        val client = DokArkivClient(
+            wireMockServer.baseUrl(),
             TokenOppslagStub
         )
 
         client.opprettJournalpost(nySøknad, pdf).shouldBe(
-            "1"
+            "1".right()
         )
-    }
-
-    @Test
-    fun `should fail when journalpostferdigstilt is false`() {
-        wireMockServer.stubFor(
-            wiremockBuilder
-                .withRequestBody(WireMock.equalToJson(forventetRequest))
-                .willReturn(
-                    WireMock.okJson(
-                        """
-                        {
-                          "journalpostId": "1",
-                          "journalpostferdigstilt": false,
-                          "dokumenter": [
-                            {
-                              "dokumentInfoId": "485227498",
-                              "tittel": "Søknad om supplerende stønad for uføre flyktninger"
-                            }
-                          ]
-                        }
-                    """.trimIndent()
-                    )
-                )
-        )
-        val client = DokArkivClient(wireMockServer.baseUrl(),
-            TokenOppslagStub
-        )
-
-        val exception = shouldThrow<RuntimeException> {
-            client.opprettJournalpost(nySøknad, pdf)
-        }
-        exception.message shouldBe "Kunne ikke ferdigstille journalføring"
     }
 
     @Test
@@ -139,14 +110,13 @@ internal class DokArkivClientTest {
                 .withRequestBody(WireMock.equalToJson(forventetRequest))
                 .willReturn(WireMock.forbidden())
         )
-        val client = DokArkivClient(wireMockServer.baseUrl(),
+        val client = DokArkivClient(
+            wireMockServer.baseUrl(),
             TokenOppslagStub
         )
 
-        val exception = shouldThrow<RuntimeException> {
-            client.opprettJournalpost(nySøknad, pdf)
-        }
-        exception.message shouldBe "Feil ved journalføring av søknad. statusCode=403"
+        client.opprettJournalpost(nySøknad, pdf) shouldBe
+            ClientError(403, "Feil ved journalføring av søknad.").left()
     }
 
     val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokArkivPath))

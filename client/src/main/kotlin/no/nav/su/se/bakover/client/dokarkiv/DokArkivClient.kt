@@ -1,23 +1,29 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.Personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import java.util.Base64
 
-val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
+internal val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
+private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
 internal class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : DokArkiv {
-    override fun opprettJournalpost(nySøknad: NySøknad, pdf: ByteArray): String {
+    override fun opprettJournalpost(nySøknad: NySøknad, pdf: ByteArray): Either<ClientError, String> {
         val søknadInnhold = SøknadInnhold.fromJson(JSONObject(nySøknad.søknad))
-        val (_, _, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
+        val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -69,16 +75,19 @@ internal class DokArkivClient(
         return result.fold(
             { json ->
                 JSONObject(json).let {
-                    when (it.getBoolean("journalpostferdigstilt")) {
-                        true -> it.getString("journalpostId")
-                        else -> throw RuntimeException("Kunne ikke ferdigstille journalføring")
+                    val journalpostId = it.getString("journalpostId")
+
+                    if (it.getBoolean("journalpostferdigstilt")) {
+                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId")
                     }
+                    journalpostId.right()
                 }
             },
-            { error ->
-                val statusCode = error.response.statusCode
-                throw RuntimeException("Feil ved journalføring av søknad. statusCode=$statusCode", error)
+            {
+                log.warn("Feil ved journalføring av søknad.", it)
+                ClientError(response.statusCode, "Feil ved journalføring av søknad.").left()
             }
+
         )
     }
 
