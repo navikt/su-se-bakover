@@ -13,10 +13,6 @@ plugins {
 }
 
 version = "0.0.1"
-java {
-    sourceCompatibility = JavaVersion.VERSION_12
-    targetCompatibility = JavaVersion.VERSION_12
-}
 
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
