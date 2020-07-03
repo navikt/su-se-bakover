@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.client.pdf
 
+import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -30,11 +32,11 @@ internal class PdfClientTest {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(nySøknad) shouldBe "pdf-byte-array-here".toByteArray()
+        client.genererPdf(nySøknad).rightValue() shouldBe "pdf-byte-array-here".toByteArray()
     }
 
     @Test
-    fun `should throw exception when`() {
+    fun `returns ClientError`() {
         wireMockServer.stubFor(
             wiremockBuilder
                 .willReturn(
@@ -42,14 +44,12 @@ internal class PdfClientTest {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        val exception = shouldThrow<RuntimeException> {
-            client.genererPdf(nySøknad)
-        }
-        exception.message shouldBe "Kall mot PdfClient feilet, statuskode: 403"
+
+        client.genererPdf(nySøknad) shouldBe ClientError(403, "Kall mot PdfClient feilet").left()
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))
-        .withHeader("Accept", WireMock.equalTo("application/json"))
+        .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withRequestBody(WireMock.equalTo(nySøknad.søknad))
 

@@ -1,7 +1,11 @@
 package no.nav.su.se.bakover.client.pdf
 
+import arrow.core.Either
+import arrow.core.right
+import arrow.core.left
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.meldinger.kafka.soknad.NySøknad
+import no.nav.su.se.bakover.client.ClientError
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -9,21 +13,19 @@ internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen/soknad"
 
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
-    val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun genererPdf(nySøknad: NySøknad): ByteArray {
-        val (_, _, result) = "$baseUrl$suPdfGenPath".httpPost()
-            .header("Accept", "application/json")
+    override fun genererPdf(nySøknad: NySøknad): Either<ClientError, ByteArray> {
+        val (_, response, result) = "$baseUrl$suPdfGenPath".httpPost()
+            .header("Content-Type", "application/json")
             .header("X-Correlation-ID", nySøknad.correlationId)
             .body(nySøknad.søknad).response()
 
         return result.fold(
-            { it },
-            { error ->
-                val statusCode = error.response.statusCode
-                val feilmelding = "Kall mot PdfClient feilet, statuskode: $statusCode"
-                logger.error(feilmelding, error)
-                throw RuntimeException(feilmelding)
+            { it.right() },
+            {
+                logger.warn("Kall mot PdfClient feilet", it)
+                ClientError(response.statusCode, "Kall mot PdfClient feilet").left()
             }
         )
     }

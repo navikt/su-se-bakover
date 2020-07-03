@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import arrow.core.left
+import arrow.core.orNull
 import arrow.core.right
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -18,7 +19,7 @@ import java.util.Base64
 
 internal class DokArkivClientTest {
 
-    val nySøknad = NySøknad(
+    private val nySøknad = NySøknad(
         sakId = "1",
         søknadId = "1",
         søknad = SøknadInnholdTestdataBuilder.build().toJson(),
@@ -27,9 +28,9 @@ internal class DokArkivClientTest {
         correlationId = "correlationId"
     )
 
-    val pdf = PdfGeneratorStub.genererPdf(nySøknad)
+    private val pdf = PdfGeneratorStub.genererPdf(nySøknad).orNull()!!
 
-    val forventetRequest = """
+    private val forventetRequest = """
         {
           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
           "journalpostType": "INNGAAENDE",
