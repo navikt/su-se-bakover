@@ -69,6 +69,8 @@ import java.net.URL
 import java.util.Properties
 import kotlin.coroutines.CoroutineContext
 
+fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal fun Application.susebakover(
@@ -176,8 +178,6 @@ internal fun ApplicationCall.audit(msg: String) {
     val payload = (this.authentication.principal as JWTPrincipal).payload
     LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid").asString()} $msg")
 }
-
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
         call.parameters[name]?.let {
