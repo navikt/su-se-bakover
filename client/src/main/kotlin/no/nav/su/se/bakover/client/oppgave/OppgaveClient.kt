@@ -1,10 +1,16 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.Either
+import arrow.core.right
+import arrow.core.left
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 internal val oppgavePath = "/api/v1/oppgaver"
@@ -16,8 +22,10 @@ internal class OppgaveClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : Oppgave {
-    override fun opprettOppgave(nySøknadMedJournalId: NySøknadMedJournalId): Long {
-        val (_, _, result) = "$baseUrl$oppgavePath".httpPost()
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    override fun opprettOppgave(nySøknadMedJournalId: NySøknadMedJournalId): Either<ClientError, Long> {
+        val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -41,10 +49,13 @@ internal class OppgaveClient(
             ).responseString()
 
         return result.fold(
-            { resultat ->
-                JSONObject(resultat).getLong("id")
+            {
+                JSONObject(it).getLong("id").right()
             },
-            { throw RuntimeException("Feil i kallet mot oppgave") }
+            {
+                logger.warn("Feil i kallet mot oppgave", it)
+                ClientError(response.statusCode, "Feil i kallet mot oppgave").left()
+            }
         )
     }
 }

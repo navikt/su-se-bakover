@@ -1,14 +1,16 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -17,7 +19,8 @@ import java.time.LocalDateTime
 
 internal class OppgaveClientTest {
 
-    private val client = OppgaveClient(wireMockServer.baseUrl(),
+    private val client = OppgaveClient(
+        wireMockServer.baseUrl(),
         TokenOppslagStub
     )
     private val nySøknadMedJournalId = NySøknadMedJournalId(
@@ -63,16 +66,14 @@ internal class OppgaveClientTest {
                     .withStatus(201)
             )
         )
-        client.opprettOppgave(nySøknadMedJournalId) shouldBe 111
+        client.opprettOppgave(nySøknadMedJournalId).rightValue() shouldBe 111
     }
 
     @Test
-    fun `should throw exception if error`() {
+    fun `returns ClientError`() {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
-        val exception = shouldThrow<RuntimeException> {
-            client.opprettOppgave(nySøknadMedJournalId)
-        }
-        exception.message shouldBe "Feil i kallet mot oppgave"
+
+        client.opprettOppgave(nySøknadMedJournalId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
     }
 
     //language=JSON
