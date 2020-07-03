@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
-import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
+import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -17,7 +17,9 @@ import java.time.LocalDateTime
 
 internal class OppgaveClientTest {
 
-    private val client = OppgaveClient(wireMockServer.baseUrl(), TokenOppslagStub)
+    private val client = OppgaveClient(wireMockServer.baseUrl(),
+        TokenOppslagStub
+    )
     private val nySøknadMedJournalId = NySøknadMedJournalId(
         correlationId = "correlationId",
         fnr = "12345678910",

@@ -14,12 +14,12 @@ import io.ktor.util.KtorExperimentalAPI
 import java.util.Base64
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.HttpClientBuilder
-import no.nav.su.se.bakover.client.InntektOppslag
-import no.nav.su.se.bakover.client.OAuth
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.SuKafkaClient
-import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.SuKafkaClientStub
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase

@@ -1,19 +1,25 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.person.sts.StsClient
-import no.nav.su.person.sts.TokenOppslag
+import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
+import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.oppgave.OppgaveClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.stubs.DokArkivStub
-import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.PdfGeneratorStub
-import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
-import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
+import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.client.person.SuPersonClient
+import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
+import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
+import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {
@@ -67,7 +73,12 @@ object HttpClientBuilder : HttpClientsBuilder {
         personOppslag: PersonOppslag
     ): InntektOppslag = when (env.isLocalOrRunningTests()) {
         true -> InntektOppslagStub.also { logger.warn("********** Using stub for ${InntektOppslag::class.java} **********") }
-        else -> SuInntektClient(baseUrl, clientId, oAuth, personOppslag)
+        else -> SuInntektClient(
+            baseUrl,
+            clientId,
+            oAuth,
+            personOppslag
+        )
     }
 
     internal fun token(

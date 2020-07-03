@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.oppgave
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
-import no.nav.su.person.sts.TokenOppslag
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import org.json.JSONObject
 import java.time.LocalDate
 
@@ -11,10 +11,6 @@ internal val oppgavePath = "/api/v1/oppgaver"
 
 private const val TEMA_SU_UFØR_FLYKTNING = "ab0431"
 private const val TYPE_FØRSTEGANGSSØKNAD = "ae0245"
-
-interface Oppgave {
-    fun opprettOppgave(nySøknadMedJournalId: NySøknadMedJournalId): Long
-}
 
 internal class OppgaveClient(
     private val baseUrl: String,

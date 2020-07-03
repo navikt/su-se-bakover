@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.stubs
+package no.nav.su.se.bakover.client.stubs.dokarkiv
 
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv

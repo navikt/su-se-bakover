@@ -1,14 +1,13 @@
-package no.nav.su.se.bakover.client
+package no.nav.su.se.bakover.client.inntekt
 
 import com.github.kittinunf.fuel.httpPost
+import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-interface InntektOppslag {
-    fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse
-}
 
 internal class SuInntektClient(
     suInntektBaseUrl: String,

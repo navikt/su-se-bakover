@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.client.stubs
+package no.nav.su.se.bakover.client.stubs.inntekt
 
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.InntektOppslag
+import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 
 object InntektOppslagStub : InntektOppslag {

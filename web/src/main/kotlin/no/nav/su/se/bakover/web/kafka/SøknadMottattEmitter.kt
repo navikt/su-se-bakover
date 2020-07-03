@@ -4,7 +4,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.Topics
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.se.bakover.client.KafkaMessage
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.SuKafkaClient
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr

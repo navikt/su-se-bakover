@@ -5,15 +5,11 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.Personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.person.sts.TokenOppslag
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import org.json.JSONObject
 import java.util.Base64
 
 val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
-
-interface DokArkiv {
-    fun opprettJournalpost(nySøknad: NySøknad, pdf: ByteArray): String
-}
 
 internal class DokArkivClient(
     private val baseUrl: String,

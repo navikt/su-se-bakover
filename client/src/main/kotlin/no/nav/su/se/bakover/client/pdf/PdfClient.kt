@@ -7,10 +7,6 @@ import org.slf4j.LoggerFactory
 
 internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen/soknad"
 
-interface PdfGenerator {
-    fun genererPdf(nySøknad: NySøknad): ByteArray
-}
-
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)

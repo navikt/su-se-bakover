@@ -10,7 +10,7 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
@@ -95,7 +95,8 @@ internal class PersonRoutesKtTest {
         }
     }
 
-    fun personoppslag(statusCode: Int, responseBody: String, testIdent: String) = object : PersonOppslag {
+    fun personoppslag(statusCode: Int, responseBody: String, testIdent: String) = object :
+        PersonOppslag {
         override fun person(ident: Fnr): ClientResponse = when (testIdent) {
             ident.toString() -> ClientResponse(statusCode, responseBody)
             else -> ClientResponse(500, "funkitj")

@@ -7,8 +7,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.client.stubs.PdfGeneratorStub
-import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
+import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
+import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -91,7 +91,9 @@ internal class DokArkivClientTest {
                     )
                 )
         )
-        val client = DokArkivClient(wireMockServer.baseUrl(), TokenOppslagStub)
+        val client = DokArkivClient(wireMockServer.baseUrl(),
+            TokenOppslagStub
+        )
 
         client.opprettJournalpost(nySøknad, pdf).shouldBe(
             "1"
@@ -120,7 +122,9 @@ internal class DokArkivClientTest {
                     )
                 )
         )
-        val client = DokArkivClient(wireMockServer.baseUrl(), TokenOppslagStub)
+        val client = DokArkivClient(wireMockServer.baseUrl(),
+            TokenOppslagStub
+        )
 
         val exception = shouldThrow<RuntimeException> {
             client.opprettJournalpost(nySøknad, pdf)
@@ -135,7 +139,9 @@ internal class DokArkivClientTest {
                 .withRequestBody(WireMock.equalToJson(forventetRequest))
                 .willReturn(WireMock.forbidden())
         )
-        val client = DokArkivClient(wireMockServer.baseUrl(), TokenOppslagStub)
+        val client = DokArkivClient(wireMockServer.baseUrl(),
+            TokenOppslagStub
+        )
 
         val exception = shouldThrow<RuntimeException> {
             client.opprettJournalpost(nySøknad, pdf)

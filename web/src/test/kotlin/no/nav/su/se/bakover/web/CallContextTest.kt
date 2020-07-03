@@ -35,7 +35,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath
@@ -77,7 +77,8 @@ internal class CallContextTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(httpClients = buildClients(personOppslag = object :
+                PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 
                 override fun aktørId(ident: Fnr): String =

@@ -1,16 +1,12 @@
-package no.nav.su.person.sts
+package no.nav.su.se.bakover.client.sts
 
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.person.sts.StsToken.Companion.isValid
+import no.nav.su.se.bakover.client.sts.StsClient.StsToken.Companion.isValid
 import org.json.JSONObject
 import java.time.LocalDateTime
 
-interface TokenOppslag {
-    fun token(): String
-}
-
-class StsClient(
+internal class StsClient(
     private val baseUrl: String,
     private val username: String,
     private val password: String
@@ -31,23 +27,23 @@ class StsClient(
         }
         return stsToken?.accessToken!!
     }
-}
 
-data class StsToken(
-    private val json: JSONObject
-) {
-    val accessToken: String = json.getString("access_token")
-    private val expiresIn: Int = json.getInt("expires_in")
-    private val expirationTime = LocalDateTime.now().plusSeconds(expiresIn - 20L)
+    private data class StsToken(
+        private val json: JSONObject
+    ) {
+        val accessToken: String = json.getString("access_token")
+        private val expiresIn: Int = json.getInt("expires_in")
+        private val expirationTime = LocalDateTime.now().plusSeconds(expiresIn - 20L)
 
-    companion object {
-        fun isValid(token: StsToken?): Boolean {
-            return when (token) {
-                null -> false
-                else -> !isExpired(token)
+        companion object {
+            fun isValid(token: StsToken?): Boolean {
+                return when (token) {
+                    null -> false
+                    else -> !isExpired(token)
+                }
             }
-        }
 
-        private fun isExpired(token: StsToken) = token.expirationTime.isBefore(LocalDateTime.now())
+            private fun isExpired(token: StsToken) = token.expirationTime.isBefore(LocalDateTime.now())
+        }
     }
 }

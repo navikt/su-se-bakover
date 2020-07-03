@@ -21,7 +21,7 @@ import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.SuKafkaClientStub
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.Jwt
@@ -75,7 +75,8 @@ internal class SøknadRoutesKtTest {
         val kafkaClient = SuKafkaClientStub()
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(httpClients = buildClients(personOppslag = object :
+                PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
                 override fun aktørId(ident: Fnr): String = stubAktørId
             }), kafkaClient = kafkaClient)

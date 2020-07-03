@@ -10,7 +10,7 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.InntektOppslag
+import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.defaultRequest
@@ -58,7 +58,8 @@ internal class InntektRoutesKtTest {
         val errorMessage = """{"message": "nich gut"}"""
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(inntektOppslag = object : InntektOppslag {
+            testSusebakover(httpClients = buildClients(inntektOppslag = object :
+                InntektOppslag {
                 override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
             }))
         }) {

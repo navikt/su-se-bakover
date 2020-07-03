@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.client
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import no.nav.su.se.bakover.client.azure.AzureClient
 import java.net.URLEncoder
 import java.nio.charset.Charset
-import no.nav.su.se.bakover.client.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
-import no.nav.su.se.bakover.client.AzureClient.Companion.REQUESTED_TOKEN_USE
+import no.nav.su.se.bakover.client.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
+import no.nav.su.se.bakover.client.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
+import no.nav.su.se.bakover.client.azure.OAuth
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -25,11 +27,12 @@ private const val ISSUER = "azure"
 
 internal class AzureClientKtTest {
 
-    val oauth: OAuth = AzureClient(
+    val oauth: OAuth =
+        AzureClient(
             thisClientId = CLIENT_ID,
             thisClientSecret = CLIENT_SECRET,
             wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL"
-    )
+        )
 
     @Test
     fun `exchange to on-behalf-of token`() {

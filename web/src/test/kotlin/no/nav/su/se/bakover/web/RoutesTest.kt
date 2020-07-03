@@ -11,7 +11,7 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.client.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
 import org.json.JSONObject
@@ -57,7 +57,8 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = object : PersonOppslag {
+            testSusebakover(httpClients = buildClients(personOppslag = object :
+                PersonOppslag {
                 override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
                 override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
             }))
