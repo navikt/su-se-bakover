@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.setCallContextForTests
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
@@ -66,14 +67,21 @@ internal class OppgaveClientTest {
                     .withStatus(201)
             )
         )
-        client.opprettOppgave(nySøknadMedJournalId).rightValue() shouldBe 111
+        client.opprettOppgave(
+            nySøknadMedJournalId.journalId,
+            nySøknadMedJournalId.sakId.toLong(),
+            nySøknadMedJournalId.aktørId
+        ).rightValue() shouldBe 111
     }
 
     @Test
     fun `returns ClientError`() {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
-        client.opprettOppgave(nySøknadMedJournalId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
+        client.opprettOppgave(
+            nySøknadMedJournalId.journalId,
+            nySøknadMedJournalId.sakId.toLong(),
+            nySøknadMedJournalId.aktørId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
     }
 
     //language=JSON
@@ -105,6 +113,7 @@ internal class OppgaveClientTest {
         @JvmStatic
         fun start() {
             wireMockServer.start()
+            setCallContextForTests()
         }
 
         @AfterAll

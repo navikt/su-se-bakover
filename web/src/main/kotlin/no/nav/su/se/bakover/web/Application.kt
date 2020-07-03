@@ -79,7 +79,11 @@ internal fun Application.susebakover(
 ) {
 
     val søknadRoutesMediator = SøknadRouteMediator(
-        databaseRepo
+        repo = databaseRepo,
+        pdfGenerator = httpClients.pdfGenerator,
+        dokArkiv = httpClients.dokArkiv,
+        oppgave = httpClients.oppgave,
+        personOppslag = httpClients.personOppslag
     )
 
     install(CORS) {

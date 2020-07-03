@@ -5,11 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.Personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.CallContext
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.util.Base64
@@ -21,13 +21,16 @@ internal class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : DokArkiv {
-    override fun opprettJournalpost(nySøknad: NySøknad, pdf: ByteArray): Either<ClientError, String> {
-        val søknadInnhold = SøknadInnhold.fromJson(JSONObject(nySøknad.søknad))
+    override fun opprettJournalpost(
+        søknadInnhold: SøknadInnhold,
+        pdf: ByteArray,
+        sakId: Long
+    ): Either<ClientError, String> {
         val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", nySøknad.correlationId)
+            .header("X-Correlation-ID", CallContext.correlationId())
             .body(
                 """
                     {
@@ -38,16 +41,16 @@ internal class DokArkivClient(
                       "behandlingstema": "ab0268",
                       "journalfoerendeEnhet": "9999",
                       "avsenderMottaker": {
-                        "id": "${nySøknad.fnr}",
+                        "id": "${søknadInnhold.personopplysninger.fnr}",
                         "idType": "FNR",
                         "navn": "${søkersNavn(søknadInnhold.personopplysninger)}"
                       },
                       "bruker": {
-                        "id": "${nySøknad.fnr}",
+                        "id": "${søknadInnhold.personopplysninger.fnr}",
                         "idType": "FNR"
                       },
                       "sak": {
-                        "fagsakId": "${nySøknad.sakId}",
+                        "fagsakId": "$sakId",
                         "fagsaksystem": "SUPSTONAD",
                         "sakstype": "FAGSAK"
                       },
@@ -62,7 +65,8 @@ internal class DokArkivClient(
                             },
                             {
                               "filtype": "JSON",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(nySøknad.søknad.toByteArray())}",
+                              "fysiskDokument": "${Base64.getEncoder()
+                    .encodeToString(søknadInnhold.toJson().toByteArray())}",
                               "variantformat": "ORIGINAL"
                             }
                           ]

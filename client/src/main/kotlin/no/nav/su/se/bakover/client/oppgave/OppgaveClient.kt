@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
-import arrow.core.right
 import arrow.core.left
+import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.CallContext
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,18 +24,18 @@ internal class OppgaveClient(
 ) : Oppgave {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(nySøknadMedJournalId: NySøknadMedJournalId): Either<ClientError, Long> {
+    override fun opprettOppgave(journalpostId: String, sakId: Long, aktørId: String): Either<ClientError, Long> {
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", nySøknadMedJournalId.correlationId)
+            .header("X-Correlation-ID", CallContext.correlationId())
             .body(
                 """
                     { 
-                        "journalpostId": "${nySøknadMedJournalId.journalId}",
-                        "saksreferanse": "${nySøknadMedJournalId.sakId}",
-                        "aktoerId": "${nySøknadMedJournalId.aktørId}", 
+                        "journalpostId": "$journalpostId",
+                        "saksreferanse": "$sakId",
+                        "aktoerId": "$aktørId", 
                         "tema": "SUP",
                         "behandlesAvApplikasjon": "SUPSTONAD",
                         "oppgavetype": "BEH_SAK",

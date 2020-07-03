@@ -7,9 +7,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.NySøknad
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.setCallContextForTests
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.junit.jupiter.api.AfterAll
@@ -19,16 +19,9 @@ import java.util.Base64
 
 internal class DokArkivClientTest {
 
-    private val nySøknad = NySøknad(
-        sakId = "1",
-        søknadId = "1",
-        søknad = SøknadInnholdTestdataBuilder.build().toJson(),
-        fnr = "12312312312",
-        aktørId = "9876543210",
-        correlationId = "correlationId"
-    )
-
-    private val pdf = PdfGeneratorStub.genererPdf(nySøknad).orNull()!!
+    private val sakId = 1
+    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
 
     private val forventetRequest = """
         {
@@ -39,16 +32,16 @@ internal class DokArkivClientTest {
           "behandlingstema": "ab0268",
           "journalfoerendeEnhet": "9999",
           "avsenderMottaker": {
-            "id": "${nySøknad.fnr}",
+            "id": "${søknadInnhold.personopplysninger.fnr}",
             "idType": "FNR",
             "navn": "Nordmann, Ola Erik"
           },
           "bruker": {
-            "id": "${nySøknad.fnr}",
+            "id": "${søknadInnhold.personopplysninger.fnr}",
             "idType": "FNR"
           },
           "sak": {
-            "fagsakId": "${nySøknad.sakId}",
+            "fagsakId": "$sakId",
             "fagsaksystem": "SUPSTONAD",
             "sakstype": "FAGSAK"
           },
@@ -63,7 +56,7 @@ internal class DokArkivClientTest {
                 },
                 {
                   "filtype": "JSON",
-                  "fysiskDokument": "${Base64.getEncoder().encodeToString(nySøknad.søknad.toByteArray())}",
+                  "fysiskDokument": "${Base64.getEncoder().encodeToString(søknadInnhold.toJson().toByteArray())}",
                   "variantformat": "ORIGINAL"
                 }
               ]
@@ -99,7 +92,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(nySøknad, pdf).shouldBe(
+        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1).shouldBe(
             "1".right()
         )
     }
@@ -116,7 +109,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(nySøknad, pdf) shouldBe
+        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1) shouldBe
             ClientError(403, "Feil ved journalføring av søknad.").left()
     }
 
@@ -134,6 +127,7 @@ internal class DokArkivClientTest {
         @JvmStatic
         fun start() {
             wireMockServer.start()
+            setCallContextForTests()
         }
 
         @AfterAll

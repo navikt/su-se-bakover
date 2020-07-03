@@ -14,9 +14,15 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.client.oppgave.Oppgave
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
+import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -62,9 +68,19 @@ internal fun Application.testSusebakover(
 internal fun buildClients(
     azure: OAuth = OauthStub(),
     personOppslag: PersonOppslag = PersonOppslagStub,
-    inntektOppslag: InntektOppslag = InntektOppslagStub
+    inntektOppslag: InntektOppslag = InntektOppslagStub,
+    dokArkiv: DokArkiv = DokArkivStub,
+    pdfGenerator: PdfGenerator = PdfGeneratorStub,
+    oppgave: Oppgave = OppgaveStub
 ): HttpClients {
-    return HttpClientBuilder.build(azure, personOppslag, inntektOppslag)
+    return HttpClientBuilder.build(
+        azure = azure,
+        personOppslag = personOppslag,
+        inntektOppslag = inntektOppslag,
+        dokArkiv = dokArkiv,
+        pdfGenerator = pdfGenerator,
+        oppgave = oppgave
+    )
 }
 
 internal object JwkProviderStub : JwkProvider {
