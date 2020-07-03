@@ -4,6 +4,8 @@ import no.nav.su.person.sts.StsClient
 import no.nav.su.person.sts.TokenOppslag
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
+import no.nav.su.se.bakover.client.oppgave.Oppgave
+import no.nav.su.se.bakover.client.oppgave.OppgaveClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.DokArkivStub
@@ -11,6 +13,7 @@ import no.nav.su.se.bakover.client.stubs.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.TokenOppslagStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {
@@ -20,7 +23,8 @@ interface HttpClientsBuilder {
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         tokenOppslag: TokenOppslag = HttpClientBuilder.token(),
         pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
-        dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag)
+        dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag),
+        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
     ): HttpClients
 }
 
@@ -30,7 +34,8 @@ data class HttpClients(
     val inntektOppslag: InntektOppslag,
     val tokenOppslag: TokenOppslag,
     val pdfGenerator: PdfGenerator,
-    val dokArkiv: DokArkiv
+    val dokArkiv: DokArkiv,
+    val oppgave: Oppgave
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
@@ -89,15 +94,24 @@ object HttpClientBuilder : HttpClientsBuilder {
         else -> DokArkivClient(baseUrl, tokenOppslag)
     }
 
+    internal fun oppgave(
+        baseUrl: String = env.getOrDefault("OPPGAVE_URL", "http://oppgave.default.svc.nais.local"),
+        tokenOppslag: TokenOppslag
+    ): Oppgave = when (env.isLocalOrRunningTests()) {
+        true -> OppgaveStub.also { logger.warn("********** Using stub for ${Oppgave::class.java} **********") }
+        else -> OppgaveClient(baseUrl, tokenOppslag)
+    }
+
     override fun build(
         azure: OAuth,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag,
         tokenOppslag: TokenOppslag,
         pdfGenerator: PdfGenerator,
-        dokArkiv: DokArkiv
+        dokArkiv: DokArkiv,
+        oppgave: Oppgave
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgave)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
