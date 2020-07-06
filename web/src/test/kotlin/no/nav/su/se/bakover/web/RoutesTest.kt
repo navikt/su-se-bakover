@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
@@ -54,6 +58,24 @@ class RoutesTest {
     }
 
     @Test
+    fun `should log X-Correlation-ID`() {
+        lateinit var applog: Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        withTestApplication({
+            testEnv()
+            testSusebakover()
+            applog = environment.log as Logger
+        }) {
+            applog.apply { addAppender(appender) }
+            handleRequest(Get, secureEndpoint) {
+                addHeader(HttpHeaders.Authorization, Jwt.create())
+            }
+        }
+        val logStatement = appender.list.first { it.message.contains("200 OK") }
+        assertTrue(logStatement.mdcPropertyMap.containsKey("X-Correlation-ID"))
+    }
+
+    @Test
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testEnv()
@@ -78,7 +100,10 @@ class RoutesTest {
         }) {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
-            assertEquals("${ContentType.Application.Json}; charset=${Charsets.UTF_8}", response.contentType().toString())
+            assertEquals(
+                "${ContentType.Application.Json}; charset=${Charsets.UTF_8}",
+                response.contentType().toString()
+            )
         }
     }
 }

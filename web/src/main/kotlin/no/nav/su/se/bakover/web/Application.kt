@@ -18,6 +18,7 @@ import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
 import io.ktor.features.callId
+import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
@@ -117,13 +118,13 @@ internal fun Application.susebakover(
     naisRoutes(collectorRegistry)
 
     setupAuthentication(
-            jwkConfig = jwkConfig,
-            jwkProvider = jwkProvider,
-            config = environment.config
+        jwkConfig = jwkConfig,
+        jwkProvider = jwkProvider,
+        config = environment.config
     )
     oauthRoutes(
-            frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
-            oAuth = httpClients.oauth
+        frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
+        oAuth = httpClients.oauth
     )
 
     install(Locations)
@@ -131,22 +132,24 @@ internal fun Application.susebakover(
     install(ContentNegotiation) {
         jackson {}
     }
+
+    install(CallId) {
+        header(XCorrelationId)
+        generate(17)
+        verify { it.isNotEmpty() }
+    }
+    install(CallLogging) {
+        level = Level.INFO
+        filter { call ->
+            listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
+                call.request.path().startsWith(it)
+            }
+        }
+        callIdMdc("X-Correlation-ID")
+    }
+
     routing {
         authenticate("jwt") {
-            install(CallId) {
-                header(XCorrelationId)
-                generate(17)
-                verify { it.isNotEmpty() }
-            }
-            install(CallLogging) {
-                level = Level.INFO
-                filter { call ->
-                    listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
-                        call.request.path().startsWith(it)
-                    }
-                }
-            }
-
             get(path = "/authenticated") {
                 val principal = (call.authentication.principal as JWTPrincipal).payload
                 call.respond("""
@@ -172,7 +175,6 @@ fun Application.fromEnvironment(path: String): String = environment.config.prope
 
 @KtorExperimentalAPI
 internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
-internal fun ApplicationConfig.getProperty(key: String, default: String): String = propertyOrNull(key)?.getString() ?: default
 
 internal fun ApplicationCall.audit(msg: String) {
     val payload = (this.authentication.principal as JWTPrincipal).payload
@@ -180,11 +182,11 @@ internal fun ApplicationCall.audit(msg: String) {
 }
 
 internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
-        call.parameters[name]?.let {
-            it.toLongOrNull()?.let {
-                Either.Right(it)
-            } ?: Either.Left("$name er ikke et tall")
-        } ?: Either.Left("$name er ikke et parameter")
+    call.parameters[name]?.let {
+        it.toLongOrNull()?.let {
+            Either.Right(it)
+        } ?: Either.Left("$name er ikke et tall")
+    } ?: Either.Left("$name er ikke et parameter")
 
 internal fun byggVersion(): String {
     val versionProps = Properties()
@@ -194,8 +196,8 @@ internal fun byggVersion(): String {
 
 suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
     val callContext = CallContext(
-            security = SecurityContext(token = call.authHeader()),
-            mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
+        security = SecurityContext(token = call.authHeader()),
+        mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
     )
     val coroutineContext = Dispatchers.Default + callContext.toCoroutineContext()
     coroutineScope { launch(context = coroutineContext, block = block).join() }
