@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 
 internal class InntektClientTest {
 
@@ -60,7 +60,7 @@ internal class InntektClientTest {
 
     @BeforeEach
     fun setup() {
-        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf("X-Correlation-ID" to "some UUID")))
+        MDC.put("X-Correlation-ID", "some UUID")
         wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
                 .willReturn(WireMock.okJson("""{}""")))
     }

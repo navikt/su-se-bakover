@@ -10,7 +10,6 @@ import io.ktor.routing.Route
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.svar
@@ -19,7 +18,6 @@ import no.nav.su.se.bakover.web.svar
 @KtorExperimentalAPI
 internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
     get<InntektPath> { inntektPath ->
-        launchWithContext(call) {
             call.audit("slår opp inntekt for person: ${inntektPath.ident}")
             val resultat = oppslag.inntekt(
                     ident = Fnr(inntektPath.ident),
@@ -28,7 +26,6 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
                     tomDato = inntektPath.tomDato
             )
             call.svar(Resultat.from(resultat))
-        }
     }
 }
 

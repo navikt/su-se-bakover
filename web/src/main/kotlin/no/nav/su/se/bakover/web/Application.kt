@@ -17,7 +17,6 @@ import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
-import io.ktor.features.callId
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.HttpHeaders.Authorization
@@ -36,16 +35,8 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asContextElement
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
-import no.nav.su.se.bakover.common.CallContext
-import no.nav.su.se.bakover.common.CallContext.MdcContext
-import no.nav.su.se.bakover.common.CallContext.SecurityContext
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -68,7 +59,6 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.Properties
-import kotlin.coroutines.CoroutineContext
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
@@ -146,6 +136,7 @@ internal fun Application.susebakover(
             }
         }
         callIdMdc("X-Correlation-ID")
+
         mdc("Authorization") { it.authHeader() }
     }
 
@@ -193,21 +184,6 @@ internal fun byggVersion(): String {
     val versionProps = Properties()
     versionProps.load(Application::class.java.getResourceAsStream("/VERSION"))
     return versionProps.getProperty("commit.sha", "ikke satt")
-}
-
-suspend fun launchWithContext(call: ApplicationCall, block: suspend CoroutineScope.() -> Unit) {
-    val callContext = CallContext(
-        security = SecurityContext(token = call.authHeader()),
-        mdc = MdcContext(mapOf(XCorrelationId to call.callId.toString()))
-    )
-    val coroutineContext = Dispatchers.Default + callContext.toCoroutineContext()
-    coroutineScope { launch(context = coroutineContext, block = block).join() }
-}
-
-fun CallContext.toCoroutineContext(): CoroutineContext {
-    val security = securityContextElement()
-    val mdc = mdcContextElement()
-    return security.first.asContextElement(security.second) + mdc.first.asContextElement(mdc.second)
 }
 
 fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()

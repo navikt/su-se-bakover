@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.client.person
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.azure.OAuth
-import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 private const val suPersonIdentLabel = "ident"
 
@@ -20,10 +20,10 @@ internal class SuPersonClient(
     private val personResource = "$suPersonBaseUrl/person"
 
     override fun person(ident: Fnr): ClientResponse {
-        val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
+        val onBehalfOfToken = OAuth.onBehalfOFToken(MDC.get("Authorization"), suPersonClientId)
         val (_, response, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
             .header("Authorization", "Bearer $onBehalfOfToken")
-            .header("X-Correlation-ID", CallContext.correlationId())
+            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .responseString()
         return result.fold(
             { ClientResponse(response.statusCode, it) },
@@ -37,10 +37,10 @@ internal class SuPersonClient(
     }
 
     override fun aktørId(ident: Fnr): String {
-        val onBehalfOfToken = OAuth.onBehalfOFToken(CallContext.authentication(), suPersonClientId)
+        val onBehalfOfToken = OAuth.onBehalfOFToken(MDC.get("Authorization"), suPersonClientId)
         val (_, _, result) = personResource.httpGet(listOf(suPersonIdentLabel to ident.toString()))
             .header("Authorization", "Bearer $onBehalfOfToken")
-            .header("X-Correlation-ID", CallContext.correlationId())
+            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .responseString()
         return result.fold(
             { JSONObject(it).getString("aktorId") },

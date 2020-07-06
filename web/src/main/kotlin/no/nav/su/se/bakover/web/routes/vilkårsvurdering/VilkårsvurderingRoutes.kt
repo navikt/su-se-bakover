@@ -8,7 +8,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
@@ -21,7 +20,6 @@ internal const val vilkårsvurderingPath = "$behandlingPath/{behandlingId}/vilka
 internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
 
     patch(vilkårsvurderingPath) {
-        launchWithContext(call) {
             Long.lesParameter(call, "behandlingId").fold(
                 ifLeft = { call.svar(HttpStatusCode.BadRequest.message(it)) },
                 ifRight = { id ->
@@ -36,6 +34,5 @@ internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
                     }
                 }
             )
-        }
     }
 }

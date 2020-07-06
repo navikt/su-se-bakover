@@ -26,15 +26,14 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.io.ByteReadChannel
-import kotlinx.coroutines.runBlocking
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 import java.util.Collections.synchronizedList
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -44,31 +43,6 @@ import kotlin.test.assertTrue
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 internal class CallContextTest {
-
-    @Test
-    fun `should set and get context`() {
-        CallContext(CallContext.SecurityContext("token"), CallContext.MdcContext(mapOf(XCorrelationId to "value")))
-        assertEquals("token", CallContext.authentication())
-        assertEquals("value", CallContext.correlationId())
-    }
-
-    @Test
-    fun `should preserve different contexts for different scopes`() {
-        runBlocking {
-            launchWithContext(callWithAuth("outer", DEFAULT_CALL_ID)) {
-                launchWithContext(callWithAuth("inner", DEFAULT_CALL_ID)) {
-                    assertEquals("inner", CallContext.authentication())
-                    assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
-                    launchWithContext(callWithAuth("furtherin", DEFAULT_CALL_ID)) {
-                        assertEquals("furtherin", CallContext.authentication())
-                        assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
-                    }
-                }
-                assertEquals("outer", CallContext.authentication())
-                assertEquals(DEFAULT_CALL_ID, CallContext.correlationId())
-            }
-        }
-    }
 
     @Test
     fun `parallel requests should preserve context`() {
@@ -82,7 +56,7 @@ internal class CallContextTest {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 
                 override fun aktørId(ident: Fnr): String =
-                    "aktørid".also { downstreamCorrelationIds.add(CallContext.correlationId()) }
+                    "aktørid".also { downstreamCorrelationIds.add(MDC.get("X-Correlation-ID")) }
             }))
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, Jwt.create()) }
@@ -99,7 +73,7 @@ internal class CallContextTest {
                     it.request.header(XCorrelationId),
                     it.response.headers[XCorrelationId]
                 )
-            } // Assert responses contain input correlation id
+            }
         }
     }
 

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.launchWithContext
 import no.nav.su.se.bakover.web.lesParameter
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.jsonBody
@@ -24,12 +23,10 @@ internal fun Route.personRoutes(
     sakRepo: ObjectRepo
 ) {
     get("$personPath/{fnr}") {
-        launchWithContext(call) {
             Fnr.lesParameter(call).let {
                 call.audit("Gjør oppslag på person: $it")
                 call.svar(Resultat.from(oppslag.person(it)))
             }
-        }
     }
 
     get("$personPath/{fnr}/sak") {

@@ -4,10 +4,10 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.common.CallContext
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 internal class SuInntektClient(
     suInntektBaseUrl: String,
@@ -37,7 +37,7 @@ internal class SuInntektClient(
                 )
         )
                 .header("Authorization", "Bearer $onBehalfOfToken")
-                .header("X-Correlation-ID", CallContext.correlationId())
+                .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .responseString()
 

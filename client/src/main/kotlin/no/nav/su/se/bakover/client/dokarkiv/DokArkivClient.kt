@@ -9,9 +9,9 @@ import no.nav.su.meldinger.kafka.soknad.Personopplysninger
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.CallContext
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.util.Base64
 
 internal val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
@@ -30,7 +30,7 @@ internal class DokArkivClient(
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", CallContext.correlationId())
+            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .body(
                 """
                     {

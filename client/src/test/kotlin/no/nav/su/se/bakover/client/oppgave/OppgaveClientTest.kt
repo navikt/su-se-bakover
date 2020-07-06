@@ -9,12 +9,12 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.setCallContextForTests
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -113,7 +113,7 @@ internal class OppgaveClientTest {
         @JvmStatic
         fun start() {
             wireMockServer.start()
-            setCallContextForTests()
+            MDC.put("X-Correlation-ID", "correlationId")
         }
 
         @AfterAll
