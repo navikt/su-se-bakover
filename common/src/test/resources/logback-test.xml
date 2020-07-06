@@ -3,6 +3,6 @@
     <include file="../web/src/main/resources/logbackConfig.xml"/>
 
     <root level="INFO">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDOUT_JSON"/>
     </root>
 </configuration>

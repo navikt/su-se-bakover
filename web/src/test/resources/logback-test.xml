@@ -2,13 +2,10 @@
 <configuration>
     <include file="src/main/resources/logbackConfig.xml"/>
 
+    <logger name="com.zaxxer.hikari" level="ERROR"/>
+    <logger name="org.flywaydb" level="ERROR"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT_JSON"/>
     </root>
-    <logger name="com.zaxxer.hikari" level="ERROR">
-        <appender-ref ref="STDOUT_JSON" />
-    </logger>
-    <logger name="org.flywaydb" level="ERROR">
-        <appender-ref ref="STDOUT_JSON" />
-    </logger>
 </configuration>

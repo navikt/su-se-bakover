@@ -22,13 +22,9 @@
     <logger name="sikkerLogg" level="INFO" additivity="false">
         <appender-ref ref="secureAppender"/>
     </logger>
-    <logger name="com.zaxxer.hikari" level="INFO">
-        <appender-ref ref="STDOUT_JSON" />
-    </logger>
 
-    <logger name="no.nav" level="DEBUG">
-        <appender-ref ref="STDOUT_JSON" />
-    </logger>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="no.nav" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT_JSON"/>
