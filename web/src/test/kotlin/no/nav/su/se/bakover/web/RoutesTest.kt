@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.read.ListAppender
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -19,7 +20,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -58,9 +61,10 @@ class RoutesTest {
     }
 
     @Test
-    fun `should log X-Correlation-ID`() {
-        lateinit var applog: Logger
+    fun `logs appropriate MDC values`() {
+        val rootAppender = ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
         val appender = ListAppender<ILoggingEvent>().apply { start() }
+        lateinit var applog: Logger
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -72,7 +76,11 @@ class RoutesTest {
             }
         }
         val logStatement = appender.list.first { it.message.contains("200 OK") }
+        val logbackFormatted = String(rootAppender.encoder.encode(logStatement))
         assertTrue(logStatement.mdcPropertyMap.containsKey("X-Correlation-ID"))
+        assertTrue(logStatement.mdcPropertyMap.containsKey("Authorization"))
+        assertTrue(logbackFormatted.contains("X-Correlation-ID"))
+        assertFalse(logbackFormatted.contains("Authorization"))
     }
 
     @Test

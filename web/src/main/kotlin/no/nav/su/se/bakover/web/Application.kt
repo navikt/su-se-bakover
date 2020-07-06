@@ -146,6 +146,7 @@ internal fun Application.susebakover(
             }
         }
         callIdMdc("X-Correlation-ID")
+        mdc("Authorization") { it.authHeader() }
     }
 
     routing {
