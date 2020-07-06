@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include file="logbackConfig.xml"/>
-    <include file="web/src/main/resources/logbackConfig.xml"/>
+    <include resource="logbackConfig.xml"/>
 </configuration>
