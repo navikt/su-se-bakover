@@ -11,12 +11,15 @@ import io.ktor.application.log
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.features.CORS
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
+import io.ktor.features.XForwardedHeaderSupport
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.HttpHeaders.Authorization
@@ -41,12 +44,10 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.web.routes.IS_ALIVE_PATH
-import no.nav.su.se.bakover.web.routes.IS_READY_PATH
-import no.nav.su.se.bakover.web.routes.METRICS_PATH
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
@@ -68,7 +69,14 @@ internal fun Application.susebakover(
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
     httpClients: HttpClients = HttpClientBuilder.build(),
     jwkConfig: JSONObject = httpClients.oauth.jwkConfig(),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build()
+    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
+    authenticationHttpClient: HttpClient = HttpClient(Apache) {
+        engine {
+            customizeClient {
+                useSystemProperties()
+            }
+        }
+    }
 ) {
 
     val søknadRoutesMediator = SøknadRouteMediator(
@@ -94,11 +102,11 @@ internal fun Application.susebakover(
 
     install(StatusPages) {
         exception<UgyldigFnrException> {
-            log.error(it.toString())
+            log.error("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, it)
         }
         exception<Throwable> {
-            log.error(it.toString())
+            log.error("Got Throwable with message=${it.message}", it)
             call.respond(HttpStatusCode.InternalServerError, it)
         }
     }
@@ -110,7 +118,8 @@ internal fun Application.susebakover(
     setupAuthentication(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
-        config = environment.config
+        config = environment.config,
+        httpClient = authenticationHttpClient
     )
     oauthRoutes(
         frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
@@ -131,8 +140,9 @@ internal fun Application.susebakover(
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
-            listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH).none {
-                call.request.path().startsWith(it)
+            val path = call.request.path()
+            (naisPaths + AUTH_CALLBACK_PATH).none {
+                path.startsWith(it)
             }
         }
         callIdMdc("X-Correlation-ID")
@@ -140,15 +150,20 @@ internal fun Application.susebakover(
         mdc("Authorization") { it.authHeader() }
     }
 
+    install(XForwardedHeaderSupport)
+
     routing {
         authenticate("jwt") {
             get(path = "/authenticated") {
                 val principal = (call.authentication.principal as JWTPrincipal).payload
-                call.respond("""
+                call.respond(
+                    """
                     {
-                        "data": "Congrats ${principal.getClaim("name").asString()}, you are successfully authenticated with a JWT token"
+                        "data": "Congrats ${principal.getClaim("name")
+                        .asString()}, you are successfully authenticated with a JWT token"
                     }
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
 
             personRoutes(httpClients.personOppslag, databaseRepo)

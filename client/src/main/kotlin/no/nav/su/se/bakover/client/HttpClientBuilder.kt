@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.isLocalOrRunningTests
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {

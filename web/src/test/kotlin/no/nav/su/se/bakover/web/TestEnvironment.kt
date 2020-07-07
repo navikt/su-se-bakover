@@ -3,9 +3,14 @@ package no.nav.su.se.bakover.web
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
 import io.ktor.config.MapApplicationConfig
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.headersOf
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
@@ -53,15 +58,33 @@ internal fun Application.testEnv() {
     }
 }
 
+fun authenticationHttpClient() = HttpClient(MockEngine) {
+    followRedirects = false
+    engine {
+        addHandler {
+            val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Text.Plain.toString()))
+            //language=JSON
+            respond("""
+                {
+                    "access_token":"access",
+                    "refresh_token":"refresh"
+                }
+            """.trimIndent(), headers = responseHeaders)
+        }
+    }
+}
+
 internal fun Application.testSusebakover(
     httpClients: HttpClients = buildClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
-    databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance()),
+    authenticationHttpClient: HttpClient = authenticationHttpClient()
 ) {
     return susebakover(
         databaseRepo = databaseRepo,
         httpClients = httpClients,
-        jwkProvider = jwkProvider
+        jwkProvider = jwkProvider,
+        authenticationHttpClient = authenticationHttpClient
     )
 }
 
@@ -108,7 +131,8 @@ internal class OauthStub : OAuth {
             {
                 "jwks_uri": "http://localhost/keys",
                 "token_endpoint": "http://localhost/token",
-                "issuer": "azure"
+                "issuer": "azure",
+                "authorization_endpoint": "http://localhost/authorize"
             }
         """.trimIndent()
     )

@@ -21,9 +21,11 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 
-val IS_ALIVE_PATH = "/isalive"
-val IS_READY_PATH = "/isready"
-val METRICS_PATH = "/metrics"
+private const val IS_ALIVE_PATH = "/isalive"
+private const val IS_READY_PATH = "/isready"
+private const val METRICS_PATH = "/metrics"
+
+internal val naisPaths = listOf(IS_ALIVE_PATH, IS_READY_PATH, METRICS_PATH)
 
 internal fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     routing {

@@ -16,7 +16,6 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.auth.oauth
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
@@ -40,17 +39,12 @@ import java.util.Date
 internal fun Application.setupAuthentication(
     jwkConfig: JSONObject,
     jwkProvider: JwkProvider,
-    config: ApplicationConfig
+    config: ApplicationConfig,
+    httpClient: HttpClient
 ) {
     install(Authentication) {
         oauth("azure") {
-            client = HttpClient(Apache) {
-                engine {
-                    customizeClient {
-                        useSystemProperties()
-                    }
-                }
-            }
+            client = httpClient
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                         name = "azure",
@@ -111,10 +105,12 @@ private fun getExpiry(request: ApplicationRequest) =
 
 private fun tokenHasExpired(date: Date) = date.before(Date.from(Instant.now()))
 
-private fun Application.errorMessage(date: Date) =
+private fun errorMessage(date: Date) =
         if (tokenHasExpired(date)) {
             "The token expired at $date"
         } else ""
+
+internal const val AUTH_CALLBACK_PATH = "/callback"
 
 internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) {
     routing {
@@ -122,7 +118,7 @@ internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) 
             get("/login") {
                 // Initiate login sequence
             }
-            get("/callback") {
+            get(AUTH_CALLBACK_PATH) {
                 val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
                 call.respondRedirect("$frontendRedirectUrl#${tokenResponse.accessToken}#${tokenResponse.refreshToken}")
             }

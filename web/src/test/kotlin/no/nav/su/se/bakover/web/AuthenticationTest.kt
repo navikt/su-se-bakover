@@ -1,8 +1,14 @@
 package no.nav.su.se.bakover.web
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
+import io.ktor.http.HttpStatusCode.Companion.Found
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -84,6 +90,28 @@ internal class AuthenticationTest {
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
+        }
+    }
+
+    @Test
+    fun `skal ikke logge access eller refresh token ved redirect til frontend`() {
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        lateinit var applog: Logger
+        withTestApplication({
+            testEnv()
+            testSusebakover()
+            applog = environment.log as Logger
+        }) {
+            applog.apply { addAppender(appender) }
+            defaultRequest(Get, "/callback?code=code&state=state&session_state=session_state") {
+            }
+        }.apply {
+            appender.list.forEach {
+                it.message shouldNotContain "302 Found"
+                it.message shouldNotContain "callback"
+            }
+            response.status() shouldBe Found
+            response.headers["Location"] shouldBe "auth/complete#access#refresh"
         }
     }
 
