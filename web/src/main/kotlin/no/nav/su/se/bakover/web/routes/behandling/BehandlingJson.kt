@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 import no.nav.su.se.bakover.web.serialize
 
 internal data class BehandlingJson(
-    val id: Long,
+    val id: String,
     val vilkårsvurderinger: VilkårsvurderingJson
 )
 
 internal fun BehandlingDto.toJson() = BehandlingJson(
-    id = id,
+    id = id.toString(),
     vilkårsvurderinger = vilkårsvurderinger.toJson()
 )
 

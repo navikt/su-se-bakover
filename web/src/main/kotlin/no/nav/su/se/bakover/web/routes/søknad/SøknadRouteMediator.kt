@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakEventObserver
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 internal class SøknadRouteMediator(
     private val repo: ObjectRepo,
@@ -37,7 +38,7 @@ internal class SøknadRouteMediator(
             { pdfByteArray ->
                 dokArkiv.opprettJournalpost(
                     nySøknad = nySøknadEvent.søknadInnhold,
-                    sakId = nySøknadEvent.sakId,
+                    sakId = nySøknadEvent.sakId.toString(),
                     pdf = pdfByteArray
                 ).fold(
                     {
@@ -47,7 +48,7 @@ internal class SøknadRouteMediator(
                         val aktørId = personOppslag.aktørId(Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr))
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
-                            sakId = nySøknadEvent.sakId,
+                            sakId = nySøknadEvent.sakId.toString(),
                             aktørId = aktørId
                         ).mapLeft {
                             log.error("$it")
@@ -58,5 +59,5 @@ internal class SøknadRouteMediator(
         )
     }
 
-    fun hentSøknad(id: Long) = repo.hentSøknad(id)
+    fun hentSøknad(id: UUID) = repo.hentSøknad(id)
 }

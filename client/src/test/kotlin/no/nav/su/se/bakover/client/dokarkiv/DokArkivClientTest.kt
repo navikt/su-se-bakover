@@ -92,7 +92,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1).shouldBe(
+        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, "1").shouldBe(
             "1".right()
         )
     }
@@ -109,7 +109,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1) shouldBe
+        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, "1") shouldBe
             ClientError(403, "Feil ved journalføring av søknad.").left()
     }
 

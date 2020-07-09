@@ -8,21 +8,26 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class BehandlingJsonTest {
+
+    private val behandlingId = UUID.randomUUID()
+    private val vv1id = UUID.randomUUID()
+    private val vv2id = UUID.randomUUID()
 
     //language=JSON
     val behandlingJsonString = """
             {
-                "id": 1,
+                "id": "$behandlingId",
                 "vilkårsvurderinger": {
                   "UFØRHET": {
-                    "id":1,
+                    "id": "$vv1id",
                     "begrunnelse":"uførhetBegrunnelse",
                     "status":"OK"
                    },
                    "FORMUE": {
-                    "id":2,
+                    "id":"$vv2id",
                     "begrunnelse":"formueBegrunnelse",
                     "status":"IKKE_VURDERT"
                    }
@@ -31,10 +36,20 @@ internal class BehandlingJsonTest {
         """.trimIndent()
 
     val behandling = Behandling(
-        id = 1,
+        id = behandlingId,
         vilkårsvurderinger = mutableListOf(
-            Vilkårsvurdering(1, Vilkår.UFØRHET, "uførhetBegrunnelse", Vilkårsvurdering.Status.OK),
-            Vilkårsvurdering(2, Vilkår.FORMUE, "formueBegrunnelse", Vilkårsvurdering.Status.IKKE_VURDERT)
+            Vilkårsvurdering(
+                id = vv1id,
+                vilkår = Vilkår.UFØRHET,
+                begrunnelse = "uførhetBegrunnelse",
+                status = Vilkårsvurdering.Status.OK
+            ),
+            Vilkårsvurdering(
+                id = vv2id,
+                vilkår = Vilkår.FORMUE,
+                begrunnelse = "formueBegrunnelse",
+                status = Vilkårsvurdering.Status.IKKE_VURDERT
+            )
         )
     )
 

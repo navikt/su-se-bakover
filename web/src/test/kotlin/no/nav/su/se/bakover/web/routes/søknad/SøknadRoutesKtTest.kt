@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.json.shouldMatchJson
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.string.shouldMatch
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
@@ -50,18 +49,18 @@ internal class SøknadRoutesKtTest {
             }.response
 
             val sakDto = objectMapper.readValue<SakJson>(createResponse.content!!)
-            val søknad = sakDto.stønadsperioder.first().søknad
+            val søknad = sakDto.søknader.first()
             defaultRequest(Get, "$søknadPath/${søknad.id}").apply {
                 assertEquals(OK, response.status())
-                soknadJson(fnr) shouldMatchJson søknad.json.toSøknadInnhold().toJson()
+                soknadJson(fnr) shouldMatchJson søknad.søknadInnhold.toSøknadInnhold().toJson()
             }
         }
     }
 
     @Test
-    fun `knytter søknad til sak og stønadsperiode ved innsending`() {
+    fun `knytter søknad til sak ved innsending`() {
         val fnr = Fnr("01010100004")
-        var sakNr: Long
+        var sakNr: String
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -77,8 +76,7 @@ internal class SøknadRoutesKtTest {
             defaultRequest(Get, "$sakPath/$sakNr").apply {
                 assertEquals(OK, response.status())
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
-                sakJson.stønadsperioder shouldHaveSize 1
-                sakJson.stønadsperioder.first().søknad.json.personopplysninger.fnr shouldMatch fnr.toString()
+                sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
             }
         }
     }

@@ -8,6 +8,6 @@ interface DokArkiv {
     fun opprettJournalpost(
         nySøknad: SøknadInnhold,
         pdf: ByteArray,
-        sakId: Long
+        sakId: String
     ): Either<ClientError, String>
 }

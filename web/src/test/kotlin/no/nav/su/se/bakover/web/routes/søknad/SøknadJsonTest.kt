@@ -7,16 +7,21 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class SøknadJsonTest {
 
-    //language=JSON
-    companion object {
+    private val søknadId = UUID.randomUUID()
+    private val søknad = Søknad(
+        id = søknadId,
+        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    )
 
-        val søknadJsonString = """
+    //language=JSON
+    private val søknadJsonString = """
         {
-          "id":1,
-          "json": {
+          "id": "$søknadId",
+          "søknadInnhold": {
             "uførevedtak":{
                 "harUførevedtak":true
             },
@@ -112,12 +117,6 @@ internal class SøknadJsonTest {
           }
         }
     """.trimIndent()
-    }
-
-    val søknad = Søknad(
-        id = 1,
-        søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    )
 
     @Test
     fun `should serialize to json string`() {

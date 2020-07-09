@@ -36,7 +36,7 @@ internal class VilkårsvurderingRoutesKtTest {
             val oppdatering =
                 mapOf(
                     vilkårsvurdering.vilkår.name to VilkårsvurderingData(
-                        id = vilkårsvurdering.id,
+                        id = vilkårsvurdering.id.toString(),
                         begrunnelse = "Dette kravet er ok",
                         status = Vilkårsvurdering.Status.OK.name
                     )
@@ -56,7 +56,7 @@ internal class VilkårsvurderingRoutesKtTest {
 
     private fun setupForBehandling(): Behandling {
         val sak = repo.opprettSak(FnrGenerator.random())
-        sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        return sak.sisteStønadsperiode().nyBehandling()
+        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        return sak.opprettSøknadsbehandling(søknad.toDto().id)
     }
 }

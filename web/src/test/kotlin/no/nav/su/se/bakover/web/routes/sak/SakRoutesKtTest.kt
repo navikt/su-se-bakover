@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import kotlin.test.assertEquals
 
 @KtorExperimentalAPI
@@ -45,7 +46,7 @@ internal class SakRoutesKtTest {
             testEnv()
             testSusebakover()
         })) {
-            defaultRequest(Get, "$sakPath/999").apply {
+            defaultRequest(Get, "$sakPath/${UUID.randomUUID()}").apply {
                 assertEquals(NotFound, response.status())
             }
 

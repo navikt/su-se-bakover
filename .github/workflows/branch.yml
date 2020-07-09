@@ -2,7 +2,7 @@ name: Bygg og deploy branch til dev
 on:
   push:
     branches:
-      - client_module
+      - domain_refactor
 
 env:
   IMAGE: docker.pkg.github.com/${{ github.repository }}/su-se-bakover:${{ github.sha }}

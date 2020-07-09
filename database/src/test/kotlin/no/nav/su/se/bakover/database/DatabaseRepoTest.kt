@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Stønadsperiode
+import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class DatabaseRepoTest {
     private val repo = DatabaseRepo(EmbeddedDatabase.instance())
@@ -36,7 +37,7 @@ internal class DatabaseRepoTest {
             val fromFunction = behandling.oppdaterVilkårsvurderinger(
                     listOf(
                         Vilkårsvurdering(
-                            id = 1,
+                            id = beforeUpdate.id,
                             vilkår = Vilkår.UFØRHET,
                             begrunnelse = "begrunnelse",
                             status = Vilkårsvurdering.Status.IKKE_OK
@@ -48,10 +49,12 @@ internal class DatabaseRepoTest {
 
             assertNotEquals(beforeUpdate, fromFunction)
             assertNotEquals(beforeUpdate, fromRepo)
-            assertEquals(fromFunction, fromRepo)
             assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromFunction.status.name)
             assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromRepo.status.name)
+            assertEquals("begrunnelse", fromFunction.begrunnelse)
+            assertEquals("begrunnelse", fromRepo.begrunnelse)
             assertEquals(fromFunction.id, fromRepo.id)
+            assertEquals(fromFunction.vilkår, fromRepo.vilkår)
         }
     }
 
@@ -59,20 +62,19 @@ internal class DatabaseRepoTest {
     fun `unknown entities`() {
         withMigratedDb {
             assertNull(repo.hentSak(FnrGenerator.random()))
-            assertNull(repo.hentSak(Long.MAX_VALUE))
-            assertNull(repo.hentStønadsperiode(Long.MAX_VALUE))
-            assertTrue(repo.hentStønadsperioder(Long.MAX_VALUE).isEmpty())
-            assertNull(repo.hentVilkårsvurdering(Long.MAX_VALUE))
-            assertTrue(repo.hentVilkårsvurderinger(Long.MAX_VALUE).isEmpty())
-            assertNull(repo.hentBehandling(Long.MAX_VALUE))
-            assertNull(repo.hentSøknad(Long.MAX_VALUE))
+            assertNull(repo.hentSak(UUID.randomUUID()))
+            assertNull(repo.hentVilkårsvurdering(UUID.randomUUID()))
+            assertTrue(repo.hentVilkårsvurderinger(UUID.randomUUID()).isEmpty())
+            assertNull(repo.hentBehandling(UUID.randomUUID()))
+            assertNull(repo.hentSøknad(UUID.randomUUID()))
         }
     }
 
     private fun enSak() =
         repo.opprettSak(FnrGenerator.random()).also { it.nySøknad(SøknadInnholdTestdataBuilder.build()) }
 
-    private fun enStønadsperiode(): Stønadsperiode = enSak().sisteStønadsperiode()
-
-    private fun enBehandling() = enStønadsperiode().nyBehandling()
+    private fun enBehandling(): Behandling {
+        val sak = enSak()
+        return sak.opprettSøknadsbehandling(sak.toDto().søknader.first().id)
+    }
 }

@@ -9,12 +9,11 @@ import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.lesParameter
+import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodePath
 import no.nav.su.se.bakover.web.svar
 
-internal const val behandlingPath = "$stønadsperiodePath/{stønadsperiodeId}/behandlinger"
+internal const val behandlingPath = "/{stønadsperiodeId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
@@ -22,7 +21,7 @@ internal fun Route.behandlingRoutes(
 ) {
 
     get("$behandlingPath/{behandlingId}") {
-        Long.lesParameter(call, "behandlingId").fold(
+        call.lesUUID("behandlingId").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { id ->
                 call.audit("Henter behandling med id: $id")

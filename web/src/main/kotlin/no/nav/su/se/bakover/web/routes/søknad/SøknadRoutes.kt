@@ -14,7 +14,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.lesParameter
+import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.jsonBody
 import no.nav.su.se.bakover.web.svar
@@ -28,7 +28,7 @@ internal fun Route.søknadRoutes(
 ) {
 
     get("$søknadPath/{soknadId}") {
-        Long.lesParameter(call, "soknadId").fold(
+        call.lesUUID("soknadId").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { id ->
                 call.audit("Henter søknad med id: $id")
@@ -41,13 +41,13 @@ internal fun Route.søknadRoutes(
     }
 
     post(søknadPath) {
-            call.receiveTextUTF8().let { json ->
-                SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
-                    Fnr(søknadInnhold.personopplysninger.fnr).let {
-                        call.audit("Lagrer søknad for person: $it")
-                        call.svar(Created.jsonBody(mediator.nySøknad(søknadInnhold)))
-                    }
+        call.receiveTextUTF8().let { json ->
+            SøknadInnhold.fromJson(JSONObject(json)).let { søknadInnhold ->
+                Fnr(søknadInnhold.personopplysninger.fnr).let {
+                    call.audit("Lagrer søknad for person: $it")
+                    call.svar(Created.jsonBody(mediator.nySøknad(søknadInnhold)))
                 }
+            }
         }
     }
 }

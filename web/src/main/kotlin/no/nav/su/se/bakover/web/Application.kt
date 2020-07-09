@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
-import no.nav.su.se.bakover.web.routes.stønadsperiode.stønadsperiodeRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
@@ -60,6 +59,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.Properties
+import java.util.UUID
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
@@ -171,7 +171,6 @@ internal fun Application.susebakover(
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(databaseRepo)
-            stønadsperiodeRoutes(databaseRepo)
             vilkårsvurderingRoutes(databaseRepo)
         }
     }
@@ -194,6 +193,11 @@ internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): E
             Either.Right(it)
         } ?: Either.Left("$name er ikke et tall")
     } ?: Either.Left("$name er ikke et parameter")
+
+internal suspend fun ApplicationCall.lesUUID(param: String) =
+    this.parameters[param]?.let {
+        Either.catch { UUID.fromString(it) }.mapLeft { "$param er ikke en gyldig UUID" }
+    } ?: Either.Left("$param er ikke et parameter")
 
 internal fun byggVersion(): String {
     val versionProps = Properties()

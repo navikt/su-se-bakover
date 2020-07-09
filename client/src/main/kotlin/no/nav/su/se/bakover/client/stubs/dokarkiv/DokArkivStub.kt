@@ -10,7 +10,7 @@ object DokArkivStub : DokArkiv {
     override fun opprettJournalpost(
         nySøknad: SøknadInnhold,
         pdf: ByteArray,
-        sakId: Long
+        sakId: String
     ): Either<ClientError, String> = """
                         {
                           "journalpostId": "1",

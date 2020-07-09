@@ -37,7 +37,7 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(HttpMethod.Get, "$behandlingPath/$behandlingsId").apply {
                 val behandlingJson = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandlingJson shouldBe BehandlingJson(
-                    id = behandlingsId,
+                    id = behandlingsId.toString(),
                     vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }.toJson()
                 )
             }
@@ -46,7 +46,7 @@ internal class BehandlingRoutesKtTest {
 
     private fun setupForBehandling(): Behandling {
         val sak = repo.opprettSak(FnrGenerator.random())
-        sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        return sak.sisteStønadsperiode().nyBehandling()
+        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        return sak.opprettSøknadsbehandling(søknad.toDto().id)
     }
 }

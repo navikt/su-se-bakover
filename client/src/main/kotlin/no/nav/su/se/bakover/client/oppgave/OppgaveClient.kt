@@ -24,7 +24,7 @@ internal class OppgaveClient(
 ) : Oppgave {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(journalpostId: String, sakId: Long, aktørId: String): Either<ClientError, Long> {
+    override fun opprettOppgave(journalpostId: String, sakId: String, aktørId: String): Either<ClientError, Long> {
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")

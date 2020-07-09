@@ -24,7 +24,7 @@ internal class DokArkivClient(
     override fun opprettJournalpost(
         søknadInnhold: SøknadInnhold,
         pdf: ByteArray,
-        sakId: Long
+        sakId: String
     ): Either<ClientError, String> {
         val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token())

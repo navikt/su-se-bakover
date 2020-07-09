@@ -69,7 +69,7 @@ internal class OppgaveClientTest {
         )
         client.opprettOppgave(
             nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId.toLong(),
+            nySøknadMedJournalId.sakId,
             nySøknadMedJournalId.aktørId
         ).rightValue() shouldBe 111
     }
@@ -80,7 +80,7 @@ internal class OppgaveClientTest {
 
         client.opprettOppgave(
             nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId.toLong(),
+            nySøknadMedJournalId.sakId,
             nySøknadMedJournalId.aktørId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
     }
 

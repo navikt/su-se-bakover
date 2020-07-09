@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.web.objectMapper
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 
 internal data class SøknadJson(
-    val id: Long,
-    val json: SøknadInnholdJson
+    val id: String,
+    val søknadInnhold: SøknadInnholdJson
 )
 
 internal fun SøknadDto.toJson() = SøknadJson(
-    id = id,
-    json = søknadInnhold.toSøknadInnholdJson()
+    id = id.toString(),
+    søknadInnhold = søknadInnhold.toSøknadInnholdJson()
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<SøknadDto>) =

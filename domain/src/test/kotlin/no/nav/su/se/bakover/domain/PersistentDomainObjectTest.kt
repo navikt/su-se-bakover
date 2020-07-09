@@ -1,27 +1,27 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import java.util.UUID
 
 internal class PersistentDomainObjectTest {
     @Test
     fun `throw exception if multiple persistence observers assigned`() {
-        val sak = Sak(1L, Fnr("12345678910"), mutableListOf())
+        val sak = Sak(fnr = Fnr("12345678910"))
         assertDoesNotThrow { sak.addObserver(someObserver) }
         assertThrows<PersistenceObserverException> { sak.addObserver(someObserver) }
     }
 
     @Test
     fun `throw exception if unassigned persistence observer is invoked`() {
-        val sak = Sak(1L, Fnr("12345678910"), mutableListOf())
+        val sak = Sak(fnr = Fnr("12345678910"))
         assertThrows<UninitializedPropertyAccessException> { sak.nySøknad(SøknadInnholdTestdataBuilder.build()) }
     }
 
     private val someObserver = object : SakPersistenceObserver {
-        override fun nySøknad(sakId: Long, søknadInnhold: SøknadInnhold): Stønadsperiode =
-            Stønadsperiode(1L, Søknad(1L, SøknadInnholdTestdataBuilder.build()))
+        override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
+        override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID, behandling: Behandling) = Behandling()
     }
 }

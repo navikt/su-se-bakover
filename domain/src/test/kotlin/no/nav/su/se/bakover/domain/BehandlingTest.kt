@@ -5,13 +5,27 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class BehandlingTest {
+
+    private val id1 = UUID.randomUUID()
+    private val id2 = UUID.randomUUID()
+
     @Test
     fun equals() {
-        val a = Behandling(1, mutableListOf())
-        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRHET, "", Vilkårsvurdering.Status.OK)))
-        val c = Behandling(2, mutableListOf())
+        val a = Behandling(id1)
+        val b = Behandling(
+            id1,
+            vilkårsvurderinger = mutableListOf(
+                Vilkårsvurdering(
+                    vilkår = Vilkår.UFØRHET,
+                    begrunnelse = "",
+                    status = Vilkårsvurdering.Status.OK
+                )
+            )
+        )
+        val c = Behandling(id2)
         assertEquals(a, b)
         assertNotEquals(a, c)
         assertNotEquals(b, c)
@@ -21,9 +35,19 @@ internal class BehandlingTest {
 
     @Test
     fun hashcode() {
-        val a = Behandling(1, mutableListOf())
-        val b = Behandling(1, mutableListOf(Vilkårsvurdering(1, Vilkår.UFØRHET, "", Vilkårsvurdering.Status.OK)))
-        val c = Behandling(2, mutableListOf())
+
+        val a = Behandling(id1)
+        val b = Behandling(
+            id1,
+            vilkårsvurderinger = mutableListOf(
+                Vilkårsvurdering(
+                    vilkår = Vilkår.UFØRHET,
+                    begrunnelse = "",
+                    status = Vilkårsvurdering.Status.OK
+                )
+            )
+        )
+        val c = Behandling(id2)
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())
         val hashSet = hashSetOf(a, b, c)
@@ -34,18 +58,22 @@ internal class BehandlingTest {
 
     @Test
     fun `burde opprette alle vilkårsvurderinger`() {
-        val behandling = Behandling(id = 1)
+        val behandling = Behandling(id = id1)
+        val expected = listOf(
+            Vilkår.UFØRHET,
+            Vilkår.FLYKTNING,
+            Vilkår.OPPHOLDSTILLATELSE,
+            Vilkår.PERSONLIG_OPPMØTE,
+            Vilkår.FORMUE,
+            Vilkår.BOR_OG_OPPHOLDER_SEG_I_NORGE
+        )
         behandling.addObserver(object : BehandlingPersistenceObserver {
-            override fun opprettVilkårsvurderinger(behandlingId: Long, vilkår: List<Vilkår>): List<Vilkårsvurdering> {
-                vilkår shouldContainExactly listOf(
-                    Vilkår.UFØRHET,
-                    Vilkår.FLYKTNING,
-                    Vilkår.OPPHOLDSTILLATELSE,
-                    Vilkår.PERSONLIG_OPPMØTE,
-                    Vilkår.FORMUE,
-                    Vilkår.BOR_OG_OPPHOLDER_SEG_I_NORGE
-                )
-                return emptyList()
+            override fun opprettVilkårsvurderinger(
+                behandlingId: UUID,
+                vilkårsvurderinger: List<Vilkårsvurdering>
+            ): List<Vilkårsvurdering> {
+                vilkårsvurderinger.map { it.toDto().vilkår } shouldContainExactly expected
+                return vilkårsvurderinger
             }
         })
         behandling.opprettVilkårsvurderinger()
