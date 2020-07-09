@@ -33,6 +33,7 @@ allprojects {
     }
     val junitJupiterVersion = "5.6.0-M1"
     val arrow_version = "0.10.5"
+    val kotest_version = "4.1.1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
@@ -42,8 +43,9 @@ allprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        testImplementation("io.kotest:kotest-assertions-core-jvm:4.1.0")
-        testImplementation("io.kotest:kotest-assertions-json-jvm:4.1.1")
+        testImplementation("io.kotest:kotest-assertions-core-jvm:$kotest_version")
+        testImplementation("io.kotest:kotest-assertions-json-jvm:$kotest_version")
+        testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotest_version")
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
