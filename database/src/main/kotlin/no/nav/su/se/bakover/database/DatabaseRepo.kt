@@ -5,17 +5,18 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
-import org.json.JSONObject
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -70,7 +71,7 @@ internal class DatabaseRepo(
         .hentListe(mapOf("sakId" to sakId), session) {
             Søknad(
                 id = UUID.fromString(it.string("id")),
-                søknadInnhold = SøknadInnhold.fromJson(JSONObject(it.string("søknadInnhold")))
+                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
             )
         }.toMutableList()
 
@@ -94,7 +95,7 @@ internal class DatabaseRepo(
             mapOf(
                 "id" to søknadDto.id,
                 "sakId" to sakId,
-                "soknad" to søknadDto.søknadInnhold.toJson(),
+                "soknad" to objectMapper.writeValueAsString(søknadDto.søknadInnhold),
                 "opprettet" to søknadDto.opprettet
             )
         )
@@ -121,7 +122,7 @@ internal class DatabaseRepo(
         .hent(mapOf("id" to søknadId), session) {
             Søknad(
                 id = UUID.fromString(it.string("id")),
-                søknadInnhold = SøknadInnhold.fromJson(JSONObject(it.string("søknadInnhold")))
+                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
             )
         }
 

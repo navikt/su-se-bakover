@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
-import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import org.junit.jupiter.api.AfterAll
@@ -23,7 +22,7 @@ internal class OppgaveClientTest {
         wireMockServer.baseUrl(),
         TokenOppslagStub
     )
-    private val nySøknadMedJournalId = NySøknadMedJournalId(
+/*    private val nySøknadMedJournalId = NySøknadMedJournalId(
         correlationId = "correlationId",
         fnr = "12345678910",
         søknadId = "111",
@@ -31,7 +30,11 @@ internal class OppgaveClientTest {
         sakId = "222",
         aktørId = "333",
         journalId = "444"
-    )
+    )*/
+
+    private val aktørId = "333"
+    private val journalId = "444"
+    private val sakId = "222"
 
     @Test
     fun `should opprett oppgave`() {
@@ -44,9 +47,9 @@ internal class OppgaveClientTest {
                                     {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
-                                                      "journalpostId": "${nySøknadMedJournalId.journalId}",
-                                                      "saksreferanse": "${nySøknadMedJournalId.sakId}",
-                                                      "aktoerId": "${nySøknadMedJournalId.aktørId}",
+                                                      "journalpostId": "$journalId",
+                                                      "saksreferanse": "$sakId",
+                                                      "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
                                                       "behandlingstema": "ab0431",
@@ -67,9 +70,9 @@ internal class OppgaveClientTest {
             )
         )
         client.opprettOppgave(
-            nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId,
-            nySøknadMedJournalId.aktørId
+            journalId,
+            sakId,
+            aktørId
         ) shouldBeRight 111
     }
 
@@ -78,17 +81,17 @@ internal class OppgaveClientTest {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
         client.opprettOppgave(
-            nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId,
-            nySøknadMedJournalId.aktørId) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
+            journalId,
+            sakId,
+            aktørId) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
     }
 
     //language=JSON
     private val expectedRequest = """
 {
-    "journalpostId": "${nySøknadMedJournalId.journalId}",
-    "saksreferanse": "${nySøknadMedJournalId.sakId}",
-    "aktoerId": "${nySøknadMedJournalId.aktørId}",
+    "journalpostId": "$journalId",
+    "saksreferanse": "$sakId",
+    "aktoerId": "$aktørId",
     "tema": "SUP",
     "behandlesAvApplikasjon": "SUPSTONAD",
     "oppgavetype": "BEH_SAK",

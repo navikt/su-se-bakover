@@ -4,8 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -20,10 +21,12 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
         val (_, response, result) = "$baseUrl$suPdfGenPath".httpPost()
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
-            .body(søknad.toJson()).response()
+            .body(objectMapper.writeValueAsString(søknad)).response()
 
         return result.fold(
-            { it.right() },
+            {
+                it.right()
+            },
             {
                 logger.warn("Kall mot PdfClient feilet", it)
                 ClientError(response.statusCode, "Kall mot PdfClient feilet").left()

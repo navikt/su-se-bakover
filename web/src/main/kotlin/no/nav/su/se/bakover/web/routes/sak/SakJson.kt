@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.SakDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson

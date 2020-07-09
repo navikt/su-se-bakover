@@ -23,13 +23,6 @@ allprojects {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
         maven("http://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/su-meldinger")
-            credentials {
-                username = githubUser
-                password = githubPassword
-            }
-        }
     }
     val junitJupiterVersion = "5.6.0-M1"
     val arrow_version = "0.10.5"
@@ -37,7 +30,6 @@ allprojects {
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("no.nav:su-meldinger:d84741c735c7f2647fbf7018318d04e3831f7733")
         implementation("io.arrow-kt:arrow-core:$arrow_version")
         implementation("io.arrow-kt:arrow-syntax:$arrow_version")
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")

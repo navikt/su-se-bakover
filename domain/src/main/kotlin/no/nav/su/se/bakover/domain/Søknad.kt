@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
-import no.nav.su.se.bakover.web.serialize
+import no.nav.su.se.bakover.common.serialize
 
 internal data class BehandlingJson(
     val id: String,

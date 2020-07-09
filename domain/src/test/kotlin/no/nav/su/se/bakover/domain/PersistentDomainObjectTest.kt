@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows

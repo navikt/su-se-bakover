@@ -1,19 +1,21 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.common
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import no.nav.su.se.bakover.web.routes.søknad.receiveTextUTF8
 
-internal val objectMapper = jacksonObjectMapper()
-    .registerModule(JavaTimeModule())
+val objectMapper: ObjectMapper = JsonMapper.builder()
+    .addModule(JavaTimeModule())
+    .addModule(KotlinModule())
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS)
+    .build()
 
 inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V> = readValue<Map<K, V>>(
     value,
@@ -24,7 +26,6 @@ inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V>
     )
 )
 
-internal fun serialize(value: Any): String = objectMapper.writeValueAsString(value)
+fun serialize(value: Any): String = objectMapper.writeValueAsString(value)
 
-internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T = deserialize(call.receiveTextUTF8())
-internal inline fun <reified T> deserialize(value: String): T = objectMapper.readValue(value)
+inline fun <reified T> deserialize(value: String): T = objectMapper.readValue(value)

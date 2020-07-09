@@ -11,6 +11,9 @@ dependencies {
     implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("org.json:json:$orgJsonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1")
 
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
 }

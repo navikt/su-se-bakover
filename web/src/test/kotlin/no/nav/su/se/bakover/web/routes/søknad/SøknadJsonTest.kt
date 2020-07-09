@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.serialize
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
