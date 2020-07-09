@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.web
 
-import arrow.core.Either
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.application.log
@@ -13,7 +11,6 @@ import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import io.ktor.config.ApplicationConfig
 import io.ktor.features.CORS
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
@@ -42,7 +39,6 @@ import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -55,11 +51,8 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import org.json.JSONObject
-import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
-import java.util.Properties
-import java.util.UUID
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
@@ -175,39 +168,3 @@ internal fun Application.susebakover(
         }
     }
 }
-
-@KtorExperimentalAPI
-fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
-
-@KtorExperimentalAPI
-internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
-
-internal fun ApplicationCall.audit(msg: String) {
-    val payload = (this.authentication.principal as JWTPrincipal).payload
-    LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid").asString()} $msg")
-}
-
-internal fun Long.Companion.lesParameter(call: ApplicationCall, name: String): Either<String, Long> =
-    call.parameters[name]?.let {
-        it.toLongOrNull()?.let {
-            Either.Right(it)
-        } ?: Either.Left("$name er ikke et tall")
-    } ?: Either.Left("$name er ikke et parameter")
-
-internal suspend fun ApplicationCall.lesUUID(param: String) =
-    this.parameters[param]?.let {
-        Either.catch { UUID.fromString(it) }.mapLeft { "$param er ikke en gyldig UUID" }
-    } ?: Either.Left("$param er ikke et parameter")
-
-internal suspend fun ApplicationCall.lesFnr(param: String) =
-    this.parameters[param]?.let {
-        Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
-    } ?: Either.Left("$param er ikke et parameter")
-
-internal fun byggVersion(): String {
-    val versionProps = Properties()
-    versionProps.load(Application::class.java.getResourceAsStream("/VERSION"))
-    return versionProps.getProperty("commit.sha", "ikke satt")
-}
-
-fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()
