@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.json.shouldMatchJson
+import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldMatch
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
@@ -15,6 +17,9 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
+import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.objectMapper
@@ -29,7 +34,8 @@ import kotlin.test.assertEquals
 @KtorExperimentalLocationsAPI
 internal class SøknadRoutesKtTest {
 
-    fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
+    private fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
+    private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -48,12 +54,11 @@ internal class SøknadRoutesKtTest {
                 assertEquals(Created, response.status())
             }.response
 
-            val sakDto = objectMapper.readValue<SakJson>(createResponse.content!!)
-            val søknad = sakDto.søknader.first()
-            defaultRequest(Get, "$søknadPath/${søknad.id}").apply {
-                assertEquals(OK, response.status())
-                soknadJson(fnr) shouldMatchJson søknad.søknadInnhold.toSøknadInnhold().toJson()
-            }
+            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(createResponse.content!!) }
+
+            val sakFraDb = objectRepo.hentSak(fnr)
+            sakFraDb shouldNotBe null
+            sakFraDb!!.toDto().søknader shouldHaveAtLeastSize 1
         }
     }
 
