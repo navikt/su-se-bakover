@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.client.pdf
 
-import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.matchers.shouldBe
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -24,8 +23,7 @@ internal class PdfClientTest {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(SøknadInnholdTestdataBuilder.build())
-            .rightValue() shouldBe "pdf-byte-array-here".toByteArray()
+        client.genererPdf(SøknadInnholdTestdataBuilder.build()) shouldBeRight "pdf-byte-array-here".toByteArray()
     }
 
     @Test
@@ -38,10 +36,10 @@ internal class PdfClientTest {
         )
         val client = PdfClient(wireMockServer.baseUrl())
 
-        client.genererPdf(SøknadInnholdTestdataBuilder.build()) shouldBe ClientError(
+        client.genererPdf(SøknadInnholdTestdataBuilder.build()) shouldBeLeft ClientError(
             403,
             "Kall mot PdfClient feilet"
-        ).left()
+        )
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))

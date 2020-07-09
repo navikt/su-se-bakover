@@ -1,16 +1,15 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.matchers.shouldBe
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -71,7 +70,7 @@ internal class OppgaveClientTest {
             nySøknadMedJournalId.journalId,
             nySøknadMedJournalId.sakId,
             nySøknadMedJournalId.aktørId
-        ).rightValue() shouldBe 111
+        ) shouldBeRight 111
     }
 
     @Test
@@ -81,20 +80,20 @@ internal class OppgaveClientTest {
         client.opprettOppgave(
             nySøknadMedJournalId.journalId,
             nySøknadMedJournalId.sakId,
-            nySøknadMedJournalId.aktørId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
+            nySøknadMedJournalId.aktørId) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
     }
 
     //language=JSON
     private val expectedRequest = """
-{ 
+{
     "journalpostId": "${nySøknadMedJournalId.journalId}",
     "saksreferanse": "${nySøknadMedJournalId.sakId}",
-    "aktoerId": "${nySøknadMedJournalId.aktørId}", 
+    "aktoerId": "${nySøknadMedJournalId.aktørId}",
     "tema": "SUP",
     "behandlesAvApplikasjon": "SUPSTONAD",
     "oppgavetype": "BEH_SAK",
-    "behandlingstema": "ab0431", 
-    "behandlingstype": "ae0245", 
+    "behandlingstema": "ab0431",
+    "behandlingstype": "ae0245",
     "aktivDato": "${LocalDate.now()}",
     "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
     "prioritet": "NORM"
