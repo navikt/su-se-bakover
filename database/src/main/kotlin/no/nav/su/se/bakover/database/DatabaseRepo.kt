@@ -39,7 +39,6 @@ internal class DatabaseRepo(
 
     override fun opprettSøknadsbehandling(
         sakId: UUID,
-        søknadId: UUID,
         behanding: Behandling
     ): Behandling {
         val behandlingDto = behanding.toDto()
@@ -47,7 +46,7 @@ internal class DatabaseRepo(
             mapOf(
                 "id" to behandlingDto.id,
                 "sakId" to sakId,
-                "soknadId" to søknadId,
+                "soknadId" to behandlingDto.søknad.id,
                 "opprettet" to behandlingDto.opprettet
             )
         )
@@ -136,10 +135,12 @@ internal class DatabaseRepo(
                 }
             }
 
+    private fun Row.uuid(name: String) = UUID.fromString(string(name))
     private fun Row.toBehandling(session: Session) = Behandling(
-        id = UUID.fromString(string("id")),
+        id = uuid("id"),
         vilkårsvurderinger = hentVilkårsvurderinger(UUID.fromString(string("id")), session),
-        opprettet = instant("opprettet")
+        opprettet = instant("opprettet"),
+        søknad = hentSøknad(uuid("søknadId"), session)!!
     )
 
     override fun opprettVilkårsvurderinger(

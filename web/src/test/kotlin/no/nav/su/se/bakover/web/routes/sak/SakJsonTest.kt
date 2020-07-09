@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class SakJsonTest {
@@ -29,7 +29,7 @@ internal class SakJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        serialize(sak.toDto().toJson()) shouldMatchJson sakJsonString
+        JSONAssert.assertEquals(sakJsonString, serialize(sak.toDto().toJson()), true)
     }
 
     @Test

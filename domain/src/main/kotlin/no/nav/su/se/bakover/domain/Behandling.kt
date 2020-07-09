@@ -7,13 +7,15 @@ import java.util.UUID
 class Behandling constructor(
     id: UUID = UUID.randomUUID(),
     opprettet: Instant = Instant.now(),
-    private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf()
+    private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
+    private val søknad: Søknad
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(id, opprettet), DtoConvertable<BehandlingDto> {
 
     override fun toDto() = BehandlingDto(
         id = id,
         opprettet = opprettet,
-        vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }
+        vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() },
+        søknad = søknad.toDto()
     )
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
@@ -48,5 +50,6 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
 data class BehandlingDto(
     val id: UUID,
     val opprettet: Instant,
-    val vilkårsvurderinger: List<VilkårsvurderingDto>
+    val vilkårsvurderinger: List<VilkårsvurderingDto>,
+    val søknad: SøknadDto
 )

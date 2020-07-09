@@ -40,7 +40,8 @@ class Sak(
     }
 
     fun opprettSøknadsbehandling(søknadId: UUID): Behandling {
-        val behandling = persistenceObserver.opprettSøknadsbehandling(id, søknadId, Behandling())
+        val søknad = søknader.single { it.toDto().id == søknadId }
+        val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad))
         behandling.opprettVilkårsvurderinger()
         behandlinger.add(behandling)
         return behandling
@@ -53,7 +54,6 @@ interface SakPersistenceObserver : PersistenceObserver {
     fun nySøknad(sakId: UUID, søknad: Søknad): Søknad
     fun opprettSøknadsbehandling(
         sakId: UUID,
-        søknadId: UUID,
         behandling: Behandling
     ): Behandling
 }

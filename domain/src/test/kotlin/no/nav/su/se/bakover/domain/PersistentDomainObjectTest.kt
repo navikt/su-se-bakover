@@ -21,7 +21,8 @@ internal class PersistentDomainObjectTest {
     }
 
     private val someObserver = object : SakPersistenceObserver {
-        override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
-        override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID, behandling: Behandling) = Behandling()
+        private val testSøknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
+        override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = søknad
+        override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = Behandling(søknad = testSøknad)
     }
 }

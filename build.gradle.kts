@@ -46,6 +46,7 @@ allprojects {
         testImplementation("io.kotest:kotest-assertions-core-jvm:$kotest_version")
         testImplementation("io.kotest:kotest-assertions-json-jvm:$kotest_version")
         testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotest_version")
+        testImplementation("org.skyscreamer:jsonassert:1.5.0")
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

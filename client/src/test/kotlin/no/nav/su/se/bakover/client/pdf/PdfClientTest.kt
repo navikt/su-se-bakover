@@ -23,7 +23,7 @@ internal class PdfClientTest {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(SøknadInnholdTestdataBuilder.build()) shouldBeRight "pdf-byte-array-here".toByteArray()
+        client.genererPdf(SøknadInnholdTestdataBuilder.build()).map { String(it) } shouldBeRight String("pdf-byte-array-here".toByteArray())
     }
 
     @Test

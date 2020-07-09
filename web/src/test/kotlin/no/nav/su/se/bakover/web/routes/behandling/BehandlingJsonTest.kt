@@ -1,13 +1,15 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknad
+import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class BehandlingJsonTest {
@@ -18,21 +20,22 @@ internal class BehandlingJsonTest {
 
     //language=JSON
     val behandlingJsonString = """
-            {
-                "id": "$behandlingId",
-                "vilkårsvurderinger": {
-                  "UFØRHET": {
-                    "id": "$vv1id",
-                    "begrunnelse":"uførhetBegrunnelse",
-                    "status":"OK"
-                   },
-                   "FORMUE": {
-                    "id":"$vv2id",
-                    "begrunnelse":"formueBegrunnelse",
-                    "status":"IKKE_VURDERT"
-                   }
-                }
+        {
+          "id": "$behandlingId",
+          "vilkårsvurderinger": {
+            "UFØRHET": {
+              "id": "$vv1id",
+              "begrunnelse": "uførhetBegrunnelse",
+              "status": "OK"
+            },
+            "FORMUE": {
+              "id": "$vv2id",
+              "begrunnelse": "formueBegrunnelse",
+              "status": "IKKE_VURDERT"
             }
+          },
+          "søknad": $søknadJsonString
+        }
         """.trimIndent()
 
     val behandling = Behandling(
@@ -50,12 +53,13 @@ internal class BehandlingJsonTest {
                 begrunnelse = "formueBegrunnelse",
                 status = Vilkårsvurdering.Status.IKKE_VURDERT
             )
-        )
+        ),
+        søknad = søknad
     )
 
     @Test
     fun `should serialize to json string`() {
-        serialize(behandling.toDto().toJson()) shouldMatchJson behandlingJsonString
+        JSONAssert.assertEquals(behandlingJsonString, serialize(behandling.toDto().toJson()), true)
     }
 
     @Test

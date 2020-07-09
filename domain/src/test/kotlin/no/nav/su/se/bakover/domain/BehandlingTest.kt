@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.collections.shouldContainExactly
+import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -11,10 +12,11 @@ internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
+    private val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
 
     @Test
     fun equals() {
-        val a = Behandling(id1)
+        val a = Behandling(id1, søknad = søknad)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -23,9 +25,10 @@ internal class BehandlingTest {
                     begrunnelse = "",
                     status = Vilkårsvurdering.Status.OK
                 )
-            )
+            ),
+            søknad = søknad
         )
-        val c = Behandling(id2)
+        val c = Behandling(id2, søknad = søknad)
         assertEquals(a, b)
         assertNotEquals(a, c)
         assertNotEquals(b, c)
@@ -36,7 +39,7 @@ internal class BehandlingTest {
     @Test
     fun hashcode() {
 
-        val a = Behandling(id1)
+        val a = Behandling(id1, søknad = søknad)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -45,9 +48,10 @@ internal class BehandlingTest {
                     begrunnelse = "",
                     status = Vilkårsvurdering.Status.OK
                 )
-            )
+            ),
+            søknad = søknad
         )
-        val c = Behandling(id2)
+        val c = Behandling(id2, søknad = søknad)
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())
         val hashSet = hashSetOf(a, b, c)
@@ -58,7 +62,7 @@ internal class BehandlingTest {
 
     @Test
     fun `burde opprette alle vilkårsvurderinger`() {
-        val behandling = Behandling(id = id1)
+        val behandling = Behandling(id = id1, søknad = søknad)
         val expected = listOf(
             Vilkår.UFØRHET,
             Vilkår.FLYKTNING,

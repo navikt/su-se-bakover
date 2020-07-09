@@ -1,24 +1,23 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class SøknadJsonTest {
-
-    private val søknadId = UUID.randomUUID()
-    private val søknad = Søknad(
-        id = søknadId,
-        søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    )
-
-    //language=JSON
-    private val søknadJsonString = """
+    companion object {
+        val søknadId = UUID.randomUUID()
+        val søknad = Søknad(
+            id = søknadId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        )
+        //language=JSON
+        val søknadJsonString = """
         {
           "id": "$søknadId",
           "søknadInnhold": {
@@ -117,10 +116,11 @@ internal class SøknadJsonTest {
           }
         }
     """.trimIndent()
+    }
 
     @Test
     fun `should serialize to json string`() {
-        serialize(søknad.toDto().toJson()) shouldMatchJson søknadJsonString
+        JSONAssert.assertEquals(søknadJsonString, serialize(søknad.toDto().toJson()), true)
     }
 
     @Test
