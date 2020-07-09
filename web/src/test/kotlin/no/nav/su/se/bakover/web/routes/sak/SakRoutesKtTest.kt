@@ -41,17 +41,40 @@ internal class SakRoutesKtTest {
     }
 
     @Test
+    fun `henter sak for fødselsnummer`() {
+        withTestApplication(({
+            testEnv()
+            testSusebakover()
+        })) {
+            sakRepo.opprettSak(Fnr(sakFnr01)).toDto()
+
+            defaultRequest(Get, "$sakPath/?fnr=$sakFnr01").apply {
+                assertEquals(OK, response.status())
+                assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
+            }
+        }
+    }
+
+    @Test
     fun `error handling`() {
         withTestApplication(({
             testEnv()
             testSusebakover()
         })) {
+            defaultRequest(Get, sakPath).apply {
+                assertEquals(BadRequest, response.status(), "$sakPath gir 400 ved manglende fnr")
+            }
+
+            defaultRequest(Get, "$sakPath?fnr=12341234123").apply {
+                assertEquals(NotFound, response.status(), "$sakPath?fnr= gir 404 ved ukjent fnr")
+            }
+
             defaultRequest(Get, "$sakPath/${UUID.randomUUID()}").apply {
-                assertEquals(NotFound, response.status())
+                assertEquals(NotFound, response.status(), "$sakPath/UUID gir 404 ved ikke-eksisterende sak-ID")
             }
 
             defaultRequest(Get, "$sakPath/adad").apply {
-                assertEquals(BadRequest, response.status())
+                assertEquals(BadRequest, response.status(), "$sakPath/UUID gir 400 ved ugyldig UUID")
             }
         }
     }

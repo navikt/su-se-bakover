@@ -166,7 +166,7 @@ internal fun Application.susebakover(
                 )
             }
 
-            personRoutes(httpClients.personOppslag, databaseRepo)
+            personRoutes(httpClients.personOppslag)
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
@@ -199,6 +199,11 @@ internal suspend fun ApplicationCall.lesUUID(param: String) =
         Either.catch { UUID.fromString(it) }.mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
 
+internal suspend fun ApplicationCall.lesFnr(param: String) =
+    this.parameters[param]?.let {
+        Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
+    } ?: Either.Left("$param er ikke et parameter")
+
 internal fun byggVersion(): String {
     val versionProps = Properties()
     versionProps.load(Application::class.java.getResourceAsStream("/VERSION"))
@@ -206,5 +211,3 @@ internal fun byggVersion(): String {
 }
 
 fun ApplicationCall.authHeader() = this.request.header(Authorization).toString()
-
-internal fun Fnr.Companion.lesParameter(call: ApplicationCall) = Fnr(call.parameters[FNR])
