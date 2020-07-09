@@ -22,15 +22,6 @@ internal class OppgaveClientTest {
         wireMockServer.baseUrl(),
         TokenOppslagStub
     )
-/*    private val nySøknadMedJournalId = NySøknadMedJournalId(
-        correlationId = "correlationId",
-        fnr = "12345678910",
-        søknadId = "111",
-        søknad = "",
-        sakId = "222",
-        aktørId = "333",
-        journalId = "444"
-    )*/
 
     private val aktørId = "333"
     private val journalId = "444"
