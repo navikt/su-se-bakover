@@ -1,15 +1,24 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import java.time.Instant
+import java.util.UUID
 
 class Vilkårsvurdering(
-    id: Long,
+    id: UUID = UUID.randomUUID(),
+    opprettet: Instant = Instant.now(),
     private val vilkår: Vilkår,
-    private var begrunnelse: String,
-    private var status: Status
-) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id), DtoConvertable<VilkårsvurderingDto> {
+    private var begrunnelse: String = "",
+    private var status: Status = Status.IKKE_VURDERT
+) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id, opprettet), DtoConvertable<VilkårsvurderingDto> {
 
-    override fun toDto() = VilkårsvurderingDto(id, vilkår, begrunnelse, status)
+    override fun toDto() = VilkårsvurderingDto(
+        id = id,
+        vilkår = vilkår,
+        begrunnelse = begrunnelse,
+        status = status,
+        opprettet = opprettet
+    )
 
     enum class Status {
         OK,
@@ -20,7 +29,7 @@ class Vilkårsvurdering(
     fun oppdater(vilkårsvurdering: Vilkårsvurdering) {
         this.begrunnelse = vilkårsvurdering.begrunnelse
         this.status = vilkårsvurdering.status
-        persistenceObserver.oppdaterVilkårsvurdering(id, begrunnelse, status)
+        persistenceObserver.oppdaterVilkårsvurdering(this)
     }
 
     override fun equals(other: Any?) =
@@ -39,17 +48,16 @@ enum class Vilkår {
 
 interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
     fun oppdaterVilkårsvurdering(
-        vilkårsvurderingsId: Long,
-        begrunnelse: String,
-        status: Vilkårsvurdering.Status
+        vilkårsvurdering: Vilkårsvurdering
     ): Vilkårsvurdering
 }
 
 data class VilkårsvurderingDto(
-    val id: Long,
+    val id: UUID,
     val vilkår: Vilkår,
     val begrunnelse: String,
-    val status: Vilkårsvurdering.Status
+    val status: Vilkårsvurdering.Status,
+    val opprettet: Instant
 ) {
     companion object {
         fun List<Vilkårsvurdering>.toDto() = this.map { it.toDto() }

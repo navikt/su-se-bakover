@@ -4,13 +4,6 @@ repositories {
     jcenter()
     maven("https://dl.bintray.com/kotlin/ktor")
     maven("http://packages.confluent.io/maven/")
-    maven {
-        url = uri("https://maven.pkg.github.com/navikt/su-meldinger")
-        credentials {
-            username = githubUser
-            password = githubPassword
-        }
-    }
 }
 
 val ktorVersion = "1.2.6"
@@ -27,7 +20,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
     implementation("org.json:json:$orgJsonVersion")
-    implementation("no.nav:su-meldinger")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -37,7 +29,6 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.1")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

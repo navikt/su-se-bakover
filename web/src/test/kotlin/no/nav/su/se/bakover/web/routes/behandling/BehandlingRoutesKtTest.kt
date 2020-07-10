@@ -1,18 +1,23 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
@@ -37,16 +42,37 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(HttpMethod.Get, "$behandlingPath/$behandlingsId").apply {
                 val behandlingJson = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandlingJson shouldBe BehandlingJson(
-                    id = behandlingsId,
-                    vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }.toJson()
+                    id = behandlingsId.toString(),
+                    vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }.toJson(),
+                    søknad = behandlingDto.søknad.toJson()
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `kan opprette behandling på en sak og søknad`() {
+        withTestApplication({
+            testEnv()
+            testSusebakover()
+        }) {
+            val sak = repo.opprettSak(FnrGenerator.random())
+            val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${sak.toDto().id}/behandlinger") {
+                setBody("""{ "soknadId": "${søknad.toDto().id}" }""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
+                behandling.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveAtLeastSize 1
+                behandling.søknad.id shouldBe søknad.toDto().id.toString()
             }
         }
     }
 
     private fun setupForBehandling(): Behandling {
         val sak = repo.opprettSak(FnrGenerator.random())
-        sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        return sak.sisteStønadsperiode().nyBehandling()
+        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        return sak.opprettSøknadsbehandling(søknad.toDto().id)
     }
 }

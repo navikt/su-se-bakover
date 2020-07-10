@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.json.shouldMatchJson
-import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldMatch
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
@@ -14,13 +15,18 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
+import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -29,12 +35,16 @@ import kotlin.test.assertEquals
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
 internal class SøknadRoutesKtTest {
+    private val fnr = Fnr("01010100001")
 
-    fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
+    private val søknadInnhold: SøknadInnhold = build(personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
+        fnr = fnr.toString()))
+
+    private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+    private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
     fun `lagrer og henter søknad`() {
-        val fnr = Fnr("01010100001")
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -44,31 +54,29 @@ internal class SøknadRoutesKtTest {
                 søknadPath
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson(fnr))
+                setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
             }.response
 
-            val sakDto = objectMapper.readValue<SakJson>(createResponse.content!!)
-            val søknad = sakDto.stønadsperioder.first().søknad
-            defaultRequest(Get, "$søknadPath/${søknad.id}").apply {
-                assertEquals(OK, response.status())
-                soknadJson(fnr) shouldMatchJson søknad.json.toSøknadInnhold().toJson()
-            }
+            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(createResponse.content!!) }
+
+            val sakFraDb = objectRepo.hentSak(fnr)
+            sakFraDb shouldNotBe null
+            sakFraDb!!.toDto().søknader shouldHaveAtLeastSize 1
         }
     }
 
     @Test
-    fun `knytter søknad til sak og stønadsperiode ved innsending`() {
-        val fnr = Fnr("01010100004")
-        var sakNr: Long
+    fun `knytter søknad til sak ved innsending`() {
+        var sakNr: String
         withTestApplication({
             testEnv()
             testSusebakover()
         }) {
             defaultRequest(Post, søknadPath) {
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson(fnr))
+                setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
                 sakNr = objectMapper.readValue<SakJson>(response.content!!).id
@@ -77,8 +85,7 @@ internal class SøknadRoutesKtTest {
             defaultRequest(Get, "$sakPath/$sakNr").apply {
                 assertEquals(OK, response.status())
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
-                sakJson.stønadsperioder shouldHaveSize 1
-                sakJson.stønadsperioder.first().søknad.json.personopplysninger.fnr shouldMatch fnr.toString()
+                sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
             }
         }
     }

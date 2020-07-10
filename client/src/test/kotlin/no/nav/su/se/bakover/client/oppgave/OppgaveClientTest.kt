@@ -1,16 +1,14 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.NySøknadMedJournalId
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import no.nav.su.se.bakover.common.rightValue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -24,15 +22,10 @@ internal class OppgaveClientTest {
         wireMockServer.baseUrl(),
         TokenOppslagStub
     )
-    private val nySøknadMedJournalId = NySøknadMedJournalId(
-        correlationId = "correlationId",
-        fnr = "12345678910",
-        søknadId = "111",
-        søknad = "",
-        sakId = "222",
-        aktørId = "333",
-        journalId = "444"
-    )
+
+    private val aktørId = "333"
+    private val journalId = "444"
+    private val sakId = "222"
 
     @Test
     fun `should opprett oppgave`() {
@@ -45,9 +38,9 @@ internal class OppgaveClientTest {
                                     {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
-                                                      "journalpostId": "${nySøknadMedJournalId.journalId}",
-                                                      "saksreferanse": "${nySøknadMedJournalId.sakId}",
-                                                      "aktoerId": "${nySøknadMedJournalId.aktørId}",
+                                                      "journalpostId": "$journalId",
+                                                      "saksreferanse": "$sakId",
+                                                      "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
                                                       "behandlingstema": "ab0431",
@@ -68,10 +61,10 @@ internal class OppgaveClientTest {
             )
         )
         client.opprettOppgave(
-            nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId.toLong(),
-            nySøknadMedJournalId.aktørId
-        ).rightValue() shouldBe 111
+            journalId,
+            sakId,
+            aktørId
+        ) shouldBeRight 111
     }
 
     @Test
@@ -79,22 +72,22 @@ internal class OppgaveClientTest {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
         client.opprettOppgave(
-            nySøknadMedJournalId.journalId,
-            nySøknadMedJournalId.sakId.toLong(),
-            nySøknadMedJournalId.aktørId) shouldBe ClientError(403, "Feil i kallet mot oppgave").left()
+            journalId,
+            sakId,
+            aktørId) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
     }
 
     //language=JSON
     private val expectedRequest = """
-{ 
-    "journalpostId": "${nySøknadMedJournalId.journalId}",
-    "saksreferanse": "${nySøknadMedJournalId.sakId}",
-    "aktoerId": "${nySøknadMedJournalId.aktørId}", 
+{
+    "journalpostId": "$journalId",
+    "saksreferanse": "$sakId",
+    "aktoerId": "$aktørId",
     "tema": "SUP",
     "behandlesAvApplikasjon": "SUPSTONAD",
     "oppgavetype": "BEH_SAK",
-    "behandlingstema": "ab0431", 
-    "behandlingstype": "ae0245", 
+    "behandlingstema": "ab0431",
+    "behandlingstype": "ae0245",
     "aktivDato": "${LocalDate.now()}",
     "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
     "prioritet": "NORM"

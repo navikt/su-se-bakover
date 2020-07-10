@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.*
 import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.testEnv
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 @KtorExperimentalLocationsAPI
@@ -46,21 +45,6 @@ internal class PersonRoutesKtTest {
             defaultRequest(Get, "$personPath/qwertyuiopå")
         }.apply {
             assertEquals(HttpStatusCode.BadRequest, response.status())
-        }
-    }
-
-    @Test
-    fun `henter sak for fnr`() {
-        withTestApplication(({
-            testEnv()
-            testSusebakover()
-        })) {
-            val fnr = "12121212121"
-            sakRepo.opprettSak(Fnr(fnr))
-            defaultRequest(Get, "$personPath/$fnr/sak").apply {
-                assertEquals(OK, response.status())
-                assertEquals(fnr, JSONObject(response.content).getString("fnr"))
-            }
         }
     }
 

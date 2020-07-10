@@ -1,26 +1,24 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import java.time.Instant
+import java.util.UUID
 
-class Søknad constructor(
-    id: Long,
+class Søknad(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Instant = Instant.now(),
     private val søknadInnhold: SøknadInnhold
-) : PersistentDomainObject<VoidObserver>(id), DtoConvertable<SøknadDto> {
+) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<SøknadDto> {
 
     override fun toDto() = SøknadDto(
         id = id,
-        søknadInnhold = søknadInnhold
-    )
-
-    fun nySøknadEvent(sakId: Long) = SakEventObserver.NySøknadEvent(
-        sakId = sakId,
-        søknadId = id,
-        søknadInnhold = søknadInnhold
+        søknadInnhold = søknadInnhold,
+        opprettet = opprettet
     )
 }
 
 data class SøknadDto(
-    val id: Long,
-    val søknadInnhold: SøknadInnhold
+    val id: UUID,
+    val søknadInnhold: SøknadInnhold,
+    val opprettet: Instant
 )

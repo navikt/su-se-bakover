@@ -1,20 +1,24 @@
 package no.nav.su.se.bakover.web.routes.vilkårsvurdering
 
-import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
-import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.serialize
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
+import java.util.UUID
 
 internal class VilkårsvurderingJsonTest {
+
+    private val vvId = UUID.randomUUID()
+
     //language=JSON
-    val vilkårsvurderingJsonString = """
+    private val vilkårsvurderingJsonString = """
             {
                 "UFØRHET": {
-                    "id":1,
+                    "id": "$vvId",
                     "begrunnelse":"uførhetBegrunnelse",
                     "status":"OK"
                 }
@@ -22,12 +26,17 @@ internal class VilkårsvurderingJsonTest {
         """.trimIndent()
 
     val vilkårsvurderinger = listOf(
-        Vilkårsvurdering(1, Vilkår.UFØRHET, "uførhetBegrunnelse", Vilkårsvurdering.Status.OK)
+        Vilkårsvurdering(
+            id = vvId,
+            vilkår = Vilkår.UFØRHET,
+            begrunnelse = "uførhetBegrunnelse",
+            status = Vilkårsvurdering.Status.OK
+        )
     )
 
     @Test
     fun `should serialize to json string`() {
-        serialize(vilkårsvurderinger.toDto().toJson()) shouldMatchJson vilkårsvurderingJsonString
+        JSONAssert.assertEquals(vilkårsvurderingJsonString, serialize(vilkårsvurderinger.toDto().toJson()), true)
     }
 
     @Test

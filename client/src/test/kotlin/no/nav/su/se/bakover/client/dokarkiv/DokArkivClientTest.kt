@@ -7,10 +7,12 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Personopplysninger
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -21,7 +23,10 @@ internal class DokArkivClientTest {
 
     private val sakId = 1
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
+
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
+    private val personopplysninger: Personopplysninger = søknadInnhold.personopplysninger
 
     private val forventetRequest = """
         {
@@ -32,12 +37,12 @@ internal class DokArkivClientTest {
           "behandlingstema": "ab0268",
           "journalfoerendeEnhet": "9999",
           "avsenderMottaker": {
-            "id": "${søknadInnhold.personopplysninger.fnr}",
+            "id": "${personopplysninger.fnr}",
             "idType": "FNR",
             "navn": "Nordmann, Ola Erik"
           },
           "bruker": {
-            "id": "${søknadInnhold.personopplysninger.fnr}",
+            "id": "${personopplysninger.fnr}",
             "idType": "FNR"
           },
           "sak": {
@@ -56,7 +61,7 @@ internal class DokArkivClientTest {
                 },
                 {
                   "filtype": "JSON",
-                  "fysiskDokument": "${Base64.getEncoder().encodeToString(søknadInnhold.toJson().toByteArray())}",
+                  "fysiskDokument": "${Base64.getEncoder().encodeToString(søknadInnholdJson.toByteArray())}",
                   "variantformat": "ORIGINAL"
                 }
               ]
@@ -92,7 +97,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1).shouldBe(
+        client.opprettJournalpost(søknadInnhold, pdf, "1").shouldBe(
             "1".right()
         )
     }
@@ -109,7 +114,7 @@ internal class DokArkivClientTest {
             TokenOppslagStub
         )
 
-        client.opprettJournalpost(SøknadInnholdTestdataBuilder.build(), pdf, 1) shouldBe
+        client.opprettJournalpost(søknadInnhold, pdf, "1") shouldBe
             ClientError(403, "Feil ved journalføring av søknad.").left()
     }
 

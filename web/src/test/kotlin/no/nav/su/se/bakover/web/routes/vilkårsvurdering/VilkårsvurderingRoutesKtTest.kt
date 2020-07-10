@@ -5,7 +5,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Behandling
@@ -13,7 +12,8 @@ import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
@@ -36,7 +36,7 @@ internal class VilkårsvurderingRoutesKtTest {
             val oppdatering =
                 mapOf(
                     vilkårsvurdering.vilkår.name to VilkårsvurderingData(
-                        id = vilkårsvurdering.id,
+                        id = vilkårsvurdering.id.toString(),
                         begrunnelse = "Dette kravet er ok",
                         status = Vilkårsvurdering.Status.OK.name
                     )
@@ -56,7 +56,7 @@ internal class VilkårsvurderingRoutesKtTest {
 
     private fun setupForBehandling(): Behandling {
         val sak = repo.opprettSak(FnrGenerator.random())
-        sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        return sak.sisteStønadsperiode().nyBehandling()
+        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        return sak.opprettSøknadsbehandling(søknad.toDto().id)
     }
 }

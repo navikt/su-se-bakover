@@ -1,19 +1,22 @@
 package no.nav.su.se.bakover.client.pdf
 
-import arrow.core.left
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.common.rightValue
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.slf4j.MDC
 
 internal class PdfClientTest {
+
+    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
 
     @Test
     fun `should generate pdf successfully`() {
@@ -24,8 +27,7 @@ internal class PdfClientTest {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(SøknadInnholdTestdataBuilder.build())
-            .rightValue() shouldBe "pdf-byte-array-here".toByteArray()
+        client.genererPdf(søknadInnhold).map { String(it) } shouldBeRight String("pdf-byte-array-here".toByteArray())
     }
 
     @Test
@@ -38,16 +40,16 @@ internal class PdfClientTest {
         )
         val client = PdfClient(wireMockServer.baseUrl())
 
-        client.genererPdf(SøknadInnholdTestdataBuilder.build()) shouldBe ClientError(
+        client.genererPdf(søknadInnhold) shouldBeLeft ClientError(
             403,
             "Kall mot PdfClient feilet"
-        ).left()
+        )
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
-        .withRequestBody(WireMock.equalTo(SøknadInnholdTestdataBuilder.build().toJson()))
+        .withRequestBody(WireMock.equalTo(søknadInnholdJson))
 
     companion object {
         val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())

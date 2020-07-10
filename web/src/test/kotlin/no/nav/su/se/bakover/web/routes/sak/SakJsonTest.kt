@@ -1,52 +1,35 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import io.kotest.assertions.json.shouldMatchJson
 import io.kotest.matchers.shouldBe
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Stønadsperiode
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest
-import no.nav.su.se.bakover.web.serialize
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
+import java.util.UUID
 
 internal class SakJsonTest {
+
+    private val sakId = UUID.randomUUID()
+    private val sak = Sak(
+        id = sakId,
+        fnr = Fnr("12345678910")
+    )
 
     //language=JSON
     val sakJsonString = """
             {
-                "id": 1,
+                "id": "$sakId",
                 "fnr": "12345678910",
-                "stønadsperioder": [
-                  {
-                    "id": 1,
-                    "søknad": ${SøknadJsonTest.søknadJsonString},
-                    "behandlinger": []
-                  }
-                ]
+                "søknader": [],
+                "behandlinger" : []
             }
         """.trimIndent()
 
-    val sak = Sak(
-        id = 1,
-        fnr = Fnr("12345678910"),
-        stønadsperioder = mutableListOf(
-            Stønadsperiode(
-                id = 1,
-                søknad = Søknad(
-                    id = 1,
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build()
-                ),
-                behandlinger = mutableListOf()
-            )
-        )
-    )
-
     @Test
     fun `should serialize to json string`() {
-        serialize(sak.toDto().toJson()) shouldMatchJson sakJsonString
+        JSONAssert.assertEquals(sakJsonString, serialize(sak.toDto().toJson()), true)
     }
 
     @Test

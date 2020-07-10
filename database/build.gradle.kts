@@ -2,7 +2,6 @@ val flywayVersion = "6.2.1"
 val hikariVersion = "3.3.1"
 val vaultJdbcVersion = "1.3.1"
 val kotliqueryVersion = "1.3.1"
-val orgJsonVersion = "20180813"
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
@@ -10,7 +9,6 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
-    implementation("org.json:json:$orgJsonVersion")
 
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
 }
