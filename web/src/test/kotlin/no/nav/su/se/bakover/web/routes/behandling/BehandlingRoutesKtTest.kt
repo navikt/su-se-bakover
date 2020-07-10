@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.web.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 import no.nav.su.se.bakover.web.testEnv

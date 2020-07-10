@@ -29,10 +29,10 @@ import kotlinx.coroutines.io.ByteReadChannel
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.web.SøknadInnholdTestdataBuilder.Companion.build
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import org.junit.jupiter.api.Test
@@ -85,7 +85,7 @@ internal class CallContextTest {
         val correlationId: Int,
         val token: String
     ) : Callable<TestApplicationCall> {
-        private val søknadInnhold: SøknadInnhold = build(personopplysninger = personopplysninger(FnrGenerator.random().toString()))
+        private val søknadInnhold: SøknadInnhold = build(personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(FnrGenerator.random().toString()))
 
         private val søknadInnholdJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
 

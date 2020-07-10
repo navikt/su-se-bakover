@@ -14,6 +14,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1")
 
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation(project(path = ":domain", configuration = "testArchives"))
 }
 
 plugins {

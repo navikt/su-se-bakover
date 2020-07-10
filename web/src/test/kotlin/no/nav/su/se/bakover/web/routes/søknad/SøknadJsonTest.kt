@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.web.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

@@ -8,8 +8,7 @@ import java.time.Month.JULY
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
  */
-class SøknadInnholdTestdataBuilder {
-    companion object {
+object SøknadInnholdTestdataBuilder {
         fun personopplysninger(
             fnr: String = "12345678910",
             fornavn: String = "Ola",
@@ -96,4 +95,3 @@ class SøknadInnholdTestdataBuilder {
             )
         ) = SøknadInnhold(uførevedtak, personopplysninger, flyktningsstatus, boforhold, utenlandsopphold, oppholdstillatelse, inntektOgPensjon, formue, forNav)
     }
-}

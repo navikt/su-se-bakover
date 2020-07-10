@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.web.SøknadInnholdTestdataBuilder.Companion.build
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson

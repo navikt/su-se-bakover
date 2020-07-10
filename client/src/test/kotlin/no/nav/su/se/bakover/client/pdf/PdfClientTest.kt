@@ -7,8 +7,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
