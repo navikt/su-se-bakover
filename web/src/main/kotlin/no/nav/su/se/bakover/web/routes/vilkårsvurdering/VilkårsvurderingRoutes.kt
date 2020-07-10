@@ -27,7 +27,8 @@ internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
                 when (val behandling = repo.hentBehandling(id)) {
                     null -> call.svar(HttpStatusCode.NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
-                        val vilkårsvurderingJson = deserialize<VilkårsvurderingJson>(call)
+                        val vilkårsvurderingJson =
+                            deserialize<VilkårsvurderingJson>(call)
                         behandling.oppdaterVilkårsvurderinger(vilkårsvurderingJson.vilkårsvurderinger.toVilkårsvurderinger())
                         call.svar(HttpStatusCode.OK.jsonBody(behandling))
                     }

@@ -1,17 +1,17 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.meldinger.kafka.soknad.Boforhold
-import no.nav.su.meldinger.kafka.soknad.Flyktningsstatus
-import no.nav.su.meldinger.kafka.soknad.ForNav
-import no.nav.su.meldinger.kafka.soknad.Formue
-import no.nav.su.meldinger.kafka.soknad.InntektOgPensjon
-import no.nav.su.meldinger.kafka.soknad.Oppholdstillatelse
-import no.nav.su.meldinger.kafka.soknad.PensjonsOrdningBeløp
-import no.nav.su.meldinger.kafka.soknad.Personopplysninger
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
-import no.nav.su.meldinger.kafka.soknad.Uførevedtak
-import no.nav.su.meldinger.kafka.soknad.Utenlandsopphold
-import no.nav.su.meldinger.kafka.soknad.UtenlandsoppholdPeriode
+import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.Flyktningsstatus
+import no.nav.su.se.bakover.domain.ForNav
+import no.nav.su.se.bakover.domain.Formue
+import no.nav.su.se.bakover.domain.InntektOgPensjon
+import no.nav.su.se.bakover.domain.Oppholdstillatelse
+import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
+import no.nav.su.se.bakover.domain.Personopplysninger
+import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.Uførevedtak
+import no.nav.su.se.bakover.domain.Utenlandsopphold
+import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
@@ -118,7 +118,7 @@ data class SøknadInnholdJson(
             erNorskStatsborger = erNorskStatsborger,
             harOppholdstillatelse = harOppholdstillatelse,
             oppholdstillatelseType = typeOppholdstillatelse?.let {
-                Oppholdstillatelse.OppholdstillatelseType.fromString(typeOppholdstillatelse)
+                toOppholdstillatelseType(it)
             },
             oppholdstillatelseMindreEnnTreMåneder = oppholdstillatelseMindreEnnTreMåneder,
             oppholdstillatelseForlengelse = oppholdstillatelseForlengelse,
@@ -126,12 +126,20 @@ data class SøknadInnholdJson(
             statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst
         )
 
+        private fun toOppholdstillatelseType(str: String): Oppholdstillatelse.OppholdstillatelseType {
+            return when (str) {
+                    "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG
+                    "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
+                    else -> throw IllegalArgumentException("Ikke gyldig oppholdstillatelse type")
+            }
+        }
+
         companion object {
             fun Oppholdstillatelse.toOppholdstillatelseJson() =
                 OppholdstillatelseJson(
                     erNorskStatsborger = this.erNorskStatsborger,
                     harOppholdstillatelse = this.harOppholdstillatelse,
-                    typeOppholdstillatelse = this.oppholdstillatelseType?.value,
+                    typeOppholdstillatelse = this.oppholdstillatelseType?.toJson(),
                     oppholdstillatelseMindreEnnTreMåneder = this.oppholdstillatelseMindreEnnTreMåneder,
                     oppholdstillatelseForlengelse = this.oppholdstillatelseForlengelse,
                     statsborgerskapAndreLand = this.statsborgerskapAndreLand,
@@ -151,18 +159,27 @@ data class SøknadInnholdJson(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
             delerBolig = delerBoligMedVoksne,
             delerBoligMed = delerBoligMed?.let {
-                Boforhold.DelerBoligMed.fromString(it)
+                toBoforholdType(it)
             },
             ektemakeEllerSamboerUnder67År = ektemakeEllerSamboerUnder67År,
             ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning
         )
+
+        private fun toBoforholdType(str: String): Boforhold.DelerBoligMed {
+            return when (str) {
+                "ektemake-eller-samboer" -> Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
+                "voksne-barn" -> Boforhold.DelerBoligMed.VOKSNE_BARN
+                "andre" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
+                else -> throw IllegalArgumentException("delerBoligMed feltet er ugyldig")
+            }
+        }
 
         companion object {
             fun Boforhold.toBoforholdJson() =
                 BoforholdJson(
                     borOgOppholderSegINorge = this.borOgOppholderSegINorge,
                     delerBoligMedVoksne = this.delerBolig,
-                    delerBoligMed = this.delerBoligMed?.value,
+                    delerBoligMed = this.delerBoligMed?.toJson(),
                     ektemakeEllerSamboerUnder67År = this.ektemakeEllerSamboerUnder67År,
                     ektemakeEllerSamboerUførFlyktning = this.ektemakeEllerSamboerUførFlyktning
                 )
@@ -188,7 +205,7 @@ data class SøknadInnholdJson(
                     planlagtePerioder = this.planlagtePerioder.toUtenlandsoppholdPeriodeJsonList()
                 )
 
-            fun List<UtenlandsoppholdPeriode>?.toUtenlandsoppholdPeriodeJsonList() =
+            fun List<UtenlandsoppholdPeriode>?.toUtenlandsoppholdPeriodeJsonList(): List<UtenlandsoppholdPeriodeJson>? =
                 this?.map { it.toUtenlandsoppholdJson() }
         }
     }
@@ -221,12 +238,20 @@ data class SøknadInnholdJson(
         val harFullmektigEllerVerge: String? = null
     ) {
         fun toForNav() = ForNav(harFullmektigEllerVerge?.let {
-            ForNav.Vergemål.fromString(it)
+            vergeMålType(it)
         })
+
+        private fun vergeMålType(str: String): ForNav.Vergemål {
+            return when (str) {
+                "fullmektig" -> ForNav.Vergemål.FULLMEKTIG
+                "verge" -> ForNav.Vergemål.VERGE
+                else -> throw IllegalArgumentException("Vergemål er ugyldig")
+            }
+        }
 
         companion object {
             fun ForNav.toForNavJson() =
-                ForNavJson(this.harFullmektigEllerVerge?.value)
+                ForNavJson(this.harFullmektigEllerVerge?.toJson())
         }
     }
 
@@ -300,7 +325,7 @@ data class SøknadInnholdJson(
             verdiPåBolig = verdiPåBolig,
             boligBrukesTil = boligBrukesTil,
             depositumsBeløp = depositumsBeløp,
-            Kontonummer = kontonummer,
+            kontonummer = kontonummer,
             verdiPåEiendom = verdiPåEiendom,
             eiendomBrukesTil = eiendomBrukesTil,
             verdiPåKjøretøy = verdiPåKjøretøy,
@@ -318,7 +343,7 @@ data class SøknadInnholdJson(
                     verdiPåBolig = verdiPåBolig,
                     boligBrukesTil = boligBrukesTil,
                     depositumsBeløp = depositumsBeløp,
-                    kontonummer = Kontonummer,
+                    kontonummer = kontonummer,
                     verdiPåEiendom = verdiPåEiendom,
                     eiendomBrukesTil = eiendomBrukesTil,
                     verdiPåKjøretøy = verdiPåKjøretøy,
@@ -374,5 +399,27 @@ data class SøknadInnholdJson(
                 formue = formue.toFormueJson(),
                 forNav = forNav.toForNavJson()
             )
+    }
+}
+
+private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
+    return when (this) {
+        Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG -> "midlertidig"
+        Oppholdstillatelse.OppholdstillatelseType.PERMANENT -> "permanent"
+    }
+}
+
+private fun Boforhold.DelerBoligMed.toJson(): String {
+    return when (this) {
+        Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER -> "ektemake-eller-samboer"
+            Boforhold.DelerBoligMed.VOKSNE_BARN -> "voksne-barn"
+            Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "andre"
+    }
+}
+
+private fun ForNav.Vergemål.toJson(): String {
+    return when (this) {
+        ForNav.Vergemål.VERGE -> "verge"
+        ForNav.Vergemål.FULLMEKTIG -> "fullmektig"
     }
 }

@@ -23,29 +23,27 @@ allprojects {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
         maven("http://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/su-meldinger")
-            credentials {
-                username = githubUser
-                password = githubPassword
-            }
-        }
     }
     val junitJupiterVersion = "5.6.0-M1"
-    val arrow_version = "0.10.5"
-    val kotest_version = "4.1.1"
+    val arrowVersion = "0.10.5"
+    val kotestVersion = "4.1.1"
+    val jacksonVersion = "2.11.1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("no.nav:su-meldinger:d84741c735c7f2647fbf7018318d04e3831f7733")
-        implementation("io.arrow-kt:arrow-core:$arrow_version")
-        implementation("io.arrow-kt:arrow-syntax:$arrow_version")
+        implementation("io.arrow-kt:arrow-core:$arrowVersion")
+        implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        testImplementation("io.kotest:kotest-assertions-core-jvm:$kotest_version")
-        testImplementation("io.kotest:kotest-assertions-json-jvm:$kotest_version")
-        testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotest_version")
+        testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+        testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
+        testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
     }
 

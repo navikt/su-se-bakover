@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -9,6 +8,7 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakEventObserver
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -38,8 +38,8 @@ internal class SøknadRouteMediator(
             { pdfByteArray ->
                 dokArkiv.opprettJournalpost(
                     nySøknad = nySøknadEvent.søknadInnhold,
-                    sakId = nySøknadEvent.sakId.toString(),
-                    pdf = pdfByteArray
+                    pdf = pdfByteArray,
+                    sakId = nySøknadEvent.sakId.toString()
                 ).fold(
                     {
                         log.error("$it")

@@ -19,16 +19,16 @@ import io.ktor.features.StatusPages
 import io.ktor.features.XForwardedHeaderSupport
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.jackson
+import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
-import io.ktor.request.header
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -37,6 +37,7 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.UgyldigFnrException
@@ -122,7 +123,7 @@ internal fun Application.susebakover(
     install(Locations)
 
     install(ContentNegotiation) {
-        jackson {}
+        register(ContentType.Application.Json, JacksonConverter(objectMapper))
     }
 
     install(CallId) {

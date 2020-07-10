@@ -8,8 +8,10 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpHeaders
 import io.ktor.request.header
+import io.ktor.request.receiveStream
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -42,3 +44,8 @@ internal suspend fun ApplicationCall.lesFnr(param: String) =
     } ?: Either.Left("$param er ikke et parameter")
 
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
+
+internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T =
+    deserialize(call.receiveTextUTF8())
+
+suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())

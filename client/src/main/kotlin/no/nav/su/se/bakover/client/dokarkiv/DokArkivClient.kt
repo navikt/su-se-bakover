@@ -5,10 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.meldinger.kafka.soknad.Personopplysninger
-import no.nav.su.meldinger.kafka.soknad.SøknadInnhold
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Personopplysninger
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -66,7 +67,7 @@ internal class DokArkivClient(
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${Base64.getEncoder()
-                    .encodeToString(søknadInnhold.toJson().toByteArray())}",
+                    .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())}",
                               "variantformat": "ORIGINAL"
                             }
                           ]

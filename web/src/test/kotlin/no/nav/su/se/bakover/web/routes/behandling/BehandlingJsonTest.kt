@@ -4,10 +4,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknad
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
-import no.nav.su.se.bakover.web.serialize
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID

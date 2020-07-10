@@ -15,16 +15,18 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.build
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder.Companion.personopplysninger
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.objectMapper
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -33,13 +35,16 @@ import kotlin.test.assertEquals
 @KtorExperimentalAPI
 @KtorExperimentalLocationsAPI
 internal class SøknadRoutesKtTest {
+    private val fnr = Fnr("01010100001")
 
-    private fun soknadJson(fnr: Fnr) = build(personopplysninger = personopplysninger(fnr = fnr.toString())).toJson()
+    private val søknadInnhold: SøknadInnhold = build(personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
+        fnr = fnr.toString()))
+
+    private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
     private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
     @Test
     fun `lagrer og henter søknad`() {
-        val fnr = Fnr("01010100001")
         withTestApplication({
             testEnv()
             testSusebakover()
@@ -49,7 +54,7 @@ internal class SøknadRoutesKtTest {
                 søknadPath
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson(fnr))
+                setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
             }.response
@@ -64,7 +69,6 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `knytter søknad til sak ved innsending`() {
-        val fnr = Fnr("01010100004")
         var sakNr: String
         withTestApplication({
             testEnv()
@@ -72,7 +76,7 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(Post, søknadPath) {
                 addHeader(ContentType, Json.toString())
-                setBody(soknadJson(fnr))
+                setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
                 sakNr = objectMapper.readValue<SakJson>(response.content!!).id

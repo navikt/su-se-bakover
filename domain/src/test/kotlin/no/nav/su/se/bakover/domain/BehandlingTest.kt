@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.collections.shouldContainExactly
-import no.nav.su.meldinger.kafka.soknad.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue

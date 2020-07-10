@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
-import no.nav.su.se.bakover.web.serialize
+import no.nav.su.se.bakover.common.serialize
 
 internal data class BehandlingJson(
     val id: String,
