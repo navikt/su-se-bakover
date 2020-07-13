@@ -24,6 +24,13 @@ class Beregning(private val beregningsdatoStart: LocalDate) {
         // TODO: Finn ut om vi skal bruke forskjellig grunnbeløp "per måned" der det gjelder.
         // Er 10% regelen relevant?
         // Skal vi ta med grunnbeløp og dato i visninga
-        return BigDecimal(Grunnbeløp.høy.fraDato(dato)).divide(BigDecimal(periode), 0, HALF_UP).toInt()
+        return BigDecimal(Sats.HØY.fraDato(dato)).divide(BigDecimal(periode), 0, HALF_UP).toInt()
+    }
+
+    enum class Sats(val grunnbeløp: Grunnbeløp) {
+        LAV(Grunnbeløp.`2,28G`),
+        HØY(Grunnbeløp.`2,48G`);
+
+        fun fraDato(dato: LocalDate) = grunnbeløp.fraDato(dato)
     }
 }
