@@ -17,5 +17,6 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
     companion object {
         val `2,28G` = Grunnbeløp(2.28)
         val `2,48G` = Grunnbeløp(2.48)
+        val `1G` = Grunnbeløp(1.0)
     }
 }
