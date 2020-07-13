@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -17,6 +17,10 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
+import no.nav.su.se.bakover.domain.beregning.Sats
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -139,9 +143,10 @@ internal class DatabaseRepo(
     private fun Row.uuid(name: String) = UUID.fromString(string(name))
     private fun Row.toBehandling(session: Session) = Behandling(
         id = uuid("id"),
-        vilkårsvurderinger = hentVilkårsvurderinger(UUID.fromString(string("id")), session),
+        vilkårsvurderinger = hentVilkårsvurderinger(uuid("id"), session),
         opprettet = instant("opprettet"),
-        søknad = hentSøknad(uuid("søknadId"), session)!!
+        søknad = hentSøknad(uuid("søknadId"), session)!!,
+        beregninger = hentBeregningerInternal(uuid("id"), session)
     )
 
     override fun opprettVilkårsvurderinger(
@@ -236,4 +241,67 @@ internal class DatabaseRepo(
                 it.addObserver(this)
             }
         }
+
+    override fun hentBeregninger(behandlingId: UUID): MutableList<Beregning> =
+        using(sessionOf(dataSource)) { hentBeregningerInternal(behandlingId, it) }
+
+    private fun hentBeregningerInternal(behandlingId: UUID, session: Session) =
+        "select * from beregning where behandlingId = :id".hentListe(mapOf("id" to behandlingId), session) {
+            it.toBeregning(session)
+        }.toMutableList()
+
+    private fun Row.toBeregning(session: Session) = Beregning(
+        id = uuid("id"),
+        opprettet = instant("opprettet"),
+        fom = localDate("fom"),
+        tom = localDate("tom"),
+        sats = Sats.valueOf(string("sats")),
+        månedsberegninger = hentMånedsberegninger(uuid("id"), session)
+    )
+
+    override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
+        val dto = beregning.toDto()
+        "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
+            mapOf(
+                "id" to dto.id,
+                "opprettet" to dto.opprettet,
+                "fom" to dto.fom,
+                "tom" to dto.tom,
+                "behandlingId" to behandlingId,
+                "sats" to dto.sats.name
+            )
+        )
+        dto.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
+        return beregning
+    }
+
+    private fun hentMånedsberegninger(beregningId: UUID, session: Session) =
+        "select * from månedsberegning where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
+            it.toMånedsberegning(session)
+        }.toMutableList()
+
+    private fun Row.toMånedsberegning(session: Session) = Månedsberegning(
+        id = uuid("id"),
+        opprettet = instant("opprettet"),
+        fom = localDate("fom"),
+        tom = localDate("tom"),
+        grunnbeløp = int("grunnbeløp"),
+        sats = Sats.valueOf(string("sats")),
+        beløp = int("beløp")
+    )
+
+    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: MånedsberegningDto) {
+        "insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp) values (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop)".oppdatering(
+            mapOf(
+                "id" to månedsberegning.id,
+                "opprettet" to månedsberegning.opprettet,
+                "fom" to månedsberegning.fom,
+                "tom" to månedsberegning.tom,
+                "grunnbelop" to månedsberegning.grunnbeløp,
+                "beregningId" to beregningId,
+                "sats" to månedsberegning.sats.name,
+                "belop" to månedsberegning.beløp
+            )
+        )
+    }
 }
