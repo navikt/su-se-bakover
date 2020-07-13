@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
+import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Period
@@ -14,7 +15,7 @@ class Beregning(
     private val tom: LocalDate,
     private val sats: Sats,
     private val månedsberegninger: MutableList<Månedsberegning> = mutableListOf()
-) : PersistentDomainObject<VoidObserver>(id, opprettet) {
+) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<BeregningDto> {
     private val antallMnd = Period.between(fom, tom.plusDays(1)).toTotalMonths()
 
     init {
@@ -33,7 +34,7 @@ class Beregning(
         )
     }
 
-    fun toDto(): BeregningDto =
+    override fun toDto(): BeregningDto =
         BeregningDto(
             id = id,
             opprettet = opprettet,

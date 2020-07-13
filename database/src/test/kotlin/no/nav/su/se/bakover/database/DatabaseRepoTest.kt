@@ -88,7 +88,10 @@ internal class DatabaseRepoTest {
     fun `opprett og hent beregning`() {
         withMigratedDb {
             val behandling = enBehandling()
-            val fromObject = behandling.opprettBeregning(fom = LocalDate.of(2018, Month.JANUARY, 1)).toDto()
+            val fromObject = behandling.opprettBeregning(
+                fom = LocalDate.of(2018, Month.JANUARY, 1),
+                tom = LocalDate.of(2018, Month.DECEMBER, 31)
+            ).toDto()
             val fromRepo = repo.hentBeregninger(behandling.toDto().id).first().toDto()
 
             behandling.toDto().beregninger shouldHaveSize 1

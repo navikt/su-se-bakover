@@ -43,8 +43,8 @@ class Behandling constructor(
     }
 
     fun opprettBeregning(
-        fom: LocalDate = LocalDate.now(),
-        tom: LocalDate = fom.plusMonths(12).minusDays(1),
+        fom: LocalDate,
+        tom: LocalDate,
         sats: Sats = Sats.HØY
     ): Beregning {
         val beregning = persistenceObserver.opprettBeregning(
