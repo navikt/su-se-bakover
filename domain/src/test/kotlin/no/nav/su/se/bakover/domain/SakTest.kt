@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -52,6 +53,10 @@ internal class SakTest {
                     behandlingId: UUID,
                     vilkårsvurderinger: List<Vilkårsvurdering>
                 ): List<Vilkårsvurdering> = emptyList()
+
+                override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
+                    TODO("Not yet implemented")
+                }
             })
         }
 
