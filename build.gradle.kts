@@ -14,10 +14,20 @@ version = "0.0.1"
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    val githubUser: String by project
+    val githubPassword: String by project
     repositories {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
         maven("http://packages.confluent.io/maven/")
+        maven {
+            url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
+            credentials {
+                username = githubUser
+                password = githubPassword
+            }
+        }
     }
     val junitJupiterVersion = "5.6.0-M1"
     val arrowVersion = "0.10.5"
