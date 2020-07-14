@@ -1,7 +1,4 @@
 buildscript {
-    repositories {
-        jcenter()
-    }
     dependencies {
         classpath("org.ajoberstar:grgit:1.1.0")
     }
@@ -17,8 +14,6 @@ version = "0.0.1"
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    val githubUser: String? by project
-    val githubPassword: String? by project
     repositories {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
