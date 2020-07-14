@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter
 
 internal data class BeregningJson(
     val id: String,
+    val opprettet: String,
     val fom: String,
     val tom: String,
     val sats: String,
@@ -17,6 +18,7 @@ internal data class BeregningJson(
 
 internal fun BeregningDto.toJson() = BeregningJson(
     id = id.toString(),
+    opprettet = opprettet.toString(),
     fom = fom.format(DateTimeFormatter.ISO_DATE),
     tom = tom.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,

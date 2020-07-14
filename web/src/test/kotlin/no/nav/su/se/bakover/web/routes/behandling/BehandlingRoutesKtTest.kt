@@ -20,8 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknad.toJson
-import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -41,20 +39,14 @@ internal class BehandlingRoutesKtTest {
             testEnv()
             testSusebakover()
         }) {
-            val sak = repo.opprettSak(FnrGenerator.random())
-            val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-            val behandlingDto = sak.opprettSøknadsbehandling(søknad.toDto().id).toDto()
-
-            val behandlingsId = behandlingDto.id
-            val vilkårsvurderinger = repo.hentVilkårsvurderinger(behandlingsId)
-
-            defaultRequest(HttpMethod.Get, "$sakPath/${sak.toDto().id}/behandlinger/$behandlingsId").apply {
-                val behandlingJson = objectMapper.readValue<BehandlingJson>(response.content!!)
-                behandlingJson shouldBe BehandlingJson(
-                    id = behandlingsId.toString(),
-                    vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() }.toJson(),
-                    søknad = behandlingDto.søknad.toJson()
-                )
+            val ids = setup()
+            defaultRequest(HttpMethod.Get, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}").apply {
+                objectMapper.readValue<BehandlingJson>(response.content!!).let {
+                    it.id shouldBe ids.behandlingId
+                    it.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveSize 6
+                    it.søknad.id shouldBe ids.søknadId
+                    it.beregning!!.id shouldBe ids.beregningId
+                }
             }
         }
     }
@@ -156,19 +148,26 @@ internal class BehandlingRoutesKtTest {
     }
 
     data class Ids(
-        val sakId: UUID,
-        val søknadId: UUID,
-        val behandlingId: UUID
+        val sakId: String,
+        val søknadId: String,
+        val behandlingId: String,
+        val beregningId: String
     )
 
     private fun setup(): Ids {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
         val behandling = sak.opprettSøknadsbehandling(søknad.toDto().id)
+        val beregning = behandling.opprettBeregning(
+            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.LAV
+        )
         return Ids(
-            sak.toDto().id,
-            søknad.toDto().id,
-            behandling.toDto().id
+            sak.toDto().id.toString(),
+            søknad.toDto().id.toString(),
+            behandling.toDto().id.toString(),
+            beregning.toDto().id.toString()
         )
     }
 }

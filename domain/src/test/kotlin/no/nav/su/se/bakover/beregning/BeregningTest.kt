@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.beregning
 
+import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -7,7 +8,9 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Month
+import java.time.ZoneOffset
 
 internal class BeregningTest {
 
@@ -80,5 +83,34 @@ internal class BeregningTest {
             )
         )
         beregning.toDto().månedsberegninger shouldHaveSize 1
+    }
+
+    @Test
+    fun `sort by opprettet`() {
+        val first = Beregning(
+            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC)
+        )
+        val second = Beregning(
+            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toInstant(ZoneOffset.UTC)
+        )
+        val third = Beregning(
+            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toInstant(ZoneOffset.UTC)
+        )
+        val beregninger = listOf(
+            first,
+            second,
+            third
+        )
+        val sorted = beregninger.sortedWith(Beregning.Opprettet)
+        sorted shouldContainInOrder listOf(third, first, second)
     }
 }

@@ -21,7 +21,7 @@ class Behandling constructor(
         opprettet = opprettet,
         vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() },
         søknad = søknad.toDto(),
-        beregninger = beregninger.map { it.toDto() }
+        beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto()
     )
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
@@ -59,6 +59,10 @@ class Behandling constructor(
         return beregning
     }
 
+    private fun gjeldendeBeregning(): Beregning = beregninger.toList()
+        .sortedWith(Beregning.Opprettet)
+        .first()
+
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
 }
@@ -77,5 +81,5 @@ data class BehandlingDto(
     val opprettet: Instant,
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
-    val beregninger: List<BeregningDto>
+    val beregning: BeregningDto?
 )

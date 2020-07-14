@@ -43,6 +43,12 @@ class Beregning(
             sats = sats,
             månedsberegninger = månedsberegninger.map { it.toDto() }
         )
+
+    object Opprettet : Comparator<Beregning> {
+        override fun compare(o1: Beregning?, o2: Beregning?): Int {
+            return (o1!!.opprettet.toEpochMilli() - o2!!.opprettet.toEpochMilli()).toInt()
+        }
+    }
 }
 
 data class BeregningDto(

@@ -13,13 +13,15 @@ import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
 internal data class BehandlingJson(
     val id: String,
     val vilkårsvurderinger: VilkårsvurderingJson,
-    val søknad: SøknadJson
+    val søknad: SøknadJson,
+    val beregning: BeregningJson?
 )
 
 internal fun BehandlingDto.toJson() = BehandlingJson(
     id = id.toString(),
     vilkårsvurderinger = vilkårsvurderinger.toJson(),
-    søknad = søknad.toJson()
+    søknad = søknad.toJson(),
+    beregning = beregning?.toJson()
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =

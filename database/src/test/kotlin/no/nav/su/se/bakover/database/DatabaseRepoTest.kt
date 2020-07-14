@@ -94,7 +94,7 @@ internal class DatabaseRepoTest {
             ).toDto()
             val fromRepo = repo.hentBeregninger(behandling.toDto().id).first().toDto()
 
-            behandling.toDto().beregninger shouldHaveSize 1
+            behandling.toDto().beregning shouldNotBe null
 
             fromObject.id shouldBe fromRepo.id
             fromObject.fom shouldBe fromRepo.fom
