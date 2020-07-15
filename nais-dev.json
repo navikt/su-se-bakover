@@ -10,6 +10,8 @@
     "SU_INNTEKT_AZURE_CLIENT_ID": "9cd61904-33ad-40e8-9cc8-19e4dab588c5",
     "VAULT_MOUNTPATH": "postgresql/preprod-fss/",
     "DATABASE_NAME": "supstonad-db-dev",
-    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev"
+    "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev",
+    "SIMULERING_URL": "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding",
+    "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
   }
 }
