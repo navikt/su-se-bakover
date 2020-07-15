@@ -39,6 +39,9 @@ import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.SOAPClientBuilder
 import no.nav.su.se.bakover.client.SOAPClients
+import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -111,6 +114,37 @@ internal fun Application.susebakover(
     val collectorRegistry = CollectorRegistry.defaultRegistry
     installMetrics(collectorRegistry)
     naisRoutes(collectorRegistry)
+
+    routing {
+        get("/simuler") {
+            val linjer = Utbetalingslinjer.UtbetalingTilBruker(
+                fødselsnummer = "12345678910",
+                endringskode = "NY",
+                fagsystemId = "SUP",
+                maksdato = 31.desember(2020),
+                mottaker = "Navn Navnesen",
+                organisasjonsnummer = "",
+                saksbehandler = "saksbehandler"
+            ).apply {
+                linje(
+                    Utbetalingslinjer.Utbetalingslinje(
+                        delytelseId = 2,
+                        endringskode = "NY",
+                        fom = 1.januar(2020),
+                        tom = 31.desember(2020),
+                        dagsats = 405,
+                        datoStatusFom = 1.januar(2020),
+                        grad = 100,
+                        klassekode = "klasseKode",
+                        refDelytelseId = 1,
+                        refFagsystemId = "SUP",
+                        statuskode = null
+                    )
+                )
+            }
+            soapClients.oppdrag.simulerOppdrag(linjer)
+        }
+    }
 
     setupAuthentication(
         jwkConfig = jwkConfig,
