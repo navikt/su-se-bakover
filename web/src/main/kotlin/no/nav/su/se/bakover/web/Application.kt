@@ -37,6 +37,8 @@ import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
+import no.nav.su.se.bakover.client.SOAPClientBuilder
+import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -70,7 +72,8 @@ internal fun Application.susebakover(
                 useSystemProperties()
             }
         }
-    }
+    },
+    soapClients: SOAPClients = SOAPClientBuilder.build()
 ) {
 
     val søknadRoutesMediator = SøknadRouteMediator(

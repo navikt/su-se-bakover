@@ -30,8 +30,8 @@ import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath
@@ -54,7 +54,7 @@ internal class CallContextTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = object :
+            testSusebakover(httpClients = buildHttpClients(personOppslag = object :
                 PersonOppslag {
                 override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
 

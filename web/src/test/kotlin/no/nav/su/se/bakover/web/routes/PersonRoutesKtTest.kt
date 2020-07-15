@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.*
-import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.testEnv
 import org.junit.jupiter.api.Test
 
@@ -54,7 +54,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
+            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(200, testIdent, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -70,7 +70,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
+            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {

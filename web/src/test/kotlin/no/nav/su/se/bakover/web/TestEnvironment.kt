@@ -18,14 +18,17 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
+import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.client.oppdrag.Oppdrag
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.OppdragStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -75,20 +78,22 @@ fun authenticationHttpClient() = HttpClient(MockEngine) {
 }
 
 internal fun Application.testSusebakover(
-    httpClients: HttpClients = buildClients(),
+    httpClients: HttpClients = buildHttpClients(),
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance()),
-    authenticationHttpClient: HttpClient = authenticationHttpClient()
+    authenticationHttpClient: HttpClient = authenticationHttpClient(),
+    soapClients: SOAPClients = buildSOAPClients()
 ) {
     return susebakover(
         databaseRepo = databaseRepo,
         httpClients = httpClients,
         jwkProvider = jwkProvider,
-        authenticationHttpClient = authenticationHttpClient
+        authenticationHttpClient = authenticationHttpClient,
+        soapClients = soapClients
     )
 }
 
-internal fun buildClients(
+internal fun buildHttpClients(
     azure: OAuth = OauthStub(),
     personOppslag: PersonOppslag = PersonOppslagStub,
     inntektOppslag: InntektOppslag = InntektOppslagStub,
@@ -105,6 +110,10 @@ internal fun buildClients(
         oppgave = oppgave
     )
 }
+
+internal fun buildSOAPClients(
+    oppdrag: Oppdrag = OppdragStub
+): SOAPClients = SOAPClients(oppdrag)
 
 internal object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(
