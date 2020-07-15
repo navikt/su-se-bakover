@@ -20,8 +20,8 @@ internal class SimuleringService(
     private val simulerFpService: SimulerFpService
 ) : Oppdrag {
     private companion object {
-        private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
-        private val log = LoggerFactory.getLogger(SimuleringService::class.java)
+        private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 
     override fun simulerOppdrag(utbetalingslinjer: Utbetalingslinjer): SimuleringResult {
