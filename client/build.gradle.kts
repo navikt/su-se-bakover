@@ -23,11 +23,11 @@ dependencies {
     implementation("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
     implementation("javax.xml.ws:jaxws-api:2.3.1")
+    implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
 
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
         exclude(group = "junit")
     }
-    testImplementation("io.mockk:mockk:1.10.0")
 }
 
 configure<SourceSetContainer> {
