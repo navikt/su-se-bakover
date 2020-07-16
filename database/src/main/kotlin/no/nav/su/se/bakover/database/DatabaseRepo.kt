@@ -44,9 +44,9 @@ internal class DatabaseRepo(
 
     override fun opprettSøknadsbehandling(
         sakId: UUID,
-        behanding: Behandling
+        behandling: Behandling
     ): Behandling {
-        val behandlingDto = behanding.toDto()
+        val behandlingDto = behandling.toDto()
         "insert into behandling (id, sakId, søknadId, opprettet) values (:id, :sakId, :soknadId, :opprettet)".oppdatering(
             mapOf(
                 "id" to behandlingDto.id,
@@ -55,8 +55,8 @@ internal class DatabaseRepo(
                 "opprettet" to behandlingDto.opprettet
             )
         )
-        behanding.addObserver(this)
-        return behanding
+        behandling.addObserver(this)
+        return behandling
     }
 
     private fun Row.toSak(session: Session): Sak {
