@@ -6,7 +6,6 @@ class Utbetalingslinjer(
     internal val fagområde: String,
     internal val fagsystemId: String,
     internal val fødselsnummer: String,
-    internal val mottaker: String,
     internal val endringskode: String,
     internal val saksbehandler: String
 ) : Iterable<Utbetalingslinjer.Utbetalingslinje> {
@@ -22,11 +21,13 @@ class Utbetalingslinjer(
             linjer
         )
     ) { "Ingen oppdragslinjer" }
+
     fun sisteDag() = checkNotNull(
         Utbetalingslinje.sisteDato(
             linjer
         )
     ) { "Ingen oppdragslinjer" }
+
     fun totalbeløp() =
         Utbetalingslinje.totalbeløp(
             linjer
@@ -34,9 +35,7 @@ class Utbetalingslinjer(
 
     override fun iterator() = linjer.toList().listIterator()
     override fun equals(other: Any?) = other is Utbetalingslinjer && this.hashCode() == other.hashCode()
-    override fun hashCode() = linjer.hashCode() * 67 +
-            mottaker.hashCode() * 71 +
-            fødselsnummer.hashCode()
+    override fun hashCode() = linjer.hashCode() * 67 + fødselsnummer.hashCode()
 
     class Utbetalingslinje(
         internal val delytelseId: Int,
@@ -58,11 +57,11 @@ class Utbetalingslinjer(
         }
 
         override fun hashCode() = fom.hashCode() * 37 +
-                tom.hashCode() * 17 +
-                dagsats.hashCode() * 41 +
-                grad.hashCode() * 61 +
-                endringskode.hashCode() * 59 +
-                datoStatusFom.hashCode() * 23
+            tom.hashCode() * 17 +
+            dagsats.hashCode() * 41 +
+            grad.hashCode() * 61 +
+            endringskode.hashCode() * 59 +
+            datoStatusFom.hashCode() * 23
 
         override fun equals(other: Any?) = other is Utbetalingslinje && this.hashCode() == other.hashCode()
     }

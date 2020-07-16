@@ -146,7 +146,6 @@ internal class SimuleringServiceTest {
         fagområde = "Fagområde",
         fagsystemId = "SUP",
         fødselsnummer = "12345678910",
-        mottaker = "Navn Navnesen",
         endringskode = "NY",
         saksbehandler = "saksbehandler"
     ).also {

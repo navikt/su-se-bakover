@@ -109,7 +109,6 @@ internal class SimuleringRequestBuilderTest {
                 fagområde = FAGOMRÅDE,
                 fagsystemId = FAGSYSTEMID,
                 fødselsnummer = PERSON,
-                mottaker = PERSON,
                 endringskode = endringskode,
                 saksbehandler = SAKSBEHANDLER
             ).apply(block)
