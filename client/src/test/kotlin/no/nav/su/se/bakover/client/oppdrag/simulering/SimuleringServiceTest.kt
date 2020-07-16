@@ -157,11 +157,11 @@ internal class SimuleringServiceTest {
                 klassekode = "klasseKode",
                 fom = 1.januar(2020),
                 tom = 31.desember(2020),
-                dagsats = 405,
+                sats = 405,
                 refDelytelseId = UUID.randomUUID().toString(),
                 refFagsystemId = "SUP",
-                datoStatusFom = 1.januar(2020),
-                statuskode = null
+                statusFom = 1.januar(2020),
+                status = null
             )
         )
     }

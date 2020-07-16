@@ -43,23 +43,23 @@ class Utbetalingslinjer(
         internal val klassekode: String,
         internal val fom: LocalDate,
         internal val tom: LocalDate,
-        internal val dagsats: Int,
+        internal val sats: Int,
         internal val refDelytelseId: String?,
         internal val refFagsystemId: String?,
-        internal val datoStatusFom: LocalDate?,
-        internal val statuskode: String?
+        internal val statusFom: LocalDate?,
+        internal val status: String?
     ) {
         internal companion object {
             fun førsteDato(linjer: List<Utbetalingslinje>) = linjer.minBy { it.fom }?.fom
             fun sisteDato(linjer: List<Utbetalingslinje>) = linjer.maxBy { it.tom }?.tom
-            fun totalbeløp(linjer: List<Utbetalingslinje>) = linjer.sumBy { it.dagsats }
+            fun totalbeløp(linjer: List<Utbetalingslinje>) = linjer.sumBy { it.sats }
         }
 
         override fun hashCode() = fom.hashCode() * 37 +
             tom.hashCode() * 17 +
-            dagsats.hashCode() * 41 +
+            sats.hashCode() * 41 +
             endringskode.hashCode() * 59 +
-            datoStatusFom.hashCode() * 23
+            statusFom.hashCode() * 23
 
         override fun equals(other: Any?) = other is Utbetalingslinje && this.hashCode() == other.hashCode()
     }

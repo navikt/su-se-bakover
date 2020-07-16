@@ -34,11 +34,11 @@ internal class SimuleringRequestBuilderTest {
                     klassekode = "SP",
                     fom = 1.januar(2020),
                     tom = 14.januar(2020),
-                    dagsats = DAGSATS,
+                    sats = DAGSATS,
                     refDelytelseId = null,
                     refFagsystemId = null,
-                    datoStatusFom = null,
-                    statuskode = null
+                    statusFom = null,
+                    status = null
                 )
             )
             linje(
@@ -48,11 +48,11 @@ internal class SimuleringRequestBuilderTest {
                     klassekode = "SP",
                     fom = 15.januar(2020),
                     tom = 31.januar(2020),
-                    dagsats = DAGSATS,
+                    sats = DAGSATS,
                     refDelytelseId = null,
                     refFagsystemId = null,
-                    datoStatusFom = null,
-                    statuskode = null
+                    statusFom = null,
+                    status = null
                 )
             )
         }
@@ -73,11 +73,11 @@ internal class SimuleringRequestBuilderTest {
                     klassekode = "SP",
                     fom = 1.januar(2020),
                     tom = 31.januar(2020),
-                    dagsats = DAGSATS,
+                    sats = DAGSATS,
                     refDelytelseId = null,
                     refFagsystemId = null,
-                    datoStatusFom = 1.januar(2020),
-                    statuskode = "OPPH"
+                    statusFom = 1.januar(2020),
+                    status = "OPPH"
                 )
             )
         }

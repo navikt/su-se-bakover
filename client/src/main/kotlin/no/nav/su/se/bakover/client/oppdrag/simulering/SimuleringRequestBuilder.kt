@@ -52,11 +52,11 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         refFagsystemId = utbetalingslinje.refFagsystemId?.let { it }
         kodeEndringLinje = utbetalingslinje.endringskode
         kodeKlassifik = utbetalingslinje.klassekode
-        kodeStatusLinje = utbetalingslinje.statuskode?.let { KodeStatusLinje.valueOf(it) }
-        datoStatusFom = utbetalingslinje.datoStatusFom?.format(tidsstempel)
+        kodeStatusLinje = utbetalingslinje.status?.let { KodeStatusLinje.valueOf(it) }
+        datoStatusFom = utbetalingslinje.statusFom?.format(tidsstempel)
         datoVedtakFom = utbetalingslinje.fom.format(tidsstempel)
         datoVedtakTom = utbetalingslinje.tom.format(tidsstempel)
-        sats = utbetalingslinje.dagsats.toBigDecimal()
+        sats = utbetalingslinje.sats.toBigDecimal()
         fradragTillegg = FradragTillegg.T
         typeSats = "DAG"
         saksbehId = utbetalingslinjer.saksbehandler
