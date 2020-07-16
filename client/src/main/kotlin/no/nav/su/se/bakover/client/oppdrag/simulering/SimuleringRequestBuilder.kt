@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
-import no.nav.system.os.entiteter.oppdragskjema.Grad
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
@@ -62,10 +61,6 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         typeSats = "DAG"
         saksbehId = utbetalingslinjer.saksbehandler
         brukKjoreplan = "N"
-        grad.add(Grad().apply {
-            typeGrad = "UFOR"
-            grad = utbetalingslinje.grad.toBigInteger()
-        })
         attestant.add(Attestant().apply {
             attestantId = utbetalingslinjer.saksbehandler
         })

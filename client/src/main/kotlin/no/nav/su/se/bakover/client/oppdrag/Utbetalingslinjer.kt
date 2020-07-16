@@ -44,7 +44,6 @@ class Utbetalingslinjer(
         internal val fom: LocalDate,
         internal val tom: LocalDate,
         internal val dagsats: Int,
-        internal val grad: Int,
         internal val refDelytelseId: String?,
         internal val refFagsystemId: String?,
         internal val datoStatusFom: LocalDate?,
@@ -59,7 +58,6 @@ class Utbetalingslinjer(
         override fun hashCode() = fom.hashCode() * 37 +
             tom.hashCode() * 17 +
             dagsats.hashCode() * 41 +
-            grad.hashCode() * 61 +
             endringskode.hashCode() * 59 +
             datoStatusFom.hashCode() * 23
 

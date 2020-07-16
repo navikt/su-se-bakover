@@ -18,12 +18,9 @@ internal class SimuleringRequestBuilderTest {
         private const val ENDRINGSKODE_ENDRET = "ENDR"
         private const val ENDRINGSKODE_UENDRET = "UEND"
         private const val PERSON = "12345678911"
-        private const val ORGNR = "123456789"
         private const val FAGSYSTEMID = "a1b0c2"
         private const val DAGSATS = 1000
-        private const val GRAD = 100
         private const val SAKSBEHANDLER = "Spenn"
-        private val MAKSDATO = LocalDate.MAX
         private val tidsstempel = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 
@@ -38,7 +35,6 @@ internal class SimuleringRequestBuilderTest {
                     fom = 1.januar(2020),
                     tom = 14.januar(2020),
                     dagsats = DAGSATS,
-                    grad = GRAD,
                     refDelytelseId = null,
                     refFagsystemId = null,
                     datoStatusFom = null,
@@ -53,7 +49,6 @@ internal class SimuleringRequestBuilderTest {
                     fom = 15.januar(2020),
                     tom = 31.januar(2020),
                     dagsats = DAGSATS,
-                    grad = GRAD,
                     refDelytelseId = null,
                     refFagsystemId = null,
                     datoStatusFom = null,
@@ -79,7 +74,6 @@ internal class SimuleringRequestBuilderTest {
                     fom = 1.januar(2020),
                     tom = 31.januar(2020),
                     dagsats = DAGSATS,
-                    grad = GRAD,
                     refDelytelseId = null,
                     refFagsystemId = null,
                     datoStatusFom = 1.januar(2020),
@@ -150,7 +144,6 @@ internal class SimuleringRequestBuilderTest {
         assertEquals(delytelseId, oppdrag.oppdragslinje[index].delytelseId)
         assertEquals(endringskode, oppdrag.oppdragslinje[index].kodeEndringLinje)
         assertEquals(DAGSATS.toBigDecimal(), oppdrag.oppdragslinje[index].sats)
-        assertEquals(GRAD.toBigInteger(), oppdrag.oppdragslinje[index].grad.first().grad)
         assertEquals(fom.format(tidsstempel), oppdrag.oppdragslinje[index].datoVedtakFom)
         assertEquals(tom.format(tidsstempel), oppdrag.oppdragslinje[index].datoVedtakTom)
         assertEquals(datoStatusFom?.format(tidsstempel), oppdrag.oppdragslinje[index].datoStatusFom)
