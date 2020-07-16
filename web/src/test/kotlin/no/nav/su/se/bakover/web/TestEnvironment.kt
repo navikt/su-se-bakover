@@ -22,13 +22,13 @@ import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
-import no.nav.su.se.bakover.client.oppdrag.Oppdrag
+import no.nav.su.se.bakover.client.oppdrag.Simulering
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.oppdrag.OppdragStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -112,8 +112,8 @@ internal fun buildHttpClients(
 }
 
 internal fun buildSOAPClients(
-    oppdrag: Oppdrag = OppdragStub
-): SOAPClients = SOAPClients(oppdrag)
+    simulering: Simulering = SimuleringStub
+): SOAPClients = SOAPClients(simulering)
 
 internal object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(

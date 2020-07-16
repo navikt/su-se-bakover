@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import com.ctc.wstx.exc.WstxEOFException
-import no.nav.su.se.bakover.client.oppdrag.Oppdrag
+import no.nav.su.se.bakover.client.oppdrag.Simulering
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
@@ -18,7 +18,7 @@ import javax.xml.ws.soap.SOAPFaultException
 
 internal class SimuleringService(
     private val simulerFpService: SimulerFpService
-) : Oppdrag {
+) : Simulering {
     private companion object {
         private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
         private val log = LoggerFactory.getLogger(this::class.java)

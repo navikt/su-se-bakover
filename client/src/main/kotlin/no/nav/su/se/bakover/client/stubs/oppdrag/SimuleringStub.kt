@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.client.stubs.oppdrag
 
-import no.nav.su.se.bakover.client.oppdrag.Oppdrag
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.su.se.bakover.client.oppdrag.simulering.Detaljer
-import no.nav.su.se.bakover.client.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResult
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringStatus
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimulertPeriode
@@ -13,7 +11,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 
-object OppdragStub : Oppdrag {
+object SimuleringStub : no.nav.su.se.bakover.client.oppdrag.Simulering {
     override fun simulerOppdrag(utbetalingslinjer: Utbetalingslinjer) =
         SimuleringResult(
             status = SimuleringStatus.OK,
