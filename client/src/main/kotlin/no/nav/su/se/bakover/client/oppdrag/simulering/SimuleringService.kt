@@ -50,10 +50,9 @@ internal class SimuleringService(
                 else -> unknownTechnicalExceptionResponse(e)
             }
         } catch (e: WebServiceException) {
-            when (e.cause) {
-                is SSLException, is SocketException -> utenforÅpningstidResponse(e)
-                else -> unknownTechnicalExceptionResponse(e)
-            }
+            if (e.cause is SSLException || e.rootCause is SocketException) {
+                utenforÅpningstidResponse(e)
+            } else unknownTechnicalExceptionResponse(e)
         } catch (e: Throwable) {
             unknownTechnicalExceptionResponse(e)
         }
