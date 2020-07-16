@@ -2,15 +2,13 @@ package no.nav.su.se.bakover.client.oppdrag
 
 import java.time.LocalDate
 
-sealed class Utbetalingslinjer(
+class Utbetalingslinjer(
     internal val fagområde: String,
     internal val fagsystemId: String,
     internal val fødselsnummer: String,
     internal val mottaker: String,
-    internal val organisasjonsnummer: String,
     internal val endringskode: String,
-    internal val saksbehandler: String,
-    internal val maksdato: LocalDate?
+    internal val saksbehandler: String
 ) : Iterable<Utbetalingslinjer.Utbetalingslinje> {
     private val linjer = mutableListOf<Utbetalingslinje>()
 
@@ -38,36 +36,7 @@ sealed class Utbetalingslinjer(
     override fun equals(other: Any?) = other is Utbetalingslinjer && this.hashCode() == other.hashCode()
     override fun hashCode() = linjer.hashCode() * 67 +
             mottaker.hashCode() * 71 +
-            organisasjonsnummer.hashCode() * 73 +
             fødselsnummer.hashCode()
-
-    class RefusjonTilArbeidsgiver(
-        fødselsnummer: String,
-        mottaker: String,
-        fagsystemId: String,
-        endringskode: String,
-        saksbehandler: String,
-        maksdato: LocalDate?
-    ) : Utbetalingslinjer(
-        "SPREF",
-        fagsystemId,
-        fødselsnummer,
-        mottaker,
-        mottaker,
-        endringskode,
-        saksbehandler,
-        maksdato
-    )
-
-    class UtbetalingTilBruker(
-        fødselsnummer: String,
-        mottaker: String,
-        organisasjonsnummer: String,
-        fagsystemId: String,
-        endringskode: String,
-        saksbehandler: String,
-        maksdato: LocalDate?
-    ) : Utbetalingslinjer("SP", fagsystemId, fødselsnummer, mottaker, organisasjonsnummer, endringskode, saksbehandler, maksdato)
 
     class Utbetalingslinje(
         internal val delytelseId: Int,

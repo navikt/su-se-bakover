@@ -1,18 +1,19 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
+import no.nav.su.se.bakover.common.januar
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.Month
 import java.time.format.DateTimeFormatter
 
 internal class SimuleringRequestBuilderTest {
 
     private companion object {
+        private const val FAGOMRÅDE = "SU_UFØR"
         private const val ENDRINGSKODE_NY = "NY"
         private const val ENDRINGSKODE_ENDRET = "ENDR"
         private const val ENDRINGSKODE_UENDRET = "UEND"
@@ -27,23 +28,38 @@ internal class SimuleringRequestBuilderTest {
     }
 
     @Test
-    fun `bygger simulering request til arbeidsgiver`() {
-        val simuleringRequest = simuleringRequestRefusjon(ENDRINGSKODE_ENDRET) {
-            linje(Utbetalingslinjer.Utbetalingslinje(1, ENDRINGSKODE_NY, "SPREFAG-IOP", 1.januar(2020), 14.januar(2020), DAGSATS, GRAD, null, null, null, null))
-            linje(Utbetalingslinjer.Utbetalingslinje(2, ENDRINGSKODE_NY, "SPREFAG-IOP", 15.januar(2020), 31.januar(2020), DAGSATS, GRAD, null, null, null, null))
-        }
-        assertEquals(1.januar(2020).format(tidsstempel), simuleringRequest.request.simuleringsPeriode.datoSimulerFom)
-        assertEquals(31.januar(2020).format(tidsstempel), simuleringRequest.request.simuleringsPeriode.datoSimulerTom)
-        assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_ENDRET)
-        assertArbeidsgiverlinje(simuleringRequest.request.oppdrag, 0, "1", ENDRINGSKODE_NY, 1.januar(2020), 14.januar(2020))
-        assertArbeidsgiverlinje(simuleringRequest.request.oppdrag, 1, "2", ENDRINGSKODE_NY, 15.januar(2020), 31.januar(2020))
-    }
-
-    @Test
     fun `bygger simulering request til bruker`() {
         val simuleringRequest = simuleringRequestBruker(ENDRINGSKODE_ENDRET) {
-            linje(Utbetalingslinjer.Utbetalingslinje(1, ENDRINGSKODE_NY, "SP", 1.januar(2020), 14.januar(2020), DAGSATS, GRAD, null, null, null, null))
-            linje(Utbetalingslinjer.Utbetalingslinje(2, ENDRINGSKODE_NY, "SP", 15.januar(2020), 31.januar(2020), DAGSATS, GRAD, null, null, null, null))
+            linje(
+                Utbetalingslinjer.Utbetalingslinje(
+                    delytelseId = 1,
+                    endringskode = ENDRINGSKODE_NY,
+                    klassekode = "SP",
+                    fom = 1.januar(2020),
+                    tom = 14.januar(2020),
+                    dagsats = DAGSATS,
+                    grad = GRAD,
+                    refDelytelseId = null,
+                    refFagsystemId = null,
+                    datoStatusFom = null,
+                    statuskode = null
+                )
+            )
+            linje(
+                Utbetalingslinjer.Utbetalingslinje(
+                    delytelseId = 2,
+                    endringskode = ENDRINGSKODE_NY,
+                    klassekode = "SP",
+                    fom = 15.januar(2020),
+                    tom = 31.januar(2020),
+                    dagsats = DAGSATS,
+                    grad = GRAD,
+                    refDelytelseId = null,
+                    refFagsystemId = null,
+                    datoStatusFom = null,
+                    statuskode = null
+                )
+            )
         }
         assertEquals(1.januar(2020).format(tidsstempel), simuleringRequest.request.simuleringsPeriode.datoSimulerFom)
         assertEquals(31.januar(2020).format(tidsstempel), simuleringRequest.request.simuleringsPeriode.datoSimulerTom)
@@ -53,41 +69,49 @@ internal class SimuleringRequestBuilderTest {
     }
 
     @Test
-    fun `arbeidsgiverlinje opphører`() {
-        val simuleringRequest = simuleringRequestRefusjon(ENDRINGSKODE_ENDRET) {
-            linje(Utbetalingslinjer.Utbetalingslinje(1, ENDRINGSKODE_ENDRET, "SPREFAG-IOP", 1.januar(2020), 31.januar(2020), DAGSATS, GRAD, null, null, 1.januar(2020), "OPPH"))
-        }
-        assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_ENDRET)
-        assertArbeidsgiverlinje(simuleringRequest.request.oppdrag, 0, "1", ENDRINGSKODE_ENDRET, 1.januar(2020), 31.januar(2020), 1.januar(2020), KodeStatusLinje.OPPH)
-    }
-
-    @Test
     fun `brukerlinje opphører`() {
         val simuleringRequest = simuleringRequestBruker(ENDRINGSKODE_ENDRET) {
             linje(
-                Utbetalingslinjer.Utbetalingslinje(1, "ENDR", "SP", 1.januar(2020), 31.januar(2020),
-                DAGSATS,
-                GRAD, null, null, 1.januar(2020), "OPPH"))
+                Utbetalingslinjer.Utbetalingslinje(
+                    delytelseId = 1,
+                    endringskode = "ENDR",
+                    klassekode = "SP",
+                    fom = 1.januar(2020),
+                    tom = 31.januar(2020),
+                    dagsats = DAGSATS,
+                    grad = GRAD,
+                    refDelytelseId = null,
+                    refFagsystemId = null,
+                    datoStatusFom = 1.januar(2020),
+                    statuskode = "OPPH"
+                )
+            )
         }
         assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_ENDRET)
-        assertBrukerlinje(simuleringRequest.request.oppdrag, 0, "1", "ENDR", 1.januar(2020), 31.januar(2020), 1.januar(2020), KodeStatusLinje.OPPH)
-    }
-
-    private fun simuleringRequestRefusjon(endringskode: String, block: Utbetalingslinjer.() -> Unit): SimulerBeregningRequest {
-        val builder = SimuleringRequestBuilder(
-            Utbetalingslinjer.RefusjonTilArbeidsgiver(
-                PERSON, ORGNR, FAGSYSTEMID,
-                endringskode, SAKSBEHANDLER, MAKSDATO
-            ).apply(block)
+        assertBrukerlinje(
+            oppdrag = simuleringRequest.request.oppdrag,
+            index = 0,
+            delytelseId = "1",
+            endringskode = "ENDR",
+            fom = 1.januar(2020),
+            tom = 31.januar(2020),
+            datoStatusFom = 1.januar(2020),
+            statuskode = KodeStatusLinje.OPPH
         )
-        return builder.build()
     }
 
-    private fun simuleringRequestBruker(endringskode: String, block: Utbetalingslinjer.() -> Unit): SimulerBeregningRequest {
+    private fun simuleringRequestBruker(
+        endringskode: String,
+        block: Utbetalingslinjer.() -> Unit
+    ): SimulerBeregningRequest {
         val builder = SimuleringRequestBuilder(
-            Utbetalingslinjer.UtbetalingTilBruker(
-                PERSON, PERSON, ORGNR, FAGSYSTEMID,
-                endringskode, SAKSBEHANDLER, MAKSDATO
+            Utbetalingslinjer(
+                fagområde = FAGOMRÅDE,
+                fagsystemId = FAGSYSTEMID,
+                fødselsnummer = PERSON,
+                mottaker = PERSON,
+                endringskode = endringskode,
+                saksbehandler = SAKSBEHANDLER
             ).apply(block)
         )
         return builder.build()
@@ -100,18 +124,30 @@ internal class SimuleringRequestBuilderTest {
         assertEquals(endringskode, oppdrag.kodeEndring)
     }
 
-    private fun assertArbeidsgiverlinje(oppdrag: Oppdrag, index: Int, delytelseId: String, endringskode: String, fom: LocalDate, tom: LocalDate, datoStatusFom: LocalDate? = null, statuskode: KodeStatusLinje? = null) {
-        assertOppdragslinje(oppdrag, index, delytelseId, endringskode, fom, tom, datoStatusFom, statuskode)
-        assertEquals(MAKSDATO.format(tidsstempel), oppdrag.oppdragslinje[index].refusjonsInfo.maksDato)
-        assertEquals("00$ORGNR", oppdrag.oppdragslinje[index].refusjonsInfo.refunderesId)
-    }
-
-    private fun assertBrukerlinje(oppdrag: Oppdrag, index: Int, delytelseId: String, endringskode: String, fom: LocalDate, tom: LocalDate, datoStatusFom: LocalDate? = null, statuskode: KodeStatusLinje? = null) {
+    private fun assertBrukerlinje(
+        oppdrag: Oppdrag,
+        index: Int,
+        delytelseId: String,
+        endringskode: String,
+        fom: LocalDate,
+        tom: LocalDate,
+        datoStatusFom: LocalDate? = null,
+        statuskode: KodeStatusLinje? = null
+    ) {
         assertOppdragslinje(oppdrag, index, delytelseId, endringskode, fom, tom, datoStatusFom, statuskode)
         assertEquals(PERSON, oppdrag.oppdragslinje[index].utbetalesTilId)
     }
 
-    private fun assertOppdragslinje(oppdrag: Oppdrag, index: Int, delytelseId: String, endringskode: String, fom: LocalDate, tom: LocalDate, datoStatusFom: LocalDate?, statuskode: KodeStatusLinje?) {
+    private fun assertOppdragslinje(
+        oppdrag: Oppdrag,
+        index: Int,
+        delytelseId: String,
+        endringskode: String,
+        fom: LocalDate,
+        tom: LocalDate,
+        datoStatusFom: LocalDate?,
+        statuskode: KodeStatusLinje?
+    ) {
         assertEquals(delytelseId, oppdrag.oppdragslinje[index].delytelseId)
         assertEquals(endringskode, oppdrag.oppdragslinje[index].kodeEndringLinje)
         assertEquals(DAGSATS.toBigDecimal(), oppdrag.oppdragslinje[index].sats)
@@ -122,5 +158,3 @@ internal class SimuleringRequestBuilderTest {
         assertEquals(statuskode, oppdrag.oppdragslinje[index].kodeStatusLinje)
     }
 }
-
-infix fun Int.januar(year: Int) = LocalDate.of(year, Month.JANUARY, this)

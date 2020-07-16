@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -141,13 +142,12 @@ internal class SimuleringServiceTest {
         response.feilmelding shouldBe "Fikk teknisk feil ved simulering"
     }
 
-    private fun createUtbetalingslinjer() = Utbetalingslinjer.UtbetalingTilBruker(
-        fødselsnummer = "12345678910",
-        endringskode = "NY",
+    private fun createUtbetalingslinjer() = Utbetalingslinjer(
+        fagområde = "Fagområde",
         fagsystemId = "SUP",
-        maksdato = 31.desember(2020),
+        fødselsnummer = "12345678910",
         mottaker = "Navn Navnesen",
-        organisasjonsnummer = "",
+        endringskode = "NY",
         saksbehandler = "saksbehandler"
     ).also {
         it.linje(

@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.oppdragskjema.Grad
-import no.nav.system.os.entiteter.oppdragskjema.RefusjonsInfo
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
@@ -34,13 +33,8 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         })
     }
 
-    private val linjeStrategy: (Utbetalingslinjer.Utbetalingslinje) -> Oppdragslinje = when (utbetalingslinjer) {
-        is Utbetalingslinjer.RefusjonTilArbeidsgiver -> ::refusjonTilArbeidsgiver
-        is Utbetalingslinjer.UtbetalingTilBruker -> ::utbetalingTilBruker
-    }
-
     fun build(): SimulerBeregningGrensesnittRequest {
-        utbetalingslinjer.forEach { oppdrag.oppdragslinje.add(linjeStrategy(it)) }
+        utbetalingslinjer.forEach { oppdrag.oppdragslinje.add(nyLinje(it)) }
         return SimulerBeregningGrensesnittRequest().apply {
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdrag
@@ -52,19 +46,8 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         }
     }
 
-    private fun refusjonTilArbeidsgiver(utbetalingslinje: Utbetalingslinjer.Utbetalingslinje) = nyLinje(utbetalingslinje).apply {
-        refusjonsInfo = RefusjonsInfo().apply {
-            refunderesId = utbetalingslinjer.mottaker.padStart(11, '0')
-            datoFom = datoVedtakFom
-            maksDato = utbetalingslinjer.maksdato?.format(tidsstempel)
-        }
-    }
-
-    private fun utbetalingTilBruker(utbetalingslinje: Utbetalingslinjer.Utbetalingslinje) = nyLinje(utbetalingslinje).apply {
-        utbetalesTilId = utbetalingslinjer.mottaker
-    }
-
     private fun nyLinje(utbetalingslinje: Utbetalingslinjer.Utbetalingslinje) = Oppdragslinje().apply {
+        utbetalesTilId = utbetalingslinjer.mottaker
         delytelseId = "${utbetalingslinje.delytelseId}"
         refDelytelseId = utbetalingslinje.refDelytelseId?.let { "$it" }
         refFagsystemId = utbetalingslinje.refFagsystemId?.let { it }

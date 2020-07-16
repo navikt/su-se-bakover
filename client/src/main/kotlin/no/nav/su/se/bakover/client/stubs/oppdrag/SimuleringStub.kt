@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.su.se.bakover.client.oppdrag.simulering.Detaljer
+import no.nav.su.se.bakover.client.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResult
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringStatus
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimulertPeriode
