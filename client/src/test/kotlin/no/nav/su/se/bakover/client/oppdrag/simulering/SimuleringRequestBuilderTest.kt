@@ -32,7 +32,7 @@ internal class SimuleringRequestBuilderTest {
         val simuleringRequest = simuleringRequestBruker(ENDRINGSKODE_ENDRET) {
             linje(
                 Utbetalingslinjer.Utbetalingslinje(
-                    delytelseId = 1,
+                    delytelseId = "1",
                     endringskode = ENDRINGSKODE_NY,
                     klassekode = "SP",
                     fom = 1.januar(2020),
@@ -47,7 +47,7 @@ internal class SimuleringRequestBuilderTest {
             )
             linje(
                 Utbetalingslinjer.Utbetalingslinje(
-                    delytelseId = 2,
+                    delytelseId = "2",
                     endringskode = ENDRINGSKODE_NY,
                     klassekode = "SP",
                     fom = 15.januar(2020),
@@ -73,7 +73,7 @@ internal class SimuleringRequestBuilderTest {
         val simuleringRequest = simuleringRequestBruker(ENDRINGSKODE_ENDRET) {
             linje(
                 Utbetalingslinjer.Utbetalingslinje(
-                    delytelseId = 1,
+                    delytelseId = "1",
                     endringskode = "ENDR",
                     klassekode = "SP",
                     fom = 1.januar(2020),

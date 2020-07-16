@@ -38,14 +38,14 @@ class Utbetalingslinjer(
     override fun hashCode() = linjer.hashCode() * 67 + fødselsnummer.hashCode()
 
     class Utbetalingslinje(
-        internal val delytelseId: Int,
+        internal val delytelseId: String,
         internal val endringskode: String,
         internal val klassekode: String,
         internal val fom: LocalDate,
         internal val tom: LocalDate,
         internal val dagsats: Int,
         internal val grad: Int,
-        internal val refDelytelseId: Int?,
+        internal val refDelytelseId: String?,
         internal val refFagsystemId: String?,
         internal val datoStatusFom: LocalDate?,
         internal val statuskode: String?

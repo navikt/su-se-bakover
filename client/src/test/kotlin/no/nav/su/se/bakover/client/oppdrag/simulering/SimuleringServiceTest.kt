@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
+import java.util.UUID
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 
@@ -151,7 +152,7 @@ internal class SimuleringServiceTest {
     ).also {
         it.linje(
             Utbetalingslinjer.Utbetalingslinje(
-                delytelseId = 2,
+                delytelseId = UUID.randomUUID().toString(),
                 endringskode = "NY",
                 fom = 1.januar(2020),
                 tom = 31.desember(2020),
@@ -159,7 +160,7 @@ internal class SimuleringServiceTest {
                 datoStatusFom = 1.januar(2020),
                 grad = 100,
                 klassekode = "klasseKode",
-                refDelytelseId = 1,
+                refDelytelseId = UUID.randomUUID().toString(),
                 refFagsystemId = "SUP",
                 statuskode = null
             )

@@ -48,7 +48,7 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
 
     private fun nyLinje(utbetalingslinje: Utbetalingslinjer.Utbetalingslinje) = Oppdragslinje().apply {
         utbetalesTilId = utbetalingslinjer.fødselsnummer
-        delytelseId = "${utbetalingslinje.delytelseId}"
+        delytelseId = utbetalingslinje.delytelseId
         refDelytelseId = utbetalingslinje.refDelytelseId?.let { "$it" }
         refFagsystemId = utbetalingslinje.refFagsystemId?.let { it }
         kodeEndringLinje = utbetalingslinje.endringskode
