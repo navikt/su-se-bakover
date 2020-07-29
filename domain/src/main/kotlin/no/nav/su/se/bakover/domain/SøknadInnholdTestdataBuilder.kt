@@ -110,8 +110,12 @@ object SøknadInnholdTestdataBuilder {
                 kontonummer = "12345678912",
                 verdiPåEiendom = 3,
                 eiendomBrukesTil = "",
-                verdiPåKjøretøy = 25000,
-                kjøretøyDeEier = "bil",
+                kjøretøy = listOf(
+                    Kjøretøy(
+                        verdiPåKjøretøy = 25000,
+                        kjøretøyDeEier = "bil"
+                    )
+                ),
                 innskuddsBeløp = 25000,
                 verdipapirBeløp = 25000,
                 skylderNoenMegPengerBeløp = 25000,

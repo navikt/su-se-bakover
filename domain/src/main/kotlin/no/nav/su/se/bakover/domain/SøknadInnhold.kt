@@ -106,8 +106,7 @@ data class Formue(
     val kontonummer: String? = null,
     val verdiPåEiendom: Number? = null,
     val eiendomBrukesTil: String? = null,
-    val verdiPåKjøretøy: Number? = null,
-    val kjøretøyDeEier: String? = null,
+    val kjøretøy: List<Kjøretøy>? = null,
     val innskuddsBeløp: Number? = null,
     val verdipapirBeløp: Number? = null,
     val skylderNoenMegPengerBeløp: Number? = null,
@@ -117,4 +116,9 @@ data class Formue(
 data class PensjonsOrdningBeløp(
     val ordning: String,
     val beløp: Double
+)
+
+data class Kjøretøy(
+    val verdiPåKjøretøy: Number,
+    val kjøretøyDeEier: String
 )

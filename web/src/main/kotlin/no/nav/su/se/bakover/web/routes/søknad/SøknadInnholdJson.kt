@@ -1,22 +1,12 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.se.bakover.domain.Boforhold
-import no.nav.su.se.bakover.domain.Flyktningsstatus
-import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.Formue
-import no.nav.su.se.bakover.domain.InntektOgPensjon
-import no.nav.su.se.bakover.domain.Oppholdstillatelse
-import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
-import no.nav.su.se.bakover.domain.Personopplysninger
-import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.Uførevedtak
-import no.nav.su.se.bakover.domain.Utenlandsopphold
-import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
+import no.nav.su.se.bakover.domain.*
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FormueJson.Companion.toFormueJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.KjøretøyJson.Companion.toKjøretøyJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
@@ -128,9 +118,9 @@ data class SøknadInnholdJson(
 
         private fun toOppholdstillatelseType(str: String): Oppholdstillatelse.OppholdstillatelseType {
             return when (str) {
-                    "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG
-                    "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
-                    else -> throw IllegalArgumentException("Ikke gyldig oppholdstillatelse type")
+                "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG
+                "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
+                else -> throw IllegalArgumentException("Ikke gyldig oppholdstillatelse type")
             }
         }
 
@@ -313,8 +303,7 @@ data class SøknadInnholdJson(
         val kontonummer: String? = null,
         val verdiPåEiendom: Number? = null,
         val eiendomBrukesTil: String? = null,
-        val verdiPåKjøretøy: Number? = null,
-        val kjøretøyDeEier: String? = null,
+        val kjøretøy: List<KjøretøyJson>? = null,
         val innskuddsBeløp: Number? = null,
         val verdipapirBeløp: Number? = null,
         val skylderNoenMegPengerBeløp: Number? = null,
@@ -328,13 +317,16 @@ data class SøknadInnholdJson(
             kontonummer = kontonummer,
             verdiPåEiendom = verdiPåEiendom,
             eiendomBrukesTil = eiendomBrukesTil,
-            verdiPåKjøretøy = verdiPåKjøretøy,
-            kjøretøyDeEier = kjøretøyDeEier,
+            kjøretøy = kjøretøy.toKjøretøyList(),
             innskuddsBeløp = innskuddsBeløp,
             verdipapirBeløp = verdipapirBeløp,
             skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
             kontanterBeløp = kontanterBeløp
         )
+
+        fun List<KjøretøyJson>?.toKjøretøyList() = this?.map {
+            it.toKjøretøy()
+        }
 
         companion object {
             fun Formue.toFormueJson() =
@@ -346,13 +338,16 @@ data class SøknadInnholdJson(
                     kontonummer = kontonummer,
                     verdiPåEiendom = verdiPåEiendom,
                     eiendomBrukesTil = eiendomBrukesTil,
-                    verdiPåKjøretøy = verdiPåKjøretøy,
-                    kjøretøyDeEier = kjøretøyDeEier,
+                    kjøretøy = kjøretøy.toKjøretøyListJson(),
                     innskuddsBeløp = innskuddsBeløp,
                     verdipapirBeløp = verdipapirBeløp,
                     skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
                     kontanterBeløp = kontanterBeløp
                 )
+
+            fun List<Kjøretøy>?.toKjøretøyListJson() = this?.map {
+                it.toKjøretøyJson()
+            }
         }
     }
 
@@ -370,6 +365,21 @@ data class SøknadInnholdJson(
                 PensjonsOrdningBeløpJson(
                     ordning = ordning,
                     beløp = beløp
+                )
+        }
+    }
+
+    data class KjøretøyJson(val verdiPåKjøretøy: Number, val kjøretøyDeEier: String) {
+        fun toKjøretøy() = Kjøretøy(
+            kjøretøyDeEier = kjøretøyDeEier,
+            verdiPåKjøretøy = verdiPåKjøretøy
+        )
+
+        companion object {
+            fun Kjøretøy.toKjøretøyJson() =
+                KjøretøyJson(
+                    kjøretøyDeEier = kjøretøyDeEier,
+                    verdiPåKjøretøy = verdiPåKjøretøy
                 )
         }
     }

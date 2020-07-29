@@ -85,6 +85,8 @@ internal class SøknadJsonTest {
                 "trygdeytelserIUtlandet":"en-eller-annen-ytelse",
                 "trygdeytelserIUtlandetFra":"Utlandet",
                 "pensjon":[
+                
+                    
                     {
                         "ordning":"KLP",
                         "beløp":2000.0
@@ -103,8 +105,12 @@ internal class SøknadJsonTest {
                 "kontonummer":"12345678912",
                 "verdiPåEiendom":3,
                 "eiendomBrukesTil":"",
-                "verdiPåKjøretøy":25000,
-                "kjøretøyDeEier":"bil",
+                "kjøretøy": [
+                    { 
+                        "verdiPåKjøretøy":  25000, 
+                        "kjøretøyDeEier":  "bil"
+                    }
+                ],
                 "innskuddsBeløp":25000,
                 "verdipapirBeløp":25000,
                 "skylderNoenMegPengerBeløp":25000,
