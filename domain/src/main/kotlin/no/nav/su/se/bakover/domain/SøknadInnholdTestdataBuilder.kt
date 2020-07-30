@@ -94,9 +94,10 @@ object SøknadInnholdTestdataBuilder {
                 andreYtelserINavBeløp = 33,
                 søktAndreYtelserIkkeBehandletBegrunnelse = "uføre",
                 sosialstønadBeløp = 7000.0,
-                trygdeytelserIUtlandetBeløp = 2,
-                trygdeytelserIUtlandet = "en-eller-annen-ytelse",
-                trygdeytelserIUtlandetFra = "Utlandet",
+                trygdeytelseIUtlandet = listOf(
+                    TrygdeytelseIUtlandet(beløp = 200, type = "trygd", fra = "En trygdeutgiver"),
+                    TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", fra = "En annen trygdeutgiver")
+                ),
                 pensjon = listOf(
                     PensjonsOrdningBeløp("KLP", 2000.0),
                     PensjonsOrdningBeløp("SPK", 5000.0)

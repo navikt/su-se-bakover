@@ -81,9 +81,18 @@ internal class SøknadJsonTest {
                 "andreYtelserINavBeløp":33,
                 "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
                 "sosialstønadBeløp":7000.0,
-                "trygdeytelserIUtlandetBeløp":2,
-                "trygdeytelserIUtlandet":"en-eller-annen-ytelse",
-                "trygdeytelserIUtlandetFra":"Utlandet",
+                "trygdeytelseIUtlandet": [
+                    {
+                        "beløp": 200,
+                        "type": "trygd",
+                        "fra": "En trygdeutgiver"
+                    },
+                    {
+                        "beløp": 500,
+                        "type": "Annen trygd",
+                        "fra": "En annen trygdeutgiver"
+                    }
+                ],
                 "pensjon":[
                 
                     

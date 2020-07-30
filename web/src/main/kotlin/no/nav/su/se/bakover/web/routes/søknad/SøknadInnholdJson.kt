@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.KjøretøyJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.TrygdeytelseIUtlandetJson.Companion.toTrygdeytelseIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
@@ -252,9 +253,7 @@ data class SøknadInnholdJson(
         val andreYtelserINavBeløp: Number? = null,
         val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
         val sosialstønadBeløp: Number? = null,
-        val trygdeytelserIUtlandetBeløp: Number? = null,
-        val trygdeytelserIUtlandet: String? = null,
-        val trygdeytelserIUtlandetFra: String? = null,
+        val trygdeytelseIUtlandet: List<TrygdeytelseIUtlandetJson>? = null,
         val pensjon: List<PensjonsOrdningBeløpJson>? = null
     ) {
         fun toInntektOgPensjon() = InntektOgPensjon(
@@ -264,14 +263,16 @@ data class SøknadInnholdJson(
             andreYtelserINavBeløp = andreYtelserINavBeløp,
             søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
             sosialstønadBeløp = sosialstønadBeløp,
-            trygdeytelserIUtlandetBeløp = trygdeytelserIUtlandetBeløp,
-            trygdeytelserIUtlandet = trygdeytelserIUtlandet,
-            trygdeytelserIUtlandetFra = trygdeytelserIUtlandetFra,
+            trygdeytelseIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseList(),
             pensjon = pensjon.toPensjonList()
         )
 
         fun List<PensjonsOrdningBeløpJson>?.toPensjonList() = this?.map {
             it.toPensjonsOrdningBeløp()
+        }
+
+        fun List<TrygdeytelseIUtlandetJson>?.toTrygdeytelseList() = this?.map {
+            it.toTrygdeytelseIUtlandet()
         }
 
         companion object {
@@ -283,14 +284,15 @@ data class SøknadInnholdJson(
                     andreYtelserINavBeløp = andreYtelserINavBeløp,
                     søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
                     sosialstønadBeløp = sosialstønadBeløp,
-                    trygdeytelserIUtlandetBeløp = trygdeytelserIUtlandetBeløp,
-                    trygdeytelserIUtlandet = trygdeytelserIUtlandet,
-                    trygdeytelserIUtlandetFra = trygdeytelserIUtlandetFra,
+                    trygdeytelseIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson(),
                     pensjon = pensjon.toPensjonsOrdningBeløpListJson()
                 )
 
             fun List<PensjonsOrdningBeløp>?.toPensjonsOrdningBeløpListJson() = this?.map {
                 it.toPensjonsOrdningBeløpJson()
+            }
+            fun List<TrygdeytelseIUtlandet>?.toTrygdeytelseIUtlandetJson() = this?.map {
+                it.toTrygdeytelseIUtlandetJson()
             }
         }
     }
@@ -365,6 +367,27 @@ data class SøknadInnholdJson(
                 PensjonsOrdningBeløpJson(
                     ordning = ordning,
                     beløp = beløp
+                )
+        }
+    }
+
+    data class TrygdeytelseIUtlandetJson(
+        val beløp: Number,
+        val type: String,
+        val fra: String
+    ) {
+        fun toTrygdeytelseIUtlandet() = TrygdeytelseIUtlandet(
+            beløp = beløp,
+            type = type,
+            fra = fra
+        )
+
+        companion object {
+            fun TrygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson() =
+                TrygdeytelseIUtlandetJson(
+                    beløp = beløp,
+                    type = type,
+                    fra = fra
                 )
         }
     }
