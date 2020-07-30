@@ -92,9 +92,7 @@ data class InntektOgPensjon(
     val andreYtelserINavBeløp: Number? = null,
     val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
     val sosialstønadBeløp: Number? = null,
-    val trygdeytelserIUtlandetBeløp: Number? = null,
-    val trygdeytelserIUtlandet: String? = null,
-    val trygdeytelserIUtlandetFra: String? = null,
+    val trygdeytelseIUtlandet: List<TrygdeytelseIUtlandet>? = null,
     val pensjon: List<PensjonsOrdningBeløp>? = null
 )
 
@@ -121,4 +119,10 @@ data class PensjonsOrdningBeløp(
 data class Kjøretøy(
     val verdiPåKjøretøy: Number,
     val kjøretøyDeEier: String
+)
+
+data class TrygdeytelseIUtlandet(
+    val beløp: Number,
+    val type: String,
+    val fra: String
 )
