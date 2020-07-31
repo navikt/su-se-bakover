@@ -72,7 +72,7 @@ internal fun Route.behandlingRoutes(
         val sats: String
     ) {
         fun valid() = fom.dayOfMonth == 1 &&
-            tom.dayOfMonth == fom.lengthOfMonth() &&
+            tom.dayOfMonth == tom.lengthOfMonth() &&
             (sats == Sats.HØY.name || sats == Sats.LAV.name)
     }
     post("$behandlingPath/{behandlingId}/beregn") {

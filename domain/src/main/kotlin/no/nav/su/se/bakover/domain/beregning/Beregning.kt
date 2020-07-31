@@ -20,7 +20,7 @@ class Beregning(
 
     init {
         require(fom.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fom" }
-        require(tom.dayOfMonth == fom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
+        require(tom.dayOfMonth == tom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
         require(fom.isBefore(tom)) { "Startdato ($fom) for beregning må være tidligere enn sluttdato ($tom)." }
         if (månedsberegninger.isEmpty()) beregn()
     }
