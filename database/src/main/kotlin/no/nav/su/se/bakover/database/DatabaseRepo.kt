@@ -18,6 +18,9 @@ import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.FradragDto
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -194,7 +197,7 @@ internal class DatabaseRepo(
         return vilkårsvurdering
     }
 
-    private fun String.oppdatering(params: Map<String, Any>) {
+    private fun String.oppdatering(params: Map<String, Any?>) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) {
             it.run(
                 queryOf(
@@ -256,7 +259,8 @@ internal class DatabaseRepo(
         fom = localDate("fom"),
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
-        månedsberegninger = hentMånedsberegninger(uuid("id"), session)
+        månedsberegninger = hentMånedsberegninger(uuid("id"), session),
+        fradrag = hentFradrag(uuid("id"), session)
     )
 
     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
@@ -272,6 +276,7 @@ internal class DatabaseRepo(
             )
         )
         dto.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
+        dto.fradrag.forEach { opprettFradrag(dto.id, it) }
         return beregning
     }
 
@@ -287,11 +292,17 @@ internal class DatabaseRepo(
         tom = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
         sats = Sats.valueOf(string("sats")),
-        beløp = int("beløp")
+        beløp = int("beløp"),
+        fradrag = int("fradrag")
     )
 
     private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: MånedsberegningDto) {
-        "insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp) values (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop)".oppdatering(
+        """
+            insert into månedsberegning
+                (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
+            values
+                (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop, :fradrag)
+        """.oppdatering(
             mapOf(
                 "id" to månedsberegning.id,
                 "opprettet" to månedsberegning.opprettet,
@@ -300,8 +311,39 @@ internal class DatabaseRepo(
                 "grunnbelop" to månedsberegning.grunnbeløp,
                 "beregningId" to beregningId,
                 "sats" to månedsberegning.sats.name,
-                "belop" to månedsberegning.beløp
+                "belop" to månedsberegning.beløp,
+                "fradrag" to månedsberegning.fradrag
             )
+        )
+    }
+
+    private fun hentFradrag(beregningId: UUID, session: Session) =
+        "select * from fradrag where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
+            it.toFradrag(session)
+        }.toMutableList()
+
+    private fun Row.toFradrag(session: Session) = Fradrag(
+        id = uuid("id"),
+        beløp = int("beløp"),
+        beskrivelse = stringOrNull("beskrivelse"),
+        type = Fradragstype.valueOf(string("fradragstype"))
+    )
+
+    private fun opprettFradrag(beregningId: UUID, fradrag: FradragDto) {
+        """
+            insert into fradrag
+                (id, beregningId, fradragstype, beløp, beskrivelse)
+            values
+                (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
+        """
+            .oppdatering(
+                mapOf(
+                    "id" to fradrag.id,
+                    "beregningId" to beregningId,
+                    "fradragstype" to fradrag.type.toString(),
+                    "belop" to fradrag.beløp,
+                    "beskrivelse" to fradrag.beskrivelse
+                )
         )
     }
 }

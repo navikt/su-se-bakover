@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
+import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
@@ -45,14 +46,16 @@ class Behandling constructor(
     fun opprettBeregning(
         fom: LocalDate,
         tom: LocalDate,
-        sats: Sats = Sats.HØY
+        sats: Sats = Sats.HØY,
+        fradrag: List<Fradrag> = emptyList()
     ): Beregning {
         val beregning = persistenceObserver.opprettBeregning(
             behandlingId = id,
             beregning = Beregning(
                 fom = fom,
                 tom = tom,
-                sats = sats
+                sats = sats,
+                fradrag = fradrag
             )
         )
         beregninger.add(beregning)

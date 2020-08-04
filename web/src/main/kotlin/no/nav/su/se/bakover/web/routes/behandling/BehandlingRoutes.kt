@@ -12,6 +12,7 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
@@ -28,6 +30,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo
 ) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     data class OpprettBehandlingBody(val soknadId: String)
 
     post(behandlingPath) {
@@ -69,18 +73,23 @@ internal fun Route.behandlingRoutes(
     data class OpprettBeregningBody(
         val fom: LocalDate,
         val tom: LocalDate,
-        val sats: String
+        val sats: String,
+        val fradrag: List<FradragJson>
     ) {
         fun valid() = fom.dayOfMonth == 1 &&
             tom.dayOfMonth == tom.lengthOfMonth() &&
-            (sats == Sats.HØY.name || sats == Sats.LAV.name)
+            (sats == Sats.HØY.name || sats == Sats.LAV.name) &&
+            fradrag.all { Fradragstype.isValid(it.type) }
     }
     post("$behandlingPath/{behandlingId}/beregn") {
         call.lesUUID("behandlingId").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { behandlingId ->
                 Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
-                    ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
+                    ifLeft = {
+                        log.info("Ugyldig behandling-body: ", it)
+                        call.svar(BadRequest.message("Ugyldig body"))
+                    },
                     ifRight = { body ->
                         if (body.valid()) {
                             when (val behandling = repo.hentBehandling(behandlingId)) {
@@ -90,7 +99,8 @@ internal fun Route.behandlingRoutes(
                                         behandling.opprettBeregning(
                                             fom = body.fom,
                                             tom = body.tom,
-                                            sats = Sats.valueOf(body.sats)
+                                            sats = Sats.valueOf(body.sats),
+                                            fradrag = body.fradrag.map { it.toFradrag() }
                                         )
                                     )
                                 )
