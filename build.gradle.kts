@@ -31,11 +31,14 @@ allprojects {
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+        implementation("ch.qos.logback:logback-classic:1.2.3")
+        implementation("net.logstash.logback:logstash-logback-encoder:5.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
