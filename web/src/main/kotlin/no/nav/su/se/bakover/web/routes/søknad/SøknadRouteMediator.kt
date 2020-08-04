@@ -37,7 +37,7 @@ internal class SøknadRouteMediator(
             },
             { pdfByteArray ->
                 dokArkiv.opprettJournalpost(
-                    nySøknad = nySøknadEvent.søknadInnhold,
+                    søknadInnhold = nySøknadEvent.søknadInnhold,
                     pdf = pdfByteArray,
                     sakId = nySøknadEvent.sakId.toString()
                 ).fold(

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 
 object DokArkivStub : DokArkiv {
     override fun opprettJournalpost(
-        nySøknad: SøknadInnhold,
+        søknadInnhold: SøknadInnhold,
         pdf: ByteArray,
         sakId: String
     ): Either<ClientError, String> = """

@@ -86,7 +86,8 @@ internal class BehandlingRoutesKtTest {
                     {
                         "fom":"$fom",
                         "tom":"$tom",
-                        "sats":"${sats.name}"
+                        "sats":"${sats.name}",
+                        "fradrag":[]
                     }
                 """.trimIndent()
                 )
@@ -118,11 +119,13 @@ internal class BehandlingRoutesKtTest {
             }
             defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/beregn") {
                 setBody(
+                    //language=JSON
                     """
                     {
                         "fom":"${LocalDate.of(2020, Month.JANUARY, 1)}",
                         "tom":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
-                        "sats":"LAV"
+                        "sats":"LAV",
+                        "fradrag":[]
                     }
                 """.trimIndent()
                 )
@@ -136,7 +139,8 @@ internal class BehandlingRoutesKtTest {
                     {
                         "fom":"${LocalDate.of(2020, Month.JANUARY, 16)}",
                         "tom":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
-                        "sats":"LAV"
+                        "sats":"LAV",
+                        "fradrag":[]
                     }
                 """.trimIndent()
                 )
