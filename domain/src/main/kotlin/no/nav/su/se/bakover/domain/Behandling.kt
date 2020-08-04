@@ -1,5 +1,12 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERING
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
 import no.nav.su.se.bakover.domain.beregning.Fradrag
@@ -17,13 +24,32 @@ class Behandling constructor(
     private val beregninger: MutableList<Beregning> = mutableListOf()
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(id, opprettet), DtoConvertable<BehandlingDto> {
 
+    enum class BehandlingsStatus {
+        VILKÅRSVURDERING,
+        BEREGNING,
+        /*SIMULERING, */
+        /*VEDTAKSBREV,*/
+        INNVILGET,
+        AVSLÅTT
+    }
     override fun toDto() = BehandlingDto(
         id = id,
         opprettet = opprettet,
         vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() },
         søknad = søknad.toDto(),
-        beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto()
+        beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
+        status = utledStatus()
     )
+
+    private fun utledStatus(): BehandlingsStatus {
+        return when {
+            vilkårsvurderinger.isEmpty() -> VILKÅRSVURDERING
+            vilkårsvurderinger.any { it.toDto().status == IKKE_OK } -> AVSLÅTT
+            vilkårsvurderinger.any { it.toDto().status == IKKE_VURDERT } -> VILKÅRSVURDERING
+            beregninger.isEmpty() -> BEREGNING
+            else -> INNVILGET
+        }
+    }
 
     fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
         vilkårsvurderinger.addAll(
@@ -84,5 +110,6 @@ data class BehandlingDto(
     val opprettet: Instant,
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
-    val beregning: BeregningDto?
+    val beregning: BeregningDto?,
+    val status: BehandlingsStatus?
 )

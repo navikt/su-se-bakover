@@ -14,14 +14,16 @@ internal data class BehandlingJson(
     val id: String,
     val vilkårsvurderinger: VilkårsvurderingJson,
     val søknad: SøknadJson,
-    val beregning: BeregningJson?
+    val beregning: BeregningJson?,
+    val status: String
 )
 
 internal fun BehandlingDto.toJson() = BehandlingJson(
     id = id.toString(),
     vilkårsvurderinger = vilkårsvurderinger.toJson(),
     søknad = søknad.toJson(),
-    beregning = beregning?.toJson()
+    beregning = beregning?.toJson(),
+    status = status.toString()
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =
