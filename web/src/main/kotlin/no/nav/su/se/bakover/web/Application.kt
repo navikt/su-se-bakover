@@ -164,7 +164,7 @@ internal fun Application.susebakover(
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(databaseRepo)
+            behandlingRoutes(databaseRepo, httpClients.pdfGenerator)
             vilkårsvurderingRoutes(databaseRepo)
         }
     }
