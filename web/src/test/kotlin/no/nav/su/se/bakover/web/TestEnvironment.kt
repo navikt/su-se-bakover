@@ -15,7 +15,7 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.azure.OAuth
@@ -45,7 +45,7 @@ const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
 const val SU_FRONTEND_ORIGIN = "localhost"
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
-@KtorExperimentalAPI
+@OptIn(io.ktor.util.KtorExperimentalAPI::class)
 internal fun Application.testEnv() {
     (environment.config as MapApplicationConfig).apply {
         put("cors.allow.origin", SU_FRONTEND_ORIGIN)
@@ -64,12 +64,15 @@ fun authenticationHttpClient() = HttpClient(MockEngine) {
         addHandler {
             val responseHeaders = headersOf("Content-Type" to listOf(ContentType.Text.Plain.toString()))
             //language=JSON
-            respond("""
+            respond(
+                """
                 {
                     "access_token":"access",
                     "refresh_token":"refresh"
                 }
-            """.trimIndent(), headers = responseHeaders)
+                """.trimIndent(),
+                headers = responseHeaders
+            )
         }
     }
 }

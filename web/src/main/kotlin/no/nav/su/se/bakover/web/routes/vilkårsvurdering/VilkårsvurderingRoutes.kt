@@ -4,7 +4,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.patch
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.web.svar
 
 internal const val vilkårsvurderingPath = "$behandlingPath/{behandlingId}/vilkarsvurderinger"
 
-@KtorExperimentalAPI
 internal fun Route.vilkårsvurderingRoutes(repo: ObjectRepo) {
 
     patch(vilkårsvurderingPath) {

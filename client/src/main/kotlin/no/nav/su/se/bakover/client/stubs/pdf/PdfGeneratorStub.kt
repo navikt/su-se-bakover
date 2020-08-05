@@ -9,7 +9,8 @@ import no.nav.su.se.bakover.domain.VedtakInnhold
 
 object PdfGeneratorStub : PdfGenerator {
 
-    val pdf = """%PDF-1.0
+    val pdf =
+        """%PDF-1.0
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj
                 xref
                 0 4
@@ -20,7 +21,8 @@ object PdfGeneratorStub : PdfGenerator {
                 trailer<</Size 4/Root 1 0 R>>
                 startxref
                 149
-                %EOF""".trimIndent()
+                %EOF
+        """.trimIndent()
 
     override fun genererPdf(søknad: SøknadInnhold): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()

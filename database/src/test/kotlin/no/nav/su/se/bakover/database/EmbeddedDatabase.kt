@@ -13,8 +13,8 @@ object EmbeddedDatabase {
         // If you locale is set to C, you have to fix your locale: https://stackoverflow.com/questions/7165108/in-os-x-lion-lang-is-not-set-to-utf-8-how-to-fix-it
         // E.g. add `export LANG=en_US.UTF-8` in .zshrc/.bash_profile/.profile/config.fish
         .start()!!.also {
-            creatAdminRole(it)
-        }
+        creatAdminRole(it)
+    }
 
     private fun creatAdminRole(embeddedPostgres: EmbeddedPostgres) {
         embeddedPostgres.getDatabase(DB_NAME, DB_NAME)

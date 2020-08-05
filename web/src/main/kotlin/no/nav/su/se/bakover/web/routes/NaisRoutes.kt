@@ -49,17 +49,17 @@ internal fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
 internal fun Application.installMetrics(collectorRegistry: CollectorRegistry) {
     install(MicrometerMetrics) {
         registry = PrometheusMeterRegistry(
-                PrometheusConfig.DEFAULT,
-                collectorRegistry,
-                Clock.SYSTEM
+            PrometheusConfig.DEFAULT,
+            collectorRegistry,
+            Clock.SYSTEM
         )
         meterBinders = listOf(
-                ClassLoaderMetrics(),
-                JvmMemoryMetrics(),
-                JvmGcMetrics(),
-                ProcessorMetrics(),
-                JvmThreadMetrics(),
-                LogbackMetrics()
+            ClassLoaderMetrics(),
+            JvmMemoryMetrics(),
+            JvmGcMetrics(),
+            ProcessorMetrics(),
+            JvmThreadMetrics(),
+            LogbackMetrics()
         )
     }
 }

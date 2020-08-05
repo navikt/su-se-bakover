@@ -4,10 +4,10 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
@@ -19,8 +19,6 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 internal class InntektRoutesKtTest {
 
     private val ident = "12345678910"
@@ -55,13 +53,18 @@ internal class InntektRoutesKtTest {
 
     @Test
     fun `håndterer og videreformidler feil`() {
-        val errorMessage = """{"message": "nich gut"}"""
+        val errorMessage =
+            """{"message": "nich gut"}"""
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(inntektOppslag = object :
-                InntektOppslag {
-                override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
-            }))
+            testSusebakover(
+                httpClients = buildClients(
+                    inntektOppslag = object :
+                        InntektOppslag {
+                        override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
+                    }
+                )
+            )
         }) {
             defaultRequest(Get, path)
         }.apply {

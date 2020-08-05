@@ -26,3 +26,7 @@ Hvordan kjøre Ktlint:
 
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
 * `./gradlew ktlintApplyToIdea`
+
+## Upgrade versions
+* Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
+* Automatically use newest versions: `./gradlew useLatestVersions --refresh-dependencies`

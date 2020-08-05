@@ -1,14 +1,10 @@
-val githubUser: String? by project
-val githubPassword: String? by project
 repositories {
-    jcenter()
     maven("https://dl.bintray.com/kotlin/ktor")
-    maven("http://packages.confluent.io/maven/")
 }
 
-val ktorVersion = "1.2.6"
-val orgJsonVersion = "20180813"
-val micrometerRegistryPrometheusVersion = "1.3.2"
+val ktorVersion = "1.3.1"
+val orgJsonVersion = "20200518"
+val micrometerRegistryPrometheusVersion = "1.5.3"
 
 dependencies {
     implementation(project(":common"))

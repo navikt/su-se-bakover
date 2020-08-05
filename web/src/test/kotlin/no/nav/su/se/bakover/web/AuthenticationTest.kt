@@ -11,10 +11,10 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Found
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -23,8 +23,6 @@ import java.util.Date
 
 const val secureEndpoint = "/authenticated"
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 internal class AuthenticationTest {
 
     @Test

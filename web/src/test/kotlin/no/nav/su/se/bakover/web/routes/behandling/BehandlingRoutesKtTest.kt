@@ -7,10 +7,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -27,8 +27,6 @@ import java.time.LocalDate
 import java.time.Month
 import java.util.UUID
 
-@KtorExperimentalAPI
-@KtorExperimentalLocationsAPI
 internal class BehandlingRoutesKtTest {
 
     private val repo = DatabaseBuilder.build(EmbeddedDatabase.instance())
@@ -89,7 +87,7 @@ internal class BehandlingRoutesKtTest {
                         "sats":"${sats.name}",
                         "fradrag":[]
                     }
-                """.trimIndent()
+                    """.trimIndent()
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
@@ -127,7 +125,7 @@ internal class BehandlingRoutesKtTest {
                         "sats":"LAV",
                         "fradrag":[]
                     }
-                """.trimIndent()
+                    """.trimIndent()
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
@@ -142,7 +140,7 @@ internal class BehandlingRoutesKtTest {
                         "sats":"LAV",
                         "fradrag":[]
                     }
-                """.trimIndent()
+                    """.trimIndent()
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
