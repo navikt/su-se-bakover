@@ -29,9 +29,7 @@ import no.nav.su.se.bakover.web.toUUID
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDate.now
-import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ofPattern
-import java.time.format.FormatStyle
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
