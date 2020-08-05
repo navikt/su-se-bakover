@@ -90,7 +90,7 @@ class Behandling constructor(
 
     private fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
-        .first()
+        .last()
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
