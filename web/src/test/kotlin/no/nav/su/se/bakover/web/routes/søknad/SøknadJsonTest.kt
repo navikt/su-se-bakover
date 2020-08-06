@@ -17,7 +17,8 @@ internal class SøknadJsonTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
         //language=JSON
-        val søknadJsonString = """
+        val søknadJsonString =
+            """
         {
           "id": "$søknadId",
           "søknadInnhold": {
@@ -130,7 +131,7 @@ internal class SøknadJsonTest {
             }
           }
         }
-    """.trimIndent()
+            """.trimIndent()
     }
 
     @Test

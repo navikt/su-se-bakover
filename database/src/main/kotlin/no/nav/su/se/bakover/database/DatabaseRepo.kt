@@ -29,7 +29,9 @@ import javax.sql.DataSource
 
 internal class DatabaseRepo(
     private val dataSource: DataSource
-) : ObjectRepo, SakPersistenceObserver, BehandlingPersistenceObserver,
+) : ObjectRepo,
+    SakPersistenceObserver,
+    BehandlingPersistenceObserver,
     VilkårsvurderingPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
@@ -167,12 +169,12 @@ internal class DatabaseRepo(
             mapOf("behandlingId" to behandlingId),
             session
         ) { row ->
-            row.toVilkårsvurdering(session).also {
+            row.toVilkårsvurdering().also {
                 it.addObserver(this)
             }
         }.toMutableList()
 
-    private fun Row.toVilkårsvurdering(session: Session) = Vilkårsvurdering(
+    private fun Row.toVilkårsvurdering() = Vilkårsvurdering(
         id = UUID.fromString(string("id")),
         vilkår = Vilkår.valueOf(string("vilkår")),
         begrunnelse = string("begrunnelse"),
@@ -234,13 +236,13 @@ internal class DatabaseRepo(
         return vilkårsvurdering
     }
 
-    override fun hentVilkårsvurdering(id: UUID): Vilkårsvurdering? = using(sessionOf(dataSource)) {
-        hentVilkårsvurdering(id, it)
+    override fun hentVilkårsvurdering(vilkårsvurderingId: UUID): Vilkårsvurdering? = using(sessionOf(dataSource)) {
+        hentVilkårsvurdering(vilkårsvurderingId, it)
     }
 
     private fun hentVilkårsvurdering(id: UUID, session: Session) =
         "select * from vilkårsvurdering where id = :id".hent(mapOf("id" to id), session) { row ->
-            row.toVilkårsvurdering(session).also {
+            row.toVilkårsvurdering().also {
                 it.addObserver(this)
             }
         }
@@ -282,10 +284,10 @@ internal class DatabaseRepo(
 
     private fun hentMånedsberegninger(beregningId: UUID, session: Session) =
         "select * from månedsberegning where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
-            it.toMånedsberegning(session)
+            it.toMånedsberegning()
         }.toMutableList()
 
-    private fun Row.toMånedsberegning(session: Session) = Månedsberegning(
+    private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
         opprettet = instant("opprettet"),
         fom = localDate("fom"),
@@ -319,10 +321,10 @@ internal class DatabaseRepo(
 
     private fun hentFradrag(beregningId: UUID, session: Session) =
         "select * from fradrag where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
-            it.toFradrag(session)
+            it.toFradrag()
         }.toMutableList()
 
-    private fun Row.toFradrag(session: Session) = Fradrag(
+    private fun Row.toFradrag() = Fradrag(
         id = uuid("id"),
         beløp = int("beløp"),
         beskrivelse = stringOrNull("beskrivelse"),
@@ -344,6 +346,6 @@ internal class DatabaseRepo(
                     "belop" to fradrag.beløp,
                     "beskrivelse" to fradrag.beskrivelse
                 )
-        )
+            )
     }
 }

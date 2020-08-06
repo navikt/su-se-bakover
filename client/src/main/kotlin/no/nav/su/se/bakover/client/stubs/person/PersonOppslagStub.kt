@@ -6,9 +6,10 @@ import no.nav.su.se.bakover.domain.Fnr
 
 object PersonOppslagStub :
     PersonOppslag {
-    override fun person(ident: Fnr): ClientResponse = ClientResponse(200,
-            //language=JSON
-            """
+    override fun person(ident: Fnr): ClientResponse = ClientResponse(
+        200,
+        //language=JSON
+        """
         {
                 "aktørid": "aktørid",
                 "fnr": "$ident",
@@ -23,7 +24,7 @@ object PersonOppslagStub :
                 "bokommune": "Sandvika",
                 "statsborgerskap": "Svorsk"
         }
-      """.trimIndent()
+        """.trimIndent()
     )
 
     override fun aktørId(ident: Fnr): String = "aktørid"

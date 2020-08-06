@@ -18,7 +18,8 @@ internal class SakJsonTest {
     )
 
     //language=JSON
-    val sakJsonString = """
+    val sakJsonString =
+        """
             {
                 "id": "$sakId",
                 "fnr": "12345678910",

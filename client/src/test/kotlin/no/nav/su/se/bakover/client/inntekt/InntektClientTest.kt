@@ -61,8 +61,10 @@ internal class InntektClientTest {
     @BeforeEach
     fun setup() {
         MDC.put("X-Correlation-ID", "some UUID")
-        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
-                .willReturn(WireMock.okJson("""{}""")))
+        wireMockServer.stubFor(
+            WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
+                .willReturn(WireMock.okJson("""{}"""))
+        )
     }
 
     companion object {

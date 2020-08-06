@@ -1,6 +1,6 @@
-val fuelVersion = "2.2.1"
-val wireMockVersion = "2.23.2"
-val orgJsonVersion = "20180813"
+val fuelVersion = "2.2.3"
+val wireMockVersion = "2.27.1"
+val orgJsonVersion = "20200518"
 
 dependencies {
     implementation(project(":common"))

@@ -11,7 +11,8 @@ object DokArkivStub : DokArkiv {
         søknadInnhold: SøknadInnhold,
         pdf: ByteArray,
         sakId: String
-    ): Either<ClientError, String> = """
+    ): Either<ClientError, String> =
+        """
                         {
                           "journalpostId": "1",
                           "journalpostferdigstilt": true,
@@ -22,5 +23,5 @@ object DokArkivStub : DokArkiv {
                             }
                           ]
                         }
-                    """.trimIndent().right()
+        """.trimIndent().right()
 }

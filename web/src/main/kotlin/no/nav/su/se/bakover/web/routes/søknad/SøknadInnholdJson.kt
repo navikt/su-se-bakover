@@ -228,9 +228,11 @@ data class SøknadInnholdJson(
     data class ForNavJson(
         val harFullmektigEllerVerge: String? = null
     ) {
-        fun toForNav() = ForNav(harFullmektigEllerVerge?.let {
-            vergeMålType(it)
-        })
+        fun toForNav() = ForNav(
+            harFullmektigEllerVerge?.let {
+                vergeMålType(it)
+            }
+        )
 
         private fun vergeMålType(str: String): ForNav.Vergemål {
             return when (str) {
@@ -445,8 +447,8 @@ private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
 private fun Boforhold.DelerBoligMed.toJson(): String {
     return when (this) {
         Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER -> "ektemake-eller-samboer"
-            Boforhold.DelerBoligMed.VOKSNE_BARN -> "voksne-barn"
-            Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "andre"
+        Boforhold.DelerBoligMed.VOKSNE_BARN -> "voksne-barn"
+        Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "andre"
     }
 }
 

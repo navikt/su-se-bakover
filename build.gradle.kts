@@ -3,13 +3,15 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("org.ajoberstar:grgit:1.1.0")
+        classpath("org.ajoberstar:grgit:2.3.0")
     }
 }
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
-    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
+    id("com.github.ben-manes.versions") version "0.29.0" // Finds latest versions
+    id("se.patrikerdes.use-latest-versions") version "0.2.14"
 }
 
 version = "0.0.1"
@@ -17,16 +19,16 @@ version = "0.0.1"
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    val githubUser: String? by project
-    val githubPassword: String? by project
+    apply(plugin = "com.github.ben-manes.versions")
+    apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
-        maven("http://packages.confluent.io/maven/")
+        maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.6.0-M1"
+    val junitJupiterVersion = "5.6.2"
     val arrowVersion = "0.10.5"
-    val kotestVersion = "4.1.1"
+    val kotestVersion = "4.1.3"
     val jacksonVersion = "2.11.1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
@@ -38,7 +40,7 @@ allprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.3")
-        implementation("net.logstash.logback:logstash-logback-encoder:5.2")
+        implementation("net.logstash.logback:logstash-logback-encoder:6.4")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
@@ -51,11 +53,11 @@ allprojects {
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "12"
-    }
-
-    tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") {
-        kotlinOptions.jvmTarget = "12"
+        kotlinOptions {
+            jvmTarget = "12"
+            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            allWarningsAsErrors = true
+        }
     }
 
     tasks.withType<Test> {
@@ -68,5 +70,14 @@ allprojects {
 
     tasks.withType<Wrapper> {
         gradleVersion = "6.2.2"
+    }
+
+    tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java).configure {
+        checkForGradleUpdate = true
+        gradleReleaseChannel = "current"
+        outputFormatter = "json"
+        outputDir = "build/dependencyUpdates"
+        reportfileName = "report"
+        revision = "release" // Not waterproof
     }
 }

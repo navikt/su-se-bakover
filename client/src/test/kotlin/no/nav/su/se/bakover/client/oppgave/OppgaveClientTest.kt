@@ -55,7 +55,7 @@ internal class OppgaveClientTest {
                                                       "status": "OPPRETTET",
                                                       "metadata": {}
                                                     }
-                                """.trimIndent()
+                        """.trimIndent()
                     )
                     .withStatus(201)
             )
@@ -74,11 +74,13 @@ internal class OppgaveClientTest {
         client.opprettOppgave(
             journalId,
             sakId,
-            aktørId) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
+            aktørId
+        ) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
     }
 
     //language=JSON
-    private val expectedRequest = """
+    private val expectedRequest =
+        """
 {
     "journalpostId": "$journalId",
     "saksreferanse": "$sakId",

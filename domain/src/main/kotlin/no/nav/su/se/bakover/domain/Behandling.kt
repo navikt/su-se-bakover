@@ -55,7 +55,8 @@ class Behandling constructor(
         vilkårsvurderinger.addAll(
             persistenceObserver.opprettVilkårsvurderinger(
                 behandlingId = id,
-                vilkårsvurderinger = Vilkår.values().map { Vilkårsvurdering(vilkår = it) })
+                vilkårsvurderinger = Vilkår.values().map { Vilkårsvurdering(vilkår = it) }
+            )
         )
         return vilkårsvurderinger
     }

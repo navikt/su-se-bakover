@@ -43,17 +43,19 @@ internal abstract class AbstractDatasource(private val jdbcUrl: String) {
 }
 
 internal class NonVaultPostgres(jdbcUrl: String, private val username: String, private val password: String) : AbstractDatasource(jdbcUrl) {
-    override fun getDatasource(role: Role) = HikariDataSource(hikariConfig.apply {
-        username = this@NonVaultPostgres.username
-        password = this@NonVaultPostgres.password
-    })
+    override fun getDatasource(role: Role) = HikariDataSource(
+        hikariConfig.apply {
+            username = this@NonVaultPostgres.username
+            password = this@NonVaultPostgres.password
+        }
+    )
 }
 
 internal class VaultPostgres(private val jdbcUrl: String, private val vaultMountPath: String, private val databaseName: String) : AbstractDatasource(jdbcUrl) {
     override fun getDatasource(role: Role) = HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-            hikariConfig,
-            vaultMountPath,
-            "$databaseName-$role"
+        hikariConfig,
+        vaultMountPath,
+        "$databaseName-$role"
 
     )
 }

@@ -105,14 +105,14 @@ internal class BeregningTest {
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
-                fradrag = emptyList()
+            fradrag = emptyList()
         )
         val second = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toInstant(ZoneOffset.UTC),
-                fradrag = emptyList()
+            fradrag = emptyList()
         )
         val third = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),

@@ -10,11 +10,11 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
@@ -27,8 +27,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 class RoutesTest {
 
     @Test
@@ -87,11 +85,15 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = object :
-                PersonOppslag {
-                override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
-                override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
-            }))
+            testSusebakover(
+                httpClients = buildClients(
+                    personOppslag = object :
+                        PersonOppslag {
+                        override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
+                        override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
+                    }
+                )
+            )
         }) {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {

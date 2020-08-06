@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
@@ -15,18 +15,17 @@ import no.nav.su.se.bakover.web.svar
 
 internal const val søknadPath = "/soknad"
 
-@KtorExperimentalAPI
 internal fun Route.søknadRoutes(
     mediator: SøknadRouteMediator
 ) {
     post(søknadPath) {
 
-            Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
-                ifLeft = { call.svar(HttpStatusCode.BadRequest.message("Ugyldig body")) },
-                ifRight = {
-                    call.audit("Lagrer søknad for person: $it")
-                    call.svar(Created.jsonBody(mediator.nySøknad(it.toSøknadInnhold())))
-                }
-            )
+        Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
+            ifLeft = { call.svar(HttpStatusCode.BadRequest.message("Ugyldig body")) },
+            ifRight = {
+                call.audit("Lagrer søknad for person: $it")
+                call.svar(Created.jsonBody(mediator.nySøknad(it.toSøknadInnhold())))
+            }
+        )
     }
 }

@@ -45,7 +45,7 @@ internal class OppgaveClient(
                         "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
                         "prioritet": "NORM"
                      }
-         """.trimIndent()
+                """.trimIndent()
             ).responseString()
 
         return result.fold(

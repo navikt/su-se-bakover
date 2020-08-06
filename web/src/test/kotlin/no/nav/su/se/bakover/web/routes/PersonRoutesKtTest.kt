@@ -4,10 +4,10 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.person.PersonOppslag
@@ -19,8 +19,6 @@ import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.testEnv
 import org.junit.jupiter.api.Test
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 internal class PersonRoutesKtTest {
     private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
