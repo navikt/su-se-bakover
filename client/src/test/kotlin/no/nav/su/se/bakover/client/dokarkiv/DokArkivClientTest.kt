@@ -34,7 +34,7 @@ internal class DokArkivClientTest {
           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
           "journalpostType": "INNGAAENDE",
           "tema": "SUP",
-          "kanal": "NAV_NO",
+          "kanal": "INNSENDT_NAV_ANSATT",
           "behandlingstema": "ab0268",
           "journalfoerendeEnhet": "9999",
           "avsenderMottaker": {
