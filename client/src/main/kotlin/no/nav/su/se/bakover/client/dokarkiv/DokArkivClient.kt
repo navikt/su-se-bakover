@@ -83,7 +83,7 @@ internal class DokArkivClient(
                     val journalpostId = it.getString("journalpostId")
 
                     if (it.getBoolean("journalpostferdigstilt")) {
-                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId")
+                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
                     }
                     journalpostId.right()
                 }
