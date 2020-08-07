@@ -48,7 +48,7 @@ data class HttpClients(
 object HttpClientBuilder : HttpClientsBuilder {
     private val env = System.getenv()
     internal fun azure(
-        clientId: String = env.getOrDefault("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e"),
+        clientId: String = getAzureClientId(),
         clientSecret: String = env.getOrDefault("AZURE_CLIENT_SECRET", "secret"),
         wellknownUrl: String = env.getOrDefault(
             "AZURE_WELLKNOWN_URL",
@@ -58,9 +58,11 @@ object HttpClientBuilder : HttpClientsBuilder {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
 
+    private fun getAzureClientId() = env.getOrDefault("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e")
+
     internal fun person(
         baseUrl: String = env.getOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
-        clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
+        clientId: String = getAzureClientId(),
         oAuth: OAuth,
         tokenOppslag: TokenOppslag
     ): PersonOppslag = when (env.isLocalOrRunningTests()) {

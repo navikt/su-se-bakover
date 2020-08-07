@@ -24,7 +24,7 @@ const val SUP = "SUP"
 internal class PdlClient(
     private val pdlUrl: String,
     private val tokenOppslag: TokenOppslag,
-    private val suPersonClientId: String,
+    private val azureClientId: String,
     private val oAuth: OAuth
 ) : PersonOppslag {
     companion object {
@@ -60,7 +60,7 @@ internal class PdlClient(
         it.identer.filter { it.gruppe == AKTORID }.first().ident.let { AktørId(it) }
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<ClientError, T> {
-        val onBehalfOfToken = oAuth.onBehalfOFToken(MDC.get("Authorization"), suPersonClientId)
+        val onBehalfOfToken = oAuth.onBehalfOFToken(MDC.get("Authorization"), azureClientId)
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val (_, response, result) = "$pdlUrl/graphql".httpPost()
             .header("Authorization", "Bearer $onBehalfOfToken")
@@ -83,7 +83,7 @@ internal class PdlClient(
                 }
             },
             {
-                logger.warn("Feil i kallet mot pdl.", it)
+                logger.warn("Feil i kallet mot pdl. status=${response.statusCode} body=${response.body().asString("application/json")}", it)
                 ClientError(response.statusCode, "Feil i kallet mot pdl.").left()
             }
         )
