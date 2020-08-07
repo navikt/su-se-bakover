@@ -36,12 +36,12 @@ internal class PdlClient(
 
     override fun person(fnr: Fnr): Either<ClientError, Person> {
         return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
-            response.hentPerson.navn.first {
+            response.data.hentPerson.navn.first {
                 it.metadata.master == "Freg"
             }.let {
                 Person(
                     fnr = fnr,
-                    aktørId = hentIdent(response.hentIdenter),
+                    aktørId = hentIdent(response.data.hentIdenter),
                     fornavn = it.fornavn,
                     mellomnavn = it.mellomnavn,
                     etternavn = it.etternavn
@@ -73,9 +73,8 @@ internal class PdlClient(
         return result.fold(
             { json ->
                 JSONObject(json).let {
-                    val hasError: Boolean = it.optBoolean("errors", false)
-                    if (hasError) {
-                        logger.warn("Feil i kallet mot pdl. body = {}", json)
+                    if ( it.has("errors")) {
+                        logger.warn("Feil i kallet mot pdl. status={}, body = {}", response.statusCode,json)
                         ClientError(response.statusCode, "Feil i kallet mot pdl").left()
                     } else {
                         objectMapper.readValue(json, T::class.java).right()
@@ -94,7 +93,11 @@ data class IdentResponse @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constr
     val hentIdenter: HentIdenter
 )
 
-data class PersonResponse @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+data class PersonResponse constructor(
+    val data: PersonResponseData
+)
+
+data class PersonResponseData constructor(
     val hentPerson: HentPerson,
     val hentIdenter: HentIdenter
 )

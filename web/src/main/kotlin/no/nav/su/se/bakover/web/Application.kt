@@ -96,11 +96,11 @@ internal fun Application.susebakover(
     install(StatusPages) {
         exception<UgyldigFnrException> {
             log.error("Got UgyldigFnrException with message=${it.message}", it)
-            call.respond(HttpStatusCode.BadRequest, it)
+            call.respond(HttpStatusCode.BadRequest, it.message ?: "Ugyldig fødselsnummer")
         }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
-            call.respond(HttpStatusCode.InternalServerError, it)
+            call.respond(HttpStatusCode.InternalServerError, "Ukjent feil")
         }
     }
 
