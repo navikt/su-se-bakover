@@ -18,8 +18,8 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -98,7 +98,7 @@ class RoutesTest {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals("thrown exception", JSONObject(response.content).getString("message"))
+            JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
         }
     }
 

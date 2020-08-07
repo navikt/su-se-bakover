@@ -73,8 +73,8 @@ internal class PdlClient(
         return result.fold(
             { json ->
                 JSONObject(json).let {
-                    if ( it.has("errors")) {
-                        logger.warn("Feil i kallet mot pdl. status={}, body = {}", response.statusCode,json)
+                    if (it.has("errors")) {
+                        logger.warn("Feil i kallet mot pdl. status={}, body = {}", response.statusCode, json)
                         ClientError(response.statusCode, "Feil i kallet mot pdl").left()
                     } else {
                         objectMapper.readValue(json, T::class.java).right()
