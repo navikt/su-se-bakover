@@ -59,7 +59,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun person(
-        baseUrl: String = env.getOrDefault("SU_PERSON_URL", "http://su-person.default.svc.nais.local"),
+        baseUrl: String = env.getOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
         clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
         oAuth: OAuth,
         tokenOppslag: TokenOppslag
