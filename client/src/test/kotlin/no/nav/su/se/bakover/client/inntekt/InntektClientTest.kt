@@ -1,12 +1,17 @@
 package no.nav.su.se.bakover.client.inntekt
 
+import arrow.core.left
+import arrow.core.right
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -43,14 +48,19 @@ internal class InntektClientTest {
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse =
-            ClientResponse(200, """{"ting": "OK"}""")
-        override fun aktørId(ident: Fnr): String = "aktoerId"
+        override fun person(fnr: Fnr) = Person(
+            fnr = fnr,
+            aktørId = AktørId("aktørid"),
+            fornavn = "Tore",
+            mellomnavn = "Johnas",
+            etternavn = "Strømøy"
+        ).right()
+        override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse =
-            ClientResponse(403, "Du hakke lov")
-        override fun aktørId(ident: Fnr): String = "aktoerId"
+        override fun person(fnr: Fnr) =
+            ClientError(403, "Du hakke lov").left()
+        override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }
     private val tokenExchange = object : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"

@@ -21,10 +21,11 @@ internal class SuInntektClient(
     // TODO bedre håndtering av kode 6/7?
     override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse {
         val oppslag = personOppslag.person(ident)
-        return when (oppslag.success()) {
-            true -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
-            else -> oppslag
-        }
+        return oppslag.fold(
+            // TODO Hvorfor kan vi ikke returnere either med clientError
+            { ClientResponse(it.httpStatus, it.message) },
+            { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) }
+        )
     }
 
     private fun finnInntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse {

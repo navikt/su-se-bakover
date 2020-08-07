@@ -1,31 +1,20 @@
 package no.nav.su.se.bakover.client.stubs.person
 
-import no.nav.su.se.bakover.client.ClientResponse
+import arrow.core.right
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 
 object PersonOppslagStub :
     PersonOppslag {
-    override fun person(ident: Fnr): ClientResponse = ClientResponse(
-        200,
-        //language=JSON
-        """
-        {
-                "aktørid": "aktørid",
-                "fnr": "$ident",
-                "fornavn": "Tore",
-                "mellomnavn": "Johnas",
-                "etternavn": "Strømøy",
-                "telefonnummer": "49494949",
-                "gateadresse": "Veiveien 2",
-                "postnummer": 1337,
-                "poststed": "Sandvika",
-                "bruksenhet": "en bruksenhet",
-                "bokommune": "Sandvika",
-                "statsborgerskap": "Svorsk"
-        }
-        """.trimIndent()
-    )
+    override fun person(fnr: Fnr) = Person(
+        fnr = fnr,
+        aktørId = AktørId("aktørid"),
+        fornavn = "Tore",
+        mellomnavn = "Johnas",
+        etternavn = "Strømøy"
+    ).right()
 
-    override fun aktørId(ident: Fnr): String = "aktørid"
+    override fun aktørId(fnr: Fnr) = AktørId("aktørid").right()
 }

@@ -1,26 +1,33 @@
 package no.nav.su.se.bakover.web.routes
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-
-import kotlin.test.assertEquals
-import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.*
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
+import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
+import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
     private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val errorMessage = "beklager, det gikk dårlig"
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
@@ -49,41 +56,56 @@ internal class PersonRoutesKtTest {
     @Test
     fun `kan hente data gjennom PersonOppslag`() {
         val testIdent = "12345678910"
+        val excpectedResponseJson =
+            """
+            {
+               "fnr": "12345678910",
+               "aktorId": "2437280977705",
+               "fornavn": "Tore",
+               "mellomnavn": "Johnas",
+               "etternavn": "Strømøy"
+            }
+            """.trimIndent()
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(200, testIdent, testIdent)))
+            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(200, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
             assertEquals(OK, response.status())
-            assertEquals(testIdent, response.content!!)
+            JSONAssert.assertEquals(excpectedResponseJson, response.content!!, true)
         }
     }
 
     @Test
     fun `skal propagere httpStatus fra PDL kall`() {
         val testIdent = "12345678910"
-        val errorMessage = "beklager, det gikk dårlig"
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(Unauthorized.value, errorMessage, testIdent)))
+            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(Unauthorized.value, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
             assertEquals(Unauthorized, response.status())
-            assertEquals(errorMessage, response.content!!)
+            response.content shouldBe errorMessage
         }
     }
 
-    fun personoppslag(statusCode: Int, responseBody: String, testIdent: String) = object :
+    private fun personoppslag(statusCode: Int, testIdent: String?) = object :
         PersonOppslag {
-        override fun person(ident: Fnr): ClientResponse = when (testIdent) {
-            ident.toString() -> ClientResponse(statusCode, responseBody)
-            else -> ClientResponse(500, "funkitj")
+        override fun person(fnr: Fnr): Either<ClientError, Person> = when (testIdent) {
+            fnr.toString() -> Person(
+                fnr = Fnr("12345678910"),
+                aktørId = AktørId("2437280977705"),
+                fornavn = "Tore",
+                mellomnavn = "Johnas",
+                etternavn = "Strømøy"
+            ).right()
+            else -> ClientError(statusCode, "beklager, det gikk dårlig").left()
         }
 
-        override fun aktørId(ident: Fnr): String = throw NotImplementedError()
+        override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> = throw NotImplementedError()
     }
 }

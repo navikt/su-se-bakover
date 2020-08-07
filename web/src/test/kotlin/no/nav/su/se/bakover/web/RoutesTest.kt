@@ -89,8 +89,8 @@ class RoutesTest {
                 httpClients = buildClients(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
-                        override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
+                        override fun person(fnr: Fnr) = throw RuntimeException("thrown exception")
+                        override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
                     }
                 )
             )
