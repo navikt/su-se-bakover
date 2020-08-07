@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.azure.OAuth
@@ -52,7 +51,7 @@ internal class PdlClient(
 
     override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
         return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
-            hentIdent(it.hentIdenter)
+            hentIdent(it.data.hentIdenter)
         }
     }
 
@@ -89,15 +88,18 @@ internal class PdlClient(
     }
 }
 
-data class IdentResponse @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+data class IdentResponse(
+    val data: IdentResponseData
+)
+data class IdentResponseData(
     val hentIdenter: HentIdenter
 )
 
-data class PersonResponse constructor(
+data class PersonResponse(
     val data: PersonResponseData
 )
 
-data class PersonResponseData constructor(
+data class PersonResponseData(
     val hentPerson: HentPerson,
     val hentIdenter: HentIdenter
 )
