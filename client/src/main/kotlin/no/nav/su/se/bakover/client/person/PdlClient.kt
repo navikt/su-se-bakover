@@ -67,7 +67,7 @@ internal class PdlClient(
             .header(NAV_CONSUMER_TOKEN, "Bearer ${tokenOppslag.token()}")
             .header(NAV_TEMA, SUP)
             .header("Accept", "application/json")
-            .header("ContentType", "application/json")
+            .header("Content-Type", "application/json")
             .body(objectMapper.writeValueAsString(pdlRequest))
             .responseString()
         return result.fold(
