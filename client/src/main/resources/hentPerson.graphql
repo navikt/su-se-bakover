@@ -1,0 +1,18 @@
+query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
+   hentPerson(ident: $ident) {
+      navn(historikk: $historikk) {
+         fornavn
+         mellomnavn
+         etternavn
+         metadata {
+            master
+         }
+      }
+   }
+   hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {
+      identer {
+         ident
+         gruppe
+      }
+   }
+}
