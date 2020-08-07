@@ -12,6 +12,9 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Adresse
+import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Telefonnummer
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,9 +54,21 @@ internal class InntektClientTest {
         override fun person(fnr: Fnr) = Person(
             fnr = fnr,
             aktørId = AktørId("aktørid"),
-            fornavn = "Tore",
-            mellomnavn = "Johnas",
-            etternavn = "Strømøy"
+            navn = Navn(
+                fornavn = "Tore",
+                mellomnavn = "Johnas",
+                etternavn = "Strømøy"
+            ),
+            telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
+            adresse = Adresse(
+                adressenavn = "Oslogata 12",
+                postnummer = "0050",
+                poststed = "Oslo",
+                bruksenhet = "U1H20",
+                bokommune = "Oslo"
+            ),
+            statsborgerskap = "NOR"
+
         ).right()
         override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }

@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Adresse
+import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.web.buildClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
@@ -58,13 +61,30 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
         val excpectedResponseJson =
             """
-            {
-               "fnr": "12345678910",
-               "aktorId": "2437280977705",
-               "fornavn": "Tore",
-               "mellomnavn": "Johnas",
-               "etternavn": "Strømøy"
-            }
+                {
+                    "fnr": "12345678910",
+                    "aktorId": "2437280977705",
+                    "fornavn": "Tore",
+                    "mellomnavn": "Johnas",
+                    "etternavn": "Strømøy",
+                    "navn": {
+                        "fornavn": "Tore",
+                        "mellomnavn": "Johnas",
+                        "etternavn": "Strømøy"
+                    },
+                    "telefonnummer": {
+                        "landskode": "47",
+                        "nummer": "12345678"
+                    },
+                    "adresse": {
+                        "adressenavn": "Oslogata 12",
+                        "postnummer": "0050",
+                        "poststed": "Oslo",
+                        "bruksenhet": "U1H20",
+                        "bokommune": "Oslo"
+                    },
+                    "statsborgerskap": "NOR"
+                }
             """.trimIndent()
 
         withTestApplication({
@@ -99,9 +119,21 @@ internal class PersonRoutesKtTest {
             fnr.toString() -> Person(
                 fnr = Fnr("12345678910"),
                 aktørId = AktørId("2437280977705"),
-                fornavn = "Tore",
-                mellomnavn = "Johnas",
-                etternavn = "Strømøy"
+                navn = Navn(
+                    fornavn = "Tore",
+                    mellomnavn = "Johnas",
+                    etternavn = "Strømøy"
+                ),
+                telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
+                adresse = Adresse(
+                    adressenavn = "Oslogata 12",
+                    postnummer = "0050",
+                    poststed = "Oslo",
+                    bruksenhet = "U1H20",
+                    bokommune = "Oslo"
+                ),
+                statsborgerskap = "NOR"
+
             ).right()
             else -> ClientError(statusCode, "beklager, det gikk dårlig").left()
         }
