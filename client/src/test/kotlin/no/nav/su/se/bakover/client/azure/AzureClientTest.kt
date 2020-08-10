@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.client.azure
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.AZURE_ON_BEHALF_OF_GRANT_TYPE
 import no.nav.su.se.bakover.client.azure.AzureClient.Companion.REQUESTED_TOKEN_USE
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.net.URLEncoder
@@ -23,14 +22,9 @@ private const val JWKS_PATH = "/keys"
 private const val WELLKNOWN_URL = "/.well-known"
 private const val ISSUER = "azure"
 
-internal class AzureClientKtTest {
+internal class AzureClientTest : WiremockBase {
 
-    val oauth: OAuth =
-        AzureClient(
-            thisClientId = CLIENT_ID,
-            thisClientSecret = CLIENT_SECRET,
-            wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL"
-        )
+    lateinit var oauth: OAuth
 
     @Test
     fun `exchange to on-behalf-of token`() {
@@ -101,34 +95,26 @@ internal class AzureClientKtTest {
         }
         """.trimIndent()
 
-    companion object {
-        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            wireMockServer.stubFor(
-                jwkConfig()
-            )
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
-
-        fun jwkConfig() = WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(
-            WireMock.okJson(
-                """
+    @BeforeEach
+    fun setup() {
+        wireMockServer.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(
+                WireMock.okJson(
+                    """
             {
                 "jwks_uri": "${wireMockServer.baseUrl()}$JWKS_PATH",
                 "token_endpoint": "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH",
                 "issuer": "$ISSUER"
             }
-                """.trimIndent()
+                    """.trimIndent()
+                )
             )
         )
+        oauth =
+            AzureClient(
+                thisClientId = CLIENT_ID,
+                thisClientSecret = CLIENT_SECRET,
+                wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL"
+            )
     }
 }

@@ -12,9 +12,13 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Adresse
+import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Telefonnummer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.time.LocalDate
 
 const val NAV_CONSUMER_TOKEN = "Nav-Consumer-Token"
 const val NAV_TEMA = "Tema"
@@ -35,19 +39,42 @@ internal class PdlClient(
 
     override fun person(fnr: Fnr): Either<ClientError, Person> {
         return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
-            response.data.hentPerson.navn.first {
-                it.metadata.master == "Freg"
-            }.let {
-                Person(
-                    fnr = fnr,
-                    aktørId = hentIdent(response.data.hentIdenter),
-                    fornavn = it.fornavn,
-                    mellomnavn = it.mellomnavn,
-                    etternavn = it.etternavn
-                )
-            }
+            val hentPerson = response.data.hentPerson
+            val navn = hentPerson.navn.sortedBy {
+                folkeregisteretAsMaster(it.metadata)
+            }.first()
+            val vegadresser = hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
+            // TODO jah: Don't throw exception if we can't find this person
+            Person(
+                fnr = fnr,
+                aktørId = hentIdent(response.data.hentIdenter),
+                navn = Navn(
+                    fornavn = navn.fornavn,
+                    mellomnavn = navn.mellomnavn,
+                    etternavn = navn.etternavn
+                ),
+                telefonnummer = hentPerson.telefonnummer.firstOrNull()?.let {
+                    Telefonnummer(landskode = it.landskode, nummer = it.nummer)
+                },
+                adresse = vegadresser.firstOrNull()?.let { adresse ->
+                    Adresse(
+                        adressenavn = adresse.adressenavn,
+                        husnummer = adresse.husnummer,
+                        husbokstav = adresse.husbokstav,
+                        postnummer = adresse.postnummer,
+                        poststed = null, // TODO: Oppslag postnummer -> poststed
+                        bruksenhet = adresse.bruksenhetsnummer,
+                        kommunenummer = adresse.kommunenummer,
+                        kommunenavn = null // TODO: Oppslag kommunenummer -> kommunenavn
+                    )
+                },
+                statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
+                kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull()
+            )
         }
     }
+
+    private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
     override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
         return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
@@ -56,7 +83,7 @@ internal class PdlClient(
     }
 
     private fun hentIdent(it: HentIdenter) =
-        it.identer.filter { it.gruppe == AKTORID }.first().ident.let { AktørId(it) }
+        it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) } // TODO jah: Don't throw exception if we can't find this person
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<ClientError, T> {
         val onBehalfOfToken = oAuth.onBehalfOFToken(MDC.get("Authorization"), azureClientId)
@@ -105,18 +132,59 @@ data class PersonResponseData(
 )
 
 data class HentPerson(
-    val navn: List<Navn>
+    val navn: List<NavnResponse>,
+    val telefonnummer: List<TelefonnummerResponse>,
+    val bostedsadresse: List<Bostedsadresse>,
+    val kontaktadresse: List<Kontaktadresse>,
+    val oppholdsadresse: List<Oppholdsadresse>,
+    val statsborgerskap: List<Statsborgerskap>,
+    val kjoenn: List<Kjønn>
 )
 
-data class Navn(
+data class NavnResponse(
     val etternavn: String,
     val fornavn: String,
     val mellomnavn: String?,
     val metadata: Metadata
 )
 
+data class TelefonnummerResponse(
+    val landskode: String,
+    val nummer: String,
+    val prioritet: Int
+)
+
+data class Bostedsadresse(
+    val vegadresse: Vegadresse?
+)
+
+data class Kontaktadresse(
+    val vegadresse: Vegadresse?
+)
+
+data class Oppholdsadresse(
+    val vegadresse: Vegadresse?
+)
+
+data class Statsborgerskap(
+    val land: String,
+    val gyldigFraOgMed: LocalDate?,
+    val gyldigTilOgMed: LocalDate?
+)
+
+data class Vegadresse(
+    val husnummer: String?,
+    val husbokstav: String?,
+    val adressenavn: String?,
+    val kommunenummer: String?,
+    val postnummer: String?,
+    val bruksenhetsnummer: String?
+)
+
 data class Metadata(
-    val master: String
+    val opplysningsId: String?,
+    val master: String,
+    val historisk: Boolean
 )
 
 data class HentIdenter(
@@ -126,4 +194,8 @@ data class HentIdenter(
 data class Ident(
     val gruppe: String,
     val ident: String
+)
+
+data class Kjønn(
+    val kjoenn: String
 )
