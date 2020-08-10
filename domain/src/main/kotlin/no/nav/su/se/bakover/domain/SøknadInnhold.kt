@@ -92,9 +92,7 @@ data class InntektOgPensjon(
     val andreYtelserINavBeløp: Number? = null,
     val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
     val sosialstønadBeløp: Number? = null,
-    val trygdeytelserIUtlandetBeløp: Number? = null,
-    val trygdeytelserIUtlandet: String? = null,
-    val trygdeytelserIUtlandetFra: String? = null,
+    val trygdeytelseIUtlandet: List<TrygdeytelseIUtlandet>? = null,
     val pensjon: List<PensjonsOrdningBeløp>? = null
 )
 
@@ -106,8 +104,7 @@ data class Formue(
     val kontonummer: String? = null,
     val verdiPåEiendom: Number? = null,
     val eiendomBrukesTil: String? = null,
-    val verdiPåKjøretøy: Number? = null,
-    val kjøretøyDeEier: String? = null,
+    val kjøretøy: List<Kjøretøy>? = null,
     val innskuddsBeløp: Number? = null,
     val verdipapirBeløp: Number? = null,
     val skylderNoenMegPengerBeløp: Number? = null,
@@ -117,4 +114,15 @@ data class Formue(
 data class PensjonsOrdningBeløp(
     val ordning: String,
     val beløp: Double
+)
+
+data class Kjøretøy(
+    val verdiPåKjøretøy: Number,
+    val kjøretøyDeEier: String
+)
+
+data class TrygdeytelseIUtlandet(
+    val beløp: Number,
+    val type: String,
+    val fra: String
 )

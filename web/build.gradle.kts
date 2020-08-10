@@ -1,6 +1,10 @@
-val ktorVersion = "1.2.6"
-val orgJsonVersion = "20180813"
-val micrometerRegistryPrometheusVersion = "1.3.2"
+repositories {
+    maven("https://dl.bintray.com/kotlin/ktor")
+}
+
+val ktorVersion = "1.3.1"
+val orgJsonVersion = "20200518"
+val micrometerRegistryPrometheusVersion = "1.5.3"
 
 dependencies {
     implementation(project(":common"))
@@ -9,8 +13,6 @@ dependencies {
     implementation(project(":client"))
     testImplementation(project(":database", "testArchives"))
 
-    implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("net.logstash.logback:logstash-logback-encoder:5.2")
     implementation("org.json:json:$orgJsonVersion")
 
     implementation("io.ktor:ktor-server-core:$ktorVersion")

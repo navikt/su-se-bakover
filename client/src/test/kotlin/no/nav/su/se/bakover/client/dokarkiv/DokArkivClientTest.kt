@@ -28,12 +28,13 @@ internal class DokArkivClientTest {
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val personopplysninger: Personopplysninger = søknadInnhold.personopplysninger
 
-    private val forventetRequest = """
+    private val forventetRequest =
+        """
         {
           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
           "journalpostType": "INNGAAENDE",
           "tema": "SUP",
-          "kanal": "NAV_NO",
+          "kanal": "INNSENDT_NAV_ANSATT",
           "behandlingstema": "ab0268",
           "journalfoerendeEnhet": "9999",
           "avsenderMottaker": {
@@ -68,7 +69,7 @@ internal class DokArkivClientTest {
             }
           ]
         }
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `should send pdf to journal`() {
@@ -88,7 +89,7 @@ internal class DokArkivClientTest {
                             }
                           ]
                         }
-                    """.trimIndent()
+                        """.trimIndent()
                     )
                 )
         )

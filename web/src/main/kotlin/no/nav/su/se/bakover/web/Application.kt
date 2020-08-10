@@ -27,13 +27,11 @@ import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
-import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
@@ -59,8 +57,7 @@ import java.net.URL
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
+@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
     httpClients: HttpClients = HttpClientBuilder.build(),
@@ -100,15 +97,15 @@ internal fun Application.susebakover(
     install(StatusPages) {
         exception<UgyldigFnrException> {
             log.error("Got UgyldigFnrException with message=${it.message}", it)
-            call.respond(HttpStatusCode.BadRequest, it)
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
-            call.respond(HttpStatusCode.InternalServerError, it)
+            call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
         }
     }
 
-    val collectorRegistry = CollectorRegistry.defaultRegistry
+    val collectorRegistry = CollectorRegistry(true)
     installMetrics(collectorRegistry)
     naisRoutes(collectorRegistry)
 
@@ -159,15 +156,15 @@ internal fun Application.susebakover(
                         "data": "Congrats ${principal.getClaim("name")
                         .asString()}, you are successfully authenticated with a JWT token"
                     }
-                """.trimIndent()
+                    """.trimIndent()
                 )
             }
-
+            log.error(soapClients.toString())
             personRoutes(httpClients.personOppslag)
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(databaseRepo)
+            behandlingRoutes(databaseRepo, httpClients.pdfGenerator)
             vilkårsvurderingRoutes(databaseRepo)
         }
     }

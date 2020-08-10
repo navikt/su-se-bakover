@@ -21,34 +21,35 @@ internal class SuInntektClient(
     // TODO bedre håndtering av kode 6/7?
     override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse {
         val oppslag = personOppslag.person(ident)
-        return when (oppslag.success()) {
-            true -> finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato)
-            else -> oppslag
-        }
+        return oppslag.fold(
+            // TODO Hvorfor kan vi ikke returnere either med clientError
+            { ClientResponse(it.httpStatus, it.message) },
+            { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) }
+        )
     }
 
     private fun finnInntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, response, result) = inntektResource.httpPost(
-                listOf(
-                        suInntektIdentLabel to ident.toString(),
-                        "fom" to fomDato.yearMonthSubstring(),
-                        "tom" to tomDato.yearMonthSubstring()
-                )
+            listOf(
+                suInntektIdentLabel to ident.toString(),
+                "fom" to fomDato.yearMonthSubstring(),
+                "tom" to tomDato.yearMonthSubstring()
+            )
         )
-                .header("Authorization", "Bearer $onBehalfOfToken")
-                .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .responseString()
+            .header("Authorization", "Bearer $onBehalfOfToken")
+            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .responseString()
 
         return result.fold(
-                { ClientResponse(response.statusCode, it) },
-                { error ->
-                    val errorMessage = error.response.body().asString("application/json")
-                    val statusCode = error.response.statusCode
-                    logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage")
-                    ClientResponse(response.statusCode, errorMessage)
-                }
+            { ClientResponse(response.statusCode, it) },
+            { error ->
+                val errorMessage = error.response.body().asString("application/json")
+                val statusCode = error.response.statusCode
+                logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage")
+                ClientResponse(response.statusCode, errorMessage)
+            }
         )
     }
 

@@ -18,14 +18,14 @@ object Jwt {
         algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
     ): String {
         return "Bearer ${JWT.create()
-                .withIssuer(AZURE_ISSUER)
-                .withAudience(audience)
-                .withKeyId("key-1234")
-                .withSubject(subject)
-                .withArrayClaim("groups", groups.toTypedArray())
-                .withClaim("oid", UUID.randomUUID().toString())
-                .withExpiresAt(expiresAt)
-                .sign(algorithm)}"
+            .withIssuer(AZURE_ISSUER)
+            .withAudience(audience)
+            .withKeyId("key-1234")
+            .withSubject(subject)
+            .withArrayClaim("groups", groups.toTypedArray())
+            .withClaim("oid", UUID.randomUUID().toString())
+            .withExpiresAt(expiresAt)
+            .sign(algorithm)}"
     }
 
     fun generate(): Pair<RSAPublicKey, RSAPrivateKey> {

@@ -25,11 +25,13 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         oppdragGjelderId = utbetalingslinjer.fødselsnummer
         saksbehId = utbetalingslinjer.saksbehandler
         datoOppdragGjelderFom = LocalDate.EPOCH.format(tidsstempel)
-        enhet.add(Enhet().apply {
-            enhet = "8020"
-            typeEnhet = "BOS"
-            datoEnhetFom = LocalDate.EPOCH.format(tidsstempel)
-        })
+        enhet.add(
+            Enhet().apply {
+                enhet = "8020"
+                typeEnhet = "BOS"
+                datoEnhetFom = LocalDate.EPOCH.format(tidsstempel)
+            }
+        )
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
@@ -61,8 +63,10 @@ internal class SimuleringRequestBuilder(private val utbetalingslinjer: Utbetalin
         typeSats = "DAG"
         saksbehId = utbetalingslinjer.saksbehandler
         brukKjoreplan = "N"
-        attestant.add(Attestant().apply {
-            attestantId = utbetalingslinjer.saksbehandler
-        })
+        attestant.add(
+            Attestant().apply {
+                attestantId = utbetalingslinjer.saksbehandler
+            }
+        )
     }
 }

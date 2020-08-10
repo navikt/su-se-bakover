@@ -10,16 +10,16 @@ import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.locations.KtorExperimentalLocationsAPI
+
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.routes.personPath
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -27,8 +27,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 class RoutesTest {
 
     @Test
@@ -87,16 +85,20 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildHttpClients(personOppslag = object :
-                PersonOppslag {
-                override fun person(ident: Fnr) = throw RuntimeException("thrown exception")
-                override fun aktørId(ident: Fnr) = throw RuntimeException("thrown exception")
-            }))
+            testSusebakover(
+                httpClients = buildHttpClients(
+                    personOppslag = object :
+                        PersonOppslag {
+                        override fun person(fnr: Fnr) = throw RuntimeException("thrown exception")
+                        override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
+                    }
+                )
+            )
         }) {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
         }.apply {
             assertEquals(InternalServerError, response.status())
-            assertEquals("thrown exception", JSONObject(response.content).getString("message"))
+            JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
         }
     }
 

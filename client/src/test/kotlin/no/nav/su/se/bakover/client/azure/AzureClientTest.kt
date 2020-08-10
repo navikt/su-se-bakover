@@ -34,9 +34,12 @@ internal class AzureClientKtTest {
 
     @Test
     fun `exchange to on-behalf-of token`() {
-        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo(
-            TOKEN_ENDPOINT_PATH
-        ))
+        wireMockServer.stubFor(
+            WireMock.post(
+                WireMock.urlPathEqualTo(
+                    TOKEN_ENDPOINT_PATH
+                )
+            )
                 .withHeader("Content-Type", WireMock.equalTo("application/x-www-form-urlencoded"))
                 .withRequestBody(WireMock.containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
                 .withRequestBody(WireMock.containing("client_id=$CLIENT_ID"))
@@ -44,7 +47,8 @@ internal class AzureClientKtTest {
                 .withRequestBody(WireMock.containing("assertion=$TOKEN_TO_EXCHANGE"))
                 .withRequestBody(WireMock.containing("scope=$SCOPE${urlEncode("/.default")}"))
                 .withRequestBody(WireMock.containing("requested_token_use=$REQUESTED_TOKEN_USE"))
-                .willReturn(WireMock.okJson(okAzureResponse)))
+                .willReturn(WireMock.okJson(okAzureResponse))
+        )
 
         val exchangedToken: String = oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "personClientId")
         assertEquals(EXCHANGED_TOKEN, exchangedToken)
@@ -58,9 +62,13 @@ internal class AzureClientKtTest {
 
     @Test
     fun `exchange token error response`() {
-        wireMockServer.stubFor(WireMock.post(WireMock.urlPathEqualTo(
-            TOKEN_ENDPOINT_PATH
-        )).willReturn(WireMock.okJson(errorAzureResponse)))
+        wireMockServer.stubFor(
+            WireMock.post(
+                WireMock.urlPathEqualTo(
+                    TOKEN_ENDPOINT_PATH
+                )
+            ).willReturn(WireMock.okJson(errorAzureResponse))
+        )
         assertThrows<RuntimeException> { oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId") }
     }
 
@@ -68,7 +76,8 @@ internal class AzureClientKtTest {
         return URLEncoder.encode(string, Charset.defaultCharset())
     }
 
-    val okAzureResponse = """
+    val okAzureResponse =
+        """
         {
           "token_type": "Bearer",
           "scope": "some scope",
@@ -77,9 +86,10 @@ internal class AzureClientKtTest {
           "access_token": "$EXCHANGED_TOKEN",
           "refresh_token": "exchanged refresh token"
         }
-    """.trimIndent()
+        """.trimIndent()
 
-    val errorAzureResponse = """
+    val errorAzureResponse =
+        """
         {
             "error":"interaction_required",
             "error_description":"blah blah some descriptive messge",
@@ -89,7 +99,7 @@ internal class AzureClientKtTest {
             "correlation_id":"73d656cf-54b1-4eb2-b429-26d8165a52d7",
             "claims":"{\"access_token\":{\"polids\":{\"essential\":true,\"values\":[\"9ab03e19-ed42-4168-b6b7-7001fb3e933a\"]}}}"
         }
-    """.trimIndent()
+        """.trimIndent()
 
     companion object {
         val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
@@ -109,12 +119,16 @@ internal class AzureClientKtTest {
             wireMockServer.stop()
         }
 
-        fun jwkConfig() = WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(WireMock.okJson("""
+        fun jwkConfig() = WireMock.get(WireMock.urlPathEqualTo(WELLKNOWN_URL)).willReturn(
+            WireMock.okJson(
+                """
             {
                 "jwks_uri": "${wireMockServer.baseUrl()}$JWKS_PATH",
                 "token_endpoint": "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH",
                 "issuer": "$ISSUER"
-            }""".trimIndent())
+            }
+                """.trimIndent()
+            )
         )
     }
 }

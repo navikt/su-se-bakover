@@ -1,35 +1,24 @@
 package no.nav.su.se.bakover.web
 
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
+import arrow.core.Either
+import arrow.core.right
 import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Post
-import io.ktor.http.Parameters
-import io.ktor.http.RequestConnectionPoint
-import io.ktor.http.headersOf
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.request.ApplicationReceivePipeline
-import io.ktor.request.ApplicationRequest
-import io.ktor.request.RequestCookies
 import io.ktor.request.header
-import io.ktor.response.ApplicationResponse
 import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import io.ktor.util.AttributeKey
-import io.ktor.util.Attributes
-import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.io.ByteReadChannel
-import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
@@ -43,8 +32,6 @@ import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@KtorExperimentalLocationsAPI
-@KtorExperimentalAPI
 internal class CallContextTest {
 
     @Test
@@ -54,17 +41,21 @@ internal class CallContextTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildHttpClients(personOppslag = object :
-                PersonOppslag {
-                override fun person(ident: Fnr): ClientResponse = throw NotImplementedError()
+            testSusebakover(
+                httpClients = buildHttpClients(
+                    personOppslag = object :
+                        PersonOppslag {
+                        override fun person(fnr: Fnr): Either<ClientError, Person> = throw NotImplementedError()
 
-                override fun aktørId(ident: Fnr): String =
-                    "aktørid".also { downstreamCorrelationIds.add(MDC.get("X-Correlation-ID")) }
-            }))
+                        override fun aktørId(fnr: Fnr) =
+                            AktørId("aktørid".also { downstreamCorrelationIds.add(MDC.get("X-Correlation-ID")) }).right()
+                    }
+                )
+            )
         }) {
             val requests = List(numRequests) { CallableRequest(this, it, Jwt.create()) }
             val executors = Executors.newFixedThreadPool(numRequests)
-            var applicationCalls: List<TestApplicationCall>? = requests
+            val applicationCalls: List<TestApplicationCall>? = requests
                 .map { executors.submit(it) }
                 .map { it.get() }
 
@@ -91,7 +82,8 @@ internal class CallContextTest {
 
         override fun call(): TestApplicationCall {
             println("Test Thread: ${Thread.currentThread()}")
-            return testApplicationEngine.handleRequest(Post,
+            return testApplicationEngine.handleRequest(
+                Post,
                 søknadPath
             ) {
                 addHeader(XCorrelationId, "$correlationId")
@@ -99,49 +91,6 @@ internal class CallContextTest {
                 addHeader(ContentType, Json.toString())
                 setBody(søknadInnholdJson)
             }
-        }
-    }
-
-    class callWithAuth(val token: String, val correlationId: String) : ApplicationCall {
-        override val application: Application
-            get() = throw NotImplementedError()
-        override val attributes: Attributes
-            get() = MyAttributes
-        override val parameters: Parameters
-            get() = throw NotImplementedError()
-        override val request: ApplicationRequest
-            get() = DummyRequest(token)
-        override val response: ApplicationResponse
-            get() = throw NotImplementedError()
-    }
-
-    object MyAttributes : Attributes {
-        override val allKeys: List<AttributeKey<*>>
-            get() = throw NotImplementedError()
-
-        override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = throw NotImplementedError()
-        override fun contains(key: AttributeKey<*>): Boolean = throw NotImplementedError()
-        override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = DEFAULT_CALL_ID as T
-        override fun <T : Any> put(key: AttributeKey<T>, value: T): Unit = throw NotImplementedError()
-        override fun <T : Any> remove(key: AttributeKey<T>): Unit = throw NotImplementedError()
-    }
-
-    class DummyRequest(val token: String) : ApplicationRequest {
-        override val call: ApplicationCall
-            get() = throw NotImplementedError()
-        override val cookies: RequestCookies
-            get() = throw NotImplementedError()
-        override val headers: Headers
-            get() = headersOf(Pair(Authorization, listOf(token)), Pair(XCorrelationId, listOf(DEFAULT_CALL_ID)))
-        override val local: RequestConnectionPoint
-            get() = throw NotImplementedError()
-        override val pipeline: ApplicationReceivePipeline
-            get() = throw NotImplementedError()
-        override val queryParameters: Parameters
-            get() = throw NotImplementedError()
-
-        override fun receiveChannel(): ByteReadChannel {
-            throw NotImplementedError()
         }
     }
 }

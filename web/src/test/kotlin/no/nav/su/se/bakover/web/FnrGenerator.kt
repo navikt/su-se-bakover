@@ -6,7 +6,9 @@ import no.nav.su.se.bakover.domain.Fnr
 object FnrGenerator {
     private val numbers: CharRange = '0'..'9'
     private val LENGHT = 11
-    fun random() = Fnr((1..LENGHT)
+    fun random() = Fnr(
+        (1..LENGHT)
             .map { numbers.random() }
-            .joinToString(""))
+            .joinToString("")
+    )
 }

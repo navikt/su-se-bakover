@@ -5,8 +5,9 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 
 object InntektOppslagStub : InntektOppslag {
-    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(200, //language=json
-            """
+    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(
+        200, //language=json
+        """
             {
                 "arbeidsInntektMaaned": [
                 {
@@ -100,5 +101,6 @@ object InntektOppslagStub : InntektOppslag {
                 "aktoerType": "NATURLIG_IDENT"
             }
             }
-            """)
+            """
+    )
 }

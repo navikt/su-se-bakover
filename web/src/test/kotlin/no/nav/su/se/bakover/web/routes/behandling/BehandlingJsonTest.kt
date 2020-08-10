@@ -22,7 +22,8 @@ internal class BehandlingJsonTest {
         private val vv2id = UUID.randomUUID()
 
         //language=JSON
-        internal val behandlingJsonString = """
+        internal val behandlingJsonString =
+            """
         {
           "id": "$behandlingId",
           "vilkårsvurderinger": {
@@ -38,9 +39,10 @@ internal class BehandlingJsonTest {
             }
           },
           "søknad": $søknadJsonString,
-          "beregning": $expectedBeregningJson
+          "beregning": $expectedBeregningJson,
+          "status": "VILKÅRSVURDERING"
         }
-        """.trimIndent()
+            """.trimIndent()
 
         internal val behandling = Behandling(
             id = behandlingId,
@@ -76,12 +78,14 @@ internal class BehandlingJsonTest {
     @Test
     fun nullables() {
         //language=JSON
-        val expectedNullsJson = """
+        val expectedNullsJson =
+            """
         {
           "id": "$behandlingId",
           "vilkårsvurderinger": {},
           "søknad": $søknadJsonString,
-          "beregning": null
+          "beregning": null,
+          "status": "VILKÅRSVURDERING"
         }
         """
 

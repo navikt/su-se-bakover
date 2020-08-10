@@ -35,7 +35,8 @@ internal class MånedsberegningJsonTest {
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             grunnbeløp = 15000,
-            beløp = 25000
+            beløp = 25000,
+            fradrag = 0
         )
     }
 

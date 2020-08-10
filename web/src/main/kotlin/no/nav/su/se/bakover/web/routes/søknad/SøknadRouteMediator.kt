@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -37,7 +38,7 @@ internal class SøknadRouteMediator(
             },
             { pdfByteArray ->
                 dokArkiv.opprettJournalpost(
-                    nySøknad = nySøknadEvent.søknadInnhold,
+                    søknadInnhold = nySøknadEvent.søknadInnhold,
                     pdf = pdfByteArray,
                     sakId = nySøknadEvent.sakId.toString()
                 ).fold(
@@ -49,7 +50,7 @@ internal class SøknadRouteMediator(
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),
-                            aktørId = aktørId
+                            aktørId = aktørId.getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }.aktørId
                         ).mapLeft {
                             log.error("$it")
                         }

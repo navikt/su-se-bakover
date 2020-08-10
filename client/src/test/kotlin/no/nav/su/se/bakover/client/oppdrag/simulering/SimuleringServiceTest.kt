@@ -73,9 +73,12 @@ internal class SimuleringServiceTest {
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                throw SimulerBeregningFeilUnderBehandling("Simulering feilet", FeilUnderBehandling().apply {
-                    errorMessage = "Detaljert feilmelding"
-                })
+                throw SimulerBeregningFeilUnderBehandling(
+                    "Simulering feilet",
+                    FeilUnderBehandling().apply {
+                        errorMessage = "Detaljert feilmelding"
+                    }
+                )
             }
         })
 

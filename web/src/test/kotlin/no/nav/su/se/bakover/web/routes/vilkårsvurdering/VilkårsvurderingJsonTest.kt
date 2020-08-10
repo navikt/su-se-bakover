@@ -15,7 +15,8 @@ internal class VilkårsvurderingJsonTest {
     private val vvId = UUID.randomUUID()
 
     //language=JSON
-    private val vilkårsvurderingJsonString = """
+    private val vilkårsvurderingJsonString =
+        """
             {
                 "UFØRHET": {
                     "id": "$vvId",

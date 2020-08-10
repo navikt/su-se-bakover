@@ -36,7 +36,7 @@ internal class StsClientTest {
                                 "access_token": "token",
                                 "expires_in": "3600"
                             }
-                            """.trimIndent()
+                        """.trimIndent()
                     )
                 )
         )

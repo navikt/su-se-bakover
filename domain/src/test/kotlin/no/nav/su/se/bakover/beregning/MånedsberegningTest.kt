@@ -13,7 +13,8 @@ internal class MånedsberegningTest {
     fun `calculation 1`() {
         val dto = Månedsberegning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
-            sats = Sats.HØY
+            sats = Sats.HØY,
+            fradrag = 0
         ).toDto()
 
         dto.fom shouldBe LocalDate.of(2020, Month.JANUARY, 1)
@@ -27,7 +28,8 @@ internal class MånedsberegningTest {
     fun `calculation 2`() {
         val dto = Månedsberegning(
             fom = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV
+            sats = Sats.LAV,
+            fradrag = 0
         ).toDto()
 
         dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
@@ -38,10 +40,41 @@ internal class MånedsberegningTest {
     }
 
     @Test
+    fun `trekker fra fradrag`() {
+        val dto = Månedsberegning(
+            fom = LocalDate.of(2018, Month.MARCH, 1),
+            sats = Sats.LAV,
+            fradrag = 100
+        ).toDto()
+
+        dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        dto.grunnbeløp shouldBe 93634
+        dto.sats shouldBe Sats.LAV
+        dto.beløp shouldBe 17690
+    }
+
+    @Test
+    fun `beløp kan ikke bli negativt pga fradrag`() {
+        val dto = Månedsberegning(
+            fom = LocalDate.of(2018, Month.MARCH, 1),
+            sats = Sats.LAV,
+            fradrag = Int.MAX_VALUE
+        ).toDto()
+
+        dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        dto.grunnbeløp shouldBe 93634
+        dto.sats shouldBe Sats.LAV
+        dto.beløp shouldBe 0
+    }
+
+    @Test
     fun `uses grunnbeløp based on date`() {
         val old = Månedsberegning(
             fom = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV
+            sats = Sats.LAV,
+            fradrag = 0
         ).toDto()
 
         old.grunnbeløp shouldBe 93634
@@ -49,7 +82,8 @@ internal class MånedsberegningTest {
 
         val new = Månedsberegning(
             fom = LocalDate.of(2018, Month.SEPTEMBER, 1),
-            sats = Sats.LAV
+            sats = Sats.LAV,
+            fradrag = 0
         ).toDto()
 
         new.grunnbeløp shouldBe 96883
@@ -63,7 +97,8 @@ internal class MånedsberegningTest {
             Månedsberegning(
                 fom = fom,
                 tom = fom.plusMonths(3),
-                sats = Sats.HØY
+                sats = Sats.HØY,
+                fradrag = 0
             )
         }
 
@@ -72,7 +107,8 @@ internal class MånedsberegningTest {
             Månedsberegning(
                 fom = fom,
                 tom = LocalDate.of(2020, Month.JANUARY, 24),
-                sats = Sats.HØY
+                sats = Sats.HØY,
+                fradrag = 0
             )
         }
     }

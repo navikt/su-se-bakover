@@ -94,17 +94,21 @@ internal class SimuleringService(
         )
 
     private fun mapBeregningsPeriode(periode: BeregningsPeriode) =
-        SimulertPeriode(fom = LocalDate.parse(periode.periodeFom),
+        SimulertPeriode(
+            fom = LocalDate.parse(periode.periodeFom),
             tom = LocalDate.parse(periode.periodeTom),
-            utbetaling = periode.beregningStoppnivaa.map { mapBeregningStoppNivaa(it) })
+            utbetaling = periode.beregningStoppnivaa.map { mapBeregningStoppNivaa(it) }
+        )
 
     private fun mapBeregningStoppNivaa(stoppNivaa: BeregningStoppnivaa) =
-        Utbetaling(fagSystemId = stoppNivaa.fagsystemId.trim(),
+        Utbetaling(
+            fagSystemId = stoppNivaa.fagsystemId.trim(),
             utbetalesTilNavn = stoppNivaa.utbetalesTilNavn.trim(),
             utbetalesTilId = stoppNivaa.utbetalesTilId.removePrefix("00"),
             forfall = LocalDate.parse(stoppNivaa.forfall),
             feilkonto = stoppNivaa.isFeilkonto,
-            detaljer = stoppNivaa.beregningStoppnivaaDetaljer.map { mapDetaljer(it) })
+            detaljer = stoppNivaa.beregningStoppnivaaDetaljer.map { mapDetaljer(it) }
+        )
 
     private fun mapDetaljer(detaljer: BeregningStoppnivaaDetaljer) =
         Detaljer(

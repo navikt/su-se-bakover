@@ -1,8 +1,13 @@
 package no.nav.su.se.bakover.beregning
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
@@ -20,21 +25,24 @@ internal class BeregningTest {
         val oneMonth = Beregning(
             fom = fom,
             tom = fom.plusMonths(1).minusDays(1),
-            sats = Sats.HØY
+            sats = Sats.HØY,
+            fradrag = emptyList()
         ).toDto()
         oneMonth.månedsberegninger shouldHaveSize 1
 
         val threeMonths = Beregning(
             fom = fom,
             tom = fom.plusMonths(3).minusDays(1),
-            sats = Sats.HØY
+            sats = Sats.HØY,
+            fradrag = emptyList()
         ).toDto()
         threeMonths.månedsberegninger shouldHaveSize 3
 
         val twelweMonths = Beregning(
             fom = fom,
             tom = fom.plusMonths(12).minusDays(1),
-            sats = Sats.HØY
+            sats = Sats.HØY,
+            fradrag = emptyList()
         ).toDto()
         twelweMonths.månedsberegninger shouldHaveSize 12
     }
@@ -46,7 +54,8 @@ internal class BeregningTest {
             Beregning(
                 fom = fom,
                 tom = fom.plusMonths(3),
-                sats = Sats.HØY
+                sats = Sats.HØY,
+                fradrag = emptyList()
             )
         }
 
@@ -55,7 +64,8 @@ internal class BeregningTest {
             Beregning(
                 fom = fom,
                 tom = LocalDate.of(2020, Month.JANUARY, 24),
-                sats = Sats.HØY
+                sats = Sats.HØY,
+                fradrag = emptyList()
             )
         }
 
@@ -64,7 +74,8 @@ internal class BeregningTest {
             Beregning(
                 fom = fom,
                 tom = fom.minusMonths(3),
-                sats = Sats.HØY
+                sats = Sats.HØY,
+                fradrag = emptyList()
             )
         }
     }
@@ -78,9 +89,11 @@ internal class BeregningTest {
             månedsberegninger = mutableListOf(
                 Månedsberegning(
                     fom = LocalDate.of(2020, Month.JANUARY, 1),
-                    sats = Sats.HØY
+                    sats = Sats.HØY,
+                    fradrag = 0
                 )
-            )
+            ),
+            fradrag = emptyList()
         )
         beregning.toDto().månedsberegninger shouldHaveSize 1
     }
@@ -91,19 +104,22 @@ internal class BeregningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC)
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
+            fradrag = emptyList()
         )
         val second = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toInstant(ZoneOffset.UTC)
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toInstant(ZoneOffset.UTC),
+            fradrag = emptyList()
         )
         val third = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toInstant(ZoneOffset.UTC)
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toInstant(ZoneOffset.UTC),
+            fradrag = emptyList()
         )
         val beregninger = listOf(
             first,
@@ -112,5 +128,36 @@ internal class BeregningTest {
         )
         val sorted = beregninger.sortedWith(Beregning.Opprettet)
         sorted shouldContainInOrder listOf(third, first, second)
+    }
+
+    @Test
+    fun `bruker riktig fradrag per måned`() {
+        val b = Beregning(
+            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
+            fradrag = listOf(
+                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
+                Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
+            )
+        )
+        b.toDto().månedsberegninger.forEach { it.fradrag shouldBe 1100 }
+    }
+
+    @Test
+    fun `støtter ikke negative fradrag`() {
+        shouldThrow<java.lang.IllegalArgumentException> {
+            Beregning(
+                fom = LocalDate.of(2020, Month.JANUARY, 1),
+                tom = LocalDate.of(2020, Month.DECEMBER, 31),
+                sats = Sats.HØY,
+                opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
+                fradrag = listOf(
+                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
+                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)
+                )
+            )
+        }.also { it.message shouldContain "negativ" }
     }
 }

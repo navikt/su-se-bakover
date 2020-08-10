@@ -14,14 +14,16 @@ class Beregning(
     private val fom: LocalDate,
     private val tom: LocalDate,
     private val sats: Sats,
+    private val fradrag: List<Fradrag>,
     private val månedsberegninger: MutableList<Månedsberegning> = mutableListOf()
 ) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<BeregningDto> {
     private val antallMnd = Period.between(fom, tom.plusDays(1)).toTotalMonths()
 
     init {
         require(fom.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fom" }
-        require(tom.dayOfMonth == fom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
+        require(tom.dayOfMonth == tom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
         require(fom.isBefore(tom)) { "Startdato ($fom) for beregning må være tidligere enn sluttdato ($tom)." }
+        fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
         if (månedsberegninger.isEmpty()) beregn()
     }
 
@@ -29,7 +31,8 @@ class Beregning(
         månedsberegninger.add(
             Månedsberegning(
                 fom = fom.plusMonths(it),
-                sats = sats
+                sats = sats,
+                fradrag = fradrag.sumBy { f -> f.perMåned() }
             )
         )
     }
@@ -41,7 +44,8 @@ class Beregning(
             fom = fom,
             tom = tom,
             sats = sats,
-            månedsberegninger = månedsberegninger.map { it.toDto() }
+            månedsberegninger = månedsberegninger.map { it.toDto() },
+            fradrag = fradrag.map { it.toDto() }
         )
 
     object Opprettet : Comparator<Beregning> {
@@ -57,5 +61,6 @@ data class BeregningDto(
     val fom: LocalDate,
     val tom: LocalDate,
     val sats: Sats,
-    val månedsberegninger: List<MånedsberegningDto>
+    val månedsberegninger: List<MånedsberegningDto>,
+    val fradrag: List<FradragDto>
 )

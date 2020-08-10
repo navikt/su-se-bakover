@@ -9,23 +9,23 @@ internal class PostgresTest {
     @Test
     internal fun `bygger riktig datasource basert på vaultMountPath`() {
         assertTrue(
-                Postgres(
-                        jdbcUrl = "postgresql://localhost",
-                        vaultMountPath = "",
-                        username = "postgres",
-                        password = "postgres",
-                        databaseName = "dbName"
-                )
-                        .build() is NonVaultPostgres
+            Postgres(
+                jdbcUrl = "postgresql://localhost",
+                vaultMountPath = "",
+                username = "postgres",
+                password = "postgres",
+                databaseName = "dbName"
+            )
+                .build() is NonVaultPostgres
         )
         assertTrue(
-                Postgres(
-                        jdbcUrl = "postgresql://localhost",
-                        vaultMountPath = "aVaultPath",
-                        username = "postgres",
-                        password = "postgres",
-                        databaseName = "dbName"
-                ).build() is VaultPostgres
+            Postgres(
+                jdbcUrl = "postgresql://localhost",
+                vaultMountPath = "aVaultPath",
+                username = "postgres",
+                password = "postgres",
+                databaseName = "dbName"
+            ).build() is VaultPostgres
         )
     }
 
@@ -33,21 +33,21 @@ internal class PostgresTest {
     internal fun `kaster ikke exception når tilkobling konfigureres riktig`() {
         assertDoesNotThrow {
             Postgres(
-                    jdbcUrl = "postgresql://localhost",
-                    vaultMountPath = "aVaultPath",
-                    username = "",
-                    password = "",
-                    databaseName = "dbName"
+                jdbcUrl = "postgresql://localhost",
+                vaultMountPath = "aVaultPath",
+                username = "",
+                password = "",
+                databaseName = "dbName"
             ).build()
         }
 
         assertDoesNotThrow {
             Postgres(
-                    jdbcUrl = "postgresql://localhost",
-                    vaultMountPath = "",
-                    username = "postgres",
-                    password = "postgres",
-                    databaseName = ""
+                jdbcUrl = "postgresql://localhost",
+                vaultMountPath = "",
+                username = "postgres",
+                password = "postgres",
+                databaseName = ""
             ).build()
         }
     }

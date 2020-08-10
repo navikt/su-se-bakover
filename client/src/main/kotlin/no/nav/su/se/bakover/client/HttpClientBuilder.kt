@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.oppgave.OppgaveClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PdlClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.person.SuPersonClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory
 interface HttpClientsBuilder {
     fun build(
         azure: OAuth = HttpClientBuilder.azure(),
-        personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure),
-        inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         tokenOppslag: TokenOppslag = HttpClientBuilder.token(),
+        personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure, tokenOppslag = tokenOppslag),
+        inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
         dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag),
         oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
@@ -48,7 +48,7 @@ data class HttpClients(
 object HttpClientBuilder : HttpClientsBuilder {
     private val env = System.getenv()
     internal fun azure(
-        clientId: String = env.getOrDefault("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e"),
+        clientId: String = getAzureClientId(),
         clientSecret: String = env.getOrDefault("AZURE_CLIENT_SECRET", "secret"),
         wellknownUrl: String = env.getOrDefault(
             "AZURE_WELLKNOWN_URL",
@@ -58,13 +58,16 @@ object HttpClientBuilder : HttpClientsBuilder {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
 
+    private fun getAzureClientId() = env.getOrDefault("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e")
+
     internal fun person(
-        baseUrl: String = env.getOrDefault("SU_PERSON_URL", "http://su-person.default.svc.nais.local"),
-        clientId: String = env.getOrDefault("SU_PERSON_AZURE_CLIENT_ID", "76de0063-2696-423b-84a4-19d886c116ca"),
-        oAuth: OAuth
+        baseUrl: String = env.getOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+        clientId: String = getAzureClientId(),
+        oAuth: OAuth,
+        tokenOppslag: TokenOppslag
     ): PersonOppslag = when (env.isLocalOrRunningTests()) {
         true -> PersonOppslagStub.also { logger.warn("********** Using stub for ${PersonOppslag::class.java} **********") }
-        else -> SuPersonClient(baseUrl, clientId, oAuth)
+        else -> PdlClient(baseUrl, tokenOppslag, clientId, oAuth)
     }
 
     internal fun inntekt(
@@ -116,9 +119,9 @@ object HttpClientBuilder : HttpClientsBuilder {
 
     override fun build(
         azure: OAuth,
+        tokenOppslag: TokenOppslag,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag,
-        tokenOppslag: TokenOppslag,
         pdfGenerator: PdfGenerator,
         dokArkiv: DokArkiv,
         oppgave: Oppgave

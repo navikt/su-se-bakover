@@ -38,7 +38,7 @@ internal class DokArkivClient(
                       "tittel": "Søknad om supplerende stønad for uføre flyktninger",
                       "journalpostType": "INNGAAENDE",
                       "tema": "SUP",
-                      "kanal": "NAV_NO",
+                      "kanal": "INNSENDT_NAV_ANSATT",
                       "behandlingstema": "ab0268",
                       "journalfoerendeEnhet": "9999",
                       "avsenderMottaker": {
@@ -80,12 +80,15 @@ internal class DokArkivClient(
         return result.fold(
             { json ->
                 JSONObject(json).let {
-                    val journalpostId = it.getString("journalpostId")
+                    val journalpostId: String? = it.optString("journalpostId", null)
 
-                    if (it.getBoolean("journalpostferdigstilt")) {
-                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId")
+                    if (!it.optBoolean("journalpostferdigstilt", false)) {
+                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
                     }
-                    journalpostId.right()
+
+                    journalpostId?.right() ?: ClientError(response.statusCode, "Feil ved journalføring av søknad.").left().also {
+                        log.warn("Kunne ikke ferdigstille journalføring, fant ingen journalpostId. body=$json")
+                    }
                 }
             },
             {

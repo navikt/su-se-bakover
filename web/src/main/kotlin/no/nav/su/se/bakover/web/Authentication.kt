@@ -28,14 +28,14 @@ import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.ktor.util.KtorExperimentalAPI
+
 import no.nav.su.se.bakover.client.azure.OAuth
 import org.json.JSONObject
 import java.time.Instant
 import java.util.Base64.getDecoder
 import java.util.Date
 
-@KtorExperimentalAPI
+@OptIn(io.ktor.util.KtorExperimentalAPI::class)
 internal fun Application.setupAuthentication(
     jwkConfig: JSONObject,
     jwkProvider: JwkProvider,
@@ -47,13 +47,13 @@ internal fun Application.setupAuthentication(
             client = httpClient
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
-                        name = "azure",
-                        authorizeUrl = jwkConfig.getString("authorization_endpoint"),
-                        accessTokenUrl = jwkConfig.getString("token_endpoint"),
-                        requestMethod = Post,
-                        clientId = config.getProperty("azure.clientId"),
-                        clientSecret = config.getProperty("azure.clientSecret"),
-                        defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid", "offline_access")
+                    name = "azure",
+                    authorizeUrl = jwkConfig.getString("authorization_endpoint"),
+                    accessTokenUrl = jwkConfig.getString("token_endpoint"),
+                    requestMethod = Post,
+                    clientId = config.getProperty("azure.clientId"),
+                    clientSecret = config.getProperty("azure.clientSecret"),
+                    defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid", "offline_access")
                 )
             }
             urlProvider = { config.getProperty("azure.backendCallbackUrl") }
@@ -75,21 +75,24 @@ internal fun Application.setupAuthentication(
                 }
             }
             challenge { defaultScheme, realm ->
-                val errors: Map<Any, AuthenticationFailedCause> = call.authentication.errors
-                when (errors.values.singleOrNull()) {
+                val errors: List<AuthenticationFailedCause> = call.authentication.allFailures
+                when (errors.singleOrNull()) {
                     AuthenticationFailedCause.InvalidCredentials -> {
                         getExpiry(call.request)
-                                ?.takeIf(::tokenHasExpired)
-                                ?.also {
-                                    call.respond(HttpStatusCode.Unauthorized, errorMessage(it).also(log::debug))
-                                } ?: call.respond(HttpStatusCode.Forbidden)
+                            ?.takeIf(::tokenHasExpired)
+                            ?.also {
+                                call.respond(HttpStatusCode.Unauthorized, errorMessage(it).also(log::debug))
+                            } ?: call.respond(HttpStatusCode.Forbidden)
                     }
                     else ->
-                        call.respond(UnauthorizedResponse(
-                            HttpAuthHeader.Parameterized(
-                                defaultScheme,
-                                mapOf(HttpAuthHeader.Parameters.Realm to realm)
-                        )))
+                        call.respond(
+                            UnauthorizedResponse(
+                                HttpAuthHeader.Parameterized(
+                                    defaultScheme,
+                                    mapOf(HttpAuthHeader.Parameters.Realm to realm)
+                                )
+                            )
+                        )
                 }
             }
         }
@@ -97,18 +100,18 @@ internal fun Application.setupAuthentication(
 }
 
 private fun getExpiry(request: ApplicationRequest) =
-        request.headers["Authorization"]?.substringAfter("Bearer ")
-                ?.let { String(getDecoder().decode(it.split(".")[1]), Charsets.UTF_8) }
-                ?.let(::JSONObject)
-                ?.let { it["exp"] as Int }
-                ?.let { Date.from(Instant.ofEpochSecond(it.toLong())) }
+    request.headers["Authorization"]?.substringAfter("Bearer ")
+        ?.let { String(getDecoder().decode(it.split(".")[1]), Charsets.UTF_8) }
+        ?.let(::JSONObject)
+        ?.let { it["exp"] as Int }
+        ?.let { Date.from(Instant.ofEpochSecond(it.toLong())) }
 
 private fun tokenHasExpired(date: Date) = date.before(Date.from(Instant.now()))
 
 private fun errorMessage(date: Date) =
-        if (tokenHasExpired(date)) {
-            "The token expired at $date"
-        } else ""
+    if (tokenHasExpired(date)) {
+        "The token expired at $date"
+    } else ""
 
 internal const val AUTH_CALLBACK_PATH = "/callback"
 

@@ -17,7 +17,8 @@ internal class SøknadJsonTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
         //language=JSON
-        val søknadJsonString = """
+        val søknadJsonString =
+            """
         {
           "id": "$søknadId",
           "søknadInnhold": {
@@ -81,10 +82,21 @@ internal class SøknadJsonTest {
                 "andreYtelserINavBeløp":33,
                 "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
                 "sosialstønadBeløp":7000.0,
-                "trygdeytelserIUtlandetBeløp":2,
-                "trygdeytelserIUtlandet":"en-eller-annen-ytelse",
-                "trygdeytelserIUtlandetFra":"Utlandet",
+                "trygdeytelseIUtlandet": [
+                    {
+                        "beløp": 200,
+                        "type": "trygd",
+                        "fra": "En trygdeutgiver"
+                    },
+                    {
+                        "beløp": 500,
+                        "type": "Annen trygd",
+                        "fra": "En annen trygdeutgiver"
+                    }
+                ],
                 "pensjon":[
+                
+                    
                     {
                         "ordning":"KLP",
                         "beløp":2000.0
@@ -103,8 +115,12 @@ internal class SøknadJsonTest {
                 "kontonummer":"12345678912",
                 "verdiPåEiendom":3,
                 "eiendomBrukesTil":"",
-                "verdiPåKjøretøy":25000,
-                "kjøretøyDeEier":"bil",
+                "kjøretøy": [
+                    { 
+                        "verdiPåKjøretøy":  25000, 
+                        "kjøretøyDeEier":  "bil"
+                    }
+                ],
                 "innskuddsBeløp":25000,
                 "verdipapirBeløp":25000,
                 "skylderNoenMegPengerBeløp":25000,
@@ -115,7 +131,7 @@ internal class SøknadJsonTest {
             }
           }
         }
-    """.trimIndent()
+            """.trimIndent()
     }
 
     @Test

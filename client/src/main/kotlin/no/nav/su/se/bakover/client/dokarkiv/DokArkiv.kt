@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 
 interface DokArkiv {
     fun opprettJournalpost(
-        nySøknad: SøknadInnhold,
+        søknadInnhold: SøknadInnhold,
         pdf: ByteArray,
         sakId: String
     ): Either<ClientError, String>
