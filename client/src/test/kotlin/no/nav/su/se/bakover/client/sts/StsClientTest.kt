@@ -1,17 +1,15 @@
 package no.nav.su.se.bakover.client.sts
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
+import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-internal class StsClientTest {
+internal class StsClientTest : WiremockBase {
     val username = "srvsupstonad"
     val password = "supersecret"
 
@@ -40,21 +38,5 @@ internal class StsClientTest {
                     )
                 )
         )
-    }
-
-    companion object {
-        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
     }
 }

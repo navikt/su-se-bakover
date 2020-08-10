@@ -2,25 +2,26 @@ package no.nav.su.se.bakover.client.inntekt
 
 import arrow.core.left
 import arrow.core.right
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Adresse
+import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Telefonnummer
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.MDC
 
-internal class InntektClientTest {
+internal class InntektClientTest : WiremockBase {
 
     @Test
     fun `skal ikke kalle inntekt om person gir feil`() {
@@ -51,9 +52,25 @@ internal class InntektClientTest {
         override fun person(fnr: Fnr) = Person(
             fnr = fnr,
             aktørId = AktørId("aktørid"),
-            fornavn = "Tore",
-            mellomnavn = "Johnas",
-            etternavn = "Strømøy"
+            navn = Navn(
+                fornavn = "Tore",
+                mellomnavn = "Johnas",
+                etternavn = "Strømøy"
+            ),
+            telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
+            adresse = Adresse(
+                adressenavn = "Oslogata",
+                husnummer = "12",
+                husbokstav = null,
+                postnummer = "0050",
+                poststed = "Oslo",
+                bruksenhet = "U1H20",
+                kommunenavn = "Oslo",
+                kommunenummer = "0301"
+            ),
+            statsborgerskap = "NOR",
+            kjønn = "MANN"
+
         ).right()
         override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }
@@ -75,21 +92,5 @@ internal class InntektClientTest {
             WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
                 .willReturn(WireMock.okJson("""{}"""))
         )
-    }
-
-    companion object {
-        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
     }
 }

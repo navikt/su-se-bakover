@@ -7,6 +7,49 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
          metadata {
             master
          }
+      },
+      telefonnummer {
+         nummer
+         landskode
+         prioritet
+      },
+      bostedsadresse(historikk: $historikk) {
+         vegadresse {
+            husnummer
+            husbokstav
+            adressenavn
+            kommunenummer
+            postnummer
+            bruksenhetsnummer
+         }
+      },
+      kontaktadresse(historikk: $historikk) {
+         vegadresse {
+            husnummer
+            husbokstav
+            adressenavn
+            kommunenummer
+            postnummer
+            bruksenhetsnummer
+         }
+      },
+      oppholdsadresse(historikk: $historikk) {
+         vegadresse {
+            husnummer
+            husbokstav
+            adressenavn
+            kommunenummer
+            postnummer
+            bruksenhetsnummer
+         }
+      },
+      statsborgerskap(historikk: $historikk) {
+         land
+         gyldigFraOgMed
+         gyldigTilOgMed
+      },
+      kjoenn(historikk: $historikk) {
+         kjoenn
       }
    }
    hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {
