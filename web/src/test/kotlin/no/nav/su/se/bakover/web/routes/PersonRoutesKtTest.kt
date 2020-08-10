@@ -59,6 +59,8 @@ internal class PersonRoutesKtTest {
     @Test
     fun `kan hente data gjennom PersonOppslag`() {
         val testIdent = "12345678910"
+
+        //language=JSON
         val excpectedResponseJson =
             """
                 {
@@ -77,14 +79,17 @@ internal class PersonRoutesKtTest {
                         "nummer": "12345678"
                     },
                     "adresse": {
-                        "adressenavn": "Oslogata 12",
+                        "adressenavn": "Oslogata",
+                        "husnummer": "12",
+                        "husbokstav": null,
                         "postnummer": "0050",
                         "poststed": "Oslo",
                         "bruksenhet": "U1H20",
                         "kommunenavn": "Oslo",
                         "kommunenummer":"0301"
                     },
-                    "statsborgerskap": "NOR"
+                    "statsborgerskap": "NOR",
+                    "kjønn": "MANN"
                 }
             """.trimIndent()
 
@@ -127,14 +132,17 @@ internal class PersonRoutesKtTest {
                 ),
                 telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
                 adresse = Adresse(
-                    adressenavn = "Oslogata 12",
+                    adressenavn = "Oslogata",
+                    husnummer = "12",
+                    husbokstav = null,
                     postnummer = "0050",
                     poststed = "Oslo",
                     bruksenhet = "U1H20",
                     kommunenavn = "Oslo",
                     kommunenummer = "0301"
                 ),
-                statsborgerskap = "NOR"
+                statsborgerskap = "NOR",
+                kjønn = "MANN"
 
             ).right()
             else -> ClientError(statusCode, "beklager, det gikk dårlig").left()

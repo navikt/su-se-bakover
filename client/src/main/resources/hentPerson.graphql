@@ -47,6 +47,9 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
          land
          gyldigFraOgMed
          gyldigTilOgMed
+      },
+      kjoenn(historikk: $historikk) {
+         kjoenn
       }
    }
    hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {

@@ -1,19 +1,16 @@
 package no.nav.su.se.bakover.client.pdf
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.slf4j.MDC
 
-internal class PdfClientTest {
+internal class PdfClientTest : WiremockBase {
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
@@ -50,21 +47,4 @@ internal class PdfClientTest {
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withRequestBody(WireMock.equalTo(søknadInnholdJson))
-
-    companion object {
-        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            MDC.put("X-Correlation-ID", "correlationId")
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
-    }
 }

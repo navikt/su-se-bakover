@@ -21,14 +21,17 @@ object PersonOppslagStub :
         ),
         telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
         adresse = Adresse(
-            adressenavn = "Oslogata 12",
+            adressenavn = "Oslogata",
+            husnummer = "12",
+            husbokstav = null,
             postnummer = "0050",
             poststed = "Oslo",
             bruksenhet = "U1H20",
             kommunenavn = "Oslo",
             kommunenummer = "0301"
         ),
-        statsborgerskap = "NOR"
+        statsborgerskap = "NOR",
+        kjønn = "MANN"
 
     ).right()
 

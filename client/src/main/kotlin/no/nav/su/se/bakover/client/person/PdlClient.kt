@@ -41,7 +41,7 @@ internal class PdlClient(
         return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
             val hentPerson = response.data.hentPerson
             val navn = hentPerson.navn.sortedBy {
-                it.metadata.master == "Freg"
+                folkeregisteretAsMaster(it.metadata)
             }.first()
             val vegadresser = hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
             // TODO jah: Don't throw exception if we can't find this person
@@ -59,6 +59,8 @@ internal class PdlClient(
                 adresse = vegadresser.firstOrNull()?.let { adresse ->
                     Adresse(
                         adressenavn = adresse.adressenavn,
+                        husnummer = adresse.husnummer,
+                        husbokstav = adresse.husbokstav,
                         postnummer = adresse.postnummer,
                         poststed = null, // TODO: Oppslag postnummer -> poststed
                         bruksenhet = adresse.bruksenhetsnummer,
@@ -66,10 +68,13 @@ internal class PdlClient(
                         kommunenavn = null // TODO: Oppslag kommunenummer -> kommunenavn
                     )
                 },
-                statsborgerskap = hentPerson.statsborgerskap.first().land
+                statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
+                kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull()
             )
         }
     }
+
+    private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
     override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
         return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
@@ -132,7 +137,8 @@ data class HentPerson(
     val bostedsadresse: List<Bostedsadresse>,
     val kontaktadresse: List<Kontaktadresse>,
     val oppholdsadresse: List<Oppholdsadresse>,
-    val statsborgerskap: List<Statsborgerskap>
+    val statsborgerskap: List<Statsborgerskap>,
+    val kjoenn: List<Kjønn>
 )
 
 data class NavnResponse(
@@ -188,4 +194,8 @@ data class HentIdenter(
 data class Ident(
     val gruppe: String,
     val ident: String
+)
+
+data class Kjønn(
+    val kjoenn: String
 )

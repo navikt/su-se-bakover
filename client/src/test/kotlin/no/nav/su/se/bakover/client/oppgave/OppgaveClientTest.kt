@@ -1,22 +1,19 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.slf4j.MDC
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal class OppgaveClientTest {
+internal class OppgaveClientTest : WiremockBase {
 
     private val client = OppgaveClient(
         wireMockServer.baseUrl(),
@@ -100,21 +97,4 @@ internal class OppgaveClientTest {
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
-
-    companion object {
-        val wireMockServer: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            wireMockServer.start()
-            MDC.put("X-Correlation-ID", "correlationId")
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            wireMockServer.stop()
-        }
-    }
 }
