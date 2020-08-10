@@ -25,7 +25,8 @@ object PersonOppslagStub :
             postnummer = "0050",
             poststed = "Oslo",
             bruksenhet = "U1H20",
-            bokommune = "Oslo"
+            kommunenavn = "Oslo",
+            kommunenummer = "0301"
         ),
         statsborgerskap = "NOR"
 

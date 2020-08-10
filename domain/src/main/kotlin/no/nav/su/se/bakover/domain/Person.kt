@@ -19,6 +19,7 @@ data class Person(
         val postnummer: String?,
         val poststed: String?,
         val bruksenhet: String?,
-        val bokommune: String
+        val kommunenavn: String?,
+        val kommunenummer: String?
     )
 }

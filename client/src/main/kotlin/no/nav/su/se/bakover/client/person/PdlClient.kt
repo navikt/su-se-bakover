@@ -60,9 +60,10 @@ internal class PdlClient(
                     Adresse(
                         adressenavn = adresse.adressenavn,
                         postnummer = adresse.postnummer,
-                        poststed = "Poststedet til ${adresse.postnummer}",
+                        poststed = null, // TODO: Oppslag postnummer -> poststed
                         bruksenhet = adresse.bruksenhetsnummer,
-                        bokommune = "Kommunen til ${adresse.kommunenummer}"
+                        kommunenummer = adresse.kommunenummer,
+                        kommunenavn = null // TODO: Oppslag kommunenummer -> kommunenavn
                     )
                 },
                 statsborgerskap = hentPerson.statsborgerskap.first().land

@@ -12,9 +12,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.PersonResponseJson.AdresseJson
 import no.nav.su.se.bakover.web.routes.PersonResponseJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.PersonResponseJson.TelefonnummerJson
 import no.nav.su.se.bakover.web.svar
 
 internal const val personPath = "/person"
@@ -74,7 +72,8 @@ data class PersonResponseJson(
         val postnummer: String?,
         val poststed: String?,
         val bruksenhet: String?,
-        val bokommune: String
+        val kommunenummer: String?,
+        val kommunenavn: String?
     )
 
     companion object {
@@ -101,7 +100,8 @@ data class PersonResponseJson(
                     postnummer = it.postnummer,
                     poststed = it.poststed,
                     bruksenhet = it.bruksenhet,
-                    bokommune = it.bokommune
+                    kommunenummer = it.kommunenummer,
+                    kommunenavn = it.kommunenavn
                 )
             },
             statsborgerskap = this.statsborgerskap
