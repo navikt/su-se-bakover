@@ -24,5 +24,7 @@ data class Person(
         val bruksenhet: String?,
         val kommunenavn: String?,
         val kommunenummer: String?
-    )
+    ) {
+        fun formattedAdresseOgHusnummer() = "$adressenavn $husnummer"
+    }
 }

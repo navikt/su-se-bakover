@@ -27,16 +27,28 @@ internal class SøknadJsonTest {
             },
             "personopplysninger":{
                 "fnr":"12345678910",
-                "fornavn":"Ola",
-                "mellomnavn":"Erik",
-                "etternavn":"Nordmann",
-                "telefonnummer":"12345678",
-                "gateadresse":"Oslogata 12",
-                "postnummer":"0050",
-                "poststed":"Oslo",
-                "bruksenhet":"U1H20",
-                "bokommune":"Oslo",
-                "statsborgerskap":"NOR"
+                "aktorId": "aktørid",
+                "navn": {
+                    "fornavn":"Ola",
+                    "mellomnavn":"Erik",
+                    "etternavn":"Nordmann"
+                },
+                "telefonnummer":{
+                    "landskode": "47",
+                    "nummer": "12345678"
+                },
+                "adresse": {
+                    "adressenavn": "Oslogata",
+                    "husnummer": "12",
+                    "husbokstav": "A",
+                    "postnummer": "0050",
+                    "poststed": "Oslo",
+                    "bruksenhet": "U1H20",
+                    "kommunenavn": "Oslo",
+                    "kommunenummer": "0301"
+                },
+                "kjønn": "MANN",
+                "statsborgerskap": "NOR"
             },
             "flyktningsstatus":{
                 "registrertFlyktning":false
@@ -95,8 +107,8 @@ internal class SøknadJsonTest {
                     }
                 ],
                 "pensjon":[
-                
-                    
+
+
                     {
                         "ordning":"KLP",
                         "beløp":2000.0
@@ -116,8 +128,8 @@ internal class SøknadJsonTest {
                 "verdiPåEiendom":3,
                 "eiendomBrukesTil":"",
                 "kjøretøy": [
-                    { 
-                        "verdiPåKjøretøy":  25000, 
+                    {
+                        "verdiPåKjøretøy":  25000,
                         "kjøretøyDeEier":  "bil"
                     }
                 ],

@@ -23,12 +23,12 @@ internal class SøknadRouteMediator(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))
-            ?: repo.opprettSak(Fnr(søknadInnhold.personopplysninger.fnr))
+        val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr.fnr))
+            ?: repo.opprettSak(Fnr(søknadInnhold.personopplysninger.fnr.fnr))
         sak.addObserver(this)
         sak.nySøknad(søknadInnhold)
 
-        return repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))!!
+        return repo.hentSak(søknadInnhold.personopplysninger.fnr)!!
     }
 
     override fun nySøknadEvent(nySøknadEvent: SakEventObserver.NySøknadEvent) {
@@ -46,7 +46,7 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId = personOppslag.aktørId(Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr))
+                        val aktørId = personOppslag.aktørId(nySøknadEvent.søknadInnhold.personopplysninger.fnr)
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),

@@ -132,12 +132,12 @@ internal fun Route.behandlingRoutes(
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
-                                fødselsnummer = personalia.fnr,
-                                fornavn = personalia.fornavn,
-                                etternavn = personalia.etternavn,
-                                adresse = personalia.gateadresse,
-                                postnummer = personalia.postnummer,
-                                poststed = personalia.poststed
+                                fødselsnummer = personalia.fnr.toString(),
+                                fornavn = personalia.navn.fornavn,
+                                etternavn = personalia.navn.etternavn,
+                                adresse = personalia.adresse?.formattedAdresseOgHusnummer(),
+                                postnummer = personalia.adresse?.postnummer,
+                                poststed = personalia.adresse?.poststed
                             )
                         ).fold(
                             ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },

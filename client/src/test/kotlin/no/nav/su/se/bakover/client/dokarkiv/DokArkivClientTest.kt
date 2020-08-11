@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Personopplysninger
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.Base64
@@ -23,7 +23,7 @@ internal class DokArkivClientTest : WiremockBase {
     private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
-    private val personopplysninger: Personopplysninger = søknadInnhold.personopplysninger
+    private val personopplysninger: Person = søknadInnhold.personopplysninger
 
     private val forventetRequest =
         """

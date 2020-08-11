@@ -14,32 +14,46 @@ object SøknadInnholdTestdataBuilder {
         fornavn: String = "Ola",
         mellomnavn: String = "Erik",
         etternavn: String = "Nordmann",
+        telefonnummerLandskode: String = "47",
         telefonnummer: String = "12345678",
-        gateadresse: String = "Oslogata 12",
+        adressenavn: String = "Oslogata",
+        husbokstav: String = "A",
+        husnummer: String = "12",
         postnummer: String = "0050",
         poststed: String = "Oslo",
         bruksenhet: String = "U1H20",
         bokommune: String = "Oslo",
-        statsborgerskap: String = "NOR"
-    ) = Personopplysninger(
-        fnr,
-        fornavn,
-        mellomnavn,
-        etternavn,
-        telefonnummer,
-        gateadresse,
-        postnummer,
-        poststed,
-        bruksenhet,
-        bokommune,
-        statsborgerskap
+        kommunenummer: String = "0301",
+        statsborgerskap: String = "NOR",
+        kjønn: String = "MANN"
+    ) = Person(
+        fnr = Fnr(fnr),
+        aktørId = AktørId("aktørid"),
+        navn = Person.Navn(
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn
+        ),
+        telefonnummer = Telefonnummer(landskode = telefonnummerLandskode, nummer = telefonnummer),
+        adresse = Person.Adresse(
+            adressenavn = adressenavn,
+            husnummer = husnummer,
+            husbokstav = husbokstav,
+            postnummer = postnummer,
+            poststed = poststed,
+            bruksenhet = bruksenhet,
+            kommunenavn = bokommune,
+            kommunenummer = kommunenummer
+        ),
+        statsborgerskap = statsborgerskap,
+        kjønn = kjønn
     )
 
     fun build(
         uførevedtak: Uførevedtak = Uførevedtak(
             true
         ),
-        personopplysninger: Personopplysninger = personopplysninger(),
+        personopplysninger: Person = personopplysninger(),
 
         flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
             registrertFlyktning = false

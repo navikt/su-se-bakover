@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class SøknadInnhold(
     val uførevedtak: Uførevedtak,
-    val personopplysninger: Personopplysninger,
+    val personopplysninger: Person,
     val flyktningsstatus: Flyktningsstatus,
     val boforhold: Boforhold,
     val utenlandsopphold: Utenlandsopphold,
@@ -20,20 +20,6 @@ data class Uførevedtak(
 
 data class Flyktningsstatus(
     val registrertFlyktning: Boolean
-)
-
-data class Personopplysninger(
-    val fnr: String,
-    val fornavn: String,
-    val mellomnavn: String? = null,
-    val etternavn: String,
-    val telefonnummer: String,
-    val gateadresse: String,
-    val postnummer: String,
-    val poststed: String,
-    val bruksenhet: String? = null,
-    val bokommune: String,
-    val statsborgerskap: String
 )
 
 data class Oppholdstillatelse(

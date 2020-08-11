@@ -8,7 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Personopplysninger
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -99,6 +99,6 @@ internal class DokArkivClient(
         )
     }
 
-    private fun søkersNavn(personopplysninger: Personopplysninger): String =
-        """${personopplysninger.etternavn}, ${personopplysninger.fornavn} ${personopplysninger.mellomnavn ?: ""}"""
+    private fun søkersNavn(personopplysninger: Person): String =
+        """${personopplysninger.navn.etternavn}, ${personopplysninger.navn.fornavn} ${personopplysninger.navn.mellomnavn ?: ""}"""
 }

@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.se.bakover.domain.*
+import no.nav.su.se.bakover.web.routes.person.PersonJson
+import no.nav.su.se.bakover.web.routes.person.PersonJson.Companion.toPersonJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
@@ -9,7 +11,6 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.InntektOgPensj
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.KjøretøyJson.Companion.toKjøretøyJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
-import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.TrygdeytelseIUtlandetJson.Companion.toTrygdeytelseIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
@@ -19,7 +20,7 @@ import java.time.format.DateTimeFormatter
 
 data class SøknadInnholdJson(
     val uførevedtak: UførevedtakJson,
-    val personopplysninger: PersonopplysningerJson,
+    val personopplysninger: PersonJson,
     val flyktningsstatus: FlyktningsstatusJson,
     val boforhold: BoforholdJson,
     val utenlandsopphold: UtenlandsoppholdJson,
@@ -48,51 +49,6 @@ data class SøknadInnholdJson(
         companion object {
             fun Flyktningsstatus.toFlyktningsstatusJson() =
                 FlyktningsstatusJson(this.registrertFlyktning)
-        }
-    }
-
-    data class PersonopplysningerJson(
-        val fnr: String,
-        val fornavn: String,
-        val mellomnavn: String? = null,
-        val etternavn: String,
-        val telefonnummer: String,
-        val gateadresse: String,
-        val postnummer: String,
-        val poststed: String,
-        val bruksenhet: String? = null,
-        val bokommune: String,
-        val statsborgerskap: String
-    ) {
-        fun toPersonopplysninger() = Personopplysninger(
-            fnr = fnr,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            telefonnummer = telefonnummer,
-            gateadresse = gateadresse,
-            postnummer = postnummer,
-            poststed = poststed,
-            bruksenhet = bruksenhet,
-            bokommune = bokommune,
-            statsborgerskap = statsborgerskap
-        )
-
-        companion object {
-            fun Personopplysninger.toPersonopplysningerJson() =
-                PersonopplysningerJson(
-                    fnr = this.fnr,
-                    fornavn = this.fornavn,
-                    mellomnavn = this.mellomnavn,
-                    etternavn = this.etternavn,
-                    telefonnummer = this.telefonnummer,
-                    gateadresse = this.gateadresse,
-                    postnummer = this.postnummer,
-                    poststed = this.poststed,
-                    bruksenhet = this.bruksenhet,
-                    bokommune = this.bokommune,
-                    statsborgerskap = this.statsborgerskap
-                )
         }
     }
 
@@ -411,7 +367,7 @@ data class SøknadInnholdJson(
 
     fun toSøknadInnhold() = SøknadInnhold(
         uførevedtak = uførevedtak.toUførevedtak(),
-        personopplysninger = personopplysninger.toPersonopplysninger(),
+        personopplysninger = personopplysninger.toPerson(),
         flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
         boforhold = boforhold.toBoforhold(),
         utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
@@ -425,7 +381,7 @@ data class SøknadInnholdJson(
         fun SøknadInnhold.toSøknadInnholdJson() =
             SøknadInnholdJson(
                 uførevedtak = uførevedtak.toUførevedtakJson(),
-                personopplysninger = personopplysninger.toPersonopplysningerJson(),
+                personopplysninger = personopplysninger.toPersonJson(),
                 flyktningsstatus = flyktningsstatus.toFlyktningsstatusJson(),
                 boforhold = boforhold.toBoforholdJson(),
                 utenlandsopphold = utenlandsopphold.toUtenlandsoppholdJson(),
