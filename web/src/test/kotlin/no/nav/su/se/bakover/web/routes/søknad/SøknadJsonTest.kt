@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -33,9 +33,9 @@ internal class SøknadJsonTest {
                 "telefonnummer":"12345678",
                 "gateadresse":"Oslogata 12",
                 "postnummer":"0050",
-                "poststed":"Oslo",
+                "poststed":"OSLO",
                 "bruksenhet":"U1H20",
-                "bokommune":"Oslo",
+                "bokommune":"OSLO",
                 "statsborgerskap":"NOR"
             },
             "flyktningsstatus":{

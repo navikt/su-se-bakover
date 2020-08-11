@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.Resultat
@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.web.svar
 internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
-    oppslag: PersonOppslag
+    oppslag: PersonFactory
 ) {
     get("$personPath/{fnr}") {
         call.lesFnr("fnr").fold(
@@ -27,7 +27,7 @@ internal fun Route.personRoutes(
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     Resultat.from(
-                        oppslag.person(fnr).fold(
+                        oppslag.forFnr(fnr).fold(
                             { ClientResponse(it.httpStatus, it.message) },
                             {
                                 ClientResponse(
@@ -81,8 +81,8 @@ data class PersonResponseJson(
 
     companion object {
         fun Person.toJson() = PersonResponseJson(
-            fnr = this.fnr.toString(),
-            aktorId = this.aktørId.aktørId,
+            fnr = this.ident.fnr.toString(),
+            aktorId = this.ident.aktørId.toString(),
             fornavn = this.navn.fornavn,
             mellomnavn = this.navn.mellomnavn,
             etternavn = this.navn.etternavn,
@@ -102,11 +102,11 @@ data class PersonResponseJson(
                     adressenavn = it.adressenavn,
                     husnummer = it.husnummer,
                     husbokstav = it.husbokstav,
-                    postnummer = it.postnummer,
-                    poststed = it.poststed,
+                    postnummer = it.poststed?.postnummer,
+                    poststed = it.poststed?.poststed,
                     bruksenhet = it.bruksenhet,
-                    kommunenummer = it.kommunenummer,
-                    kommunenavn = it.kommunenavn
+                    kommunenummer = it.kommune?.kommunenummer,
+                    kommunenavn = it.kommune?.kommunenavn
                 )
             },
             statsborgerskap = this.statsborgerskap,

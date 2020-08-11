@@ -37,6 +37,7 @@ import io.ktor.routing.routing
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
+import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -159,7 +160,7 @@ internal fun Application.susebakover(
                 )
             }
 
-            personRoutes(httpClients.personOppslag)
+            personRoutes(PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)

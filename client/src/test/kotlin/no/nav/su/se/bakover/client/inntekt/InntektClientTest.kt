@@ -8,12 +8,10 @@ import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.person.PdlData
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Adresse
-import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Telefonnummer
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -49,23 +47,20 @@ internal class InntektClientTest : WiremockBase {
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(fnr: Fnr) = Person(
-            fnr = fnr,
-            aktørId = AktørId("aktørid"),
-            navn = Navn(
+        override fun person(fnr: Fnr) = PdlData(
+            ident = PdlData.Ident(fnr, AktørId("aktørId")),
+            navn = PdlData.Navn(
                 fornavn = "Tore",
                 mellomnavn = "Johnas",
                 etternavn = "Strømøy"
             ),
             telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
-            adresse = Adresse(
+            adresse = PdlData.Adresse(
                 adressenavn = "Oslogata",
                 husnummer = "12",
                 husbokstav = null,
                 postnummer = "0050",
-                poststed = "Oslo",
                 bruksenhet = "U1H20",
-                kommunenavn = "Oslo",
                 kommunenummer = "0301"
             ),
             statsborgerskap = "NOR",
