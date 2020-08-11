@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
+import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.oppgave.OppgaveClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
+import no.nav.su.se.bakover.client.stubs.kodeverk.KodeverkStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -31,7 +34,8 @@ interface HttpClientsBuilder {
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
         dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag),
-        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
+        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag),
+        kodeverk: Kodeverk = HttpClientBuilder.kodeverk(consumerId = "srvsupstonad")
     ): HttpClients
 }
 
@@ -42,7 +46,8 @@ data class HttpClients(
     val tokenOppslag: TokenOppslag,
     val pdfGenerator: PdfGenerator,
     val dokArkiv: DokArkiv,
-    val oppgave: Oppgave
+    val oppgave: Oppgave,
+    val kodeverk: Kodeverk
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
@@ -117,6 +122,14 @@ object HttpClientBuilder : HttpClientsBuilder {
         else -> OppgaveClient(baseUrl, tokenOppslag)
     }
 
+    internal fun kodeverk(
+        baseUrl: String = env.getOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
+        consumerId: String
+    ): Kodeverk = when (env.isLocalOrRunningTests()) {
+        true -> KodeverkStub.also { logger.warn("********** Using stub for ${Kodeverk::class.java} **********") }
+        else -> KodeverkHttpClient(baseUrl, consumerId)
+    }
+
     override fun build(
         azure: OAuth,
         tokenOppslag: TokenOppslag,
@@ -124,9 +137,10 @@ object HttpClientBuilder : HttpClientsBuilder {
         inntektOppslag: InntektOppslag,
         pdfGenerator: PdfGenerator,
         dokArkiv: DokArkiv,
-        oppgave: Oppgave
+        oppgave: Oppgave,
+        kodeverk: Kodeverk
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgave)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgave, kodeverk)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
