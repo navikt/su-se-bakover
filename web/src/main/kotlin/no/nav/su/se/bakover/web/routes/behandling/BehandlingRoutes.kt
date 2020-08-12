@@ -128,7 +128,8 @@ internal fun Route.behandlingRoutes(
                 when (val behandling = repo.hentBehandling(id)) {
                     null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
-                        val personalia = behandling.toDto().søknad.søknadInnhold.personopplysninger
+                        val behandlingDto = behandling.toDto()
+                        val personalia = behandlingDto.søknad.søknadInnhold.personopplysninger
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
@@ -137,7 +138,15 @@ internal fun Route.behandlingRoutes(
                                 etternavn = personalia.etternavn,
                                 adresse = personalia.gateadresse,
                                 postnummer = personalia.postnummer,
-                                poststed = personalia.poststed
+                                poststed = personalia.poststed,
+                                månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
+                                fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")),
+                                tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
+                                // Er det riktig att bruka tom dato her?
+                                nysøkdato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
+                                sats = behandlingDto.beregning?.sats,
+                                satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                                status = behandlingDto.status
                             )
                         ).fold(
                             ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
