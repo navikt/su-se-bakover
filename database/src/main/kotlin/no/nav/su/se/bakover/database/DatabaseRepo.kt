@@ -24,6 +24,10 @@ import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.Simulering
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -32,7 +36,8 @@ internal class DatabaseRepo(
 ) : ObjectRepo,
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
-    VilkårsvurderingPersistenceObserver {
+    VilkårsvurderingPersistenceObserver,
+    OppdragPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
@@ -64,6 +69,35 @@ internal class DatabaseRepo(
         return behandling
     }
 
+    override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
+        val dto = oppdrag.toDto()
+        "insert into oppdrag (id, opprettet, sakId, behandlingId, endringskode) values (:id, :opprettet, :sakId, :behandlingId, :endringskode)".oppdatering(
+            mapOf(
+                "id" to dto.id,
+                "opprettet" to dto.opprettet,
+                "sakId" to dto.sakId,
+                "behandlingId" to dto.behandlingId,
+                "endringskode" to dto.endringskode.name
+            )
+        )
+        dto.oppdragslinjer.forEach { opprettOppdragslinjer(dto.id, it) }
+        oppdrag.addObserver(this)
+        return oppdrag
+    }
+
+    private fun opprettOppdragslinjer(oppdragId: UUID, oppdragslinje: Oppdragslinje) {
+        "insert into oppdragslinje (id, opprettet, fom, tom, endringskode, oppdragId) values (:id, :opprettet, :fom, :tom, :endringskode, :oppdragId)".oppdatering(
+            mapOf(
+                "id" to oppdragslinje.id,
+                "opprettet" to oppdragslinje.opprettet,
+                "fom" to oppdragslinje.fom,
+                "tom" to oppdragslinje.tom,
+                "endringskode" to oppdragslinje.endringskode.name,
+                "oppdragId" to oppdragId
+            )
+        )
+    }
+
     private fun Row.toSak(session: Session): Sak {
         val sakId = UUID.fromString(string("id"))
         return Sak(
@@ -71,7 +105,51 @@ internal class DatabaseRepo(
             fnr = Fnr(string("fnr")),
             opprettet = instant("opprettet"),
             søknader = hentSøknader(sakId, session),
-            behandlinger = hentBehandlinger(sakId, session)
+            behandlinger = hentBehandlinger(sakId, session),
+            oppdrag = hentOppdragForSak(sakId, session)
+        )
+    }
+
+    private fun hentOppdragForSak(sakId: UUID, session: Session) =
+        "select * from oppdrag where sakId=:sakId".hentListe(mapOf("sakId" to sakId), session) {
+            it.toOppdrag(session).also { it.addObserver(this) }
+        }.toMutableList()
+
+    private fun hentOppdragForBehandling(behandlingId: UUID, session: Session) =
+        "select * from oppdrag where behandlingId=:behandlingId".hentListe(
+            mapOf("behandlingId" to behandlingId),
+            session
+        ) {
+            it.toOppdrag(session).also { it.addObserver(this) }
+        }.toMutableList()
+
+    private fun Row.toOppdrag(session: Session): Oppdrag {
+        val oppdragId = uuid("id")
+        return Oppdrag(
+            id = oppdragId,
+            opprettet = instant("opprettet"),
+            sakId = uuid("sakId"),
+            behandlingId = uuid("behandlingId"),
+            endringskode = Oppdrag.Endringskode.valueOf(string("endringskode")),
+            oppdragslinjer = hentOppdragslinjer(oppdragId, session)
+        )
+    }
+
+    private fun hentOppdragslinjer(oppdragId: UUID, session: Session): List<Oppdragslinje> =
+        "select * from oppdragslinje where oppdragId=:oppdragId".hentListe(
+            mapOf("oppdragId" to oppdragId),
+            session
+        ) {
+            it.toOppdragslinje()
+        }
+
+    private fun Row.toOppdragslinje(): Oppdragslinje {
+        return Oppdragslinje(
+            id = uuid("id"),
+            fom = localDate("fom"),
+            tom = localDate("tom"),
+            opprettet = instant("opprettet"),
+            endringskode = Oppdragslinje.Endringskode.valueOf(string("endringskode"))
         )
     }
 
@@ -79,7 +157,7 @@ internal class DatabaseRepo(
         .hentListe(mapOf("sakId" to sakId), session) {
             Søknad(
                 id = UUID.fromString(it.string("id")),
-                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
+                søknadInnhold = objectMapper.readValue(it.string("søknadInnhold"))
             )
         }.toMutableList()
 
@@ -146,13 +224,17 @@ internal class DatabaseRepo(
             }
 
     private fun Row.uuid(name: String) = UUID.fromString(string(name))
-    private fun Row.toBehandling(session: Session) = Behandling(
-        id = uuid("id"),
-        vilkårsvurderinger = hentVilkårsvurderinger(uuid("id"), session),
-        opprettet = instant("opprettet"),
-        søknad = hentSøknad(uuid("søknadId"), session)!!,
-        beregninger = hentBeregningerInternal(uuid("id"), session)
-    )
+    private fun Row.toBehandling(session: Session): Behandling {
+        val behandlingId = uuid("id")
+        return Behandling(
+            id = behandlingId,
+            vilkårsvurderinger = hentVilkårsvurderinger(behandlingId, session),
+            opprettet = instant("opprettet"),
+            søknad = hentSøknad(uuid("søknadId"), session)!!,
+            beregninger = hentBeregningerInternal(behandlingId, session),
+            oppdrag = hentOppdragForBehandling(behandlingId, session)
+        )
+    }
 
     override fun opprettVilkårsvurderinger(
         behandlingId: UUID,
@@ -347,5 +429,15 @@ internal class DatabaseRepo(
                     "beskrivelse" to fradrag.beskrivelse
                 )
             )
+    }
+
+    override fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering {
+        "update oppdrag set simulering = to_json(:simulering::json) where id = :oppdragsId".oppdatering(
+            mapOf(
+                "id" to oppdragsId,
+                "simulering" to objectMapper.writeValueAsString(simulering)
+            )
+        )
+        return simulering
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -23,5 +24,11 @@ internal class PersistentDomainObjectTest {
         private val testSøknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
         override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = søknad
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = Behandling(søknad = testSøknad)
+        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag = Oppdrag(
+            sakId = UUID.randomUUID(),
+            behandlingId = UUID.randomUUID(),
+            endringskode = Oppdrag.Endringskode.NY,
+            oppdragslinjer = emptyList()
+        )
     }
 }

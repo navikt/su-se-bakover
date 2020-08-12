@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OppdragFactory
+import no.nav.su.se.bakover.domain.oppdrag.Simulering
 import java.time.Instant
 import java.util.UUID
 
@@ -9,7 +12,8 @@ class Sak(
     opprettet: Instant = Instant.now(),
     private val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
-    private val behandlinger: MutableList<Behandling> = mutableListOf()
+    private val behandlinger: MutableList<Behandling> = mutableListOf(),
+    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
 ) : PersistentDomainObject<SakPersistenceObserver>(id, opprettet), DtoConvertable<SakDto> {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
@@ -45,6 +49,24 @@ class Sak(
         behandlinger.add(behandling)
         return behandling
     }
+
+    // TODO move OTHER interfaces to domain packages
+    interface OppdragClient {
+        fun simuler(oppdrag: Oppdrag): Simulering
+    }
+
+    fun fullførBehandling(behandlingId: UUID, oppdragClient: OppdragClient): Behandling {
+        val behandling = behandlinger.find { it.toDto().id == behandlingId }!!
+        val oppdrag = opprettOppdrag(behandling)
+        val simulering = oppdragClient.simuler(oppdrag)
+        oppdrag.addSimulering(simulering)
+        behandling.addOppdrag(oppdrag)
+        return behandling
+    }
+
+    fun opprettOppdrag(behandling: Behandling): Oppdrag {
+        return persistenceObserver.opprettOppdrag(OppdragFactory(behandling, this).build())
+    }
 }
 
 interface SakObserver
@@ -55,6 +77,8 @@ interface SakPersistenceObserver : PersistenceObserver {
         sakId: UUID,
         behandling: Behandling
     ): Behandling
+
+    fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag
 }
 
 interface SakEventObserver : SakObserver {

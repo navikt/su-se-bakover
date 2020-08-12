@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERING
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningDto
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -21,7 +22,8 @@ class Behandling constructor(
     opprettet: Instant = Instant.now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
-    private val beregninger: MutableList<Beregning> = mutableListOf()
+    private val beregninger: MutableList<Beregning> = mutableListOf(),
+    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(id, opprettet), DtoConvertable<BehandlingDto> {
 
     enum class BehandlingsStatus {
@@ -68,6 +70,10 @@ class Behandling constructor(
                 .apply { oppdater(oppdatert) }
         }
         return vilkårsvurderinger
+    }
+
+    fun addOppdrag(oppdrag: Oppdrag) {
+        this.oppdrag.add(oppdrag)
     }
 
     fun opprettBeregning(

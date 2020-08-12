@@ -27,19 +27,17 @@ import io.ktor.http.HttpMethod.Companion.Options
 import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
-
 import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
-
 import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
-import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.client.SOAPClientBuilder
 import no.nav.su.se.bakover.client.SOAPClients
+import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -162,7 +160,7 @@ internal fun Application.susebakover(
                     """.trimIndent()
                 )
             }
-            log.error(soapClients.toString())
+            log.error(soapClients.toString()) // TODO fu lint
             personRoutes(PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
