@@ -10,29 +10,9 @@ import java.time.Month.JULY
  */
 object SøknadInnholdTestdataBuilder {
     fun personopplysninger(
-        fnr: String = "12345678910",
-        fornavn: String = "Ola",
-        mellomnavn: String = "Erik",
-        etternavn: String = "Nordmann",
-        telefonnummer: String = "12345678",
-        gateadresse: String = "Oslogata 12",
-        postnummer: String = "0050",
-        poststed: String = "OSLO",
-        bruksenhet: String = "U1H20",
-        bokommune: String = "OSLO",
-        statsborgerskap: String = "NOR"
+        fnr: String = "12345678910"
     ) = Personopplysninger(
-        fnr,
-        fornavn,
-        mellomnavn,
-        etternavn,
-        telefonnummer,
-        gateadresse,
-        postnummer,
-        poststed,
-        bruksenhet,
-        bokommune,
-        statsborgerskap
+        fnr
     )
 
     fun build(

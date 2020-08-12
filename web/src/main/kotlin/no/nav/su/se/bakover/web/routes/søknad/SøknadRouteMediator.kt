@@ -6,10 +6,7 @@ import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakEventObserver
-import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.*
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -37,8 +34,10 @@ internal class SøknadRouteMediator(
                 log.error("$it")
             },
             { pdfByteArray ->
+                val fnr = Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr)
                 dokArkiv.opprettJournalpost(
                     søknadInnhold = nySøknadEvent.søknadInnhold,
+                    person = personOppslag.person(fnr).getOrElse { throw RuntimeException("Kunne ikke finne person") },
                     pdf = pdfByteArray,
                     sakId = nySøknadEvent.sakId.toString()
                 ).fold(
@@ -46,11 +45,11 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId = personOppslag.aktørId(Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr))
+                        val aktørId :AktørId = personOppslag.aktørId(fnr).getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),
-                            aktørId = aktørId.getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }.toString()
+                            aktørId = aktørId.toString()
                         ).mapLeft {
                             log.error("$it")
                         }

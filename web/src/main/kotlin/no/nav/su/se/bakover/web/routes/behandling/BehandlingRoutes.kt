@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -13,9 +14,14 @@ import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
+import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PdlData
+import no.nav.su.se.bakover.client.person.PersonFactory
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -35,7 +41,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
-    pdf: PdfGenerator
+    pdf: PdfGenerator,
+    personOppslag: PersonFactory
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -129,16 +136,17 @@ internal fun Route.behandlingRoutes(
                     null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
                         val behandlingDto = behandling.toDto()
-                        val personalia = behandlingDto.søknad.søknadInnhold.personopplysninger
+                        val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
+                        val person = personOppslag.forFnr(Fnr(fnr)).getOrElse { throw RuntimeException("Kunne ikke finne person") }
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
-                                fødselsnummer = personalia.fnr,
-                                fornavn = personalia.fornavn,
-                                etternavn = personalia.etternavn,
-                                adresse = personalia.gateadresse,
-                                postnummer = personalia.postnummer,
-                                poststed = personalia.poststed,
+                                fødselsnummer = fnr,
+                                fornavn = person.navn.fornavn,
+                                etternavn = person.navn.etternavn,
+                                adresse = person.adresse?.adressenavn,
+                                postnummer = person.adresse?.poststed?.postnummer,
+                                poststed = person.adresse?.poststed?.poststed,
                                 månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
                                 fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")),
                                 tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),

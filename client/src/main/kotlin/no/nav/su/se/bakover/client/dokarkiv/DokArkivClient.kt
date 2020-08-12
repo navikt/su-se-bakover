@@ -6,14 +6,14 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.person.PdlData
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import java.util.Base64
+import java.util.*
 
 internal val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
@@ -24,6 +24,7 @@ internal class DokArkivClient(
 ) : DokArkiv {
     override fun opprettJournalpost(
         søknadInnhold: SøknadInnhold,
+        person: PdlData,
         pdf: ByteArray,
         sakId: String
     ): Either<ClientError, String> {
@@ -42,9 +43,9 @@ internal class DokArkivClient(
                       "behandlingstema": "ab0268",
                       "journalfoerendeEnhet": "9999",
                       "avsenderMottaker": {
-                        "id": "${søknadInnhold.personopplysninger.fnr}",
+                        "id": "${person.ident.fnr}",
                         "idType": "FNR",
-                        "navn": "${søkersNavn(søknadInnhold.personopplysninger)}"
+                        "navn": "${søkersNavn(person)}"
                       },
                       "bruker": {
                         "id": "${søknadInnhold.personopplysninger.fnr}",
@@ -99,6 +100,6 @@ internal class DokArkivClient(
         )
     }
 
-    private fun søkersNavn(personopplysninger: Personopplysninger): String =
-        """${personopplysninger.etternavn}, ${personopplysninger.fornavn} ${personopplysninger.mellomnavn ?: ""}"""
+    private fun søkersNavn(person :PdlData): String =
+        """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}"""
 }
