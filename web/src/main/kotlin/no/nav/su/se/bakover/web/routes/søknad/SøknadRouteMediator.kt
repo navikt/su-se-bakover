@@ -37,7 +37,10 @@ internal class SøknadRouteMediator(
                 val fnr = Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr)
                 dokArkiv.opprettJournalpost(
                     søknadInnhold = nySøknadEvent.søknadInnhold,
-                    person = personOppslag.person(fnr).getOrElse { throw RuntimeException("Kunne ikke finne person") },
+                    person = personOppslag.person(fnr).getOrElse {
+                        log.error("Fant ikke person med gitt fødselsnummer")
+                        throw RuntimeException("Kunne ikke finne person")
+                    },
                     pdf = pdfByteArray,
                     sakId = nySøknadEvent.sakId.toString()
                 ).fold(
@@ -45,7 +48,10 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId :AktørId = personOppslag.aktørId(fnr).getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }
+                        val aktørId :AktørId = personOppslag.aktørId(fnr).getOrElse {
+                            log.error("Fant ikke aktør-id med gitt fødselsnummer")
+                            throw RuntimeException("Kunne ikke finne aktørid")
+                        }
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),

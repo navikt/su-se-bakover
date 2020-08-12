@@ -135,9 +135,13 @@ internal fun Route.behandlingRoutes(
                 when (val behandling = repo.hentBehandling(id)) {
                     null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
+                        // TODO CHM: Må flytte dette, f.eks. inn i en brev-komponent
                         val behandlingDto = behandling.toDto()
                         val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-                        val person = personOppslag.forFnr(Fnr(fnr)).getOrElse { throw RuntimeException("Kunne ikke finne person") }
+                        val person = personOppslag.forFnr(Fnr(fnr)).getOrElse {
+                            call.application.environment.log.error("Fant ikke person med gitt fødselsnummer")
+                            throw RuntimeException("Kunne ikke finne person")
+                        }
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
