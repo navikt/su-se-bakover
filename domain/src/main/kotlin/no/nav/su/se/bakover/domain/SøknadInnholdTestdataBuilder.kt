@@ -17,9 +17,9 @@ object SøknadInnholdTestdataBuilder {
         telefonnummer: String = "12345678",
         gateadresse: String = "Oslogata 12",
         postnummer: String = "0050",
-        poststed: String = "Oslo",
+        poststed: String = "OSLO",
         bruksenhet: String = "U1H20",
-        bokommune: String = "Oslo",
+        bokommune: String = "OSLO",
         statsborgerskap: String = "NOR"
     ) = Personopplysninger(
         fnr,

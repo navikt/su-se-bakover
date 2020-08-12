@@ -50,7 +50,7 @@ internal class SøknadRouteMediator(
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),
-                            aktørId = aktørId.getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }.aktørId
+                            aktørId = aktørId.getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }.toString()
                         ).mapLeft {
                             log.error("$it")
                         }

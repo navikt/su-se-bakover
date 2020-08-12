@@ -11,14 +11,13 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.person.PdlData
+import no.nav.su.se.bakover.client.person.PdlData.Adresse
+import no.nav.su.se.bakover.client.person.PdlData.Ident
+import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Adresse
-import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
@@ -29,7 +28,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
-    private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val errorMessage = "beklager, det gikk dårlig"
 
     @Test
@@ -83,9 +81,9 @@ internal class PersonRoutesKtTest {
                         "husnummer": "12",
                         "husbokstav": null,
                         "postnummer": "0050",
-                        "poststed": "Oslo",
+                        "poststed": "OSLO",
                         "bruksenhet": "U1H20",
-                        "kommunenavn": "Oslo",
+                        "kommunenavn": "OSLO",
                         "kommunenummer":"0301"
                     },
                     "statsborgerskap": "NOR",
@@ -121,10 +119,9 @@ internal class PersonRoutesKtTest {
 
     private fun personoppslag(statusCode: Int, testIdent: String?) = object :
         PersonOppslag {
-        override fun person(fnr: Fnr): Either<ClientError, Person> = when (testIdent) {
-            fnr.toString() -> Person(
-                fnr = Fnr("12345678910"),
-                aktørId = AktørId("2437280977705"),
+        override fun person(fnr: Fnr): Either<ClientError, PdlData> = when (testIdent) {
+            fnr.toString() -> PdlData(
+                ident = Ident(Fnr("12345678910"), AktørId("2437280977705")),
                 navn = Navn(
                     fornavn = "Tore",
                     mellomnavn = "Johnas",
@@ -136,9 +133,7 @@ internal class PersonRoutesKtTest {
                     husnummer = "12",
                     husbokstav = null,
                     postnummer = "0050",
-                    poststed = "Oslo",
                     bruksenhet = "U1H20",
-                    kommunenavn = "Oslo",
                     kommunenummer = "0301"
                 ),
                 statsborgerskap = "NOR",

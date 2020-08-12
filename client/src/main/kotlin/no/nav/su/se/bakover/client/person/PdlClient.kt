@@ -6,14 +6,15 @@ import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.person.PdlData.Adresse
+import no.nav.su.se.bakover.client.person.PdlData.Ident
+import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
+import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Adresse
-import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Telefonnummer
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -37,7 +38,7 @@ internal class PdlClient(
     val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
-    override fun person(fnr: Fnr): Either<ClientError, Person> {
+    override fun person(fnr: Fnr): Either<ClientError, PdlData> {
         return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
             val hentPerson = response.data.hentPerson
             val navn = hentPerson.navn.sortedBy {
@@ -45,9 +46,8 @@ internal class PdlClient(
             }.first()
             val vegadresser = hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
             // TODO jah: Don't throw exception if we can't find this person
-            Person(
-                fnr = fnr,
-                aktørId = hentIdent(response.data.hentIdenter),
+            PdlData(
+                ident = Ident(hentIdent(response.data.hentIdenter).fnr, hentIdent(response.data.hentIdenter).aktørId),
                 navn = Navn(
                     fornavn = navn.fornavn,
                     mellomnavn = navn.mellomnavn,
@@ -62,10 +62,8 @@ internal class PdlClient(
                         husnummer = adresse.husnummer,
                         husbokstav = adresse.husbokstav,
                         postnummer = adresse.postnummer,
-                        poststed = null, // TODO: Oppslag postnummer -> poststed
                         bruksenhet = adresse.bruksenhetsnummer,
-                        kommunenummer = adresse.kommunenummer,
-                        kommunenavn = null // TODO: Oppslag kommunenummer -> kommunenavn
+                        kommunenummer = adresse.kommunenummer
                     )
                 },
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
@@ -78,12 +76,15 @@ internal class PdlClient(
 
     override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
         return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
-            hentIdent(it.data.hentIdenter)
+            hentIdent(it.data.hentIdenter).aktørId
         }
     }
 
     private fun hentIdent(it: HentIdenter) =
-        it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) } // TODO jah: Don't throw exception if we can't find this person
+        PdlIdent(
+            fnr = it.identer.first { it.gruppe == FOLKEREGISTERIDENT }.ident.let { Fnr(it) },
+            aktørId = it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
+        )
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<ClientError, T> {
         val onBehalfOfToken = oAuth.onBehalfOFToken(MDC.get("Authorization"), azureClientId)
@@ -188,10 +189,10 @@ data class Metadata(
 )
 
 data class HentIdenter(
-    val identer: List<Ident>
+    val identer: List<Id>
 )
 
-data class Ident(
+data class Id(
     val gruppe: String,
     val ident: String
 )

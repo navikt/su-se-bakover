@@ -5,7 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.client.kodeverk.KodeverkClient.CouldNotGetKode
+import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,7 +14,7 @@ import org.slf4j.MDC
 internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/betydninger"
 internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"
 
-class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : KodeverkClient {
+class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : Kodeverk {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun hentPoststed(postnummer: String): Either<CouldNotGetKode, String?> {

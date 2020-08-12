@@ -11,9 +11,6 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Adresse
-import no.nav.su.se.bakover.domain.Person.Navn
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -254,24 +251,21 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
-        client.person(Fnr("07028820547")) shouldBe Person(
-            fnr = Fnr("07028820547"),
-            aktørId = AktørId("2751637578706"),
-            navn = Navn(
+        client.person(Fnr("07028820547")) shouldBe PdlData(
+            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+            navn = PdlData.Navn(
                 fornavn = "NYDELIG",
                 mellomnavn = null,
                 etternavn = "KRONJUVEL"
             ),
             telefonnummer = null,
             kjønn = "MANN",
-            adresse = Adresse(
+            adresse = PdlData.Adresse(
                 adressenavn = "SANDTAKVEIEN",
                 husnummer = "42",
                 husbokstav = null,
                 postnummer = "9190",
-                poststed = null,
                 bruksenhet = null,
-                kommunenavn = null,
                 kommunenummer = "5427"
             ),
             statsborgerskap = "SYR"

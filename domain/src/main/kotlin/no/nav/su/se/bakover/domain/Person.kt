@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 data class Person(
-    val fnr: Fnr,
-    val aktørId: AktørId,
+    val ident: Ident,
     val navn: Navn,
     val telefonnummer: Telefonnummer?,
     val adresse: Adresse?,
@@ -19,10 +18,18 @@ data class Person(
         val adressenavn: String?,
         val husnummer: String?,
         val husbokstav: String?,
-        val postnummer: String?,
-        val poststed: String?,
+        val poststed: Poststed?,
         val bruksenhet: String?,
-        val kommunenavn: String?,
-        val kommunenummer: String?
+        val kommune: Kommune?
+    )
+
+    data class Kommune(
+        val kommunenummer: String,
+        val kommunenavn: String?
+    )
+
+    data class Poststed(
+        val postnummer: String,
+        val poststed: String?
     )
 }

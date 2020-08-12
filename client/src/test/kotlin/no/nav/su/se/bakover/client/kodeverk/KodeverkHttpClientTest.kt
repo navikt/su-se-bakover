@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.kodeverk.KodeverkClient.CouldNotGetKode
+import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
 import org.junit.jupiter.api.Test
 
 internal class KodeverkHttpClientTest : WiremockBase {
