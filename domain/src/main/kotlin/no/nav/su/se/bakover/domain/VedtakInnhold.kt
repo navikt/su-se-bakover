@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class VedtakInnhold(
     val dato: String,
-    val fødselsnummer: String,
+    val fødselsnummer: Fnr,
     val fornavn: String,
     val etternavn: String,
     val adresse: String?,

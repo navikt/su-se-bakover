@@ -22,8 +22,8 @@ internal fun Route.søknadRoutes(
 
         Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
             ifLeft = {
+                call.application.environment.log.info(it.message, it)
                 call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
-                call.application.environment.log.info(it.message, it.stackTrace)
             },
             ifRight = {
                 call.audit("Lagrer søknad for person: $it")

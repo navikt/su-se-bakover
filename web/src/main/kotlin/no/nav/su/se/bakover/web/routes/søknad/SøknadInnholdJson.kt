@@ -55,13 +55,13 @@ data class SøknadInnholdJson(
         val fnr: String
     ) {
         fun toPersonopplysninger() = Personopplysninger(
-            fnr = fnr
+            fnr = Fnr(fnr)
         )
 
         companion object {
             fun Personopplysninger.toPersonopplysningerJson() =
                 PersonopplysningerJson(
-                    fnr = this.fnr
+                    fnr = this.fnr.toString()
                 )
         }
     }

@@ -17,12 +17,16 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.web.*
+import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.lesUUID
+import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.toUUID
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDate.now
@@ -129,7 +133,7 @@ internal fun Route.behandlingRoutes(
                         // TODO CHM: Må flytte dette, f.eks. inn i en brev-komponent
                         val behandlingDto = behandling.toDto()
                         val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-                        val person = personOppslag.forFnr(Fnr(fnr)).getOrElse {
+                        val person = personOppslag.forFnr(fnr).getOrElse {
                             call.application.environment.log.error("Fant ikke person med gitt fødselsnummer")
                             throw RuntimeException("Kunne ikke finne person")
                         }
@@ -143,7 +147,7 @@ internal fun Route.behandlingRoutes(
                                 postnummer = person.adresse?.poststed?.postnummer,
                                 poststed = person.adresse?.poststed?.poststed,
                                 månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
-                                fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")),
+                                fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")), // TODO: Trekk ut datoformatering
                                 tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
                                 // Er det riktig att bruka tom dato her?
                                 nysøkdato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),

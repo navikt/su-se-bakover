@@ -12,7 +12,7 @@ object SøknadInnholdTestdataBuilder {
     fun personopplysninger(
         fnr: String = "12345678910"
     ) = Personopplysninger(
-        fnr
+        Fnr(fnr)
     )
 
     fun build(

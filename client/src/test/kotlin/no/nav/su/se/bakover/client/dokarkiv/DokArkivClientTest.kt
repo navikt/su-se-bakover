@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.Base64
@@ -26,7 +25,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val person: PdlData = PersonOppslagStub.person(Fnr(fnr)).orNull()!!
+    private val person: PdlData = PersonOppslagStub.person(fnr).orNull()!!
 
     private val forventetRequest =
         """

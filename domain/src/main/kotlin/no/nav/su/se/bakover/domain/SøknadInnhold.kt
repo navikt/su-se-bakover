@@ -23,7 +23,7 @@ data class Flyktningsstatus(
 )
 
 data class Personopplysninger(
-    val fnr: String
+    val fnr: Fnr
 )
 
 data class Oppholdstillatelse(
