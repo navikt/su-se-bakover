@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
@@ -8,7 +9,7 @@ import java.util.UUID
 
 class Oppdrag(
     id: UUID = UUID.randomUUID(), // oppdragsid/kankskje avstemmingsnøkkel?
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val sakId: UUID, // fagsystemId,
     private val behandlingId: UUID,
     private val endringskode: Endringskode,

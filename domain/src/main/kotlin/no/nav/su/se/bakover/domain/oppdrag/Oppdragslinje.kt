@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.now
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 data class Oppdragslinje(
-    val id: UUID, // delytelseId,
-    val opprettet: Instant = Instant.now(),
+    val id: UUID = UUID.randomUUID(), // delytelseId,
+    val opprettet: Instant = now(),
     val fom: LocalDate,
     val tom: LocalDate,
     val endringskode: Endringskode

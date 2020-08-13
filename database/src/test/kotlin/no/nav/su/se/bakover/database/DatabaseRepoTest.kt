@@ -4,10 +4,13 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Simulering
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -112,6 +115,34 @@ internal class DatabaseRepoTest {
             firstMonth.beløp shouldNotBe lastMonth.beløp
             lastMonth.tom shouldBe fromRepo.tom
             lastMonth.grunnbeløp shouldBe 96883
+        }
+    }
+
+    @Test
+    fun `opprett og hent oppdrag og oppdragslinjer`() {
+        withMigratedDb {
+            val sak = enSak()
+            val behandling = sak.opprettSøknadsbehandling(sak.toDto().søknader.first().id)
+            sak.fullførBehandling(
+                behandling.toDto().id,
+                object : Sak.OppdragClient {
+                    override fun simuler(oppdrag: Oppdrag): Simulering = Simulering("OK")
+                }
+            ).toDto()
+
+            val fromRepo = repo.hentBehandling(behandling.toDto().id)!!.toDto()
+            val sakDto = sak.toDto()
+            val behandlingDto = behandling.toDto()
+
+            sakDto.oppdrag shouldHaveSize 1
+            behandlingDto.oppdrag shouldHaveSize 1
+            fromRepo.oppdrag shouldHaveSize 1
+
+            val oppdrag = sakDto.oppdrag.first()
+            behandlingDto.oppdrag.first() shouldBe oppdrag
+            fromRepo.oppdrag.first() shouldBe oppdrag
+
+            oppdrag.oppdragslinjer shouldHaveSize 1
         }
     }
 }

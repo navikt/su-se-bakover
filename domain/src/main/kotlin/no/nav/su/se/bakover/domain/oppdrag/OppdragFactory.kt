@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
+import java.time.LocalDate
 
 class OppdragFactory(
     private val behandling: Behandling,
@@ -13,7 +14,13 @@ class OppdragFactory(
             sakId = sak.toDto().id,
             behandlingId = behandling.toDto().id,
             endringskode = Oppdrag.Endringskode.NY,
-            oppdragslinjer = emptyList()
+            oppdragslinjer = listOf(
+                Oppdragslinje(
+                    fom = LocalDate.now(),
+                    tom = LocalDate.now(),
+                    endringskode = Oppdragslinje.Endringskode.NY
+                )
+            )
         )
     }
 }

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OppdragDto
 import no.nav.su.se.bakover.domain.oppdrag.OppdragFactory
 import no.nav.su.se.bakover.domain.oppdrag.Simulering
 import java.time.Instant
@@ -23,7 +24,8 @@ class Sak(
         fnr = fnr,
         søknader = søknader.map { it.toDto() },
         behandlinger = behandlinger.map { it.toDto() },
-        opprettet = opprettet
+        opprettet = opprettet,
+        oppdrag = oppdrag.map { it.toDto() }
     )
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
@@ -60,6 +62,7 @@ class Sak(
         val oppdrag = opprettOppdrag(behandling)
         val simulering = oppdragClient.simuler(oppdrag)
         oppdrag.addSimulering(simulering)
+        this.oppdrag.add(oppdrag)
         behandling.addOppdrag(oppdrag)
         return behandling
     }
@@ -96,5 +99,6 @@ data class SakDto(
     val fnr: Fnr,
     val søknader: List<SøknadDto> = emptyList(),
     val behandlinger: List<BehandlingDto> = emptyList(),
-    val opprettet: Instant
+    val opprettet: Instant,
+    val oppdrag: List<OppdragDto> = emptyList()
 )
