@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -13,8 +14,8 @@ import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
@@ -35,7 +36,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
-    pdf: PdfGenerator
+    pdf: PdfGenerator,
+    personOppslag: PersonFactory
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -128,16 +130,30 @@ internal fun Route.behandlingRoutes(
                 when (val behandling = repo.hentBehandling(id)) {
                     null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
-                        val personalia = behandling.toDto().søknad.søknadInnhold.personopplysninger
+                        // TODO CHM: Må flytte dette, f.eks. inn i en brev-komponent
+                        val behandlingDto = behandling.toDto()
+                        val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
+                        val person = personOppslag.forFnr(fnr).getOrElse {
+                            call.application.environment.log.error("Fant ikke person med gitt fødselsnummer")
+                            throw RuntimeException("Kunne ikke finne person")
+                        }
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
-                                fødselsnummer = personalia.fnr,
-                                fornavn = personalia.fornavn,
-                                etternavn = personalia.etternavn,
-                                adresse = personalia.gateadresse,
-                                postnummer = personalia.postnummer,
-                                poststed = personalia.poststed
+                                fødselsnummer = fnr,
+                                fornavn = person.navn.fornavn,
+                                etternavn = person.navn.etternavn,
+                                adresse = person.adresse?.adressenavn,
+                                postnummer = person.adresse?.poststed?.postnummer,
+                                poststed = person.adresse?.poststed?.poststed,
+                                månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
+                                fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")), // TODO: Trekk ut datoformatering
+                                tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
+                                // Er det riktig att bruka tom dato her?
+                                nysøkdato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
+                                sats = behandlingDto.beregning?.sats,
+                                satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                                status = behandlingDto.status
                             )
                         ).fold(
                             ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },

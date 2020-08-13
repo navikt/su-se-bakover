@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakEventObserver
 import no.nav.su.se.bakover.domain.SøknadInnhold
@@ -23,12 +23,12 @@ internal class SøknadRouteMediator(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak = repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))
-            ?: repo.opprettSak(Fnr(søknadInnhold.personopplysninger.fnr))
+        val sak = repo.hentSak(søknadInnhold.personopplysninger.fnr)
+            ?: repo.opprettSak(søknadInnhold.personopplysninger.fnr)
         sak.addObserver(this)
         sak.nySøknad(søknadInnhold)
 
-        return repo.hentSak(Fnr(søknadInnhold.personopplysninger.fnr))!!
+        return repo.hentSak(søknadInnhold.personopplysninger.fnr)!!
     }
 
     override fun nySøknadEvent(nySøknadEvent: SakEventObserver.NySøknadEvent) {
@@ -37,8 +37,13 @@ internal class SøknadRouteMediator(
                 log.error("$it")
             },
             { pdfByteArray ->
+                val fnr = nySøknadEvent.søknadInnhold.personopplysninger.fnr
                 dokArkiv.opprettJournalpost(
                     søknadInnhold = nySøknadEvent.søknadInnhold,
+                    person = personOppslag.person(fnr).getOrElse {
+                        log.error("Fant ikke person med gitt fødselsnummer")
+                        throw RuntimeException("Kunne ikke finne person")
+                    },
                     pdf = pdfByteArray,
                     sakId = nySøknadEvent.sakId.toString()
                 ).fold(
@@ -46,11 +51,14 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId = personOppslag.aktørId(Fnr(nySøknadEvent.søknadInnhold.personopplysninger.fnr))
+                        val aktørId: AktørId = personOppslag.aktørId(fnr).getOrElse {
+                            log.error("Fant ikke aktør-id med gitt fødselsnummer")
+                            throw RuntimeException("Kunne ikke finne aktørid")
+                        }
                         oppgave.opprettOppgave(
                             journalpostId = journalpostId,
                             sakId = nySøknadEvent.sakId.toString(),
-                            aktørId = aktørId.getOrElse { throw RuntimeException("Kunne ikke finne aktørid") }.toString()
+                            aktørId = aktørId.toString()
                         ).mapLeft {
                             log.error("$it")
                         }
