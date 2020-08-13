@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
@@ -10,7 +11,7 @@ import java.util.UUID
 
 class Beregning(
     id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val fom: LocalDate,
     private val tom: LocalDate,
     private val sats: Sats,

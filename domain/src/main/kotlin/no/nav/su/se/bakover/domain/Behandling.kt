@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
@@ -7,6 +8,7 @@ import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERING
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
+import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
 import no.nav.su.se.bakover.domain.beregning.Fradrag
@@ -20,7 +22,7 @@ import java.util.UUID
 
 class Behandling constructor(
     id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
@@ -38,7 +40,7 @@ class Behandling constructor(
     override fun toDto() = BehandlingDto(
         id = id,
         opprettet = opprettet,
-        vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() },
+        vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = utledStatus(),

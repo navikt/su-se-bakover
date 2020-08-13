@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
@@ -12,7 +13,7 @@ import kotlin.math.max
 
 class Månedsberegning(
     id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val fom: LocalDate,
     private val tom: LocalDate = fom.plusMonths(1).minusDays(1),
     private val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),

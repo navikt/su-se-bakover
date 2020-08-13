@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OppdragDto
@@ -10,7 +11,7 @@ import java.util.UUID
 
 class Sak(
     id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),

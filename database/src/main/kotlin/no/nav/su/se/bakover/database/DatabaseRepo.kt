@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
@@ -155,10 +154,7 @@ internal class DatabaseRepo(
 
     fun hentSøknader(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
         .hentListe(mapOf("sakId" to sakId), session) {
-            Søknad(
-                id = UUID.fromString(it.string("id")),
-                søknadInnhold = objectMapper.readValue(it.string("søknadInnhold"))
-            )
+            it.toSøknad()
         }.toMutableList()
 
     fun hentBehandlinger(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
@@ -206,11 +202,16 @@ internal class DatabaseRepo(
 
     private fun hentSøknad(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
         .hent(mapOf("id" to søknadId), session) {
-            Søknad(
-                id = UUID.fromString(it.string("id")),
-                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
-            )
+            it.toSøknad()
         }
+
+    private fun Row.toSøknad(): Søknad {
+        return Søknad(
+            id = uuid("id"),
+            søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
+            opprettet = instant("opprettet")
+        )
+    }
 
     override fun hentBehandling(behandlingId: UUID): Behandling? =
         using(sessionOf(dataSource)) { hentBehandling(behandlingId, it) }

@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID
 
 class Søknad(
     id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+    opprettet: Instant = now(),
     private val søknadInnhold: SøknadInnhold
 ) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<SøknadDto> {
 
