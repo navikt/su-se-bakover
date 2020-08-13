@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.domain
 
-data class Fnr(
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING
+import com.fasterxml.jackson.annotation.JsonValue
+
+data class Fnr @JsonCreator(mode = DELEGATING) constructor(
+    @JsonValue
     val fnr: String?
 ) {
     private val fnrPattern = Regex("[0-9]{11}")
