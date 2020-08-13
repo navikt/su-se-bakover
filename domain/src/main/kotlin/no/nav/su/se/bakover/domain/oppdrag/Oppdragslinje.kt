@@ -15,4 +15,6 @@ data class Oppdragslinje(
     enum class Endringskode {
         NY, ENDR
     }
+
+    override fun equals(other: Any?) = other is Oppdragslinje && other.fom == fom && other.tom == tom && other.endringskode == endringskode
 }

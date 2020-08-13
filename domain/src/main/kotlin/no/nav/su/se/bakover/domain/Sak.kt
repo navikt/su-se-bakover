@@ -77,11 +77,16 @@ class Sak(
         )
     }
 
-    internal data class Oppdragsinformasjon(
-        val sakId: UUID
+    internal data class SakOppdragsinformasjon(
+        val sakId: UUID,
+        val oppdrag: List<Oppdrag>
+
     )
 
-    internal fun genererOppdragsinformasjon() = Oppdragsinformasjon(sakId = id)
+    internal fun genererOppdragsinformasjon() = SakOppdragsinformasjon(
+        sakId = id,
+        oppdrag = oppdrag
+    )
 }
 
 interface SakObserver

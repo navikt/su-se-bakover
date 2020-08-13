@@ -99,13 +99,13 @@ class Behandling constructor(
         return beregning
     }
 
-    internal data class Oppdragsinformasjon(
+    internal data class BehandlingOppdragsinformasjon(
         val behandlingId: UUID,
         val fom: LocalDate,
         val tom: LocalDate
     )
 
-    internal fun genererOppdragsinformasjon() = Oppdragsinformasjon(
+    internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
         behandlingId = id,
         fom = gjeldendeBeregning().toDto().fom,
         tom = gjeldendeBeregning().toDto().tom
