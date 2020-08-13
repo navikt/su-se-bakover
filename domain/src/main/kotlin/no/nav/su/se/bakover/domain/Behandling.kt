@@ -97,6 +97,18 @@ class Behandling constructor(
         return beregning
     }
 
+    internal data class Oppdragsinformasjon(
+        val behandlingId: UUID,
+        val fom: LocalDate,
+        val tom: LocalDate
+    )
+
+    internal fun genererOppdragsinformasjon() = Oppdragsinformasjon(
+        behandlingId = id,
+        fom = gjeldendeBeregning().toDto().fom,
+        tom = gjeldendeBeregning().toDto().tom
+    )
+
     private fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
         .last()

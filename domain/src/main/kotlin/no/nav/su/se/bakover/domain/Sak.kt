@@ -67,9 +67,20 @@ class Sak(
         return behandling
     }
 
-    fun opprettOppdrag(behandling: Behandling): Oppdrag {
-        return persistenceObserver.opprettOppdrag(OppdragFactory(behandling, this).build())
+    private fun opprettOppdrag(behandling: Behandling): Oppdrag {
+        return persistenceObserver.opprettOppdrag(
+            OppdragFactory(
+                behandling = behandling.genererOppdragsinformasjon(),
+                sak = genererOppdragsinformasjon()
+            ).build()
+        )
     }
+
+    internal data class Oppdragsinformasjon(
+        val sakId: UUID
+    )
+
+    internal fun genererOppdragsinformasjon() = Oppdragsinformasjon(sakId = id)
 }
 
 interface SakObserver

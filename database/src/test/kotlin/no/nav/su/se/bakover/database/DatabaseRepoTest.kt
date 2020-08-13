@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.database
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -123,6 +125,10 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = enSak()
             val behandling = sak.opprettSøknadsbehandling(sak.toDto().søknader.first().id)
+            behandling.opprettBeregning(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020)
+            )
             sak.fullførBehandling(
                 behandling.toDto().id,
                 object : Sak.OppdragClient {
