@@ -9,14 +9,11 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.person.PdlData
-import no.nav.su.se.bakover.client.person.PdlData.Ident
-import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.Base64
@@ -29,15 +26,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val person :PdlData = PdlData(
-        Ident(Fnr(fnr),
-        AktørId("aktør")),
-        Navn("Ola", "Erik", "Nordmann"),
-        null,
-        null,
-        null,
-        null
-    );
+    private val person: PdlData = PersonOppslagStub.person(Fnr(fnr)).orNull()!!
 
     private val forventetRequest =
         """
@@ -51,7 +40,7 @@ internal class DokArkivClientTest : WiremockBase {
           "avsenderMottaker": {
             "id": "$fnr",
             "idType": "FNR",
-            "navn": "Nordmann, Ola Erik"
+            "navn": "Strømøy, Tore Johnas"
           },
           "bruker": {
             "id": "$fnr",

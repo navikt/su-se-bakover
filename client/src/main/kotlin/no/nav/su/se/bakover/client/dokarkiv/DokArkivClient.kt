@@ -100,6 +100,6 @@ internal class DokArkivClient(
         )
     }
 
-    private fun søkersNavn(person :PdlData): String =
+    private fun søkersNavn(person: PdlData): String =
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 }

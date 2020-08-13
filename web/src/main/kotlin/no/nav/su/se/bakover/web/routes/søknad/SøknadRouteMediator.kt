@@ -48,7 +48,7 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId :AktørId = personOppslag.aktørId(fnr).getOrElse {
+                        val aktørId: AktørId = personOppslag.aktørId(fnr).getOrElse {
                             log.error("Fant ikke aktør-id med gitt fødselsnummer")
                             throw RuntimeException("Kunne ikke finne aktørid")
                         }
