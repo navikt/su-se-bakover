@@ -1,11 +1,15 @@
 package no.nav.su.se.bakover.common
 
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldHaveLength
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.DateTimeException
+import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
+import java.time.temporal.ChronoUnit
 
 internal class UtilsKtTest {
     @Test
@@ -32,5 +36,16 @@ internal class UtilsKtTest {
         assertThrows<DateTimeException> {
             51.juni(2020)
         }
+    }
+
+    @Test
+    fun `truncate instant to same format as repo, precision in millis`() {
+        val instant = Instant.now()
+        val truncated = instant.truncatedTo(ChronoUnit.MILLIS)
+        instant.toEpochMilli() - truncated.toEpochMilli() shouldBe 0
+        instant.nano - truncated.nano shouldBeGreaterThan 0
+
+        Instant.now().toString() shouldHaveLength 27
+        now().toString() shouldHaveLength 24
     }
 }

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.common
 
+import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
+import java.time.temporal.ChronoUnit
 
 // NAIS_CLUSTER_NAME blir satt av Nais.
 fun Map<String, String>.isLocalOrRunningTests(): Boolean = this["NAIS_CLUSTER_NAME"] == null
@@ -19,3 +21,6 @@ fun Int.oktober(year: Int) = LocalDate.of(year, Month.OCTOBER, this)
 fun Int.november(year: Int) = LocalDate.of(year, Month.NOVEMBER, this)
 fun Int.desember(year: Int) = LocalDate.of(year, Month.DECEMBER, this)
 fun idag() = LocalDate.now()
+
+// TODO brukbart? - truncate for samme format som databasen har?
+fun now(): Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
