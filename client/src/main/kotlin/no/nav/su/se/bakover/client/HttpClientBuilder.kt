@@ -115,7 +115,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun oppgave(
-        baseUrl: String = env.getOrDefault("OPPGAVE_URL", "http://oppgave.default.svc.nais.local"),
+        baseUrl: String = env.getOrDefault("OPPGAVE_URL", "http://oppgave.q2.svc.nais.local"),
         tokenOppslag: TokenOppslag
     ): Oppgave = when (env.isLocalOrRunningTests()) {
         true -> OppgaveStub.also { logger.warn("********** Using stub for ${Oppgave::class.java} **********") }
