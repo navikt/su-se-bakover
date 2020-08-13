@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
+import no.nav.su.se.bakover.web.services.brev.BrevService
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
@@ -164,7 +165,7 @@ internal fun Application.susebakover(
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(databaseRepo, httpClients.pdfGenerator, PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
+            behandlingRoutes(databaseRepo, BrevService(httpClients.pdfGenerator, PersonFactory(httpClients.personOppslag, httpClients.kodeverk)))
             vilkårsvurderingRoutes(databaseRepo)
         }
     }
