@@ -64,4 +64,8 @@ data class BeregningDto(
     val sats: Sats,
     val månedsberegninger: List<MånedsberegningDto>,
     val fradrag: List<FradragDto>
-)
+) {
+    fun getMånedsbeløp() = månedsberegninger.firstOrNull()?.beløp
+
+    fun getSatsbeløp() = månedsberegninger.firstOrNull()?.let { it.beløp + it.fradrag }
+}

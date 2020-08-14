@@ -23,17 +23,7 @@ data class Flyktningsstatus(
 )
 
 data class Personopplysninger(
-    val fnr: String,
-    val fornavn: String,
-    val mellomnavn: String? = null,
-    val etternavn: String,
-    val telefonnummer: String,
-    val gateadresse: String,
-    val postnummer: String,
-    val poststed: String,
-    val bruksenhet: String? = null,
-    val bokommune: String,
-    val statsborgerskap: String
+    val fnr: Fnr
 )
 
 data class Oppholdstillatelse(

@@ -134,6 +134,6 @@ data class BehandlingDto(
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
-    val status: BehandlingsStatus?,
+    val status: BehandlingsStatus,
     val oppdrag: List<OppdragDto> = emptyList()
 )

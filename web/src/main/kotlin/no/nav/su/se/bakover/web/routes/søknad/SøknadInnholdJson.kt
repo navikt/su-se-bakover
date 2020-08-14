@@ -52,46 +52,16 @@ data class SøknadInnholdJson(
     }
 
     data class PersonopplysningerJson(
-        val fnr: String,
-        val fornavn: String,
-        val mellomnavn: String? = null,
-        val etternavn: String,
-        val telefonnummer: String,
-        val gateadresse: String,
-        val postnummer: String,
-        val poststed: String,
-        val bruksenhet: String? = null,
-        val bokommune: String,
-        val statsborgerskap: String
+        val fnr: String
     ) {
         fun toPersonopplysninger() = Personopplysninger(
-            fnr = fnr,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            telefonnummer = telefonnummer,
-            gateadresse = gateadresse,
-            postnummer = postnummer,
-            poststed = poststed,
-            bruksenhet = bruksenhet,
-            bokommune = bokommune,
-            statsborgerskap = statsborgerskap
+            fnr = Fnr(fnr)
         )
 
         companion object {
             fun Personopplysninger.toPersonopplysningerJson() =
                 PersonopplysningerJson(
-                    fnr = this.fnr,
-                    fornavn = this.fornavn,
-                    mellomnavn = this.mellomnavn,
-                    etternavn = this.etternavn,
-                    telefonnummer = this.telefonnummer,
-                    gateadresse = this.gateadresse,
-                    postnummer = this.postnummer,
-                    poststed = this.poststed,
-                    bruksenhet = this.bruksenhet,
-                    bokommune = this.bokommune,
-                    statsborgerskap = this.statsborgerskap
+                    fnr = this.fnr.toString()
                 )
         }
     }

@@ -26,17 +26,7 @@ internal class SøknadJsonTest {
                 "harUførevedtak":true
             },
             "personopplysninger":{
-                "fnr":"12345678910",
-                "fornavn":"Ola",
-                "mellomnavn":"Erik",
-                "etternavn":"Nordmann",
-                "telefonnummer":"12345678",
-                "gateadresse":"Oslogata 12",
-                "postnummer":"0050",
-                "poststed":"OSLO",
-                "bruksenhet":"U1H20",
-                "bokommune":"OSLO",
-                "statsborgerskap":"NOR"
+                "fnr":"12345678910"
             },
             "flyktningsstatus":{
                 "registrertFlyktning":false
