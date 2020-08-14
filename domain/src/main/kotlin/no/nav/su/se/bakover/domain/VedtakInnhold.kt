@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.beregning.FradragDto
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class VedtakInnhold(
@@ -16,5 +17,7 @@ data class VedtakInnhold(
     val nysøkdato: String?,
     val sats: Sats?,
     val satsbeløp: Int?,
+    val fradrag: List<FradragDto>,
+    val fradragSum: Int,
     val status: Behandling.BehandlingsStatus
 )
