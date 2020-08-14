@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -10,25 +9,42 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class OppdragFactoryTest {
+    val sakId = UUID.randomUUID()
+    val behandlingId = UUID.randomUUID()
+
     @Test
     fun `no existing oppdrag`() {
-        val oppdragDto = OppdragFactory(
+
+        val actual = OppdragFactory(
             behandling = BehandlingOppdragsinformasjon(
-                behandlingId = UUID.randomUUID(),
+                behandlingId = behandlingId,
                 fom = 1.januar(2020),
                 tom = 31.desember(2020)
             ),
             sak = SakOppdragsinformasjon(
-                sakId = UUID.randomUUID(),
+                sakId = sakId,
                 sisteOppdrag = null
             )
-        ).build().toDto()
+        ).build()
 
-        oppdragDto.endringskode shouldBe Oppdrag.Endringskode.NY
-        oppdragDto.oppdragslinjer shouldHaveSize 1
-        oppdragDto.oppdragslinjer.first().endringskode shouldBe Oppdragslinje.Endringskode.NY
-        oppdragDto.oppdragslinjer.first().fom shouldBe 1.januar(2020)
-        oppdragDto.oppdragslinjer.first().tom shouldBe 31.desember(2020)
+        actual shouldBe Oppdrag(
+            id = actual.id,
+            opprettet = actual.opprettet,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            endringskode = Oppdrag.Endringskode.NY,
+            simulering = null,
+            oppdragslinjer = listOf(
+                Oppdragslinje(
+                    id = actual.sisteOppdragslinje().id,
+                    opprettet = actual.sisteOppdragslinje().opprettet,
+                    fom = 1.januar(2020),
+                    tom = 31.desember(2020),
+                    endringskode = Oppdragslinje.Endringskode.NY,
+                    refOppdragslinjeId = null
+                )
+            )
+        )
     }
 
     /**
@@ -37,9 +53,7 @@ internal class OppdragFactoryTest {
      */
     @Test
     fun `skal referere til forrige oppdragslinje`() {
-        val sakId = UUID.randomUUID()
         val tidligereBehandlingId = UUID.randomUUID()
-        val behandlingId = UUID.randomUUID()
         val behandlingsInfo = BehandlingOppdragsinformasjon(
             behandlingId = behandlingId,
             fom = 1.januar(2021),
@@ -54,7 +68,7 @@ internal class OppdragFactoryTest {
             refOppdragslinjeId = null
         )
 
-        val oppdrag = OppdragFactory(
+        val actual = OppdragFactory(
             behandling = behandlingsInfo,
             sak = SakOppdragsinformasjon(
                 sakId = sakId,
@@ -66,14 +80,31 @@ internal class OppdragFactoryTest {
             )
         ).build()
 
-        val dto = oppdrag.toDto()
-        dto.sakId shouldBe sakId
-        dto.endringskode shouldBe Oppdrag.Endringskode.ENDR
-        dto.oppdragslinjer.first().endringskode shouldBe Oppdragslinje.Endringskode.NY
-        dto.oppdragslinjer.first().refOppdragslinjeId shouldBe eksisterendeOppdragslinje.id
+        actual shouldBe Oppdrag(
+            id = actual.id,
+            opprettet = actual.opprettet,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            endringskode = Oppdrag.Endringskode.ENDR,
+            simulering = null,
+            oppdragslinjer = listOf(
+                Oppdragslinje(
+                    id = actual.sisteOppdragslinje().id,
+                    opprettet = actual.sisteOppdragslinje().opprettet,
+                    fom = 1.januar(2021),
+                    tom = 31.desember(2021),
+                    endringskode = Oppdragslinje.Endringskode.NY,
+                    refOppdragslinjeId = eksisterendeOppdragslinje.id
+                )
+            )
+        )
     }
 
-    private fun nyttOppdrag(sakId: UUID = UUID.randomUUID(), behandlingId: UUID = UUID.randomUUID(), vararg oppdragslinje: Oppdragslinje): Oppdrag {
+    private fun nyttOppdrag(
+        sakId: UUID = UUID.randomUUID(),
+        behandlingId: UUID = UUID.randomUUID(),
+        vararg oppdragslinje: Oppdragslinje
+    ): Oppdrag {
         return Oppdrag(
             sakId = sakId,
             behandlingId = behandlingId,
