@@ -63,7 +63,6 @@ fun main(args: Array<String>) {
         ignoreIfMissing = true
         systemProperties = true
     }
-
     io.ktor.server.netty.EngineMain.main(args)
 }
 
