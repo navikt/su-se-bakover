@@ -101,7 +101,6 @@ object HttpClientBuilder : HttpClientsBuilder {
         baseUrl: String = env.getProperty("PDFGEN_URL") ?: "http://su-pdfgen.default.svc.nais.local"
     ): PdfGenerator = when (env.isLocalOrRunningTests()) {
         true -> {
-            println("ENV $env")
             if (env.getOrDefault("PDFGEN_LOCAL", "false") == "true") {
                 PdfClient("http://localhost:8081")
             } else {
