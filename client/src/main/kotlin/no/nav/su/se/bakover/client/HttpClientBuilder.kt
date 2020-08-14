@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+
 import no.nav.su.se.bakover.common.isLocalOrRunningTests
 import org.slf4j.LoggerFactory
 
@@ -55,10 +56,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     internal fun azure(
         clientId: String = getAzureClientId(),
         clientSecret: String = env.getOrDefault("AZURE_CLIENT_SECRET", "secret"),
-        wellknownUrl: String = env.getOrDefault(
-            "AZURE_WELLKNOWN_URL",
-            "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
-        )
+        wellknownUrl: String = env.getOrDefault("AZURE_WELLKNOWN_URL", "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration")
     ): OAuth {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
@@ -102,7 +100,13 @@ object HttpClientBuilder : HttpClientsBuilder {
     internal fun pdf(
         baseUrl: String = env.getOrDefault("PDFGEN_URL", "http://su-pdfgen.default.svc.nais.local")
     ): PdfGenerator = when (env.isLocalOrRunningTests()) {
-        true -> PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
+        true -> {
+            if (env["PDFGEN_LOCAL"] == "true") {
+                PdfClient("http://localhost:8081")
+            } else {
+                PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
+            }
+        }
         else -> PdfClient(baseUrl)
     }
 

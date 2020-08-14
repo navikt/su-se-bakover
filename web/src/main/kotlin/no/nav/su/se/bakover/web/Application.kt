@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -57,7 +58,14 @@ import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>) {
+    dotenv {
+        ignoreIfMissing = true
+        systemProperties = true
+    }
+
+    io.ktor.server.netty.EngineMain.main(args)
+}
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
@@ -73,7 +81,6 @@ internal fun Application.susebakover(
         }
     }
 ) {
-
     val søknadRoutesMediator = SøknadRouteMediator(
         repo = databaseRepo,
         pdfGenerator = httpClients.pdfGenerator,
