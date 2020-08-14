@@ -9,14 +9,14 @@ import no.nav.su.se.bakover.domain.oppdrag.Simulering
 import java.time.Instant
 import java.util.UUID
 
-class Sak(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Sak(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     private val oppdrag: MutableList<Oppdrag> = mutableListOf()
-) : PersistentDomainObject<SakPersistenceObserver>(id, opprettet), DtoConvertable<SakDto> {
+) : PersistentDomainObject<SakPersistenceObserver>(), DtoConvertable<SakDto> {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 

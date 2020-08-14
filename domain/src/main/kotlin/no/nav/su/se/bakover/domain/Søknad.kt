@@ -5,11 +5,11 @@ import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID
 
-class Søknad(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Søknad(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val søknadInnhold: SøknadInnhold
-) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<SøknadDto> {
+) : PersistentDomainObject<VoidObserver>(), DtoConvertable<SøknadDto> {
 
     override fun toDto() = SøknadDto(
         id = id,

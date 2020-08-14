@@ -9,15 +9,15 @@ import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
 
-class Beregning(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Beregning(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val fom: LocalDate,
     private val tom: LocalDate,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val månedsberegninger: MutableList<Månedsberegning> = mutableListOf()
-) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<BeregningDto> {
+) : PersistentDomainObject<VoidObserver>(), DtoConvertable<BeregningDto> {
     private val antallMnd = Period.between(fom, tom.plusDays(1)).toTotalMonths()
 
     init {

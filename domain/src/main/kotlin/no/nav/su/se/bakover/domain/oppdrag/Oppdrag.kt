@@ -7,15 +7,15 @@ import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID
 
-class Oppdrag(
-    id: UUID = UUID.randomUUID(), // oppdragsid/kankskje avstemmingsnøkkel?
-    opprettet: Instant = now(),
+data class Oppdrag(
+    override val id: UUID = UUID.randomUUID(), // oppdragsid/kankskje avstemmingsnøkkel?
+    override val opprettet: Instant = now(),
     private val sakId: UUID, // fagsystemId,
     private val behandlingId: UUID,
     private val endringskode: Endringskode,
     private var simulering: Simulering? = null,
     private val oppdragslinjer: List<Oppdragslinje>
-) : PersistentDomainObject<OppdragPersistenceObserver>(id, opprettet), DtoConvertable<OppdragDto> {
+) : PersistentDomainObject<OppdragPersistenceObserver>(), DtoConvertable<OppdragDto> {
     enum class Endringskode {
         NY, ENDR
     }

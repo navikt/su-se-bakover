@@ -5,13 +5,13 @@ import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID
 
-class Vilkårsvurdering(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Vilkårsvurdering(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val vilkår: Vilkår,
     private var begrunnelse: String = "",
     private var status: Status = Status.IKKE_VURDERT
-) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(id, opprettet), DtoConvertable<VilkårsvurderingDto> {
+) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(), DtoConvertable<VilkårsvurderingDto> {
 
     override fun toDto() = VilkårsvurderingDto(
         id = id,

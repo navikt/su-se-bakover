@@ -20,14 +20,14 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-class Behandling constructor(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Behandling constructor(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
     private val oppdrag: MutableList<Oppdrag> = mutableListOf()
-) : PersistentDomainObject<BehandlingPersistenceObserver>(id, opprettet), DtoConvertable<BehandlingDto> {
+) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
 
     enum class BehandlingsStatus {
         VILKÅRSVURDERING,

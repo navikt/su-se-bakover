@@ -9,18 +9,17 @@ import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.math.max
 
-class Månedsberegning(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = now(),
+data class Månedsberegning(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val fom: LocalDate,
     private val tom: LocalDate = fom.plusMonths(1).minusDays(1),
     private val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),
     private val sats: Sats,
     private val fradrag: Int,
     private val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
-) : PersistentDomainObject<VoidObserver>(id, opprettet) {
+) : PersistentDomainObject<VoidObserver>() {
     init {
         require(fom.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fom" }
         require(tom.dayOfMonth == fom.lengthOfMonth()) { "Månedsberegninger avsluttes den siste i måneded. Dato var=$tom" }
