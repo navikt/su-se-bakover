@@ -11,7 +11,15 @@ create table if not exists oppdrag
     endringskode text
         not null,
     simulering jsonb
-        null
+        null,
+    fagområde text
+        not null,
+    utbetalingsfrekvens text
+        not null,
+    fagsystem text
+        not null,
+    oppdragGjelder text
+        not null
 );
 
 create table if not exists oppdragslinje
@@ -27,7 +35,25 @@ create table if not exists oppdragslinje
     endringskode text
         not null,
     oppdragId uuid
-        not null references oppdrag(id)
+        not null references oppdrag(id),
+    refOppdragslinjeId uuid
+        null references oppdragslinje(id),
+    refSakid uuid
+        not null,
+    endringskode text
+        not null,
+    sats int
+        not null,
+    klassekode text
+        not null,
+    status text
+        null,
+    beregningsfrekvens text
+        not null,
+    saksbehandler text
+        not null,
+    attestant text
+        null
 );
 
 
