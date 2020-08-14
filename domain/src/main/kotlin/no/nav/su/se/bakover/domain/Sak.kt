@@ -79,13 +79,16 @@ class Sak(
 
     internal data class SakOppdragsinformasjon(
         val sakId: UUID,
-        val oppdrag: List<Oppdrag>
+        val sisteOppdrag: Oppdrag?
+    ) {
+        fun hasOppdrag() = sisteOppdrag != null
+    }
 
-    )
+    fun sisteOppdrag() = oppdrag.lastOrNull()
 
     internal fun genererOppdragsinformasjon() = SakOppdragsinformasjon(
         sakId = id,
-        oppdrag = oppdrag
+        sisteOppdrag = sisteOppdrag()
     )
 }
 

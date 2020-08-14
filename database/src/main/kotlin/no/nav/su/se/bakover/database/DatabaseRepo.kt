@@ -148,7 +148,8 @@ internal class DatabaseRepo(
             fom = localDate("fom"),
             tom = localDate("tom"),
             opprettet = instant("opprettet"),
-            endringskode = Oppdragslinje.Endringskode.valueOf(string("endringskode"))
+            endringskode = Oppdragslinje.Endringskode.valueOf(string("endringskode")),
+            refOppdragslinjeId = null // TODO fix this
         )
     }
 

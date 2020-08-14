@@ -20,7 +20,7 @@ internal class OppdragFactoryTest {
             ),
             sak = SakOppdragsinformasjon(
                 sakId = UUID.randomUUID(),
-                oppdrag = emptyList()
+                sisteOppdrag = null
             )
         ).build().toDto()
 
@@ -36,7 +36,7 @@ internal class OppdragFactoryTest {
      * L2       |-----|
      */
     @Test
-    fun `no overlap in oppdragslinjer`() {
+    fun `skal referere til forrige oppdragslinje`() {
         val sakId = UUID.randomUUID()
         val tidligereBehandlingId = UUID.randomUUID()
         val behandlingId = UUID.randomUUID()
@@ -46,36 +46,31 @@ internal class OppdragFactoryTest {
             tom = 31.desember(2021)
 
         )
+        val eksisterendeOppdragslinje = Oppdragslinje(
+            id = UUID.randomUUID(),
+            fom = 1.januar(2020),
+            tom = 31.desember(2020),
+            endringskode = Oppdragslinje.Endringskode.NY,
+            refOppdragslinjeId = null
+        )
+
         val oppdrag = OppdragFactory(
             behandling = behandlingsInfo,
             sak = SakOppdragsinformasjon(
                 sakId = sakId,
-                oppdrag = listOf(
-                    nyttOppdrag(
-                        sakId,
-                        tidligereBehandlingId,
-                        Oppdragslinje(
-                            fom = 1.januar(2020),
-                            tom = 31.desember(2020),
-                            endringskode = Oppdragslinje.Endringskode.NY
-                        )
-                    )
+                sisteOppdrag = nyttOppdrag(
+                    sakId,
+                    tidligereBehandlingId,
+                    eksisterendeOppdragslinje
                 )
             )
         ).build()
 
-        oppdrag shouldBe Oppdrag(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            oppdragslinjer = listOf(
-                Oppdragslinje(
-                    fom = behandlingsInfo.fom,
-                    tom = behandlingsInfo.tom,
-                    endringskode = Oppdragslinje.Endringskode.NY
-                )
-            ),
-            endringskode = Oppdrag.Endringskode.ENDR
-        )
+        val dto = oppdrag.toDto()
+        dto.sakId shouldBe sakId
+        dto.endringskode shouldBe Oppdrag.Endringskode.ENDR
+        dto.oppdragslinjer.first().endringskode shouldBe Oppdragslinje.Endringskode.NY
+        dto.oppdragslinjer.first().refOppdragslinjeId shouldBe eksisterendeOppdragslinje.id
     }
 
     private fun nyttOppdrag(sakId: UUID = UUID.randomUUID(), behandlingId: UUID = UUID.randomUUID(), vararg oppdragslinje: Oppdragslinje): Oppdrag {
@@ -85,13 +80,5 @@ internal class OppdragFactoryTest {
             endringskode = Oppdrag.Endringskode.NY,
             oppdragslinjer = oppdragslinje.toList()
         )
-    }
-
-    /**
-     * L1 |-----|
-     * L2    |-----|
-     */
-    @Test
-    fun `overlap in oppdragslinjer`() {
     }
 }

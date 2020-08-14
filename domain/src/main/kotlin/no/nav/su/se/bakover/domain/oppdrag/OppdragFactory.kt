@@ -10,41 +10,19 @@ internal class OppdragFactory(
     fun build(): Oppdrag {
         // TODO LOGIKK EN MASSS FOR Å FINNE RIKTIG OPPDRAG + LINJE
 
-        if (sak.oppdrag.isEmpty()) {
-            return Oppdrag(
-                sakId = sak.sakId,
-                behandlingId = behandling.behandlingId,
-                endringskode = Oppdrag.Endringskode.NY,
-                oppdragslinjer = listOf(
-                    // TODO: Skal vi støtte fler beløp?
-                    Oppdragslinje(
-                        fom = behandling.fom,
-                        tom = behandling.tom,
-                        endringskode = Oppdragslinje.Endringskode.NY
-                    )
+        return Oppdrag(
+            sakId = sak.sakId,
+            behandlingId = behandling.behandlingId,
+            endringskode = if (sak.hasOppdrag()) Oppdrag.Endringskode.ENDR else Oppdrag.Endringskode.NY,
+            oppdragslinjer = listOf(
+                // TODO: Skal vi støtte fler beløp?
+                Oppdragslinje(
+                    fom = behandling.fom,
+                    tom = behandling.tom,
+                    endringskode = Oppdragslinje.Endringskode.NY,
+                    refOppdragslinjeId = if (sak.hasOppdrag()) sak.sisteOppdrag!!.sisteOppdragslinje().id else null
                 )
             )
-        }
-        if (!harOverlapp()) {
-            return Oppdrag(
-                sakId = sak.sakId,
-                behandlingId = behandling.behandlingId,
-                endringskode = Oppdrag.Endringskode.ENDR,
-                oppdragslinjer = listOf(
-                    // TODO: Skal vi støtte fler beløp?
-                    Oppdragslinje(
-                        fom = behandling.fom,
-                        tom = behandling.tom,
-                        endringskode = Oppdragslinje.Endringskode.NY
-                    )
-                )
-            )
-        }
-        throw NotImplementedError("TODO kod mer")
+        )
     }
-
-    fun harOverlapp() =
-        sak.oppdrag.none {
-            !it.overlapper(behandling.fom, behandling.tom)
-        }
 }
