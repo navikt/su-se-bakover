@@ -10,15 +10,15 @@ import java.util.UUID
 data class Oppdrag(
     override val id: UUID = UUID.randomUUID(), // oppdragsid/kankskje avstemmingsnøkkel?
     override val opprettet: Instant = now(),
-    private val sakId: UUID, // fagsystemId,
-    private val behandlingId: UUID,
-    private val endringskode: Endringskode,
+    val sakId: UUID, // fagsystemId,
+    val behandlingId: UUID,
+    val endringskode: Endringskode,
     private var simulering: Simulering? = null,
     private val fagområde: Fagområde = Fagområde.FAGOMR,
     private val utbetalingsfrekvens: Utbetalingsfrekvens = Utbetalingsfrekvens.MND,
     private val fagsystem: Fagsystem = Fagsystem.FAGSYSTEM,
     private val oppdragGjelder: String,
-    private val oppdragslinjer: List<Oppdragslinje>
+    val oppdragslinjer: List<Oppdragslinje>
 
 ) : PersistentDomainObject<OppdragPersistenceObserver>(), DtoConvertable<OppdragDto> {
 

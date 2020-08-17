@@ -175,11 +175,13 @@ internal class BeregningTest {
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
             fradrag = emptyList()
         )
-        b.hentPerioder() shouldBe listOf(BeregningsPeriode(
-         fom = 1.januar(2020),
-            tom = 31.desember(2020),
-            beløp = 20637
-        ))
+        b.hentPerioder() shouldBe listOf(
+            BeregningsPeriode(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                beløp = 20637
+            )
+        )
     }
 
     @Test
@@ -191,15 +193,17 @@ internal class BeregningTest {
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
             fradrag = emptyList()
         )
-        b.hentPerioder() shouldBe listOf(BeregningsPeriode(
-            fom = 1.januar(2019),
-            tom = 30.april(2019),
-            beløp = 20022
-        ),
+        b.hentPerioder() shouldBe listOf(
+            BeregningsPeriode(
+                fom = 1.januar(2019),
+                tom = 30.april(2019),
+                beløp = 20022
+            ),
             BeregningsPeriode(
                 fom = 1.mai(2019),
                 tom = 31.desember(2019),
                 beløp = 20637
-            ))
+            )
+        )
     }
 }

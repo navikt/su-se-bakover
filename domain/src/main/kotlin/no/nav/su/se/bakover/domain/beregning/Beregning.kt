@@ -12,9 +12,9 @@ import java.util.UUID
 data class Beregning(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Instant = now(),
-    private val fom: LocalDate,
-    private val tom: LocalDate,
-    private val sats: Sats,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val månedsberegninger: MutableList<Månedsberegning> = mutableListOf()
 ) : PersistentDomainObject<VoidObserver>(), DtoConvertable<BeregningDto> {
@@ -40,12 +40,12 @@ data class Beregning(
 
     fun hentPerioder() =
         månedsberegninger.groupBy { it.beløp }.map {
-            BeregningsPeriode(fom = it.value.minBy { it.fom }!!.fom,
+            BeregningsPeriode(
+                fom = it.value.minBy { it.fom }!!.fom,
                 tom = it.value.maxBy { it.tom }!!.tom,
                 beløp = it.key
             )
         }
-
 
     // TODO må fikses for å støtte flere perioder med ulikt beløp
     fun månedsbeløp() = månedsberegninger.first().beløp

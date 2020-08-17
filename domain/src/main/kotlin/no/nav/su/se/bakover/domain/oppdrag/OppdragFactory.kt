@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 
 internal class OppdragFactory(
+
     private val behandling: Behandling.BehandlingOppdragsinformasjon,
     private val sak: Sak.SakOppdragsinformasjon
 ) {
@@ -24,7 +25,9 @@ internal class OppdragFactory(
                     beløp = it.beløp,
                     saksbehandler = "saksbehandler"
                 )
-            }.also{it.zipWithNext{a,b -> b.link(a)}}
+            }.also {
+                it.zipWithNext { a, b -> b.link(a) }
+            }
         )
     }
 }

@@ -15,9 +15,9 @@ data class Månedsberegning(
     override val opprettet: Instant = now(),
     val fom: LocalDate,
     val tom: LocalDate = fom.plusMonths(1).minusDays(1),
-    private val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),
+    val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),
     val sats: Sats,
-    private val fradrag: Int,
+    val fradrag: Int,
     val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
 ) : PersistentDomainObject<VoidObserver>() {
     init {
