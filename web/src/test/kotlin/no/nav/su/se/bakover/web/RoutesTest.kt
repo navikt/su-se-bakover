@@ -32,7 +32,6 @@ class RoutesTest {
     @Test
     fun `should add provided X-Correlation-ID header to response`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, secureEndpoint)
@@ -45,7 +44,6 @@ class RoutesTest {
     @Test
     fun `should generate X-Correlation-ID header if not present`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
@@ -64,7 +62,6 @@ class RoutesTest {
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         lateinit var applog: Logger
         withTestApplication({
-            testEnv()
             testSusebakover()
             applog = environment.log as Logger
         }) {
@@ -84,7 +81,6 @@ class RoutesTest {
     @Test
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
-            testEnv()
             testSusebakover(
                 httpClients = buildHttpClients(
                     personOppslag = object :
@@ -105,7 +101,6 @@ class RoutesTest {
     @Test
     fun `should use content-type application-json by default`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, "$personPath/${FnrGenerator.random()}")

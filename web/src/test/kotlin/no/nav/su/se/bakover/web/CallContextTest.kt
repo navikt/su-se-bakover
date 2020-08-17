@@ -41,7 +41,6 @@ internal class CallContextTest {
         val downstreamCorrelationIds: MutableList<String> = synchronizedList(mutableListOf<String>())
 
         withTestApplication({
-            testEnv()
             testSusebakover(
                 httpClients = buildHttpClients(
                     personOppslag = object :

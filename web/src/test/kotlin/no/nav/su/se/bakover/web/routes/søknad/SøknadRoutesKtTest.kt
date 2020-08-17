@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
-import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -47,7 +46,6 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lagrer og henter søknad`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val createResponse = defaultRequest(
@@ -72,7 +70,6 @@ internal class SøknadRoutesKtTest {
     fun `knytter søknad til sak ved innsending`() {
         var sakNr: String
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Post, søknadPath) {

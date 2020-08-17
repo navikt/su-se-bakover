@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
-import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -27,7 +26,6 @@ internal class VilkårsvurderingRoutesKtTest {
     @Test
     fun `oppdater vilkårsvurdering for behandling`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val behandling = setupForBehandling().toDto()

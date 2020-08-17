@@ -5,9 +5,6 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.ChronoUnit
 
-// NAIS_CLUSTER_NAME blir satt av Nais.
-fun isLocalOrRunningTests(): Boolean = System.getenv()["NAIS_CLUSTER_NAME"] == null
-
 fun Int.januar(year: Int) = LocalDate.of(year, Month.JANUARY, this)
 fun Int.februar(year: Int) = LocalDate.of(year, Month.FEBRUARY, this)
 fun Int.mars(year: Int) = LocalDate.of(year, Month.MARCH, this)

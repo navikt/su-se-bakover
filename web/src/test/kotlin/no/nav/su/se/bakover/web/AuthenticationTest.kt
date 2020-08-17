@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.Config
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,7 +29,6 @@ internal class AuthenticationTest {
     @Test
     fun `secure endpoint krever autentisering`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint)
@@ -40,7 +40,6 @@ internal class AuthenticationTest {
     @Test
     fun `secure endpoint ok med gyldig token`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, secureEndpoint)
@@ -52,7 +51,6 @@ internal class AuthenticationTest {
     @Test
     fun `forespørsel uten påkrevet audience skal svare med 403`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
@@ -66,7 +64,6 @@ internal class AuthenticationTest {
     @Test
     fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 403`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
@@ -80,7 +77,6 @@ internal class AuthenticationTest {
     @Test
     fun `forespørsel med utgått token skal svare med 401`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
@@ -96,7 +92,6 @@ internal class AuthenticationTest {
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         lateinit var applog: Logger
         withTestApplication({
-            testEnv()
             testSusebakover()
             applog = environment.log as Logger
         }) {
@@ -109,14 +104,13 @@ internal class AuthenticationTest {
                 it.message shouldNotContain "callback"
             }
             response.status() shouldBe Found
-            response.headers["Location"] shouldBe "auth/complete#access#refresh"
+            response.headers["Location"] shouldBe "${Config.suSeFramoverRedirectUrl}#access#refresh"
         }
     }
 
     @Test
     fun `kan refreshe tokens`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, "auth/refresh") {

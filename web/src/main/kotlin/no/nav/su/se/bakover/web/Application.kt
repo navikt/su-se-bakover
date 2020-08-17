@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import io.github.cdimascio.dotenv.dotenv
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.SOAPClientBuilder
 import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.client.person.PersonFactory
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -59,10 +59,7 @@ import org.slf4j.event.Level
 import java.net.URL
 
 fun main(args: Array<String>) {
-    dotenv {
-        ignoreIfMissing = true
-        systemProperties = true
-    }
+    Config.init()
     io.ktor.server.netty.EngineMain.main(args)
 }
 
@@ -99,7 +96,7 @@ internal fun Application.susebakover(
         exposeHeader(WWWAuthenticate)
         exposeHeader("access_token")
         exposeHeader("refresh_token")
-        host(fromEnvironment("cors.allow.origin"), listOf("http", "https"))
+        host(Config.corsAllowOrigin, listOf("http", "https"))
     }
 
     install(StatusPages) {
@@ -120,11 +117,10 @@ internal fun Application.susebakover(
     setupAuthentication(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
-        config = environment.config,
         httpClient = authenticationHttpClient
     )
     oauthRoutes(
-        frontendRedirectUrl = fromEnvironment("integrations.suSeFramover.redirectUrl"),
+        frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
         oAuth = httpClients.oauth
     )
 
