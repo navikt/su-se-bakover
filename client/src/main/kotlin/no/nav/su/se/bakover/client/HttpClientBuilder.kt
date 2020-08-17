@@ -101,7 +101,7 @@ object HttpClientBuilder : HttpClientsBuilder {
         baseUrl: String = env.getProperty("PDFGEN_URL", "http://su-pdfgen.default.svc.nais.local")
     ): PdfGenerator = when (env.isLocalOrRunningTests()) {
         true -> {
-            if (env.getOrDefault("PDFGEN_LOCAL", "false") == "true") {
+            if (env.getProperty("PDFGEN_LOCAL", "false") == "true") {
                 PdfClient("http://localhost:8081")
             } else {
                 PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
