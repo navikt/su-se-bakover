@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -52,11 +53,18 @@ import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
+import no.nav.su.se.bakover.web.services.brev.BrevService
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>) {
+    dotenv {
+        ignoreIfMissing = true
+        systemProperties = true
+    }
+    io.ktor.server.netty.EngineMain.main(args)
+}
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
@@ -72,7 +80,6 @@ internal fun Application.susebakover(
         }
     }
 ) {
-
     val søknadRoutesMediator = SøknadRouteMediator(
         repo = databaseRepo,
         pdfGenerator = httpClients.pdfGenerator,
@@ -164,7 +171,7 @@ internal fun Application.susebakover(
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(databaseRepo, httpClients.pdfGenerator, PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
+            behandlingRoutes(databaseRepo, BrevService(httpClients.pdfGenerator, PersonFactory(httpClients.personOppslag, httpClients.kodeverk)))
             vilkårsvurderingRoutes(databaseRepo)
         }
     }
