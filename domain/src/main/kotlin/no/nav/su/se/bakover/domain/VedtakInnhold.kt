@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.beregning.FradragDto
-import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class VedtakInnhold(
     val dato: String,
