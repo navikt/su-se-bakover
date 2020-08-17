@@ -55,7 +55,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     private val env = System.getProperties()
     internal fun azure(
         clientId: String = getAzureClientId(),
-        clientSecret: String = env.getProperty("AZURE_WELLKNOWN_URL", "secret"),
+        clientSecret: String = env.getProperty("AZURE_CLIENT_SECRET", "secret"),
         wellknownUrl: String = env.getProperty("AZURE_WELLKNOWN_URL", "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration")
     ): OAuth {
         return AzureClient(clientId, clientSecret, wellknownUrl)
