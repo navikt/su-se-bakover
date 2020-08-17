@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class OppdragFactoryTest {
-    val sakId = UUID.randomUUID()
-    val behandlingId = UUID.randomUUID()
-
+    private val sakId = UUID.randomUUID()
+    private val behandlingId = UUID.randomUUID()
+    private val fnr = "12345678910"
     @Test
     fun `no existing oppdrag`() {
 
@@ -19,11 +19,13 @@ internal class OppdragFactoryTest {
             behandling = BehandlingOppdragsinformasjon(
                 behandlingId = behandlingId,
                 fom = 1.januar(2020),
-                tom = 31.desember(2020)
+                tom = 31.desember(2020),
+                beløp = 5600
             ),
             sak = SakOppdragsinformasjon(
                 sakId = sakId,
-                sisteOppdrag = null
+                sisteOppdrag = null,
+                fnr = fnr
             )
         ).build()
 
@@ -34,6 +36,7 @@ internal class OppdragFactoryTest {
             behandlingId = behandlingId,
             endringskode = Oppdrag.Endringskode.NY,
             simulering = null,
+            oppdragGjelder = fnr,
             oppdragslinjer = listOf(
                 Oppdragslinje(
                     id = actual.sisteOppdragslinje().id,
@@ -41,42 +44,57 @@ internal class OppdragFactoryTest {
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     endringskode = Oppdragslinje.Endringskode.NY,
-                    refOppdragslinjeId = null
+                    refOppdragslinjeId = null,
+                    refSakId = sakId,
+                    beløp = 5600,
+                    klassekode = Oppdragslinje.Klassekode.KLASSE,
+                    status = null,
+                    statusFom = null,
+                    beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.MND,
+                    saksbehandler = "saksbehandler",
+                    attestant = null
                 )
             )
         )
     }
 
-    /**
-     * L1 |-----|
-     * L2       |-----|
-     */
     @Test
     fun `skal referere til forrige oppdragslinje`() {
         val tidligereBehandlingId = UUID.randomUUID()
         val behandlingsInfo = BehandlingOppdragsinformasjon(
             behandlingId = behandlingId,
             fom = 1.januar(2021),
-            tom = 31.desember(2021)
-
+            tom = 31.desember(2021),
+            beløp = 12000
         )
         val eksisterendeOppdragslinje = Oppdragslinje(
             id = UUID.randomUUID(),
             fom = 1.januar(2020),
             tom = 31.desember(2020),
             endringskode = Oppdragslinje.Endringskode.NY,
-            refOppdragslinjeId = null
+            refOppdragslinjeId = null,
+            refSakId = sakId,
+            beløp = 5600,
+            klassekode = Oppdragslinje.Klassekode.KLASSE,
+            status = null,
+            statusFom = null,
+            beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.MND,
+            saksbehandler = "saksbehandler",
+            attestant = "attestant"
         )
 
         val actual = OppdragFactory(
             behandling = behandlingsInfo,
             sak = SakOppdragsinformasjon(
                 sakId = sakId,
-                sisteOppdrag = nyttOppdrag(
-                    sakId,
-                    tidligereBehandlingId,
-                    eksisterendeOppdragslinje
-                )
+                sisteOppdrag = Oppdrag(
+                    sakId = sakId,
+                    behandlingId = tidligereBehandlingId,
+                    endringskode = Oppdrag.Endringskode.NY,
+                    oppdragslinjer = listOf(eksisterendeOppdragslinje),
+                    oppdragGjelder = fnr
+                ),
+                fnr = "12345678910"
             )
         ).build()
 
@@ -87,6 +105,7 @@ internal class OppdragFactoryTest {
             behandlingId = behandlingId,
             endringskode = Oppdrag.Endringskode.ENDR,
             simulering = null,
+            oppdragGjelder = fnr,
             oppdragslinjer = listOf(
                 Oppdragslinje(
                     id = actual.sisteOppdragslinje().id,
@@ -94,22 +113,17 @@ internal class OppdragFactoryTest {
                     fom = 1.januar(2021),
                     tom = 31.desember(2021),
                     endringskode = Oppdragslinje.Endringskode.NY,
-                    refOppdragslinjeId = eksisterendeOppdragslinje.id
+                    refOppdragslinjeId = eksisterendeOppdragslinje.id,
+                    refSakId = sakId,
+                    beløp = 12000,
+                    klassekode = Oppdragslinje.Klassekode.KLASSE,
+                    status = null,
+                    statusFom = null,
+                    beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.MND,
+                    saksbehandler = "saksbehandler",
+                    attestant = null
                 )
             )
-        )
-    }
-
-    private fun nyttOppdrag(
-        sakId: UUID = UUID.randomUUID(),
-        behandlingId: UUID = UUID.randomUUID(),
-        vararg oppdragslinje: Oppdragslinje
-    ): Oppdrag {
-        return Oppdrag(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            endringskode = Oppdrag.Endringskode.NY,
-            oppdragslinjer = oppdragslinje.toList()
         )
     }
 }

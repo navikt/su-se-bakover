@@ -14,14 +14,27 @@ data class Oppdrag(
     private val behandlingId: UUID,
     private val endringskode: Endringskode,
     private var simulering: Simulering? = null,
+    private val fagområde: Fagområde = Fagområde.FAGOMR,
+    private val utbetalingsfrekvens: Utbetalingsfrekvens = Utbetalingsfrekvens.MND,
+    private val fagsystem: Fagsystem = Fagsystem.FAGSYSTEM,
+    private val oppdragGjelder: String,
     private val oppdragslinjer: List<Oppdragslinje>
+
 ) : PersistentDomainObject<OppdragPersistenceObserver>(), DtoConvertable<OppdragDto> {
-    enum class Endringskode {
-        NY, ENDR
-    }
 
     override fun toDto(): OppdragDto {
-        return OppdragDto(id, opprettet, sakId, behandlingId, endringskode, oppdragslinjer)
+        return OppdragDto(
+            id,
+            opprettet,
+            sakId,
+            behandlingId = behandlingId,
+            endringskode = endringskode,
+            fagområde = fagområde,
+            utbetalingsfrekvens = utbetalingsfrekvens,
+            fagsystem = fagsystem,
+            oppdragGjelder = oppdragGjelder,
+            oppdragslinjer = oppdragslinjer
+        )
     }
 
     fun addSimulering(simulering: Simulering) {
@@ -29,6 +42,22 @@ data class Oppdrag(
     }
 
     fun sisteOppdragslinje() = oppdragslinjer.last()
+
+    enum class Endringskode {
+        NY, ENDR
+    }
+
+    enum class Fagsystem {
+        FAGSYSTEM // TODO decide with os
+    }
+
+    enum class Utbetalingsfrekvens {
+        MND
+    }
+
+    enum class Fagområde {
+        FAGOMR // TODO decide with OS
+    }
 }
 
 interface OppdragPersistenceObserver : PersistenceObserver {
@@ -41,5 +70,9 @@ data class OppdragDto(
     val sakId: UUID,
     val behandlingId: UUID,
     val endringskode: Oppdrag.Endringskode,
+    val fagområde: Oppdrag.Fagområde,
+    val utbetalingsfrekvens: Oppdrag.Utbetalingsfrekvens,
+    val fagsystem: Oppdrag.Fagsystem,
+    val oppdragGjelder: String,
     val oppdragslinjer: List<Oppdragslinje>
 )

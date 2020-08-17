@@ -38,6 +38,9 @@ data class Beregning(
         )
     }
 
+    // TODO må fikses for å støtte flere perioder med ulikt beløp
+    fun månedsbeløp() = månedsberegninger.first().beløp
+
     override fun toDto(): BeregningDto =
         BeregningDto(
             id = id,

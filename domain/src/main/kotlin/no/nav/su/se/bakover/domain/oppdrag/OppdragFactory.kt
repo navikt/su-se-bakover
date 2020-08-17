@@ -9,19 +9,22 @@ internal class OppdragFactory(
 ) {
     fun build(): Oppdrag {
         // TODO LOGIKK EN MASSS FOR Å FINNE RIKTIG OPPDRAG + LINJE
-
         return Oppdrag(
             sakId = sak.sakId,
             behandlingId = behandling.behandlingId,
             endringskode = if (sak.hasOppdrag()) Oppdrag.Endringskode.ENDR else Oppdrag.Endringskode.NY,
+            oppdragGjelder = sak.fnr,
             oppdragslinjer = listOf(
                 // TODO: Skal vi støtte fler beløp?
                 Oppdragslinje(
                     fom = behandling.fom,
                     tom = behandling.tom,
                     endringskode = Oppdragslinje.Endringskode.NY,
-                    refOppdragslinjeId = if (sak.hasOppdrag()) sak.sisteOppdrag!!.sisteOppdragslinje().id else null
-                )
+                    refOppdragslinjeId = if (sak.hasOppdrag()) sak.sisteOppdrag!!.sisteOppdragslinje().id else null,
+                    refSakId = sak.sakId,
+                    beløp = behandling.beløp,
+                    saksbehandler = "saksbehandler"
+                ) // TODO
             )
         )
     }

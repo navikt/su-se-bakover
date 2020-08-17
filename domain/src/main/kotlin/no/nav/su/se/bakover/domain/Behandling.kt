@@ -102,13 +102,15 @@ data class Behandling constructor(
     internal data class BehandlingOppdragsinformasjon(
         val behandlingId: UUID,
         val fom: LocalDate,
-        val tom: LocalDate
+        val tom: LocalDate,
+        val beløp: Int
     )
 
     internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
         behandlingId = id,
         fom = gjeldendeBeregning().toDto().fom,
-        tom = gjeldendeBeregning().toDto().tom
+        tom = gjeldendeBeregning().toDto().tom,
+        beløp = gjeldendeBeregning().månedsbeløp()
     )
 
     private fun gjeldendeBeregning(): Beregning = beregninger.toList()

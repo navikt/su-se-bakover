@@ -18,7 +18,7 @@ data class Månedsberegning(
     private val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),
     private val sats: Sats,
     private val fradrag: Int,
-    private val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
+    val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
 ) : PersistentDomainObject<VoidObserver>() {
     init {
         require(fom.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fom" }

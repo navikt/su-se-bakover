@@ -38,15 +38,15 @@ create table if not exists oppdragslinje
         not null references oppdrag(id),
     refOppdragslinjeId uuid
         null references oppdragslinje(id),
-    refSakid uuid
-        not null,
-    endringskode text
-        not null,
-    sats int
+    refSakId uuid
+        not null references sak(id),
+    beløp int
         not null,
     klassekode text
         not null,
     status text
+        null,
+    statusFom date
         null,
     beregningsfrekvens text
         not null,
