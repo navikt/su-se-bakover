@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.FradragDto
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class BrevService(
     private val pdfGenerator: PdfGenerator,
@@ -37,9 +38,11 @@ class BrevService(
                         status = behandlingDto.status,
                         fradato = behandlingDto.beregning?.fom?.formatMonthYear(),
                         tildato = behandlingDto.beregning?.tom?.formatMonthYear(),
-                        nysøkdato = behandlingDto.beregning?.tom?.formatMonthYear(),
-                        sats = behandlingDto.beregning?.sats,
+                        sats = behandlingDto.beregning?.sats.toString().toLowerCase(),
                         satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                        satsGrunn = "HVOR SKAL DENNE GRUNNEN HENTES FRA", // hard code
+                        redusertStønadStatus = true,
+                        redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                         månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
                         fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
                         fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0
@@ -49,5 +52,5 @@ class BrevService(
     }
 }
 
-fun LocalDate.formatMonthYear() = this.format(DateTimeFormatter.ofPattern("MM yyyy"))
+fun LocalDate.formatMonthYear() = this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nn-NO")))
 fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> = this.map { it -> FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }
