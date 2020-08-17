@@ -137,6 +137,7 @@ internal fun Route.behandlingRoutes(
                             call.application.environment.log.error("Fant ikke person med gitt fødselsnummer")
                             throw RuntimeException("Kunne ikke finne person")
                         }
+                        val førsteMånedsberegning = behandlingDto.beregning?.månedsberegninger?.firstOrNull()
                         pdf.genererPdf(
                             VedtakInnhold(
                                 dato = now().format(ofPattern("dd.MM.yyyy")),
@@ -146,13 +147,13 @@ internal fun Route.behandlingRoutes(
                                 adresse = person.adresse?.adressenavn,
                                 postnummer = person.adresse?.poststed?.postnummer,
                                 poststed = person.adresse?.poststed?.poststed,
-                                månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
+                                månedsbeløp = førsteMånedsberegning?.beløp, // TODO: Beløpene kan variere fra måned til måned
                                 fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")), // TODO: Trekk ut datoformatering
                                 tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
                                 // Er det riktig att bruka tom dato her?
                                 nysøkdato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
-                                sats = behandlingDto.beregning?.sats,
-                                satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                                sats = førsteMånedsberegning?.sats,
+                                satsbeløp = førsteMånedsberegning?.satsBeløp,
                                 status = behandlingDto.status
                             )
                         ).fold(

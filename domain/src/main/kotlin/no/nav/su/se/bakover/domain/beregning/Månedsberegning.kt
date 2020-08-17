@@ -20,6 +20,9 @@ data class Månedsberegning(
     val fradrag: Int,
     val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
 ) : PersistentDomainObject<VoidObserver>() {
+
+    val satsBeløp: Int = sats.fraDatoAsInt(fom)
+
     init {
         require(fom.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fom" }
         require(tom.dayOfMonth == fom.lengthOfMonth()) { "Månedsberegninger avsluttes den siste i måneded. Dato var=$tom" }
@@ -40,6 +43,7 @@ data class Månedsberegning(
         tom = tom,
         grunnbeløp = grunnbeløp,
         sats = sats,
+        satsBeløp = satsBeløp,
         beløp = beløp,
         fradrag = fradrag
     )
@@ -52,6 +56,7 @@ data class MånedsberegningDto(
     val tom: LocalDate,
     val grunnbeløp: Int,
     val sats: Sats,
+    val satsBeløp: Int,
     val beløp: Int,
     val fradrag: Int
 )

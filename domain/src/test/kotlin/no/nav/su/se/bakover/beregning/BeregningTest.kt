@@ -179,7 +179,8 @@ internal class BeregningTest {
             BeregningsPeriode(
                 fom = 1.januar(2020),
                 tom = 31.desember(2020),
-                beløp = 20637
+                beløp = 20637,
+                sats = Sats.HØY
             )
         )
     }
@@ -197,12 +198,14 @@ internal class BeregningTest {
             BeregningsPeriode(
                 fom = 1.januar(2019),
                 tom = 30.april(2019),
-                beløp = 20022
+                beløp = 20022,
+                sats = Sats.HØY
             ),
             BeregningsPeriode(
                 fom = 1.mai(2019),
                 tom = 31.desember(2019),
-                beløp = 20637
+                beløp = 20637,
+                sats = Sats.HØY
             )
         )
     }

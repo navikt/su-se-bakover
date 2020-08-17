@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.FradragDto
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
@@ -393,7 +392,7 @@ internal class DatabaseRepo(
                 "sats" to dto.sats.name
             )
         )
-        dto.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
+        beregning.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
         dto.fradrag.forEach { opprettFradrag(dto.id, it) }
         return beregning
     }
@@ -414,7 +413,7 @@ internal class DatabaseRepo(
         fradrag = int("fradrag")
     )
 
-    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: MånedsberegningDto) {
+    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
         """
             insert into månedsberegning
                 (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
