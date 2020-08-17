@@ -55,16 +55,16 @@ object HttpClientBuilder : HttpClientsBuilder {
     private val env = System.getProperties()
     internal fun azure(
         clientId: String = getAzureClientId(),
-        clientSecret: String = env.getProperty("AZURE_WELLKNOWN_URL") ?: "secret",
-        wellknownUrl: String = env.getProperty("AZURE_WELLKNOWN_URL")?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+        clientSecret: String = env.getProperty("AZURE_WELLKNOWN_URL", "secret"),
+        wellknownUrl: String = env.getProperty("AZURE_WELLKNOWN_URL", "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration")
     ): OAuth {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
 
-    private fun getAzureClientId() = env.getProperty("AZURE_CLIENT_ID") ?: "24ea4acb-547e-45de-a6d3-474bd8bed46e"
+    private fun getAzureClientId() = env.getProperty("AZURE_CLIENT_ID", "24ea4acb-547e-45de-a6d3-474bd8bed46e")
 
     internal fun person(
-        baseUrl: String = env.getProperty("PDL_URL") ?: "http://pdl-api.default.svc.nais.local",
+        baseUrl: String = env.getProperty("PDL_URL", "http://pdl-api.default.svc.nais.local"),
         clientId: String = getAzureClientId(),
         oAuth: OAuth,
         tokenOppslag: TokenOppslag
@@ -74,8 +74,8 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun inntekt(
-        baseUrl: String = env.getProperty("SU_INNTEKT_URL") ?: "http://su-inntekt.default.svc.nais.local",
-        clientId: String = env.getProperty("SU_INNTEKT_AZURE_CLIENT_ID") ?: "9cd61904-33ad-40e8-9cc8-19e4dab588c5",
+        baseUrl: String = env.getProperty("SU_INNTEKT_URL", "http://su-inntekt.default.svc.nais.local"),
+        clientId: String = env.getProperty("SU_INNTEKT_AZURE_CLIENT_ID", "9cd61904-33ad-40e8-9cc8-19e4dab588c5"),
         oAuth: OAuth,
         personOppslag: PersonOppslag
     ): InntektOppslag = when (env.isLocalOrRunningTests()) {
@@ -89,16 +89,16 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun token(
-        baseUrl: String = env.getProperty("STS_URL") ?:"http://security-token-service.default.svc.nais.local",
-        username: String = env.getProperty("username") ?: "username",
-        password: String = env.getProperty("password") ?: "password"
+        baseUrl: String = env.getProperty("STS_URL", "http://security-token-service.default.svc.nais.local"),
+        username: String = env.getProperty("username", "username"),
+        password: String = env.getProperty("password", "password")
     ): TokenOppslag = when (env.isLocalOrRunningTests()) {
         true -> TokenOppslagStub.also { logger.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
         else -> StsClient(baseUrl, username, password)
     }
 
     internal fun pdf(
-        baseUrl: String = env.getProperty("PDFGEN_URL") ?: "http://su-pdfgen.default.svc.nais.local"
+        baseUrl: String = env.getProperty("PDFGEN_URL", "http://su-pdfgen.default.svc.nais.local")
     ): PdfGenerator = when (env.isLocalOrRunningTests()) {
         true -> {
             if (env.getOrDefault("PDFGEN_LOCAL", "false") == "true") {
@@ -111,7 +111,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun dokArkiv(
-        baseUrl: String = env.getProperty("DOKARKIV_URL") ?: "http://dokarkiv.default.svc.nais.local",
+        baseUrl: String = env.getProperty("DOKARKIV_URL", "http://dokarkiv.default.svc.nais.local"),
         tokenOppslag: TokenOppslag
     ): DokArkiv = when (env.isLocalOrRunningTests()) {
         true -> DokArkivStub.also { logger.warn("********** Using stub for ${DokArkiv::class.java} **********") }
@@ -119,7 +119,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun oppgave(
-        baseUrl: String = env.getProperty("OPPGAVE_URL") ?: "http://oppgave.default.svc.nais.local",
+        baseUrl: String = env.getProperty("OPPGAVE_URL", "http://oppgave.default.svc.nais.local"),
         tokenOppslag: TokenOppslag
     ): Oppgave = when (env.isLocalOrRunningTests()) {
         true -> OppgaveStub.also { logger.warn("********** Using stub for ${Oppgave::class.java} **********") }
@@ -127,7 +127,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun kodeverk(
-        baseUrl: String = env.getProperty("KODEVERK_URL") ?:"http://kodeverk.default.svc.nais.local",
+        baseUrl: String = env.getProperty("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
         consumerId: String
     ): Kodeverk = when (env.isLocalOrRunningTests()) {
         true -> KodeverkStub.also { logger.warn("********** Using stub for ${Kodeverk::class.java} **********") }
