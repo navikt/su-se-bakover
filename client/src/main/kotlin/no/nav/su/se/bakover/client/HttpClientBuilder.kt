@@ -53,7 +53,10 @@ data class HttpClients(
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
-    private val env = dotenv()
+    private val env = dotenv {
+        ignoreIfMissing = true
+    }
+
     internal fun azure(
         clientId: String = getAzureClientId(),
         clientSecret: String = env["AZURE_CLIENT_SECRET"] ?: "secret",
