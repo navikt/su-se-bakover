@@ -14,18 +14,17 @@ internal class OppdragFactory(
             behandlingId = behandling.behandlingId,
             endringskode = if (sak.hasOppdrag()) Oppdrag.Endringskode.ENDR else Oppdrag.Endringskode.NY,
             oppdragGjelder = sak.fnr,
-            oppdragslinjer = listOf(
-                // TODO: Skal vi støtte fler beløp?
+            oppdragslinjer = behandling.perioder.map {
                 Oppdragslinje(
-                    fom = behandling.fom,
-                    tom = behandling.tom,
+                    fom = it.fom,
+                    tom = it.tom,
                     endringskode = Oppdragslinje.Endringskode.NY,
                     refOppdragslinjeId = if (sak.hasOppdrag()) sak.sisteOppdrag!!.sisteOppdragslinje().id else null,
                     refSakId = sak.sakId,
-                    beløp = behandling.beløp,
+                    beløp = it.beløp,
                     saksbehandler = "saksbehandler"
-                ) // TODO
-            )
+                )
+            }.also{it.zipWithNext{a,b -> b.link(a)}}
         )
     }
 }

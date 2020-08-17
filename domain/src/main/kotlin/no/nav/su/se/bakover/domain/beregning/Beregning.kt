@@ -38,6 +38,15 @@ data class Beregning(
         )
     }
 
+    fun hentPerioder() =
+        månedsberegninger.groupBy { it.beløp }.map {
+            BeregningsPeriode(fom = it.value.minBy { it.fom }!!.fom,
+                tom = it.value.maxBy { it.tom }!!.tom,
+                beløp = it.key
+            )
+        }
+
+
     // TODO må fikses for å støtte flere perioder med ulikt beløp
     fun månedsbeløp() = månedsberegninger.first().beløp
 
@@ -58,6 +67,11 @@ data class Beregning(
         }
     }
 }
+data class BeregningsPeriode(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val beløp: Int
+)
 
 data class BeregningDto(
     val id: UUID,

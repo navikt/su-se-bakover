@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
+import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
@@ -101,16 +102,12 @@ data class Behandling constructor(
 
     internal data class BehandlingOppdragsinformasjon(
         val behandlingId: UUID,
-        val fom: LocalDate,
-        val tom: LocalDate,
-        val beløp: Int
+        val perioder: List<BeregningsPeriode>
     )
 
     internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
         behandlingId = id,
-        fom = gjeldendeBeregning().toDto().fom,
-        tom = gjeldendeBeregning().toDto().tom,
-        beløp = gjeldendeBeregning().månedsbeløp()
+        perioder = gjeldendeBeregning().hentPerioder()
     )
 
     private fun gjeldendeBeregning(): Beregning = beregninger.toList()

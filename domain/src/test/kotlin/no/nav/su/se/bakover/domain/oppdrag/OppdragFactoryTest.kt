@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Behandling.BehandlingOppdragsinformasjon
 import no.nav.su.se.bakover.domain.Sak.SakOppdragsinformasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -18,9 +19,7 @@ internal class OppdragFactoryTest {
         val actual = OppdragFactory(
             behandling = BehandlingOppdragsinformasjon(
                 behandlingId = behandlingId,
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
-                beløp = 5600
+                perioder = listOf(BeregningsPeriode(1.januar(2020),31.desember(2020), 5600))
             ),
             sak = SakOppdragsinformasjon(
                 sakId = sakId,
@@ -59,13 +58,16 @@ internal class OppdragFactoryTest {
     }
 
     @Test
+    fun `Test at ziping funker`() {
+        val
+    }
+
+    @Test
     fun `skal referere til forrige oppdragslinje`() {
         val tidligereBehandlingId = UUID.randomUUID()
         val behandlingsInfo = BehandlingOppdragsinformasjon(
             behandlingId = behandlingId,
-            fom = 1.januar(2021),
-            tom = 31.desember(2021),
-            beløp = 12000
+            perioder = listOf(BeregningsPeriode(1.januar(2021), 31.desember(2021), 12000))
         )
         val eksisterendeOppdragslinje = Oppdragslinje(
             id = UUID.randomUUID(),

@@ -22,6 +22,9 @@ data class Oppdragslinje(
     val attestant: String? = null
 
 ) {
+    fun link(other: Oppdragslinje) {
+        refOppdragslinjeId = other.id
+    }
     enum class Endringskode {
         NY
     }
