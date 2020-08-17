@@ -8,7 +8,6 @@ import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.math.max
 
 class Månedsberegning(
     id: UUID = UUID.randomUUID(),

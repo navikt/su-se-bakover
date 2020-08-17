@@ -37,15 +37,12 @@ class BrevService(
                         status = behandlingDto.status,
                         fradato = behandlingDto.beregning?.fom?.formatMonthYear(),
                         tildato = behandlingDto.beregning?.tom?.formatMonthYear(),
-                        // Er det riktig att bruka tom dato her?
                         nysøkdato = behandlingDto.beregning?.tom?.formatMonthYear(),
-                        sats = behandlingDto.beregning?.sats, // HØY eller LAV
-                        satsbeløp = behandlingDto.beregning?.getSatsbeløp(), // Høy -> 247644/12, Lav -> 227676/12
-                        månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(), // satsbeløp - fradrag/12
-                        fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(), // Tekst + fradrag/12
+                        sats = behandlingDto.beregning?.sats,
+                        satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                        månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
+                        fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
                         fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0
-                        // fradrag = behandlingDto.beregning?.månedsberegninger?.map { it -> it.fradrag },
-                        // fradragSum = behandlingDto.beregning?.månedsberegninger?.firstOrNull()?.fradrag ?: 0
                     )
                 )
             }
