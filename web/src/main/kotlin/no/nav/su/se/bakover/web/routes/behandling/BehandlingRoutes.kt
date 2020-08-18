@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -14,10 +13,7 @@ import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.audit
@@ -25,19 +21,17 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.time.LocalDate.now
-import java.time.format.DateTimeFormatter.ofPattern
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
-    pdf: PdfGenerator,
-    personOppslag: PersonFactory
+    brevService: BrevService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -130,33 +124,8 @@ internal fun Route.behandlingRoutes(
                 when (val behandling = repo.hentBehandling(id)) {
                     null -> call.svar(NotFound.message("Fant ikke behandling med id:$id"))
                     else -> {
-                        // TODO CHM: Må flytte dette, f.eks. inn i en brev-komponent
                         val behandlingDto = behandling.toDto()
-                        val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-                        val person = personOppslag.forFnr(fnr).getOrElse {
-                            call.application.environment.log.error("Fant ikke person med gitt fødselsnummer")
-                            throw RuntimeException("Kunne ikke finne person")
-                        }
-                        val førsteMånedsberegning = behandlingDto.beregning?.månedsberegninger?.firstOrNull()
-                        pdf.genererPdf(
-                            VedtakInnhold(
-                                dato = now().format(ofPattern("dd.MM.yyyy")),
-                                fødselsnummer = fnr,
-                                fornavn = person.navn.fornavn,
-                                etternavn = person.navn.etternavn,
-                                adresse = person.adresse?.adressenavn,
-                                postnummer = person.adresse?.poststed?.postnummer,
-                                poststed = person.adresse?.poststed?.poststed,
-                                månedsbeløp = førsteMånedsberegning?.beløp, // TODO: Beløpene kan variere fra måned til måned
-                                fradato = behandlingDto.beregning?.fom?.format(ofPattern("MM yyyy")), // TODO: Trekk ut datoformatering
-                                tildato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
-                                // Er det riktig att bruka tom dato her?
-                                nysøkdato = behandlingDto.beregning?.tom?.format(ofPattern("MM yyyy")),
-                                sats = førsteMånedsberegning?.sats,
-                                satsbeløp = førsteMånedsberegning?.satsBeløp,
-                                status = behandlingDto.status
-                            )
-                        ).fold(
+                        brevService.lagUtkastTilBrev(behandlingDto).fold(
                             ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
                             ifRight = {
                                 call.respondBytes(it, ContentType.Application.Pdf)

@@ -12,11 +12,6 @@ import java.time.Month
 import java.time.temporal.ChronoUnit
 
 internal class UtilsKtTest {
-    @Test
-    fun `should determine if running on local machine`() {
-        mapOf("NAIS_CLUSTER_NAME" to "dev-fss").isLocalOrRunningTests() shouldBe false
-        mapOf("key" to "value").isLocalOrRunningTests() shouldBe true
-    }
 
     @Test
     fun `convenient dates`() {

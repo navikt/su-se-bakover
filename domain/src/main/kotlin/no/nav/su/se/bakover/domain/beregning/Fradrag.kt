@@ -36,6 +36,6 @@ class Fradrag(
 data class FradragDto(
     val id: UUID,
     val type: Fradragstype,
-    val beløp: Int,
+    var beløp: Int,
     val beskrivelse: String?
 )
