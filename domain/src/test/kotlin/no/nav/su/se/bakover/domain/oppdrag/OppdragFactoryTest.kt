@@ -110,7 +110,8 @@ internal class OppdragFactoryTest {
                     oppdragslinjer = listOf(
                         eksisterendeOppdragslinje
                     ),
-                    oppdragGjelder = fnr
+                    oppdragGjelder = fnr,
+                    saksbehandler = "saksbehandler"
                 ),
                 fnr = "12345678910"
             )
@@ -157,7 +158,8 @@ internal class OppdragFactoryTest {
             endringskode = endringskode,
             simulering = null,
             oppdragGjelder = fnr,
-            oppdragslinjer = oppdragslinjer
+            oppdragslinjer = oppdragslinjer,
+            saksbehandler = "saksbehandler"
         )
     }
 
@@ -174,9 +176,7 @@ internal class OppdragFactoryTest {
             klassekode = KLASSE,
             status = null,
             statusFom = null,
-            beregningsfrekvens = MND,
-            saksbehandler = "saksbehandler",
-            attestant = null
+            beregningsfrekvens = MND
         )
     }
 }

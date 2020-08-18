@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.client
 
 import io.github.cdimascio.dotenv.dotenv
-import no.nav.su.se.bakover.client.oppdrag.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
-import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringService
+import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.isLocalOrRunningTests
 import org.apache.cxf.bus.extension.ExtensionManagerBus
 import org.slf4j.LoggerFactory
 
 data class SOAPClients(
-    val simulering: Simulering
+    val simulering: SimuleringClient
 )
 
 object SOAPClientBuilder {
@@ -26,13 +26,13 @@ object SOAPClientBuilder {
             password = env["password"] ?: "password",
             disableCNCheck = true
         )
-    ): Simulering = when (isLocalOrRunningTests()) {
-        true -> SimuleringStub.also { logger.warn("********** Using stub for ${Simulering::class.java} **********") }
-        else -> SimuleringService(simuleringConfig.wrapWithSTSSimulerFpService(ExtensionManagerBus()))
+    ): SimuleringClient = when (isLocalOrRunningTests()) {
+        true -> SimuleringStub.also { logger.warn("********** Using stub for ${SimuleringClient::class.java} **********") }
+        else -> SimuleringSoapClient(simuleringConfig.wrapWithSTSSimulerFpService(ExtensionManagerBus()))
     }
 
     fun build(
-        simulering: Simulering = simulering()
+        simulering: SimuleringClient = simulering()
     ): SOAPClients {
         return SOAPClients(simulering)
     }

@@ -22,12 +22,13 @@ internal class OppdragFactory(
                     endringskode = Oppdragslinje.Endringskode.NY,
                     refOppdragslinjeId = if (sak.hasOppdrag()) sak.sisteOppdrag!!.sisteOppdragslinje().id else null,
                     refSakId = sak.sakId,
-                    beløp = it.beløp,
-                    saksbehandler = "saksbehandler"
+                    beløp = it.beløp
                 )
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
-            }
+            },
+            saksbehandler = "saksbehandler", // TODO fyll ut denne,
+            attestant = null // vi har ikke attestant på dette tidspunktet. Det feltet oppdateres på det tidspunktet vi får informasjonen.
         )
     }
 }

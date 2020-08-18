@@ -17,9 +17,7 @@ data class Oppdragslinje(
     val klassekode: Klassekode = Klassekode.KLASSE,
     var status: Status? = null,
     var statusFom: LocalDate? = null,
-    val beregningsfrekvens: Beregningsfrekvens = Beregningsfrekvens.MND,
-    val saksbehandler: String,
-    val attestant: String? = null
+    val beregningsfrekvens: Beregningsfrekvens = Beregningsfrekvens.MND
 
 ) {
     fun link(other: Oppdragslinje) {

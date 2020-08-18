@@ -1,18 +1,7 @@
-package no.nav.su.se.bakover.client.oppdrag.simulering
+package no.nav.su.se.bakover.domain.oppdrag.simulering
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.LocalDate
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class SimuleringResult(
-    val status: SimuleringStatus,
-    val feilmelding: String? = null,
-    val simulering: Simulering? = null
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class Simulering(
     val gjelderId: String,
     val gjelderNavn: String,
@@ -21,14 +10,12 @@ data class Simulering(
     val periodeList: List<SimulertPeriode>
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class SimulertPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val utbetaling: List<Utbetaling>
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class Utbetaling(
     val fagSystemId: String,
     val utbetalesTilId: String,
@@ -38,7 +25,6 @@ data class Utbetaling(
     val detaljer: List<Detaljer>
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class Detaljer(
     val faktiskFom: LocalDate,
     val faktiskTom: LocalDate,
@@ -55,8 +41,7 @@ data class Detaljer(
     val refunderesOrgNr: String
 )
 
-enum class SimuleringStatus {
-    OK,
+enum class SimuleringFeilet {
     OPPDRAG_UR_ER_STENGT,
     FUNKSJONELL_FEIL,
     TEKNISK_FEIL

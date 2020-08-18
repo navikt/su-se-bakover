@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Endringskode.NY
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Klassekode.KLASSE
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -24,11 +28,11 @@ import java.util.UUID
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 
-internal class SimuleringServiceTest {
+internal class SimuleringSoapClientTest {
 
     @Test
     fun `should return ok simulering`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -39,16 +43,13 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
-
-        response.status shouldBe SimuleringStatus.OK
-        response.simulering shouldNotBe null
-        response.feilmelding shouldBe null
+        val actual = simuleringService.simulerOppdrag(createOppdrag())
+        actual.isRight() shouldBe true
     }
 
     @Test
     fun `should handle simulering with empty response`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -58,16 +59,13 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
-
-        response.status shouldBe SimuleringStatus.FUNKSJONELL_FEIL
-        response.simulering shouldBe null
-        response.feilmelding shouldBe "Fikk ingen respons"
+        val response = simuleringService.simulerOppdrag(createOppdrag())
+        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
     fun `should handle known error situations`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -82,16 +80,14 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
+        val response = simuleringService.simulerOppdrag(createOppdrag())
 
-        response.status shouldBe SimuleringStatus.FUNKSJONELL_FEIL
-        response.simulering shouldBe null
-        response.feilmelding shouldBe "Detaljert feilmelding"
+        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
     fun `should handle utenfor åpningstid exception SSLException`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -101,16 +97,14 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
+        val response = simuleringService.simulerOppdrag(createOppdrag())
 
-        response.status shouldBe SimuleringStatus.OPPDRAG_UR_ER_STENGT
-        response.simulering shouldBe null
-        response.feilmelding shouldBe "Oppdrag/UR er stengt"
+        response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
 
     @Test
     fun `should handle utenfor åpningstid exception SocketException`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -120,16 +114,14 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
+        val response = simuleringService.simulerOppdrag(createOppdrag())
 
-        response.status shouldBe SimuleringStatus.OPPDRAG_UR_ER_STENGT
-        response.simulering shouldBe null
-        response.feilmelding shouldBe "Oppdrag/UR er stengt"
+        response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
 
     @Test
     fun `should handle unknown technical errors`() {
-        val simuleringService = SimuleringService(object : SimulerFpService {
+        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                 TODO("Not yet implemented")
             }
@@ -139,32 +131,32 @@ internal class SimuleringServiceTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createUtbetalingslinjer())
+        val response = simuleringService.simulerOppdrag(createOppdrag())
 
-        response.status shouldBe SimuleringStatus.TEKNISK_FEIL
-        response.simulering shouldBe null
-        response.feilmelding shouldBe "Fikk teknisk feil ved simulering"
+        response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
-    private fun createUtbetalingslinjer() = Utbetalingslinjer(
-        fagområde = "Fagområde",
-        fagsystemId = "SUP",
-        fødselsnummer = "12345678910",
-        endringskode = "NY",
-        saksbehandler = "saksbehandler"
-    ).also {
-        it.linje(
-            Utbetalingslinjer.Utbetalingslinje(
-                delytelseId = UUID.randomUUID().toString(),
-                endringskode = "NY",
-                klassekode = "klasseKode",
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
-                sats = 405,
-                refDelytelseId = UUID.randomUUID().toString(),
-                refFagsystemId = "SUP",
-                statusFom = 1.januar(2020),
-                status = null
+    private fun createOppdrag(): Oppdrag {
+        val sakId = UUID.randomUUID()
+        return Oppdrag(
+            oppdragGjelder = "12345678910",
+            endringskode = NY,
+            saksbehandler = "saksbehandler",
+            sakId = sakId,
+            behandlingId = UUID.randomUUID(),
+            oppdragslinjer = listOf(
+                Oppdragslinje(
+                    id = UUID.randomUUID(),
+                    endringskode = Oppdragslinje.Endringskode.NY,
+                    klassekode = KLASSE,
+                    fom = 1.januar(2020),
+                    tom = 31.desember(2020),
+                    beløp = 405,
+                    refOppdragslinjeId = null,
+                    refSakId = sakId,
+                    statusFom = 1.januar(2020),
+                    status = null
+                )
             )
         )
     }

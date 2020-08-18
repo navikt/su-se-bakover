@@ -1,8 +1,16 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
-import no.nav.su.se.bakover.client.oppdrag.Simulering
-import no.nav.su.se.bakover.client.oppdrag.Utbetalingslinjer
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Detaljer
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Utbetaling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
@@ -16,34 +24,26 @@ import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 import javax.xml.ws.soap.SOAPFaultException
 
-internal class SimuleringService(
+internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService
-) : Simulering {
+) : SimuleringClient {
     private companion object {
         private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun simulerOppdrag(utbetalingslinjer: Utbetalingslinjer): SimuleringResult {
+    override fun simulerOppdrag(oppdrag: Oppdrag): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
-            utbetalingslinjer
+            oppdrag
         ).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 mapResponseToResultat(it)
-            } ?: SimuleringResult(
-                status = SimuleringStatus.FUNKSJONELL_FEIL,
-                feilmelding = "Fikk ingen respons",
-                simulering = null
-            )
+            } ?: SimuleringFeilet.FUNKSJONELL_FEIL.left()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.error("Simulering feilet med feilmelding=${e.faultInfo.errorMessage}", e)
-            SimuleringResult(
-                status = SimuleringStatus.FUNKSJONELL_FEIL,
-                feilmelding = e.faultInfo.errorMessage,
-                simulering = null
-            )
+            SimuleringFeilet.FUNKSJONELL_FEIL.left()
         } catch (e: SOAPFaultException) {
             when (e.cause) {
                 is WstxEOFException -> utenforÅpningstidResponse(e)
@@ -58,19 +58,11 @@ internal class SimuleringService(
         }
     }
 
-    private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringResult(
-        status = SimuleringStatus.TEKNISK_FEIL,
-        feilmelding = "Fikk teknisk feil ved simulering",
-        simulering = null
-    ).also {
+    private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TEKNISK_FEIL.left().also {
         log.error("Ukjent teknisk feil ved simulering", exception)
     }
 
-    private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringResult(
-        status = SimuleringStatus.OPPDRAG_UR_ER_STENGT,
-        feilmelding = "Oppdrag/UR er stengt",
-        simulering = null
-    ).also {
+    private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left().also {
         log.warn("Feil ved simulering, Oppdrag/UR er stengt", exception)
     }
 
@@ -82,16 +74,13 @@ internal class SimuleringService(
         }
 
     private fun mapResponseToResultat(response: SimulerBeregningResponse) =
-        SimuleringResult(
-            status = SimuleringStatus.OK,
-            simulering = Simulering(
-                gjelderId = response.simulering.gjelderId,
-                gjelderNavn = response.simulering.gjelderNavn.trim(),
-                datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
-                totalBelop = response.simulering.belop.intValueExact(),
-                periodeList = response.simulering.beregningsPeriode.map { mapBeregningsPeriode(it) }
-            )
-        )
+        Simulering(
+            gjelderId = response.simulering.gjelderId,
+            gjelderNavn = response.simulering.gjelderNavn.trim(),
+            datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
+            totalBelop = response.simulering.belop.intValueExact(),
+            periodeList = response.simulering.beregningsPeriode.map { mapBeregningsPeriode(it) }
+        ).right()
 
     private fun mapBeregningsPeriode(periode: BeregningsPeriode) =
         SimulertPeriode(

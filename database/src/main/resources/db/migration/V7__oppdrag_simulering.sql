@@ -12,16 +12,15 @@ create table if not exists oppdrag
         not null,
     simulering jsonb
         null,
-    fagområde text
-        not null,
     utbetalingsfrekvens text
         not null,
-    fagsystem text
-        not null,
     oppdragGjelder text
-        not null
+        not null,
+    saksbehandler text
+        not null,
+    attestant text
+        null
 );
-
 create table if not exists oppdragslinje
 (
     id uuid
@@ -49,11 +48,7 @@ create table if not exists oppdragslinje
     statusFom date
         null,
     beregningsfrekvens text
-        not null,
-    saksbehandler text
-        not null,
-    attestant text
-        null
+        not null
 );
 
 

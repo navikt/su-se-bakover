@@ -25,7 +25,8 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
-import no.nav.su.se.bakover.domain.oppdrag.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -68,32 +69,31 @@ internal class DatabaseRepo(
     }
 
     override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
-        val dto = oppdrag.toDto()
         (
-            "insert into oppdrag (id, opprettet, sakId, behandlingId, endringskode, fagområde, utbetalingsfrekvens, fagsystem, oppdragGjelder) " +
-                "values (:id, :opprettet, :sakId, :behandlingId, :endringskode, :fagomraade, :utbetalingsfrekvens, :fagsystem, :oppdragGjelder)"
+            "insert into oppdrag (id, opprettet, sakId, behandlingId, endringskode, utbetalingsfrekvens, oppdragGjelder, saksbehandler, attestant) " +
+                "values (:id, :opprettet, :sakId, :behandlingId, :endringskode, :utbetalingsfrekvens, :oppdragGjelder, :saksbehandler, :attestant)"
             ).oppdatering(
             mapOf(
-                "id" to dto.id,
-                "opprettet" to dto.opprettet,
-                "sakId" to dto.sakId,
-                "behandlingId" to dto.behandlingId,
-                "endringskode" to dto.endringskode.name,
-                "fagomraade" to dto.fagområde.name,
-                "utbetalingsfrekvens" to dto.utbetalingsfrekvens.name,
-                "fagsystem" to dto.fagsystem.name,
-                "oppdragGjelder" to dto.oppdragGjelder
+                "id" to oppdrag.id,
+                "opprettet" to oppdrag.opprettet,
+                "sakId" to oppdrag.sakId,
+                "behandlingId" to oppdrag.behandlingId,
+                "endringskode" to oppdrag.endringskode.name,
+                "utbetalingsfrekvens" to oppdrag.utbetalingsfrekvens.name,
+                "oppdragGjelder" to oppdrag.oppdragGjelder,
+                "saksbehandler" to oppdrag.saksbehandler,
+                "attestant" to oppdrag.getAttestant()
             )
         )
-        dto.oppdragslinjer.forEach { opprettOppdragslinjer(dto.id, it) }
+        oppdrag.oppdragslinjer.forEach { opprettOppdragslinjer(oppdrag.id, it) }
         oppdrag.addObserver(this)
         return oppdrag
     }
 
     private fun opprettOppdragslinjer(oppdragId: UUID, oppdragslinje: Oppdragslinje) {
         (
-            "insert into oppdragslinje (id, opprettet, fom, tom, endringskode, oppdragId, refOppdragslinjeId, refSakId, beløp, klassekode, status, statusFom, beregningsfrekvens, saksbehandler, attestant) " +
-                "values (:id, :opprettet, :fom, :tom, :endringskode, :oppdragId, :refOppdragslinjeId, :refSakId, :belop, :klassekode, :status, :statusFom, :beregningsfrekvens, :saksbehandler, :attestant)"
+            "insert into oppdragslinje (id, opprettet, fom, tom, endringskode, oppdragId, refOppdragslinjeId, refSakId, beløp, klassekode, status, statusFom, beregningsfrekvens) " +
+                "values (:id, :opprettet, :fom, :tom, :endringskode, :oppdragId, :refOppdragslinjeId, :refSakId, :belop, :klassekode, :status, :statusFom, :beregningsfrekvens)"
             ).oppdatering(
             mapOf(
                 "id" to oppdragslinje.id,
@@ -108,9 +108,7 @@ internal class DatabaseRepo(
                 "klassekode" to oppdragslinje.klassekode.name,
                 "status" to oppdragslinje.status,
                 "statusFom" to oppdragslinje.statusFom,
-                "beregningsfrekvens" to oppdragslinje.beregningsfrekvens.name,
-                "saksbehandler" to oppdragslinje.saksbehandler,
-                "attestant" to oppdragslinje.attestant
+                "beregningsfrekvens" to oppdragslinje.beregningsfrekvens.name
             )
         )
     }
@@ -149,11 +147,11 @@ internal class DatabaseRepo(
             behandlingId = uuid("behandlingId"),
             endringskode = Oppdrag.Endringskode.valueOf(string("endringskode")),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
-            fagområde = Oppdrag.Fagområde.valueOf(string("fagområde")),
             utbetalingsfrekvens = Oppdrag.Utbetalingsfrekvens.valueOf(string("utbetalingsfrekvens")),
-            fagsystem = Oppdrag.Fagsystem.valueOf(string("fagsystem")),
             oppdragGjelder = string("oppdragGjelder"),
-            oppdragslinjer = hentOppdragslinjer(oppdragId, session)
+            oppdragslinjer = hentOppdragslinjer(oppdragId, session),
+            saksbehandler = string("saksbehandler"),
+            attestant = stringOrNull("attestant")
         )
     }
 
@@ -178,9 +176,7 @@ internal class DatabaseRepo(
             klassekode = Oppdragslinje.Klassekode.valueOf(string("klassekode")),
             status = stringOrNull("status")?.let { Oppdragslinje.Status.valueOf(it) },
             statusFom = localDateOrNull("statusFom"),
-            beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.valueOf(string("beregningsfrekvens")),
-            saksbehandler = string("saksbehandler"),
-            attestant = stringOrNull("attestant")
+            beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.valueOf(string("beregningsfrekvens"))
         )
     }
 
@@ -465,7 +461,7 @@ internal class DatabaseRepo(
     }
 
     override fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering {
-        "update oppdrag set simulering = to_json(:simulering::json) where id = :oppdragsId".oppdatering(
+        "update oppdrag set simulering = to_json(:simulering::json) where id = :id".oppdatering(
             mapOf(
                 "id" to oppdragsId,
                 "simulering" to objectMapper.writeValueAsString(simulering)

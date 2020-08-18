@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -8,10 +9,11 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkår.UFØRHET
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class DatabaseRepoTest {
@@ -32,6 +34,7 @@ internal class DatabaseRepoTest {
 
     @Test
     fun `opprett og hent oppdrag og oppdragslinjer`() {
+        // TODO: La denne testklassen teste kun repo impl
         withMigratedDb {
             val sak = enSak()
             val behandling = sak.opprettSøknadsbehandling(sak.toDto().søknader.first().id)
@@ -52,10 +55,17 @@ internal class DatabaseRepoTest {
             sak.fullførBehandling(
                 behandling.toDto().id,
                 object : Sak.OppdragClient {
-                    override fun simuler(oppdrag: Oppdrag): Simulering = Simulering("OK")
+                    override fun simuler(oppdrag: Oppdrag) = Simulering(
+                        gjelderId = "",
+                        gjelderNavn = "",
+                        datoBeregnet = LocalDate.now(),
+                        totalBelop = 1,
+                        periodeList = emptyList()
+                    ).right()
                 }
             )
-            sak.toDto() shouldBe repo.hentSak(sak.toDto().fnr)!!.toDto()
+            val expectedSak = repo.hentSak(sak.toDto().fnr)!!
+            sak.toDto() shouldBe expectedSak.toDto()
         }
     }
 

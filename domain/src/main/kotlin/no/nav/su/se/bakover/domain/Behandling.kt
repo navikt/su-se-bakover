@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OppdragDto
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -45,7 +44,7 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = utledStatus(),
-        oppdrag = oppdrag.map { it.toDto() }
+        oppdrag = oppdrag
     )
 
     private fun utledStatus(): BehandlingsStatus {
@@ -134,5 +133,5 @@ data class BehandlingDto(
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
     val status: BehandlingsStatus,
-    val oppdrag: List<OppdragDto> = emptyList()
+    val oppdrag: List<Oppdrag> = emptyList()
 )

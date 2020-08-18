@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
-import no.nav.su.se.bakover.client.oppdrag.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
@@ -115,7 +115,7 @@ internal fun buildHttpClients(
 }
 
 internal fun buildSOAPClients(
-    simulering: Simulering = SimuleringStub
+    simulering: SimuleringClient = SimuleringStub
 ): SOAPClients = SOAPClients(simulering)
 
 internal object JwkProviderStub : JwkProvider {

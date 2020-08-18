@@ -29,7 +29,8 @@ internal class PersistentDomainObjectTest {
             behandlingId = UUID.randomUUID(),
             endringskode = Oppdrag.Endringskode.NY,
             oppdragslinjer = emptyList(),
-            oppdragGjelder = "fnr"
+            oppdragGjelder = "fnr",
+            saksbehandler = "saksbehandler"
         )
     }
 }
