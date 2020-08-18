@@ -22,8 +22,8 @@ data class Oppdrag(
     private var attestant: String? = null
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
 
-    fun getAttestant() = attestant
-
+    fun getAttestant(): String? = attestant
+    fun getSimulering(): Simulering? = simulering
     fun addSimulering(simulering: Simulering) {
         this.simulering = persistenceObserver.addSimulering(id, simulering)
     }

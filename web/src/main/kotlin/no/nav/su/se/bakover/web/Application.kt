@@ -167,12 +167,18 @@ internal fun Application.susebakover(
                     """.trimIndent()
                 )
             }
-            log.error(soapClients.toString()) // TODO fu lint
             personRoutes(PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(databaseRepo, BrevService(httpClients.pdfGenerator, PersonFactory(httpClients.personOppslag, httpClients.kodeverk)))
+            behandlingRoutes(
+                repo = databaseRepo,
+                brevService = BrevService(
+                    pdfGenerator = httpClients.pdfGenerator,
+                    personFactory = PersonFactory(httpClients.personOppslag, httpClients.kodeverk)
+                ),
+                simuleringClient = soapClients.simulering
+            )
             vilkårsvurderingRoutes(databaseRepo)
         }
     }

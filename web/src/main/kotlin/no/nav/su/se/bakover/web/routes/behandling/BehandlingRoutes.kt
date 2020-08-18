@@ -16,6 +16,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesUUID
@@ -31,7 +32,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
-    brevService: BrevService
+    brevService: BrevService,
+    simuleringClient: SimuleringClient
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -129,6 +131,32 @@ internal fun Route.behandlingRoutes(
                             ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
                             ifRight = {
                                 call.respondBytes(it, ContentType.Application.Pdf)
+                            }
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    post("$behandlingPath/{behandlingId}/simuler") {
+        call.lesUUID("sakId").fold(
+            ifLeft = { call.svar(BadRequest.message(it)) },
+            ifRight = { sakId ->
+                when (val sak = repo.hentSak(sakId)) {
+                    null -> call.svar(NotFound.message("Fant ikke sak med sakId:$sakId"))
+                    else -> {
+                        call.lesUUID("behandlingId").fold(
+                            ifLeft = { call.svar(BadRequest.message(it)) },
+                            ifRight = { behandlingId ->
+                                sak.fullførBehandling(behandlingId, simuleringClient).fold(
+                                    {
+                                        call.svar(InternalServerError.message(it.name))
+                                    },
+                                    {
+                                        call.svar(OK.jsonBody(it))
+                                    }
+                                )
                             }
                         )
                     }

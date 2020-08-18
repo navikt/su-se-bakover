@@ -4,12 +4,12 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkår.UFØRHET
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -54,8 +54,8 @@ internal class DatabaseRepoTest {
             )
             sak.fullførBehandling(
                 behandling.toDto().id,
-                object : Sak.OppdragClient {
-                    override fun simuler(oppdrag: Oppdrag) = Simulering(
+                object : SimuleringClient {
+                    override fun simulerOppdrag(oppdrag: Oppdrag) = Simulering(
                         gjelderId = "",
                         gjelderNavn = "",
                         datoBeregnet = LocalDate.now(),

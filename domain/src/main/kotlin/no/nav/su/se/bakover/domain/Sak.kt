@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OppdragFactory
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Instant
 import java.util.UUID
@@ -54,15 +54,10 @@ data class Sak(
         return behandling
     }
 
-    // TODO move OTHER interfaces to domain packages
-    interface OppdragClient {
-        fun simuler(oppdrag: Oppdrag): Either<SimuleringFeilet, Simulering>
-    }
-
-    fun fullførBehandling(behandlingId: UUID, oppdragClient: OppdragClient): Either<SimuleringFeilet, Behandling> {
+    fun fullførBehandling(behandlingId: UUID, simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlinger.find { it.toDto().id == behandlingId }!!
         val oppdragTilSimulering = opprettOppdrag(behandling)
-        return oppdragClient.simuler(oppdragTilSimulering).map {
+        return simuleringClient.simulerOppdrag(oppdragTilSimulering).map {
             val oppdrag = persistenceObserver.opprettOppdrag(oppdragTilSimulering)
             oppdrag.addSimulering(it)
             this.oppdrag.add(oppdrag)
