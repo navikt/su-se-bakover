@@ -56,7 +56,7 @@ internal class SakTest {
                 ): List<Vilkårsvurdering> = emptyList()
 
                 override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-                    TODO("Not yet implemented")
+                    throw IllegalStateException()
                 }
             })
         }

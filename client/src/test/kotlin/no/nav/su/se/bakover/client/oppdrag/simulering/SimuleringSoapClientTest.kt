@@ -34,7 +34,7 @@ internal class SimuleringSoapClientTest {
     fun `should return ok simulering`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
@@ -51,7 +51,7 @@ internal class SimuleringSoapClientTest {
     fun `should handle simulering with empty response`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
@@ -67,7 +67,7 @@ internal class SimuleringSoapClientTest {
     fun `should handle known error situations`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
@@ -89,7 +89,7 @@ internal class SimuleringSoapClientTest {
     fun `should handle utenfor åpningstid exception SSLException`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
@@ -106,7 +106,7 @@ internal class SimuleringSoapClientTest {
     fun `should handle utenfor åpningstid exception SocketException`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
@@ -123,7 +123,7 @@ internal class SimuleringSoapClientTest {
     fun `should handle unknown technical errors`() {
         val simuleringService = SimuleringSoapClient(object : SimulerFpService {
             override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                TODO("Not yet implemented")
+                throw IllegalStateException()
             }
 
             override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
