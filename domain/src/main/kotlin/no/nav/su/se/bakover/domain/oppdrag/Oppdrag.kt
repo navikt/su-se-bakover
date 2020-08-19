@@ -30,8 +30,8 @@ data class Oppdrag(
 
     fun sisteOppdragslinje() = oppdragslinjer.last()
 
-    fun førsteDag(): LocalDate = oppdragslinjer.map { it.fom }.min()!!
-    fun sisteDag(): LocalDate = oppdragslinjer.map { it.tom }.max()!!
+    fun førsteDag(): LocalDate = oppdragslinjer.map { it.fom }.minOrNull()!!
+    fun sisteDag(): LocalDate = oppdragslinjer.map { it.tom }.maxOrNull()!!
 
     enum class Endringskode {
         NY, ENDR

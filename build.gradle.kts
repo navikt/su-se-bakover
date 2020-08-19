@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.jetbrains.kotlin.jvm") version "1.4.0"
     id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
     id("com.github.ben-manes.versions") version "0.29.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.14"
@@ -39,7 +39,8 @@ allprojects {
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.0")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -76,7 +77,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "6.2.2"
+        gradleVersion = "6.6"
     }
 
     tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java).configure {

@@ -47,8 +47,8 @@ data class Beregning(
     fun hentPerioder() =
         månedsberegninger.groupBy { it.beløp }.map {
             BeregningsPeriode(
-                fom = it.value.minBy { it.fom }!!.fom,
-                tom = it.value.maxBy { it.tom }!!.tom,
+                fom = it.value.minByOrNull { it.fom }!!.fom,
+                tom = it.value.maxByOrNull { it.tom }!!.tom,
                 beløp = it.key,
                 sats = it.value.first().sats // TODO: Forventer at denne må skrives om uansett
             )
