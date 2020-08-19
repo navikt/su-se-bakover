@@ -40,6 +40,12 @@ data class Oppdrag(
     enum class Utbetalingsfrekvens {
         MND
     }
+
+    object Opprettet : Comparator<Oppdrag> {
+        override fun compare(o1: Oppdrag?, o2: Oppdrag?): Int {
+            return (o1!!.opprettet.toEpochMilli() - o2!!.opprettet.toEpochMilli()).toInt()
+        }
+    }
 }
 
 interface OppdragPersistenceObserver : PersistenceObserver {

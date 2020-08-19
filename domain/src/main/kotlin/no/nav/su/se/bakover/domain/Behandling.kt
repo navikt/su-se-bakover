@@ -44,7 +44,7 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = utledStatus(),
-        oppdrag = oppdrag.lastOrNull()
+        oppdrag = oppdrag.sortedWith(Oppdrag.Opprettet).lastOrNull()
     )
 
     private fun utledStatus(): BehandlingsStatus {
