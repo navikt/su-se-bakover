@@ -32,9 +32,10 @@ internal class SimuleringSoapClient(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun simulerOppdrag(oppdrag: Oppdrag): Either<SimuleringFeilet, Simulering> {
+    override fun simulerOppdrag(oppdrag: Oppdrag, oppdragGjelder: String): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
-            oppdrag
+            oppdrag,
+            oppdragGjelder
         ).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {

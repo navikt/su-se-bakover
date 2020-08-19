@@ -19,13 +19,8 @@ data class OppdragJson(
     val opprettet: Instant,
     val sakId: String,
     val behandlingId: String,
-    val endringskode: String,
     val simulering: SimuleringJson?,
-    val utbetalingsfrekvens: String,
-    val oppdragGjelder: String,
     val oppdragslinjer: List<OppdragslinjeJson>,
-    val saksbehandler: String,
-    val attestant: String?
 ) {
     companion object {
         fun Oppdrag.toJson() =
@@ -35,12 +30,7 @@ data class OppdragJson(
                 sakId = this.sakId.toString(),
                 behandlingId = this.behandlingId.toString(),
                 oppdragslinjer = this.oppdragslinjer.toOppdragslinjeJson(),
-                attestant = this.getAttestant(),
-                endringskode = this.endringskode.name,
                 simulering = this.getSimulering()?.toSimuleringJson(),
-                utbetalingsfrekvens = this.utbetalingsfrekvens.name,
-                oppdragGjelder = this.oppdragGjelder,
-                saksbehandler = this.saksbehandler
             )
     }
 
@@ -49,14 +39,8 @@ data class OppdragJson(
         val opprettet: Instant,
         val fom: LocalDate,
         val tom: LocalDate,
-        val endringskode: String,
-        var refOppdragslinjeId: String?,
-        val refSakId: String,
-        val beløp: Int,
-        val klassekode: String,
-        var status: String?,
-        var statusFom: LocalDate?,
-        val beregningsfrekvens: String
+        var forrigeOppdragslinjeId: String?,
+        val beløp: Int
     ) {
         companion object {
             fun List<Oppdragslinje>.toOppdragslinjeJson(): List<OppdragslinjeJson> = this.map {
@@ -65,14 +49,8 @@ data class OppdragJson(
                     opprettet = it.opprettet,
                     fom = it.fom,
                     tom = it.tom,
-                    endringskode = it.endringskode.toString(),
-                    refOppdragslinjeId = it.refOppdragslinjeId.toString(),
-                    refSakId = it.refSakId.toString(),
-                    beløp = it.beløp,
-                    klassekode = it.klassekode.name,
-                    status = it.status?.name,
-                    statusFom = it.statusFom,
-                    beregningsfrekvens = it.beregningsfrekvens.name
+                    forrigeOppdragslinjeId = it.forrigeOppdragslinjeId.toString(),
+                    beløp = it.beløp
                 )
             }
         }

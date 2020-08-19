@@ -10,35 +10,11 @@ data class Oppdragslinje(
     val opprettet: Instant = now(),
     val fom: LocalDate,
     val tom: LocalDate,
-    val endringskode: Endringskode = Endringskode.NY,
-    var refOppdragslinjeId: UUID?,
-    val refSakId: UUID,
-    val beløp: Int,
-    val klassekode: Klassekode = Klassekode.KLASSE,
-    var status: Status? = null,
-    var statusFom: LocalDate? = null,
-    val beregningsfrekvens: Beregningsfrekvens = Beregningsfrekvens.MND
+    var forrigeOppdragslinjeId: UUID?,
+    val beløp: Int
 
 ) {
     fun link(other: Oppdragslinje) {
-        refOppdragslinjeId = other.id
-    }
-    enum class Endringskode {
-        NY
-    }
-
-    enum class Beregningsfrekvens {
-        MND
-    }
-
-    enum class Status {
-        OPPH,
-        HVIL,
-        SPER,
-        REAK
-    }
-
-    enum class Klassekode {
-        KLASSE // TODO decide with OS
+        forrigeOppdragslinjeId = other.id
     }
 }

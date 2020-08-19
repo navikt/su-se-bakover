@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Opprettet
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -37,6 +38,7 @@ data class Behandling constructor(
         INNVILGET,
         AVSLÅTT
     }
+
     override fun toDto() = BehandlingDto(
         id = id,
         opprettet = opprettet,
@@ -44,8 +46,10 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = utledStatus(),
-        oppdrag = oppdrag.sortedWith(Oppdrag.Opprettet).lastOrNull()
+        oppdrag = gjeldendeOppdrag()
     )
+
+    fun gjeldendeOppdrag() = oppdrag.sortedWith(Opprettet).lastOrNull()
 
     private fun utledStatus(): BehandlingsStatus {
         return when {

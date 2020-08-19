@@ -5,9 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Endringskode.NY
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Klassekode.KLASSE
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
@@ -43,7 +41,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val actual = simuleringService.simulerOppdrag(createOppdrag())
+        val actual = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
         actual.isRight() shouldBe true
     }
 
@@ -59,7 +57,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createOppdrag())
+        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
@@ -80,7 +78,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createOppdrag())
+        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
@@ -97,7 +95,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createOppdrag())
+        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -114,7 +112,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createOppdrag())
+        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -131,7 +129,7 @@ internal class SimuleringSoapClientTest {
             }
         })
 
-        val response = simuleringService.simulerOppdrag(createOppdrag())
+        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
@@ -139,23 +137,15 @@ internal class SimuleringSoapClientTest {
     private fun createOppdrag(): Oppdrag {
         val sakId = UUID.randomUUID()
         return Oppdrag(
-            oppdragGjelder = "12345678910",
-            endringskode = NY,
-            saksbehandler = "saksbehandler",
             sakId = sakId,
             behandlingId = UUID.randomUUID(),
             oppdragslinjer = listOf(
                 Oppdragslinje(
                     id = UUID.randomUUID(),
-                    endringskode = Oppdragslinje.Endringskode.NY,
-                    klassekode = KLASSE,
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     beløp = 405,
-                    refOppdragslinjeId = null,
-                    refSakId = sakId,
-                    statusFom = 1.januar(2020),
-                    status = null
+                    forrigeOppdragslinjeId = null
                 )
             )
         )

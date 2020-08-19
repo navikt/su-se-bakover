@@ -12,11 +12,6 @@ import no.nav.su.se.bakover.domain.Behandling.BehandlingOppdragsinformasjon
 import no.nav.su.se.bakover.domain.Sak.SakOppdragsinformasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats.HØY
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Endringskode.ENDR
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Endringskode.NY
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Beregningsfrekvens.MND
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Endringskode
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Klassekode.KLASSE
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -50,7 +45,7 @@ internal class OppdragFactoryTest {
 
         val first = actual.oppdragslinjer.first()
         actual shouldBe expectedOppdrag(
-            actual, NY,
+            actual,
             listOf(
                 expectedOppdragslinje(
                     id = first.id,
@@ -58,7 +53,7 @@ internal class OppdragFactoryTest {
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     beløp = 5600,
-                    refOppdragslinjeId = null
+                    forrigeOppdragslinjeId = null
                 )
             )
         )
@@ -96,7 +91,7 @@ internal class OppdragFactoryTest {
             fom = 1.januar(2019),
             tom = 31.desember(2019),
             beløp = 5500,
-            refOppdragslinjeId = null
+            forrigeOppdragslinjeId = null
         )
 
         val actualOppdrag = OppdragFactory(
@@ -106,12 +101,9 @@ internal class OppdragFactoryTest {
                 sisteOppdrag = Oppdrag(
                     sakId = sakId,
                     behandlingId = tidligereBehandlingId,
-                    endringskode = NY,
                     oppdragslinjer = listOf(
                         eksisterendeOppdragslinje
                     ),
-                    oppdragGjelder = fnr,
-                    saksbehandler = "saksbehandler"
                 ),
                 fnr = "12345678910"
             )
@@ -119,7 +111,6 @@ internal class OppdragFactoryTest {
 
         actualOppdrag shouldBe expectedOppdrag(
             actual = actualOppdrag,
-            endringskode = ENDR,
             oppdragslinjer = listOf(
                 expectedOppdragslinje(
                     id = actualOppdrag.oppdragslinjer[0].id,
@@ -127,7 +118,7 @@ internal class OppdragFactoryTest {
                     fom = 1.januar(2020),
                     tom = 31.mai(2020),
                     beløp = 5600,
-                    refOppdragslinjeId = eksisterendeOppdragslinje.id
+                    forrigeOppdragslinjeId = eksisterendeOppdragslinje.id
                 ),
                 expectedOppdragslinje(
                     id = actualOppdrag.oppdragslinjer[1].id,
@@ -135,7 +126,7 @@ internal class OppdragFactoryTest {
                     fom = 1.juni(2020),
                     tom = 31.august(2020),
                     beløp = 5700,
-                    refOppdragslinjeId = actualOppdrag.oppdragslinjer[0].id
+                    forrigeOppdragslinjeId = actualOppdrag.oppdragslinjer[0].id
                 ),
                 expectedOppdragslinje(
                     id = actualOppdrag.oppdragslinjer[2].id,
@@ -143,40 +134,31 @@ internal class OppdragFactoryTest {
                     fom = 1.september(2020),
                     tom = 31.desember(2020),
                     beløp = 5800,
-                    refOppdragslinjeId = actualOppdrag.oppdragslinjer[1].id
+                    forrigeOppdragslinjeId = actualOppdrag.oppdragslinjer[1].id
                 )
             )
         )
     }
 
-    private fun expectedOppdrag(actual: Oppdrag, endringskode: Oppdrag.Endringskode, oppdragslinjer: List<Oppdragslinje>): Oppdrag {
+    private fun expectedOppdrag(actual: Oppdrag, oppdragslinjer: List<Oppdragslinje>): Oppdrag {
         return Oppdrag(
             id = actual.id,
             opprettet = actual.opprettet,
             sakId = sakId,
             behandlingId = behandlingId,
-            endringskode = endringskode,
             simulering = null,
-            oppdragGjelder = fnr,
             oppdragslinjer = oppdragslinjer,
-            saksbehandler = "saksbehandler"
         )
     }
 
-    private fun expectedOppdragslinje(id: UUID, opprettet: Instant, fom: LocalDate, tom: LocalDate, beløp: Int, refOppdragslinjeId: UUID?): Oppdragslinje {
+    private fun expectedOppdragslinje(id: UUID, opprettet: Instant, fom: LocalDate, tom: LocalDate, beløp: Int, forrigeOppdragslinjeId: UUID?): Oppdragslinje {
         return Oppdragslinje(
             id = id,
             opprettet = opprettet,
             fom = fom,
             tom = tom,
-            endringskode = Endringskode.NY,
-            refOppdragslinjeId = refOppdragslinjeId,
-            refSakId = sakId,
-            beløp = beløp,
-            klassekode = KLASSE,
-            status = null,
-            statusFom = null,
-            beregningsfrekvens = MND
+            forrigeOppdragslinjeId = forrigeOppdragslinjeId,
+            beløp = beløp
         )
     }
 }

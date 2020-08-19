@@ -57,7 +57,7 @@ data class Sak(
     fun fullførBehandling(behandlingId: UUID, simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlinger.find { it.toDto().id == behandlingId }!!
         val oppdragTilSimulering = opprettOppdrag(behandling)
-        return simuleringClient.simulerOppdrag(oppdragTilSimulering).map {
+        return simuleringClient.simulerOppdrag(oppdragTilSimulering, fnr.toString()).map {
             val oppdrag = persistenceObserver.opprettOppdrag(oppdragTilSimulering)
             oppdrag.addSimulering(it)
             this.oppdrag.add(oppdrag)

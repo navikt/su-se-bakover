@@ -3,10 +3,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Endringskode
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Endringskode.NY
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje.Klassekode.KLASSE
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg.T
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
@@ -20,8 +17,6 @@ internal class SimuleringRequestBuilderTest {
     private companion object {
         private const val FAGOMRÅDE = "SU"
         private const val ENDRINGSKODE_NY = "NY"
-        private const val ENDRINGSKODE_ENDRET = "ENDR"
-        private const val ENDRINGSKODE_UENDRET = "UEND"
         private const val PERSON = "12345678911"
         private const val FAGSYSTEMID = "supstonad"
         private const val BELØP = 1000
@@ -38,38 +33,27 @@ internal class SimuleringRequestBuilderTest {
         val oppdragslinjeid2 = UUID.randomUUID()
         val eksisterendeOppdragslinjeid = UUID.randomUUID()
         val simuleringRequest = createOppdrag(
-            Endringskode.ENDR,
             listOf(
                 Oppdragslinje(
                     id = oppdragslinjeid1,
-                    endringskode = NY,
-                    klassekode = KLASSE,
                     fom = 1.januar(2020),
                     tom = 14.januar(2020),
                     beløp = BELØP,
-                    refOppdragslinjeId = eksisterendeOppdragslinjeid,
-                    refSakId = sakId,
-                    statusFom = null,
-                    status = null
+                    forrigeOppdragslinjeId = eksisterendeOppdragslinjeid,
                 ),
                 Oppdragslinje(
                     id = oppdragslinjeid2,
-                    endringskode = NY,
-                    klassekode = KLASSE,
                     fom = 15.januar(2020),
                     tom = 31.januar(2020),
                     beløp = BELØP,
-                    refOppdragslinjeId = oppdragslinjeid1,
-                    refSakId = sakId,
-                    statusFom = null,
-                    status = null
+                    forrigeOppdragslinjeId = oppdragslinjeid1,
                 )
             )
         )
         simuleringRequest.request.simuleringsPeriode.datoSimulerFom shouldBe 1.januar(2020).format(tidsstempel)
         simuleringRequest.request.simuleringsPeriode.datoSimulerTom shouldBe 31.januar(2020).format(tidsstempel)
 
-        assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_ENDRET)
+        assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_NY)
         assertOppdragslinje(
             oppdrag = simuleringRequest.request.oppdrag,
             index = 0,
@@ -97,19 +81,16 @@ internal class SimuleringRequestBuilderTest {
     }
 
     private fun createOppdrag(
-        endringskode: Endringskode,
         oppdragslinjer: List<Oppdragslinje>
     ): SimulerBeregningRequest {
 
         val builder = SimuleringRequestBuilder(
             Oppdrag(
-                oppdragGjelder = PERSON,
-                endringskode = endringskode,
-                saksbehandler = SAKSBEHANDLER,
                 behandlingId = UUID.randomUUID(),
                 oppdragslinjer = oppdragslinjer,
                 sakId = sakId
-            )
+            ),
+            PERSON
         )
         return builder.build()
     }

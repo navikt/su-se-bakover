@@ -13,16 +13,10 @@ data class Oppdrag(
     override val opprettet: Instant = now(),
     val sakId: UUID,
     val behandlingId: UUID,
-    val endringskode: Endringskode,
     private var simulering: Simulering? = null,
-    val utbetalingsfrekvens: Utbetalingsfrekvens = Utbetalingsfrekvens.MND,
-    val oppdragGjelder: String,
     val oppdragslinjer: List<Oppdragslinje>,
-    val saksbehandler: String,
-    private var attestant: String? = null
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
 
-    fun getAttestant(): String? = attestant
     fun getSimulering(): Simulering? = simulering
     fun addSimulering(simulering: Simulering) {
         this.simulering = persistenceObserver.addSimulering(id, simulering)
@@ -32,14 +26,6 @@ data class Oppdrag(
 
     fun førsteDag(): LocalDate = oppdragslinjer.map { it.fom }.minOrNull()!!
     fun sisteDag(): LocalDate = oppdragslinjer.map { it.tom }.maxOrNull()!!
-
-    enum class Endringskode {
-        NY, ENDR
-    }
-
-    enum class Utbetalingsfrekvens {
-        MND
-    }
 
     object Opprettet : Comparator<Oppdrag> {
         override fun compare(o1: Oppdrag?, o2: Oppdrag?): Int {

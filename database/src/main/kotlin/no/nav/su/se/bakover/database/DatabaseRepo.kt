@@ -70,19 +70,14 @@ internal class DatabaseRepo(
 
     override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
         (
-            "insert into oppdrag (id, opprettet, sakId, behandlingId, endringskode, utbetalingsfrekvens, oppdragGjelder, saksbehandler, attestant) " +
-                "values (:id, :opprettet, :sakId, :behandlingId, :endringskode, :utbetalingsfrekvens, :oppdragGjelder, :saksbehandler, :attestant)"
+            "insert into oppdrag (id, opprettet, sakId, behandlingId) " +
+                "values (:id, :opprettet, :sakId, :behandlingId)"
             ).oppdatering(
             mapOf(
                 "id" to oppdrag.id,
                 "opprettet" to oppdrag.opprettet,
                 "sakId" to oppdrag.sakId,
-                "behandlingId" to oppdrag.behandlingId,
-                "endringskode" to oppdrag.endringskode.name,
-                "utbetalingsfrekvens" to oppdrag.utbetalingsfrekvens.name,
-                "oppdragGjelder" to oppdrag.oppdragGjelder,
-                "saksbehandler" to oppdrag.saksbehandler,
-                "attestant" to oppdrag.getAttestant()
+                "behandlingId" to oppdrag.behandlingId
             )
         )
         oppdrag.oppdragslinjer.forEach { opprettOppdragslinjer(oppdrag.id, it) }
@@ -92,23 +87,17 @@ internal class DatabaseRepo(
 
     private fun opprettOppdragslinjer(oppdragId: UUID, oppdragslinje: Oppdragslinje) {
         (
-            "insert into oppdragslinje (id, opprettet, fom, tom, endringskode, oppdragId, refOppdragslinjeId, refSakId, beløp, klassekode, status, statusFom, beregningsfrekvens) " +
-                "values (:id, :opprettet, :fom, :tom, :endringskode, :oppdragId, :refOppdragslinjeId, :refSakId, :belop, :klassekode, :status, :statusFom, :beregningsfrekvens)"
+            "insert into oppdragslinje (id, opprettet, fom, tom, oppdragId, forrigeOppdragslinjeId, beløp) " +
+                "values (:id, :opprettet, :fom, :tom, :oppdragId, :forrigeOppdragslinjeId, :belop)"
             ).oppdatering(
             mapOf(
                 "id" to oppdragslinje.id,
                 "opprettet" to oppdragslinje.opprettet,
                 "fom" to oppdragslinje.fom,
                 "tom" to oppdragslinje.tom,
-                "endringskode" to oppdragslinje.endringskode.name,
                 "oppdragId" to oppdragId,
-                "refOppdragslinjeId" to oppdragslinje.refOppdragslinjeId,
-                "refSakId" to oppdragslinje.refSakId,
+                "forrigeOppdragslinjeId" to oppdragslinje.forrigeOppdragslinjeId,
                 "belop" to oppdragslinje.beløp,
-                "klassekode" to oppdragslinje.klassekode.name,
-                "status" to oppdragslinje.status,
-                "statusFom" to oppdragslinje.statusFom,
-                "beregningsfrekvens" to oppdragslinje.beregningsfrekvens.name
             )
         )
     }
@@ -145,13 +134,8 @@ internal class DatabaseRepo(
             opprettet = instant("opprettet"),
             sakId = uuid("sakId"),
             behandlingId = uuid("behandlingId"),
-            endringskode = Oppdrag.Endringskode.valueOf(string("endringskode")),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
-            utbetalingsfrekvens = Oppdrag.Utbetalingsfrekvens.valueOf(string("utbetalingsfrekvens")),
-            oppdragGjelder = string("oppdragGjelder"),
             oppdragslinjer = hentOppdragslinjer(oppdragId, session),
-            saksbehandler = string("saksbehandler"),
-            attestant = stringOrNull("attestant")
         )
     }
 
@@ -169,14 +153,8 @@ internal class DatabaseRepo(
             fom = localDate("fom"),
             tom = localDate("tom"),
             opprettet = instant("opprettet"),
-            endringskode = Oppdragslinje.Endringskode.valueOf(string("endringskode")),
-            refOppdragslinjeId = stringOrNull("refOppdragslinjeId")?.let { uuid("refOppdragslinjeId") },
-            refSakId = uuid("refSakId"),
-            beløp = int("beløp"),
-            klassekode = Oppdragslinje.Klassekode.valueOf(string("klassekode")),
-            status = stringOrNull("status")?.let { Oppdragslinje.Status.valueOf(it) },
-            statusFom = localDateOrNull("statusFom"),
-            beregningsfrekvens = Oppdragslinje.Beregningsfrekvens.valueOf(string("beregningsfrekvens"))
+            forrigeOppdragslinjeId = stringOrNull("forrigeOppdragslinjeId")?.let { uuid("forrigeOppdragslinjeId") },
+            beløp = int("beløp")
         )
     }
 

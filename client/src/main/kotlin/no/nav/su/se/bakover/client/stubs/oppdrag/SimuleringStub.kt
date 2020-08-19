@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Utbetaling
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerOppdrag(oppdrag: Oppdrag) =
+    override fun simulerOppdrag(oppdrag: Oppdrag, oppdragGjelder: String) =
         Simulering(
             gjelderId = "gjelderId",
             gjelderNavn = "gjelderNavn",

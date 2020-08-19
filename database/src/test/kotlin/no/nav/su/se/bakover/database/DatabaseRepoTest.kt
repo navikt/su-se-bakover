@@ -55,7 +55,7 @@ internal class DatabaseRepoTest {
             sak.fullførBehandling(
                 behandling.toDto().id,
                 object : SimuleringClient {
-                    override fun simulerOppdrag(oppdrag: Oppdrag) = Simulering(
+                    override fun simulerOppdrag(oppdrag: Oppdrag, oppdragGjelder: String) = Simulering(
                         gjelderId = "",
                         gjelderNavn = "",
                         datoBeregnet = LocalDate.now(),
