@@ -91,11 +91,11 @@ internal class BehandlingRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
-                val beregningJson = deserialize<BeregningJson>(response.content!!)
-                beregningJson.fom shouldBe fom.toString()
-                beregningJson.tom shouldBe tom.toString()
-                beregningJson.sats shouldBe Sats.HØY.name
-                beregningJson.månedsberegninger shouldHaveSize 12
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.beregning!!.fom shouldBe fom.toString()
+                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
             }
         }
     }

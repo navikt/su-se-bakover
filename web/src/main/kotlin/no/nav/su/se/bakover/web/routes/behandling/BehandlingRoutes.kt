@@ -97,16 +97,15 @@ internal fun Route.behandlingRoutes(
                         if (body.valid()) {
                             when (val behandling = repo.hentBehandling(behandlingId)) {
                                 null -> call.svar(NotFound.message("Fant ikke behandling med id:$behandlingId"))
-                                else -> call.svar(
-                                    Created.jsonBody(
-                                        behandling.opprettBeregning(
-                                            fom = body.fom,
-                                            tom = body.tom,
-                                            sats = Sats.valueOf(body.sats),
-                                            fradrag = body.fradrag.map { it.toFradrag() }
-                                        )
+                                else -> {
+                                    behandling.opprettBeregning(
+                                        fom = body.fom,
+                                        tom = body.tom,
+                                        sats = Sats.valueOf(body.sats),
+                                        fradrag = body.fradrag.map { it.toFradrag() }
                                     )
-                                )
+                                    call.svar(Created.jsonBody(behandling))
+                                }
                             }
                         } else {
                             call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
