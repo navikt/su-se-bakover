@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -55,10 +56,16 @@ internal class SakTest {
                 ): List<Vilkårsvurdering> = emptyList()
 
                 override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-                    TODO("Not yet implemented")
+                    throw IllegalStateException()
                 }
             })
         }
+
+        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag = Oppdrag(
+            sakId = UUID.randomUUID(),
+            behandlingId = UUID.randomUUID(),
+            oppdragslinjer = emptyList(),
+        )
 
         data class NySøknadParams(
             val sakId: UUID,

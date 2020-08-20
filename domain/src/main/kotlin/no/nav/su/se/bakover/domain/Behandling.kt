@@ -1,28 +1,34 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERING
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
+import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
+import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Opprettet
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-class Behandling constructor(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
+data class Behandling constructor(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
-    private val beregninger: MutableList<Beregning> = mutableListOf()
-) : PersistentDomainObject<BehandlingPersistenceObserver>(id, opprettet), DtoConvertable<BehandlingDto> {
+    private val beregninger: MutableList<Beregning> = mutableListOf(),
+    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
+) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
 
     enum class BehandlingsStatus {
         VILKÅRSVURDERING,
@@ -32,14 +38,18 @@ class Behandling constructor(
         INNVILGET,
         AVSLÅTT
     }
+
     override fun toDto() = BehandlingDto(
         id = id,
         opprettet = opprettet,
-        vilkårsvurderinger = vilkårsvurderinger.map { it.toDto() },
+        vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
-        status = utledStatus()
+        status = utledStatus(),
+        oppdrag = gjeldendeOppdrag()
     )
+
+    fun gjeldendeOppdrag() = oppdrag.sortedWith(Opprettet).lastOrNull()
 
     private fun utledStatus(): BehandlingsStatus {
         return when {
@@ -70,6 +80,10 @@ class Behandling constructor(
         return vilkårsvurderinger
     }
 
+    fun addOppdrag(oppdrag: Oppdrag) {
+        this.oppdrag.add(oppdrag)
+    }
+
     fun opprettBeregning(
         fom: LocalDate,
         tom: LocalDate,
@@ -88,6 +102,16 @@ class Behandling constructor(
         beregninger.add(beregning)
         return beregning
     }
+
+    internal data class BehandlingOppdragsinformasjon(
+        val behandlingId: UUID,
+        val perioder: List<BeregningsPeriode>
+    )
+
+    internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
+        behandlingId = id,
+        perioder = gjeldendeBeregning().hentPerioder()
+    )
 
     private fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
@@ -112,5 +136,6 @@ data class BehandlingDto(
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
-    val status: BehandlingsStatus
+    val status: BehandlingsStatus,
+    val oppdrag: Oppdrag?
 )

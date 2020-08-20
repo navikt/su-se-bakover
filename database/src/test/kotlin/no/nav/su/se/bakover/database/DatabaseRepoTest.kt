@@ -2,82 +2,47 @@ package no.nav.su.se.bakover.database
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
+import kotliquery.sessionOf
+import kotliquery.using
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.PersistenceObserver
+import no.nav.su.se.bakover.domain.PersistenceObserverException
+import no.nav.su.se.bakover.domain.PersistentDomainObject
+import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Vilkår
+import no.nav.su.se.bakover.domain.Vilkår.FLYKTNING
+import no.nav.su.se.bakover.domain.Vilkår.UFØRHET
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
+import no.nav.su.se.bakover.domain.VoidObserver
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.Month
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class DatabaseRepoTest {
+
     private val repo = DatabaseRepo(EmbeddedDatabase.instance())
-
-    private fun enSak() =
-        repo.opprettSak(FnrGenerator.random()).also { it.nySøknad(SøknadInnholdTestdataBuilder.build()) }
-
-    private fun enBehandling(): Behandling {
-        val sak = enSak()
-        return sak.opprettSøknadsbehandling(sak.toDto().søknader.first().id)
-    }
-
-    @Test
-    fun `lagre og hent behandling fra databasen`() {
-        withMigratedDb {
-            val behandling = enBehandling()
-            val behandlingDto = behandling.toDto()
-            val fromRepo = repo.hentBehandling(behandlingDto.id)!!
-            assertNotNull(fromRepo)
-            assertEquals(behandling, fromRepo)
-            assertFalse(fromRepo.toDto().vilkårsvurderinger.isEmpty())
-        }
-    }
-
-    @Test
-    fun `Sjekk at vi kan oppdatere vilkårsvurdering i en behandling`() {
-        withMigratedDb {
-            val behandling = enBehandling()
-            val beforeUpdate = behandling.toDto().vilkårsvurderinger.first()
-
-            val fromFunction = behandling.oppdaterVilkårsvurderinger(
-                listOf(
-                    Vilkårsvurdering(
-                        id = beforeUpdate.id,
-                        vilkår = Vilkår.UFØRHET,
-                        begrunnelse = "begrunnelse",
-                        status = Vilkårsvurdering.Status.IKKE_OK
-                    )
-                )
-            ).first().toDto()
-
-            val fromRepo = repo.hentVilkårsvurdering(beforeUpdate.id)!!.toDto()
-
-            assertNotEquals(beforeUpdate, fromFunction)
-            assertNotEquals(beforeUpdate, fromRepo)
-            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromFunction.status.name)
-            assertEquals(Vilkårsvurdering.Status.IKKE_OK.name, fromRepo.status.name)
-            assertEquals("begrunnelse", fromFunction.begrunnelse)
-            assertEquals("begrunnelse", fromRepo.begrunnelse)
-            assertEquals(fromFunction.id, fromRepo.id)
-            assertEquals(fromFunction.vilkår, fromRepo.vilkår)
-        }
-    }
+    private val FNR = FnrGenerator.random()
 
     @Test
     fun `unknown entities`() {
         withMigratedDb {
             assertNull(repo.hentSak(FnrGenerator.random()))
             assertNull(repo.hentSak(UUID.randomUUID()))
-            assertNull(repo.hentVilkårsvurdering(UUID.randomUUID()))
             assertTrue(repo.hentVilkårsvurderinger(UUID.randomUUID()).isEmpty())
             assertNull(repo.hentBehandling(UUID.randomUUID()))
             assertNull(repo.hentSøknad(UUID.randomUUID()))
@@ -85,33 +50,270 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent beregning`() {
+    fun `opprett og hent sak`() {
         withMigratedDb {
-            val behandling = enBehandling()
-            val fromObject = behandling.opprettBeregning(
-                fom = LocalDate.of(2018, Month.JANUARY, 1),
-                tom = LocalDate.of(2018, Month.DECEMBER, 31)
-            ).toDto()
-            val fromRepo = repo.hentBeregninger(behandling.toDto().id).first().toDto()
+            val opprettet = repo.opprettSak(FNR)
+            val hentetId = repo.hentSak(opprettet.id)
+            val hentetFnr = repo.hentSak(FNR)
 
-            behandling.toDto().beregning shouldNotBe null
+            opprettet shouldBe hentetId
+            hentetId shouldBe hentetFnr
 
-            fromObject.id shouldBe fromRepo.id
-            fromObject.fom shouldBe fromRepo.fom
-            fromObject.tom shouldBe fromRepo.tom
-            fromObject.sats shouldBe fromRepo.sats
-            fromObject.månedsberegninger shouldHaveSize fromRepo.månedsberegninger.size
+            opprettet.fnr shouldBe FNR
 
-            val firstMonth = fromRepo.månedsberegninger.first()
-            val lastMonth = fromObject.månedsberegninger.last()
-            fromRepo.månedsberegninger shouldHaveSize 12
-            firstMonth.fom shouldBe fromRepo.fom
-            firstMonth.tom shouldBe LocalDate.of(2018, Month.JANUARY, 31)
-            firstMonth.grunnbeløp shouldBe 93634
-            firstMonth.sats shouldBe Sats.HØY
-            firstMonth.beløp shouldNotBe lastMonth.beløp
-            lastMonth.tom shouldBe fromRepo.tom
-            lastMonth.grunnbeløp shouldBe 96883
+            listOf(opprettet, hentetId, hentetFnr).forEach {
+                assertPersistenceObserverAssigned(it!!, sakPersistenceObserver())
+            }
         }
     }
+
+    @Test
+    fun `opprett og hent søknad`() {
+        withMigratedDb {
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val sak = insertSak(FNR)
+                val søknad = insertSøknad(sak.id)
+                val hentetId = repo.hentSøknad(søknad.id)
+
+                søknad shouldBe hentetId
+                assertNoPersistenceObserverAssigned(søknad, voidObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `opprett og hent behandling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            val hentet = repo.hentBehandling(behandling.id)
+
+            behandling shouldBe hentet
+            listOf(behandling, hentet).forEach {
+                assertPersistenceObserverAssigned(it!!, behandlingPersistenceObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `opprett og hent vilkårsvurderinger`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val vilkårsvurderinger = insertVilkårsvurderinger(behandling.id)
+
+            val hentet = repo.hentVilkårsvurderinger(behandling.id)
+
+            vilkårsvurderinger shouldBe hentet
+            vilkårsvurderinger shouldHaveSize 2
+
+            (vilkårsvurderinger + hentet).forEach {
+                assertPersistenceObserverAssigned(it, vilkårsvurderingPersistenceObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `oppdater vilkårsvurderinger`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val vilkårsvurderinger = insertVilkårsvurderinger(behandling.id)
+            val uførhet = vilkårsvurderinger.first { it.vilkår == UFØRHET }
+
+            val oppdatert = repo.oppdaterVilkårsvurdering(
+                Vilkårsvurdering(
+                    id = uførhet.id,
+                    vilkår = UFØRHET,
+                    begrunnelse = "OK",
+                    status = Vilkårsvurdering.Status.OK
+                )
+            )
+
+            val hentet = repo.hentVilkårsvurderinger(behandling.id)
+                .first { it.vilkår == UFØRHET }
+
+            oppdatert shouldBe hentet
+        }
+    }
+
+    @Test
+    fun `opprett og hent beregning`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val beregning = insertBeregning(behandling.id)
+
+            val hentet = repo.hentBeregninger(behandling.id)
+                .first()
+
+            beregning shouldBe hentet
+            listOf(beregning, hentet).forEach {
+                assertNoPersistenceObserverAssigned(it, voidObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `opprett og hent oppdrag`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            val oppdrag = insertOppdrag(sak.id, behandling.id)
+
+            val hentet = repo.hentOppdrag(oppdrag.id)
+
+            oppdrag shouldBe hentet
+            oppdrag.sakId shouldBe sak.id
+            oppdrag.behandlingId shouldBe behandling.id
+
+            listOf(oppdrag, hentet).forEach {
+                assertPersistenceObserverAssigned(it!!, oppdragPersistenceObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `opprett og hent oppdragslinjer`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val oppdrag = insertOppdrag(sak.id, behandling.id)
+            val oppdragslinje = insertOppdragslinje(oppdrag.id)
+
+            val hentet = repo.hentOppdrag(oppdrag.id)!!.oppdragslinjer.first()
+
+            oppdragslinje shouldBe hentet
+        }
+    }
+
+    private fun sakPersistenceObserver() = object : SakPersistenceObserver {
+        override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad {
+            throw NotImplementedError()
+        }
+
+        override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling): Behandling {
+            throw NotImplementedError()
+        }
+
+        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
+            throw NotImplementedError()
+        }
+    }
+
+    private fun voidObserver() = object : VoidObserver {}
+
+    private fun behandlingPersistenceObserver() = object : BehandlingPersistenceObserver {
+        override fun opprettVilkårsvurderinger(
+            behandlingId: UUID,
+            vilkårsvurderinger: List<Vilkårsvurdering>
+        ): List<Vilkårsvurdering> {
+            throw NotImplementedError()
+        }
+
+        override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
+            throw NotImplementedError()
+        }
+    }
+
+    private fun vilkårsvurderingPersistenceObserver() = object : VilkårsvurderingPersistenceObserver {
+        override fun oppdaterVilkårsvurdering(vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
+            throw NotImplementedError()
+        }
+    }
+
+    private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
+        override fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering {
+            throw NotImplementedError()
+        }
+    }
+
+    private fun <T : PersistenceObserver> assertPersistenceObserverAssigned(
+        target: PersistentDomainObject<T>,
+        observer: T
+    ) {
+        assertThrows<PersistenceObserverException> {
+            target.addObserver(observer)
+        }.also {
+            it.message shouldBe "There should only be one instance of type class no.nav.su.se.bakover.domain.PersistenceObserver assigned to an object!"
+        }
+    }
+
+    private fun <T : PersistenceObserver> assertNoPersistenceObserverAssigned(
+        target: PersistentDomainObject<T>,
+        observer: T
+    ) {
+        assertDoesNotThrow {
+            target.addObserver(observer)
+        }
+    }
+
+    private fun insertSak(fnr: Fnr = FNR) = repo.opprettSak(fnr)
+    private fun insertSøknad(sakId: UUID) = repo.opprettSøknad(
+        sakId,
+        Søknad(
+            id = UUID.randomUUID(),
+            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        )
+    )
+
+    private fun insertBehandling(sakId: UUID, søknad: Søknad) = repo.opprettSøknadsbehandling(
+        sakId = sakId,
+        behandling = Behandling(
+            søknad = søknad
+        )
+    )
+
+    private fun insertOppdrag(sakId: UUID, behandlingId: UUID) = repo.opprettOppdrag(
+        oppdrag = Oppdrag(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            oppdragslinjer = emptyList()
+        )
+    )
+
+    private fun insertOppdragslinje(oppdragId: UUID) = repo.opprettOppdragslinje(
+        oppdragId = oppdragId,
+        oppdragslinje = Oppdragslinje(
+            fom = 1.januar(2020),
+            tom = 31.desember(2020),
+            forrigeOppdragslinjeId = null,
+            beløp = 25000
+        )
+    )
+
+    private fun insertBeregning(behandlingId: UUID) = repo.opprettBeregning(
+        behandlingId = behandlingId,
+        beregning = Beregning(
+            fom = 1.januar(2020),
+            tom = 31.desember(2020),
+            sats = Sats.HØY,
+            fradrag = emptyList()
+        )
+    )
+
+    private fun insertVilkårsvurderinger(behandlingId: UUID) =
+        repo.opprettVilkårsvurderinger(
+            behandlingId = behandlingId,
+            vilkårsvurderinger = listOf(
+                Vilkårsvurdering(
+                    vilkår = UFØRHET,
+                    begrunnelse = "",
+                    status = Vilkårsvurdering.Status.IKKE_VURDERT
+                ),
+                Vilkårsvurdering(
+                    vilkår = FLYKTNING,
+                    begrunnelse = "",
+                    status = Vilkårsvurdering.Status.IKKE_VURDERT
+                )
+            )
+        )
 }

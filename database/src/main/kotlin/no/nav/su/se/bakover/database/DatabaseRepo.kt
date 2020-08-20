@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
@@ -22,8 +21,12 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.FradragDto
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -32,7 +35,8 @@ internal class DatabaseRepo(
 ) : ObjectRepo,
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
-    VilkårsvurderingPersistenceObserver {
+    VilkårsvurderingPersistenceObserver,
+    OppdragPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
@@ -64,26 +68,111 @@ internal class DatabaseRepo(
         return behandling
     }
 
+    override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
+        (
+            "insert into oppdrag (id, opprettet, sakId, behandlingId) " +
+                "values (:id, :opprettet, :sakId, :behandlingId)"
+            ).oppdatering(
+            mapOf(
+                "id" to oppdrag.id,
+                "opprettet" to oppdrag.opprettet,
+                "sakId" to oppdrag.sakId,
+                "behandlingId" to oppdrag.behandlingId
+            )
+        )
+        oppdrag.oppdragslinjer.forEach { opprettOppdragslinje(oppdrag.id, it) }
+        oppdrag.addObserver(this)
+        return oppdrag
+    }
+
+    internal fun hentOppdrag(oppdragId: UUID) = using(sessionOf(dataSource)) { session ->
+        "select * from oppdrag where id=:id".hent(mapOf("id" to oppdragId), session) {
+            it.toOppdrag(session)
+        }?.also {
+            it.addObserver(this)
+        }
+    }
+
+    internal fun opprettOppdragslinje(oppdragId: UUID, oppdragslinje: Oppdragslinje): Oppdragslinje {
+        (
+            "insert into oppdragslinje (id, opprettet, fom, tom, oppdragId, forrigeOppdragslinjeId, beløp) " +
+                "values (:id, :opprettet, :fom, :tom, :oppdragId, :forrigeOppdragslinjeId, :belop)"
+            ).oppdatering(
+            mapOf(
+                "id" to oppdragslinje.id,
+                "opprettet" to oppdragslinje.opprettet,
+                "fom" to oppdragslinje.fom,
+                "tom" to oppdragslinje.tom,
+                "oppdragId" to oppdragId,
+                "forrigeOppdragslinjeId" to oppdragslinje.forrigeOppdragslinjeId,
+                "belop" to oppdragslinje.beløp,
+            )
+        )
+        return oppdragslinje
+    }
+
     private fun Row.toSak(session: Session): Sak {
         val sakId = UUID.fromString(string("id"))
         return Sak(
             id = sakId,
             fnr = Fnr(string("fnr")),
             opprettet = instant("opprettet"),
-            søknader = hentSøknader(sakId, session),
-            behandlinger = hentBehandlinger(sakId, session)
+            søknader = hentSøknaderInternal(sakId, session),
+            behandlinger = hentBehandlingerForSak(sakId, session),
+            oppdrag = hentOppdragForSak(sakId, session)
         )
     }
 
-    fun hentSøknader(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
-        .hentListe(mapOf("sakId" to sakId), session) {
-            Søknad(
-                id = UUID.fromString(it.string("id")),
-                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
-            )
+    private fun hentOppdragForSak(sakId: UUID, session: Session) =
+        "select * from oppdrag where sakId=:sakId".hentListe(mapOf("sakId" to sakId), session) {
+            it.toOppdrag(session).also { it.addObserver(this) }
         }.toMutableList()
 
-    fun hentBehandlinger(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
+    private fun hentOppdragForBehandling(behandlingId: UUID, session: Session) =
+        "select * from oppdrag where behandlingId=:behandlingId".hentListe(
+            mapOf("behandlingId" to behandlingId),
+            session
+        ) {
+            it.toOppdrag(session).also { it.addObserver(this) }
+        }.toMutableList()
+
+    private fun Row.toOppdrag(session: Session): Oppdrag {
+        val oppdragId = uuid("id")
+        return Oppdrag(
+            id = oppdragId,
+            opprettet = instant("opprettet"),
+            sakId = uuid("sakId"),
+            behandlingId = uuid("behandlingId"),
+            simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
+            oppdragslinjer = hentOppdragslinjer(oppdragId, session),
+        )
+    }
+
+    private fun hentOppdragslinjer(oppdragId: UUID, session: Session): List<Oppdragslinje> =
+        "select * from oppdragslinje where oppdragId=:oppdragId".hentListe(
+            mapOf("oppdragId" to oppdragId),
+            session
+        ) {
+            it.toOppdragslinje()
+        }
+
+    private fun Row.toOppdragslinje(): Oppdragslinje {
+        return Oppdragslinje(
+            id = uuid("id"),
+            fom = localDate("fom"),
+            tom = localDate("tom"),
+            opprettet = instant("opprettet"),
+            forrigeOppdragslinjeId = stringOrNull("forrigeOppdragslinjeId")?.let { uuid("forrigeOppdragslinjeId") },
+            beløp = int("beløp")
+        )
+    }
+
+    private fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
+        .hentListe(mapOf("sakId" to sakId), session) {
+            it.toSøknad()
+        }.toMutableList()
+
+    private fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toBehandling(session)
         }.toMutableList()
@@ -97,7 +186,7 @@ internal class DatabaseRepo(
             }
         }
 
-    private fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
+    internal fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
         val søknadDto = søknad.toDto()
         "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
             mapOf(
@@ -124,15 +213,20 @@ internal class DatabaseRepo(
         return sak
     }
 
-    override fun hentSøknad(søknadId: UUID): Søknad? = using(sessionOf(dataSource)) { hentSøknad(søknadId, it) }
+    override fun hentSøknad(søknadId: UUID): Søknad? = using(sessionOf(dataSource)) { hentSøknadInternal(søknadId, it) }
 
-    private fun hentSøknad(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
+    private fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
         .hent(mapOf("id" to søknadId), session) {
-            Søknad(
-                id = UUID.fromString(it.string("id")),
-                søknadInnhold = objectMapper.readValue<SøknadInnhold>(it.string("søknadInnhold"))
-            )
+            it.toSøknad()
         }
+
+    private fun Row.toSøknad(): Søknad {
+        return Søknad(
+            id = uuid("id"),
+            søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
+            opprettet = instant("opprettet")
+        )
+    }
 
     override fun hentBehandling(behandlingId: UUID): Behandling? =
         using(sessionOf(dataSource)) { hentBehandling(behandlingId, it) }
@@ -146,13 +240,17 @@ internal class DatabaseRepo(
             }
 
     private fun Row.uuid(name: String) = UUID.fromString(string(name))
-    private fun Row.toBehandling(session: Session) = Behandling(
-        id = uuid("id"),
-        vilkårsvurderinger = hentVilkårsvurderinger(uuid("id"), session),
-        opprettet = instant("opprettet"),
-        søknad = hentSøknad(uuid("søknadId"), session)!!,
-        beregninger = hentBeregningerInternal(uuid("id"), session)
-    )
+    private fun Row.toBehandling(session: Session): Behandling {
+        val behandlingId = uuid("id")
+        return Behandling(
+            id = behandlingId,
+            vilkårsvurderinger = hentVilkårsvurderingerInternal(behandlingId, session),
+            opprettet = instant("opprettet"),
+            søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
+            beregninger = hentBeregningerInternal(behandlingId, session),
+            oppdrag = hentOppdragForBehandling(behandlingId, session)
+        )
+    }
 
     override fun opprettVilkårsvurderinger(
         behandlingId: UUID,
@@ -162,9 +260,9 @@ internal class DatabaseRepo(
     }
 
     override fun hentVilkårsvurderinger(behandlingId: UUID): MutableList<Vilkårsvurdering> =
-        using(sessionOf(dataSource)) { hentVilkårsvurderinger(behandlingId, it) }
+        using(sessionOf(dataSource)) { hentVilkårsvurderingerInternal(behandlingId, it) }
 
-    private fun hentVilkårsvurderinger(behandlingId: UUID, session: Session): MutableList<Vilkårsvurdering> =
+    private fun hentVilkårsvurderingerInternal(behandlingId: UUID, session: Session): MutableList<Vilkårsvurdering> =
         "select * from vilkårsvurdering where behandlingId=:behandlingId".hentListe(
             mapOf("behandlingId" to behandlingId),
             session
@@ -236,17 +334,6 @@ internal class DatabaseRepo(
         return vilkårsvurdering
     }
 
-    override fun hentVilkårsvurdering(vilkårsvurderingId: UUID): Vilkårsvurdering? = using(sessionOf(dataSource)) {
-        hentVilkårsvurdering(vilkårsvurderingId, it)
-    }
-
-    private fun hentVilkårsvurdering(id: UUID, session: Session) =
-        "select * from vilkårsvurdering where id = :id".hent(mapOf("id" to id), session) { row ->
-            row.toVilkårsvurdering().also {
-                it.addObserver(this)
-            }
-        }
-
     override fun hentBeregninger(behandlingId: UUID): MutableList<Beregning> =
         using(sessionOf(dataSource)) { hentBeregningerInternal(behandlingId, it) }
 
@@ -277,7 +364,7 @@ internal class DatabaseRepo(
                 "sats" to dto.sats.name
             )
         )
-        dto.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
+        beregning.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
         dto.fradrag.forEach { opprettFradrag(dto.id, it) }
         return beregning
     }
@@ -298,7 +385,7 @@ internal class DatabaseRepo(
         fradrag = int("fradrag")
     )
 
-    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: MånedsberegningDto) {
+    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
         """
             insert into månedsberegning
                 (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
@@ -347,5 +434,15 @@ internal class DatabaseRepo(
                     "beskrivelse" to fradrag.beskrivelse
                 )
             )
+    }
+
+    override fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering {
+        "update oppdrag set simulering = to_json(:simulering::json) where id = :id".oppdatering(
+            mapOf(
+                "id" to oppdragsId,
+                "simulering" to objectMapper.writeValueAsString(simulering)
+            )
+        )
+        return simulering
     }
 }

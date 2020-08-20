@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.FradragDto
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Locale
 
 class BrevService(
     private val pdfGenerator: PdfGenerator,
@@ -26,6 +26,8 @@ class BrevService(
                 log.warn("Fant ikke person for søknad $fnr")
                 it
             }.flatMap { person ->
+                // TODO variabelt beløp pr mnd? wtf?
+                val førsteMånedsberegning = behandlingDto.beregning?.månedsberegninger?.firstOrNull()
                 pdfGenerator.genererPdf(
                     VedtakInnhold(
                         dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
@@ -39,11 +41,11 @@ class BrevService(
                         fradato = behandlingDto.beregning?.fom?.formatMonthYear(),
                         tildato = behandlingDto.beregning?.tom?.formatMonthYear(),
                         sats = behandlingDto.beregning?.sats.toString().toLowerCase(),
-                        satsbeløp = behandlingDto.beregning?.getSatsbeløp(),
+                        satsbeløp = førsteMånedsberegning?.satsBeløp,
                         satsGrunn = "HVOR SKAL DENNE GRUNNEN HENTES FRA", // hard code
                         redusertStønadStatus = true,
                         redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
-                        månedsbeløp = behandlingDto.beregning?.getMånedsbeløp(),
+                        månedsbeløp = førsteMånedsberegning?.beløp,
                         fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
                         fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0
                     )

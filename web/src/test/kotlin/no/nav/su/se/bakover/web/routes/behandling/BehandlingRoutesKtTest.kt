@@ -109,7 +109,7 @@ internal class BehandlingRoutesKtTest {
             val ids = setup()
             defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/blabla/beregn") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "gyldig UUID"
+                response.content shouldContain "ikke en gyldig UUID"
             }
             defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/beregn") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -145,6 +145,36 @@ internal class BehandlingRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldige input-parametere"
+            }
+        }
+    }
+
+    @Test
+    fun `simulering`() {
+        withTestApplication({
+            testEnv()
+            testSusebakover()
+        }) {
+            val ids = setup()
+            defaultRequest(HttpMethod.Post, "$sakPath/missing/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "ikke en gyldig UUID"
+            }
+            defaultRequest(HttpMethod.Post, "$sakPath/${UUID.randomUUID()}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+                response.content shouldContain "Fant ikke sak"
+            }
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/blabla/simuler") {}.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "ikke en gyldig UUID"
+            }
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/simuler") {}.apply {
+                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.content shouldContain "Ukjent feil"
+            }
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                response.content shouldContain "oppdrag"
             }
         }
     }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
@@ -8,34 +9,50 @@ import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
 
-class Beregning(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Instant = Instant.now(),
-    private val fom: LocalDate,
-    private val tom: LocalDate,
-    private val sats: Sats,
+data class Beregning(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Instant = now(),
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val sats: Sats,
     private val fradrag: List<Fradrag>,
-    private val månedsberegninger: MutableList<Månedsberegning> = mutableListOf()
-) : PersistentDomainObject<VoidObserver>(id, opprettet), DtoConvertable<BeregningDto> {
-    private val antallMnd = Period.between(fom, tom.plusDays(1)).toTotalMonths()
+    val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag)
+) : PersistentDomainObject<VoidObserver>(), DtoConvertable<BeregningDto> {
 
     init {
         require(fom.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fom" }
         require(tom.dayOfMonth == tom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
         require(fom.isBefore(tom)) { "Startdato ($fom) for beregning må være tidligere enn sluttdato ($tom)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
-        if (månedsberegninger.isEmpty()) beregn()
     }
 
-    private fun beregn() = (0L until antallMnd).map {
-        månedsberegninger.add(
-            Månedsberegning(
-                fom = fom.plusMonths(it),
-                sats = sats,
-                fradrag = fradrag.sumBy { f -> f.perMåned() }
-            )
-        )
+    companion object {
+        private fun beregn(
+            fom: LocalDate,
+            tom: LocalDate,
+            sats: Sats,
+            fradrag: List<Fradrag>
+        ): List<Månedsberegning> {
+            val antallMåneder = 0L until Period.between(fom, tom.plusDays(1)).toTotalMonths()
+            return antallMåneder.map {
+                Månedsberegning(
+                    fom = fom.plusMonths(it),
+                    sats = sats,
+                    fradrag = fradrag.sumBy { f -> f.perMåned() }
+                )
+            }
+        }
     }
+
+    fun hentPerioder() =
+        månedsberegninger.groupBy { it.beløp }.map {
+            BeregningsPeriode(
+                fom = it.value.minByOrNull { it.fom }!!.fom,
+                tom = it.value.maxByOrNull { it.tom }!!.tom,
+                beløp = it.key,
+                sats = it.value.first().sats // TODO: Forventer at denne må skrives om uansett
+            )
+        }
 
     override fun toDto(): BeregningDto =
         BeregningDto(
@@ -55,6 +72,13 @@ class Beregning(
     }
 }
 
+data class BeregningsPeriode(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val beløp: Int,
+    val sats: Sats
+)
+
 data class BeregningDto(
     val id: UUID,
     val opprettet: Instant,
@@ -63,8 +87,4 @@ data class BeregningDto(
     val sats: Sats,
     val månedsberegninger: List<MånedsberegningDto>,
     val fradrag: List<FradragDto>
-) {
-    fun getMånedsbeløp() = månedsberegninger.firstOrNull()?.beløp
-
-    fun getSatsbeløp() = månedsberegninger.firstOrNull()?.let { it.beløp + it.fradrag }
-}
+)

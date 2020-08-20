@@ -1,7 +1,4 @@
 buildscript {
-    repositories {
-        jcenter()
-    }
     dependencies {
         classpath("org.ajoberstar:grgit:2.3.0")
     }
@@ -17,6 +14,8 @@ plugins {
 version = "0.0.1"
 
 allprojects {
+    val githubUser: String by project
+    val githubPassword: String by project
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "com.github.ben-manes.versions")
@@ -24,7 +23,14 @@ allprojects {
     repositories {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
-        maven("https://packages.confluent.io/maven/")
+        maven("http://packages.confluent.io/maven/")
+        maven {
+            url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
+            credentials {
+                username = githubUser
+                password = githubPassword
+            }
+        }
     }
     val junitJupiterVersion = "5.6.2"
     val arrowVersion = "0.10.5"

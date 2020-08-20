@@ -43,7 +43,7 @@ internal class CallContextTest {
         withTestApplication({
             testEnv()
             testSusebakover(
-                httpClients = buildClients(
+                httpClients = buildHttpClients(
                     personOppslag = object :
                         PersonOppslag {
                         override fun person(fnr: Fnr): Either<ClientError, PdlData> = PersonOppslagStub.person(fnr)

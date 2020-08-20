@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
-import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
@@ -93,7 +93,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(200, testIdent)))
+            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(200, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -108,7 +108,7 @@ internal class PersonRoutesKtTest {
 
         withTestApplication({
             testEnv()
-            testSusebakover(httpClients = buildClients(personOppslag = personoppslag(Unauthorized.value, null)))
+            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(Unauthorized.value, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {

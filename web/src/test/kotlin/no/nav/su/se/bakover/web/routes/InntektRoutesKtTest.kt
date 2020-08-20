@@ -4,20 +4,18 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-
-import kotlin.test.assertEquals
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.buildClients
+import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 internal class InntektRoutesKtTest {
 
@@ -58,7 +56,7 @@ internal class InntektRoutesKtTest {
         withTestApplication({
             testEnv()
             testSusebakover(
-                httpClients = buildClients(
+                httpClients = buildHttpClients(
                     inntektOppslag = object :
                         InntektOppslag {
                         override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
