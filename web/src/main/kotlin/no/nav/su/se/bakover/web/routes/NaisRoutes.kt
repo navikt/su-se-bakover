@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.metrics.micrometer.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.http.ContentType
+import io.ktor.metrics.micrometer.MicrometerMetrics
+import io.ktor.response.respond
+import io.ktor.response.respondTextWriter
+import io.ktor.routing.get
+import io.ktor.routing.routing
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
