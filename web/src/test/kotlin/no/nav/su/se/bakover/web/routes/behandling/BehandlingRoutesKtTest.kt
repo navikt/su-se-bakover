@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -34,7 +33,6 @@ internal class BehandlingRoutesKtTest {
     @Test
     fun `henter en behandling`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val ids = setup()
@@ -52,7 +50,6 @@ internal class BehandlingRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val ids = setup()
@@ -62,7 +59,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandling.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveAtLeastSize 1
-                behandling.søknad.id shouldBe ids.søknadId.toString()
+                behandling.søknad.id shouldBe ids.søknadId
             }
         }
     }
@@ -70,7 +67,6 @@ internal class BehandlingRoutesKtTest {
     @Test
     fun `opprette beregning for behandling`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val ids = setup()
@@ -103,7 +99,6 @@ internal class BehandlingRoutesKtTest {
     @Test
     fun `beregn error handling`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val ids = setup()
@@ -150,9 +145,8 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
-    fun `simulering`() {
+    fun simulering() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             val ids = setup()

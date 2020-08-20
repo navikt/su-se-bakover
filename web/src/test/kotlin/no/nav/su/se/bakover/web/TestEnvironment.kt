@@ -6,7 +6,6 @@ import io.ktor.application.Application
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.config.MapApplicationConfig
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -38,28 +37,7 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import org.json.JSONObject
 import java.util.Base64
 
-const val AZURE_CLIENT_ID = "clientId"
-const val AZURE_CLIENT_SECRET = "secret"
-const val AZURE_REQUIRED_GROUP = "su-group"
-const val AZURE_ISSUER = "azure"
-const val AZURE_BACKEND_CALLBACK_URL = "/callback"
-const val SUBJECT = "enSaksbehandler"
-const val SU_FRONTEND_REDIRECT_URL = "auth/complete"
-const val SU_FRONTEND_ORIGIN = "localhost"
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
-
-@OptIn(io.ktor.util.KtorExperimentalAPI::class)
-internal fun Application.testEnv() {
-    (environment.config as MapApplicationConfig).apply {
-        put("cors.allow.origin", SU_FRONTEND_ORIGIN)
-        put("integrations.suSeFramover.redirectUrl", SU_FRONTEND_REDIRECT_URL)
-        put("azure.requiredGroup", AZURE_REQUIRED_GROUP)
-        put("azure.clientId", AZURE_CLIENT_ID)
-        put("azure.clientSecret", AZURE_CLIENT_SECRET)
-        put("azure.backendCallbackUrl", AZURE_BACKEND_CALLBACK_URL)
-        put("issuer", AZURE_ISSUER)
-    }
-}
 
 fun authenticationHttpClient() = HttpClient(MockEngine) {
     followRedirects = false

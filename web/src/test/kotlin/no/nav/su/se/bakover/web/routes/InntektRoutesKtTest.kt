@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -27,7 +26,6 @@ internal class InntektRoutesKtTest {
     @Test
     fun `får ikke hente inntekt uten å være innlogget`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, path)
@@ -39,7 +37,6 @@ internal class InntektRoutesKtTest {
     @Test
     fun `kan hente inntekt`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, path)
@@ -54,7 +51,6 @@ internal class InntektRoutesKtTest {
         val errorMessage =
             """{"message": "nich gut"}"""
         withTestApplication({
-            testEnv()
             testSusebakover(
                 httpClients = buildHttpClients(
                     inntektOppslag = object :

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -24,8 +23,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-
-import no.nav.su.se.bakover.common.isLocalOrRunningTests
+import no.nav.su.se.bakover.common.Config
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {
@@ -53,36 +51,32 @@ data class HttpClients(
 )
 
 object HttpClientBuilder : HttpClientsBuilder {
-    private val env = dotenv {
-        ignoreIfMissing = true
-    }
-
     internal fun azure(
         clientId: String = getAzureClientId(),
-        clientSecret: String = env["AZURE_CLIENT_SECRET"] ?: "secret",
-        wellknownUrl: String = env["AZURE_WELLKNOWN_URL"] ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+        clientSecret: String = Config.azureClientSecret,
+        wellknownUrl: String = Config.azureWellKnownUrl
     ): OAuth {
         return AzureClient(clientId, clientSecret, wellknownUrl)
     }
 
-    private fun getAzureClientId() = env["AZURE_CLIENT_ID"] ?: "24ea4acb-547e-45de-a6d3-474bd8bed46e"
+    private fun getAzureClientId() = Config.azureClientId
 
     internal fun person(
-        baseUrl: String = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local",
+        baseUrl: String = Config.pdlUrl,
         clientId: String = getAzureClientId(),
         oAuth: OAuth,
         tokenOppslag: TokenOppslag
-    ): PersonOppslag = when (isLocalOrRunningTests()) {
+    ): PersonOppslag = when (Config.isLocalOrRunningTests) {
         true -> PersonOppslagStub.also { logger.warn("********** Using stub for ${PersonOppslag::class.java} **********") }
         else -> PdlClient(baseUrl, tokenOppslag, clientId, oAuth)
     }
 
     internal fun inntekt(
-        baseUrl: String = env["SU_INNTEKT_URL"] ?: "http://su-inntekt.default.svc.nais.local",
-        clientId: String = env["SU_INNTEKT_AZURE_CLIENT_ID"] ?: "9cd61904-33ad-40e8-9cc8-19e4dab588c5",
+        baseUrl: String = Config.suInntektUrl,
+        clientId: String = Config.suInntektAzureClientId,
         oAuth: OAuth,
         personOppslag: PersonOppslag
-    ): InntektOppslag = when (isLocalOrRunningTests()) {
+    ): InntektOppslag = when (Config.isLocalOrRunningTests) {
         true -> InntektOppslagStub.also { logger.warn("********** Using stub for ${InntektOppslag::class.java} **********") }
         else -> SuInntektClient(
             baseUrl,
@@ -93,19 +87,19 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun token(
-        baseUrl: String = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local",
-        username: String = env["username"] ?: "username",
-        password: String = env["password"] ?: "password"
-    ): TokenOppslag = when (isLocalOrRunningTests()) {
+        baseUrl: String = Config.stsUrl,
+        username: String = Config.stsUsername,
+        password: String = Config.stsPassword
+    ): TokenOppslag = when (Config.isLocalOrRunningTests) {
         true -> TokenOppslagStub.also { logger.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
         else -> StsClient(baseUrl, username, password)
     }
 
     internal fun pdf(
-        baseUrl: String = env["PDFGEN_URL"] ?: "http://su-pdfgen.default.svc.nais.local"
-    ): PdfGenerator = when (isLocalOrRunningTests()) {
+        baseUrl: String = Config.pdfgenUrl
+    ): PdfGenerator = when (Config.isLocalOrRunningTests) {
         true -> {
-            if (env["PDFGEN_LOCAL"] ?: "false" == "true") {
+            if (Config.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
             } else {
                 PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
@@ -115,25 +109,25 @@ object HttpClientBuilder : HttpClientsBuilder {
     }
 
     internal fun dokArkiv(
-        baseUrl: String = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local",
+        baseUrl: String = Config.dokarkivUrl,
         tokenOppslag: TokenOppslag
-    ): DokArkiv = when (isLocalOrRunningTests()) {
+    ): DokArkiv = when (Config.isLocalOrRunningTests) {
         true -> DokArkivStub.also { logger.warn("********** Using stub for ${DokArkiv::class.java} **********") }
         else -> DokArkivClient(baseUrl, tokenOppslag)
     }
 
     internal fun oppgave(
-        baseUrl: String = env["OPPGAVE_URL"] ?: "http://oppgave.default.svc.nais.local",
+        baseUrl: String = Config.oppgaveUrl,
         tokenOppslag: TokenOppslag
-    ): Oppgave = when (isLocalOrRunningTests()) {
+    ): Oppgave = when (Config.isLocalOrRunningTests) {
         true -> OppgaveStub.also { logger.warn("********** Using stub for ${Oppgave::class.java} **********") }
         else -> OppgaveClient(baseUrl, tokenOppslag)
     }
 
     internal fun kodeverk(
-        baseUrl: String = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local",
+        baseUrl: String = Config.kodeverkUrl,
         consumerId: String
-    ): Kodeverk = when (isLocalOrRunningTests()) {
+    ): Kodeverk = when (Config.isLocalOrRunningTests) {
         true -> KodeverkStub.also { logger.warn("********** Using stub for ${Kodeverk::class.java} **********") }
         else -> KodeverkHttpClient(baseUrl, consumerId)
     }

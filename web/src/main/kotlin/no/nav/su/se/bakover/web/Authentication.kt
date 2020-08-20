@@ -16,7 +16,6 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.auth.oauth
 import io.ktor.client.HttpClient
-import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -30,6 +29,7 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject
 import java.time.Instant
 import java.util.Base64.getDecoder
@@ -39,7 +39,6 @@ import java.util.Date
 internal fun Application.setupAuthentication(
     jwkConfig: JSONObject,
     jwkProvider: JwkProvider,
-    config: ApplicationConfig,
     httpClient: HttpClient
 ) {
     install(Authentication) {
@@ -51,20 +50,20 @@ internal fun Application.setupAuthentication(
                     authorizeUrl = jwkConfig.getString("authorization_endpoint"),
                     accessTokenUrl = jwkConfig.getString("token_endpoint"),
                     requestMethod = Post,
-                    clientId = config.getProperty("azure.clientId"),
-                    clientSecret = config.getProperty("azure.clientSecret"),
-                    defaultScopes = listOf("${config.getProperty("azure.clientId")}/.default", "openid", "offline_access")
+                    clientId = Config.azureClientId,
+                    clientSecret = Config.azureClientSecret,
+                    defaultScopes = listOf("${Config.azureClientId}/.default", "openid", "offline_access")
                 )
             }
-            urlProvider = { config.getProperty("azure.backendCallbackUrl") }
+            urlProvider = { Config.azureBackendCallbackUrl }
         }
 
         jwt("jwt") {
             verifier(jwkProvider, jwkConfig.getString("issuer"))
             validate { credential ->
-                val validAudience = config.getProperty("azure.clientId") in credential.payload.audience
+                val validAudience = Config.azureClientId in credential.payload.audience
                 val groups = credential.payload.getClaim("groups").asList(String::class.java)
-                val validGroup = config.getProperty("azure.requiredGroup") in groups
+                val validGroup = Config.azureRequiredGroup in groups
 
                 if (validAudience && validGroup) {
                     JWTPrincipal(credential.payload)

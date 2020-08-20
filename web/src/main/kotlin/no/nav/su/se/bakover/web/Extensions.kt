@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.web
 
 import arrow.core.Either
-import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.config.ApplicationConfig
 import io.ktor.http.HttpHeaders
 import io.ktor.request.header
 import io.ktor.request.receiveStream
@@ -15,12 +13,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
 import java.util.UUID
-
-@OptIn(io.ktor.util.KtorExperimentalAPI::class)
-fun Application.fromEnvironment(path: String): String = environment.config.property(path).getString()
-
-@OptIn(io.ktor.util.KtorExperimentalAPI::class)
-internal fun ApplicationConfig.getProperty(key: String): String = property(key).getString()
 
 internal fun ApplicationCall.audit(msg: String) {
     val payload = (this.authentication.principal as JWTPrincipal).payload

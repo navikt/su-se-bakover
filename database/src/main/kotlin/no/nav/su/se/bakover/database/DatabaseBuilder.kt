@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.database
 
+import no.nav.su.se.bakover.common.Config
 import javax.sql.DataSource
 
 object DatabaseBuilder {
     fun build(): ObjectRepo {
-        val env = System.getenv()
-        val databaseName = env.getOrDefault("DATABASE_NAME", "supstonad-db-local")
+        val databaseName = Config.databaseName
         val datasource = Postgres(
-            jdbcUrl = env.getOrDefault("DATABASE_JDBC_URL", "jdbc:postgresql://localhost:5432/supstonad-db-local"),
-            vaultMountPath = env.getOrDefault("VAULT_MOUNTPATH", ""),
+            jdbcUrl = Config.jdbcUrl,
+            vaultMountPath = Config.vaultMountPath,
             databaseName = databaseName,
             username = "user",
             password = "pwd"

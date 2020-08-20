@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.testEnv
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -33,7 +32,6 @@ internal class PersonRoutesKtTest {
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             handleRequest(Get, "$personPath/12345678910")
@@ -45,7 +43,6 @@ internal class PersonRoutesKtTest {
     @Test
     fun `bad request ved ugyldig fnr`() {
         withTestApplication({
-            testEnv()
             testSusebakover()
         }) {
             defaultRequest(Get, "$personPath/qwertyuiopå")
@@ -92,7 +89,6 @@ internal class PersonRoutesKtTest {
             """.trimIndent()
 
         withTestApplication({
-            testEnv()
             testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(200, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
@@ -107,7 +103,6 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testEnv()
             testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(Unauthorized.value, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
