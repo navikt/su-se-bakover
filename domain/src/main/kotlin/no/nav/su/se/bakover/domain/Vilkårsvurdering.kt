@@ -8,7 +8,7 @@ import java.util.UUID
 data class Vilkårsvurdering(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Instant = now(),
-    private val vilkår: Vilkår,
+    val vilkår: Vilkår,
     private var begrunnelse: String = "",
     private var status: Status = Status.IKKE_VURDERT
 ) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(), DtoConvertable<VilkårsvurderingDto> {

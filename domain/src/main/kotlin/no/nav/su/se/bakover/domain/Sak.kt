@@ -13,7 +13,7 @@ import java.util.UUID
 data class Sak(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Instant = now(),
-    private val fnr: Fnr,
+    val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     private val oppdrag: MutableList<Oppdrag> = mutableListOf()
