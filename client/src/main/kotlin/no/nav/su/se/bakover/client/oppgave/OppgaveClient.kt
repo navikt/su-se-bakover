@@ -41,12 +41,12 @@ internal class OppgaveClient(
                         "oppgavetype": "BEH_SAK",
                         "behandlingstema": "$TEMA_SU_UFØR_FLYKTNING", 
                         "behandlingstype": "$TYPE_FØRSTEGANGSSØKNAD", 
-                        "aktivDato": "${LocalDate.now().minusDays(1)}",
+                        "aktivDato": "${LocalDate.now()}",
                         "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
                         "prioritet": "NORM"
                      }
                 """.trimIndent()
-            ).responseString() // TODO jah: Trakk fra 1 dag på aktivDato for å teste om det kommer inn i Gosys
+            ).responseString()
 
         return result.fold(
             {
