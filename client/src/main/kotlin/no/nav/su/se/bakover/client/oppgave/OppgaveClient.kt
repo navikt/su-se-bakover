@@ -50,10 +50,11 @@ internal class OppgaveClient(
 
         return result.fold(
             {
+                logger.info("Lagret oppgave i gosys. status=${response.statusCode} body=$it")
                 JSONObject(it).getLong("id").right()
             },
             {
-                logger.warn("Feil i kallet mot oppgave", it)
+                logger.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 ClientError(response.statusCode, "Feil i kallet mot oppgave").left()
             }
         )
