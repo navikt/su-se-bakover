@@ -4,7 +4,7 @@ import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
@@ -18,7 +18,7 @@ internal class SøknadRouteMediator(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
     private val oppgave: Oppgave,
-    private val personOppslag: PersonOppslag
+    private val personFactory: PersonFactory
 ) : SakEventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -40,7 +40,7 @@ internal class SøknadRouteMediator(
                 val fnr = nySøknadEvent.søknadInnhold.personopplysninger.fnr
                 dokArkiv.opprettJournalpost(
                     søknadInnhold = nySøknadEvent.søknadInnhold,
-                    person = personOppslag.person(fnr).getOrElse {
+                    person = personFactory.forFnr(fnr).getOrElse {
                         log.error("Fant ikke person med gitt fødselsnummer")
                         throw RuntimeException("Kunne ikke finne person")
                     },
@@ -51,7 +51,7 @@ internal class SøknadRouteMediator(
                         log.error("$it")
                     },
                     { journalpostId ->
-                        val aktørId: AktørId = personOppslag.aktørId(fnr).getOrElse {
+                        val aktørId: AktørId = personFactory.getAktørId(fnr).getOrElse {
                             log.error("Fant ikke aktør-id med gitt fødselsnummer")
                             throw RuntimeException("Kunne ikke finne aktørid")
                         }

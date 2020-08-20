@@ -6,9 +6,9 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.person.PdlData
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -24,7 +24,7 @@ internal class DokArkivClient(
 ) : DokArkiv {
     override fun opprettJournalpost(
         søknadInnhold: SøknadInnhold,
-        person: PdlData,
+        person: Person,
         pdf: ByteArray,
         sakId: String
     ): Either<ClientError, String> {
@@ -100,6 +100,6 @@ internal class DokArkivClient(
         )
     }
 
-    private fun søkersNavn(person: PdlData): String =
+    private fun søkersNavn(person: Person): String =
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 }

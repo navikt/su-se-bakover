@@ -14,6 +14,8 @@ class PersonFactory(
         toPerson(it)
     }
 
+    fun getAktørId(fnr: Fnr) = personOppslag.aktørId(fnr)
+
     fun toPerson(pdlData: PdlData) =
         Person(
             ident = Ident(pdlData.ident.fnr, pdlData.ident.aktørId),
