@@ -33,7 +33,6 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.prometheus.client.CollectorRegistry
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.SOAPClientBuilder
@@ -113,8 +112,8 @@ internal fun Application.susebakover(
         }
     }
 
-    val collectorRegistry = CollectorRegistry(true)
-    installMetrics(collectorRegistry)
+    val (collectorRegistry, prometheusMeterRegistry) = SuMetrics.setup()
+    installMetrics(prometheusMeterRegistry)
     naisRoutes(collectorRegistry)
 
     setupAuthentication(
