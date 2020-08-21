@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -50,5 +51,23 @@ internal class VilkårsvurderingTest {
         assertEquals(2, hashSet.size)
         assertTrue(hashSet.contains(a))
         assertTrue(hashSet.contains(c))
+    }
+
+    @Test
+    fun status() {
+        val ikkeVurdert = Vilkårsvurdering(id1, vilkår = Vilkår.UFØRHET, begrunnelse = "", status = Vilkårsvurdering.Status.IKKE_VURDERT)
+        ikkeVurdert.avslått() shouldBe false
+        ikkeVurdert.vurdert() shouldBe false
+        ikkeVurdert.oppfylt() shouldBe false
+
+        val oppfylt = Vilkårsvurdering(id1, vilkår = Vilkår.UFØRHET, begrunnelse = "", status = Vilkårsvurdering.Status.OK)
+        oppfylt.avslått() shouldBe false
+        oppfylt.vurdert() shouldBe true
+        oppfylt.oppfylt() shouldBe true
+
+        val avslått = Vilkårsvurdering(id1, vilkår = Vilkår.UFØRHET, begrunnelse = "", status = Vilkårsvurdering.Status.IKKE_OK)
+        avslått.avslått() shouldBe true
+        avslått.vurdert() shouldBe true
+        avslått.oppfylt() shouldBe false
     }
 }

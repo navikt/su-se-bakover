@@ -3,11 +3,12 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNING
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERING
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
@@ -27,16 +28,23 @@ data class Behandling constructor(
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
-    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
+    private val oppdrag: MutableList<Oppdrag> = mutableListOf(),
+    private var status: BehandlingsStatus = OPPRETTET
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
 
+    private var state = resolveState(status)
+
+    fun status() = status
+
     enum class BehandlingsStatus {
-        VILKÅRSVURDERING,
-        BEREGNING,
-        /*SIMULERING, */
+        OPPRETTET,
+        VILKÅRSVURDERT,
+        BEREGNET,
+        SIMULERT,
         /*VEDTAKSBREV,*/
         INNVILGET,
-        AVSLÅTT
+        AVSLÅTT,
+        TIL_ATTESTERING
     }
 
     override fun toDto() = BehandlingDto(
@@ -45,63 +53,28 @@ data class Behandling constructor(
         vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
-        status = utledStatus(),
+        status = status,
         oppdrag = gjeldendeOppdrag()
     )
 
     fun gjeldendeOppdrag() = oppdrag.sortedWith(Opprettet).lastOrNull()
 
-    private fun utledStatus(): BehandlingsStatus {
-        return when {
-            vilkårsvurderinger.isEmpty() -> VILKÅRSVURDERING
-            vilkårsvurderinger.any { it.toDto().status == IKKE_OK } -> AVSLÅTT
-            vilkårsvurderinger.any { it.toDto().status == IKKE_VURDERT } -> VILKÅRSVURDERING
-            beregninger.isEmpty() -> BEREGNING
-            else -> INNVILGET
-        }
-    }
+    fun opprettVilkårsvurderinger() = state.opprettVilkårsvurderinger()
 
-    fun opprettVilkårsvurderinger(): MutableList<Vilkårsvurdering> {
-        vilkårsvurderinger.addAll(
-            persistenceObserver.opprettVilkårsvurderinger(
-                behandlingId = id,
-                vilkårsvurderinger = Vilkår.values().map { Vilkårsvurdering(vilkår = it) }
-            )
-        )
-        return vilkårsvurderinger
-    }
+    fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) =
+        state.oppdaterVilkårsvurderinger(oppdatertListe)
 
-    fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): List<Vilkårsvurdering> {
-        oppdatertListe.forEach { oppdatert ->
-            vilkårsvurderinger
-                .single { it == oppdatert }
-                .apply { oppdater(oppdatert) }
-        }
-        return vilkårsvurderinger
-    }
-
-    fun addOppdrag(oppdrag: Oppdrag) {
-        this.oppdrag.add(oppdrag)
-    }
+    fun addOppdrag(oppdrag: Oppdrag) = state.addOppdrag(oppdrag)
 
     fun opprettBeregning(
         fom: LocalDate,
         tom: LocalDate,
         sats: Sats = Sats.HØY,
         fradrag: List<Fradrag> = emptyList()
-    ): Beregning {
-        val beregning = persistenceObserver.opprettBeregning(
-            behandlingId = id,
-            beregning = Beregning(
-                fom = fom,
-                tom = tom,
-                sats = sats,
-                fradrag = fradrag
-            )
-        )
-        beregninger.add(beregning)
-        return beregning
-    }
+    ): Behandling = state.opprettBeregning(fom, tom, sats, fradrag)
+
+    // TODO stuff
+    fun sendTilAttestering() = state.sendTilAttestering()
 
     internal data class BehandlingOppdragsinformasjon(
         val behandlingId: UUID,
@@ -119,6 +92,128 @@ data class Behandling constructor(
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
+
+    private fun resolveState(status: BehandlingsStatus) = when (status) {
+        OPPRETTET, VILKÅRSVURDERT, BEREGNET, SIMULERT, AVSLÅTT, INNVILGET -> TilBehandling() // TODO probably change some of this?
+        TIL_ATTESTERING -> TilAttestering()
+    }
+
+    private fun vilkårsvurderingComplete() = vilkårsvurderinger.none { !it.vurdert() }
+    private fun vilkårsvurderingAvslått() = vilkårsvurderinger.any { it.avslått() }
+
+    internal interface BehandlingState {
+        fun opprettVilkårsvurderinger(): Behandling
+        fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): Behandling
+        fun addOppdrag(oppdrag: Oppdrag): Behandling
+        fun opprettBeregning(
+            fom: LocalDate,
+            tom: LocalDate,
+            sats: Sats = Sats.HØY,
+            fradrag: List<Fradrag>
+        ): Behandling
+
+        fun sendTilAttestering(): Behandling
+        fun attester(): Behandling
+
+        class BehandlingStateException(msg: String = "Illegal operation for state: ${BehandlingState::class.simpleName}") :
+            RuntimeException(msg)
+    }
+
+    private fun transition(status: BehandlingsStatus) {
+        // TODO maybe check validitiy of transition?
+        this.status = persistenceObserver.oppdaterBehandlingStatus(id, status)
+        state = resolveState(status)
+    }
+
+    private inner class TilBehandling : BehandlingState {
+        override fun opprettVilkårsvurderinger(): Behandling {
+            vilkårsvurderinger.addAll(
+                persistenceObserver.opprettVilkårsvurderinger(
+                    behandlingId = id,
+                    vilkårsvurderinger = Vilkår.values().map { Vilkårsvurdering(vilkår = it) }
+                )
+            )
+            return this@Behandling
+        }
+
+        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): Behandling {
+            oppdatertListe.forEach { oppdatert ->
+                vilkårsvurderinger
+                    .single { it == oppdatert }
+                    .apply { oppdater(oppdatert) }
+            }
+            if (vilkårsvurderingComplete()) {
+                if (vilkårsvurderingAvslått()) {
+                    transition(AVSLÅTT)
+                } else {
+                    transition(VILKÅRSVURDERT)
+                }
+            }
+            return this@Behandling
+        }
+
+        override fun addOppdrag(oppdrag: Oppdrag): Behandling {
+            this@Behandling.oppdrag.add(oppdrag)
+            transition(SIMULERT)
+            return this@Behandling
+        }
+
+        override fun opprettBeregning(
+            fom: LocalDate,
+            tom: LocalDate,
+            sats: Sats,
+            fradrag: List<Fradrag>
+        ): Behandling {
+            beregninger.add(
+                persistenceObserver.opprettBeregning(
+                    behandlingId = id,
+                    beregning = Beregning(
+                        fom = fom,
+                        tom = tom,
+                        sats = sats,
+                        fradrag = fradrag
+                    )
+                )
+            )
+            transition(BEREGNET)
+            return this@Behandling
+        }
+
+        override fun sendTilAttestering(): Behandling {
+            transition(TIL_ATTESTERING)
+            return this@Behandling
+        }
+
+        override fun attester(): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+    }
+
+    private inner class TilAttestering : BehandlingState {
+        override fun opprettVilkårsvurderinger(): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+
+        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+
+        override fun addOppdrag(oppdrag: Oppdrag): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+
+        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+
+        override fun sendTilAttestering(): Behandling {
+            throw BehandlingState.BehandlingStateException()
+        }
+
+        override fun attester(): Behandling {
+            return this@Behandling
+        }
+    }
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
@@ -128,6 +223,7 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     ): List<Vilkårsvurdering>
 
     fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
+    fun oppdaterBehandlingStatus(behandlingId: UUID, status: BehandlingsStatus): BehandlingsStatus
 }
 
 data class BehandlingDto(

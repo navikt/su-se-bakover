@@ -154,7 +154,10 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${UUID.randomUUID()}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${ids.behandlingId}/simuler"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
             }
@@ -162,7 +165,10 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/simuler"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Ukjent feil"
             }
@@ -184,7 +190,7 @@ internal class BehandlingRoutesKtTest {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
         val behandling = sak.opprettSøknadsbehandling(søknad.toDto().id)
-        val beregning = behandling.opprettBeregning(
+        behandling.opprettBeregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.LAV
@@ -193,7 +199,7 @@ internal class BehandlingRoutesKtTest {
             sak.toDto().id.toString(),
             søknad.toDto().id.toString(),
             behandling.toDto().id.toString(),
-            beregning.toDto().id.toString()
+            behandling.toDto().beregning!!.id.toString()
         )
     }
 }

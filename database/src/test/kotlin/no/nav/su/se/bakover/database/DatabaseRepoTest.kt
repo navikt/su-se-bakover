@@ -98,6 +98,22 @@ internal class DatabaseRepoTest {
     }
 
     @Test
+    fun `oppdater behandlingstatus`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+
+            val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET)
+            val hentet = repo.hentBehandling(behandling.id)
+
+            hentet!!.status() shouldBe oppdatertStatus
+        }
+    }
+
+    @Test
     fun `opprett og hent vilkårsvurderinger`() {
         withMigratedDb {
             val sak = insertSak(FNR)
@@ -222,6 +238,13 @@ internal class DatabaseRepoTest {
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
             throw NotImplementedError()
         }
+
+        override fun oppdaterBehandlingStatus(
+            behandlingId: UUID,
+            status: Behandling.BehandlingsStatus
+        ): Behandling.BehandlingsStatus {
+            throw NotImplementedError()
+        }
     }
 
     private fun vilkårsvurderingPersistenceObserver() = object : VilkårsvurderingPersistenceObserver {
@@ -268,7 +291,8 @@ internal class DatabaseRepoTest {
     private fun insertBehandling(sakId: UUID, søknad: Søknad) = repo.opprettSøknadsbehandling(
         sakId = sakId,
         behandling = Behandling(
-            søknad = søknad
+            søknad = søknad,
+            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT
         )
     )
 

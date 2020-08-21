@@ -33,6 +33,10 @@ data class Vilkårsvurdering(
         persistenceObserver.oppdaterVilkårsvurdering(this)
     }
 
+    fun vurdert() = status != Status.IKKE_VURDERT
+    fun oppfylt() = status == Status.OK
+    fun avslått() = status == Status.IKKE_OK
+
     override fun equals(other: Any?) =
         other is Vilkårsvurdering && id == other.id && vilkår == other.vilkår
 
