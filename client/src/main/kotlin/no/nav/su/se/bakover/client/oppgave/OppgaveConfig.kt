@@ -2,9 +2,6 @@ package no.nav.su.se.bakover.client.oppgave
 
 import no.nav.su.se.bakover.domain.AktørId
 
-private const val TEMA_SU_UFØR_FLYKTNING = "ab0431"
-private const val TEMA_SU_UFØR_ALDER = "ab0432"
-
 /**
  * https://jira.adeo.no/browse/OH-580
  */
