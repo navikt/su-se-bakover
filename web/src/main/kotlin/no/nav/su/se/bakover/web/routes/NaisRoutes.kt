@@ -9,14 +9,12 @@ import io.ktor.response.respond
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.micrometer.core.instrument.Clock
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
 import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
-import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
@@ -46,13 +44,9 @@ internal fun Application.naisRoutes(collectorRegistry: CollectorRegistry) {
     }
 }
 
-internal fun Application.installMetrics(collectorRegistry: CollectorRegistry) {
+internal fun Application.installMetrics(prometheusMeterRegistry: PrometheusMeterRegistry) {
     install(MicrometerMetrics) {
-        registry = PrometheusMeterRegistry(
-            PrometheusConfig.DEFAULT,
-            collectorRegistry,
-            Clock.SYSTEM
-        )
+        registry = prometheusMeterRegistry
         meterBinders = listOf(
             ClassLoaderMetrics(),
             JvmMemoryMetrics(),
