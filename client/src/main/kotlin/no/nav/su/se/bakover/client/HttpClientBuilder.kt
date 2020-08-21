@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.oppgave.OppgaveClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PdlClient
+import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
@@ -30,12 +30,12 @@ interface HttpClientsBuilder {
     fun build(
         azure: OAuth = HttpClientBuilder.azure(),
         tokenOppslag: TokenOppslag = HttpClientBuilder.token(),
-        personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure, tokenOppslag = tokenOppslag),
+        kodeverk: Kodeverk = HttpClientBuilder.kodeverk(consumerId = "srvsupstonad"),
+        personOppslag: PersonOppslag = HttpClientBuilder.person(oAuth = azure, tokenOppslag = tokenOppslag, kodeverk = kodeverk),
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
         dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag),
-        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag),
-        kodeverk: Kodeverk = HttpClientBuilder.kodeverk(consumerId = "srvsupstonad")
+        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
     ): HttpClients
 }
 
@@ -62,13 +62,14 @@ object HttpClientBuilder : HttpClientsBuilder {
     private fun getAzureClientId() = Config.azureClientId
 
     internal fun person(
+        kodeverk: Kodeverk,
         baseUrl: String = Config.pdlUrl,
         clientId: String = getAzureClientId(),
         oAuth: OAuth,
-        tokenOppslag: TokenOppslag
+        tokenOppslag: TokenOppslag,
     ): PersonOppslag = when (Config.isLocalOrRunningTests) {
         true -> PersonOppslagStub.also { logger.warn("********** Using stub for ${PersonOppslag::class.java} **********") }
-        else -> PdlClient(baseUrl, tokenOppslag, clientId, oAuth)
+        else -> PersonClient(kodeverk, baseUrl, tokenOppslag, clientId, oAuth)
     }
 
     internal fun inntekt(
@@ -135,12 +136,12 @@ object HttpClientBuilder : HttpClientsBuilder {
     override fun build(
         azure: OAuth,
         tokenOppslag: TokenOppslag,
+        kodeverk: Kodeverk,
         personOppslag: PersonOppslag,
         inntektOppslag: InntektOppslag,
         pdfGenerator: PdfGenerator,
         dokArkiv: DokArkiv,
-        oppgave: Oppgave,
-        kodeverk: Kodeverk
+        oppgave: Oppgave
     ): HttpClients {
         return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgave, kodeverk)
     }

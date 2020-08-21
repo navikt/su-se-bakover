@@ -1,22 +1,29 @@
 package no.nav.su.se.bakover.client.person
 
+import arrow.core.Either
 import arrow.core.orNull
+import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 
-class PersonFactory(
-    private val personOppslag: PersonOppslag,
-    private val kodeverk: Kodeverk
-) {
-    fun forFnr(fnr: Fnr) = personOppslag.person(fnr).map {
-        toPerson(it)
-    }
+class PersonClient(
+    private val kodeverk: Kodeverk,
+    private val pdlUrl: String,
+    private val tokenOppslag: TokenOppslag,
+    private val azureClientId: String,
+    private val oAuth: OAuth,
+): PersonOppslag {
+    private val pdlClient = PdlClient(pdlUrl, tokenOppslag, azureClientId, oAuth)
 
-    fun getAktørId(fnr: Fnr) = personOppslag.aktørId(fnr)
+    override fun person(fnr: Fnr): Either<ClientError, Person> = pdlClient.person(fnr).map { toPerson(it) }
+    override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> = pdlClient.aktørId(fnr)
 
-    fun toPerson(pdlData: PdlData) =
+    private fun toPerson(pdlData: PdlData) =
         Person(
             ident = Ident(pdlData.ident.fnr, pdlData.ident.aktørId),
             navn = pdlData.navn.let {
@@ -54,4 +61,5 @@ class PersonFactory(
         kommunenummer = kommunenummer,
         kommunenavn = kodeverk.hentKommunenavn(kommunenummer).orNull()
     )
+
 }

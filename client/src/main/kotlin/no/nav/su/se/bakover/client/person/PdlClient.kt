@@ -30,7 +30,7 @@ internal class PdlClient(
     private val tokenOppslag: TokenOppslag,
     private val azureClientId: String,
     private val oAuth: OAuth
-) : PersonOppslag {
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(PdlClient::class.java)
     }
@@ -38,7 +38,7 @@ internal class PdlClient(
     val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
-    override fun person(fnr: Fnr): Either<ClientError, PdlData> {
+    fun person(fnr: Fnr): Either<ClientError, PdlData> {
         return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
             val hentPerson = response.data.hentPerson
             val navn = hentPerson.navn.sortedBy {
@@ -74,7 +74,7 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
-    override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
+    fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
         return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
             hentIdent(it.data.hentIdenter).aktørId
         }

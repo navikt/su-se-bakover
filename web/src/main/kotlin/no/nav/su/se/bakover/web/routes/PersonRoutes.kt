@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.su.se.bakover.client.ClientResponse
-import no.nav.su.se.bakover.client.person.PersonFactory
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.Resultat
@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.web.svar
 internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
-    oppslag: PersonFactory
+    personOppslag: PersonOppslag
 ) {
     get("$personPath/{fnr}") {
         call.lesFnr("fnr").fold(
@@ -27,7 +27,7 @@ internal fun Route.personRoutes(
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     Resultat.from(
-                        oppslag.forFnr(fnr).fold(
+                        personOppslag.person(fnr).fold(
                             { ClientResponse(it.httpStatus, it.message) },
                             {
                                 ClientResponse(
