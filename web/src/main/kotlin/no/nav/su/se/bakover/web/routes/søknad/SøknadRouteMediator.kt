@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.oppgave.Oppgave
+import no.nav.su.se.bakover.client.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -56,9 +57,11 @@ internal class SøknadRouteMediator(
                             throw RuntimeException("Kunne ikke finne aktørid")
                         }
                         oppgave.opprettOppgave(
-                            journalpostId = journalpostId,
-                            sakId = nySøknadEvent.sakId.toString(),
-                            aktørId = aktørId.toString()
+                            OppgaveConfig.Saksbehandling(
+                                journalpostId = journalpostId,
+                                sakId = nySøknadEvent.sakId.toString(),
+                                aktørId = aktørId
+                            )
                         ).mapLeft {
                             log.error("$it")
                         }

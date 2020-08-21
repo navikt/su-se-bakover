@@ -15,32 +15,30 @@ import java.time.LocalDate
 
 internal val oppgavePath = "/api/v1/oppgaver"
 
-private const val TEMA_SU_UFØR_FLYKTNING = "ab0431"
-private const val TYPE_FØRSTEGANGSSØKNAD = "ae0245"
-
 internal class OppgaveClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : Oppgave {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(journalpostId: String, sakId: String, aktørId: String): Either<ClientError, Long> {
+    override fun opprettOppgave(config: OppgaveConfig): Either<ClientError, Long> {
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .body(
+                //language=JSON
                 """
                     { 
-                        "journalpostId": "$journalpostId",
-                        "saksreferanse": "$sakId",
-                        "aktoerId": "$aktørId", 
+                        "journalpostId": "${config.journalpostId}",
+                        "saksreferanse": "${config.sakId}",
+                        "aktoerId": "${config.aktørId}",
                         "tema": "SUP",
                         "behandlesAvApplikasjon": "SUPSTONAD",
-                        "oppgavetype": "BEH_SAK",
-                        "behandlingstema": "$TEMA_SU_UFØR_FLYKTNING", 
-                        "behandlingstype": "$TYPE_FØRSTEGANGSSØKNAD", 
+                        "oppgavetype": "${config.oppgavetype}",
+                        "behandlingstema": "${config.behandlingstema}",
+                        "behandlingstype": "${config.behandlingstype}",
                         "aktivDato": "${LocalDate.now()}",
                         "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
                         "prioritet": "NORM"
