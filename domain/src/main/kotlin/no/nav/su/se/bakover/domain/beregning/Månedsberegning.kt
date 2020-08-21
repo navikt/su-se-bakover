@@ -21,7 +21,7 @@ data class Månedsberegning(
     val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
 ) : PersistentDomainObject<VoidObserver>() {
 
-    val satsBeløp: Int = sats.fraDatoAsInt(fom)
+    val satsBeløp: Int = sats.fraDatoAsInt(fom) / 12
 
     init {
         require(fom.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fom" }
