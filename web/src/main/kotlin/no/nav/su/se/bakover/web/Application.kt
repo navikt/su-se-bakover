@@ -83,7 +83,7 @@ internal fun Application.susebakover(
         pdfGenerator = httpClients.pdfGenerator,
         dokArkiv = httpClients.dokArkiv,
         oppgave = httpClients.oppgave,
-        personOppslag = httpClients.personOppslag
+        personFactory = PersonFactory(httpClients.personOppslag, httpClients.kodeverk)
     )
 
     install(CORS) {
