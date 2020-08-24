@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.kodeverk.KodeverkStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
@@ -128,10 +127,7 @@ object HttpClientBuilder : HttpClientsBuilder {
     internal fun kodeverk(
         baseUrl: String = Config.kodeverkUrl,
         consumerId: String
-    ): Kodeverk = when (Config.isLocalOrRunningTests) {
-        true -> KodeverkStub.also { logger.warn("********** Using stub for ${Kodeverk::class.java} **********") }
-        else -> KodeverkHttpClient(baseUrl, consumerId)
-    }
+    ): Kodeverk = KodeverkHttpClient(baseUrl, consumerId)
 
     override fun build(
         azure: OAuth,
