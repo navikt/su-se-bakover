@@ -21,7 +21,7 @@ internal class SimuleringRequestBuilderTest {
         private const val PERSON = "12345678911"
         private const val FAGSYSTEMID = "supstonad"
         private const val BELØP = 1000
-        private const val SAKSBEHANDLER = "saksbehandler"
+        private const val SAKSBEHANDLER = "abc1234"
         private const val KLASSEKODE = "KLASSE"
         private val tidsstempel = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
