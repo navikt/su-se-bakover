@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonFactory
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.beregning.FradragDto
@@ -15,13 +15,13 @@ import java.util.Locale
 
 class BrevService(
     private val pdfGenerator: PdfGenerator,
-    private val personFactory: PersonFactory
+    private val personOppslag: PersonOppslag
 ) {
     private val log = LoggerFactory.getLogger(BrevService::class.java)
 
     fun lagUtkastTilBrev(behandlingDto: BehandlingDto): Either<ClientError, ByteArray> {
         val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-        return personFactory.forFnr(fnr)
+        return personOppslag.person(fnr)
             .mapLeft {
                 log.warn("Fant ikke person for søknad $fnr")
                 it
