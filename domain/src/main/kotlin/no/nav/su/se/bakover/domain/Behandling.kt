@@ -24,7 +24,7 @@ data class Behandling constructor(
     private var status: Status.BehandlingsStatus = Status.BehandlingsStatus.OPPRETTET
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
     private val stateMachine = StateMachine()
-    private lateinit var state: BehandlingState
+    private var state: BehandlingState = stateMachine.init(status)
 
     fun status() = status
 
@@ -185,9 +185,7 @@ data class Behandling constructor(
     }
 
     private inner class StateMachine {
-        init {
-            state = fromStatus(fromEnumStatus(status))
-        }
+        fun init(status: Status.BehandlingsStatus) = fromStatus(fromEnumStatus(status))
 
         private fun fromStatus(status: Status) = when (status) {
             Status.Opprettet, Status.Vilkårsvurdert, Status.Beregnet, Status.Simulert, Status.Innvilget, Status.Avslått -> TilBehandling() // TODO probably change some of this?
@@ -207,7 +205,7 @@ data class Behandling constructor(
         fun transition(other: Status) {
             if (fromEnumStatus(status).validTransition(other)) {
                 status = persistenceObserver.oppdaterBehandlingStatus(id, other.status)
-                state = fromStatus(fromEnumStatus(status))
+                state = init(status)
             } else {
                 throw BehandlingStateException("Invalid status transition (from: $status to:${other.status})")
             }
@@ -229,17 +227,17 @@ data class Behandling constructor(
         }
 
         abstract val status: BehandlingsStatus
-        abstract val transitions: List<BehandlingsStatus>
+        abstract val transitions: Set<BehandlingsStatus>
         fun validTransition(other: Status) = transitions.contains(other.status)
 
         object Opprettet : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
-            override val transitions: List<BehandlingsStatus> = listOf(BehandlingsStatus.VILKÅRSVURDERT)
+            override val transitions: Set<BehandlingsStatus> = setOf(BehandlingsStatus.VILKÅRSVURDERT)
         }
 
         object Vilkårsvurdert : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT
-            override val transitions: List<BehandlingsStatus> = listOf(
+            override val transitions: Set<BehandlingsStatus> = setOf(
                 BehandlingsStatus.OPPRETTET,
                 BehandlingsStatus.BEREGNET, BehandlingsStatus.AVSLÅTT
             )
@@ -247,7 +245,7 @@ data class Behandling constructor(
 
         object Beregnet : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
-            override val transitions: List<BehandlingsStatus> = listOf(
+            override val transitions: Set<BehandlingsStatus> = setOf(
                 BehandlingsStatus.VILKÅRSVURDERT,
                 BehandlingsStatus.SIMULERT
             )
@@ -255,7 +253,7 @@ data class Behandling constructor(
 
         object Simulert : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
-            override val transitions: List<BehandlingsStatus> = listOf(
+            override val transitions: Set<BehandlingsStatus> = setOf(
                 BehandlingsStatus.BEREGNET,
                 BehandlingsStatus.TIL_ATTESTERING
             )
@@ -263,17 +261,17 @@ data class Behandling constructor(
 
         object TilAttestering : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING
-            override val transitions: List<BehandlingsStatus> = listOf()
+            override val transitions: Set<BehandlingsStatus> = setOf()
         }
 
         object Innvilget : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.INNVILGET
-            override val transitions: List<BehandlingsStatus> = listOf()
+            override val transitions: Set<BehandlingsStatus> = setOf()
         }
 
         object Avslått : Status() {
             override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
-            override val transitions: List<BehandlingsStatus> = listOf(BehandlingsStatus.VILKÅRSVURDERT)
+            override val transitions: Set<BehandlingsStatus> = setOf(BehandlingsStatus.VILKÅRSVURDERT)
         }
     }
 }
@@ -285,7 +283,10 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     ): List<Vilkårsvurdering>
 
     fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
-    fun oppdaterBehandlingStatus(behandlingId: UUID, status: Behandling.Status.BehandlingsStatus): Behandling.Status.BehandlingsStatus
+    fun oppdaterBehandlingStatus(
+        behandlingId: UUID,
+        status: Behandling.Status.BehandlingsStatus
+    ): Behandling.Status.BehandlingsStatus
 }
 
 data class BehandlingDto(
