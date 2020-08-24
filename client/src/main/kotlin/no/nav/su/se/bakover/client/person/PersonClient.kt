@@ -17,7 +17,7 @@ class PersonClient(
     private val tokenOppslag: TokenOppslag,
     private val azureClientId: String,
     private val oAuth: OAuth,
-): PersonOppslag {
+) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag, azureClientId, oAuth)
 
     override fun person(fnr: Fnr): Either<ClientError, Person> = pdlClient.person(fnr).map { toPerson(it) }
@@ -61,5 +61,4 @@ class PersonClient(
         kommunenummer = kommunenummer,
         kommunenavn = kodeverk.hentKommunenavn(kommunenummer).orNull()
     )
-
 }
