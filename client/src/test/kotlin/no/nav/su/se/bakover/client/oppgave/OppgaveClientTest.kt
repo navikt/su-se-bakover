@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 internal class OppgaveClientTest : WiremockBase {
 
@@ -63,8 +62,8 @@ internal class OppgaveClientTest : WiremockBase {
                                                       "behandlingstype": "ae0245",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
-                                                      "aktivDato": "${LocalDate.now()}",
-                                                      "opprettetTidspunkt": "${LocalDateTime.now()}",
+                                                      "aktivDato": "2020-06-06",
+                                                      "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
                                                       "opprettetAv": "srvsupstonad",
                                                       "prioritet": "NORM",
                                                       "status": "OPPRETTET",
@@ -122,8 +121,8 @@ internal class OppgaveClientTest : WiremockBase {
                                                       "behandlingstype": "ae0004",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
-                                                      "aktivDato": "${LocalDate.now()}",
-                                                      "opprettetTidspunkt": "${LocalDateTime.now()}",
+                                                      "aktivDato": "2020-06-06",
+                                                      "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
                                                       "opprettetAv": "srvsupstonad",
                                                       "prioritet": "NORM",
                                                       "status": "OPPRETTET",
