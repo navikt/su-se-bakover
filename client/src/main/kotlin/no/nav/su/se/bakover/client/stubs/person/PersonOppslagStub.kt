@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.Telefonnummer
 object PersonOppslagStub :
     PersonOppslag {
     override fun person(fnr: Fnr) = Person(
-        ident = Ident(fnr, AktørId("aktørid")),
+        ident = Ident(fnr, AktørId("2437280977705")),
         navn = Person.Navn(
             fornavn = "Tore",
             mellomnavn = "Johnas",
@@ -22,13 +22,13 @@ object PersonOppslagStub :
             adressenavn = "Oslogata",
             husnummer = "12",
             husbokstav = null,
-            postnummer = "0050",
             bruksenhet = "U1H20",
-            kommunenummer = "0301"
+            poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
+            kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO")
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN"
     ).right()
 
-    override fun aktørId(fnr: Fnr) = AktørId("aktørid").right()
+    override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
 }

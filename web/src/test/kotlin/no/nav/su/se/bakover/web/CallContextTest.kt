@@ -14,12 +14,12 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.person.PdlData
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
@@ -45,7 +45,7 @@ internal class CallContextTest {
                 httpClients = buildHttpClients(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(fnr: Fnr): Either<ClientError, PdlData> = PersonOppslagStub.person(fnr)
+                        override fun person(fnr: Fnr): Either<ClientError, Person> = PersonOppslagStub.person(fnr)
 
                         override fun aktørId(fnr: Fnr) =
                             AktørId("aktørid".also { downstreamCorrelationIds.add(MDC.get("X-Correlation-ID")) }).right()

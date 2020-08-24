@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.orNull
 import arrow.core.right
@@ -8,8 +9,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.person.PersonClient
-import no.nav.su.se.bakover.client.stubs.kodeverk.KodeverkStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
@@ -28,8 +27,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val personFactory = PersonClient(PersonOppslagStub, KodeverkStub)
-    private val person: Person = personFactory.forFnr(fnr).getOrElse {
+    private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")
     }
 
