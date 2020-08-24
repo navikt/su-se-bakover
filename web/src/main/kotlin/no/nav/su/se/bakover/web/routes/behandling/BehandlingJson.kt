@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.toJson
+import java.time.format.DateTimeFormatter
 
 internal data class BehandlingJson(
     val id: String,
@@ -17,7 +18,8 @@ internal data class BehandlingJson(
     val søknad: SøknadJson,
     val beregning: BeregningJson?,
     val status: String,
-    val oppdrag: OppdragJson?
+    val oppdrag: OppdragJson?,
+    val opprettet: String
 )
 
 internal fun BehandlingDto.toJson() = BehandlingJson(
@@ -26,7 +28,8 @@ internal fun BehandlingDto.toJson() = BehandlingJson(
     søknad = søknad.toJson(),
     beregning = beregning?.toJson(),
     status = status.toString(),
-    oppdrag = oppdrag?.let { it.toJson() }
+    oppdrag = oppdrag?.let { it.toJson() },
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet)
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =
