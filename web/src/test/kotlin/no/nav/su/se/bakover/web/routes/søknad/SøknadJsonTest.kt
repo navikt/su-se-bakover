@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class SøknadJsonTest {
@@ -16,11 +17,13 @@ internal class SøknadJsonTest {
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
+        val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
         //language=JSON
         val søknadJsonString =
             """
         {
           "id": "$søknadId",
+          "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
             "uførevedtak":{
                 "harUførevedtak":true
@@ -85,8 +88,8 @@ internal class SøknadJsonTest {
                     }
                 ],
                 "pensjon":[
-                
-                    
+
+
                     {
                         "ordning":"KLP",
                         "beløp":2000.0
@@ -106,8 +109,8 @@ internal class SøknadJsonTest {
                 "verdiPåEiendom":3,
                 "eiendomBrukesTil":"",
                 "kjøretøy": [
-                    { 
-                        "verdiPåKjøretøy":  25000, 
+                    {
+                        "verdiPåKjøretøy":  25000,
                         "kjøretøyDeEier":  "bil"
                     }
                 ],

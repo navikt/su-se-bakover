@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknad
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class BehandlingJsonTest {
@@ -20,30 +21,6 @@ internal class BehandlingJsonTest {
         private val behandlingId = UUID.randomUUID()
         private val vv1id = UUID.randomUUID()
         private val vv2id = UUID.randomUUID()
-
-        //language=JSON
-        internal val behandlingJsonString =
-            """
-        {
-          "id": "$behandlingId",
-          "vilkårsvurderinger": {
-            "UFØRHET": {
-              "id": "$vv1id",
-              "begrunnelse": "uførhetBegrunnelse",
-              "status": "OK"
-            },
-            "FORMUE": {
-              "id": "$vv2id",
-              "begrunnelse": "formueBegrunnelse",
-              "status": "IKKE_VURDERT"
-            }
-          },
-          "søknad": $søknadJsonString,
-          "beregning": $expectedBeregningJson,
-          "status": "VILKÅRSVURDERING",
-          "oppdrag": null
-        }
-            """.trimIndent()
 
         internal val behandling = Behandling(
             id = behandlingId,
@@ -64,6 +41,31 @@ internal class BehandlingJsonTest {
             søknad = søknad,
             beregninger = mutableListOf(beregning)
         )
+
+        //language=JSON
+        internal val behandlingJsonString =
+            """
+        {
+          "id": "$behandlingId",
+          "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(behandling.opprettet)}",
+          "vilkårsvurderinger": {
+            "UFØRHET": {
+              "id": "$vv1id",
+              "begrunnelse": "uførhetBegrunnelse",
+              "status": "OK"
+            },
+            "FORMUE": {
+              "id": "$vv2id",
+              "begrunnelse": "formueBegrunnelse",
+              "status": "IKKE_VURDERT"
+            }
+          },
+          "søknad": $søknadJsonString,
+          "beregning": $expectedBeregningJson,
+          "status": "VILKÅRSVURDERING",
+          "oppdrag": null
+        }
+            """.trimIndent()
     }
 
     @Test
@@ -78,6 +80,14 @@ internal class BehandlingJsonTest {
 
     @Test
     fun nullables() {
+        val behandlingWithNulls = Behandling(
+            id = behandlingId,
+            vilkårsvurderinger = mutableListOf(),
+            søknad = søknad,
+            beregninger = mutableListOf()
+        )
+        val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
+
         //language=JSON
         val expectedNullsJson =
             """
@@ -87,16 +97,10 @@ internal class BehandlingJsonTest {
           "søknad": $søknadJsonString,
           "beregning": null,
           "status": "VILKÅRSVURDERING",
-          "oppdrag": null
+          "oppdrag": null,
+          "opprettet": "$opprettetTidspunkt"
         }
         """
-
-        val behandlingWithNulls = Behandling(
-            id = behandlingId,
-            vilkårsvurderinger = mutableListOf(),
-            søknad = søknad,
-            beregninger = mutableListOf()
-        )
 
         JSONAssert.assertEquals(expectedNullsJson, serialize(behandlingWithNulls.toDto().toJson()), true)
         deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toDto().toJson()
