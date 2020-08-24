@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import SuMetrics
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -103,6 +105,10 @@ internal fun Application.susebakover(
             log.error("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
+        exception<Behandling.BehandlingStateException> {
+            log.error("Got BehandlingStateException with message=${it.message}", it)
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig operasjon for behandlingens tilstand"))
+        }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
             call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
@@ -156,8 +162,10 @@ internal fun Application.susebakover(
                 call.respond(
                     """
                     {
-                        "data": "Congrats ${principal.getClaim("name")
-                        .asString()}, you are successfully authenticated with a JWT token"
+                        "data": "Congrats ${
+                    principal.getClaim("name")
+                        .asString()
+                    }, you are successfully authenticated with a JWT token"
                     }
                     """.trimIndent()
                 )

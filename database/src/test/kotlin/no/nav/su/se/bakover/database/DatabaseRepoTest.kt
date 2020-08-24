@@ -104,9 +104,9 @@ internal class DatabaseRepoTest {
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
 
-            behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            behandling.status() shouldBe Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
 
-            val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET)
+            val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.Status.BehandlingsStatus.BEREGNET)
             val hentet = repo.hentBehandling(behandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus
@@ -241,8 +241,8 @@ internal class DatabaseRepoTest {
 
         override fun oppdaterBehandlingStatus(
             behandlingId: UUID,
-            status: Behandling.BehandlingsStatus
-        ): Behandling.BehandlingsStatus {
+            status: Behandling.Status.BehandlingsStatus
+        ): Behandling.Status.BehandlingsStatus {
             throw NotImplementedError()
         }
     }
@@ -292,7 +292,7 @@ internal class DatabaseRepoTest {
         sakId = sakId,
         behandling = Behandling(
             søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
         )
     )
 

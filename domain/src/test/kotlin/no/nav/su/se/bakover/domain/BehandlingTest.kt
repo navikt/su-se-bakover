@@ -5,8 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Behandling.BehandlingState.BehandlingStateException
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -30,12 +28,12 @@ internal class BehandlingTest {
 
     @BeforeEach
     fun beforeEach() {
-        behandling = createBehandling(id1, BehandlingsStatus.OPPRETTET)
+        behandling = createBehandling(id1, Behandling.Status.BehandlingsStatus.OPPRETTET)
     }
 
     @Test
     fun equals() {
-        val a = createBehandling(id1, status = BehandlingsStatus.VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -46,9 +44,9 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = BehandlingsStatus.VILKÅRSVURDERT
+            status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
         )
-        val c = createBehandling(id2, status = BehandlingsStatus.VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT)
         assertEquals(a, b)
         assertNotEquals(a, c)
         assertNotEquals(b, c)
@@ -58,7 +56,7 @@ internal class BehandlingTest {
 
     @Test
     fun hashcode() {
-        val a = createBehandling(id1, status = BehandlingsStatus.VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -69,9 +67,9 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = BehandlingsStatus.VILKÅRSVURDERT
+            status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
         )
-        val c = createBehandling(id2, status = BehandlingsStatus.VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT)
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())
         val hashSet = hashSetOf(a, b, c)
@@ -101,6 +99,7 @@ internal class BehandlingTest {
     fun `opprette beregning`() {
         val fom = 1.januar(2020)
         val tom = 31.desember(2020)
+        behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(behandling).withStatus(Vilkårsvurdering.Status.OK))
         behandling.opprettBeregning(
             fom = fom,
             tom = tom,
@@ -116,20 +115,29 @@ internal class BehandlingTest {
 
     @Test
     fun `should update status when sent to attestering`() {
-        behandling.status() shouldBe BehandlingsStatus.OPPRETTET
-        val tilAttestering = behandling.sendTilAttestering()
-        tilAttestering.status() shouldBe BehandlingsStatus.TIL_ATTESTERING
+        val simulert = createBehandling(id1, Behandling.Status.BehandlingsStatus.SIMULERT)
+        simulert.status() shouldBe Behandling.Status.BehandlingsStatus.SIMULERT
+        val tilAttestering = simulert.sendTilAttestering()
+        tilAttestering.status() shouldBe Behandling.Status.BehandlingsStatus.TIL_ATTESTERING
         tilAttestering.status() shouldBe observer.oppdatertStatus
     }
 
     @Test
-    fun `should throw exception when illegal operations on state TIL_ATTESTERING`() {
-        behandling = createBehandling(id = id1, status = BehandlingsStatus.TIL_ATTESTERING)
+    fun `should throw exception when illegal state transition`() {
+        behandling.status() shouldBe Behandling.Status.BehandlingsStatus.OPPRETTET
+        assertThrows<Behandling.BehandlingStateException> {
+            behandling.sendTilAttestering()
+        }
+    }
 
-        assertThrows<BehandlingStateException> { behandling.opprettVilkårsvurderinger() }
-        assertThrows<BehandlingStateException> { behandling.oppdaterVilkårsvurderinger(emptyList()) }
-        assertThrows<BehandlingStateException> { behandling.opprettBeregning(1.januar(2020), 31.desember(2020)) }
-        assertThrows<BehandlingStateException> {
+    @Test
+    fun `should throw exception when illegal operations on state TIL_ATTESTERING`() {
+        behandling = createBehandling(id = id1, status = Behandling.Status.BehandlingsStatus.TIL_ATTESTERING)
+
+        assertThrows<Behandling.BehandlingStateException> { behandling.opprettVilkårsvurderinger() }
+        assertThrows<Behandling.BehandlingStateException> { behandling.oppdaterVilkårsvurderinger(emptyList()) }
+        assertThrows<Behandling.BehandlingStateException> { behandling.opprettBeregning(1.januar(2020), 31.desember(2020)) }
+        assertThrows<Behandling.BehandlingStateException> {
             behandling.addOppdrag(
                 Oppdrag(
                     sakId = UUID.randomUUID(),
@@ -138,13 +146,14 @@ internal class BehandlingTest {
                 )
             )
         }
-        assertThrows<BehandlingStateException> { behandling.sendTilAttestering() }
+        assertThrows<Behandling.BehandlingStateException> { behandling.sendTilAttestering() }
     }
 
     @Test
     fun `should throw exception when illegal operations on state TIL_BEHANDLING`() {
-        assertDoesNotThrow { behandling.opprettVilkårsvurderinger() }
-        assertDoesNotThrow { behandling.oppdaterVilkårsvurderinger(emptyList()) }
+        lateinit var vilkårsvurderinger: List<Vilkårsvurdering>
+        assertDoesNotThrow { vilkårsvurderinger = extractVilkårsvurderinger(behandling.opprettVilkårsvurderinger()) }
+        assertDoesNotThrow { behandling.oppdaterVilkårsvurderinger(vilkårsvurderinger.withStatus(Vilkårsvurdering.Status.OK)) }
         assertDoesNotThrow { behandling.opprettBeregning(1.januar(2020), 31.desember(2020)) }
         assertDoesNotThrow {
             behandling.addOppdrag(
@@ -159,45 +168,37 @@ internal class BehandlingTest {
     }
 
     @Test
-    fun `denne testen burde ihvertfall eksistert dersom utledStatus() har noe å si fra frontend KREMT JOHN`() {
+    fun `state transitions`() {
         // Initial state
-        behandling.status() shouldBe BehandlingsStatus.OPPRETTET
-        behandling.toDto().status shouldBe BehandlingsStatus.OPPRETTET
+        behandling.status() shouldBe Behandling.Status.BehandlingsStatus.OPPRETTET
+        behandling.toDto().status shouldBe Behandling.Status.BehandlingsStatus.OPPRETTET
 
-        val vilkårsvurderinger = behandling.opprettVilkårsvurderinger()
-            .toDto().vilkårsvurderinger.map {
-                Vilkårsvurdering(
-                    id = it.id,
-                    opprettet = it.opprettet,
-                    vilkår = it.vilkår,
-                    begrunnelse = it.begrunnelse,
-                    status = it.status
-                )
-            }
+        val vilkårsvurderinger = extractVilkårsvurderinger(behandling.opprettVilkårsvurderinger())
+
         val ikkeVurdert =
             behandling.oppdaterVilkårsvurderinger(vilkårsvurderinger.withStatus(Vilkårsvurdering.Status.IKKE_VURDERT))
 
         // State unchanged when vilkårsvurdering not completed
-        ikkeVurdert.status() shouldBe BehandlingsStatus.OPPRETTET
-        ikkeVurdert.toDto().status shouldBe BehandlingsStatus.OPPRETTET
+        ikkeVurdert.status() shouldBe Behandling.Status.BehandlingsStatus.OPPRETTET
+        ikkeVurdert.toDto().status shouldBe Behandling.Status.BehandlingsStatus.OPPRETTET
 
         val avslått =
             behandling.oppdaterVilkårsvurderinger(vilkårsvurderinger.withStatus(Vilkårsvurdering.Status.IKKE_OK))
 
         // State is avslått when vilkårsvurderinger not OK
-        avslått.status() shouldBe BehandlingsStatus.AVSLÅTT
-        avslått.toDto().status shouldBe BehandlingsStatus.AVSLÅTT
+        avslått.status() shouldBe Behandling.Status.BehandlingsStatus.AVSLÅTT
+        avslått.toDto().status shouldBe Behandling.Status.BehandlingsStatus.AVSLÅTT
 
         // Transition to state vilkårsvurdert
         val vilkårsvurdert =
             behandling.oppdaterVilkårsvurderinger(vilkårsvurderinger.withStatus(Vilkårsvurdering.Status.OK))
-        vilkårsvurdert.status() shouldBe BehandlingsStatus.VILKÅRSVURDERT
-        vilkårsvurdert.toDto().status shouldBe BehandlingsStatus.VILKÅRSVURDERT
+        vilkårsvurdert.status() shouldBe Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
+        vilkårsvurdert.toDto().status shouldBe Behandling.Status.BehandlingsStatus.VILKÅRSVURDERT
 
         // Transition to beregnet
         val beregnet = behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-        beregnet.status() shouldBe BehandlingsStatus.BEREGNET
-        beregnet.toDto().status shouldBe BehandlingsStatus.BEREGNET
+        beregnet.status() shouldBe Behandling.Status.BehandlingsStatus.BEREGNET
+        beregnet.toDto().status shouldBe Behandling.Status.BehandlingsStatus.BEREGNET
 
         // Transition to simulert
         val simulert = behandling.addOppdrag(
@@ -207,18 +208,18 @@ internal class BehandlingTest {
                 oppdragslinjer = emptyList()
             )
         )
-        simulert.status() shouldBe BehandlingsStatus.SIMULERT
-        simulert.toDto().status shouldBe BehandlingsStatus.SIMULERT
+        simulert.status() shouldBe Behandling.Status.BehandlingsStatus.SIMULERT
+        simulert.toDto().status shouldBe Behandling.Status.BehandlingsStatus.SIMULERT
 
         // TODO what does this status represent?
         // val innvilget = behandling.innvilg()?
-        // innvilget.status() shouldBe BehandlingsStatus.INNVILGET
-        // innvilget.toDto().status shouldBe BehandlingsStatus.INNVILGET
+        // innvilget.status() shouldBe INNVILGET
+        // innvilget.toDto().status shouldBe INNVILGET
 
         // Transition to til attestering
         val tilAttestering = behandling.sendTilAttestering()
-        tilAttestering.status() shouldBe BehandlingsStatus.TIL_ATTESTERING
-        tilAttestering.toDto().status shouldBe BehandlingsStatus.TIL_ATTESTERING
+        tilAttestering.status() shouldBe Behandling.Status.BehandlingsStatus.TIL_ATTESTERING
+        tilAttestering.toDto().status shouldBe Behandling.Status.BehandlingsStatus.TIL_ATTESTERING
     }
 
     private fun List<Vilkårsvurdering>.withStatus(status: Vilkårsvurdering.Status) = map {
@@ -231,10 +232,21 @@ internal class BehandlingTest {
         )
     }
 
+    private fun extractVilkårsvurderinger(behandling: Behandling) =
+        behandling.toDto().vilkårsvurderinger.map {
+            Vilkårsvurdering(
+                id = it.id,
+                opprettet = it.opprettet,
+                vilkår = it.vilkår,
+                begrunnelse = it.begrunnelse,
+                status = it.status
+            )
+        }
+
     private class DummyObserver : BehandlingPersistenceObserver, VilkårsvurderingPersistenceObserver {
         lateinit var opprettetVilkårsvurdering: Pair<UUID, List<Vilkårsvurdering>>
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
-        lateinit var oppdatertStatus: BehandlingsStatus
+        lateinit var oppdatertStatus: Behandling.Status.BehandlingsStatus
 
         override fun opprettVilkårsvurderinger(
             behandlingId: UUID,
@@ -252,8 +264,8 @@ internal class BehandlingTest {
 
         override fun oppdaterBehandlingStatus(
             behandlingId: UUID,
-            status: BehandlingsStatus
-        ): BehandlingsStatus {
+            status: Behandling.Status.BehandlingsStatus
+        ): Behandling.Status.BehandlingsStatus {
             oppdatertStatus = status
             return status
         }
@@ -265,7 +277,7 @@ internal class BehandlingTest {
 
     private fun createBehandling(
         id: UUID,
-        status: BehandlingsStatus
+        status: Behandling.Status.BehandlingsStatus
     ) = Behandling(
         id = id,
         søknad = søknad,

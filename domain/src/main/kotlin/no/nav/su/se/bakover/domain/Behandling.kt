@@ -1,14 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
+
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
@@ -17,7 +10,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Opprettet
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -29,23 +21,12 @@ data class Behandling constructor(
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
     private val oppdrag: MutableList<Oppdrag> = mutableListOf(),
-    private var status: BehandlingsStatus = OPPRETTET
+    private var status: Status.BehandlingsStatus = Status.BehandlingsStatus.OPPRETTET
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
-
-    private var state = resolveState(status)
+    private val stateMachine = StateMachine()
+    private lateinit var state: BehandlingState
 
     fun status() = status
-
-    enum class BehandlingsStatus {
-        OPPRETTET,
-        VILKÅRSVURDERT,
-        BEREGNET,
-        SIMULERT,
-        /*VEDTAKSBREV,*/
-        INNVILGET,
-        AVSLÅTT,
-        TIL_ATTESTERING
-    }
 
     override fun toDto() = BehandlingDto(
         id = id,
@@ -57,7 +38,7 @@ data class Behandling constructor(
         oppdrag = gjeldendeOppdrag()
     )
 
-    fun gjeldendeOppdrag() = oppdrag.sortedWith(Opprettet).lastOrNull()
+    fun gjeldendeOppdrag() = oppdrag.sortedWith(Oppdrag.Opprettet).lastOrNull()
 
     fun opprettVilkårsvurderinger() = state.opprettVilkårsvurderinger()
 
@@ -93,11 +74,6 @@ data class Behandling constructor(
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
 
-    private fun resolveState(status: BehandlingsStatus) = when (status) {
-        OPPRETTET, VILKÅRSVURDERT, BEREGNET, SIMULERT, AVSLÅTT, INNVILGET -> TilBehandling() // TODO probably change some of this?
-        TIL_ATTESTERING -> TilAttestering()
-    }
-
     private fun vilkårsvurderingComplete() = vilkårsvurderinger.none { !it.vurdert() }
     private fun vilkårsvurderingAvslått() = vilkårsvurderinger.any { it.avslått() }
 
@@ -114,16 +90,10 @@ data class Behandling constructor(
 
         fun sendTilAttestering(): Behandling
         fun attester(): Behandling
-
-        class BehandlingStateException(msg: String = "Illegal operation for state: ${BehandlingState::class.simpleName}") :
-            RuntimeException(msg)
     }
 
-    private fun transition(status: BehandlingsStatus) {
-        // TODO maybe check validitiy of transition?
-        this.status = persistenceObserver.oppdaterBehandlingStatus(id, status)
-        state = resolveState(status)
-    }
+    class BehandlingStateException(msg: String = "Illegal operation for state: ${BehandlingState::class.simpleName}") :
+        RuntimeException(msg)
 
     private inner class TilBehandling : BehandlingState {
         override fun opprettVilkårsvurderinger(): Behandling {
@@ -143,10 +113,9 @@ data class Behandling constructor(
                     .apply { oppdater(oppdatert) }
             }
             if (vilkårsvurderingComplete()) {
+                stateMachine.transition(Status.Vilkårsvurdert)
                 if (vilkårsvurderingAvslått()) {
-                    transition(AVSLÅTT)
-                } else {
-                    transition(VILKÅRSVURDERT)
+                    stateMachine.transition(Status.Avslått)
                 }
             }
             return this@Behandling
@@ -154,7 +123,7 @@ data class Behandling constructor(
 
         override fun addOppdrag(oppdrag: Oppdrag): Behandling {
             this@Behandling.oppdrag.add(oppdrag)
-            transition(SIMULERT)
+            stateMachine.transition(Status.Simulert)
             return this@Behandling
         }
 
@@ -175,43 +144,136 @@ data class Behandling constructor(
                     )
                 )
             )
-            transition(BEREGNET)
+            stateMachine.transition(Status.Beregnet)
             return this@Behandling
         }
 
         override fun sendTilAttestering(): Behandling {
-            transition(TIL_ATTESTERING)
+            stateMachine.transition(Status.TilAttestering)
             return this@Behandling
         }
 
         override fun attester(): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
     }
 
     private inner class TilAttestering : BehandlingState {
         override fun opprettVilkårsvurderinger(): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
 
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
 
         override fun addOppdrag(oppdrag: Oppdrag): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
 
         override fun sendTilAttestering(): Behandling {
-            throw BehandlingState.BehandlingStateException()
+            throw BehandlingStateException()
         }
 
         override fun attester(): Behandling {
             return this@Behandling
+        }
+    }
+
+    private inner class StateMachine {
+        init {
+            state = fromStatus(fromEnumStatus(status))
+        }
+
+        private fun fromStatus(status: Status) = when (status) {
+            Status.Opprettet, Status.Vilkårsvurdert, Status.Beregnet, Status.Simulert, Status.Innvilget, Status.Avslått -> TilBehandling() // TODO probably change some of this?
+            Status.TilAttestering -> TilAttestering()
+        }
+
+        private fun fromEnumStatus(status: Status.BehandlingsStatus) = when (status) {
+            Status.BehandlingsStatus.OPPRETTET -> Status.Opprettet
+            Status.BehandlingsStatus.VILKÅRSVURDERT -> Status.Vilkårsvurdert
+            Status.BehandlingsStatus.BEREGNET -> Status.Beregnet
+            Status.BehandlingsStatus.SIMULERT -> Status.Simulert
+            Status.BehandlingsStatus.TIL_ATTESTERING -> Status.TilAttestering
+            Status.BehandlingsStatus.INNVILGET -> Status.Innvilget
+            Status.BehandlingsStatus.AVSLÅTT -> Status.Avslått
+        }
+
+        fun transition(other: Status) {
+            if (fromEnumStatus(status).validTransition(other)) {
+                status = persistenceObserver.oppdaterBehandlingStatus(id, other.status)
+                state = fromStatus(fromEnumStatus(status))
+            } else {
+                throw BehandlingStateException("Invalid status transition (from: $status to:${other.status})")
+            }
+        }
+    }
+
+    sealed class Status {
+
+        enum class BehandlingsStatus {
+            OPPRETTET,
+            VILKÅRSVURDERT,
+            BEREGNET,
+            SIMULERT,
+
+            /*VEDTAKSBREV,*/
+            INNVILGET,
+            AVSLÅTT,
+            TIL_ATTESTERING
+        }
+
+        abstract val status: BehandlingsStatus
+        abstract val transitions: List<BehandlingsStatus>
+        fun validTransition(other: Status) = transitions.contains(other.status)
+
+        object Opprettet : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+            override val transitions: List<BehandlingsStatus> = listOf(BehandlingsStatus.VILKÅRSVURDERT)
+        }
+
+        object Vilkårsvurdert : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT
+            override val transitions: List<BehandlingsStatus> = listOf(
+                BehandlingsStatus.OPPRETTET,
+                BehandlingsStatus.BEREGNET, BehandlingsStatus.AVSLÅTT
+            )
+        }
+
+        object Beregnet : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+            override val transitions: List<BehandlingsStatus> = listOf(
+                BehandlingsStatus.VILKÅRSVURDERT,
+                BehandlingsStatus.SIMULERT
+            )
+        }
+
+        object Simulert : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
+            override val transitions: List<BehandlingsStatus> = listOf(
+                BehandlingsStatus.BEREGNET,
+                BehandlingsStatus.TIL_ATTESTERING
+            )
+        }
+
+        object TilAttestering : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING
+            override val transitions: List<BehandlingsStatus> = listOf()
+        }
+
+        object Innvilget : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.INNVILGET
+            override val transitions: List<BehandlingsStatus> = listOf()
+        }
+
+        object Avslått : Status() {
+            override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
+            override val transitions: List<BehandlingsStatus> = listOf(BehandlingsStatus.VILKÅRSVURDERT)
         }
     }
 }
@@ -223,7 +285,7 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     ): List<Vilkårsvurdering>
 
     fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
-    fun oppdaterBehandlingStatus(behandlingId: UUID, status: BehandlingsStatus): BehandlingsStatus
+    fun oppdaterBehandlingStatus(behandlingId: UUID, status: Behandling.Status.BehandlingsStatus): Behandling.Status.BehandlingsStatus
 }
 
 data class BehandlingDto(
@@ -232,6 +294,6 @@ data class BehandlingDto(
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
-    val status: BehandlingsStatus,
+    val status: Behandling.Status.BehandlingsStatus,
     val oppdrag: Oppdrag?
 )
