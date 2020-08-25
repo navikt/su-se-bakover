@@ -4,8 +4,9 @@ import arrow.core.Either
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 
 interface PersonOppslag {
-    fun person(fnr: Fnr): Either<ClientError, PdlData>
+    fun person(fnr: Fnr): Either<ClientError, Person>
     fun aktørId(fnr: Fnr): Either<ClientError, AktørId>
 }

@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
 
-data class PdlData(
+internal data class PdlData(
     val ident: Ident,
     val navn: Navn,
     val telefonnummer: Telefonnummer?,
@@ -12,18 +12,18 @@ data class PdlData(
     val statsborgerskap: String?,
     val kjønn: String?
 ) {
-    data class Ident(
+    internal data class Ident(
         val fnr: Fnr,
         val aktørId: AktørId
     )
 
-    data class Navn(
+    internal data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
         val etternavn: String
     )
 
-    data class Adresse(
+    internal data class Adresse(
         val adressenavn: String?,
         val husnummer: String?,
         val husbokstav: String?,

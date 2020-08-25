@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonFactory
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
 import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
 import no.nav.su.se.bakover.domain.BehandlingDto
@@ -19,7 +19,7 @@ import java.util.Locale
 
 class BrevService(
     private val pdfGenerator: PdfGenerator,
-    private val personFactory: PersonFactory
+    private val personOppslag: PersonOppslag
 ) {
     private val log = LoggerFactory.getLogger(BrevService::class.java)
 
@@ -27,7 +27,7 @@ class BrevService(
         val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
         val avslagsgrunn = avslagsgrunnForBehandling(behandlingDto)
         val avslagsgrunnBeskrivelse = flaggForAvslagsgrunn(avslagsgrunn)
-        return personFactory.forFnr(fnr)
+        return personOppslag.person(fnr)
             .mapLeft {
                 log.warn("Fant ikke person for søknad $fnr")
                 it

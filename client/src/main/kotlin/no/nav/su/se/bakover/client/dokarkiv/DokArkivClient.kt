@@ -59,6 +59,8 @@ internal class DokArkivClient(
                       "dokumenter": [
                         {
                           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                          "kategori": "SOK",
+                          "brevtype": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
                               "filtype": "PDFA",
