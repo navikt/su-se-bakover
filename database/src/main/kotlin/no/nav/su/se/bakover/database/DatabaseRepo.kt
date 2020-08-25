@@ -118,7 +118,7 @@ internal class DatabaseRepo(
                 "fom" to utbetalingslinje.fom,
                 "tom" to utbetalingslinje.tom,
                 "utbetalingId" to utbetalingId.toString(),
-                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
+                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId?.toString(),
                 "belop" to utbetalingslinje.beløp,
             )
         )
@@ -139,7 +139,7 @@ internal class DatabaseRepo(
 
     private fun hentOppdragForSak(sakId: UUID, session: Session) =
         "select * from oppdrag where sakId=:sakId".hent(mapOf("sakId" to sakId), session) {
-            it.toOppdrag(session).also { it.addObserver(this) }
+            it.toOppdrag(session)
         }
 
     private fun Row.toOppdrag(session: Session): Oppdrag {

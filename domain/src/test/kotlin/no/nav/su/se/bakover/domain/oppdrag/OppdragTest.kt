@@ -109,7 +109,7 @@ internal class OppdragTest {
             utbetalingslinjer = listOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
-                    opprettet = nyUtbetaling.sisteOppdragslinje().opprettet,
+                    opprettet = nyUtbetaling.sisteUtbetalingslinje().opprettet,
                     fom = 1.januar(2020),
                     tom = 31.mai(2020),
                     beløp = 5600,
@@ -117,7 +117,7 @@ internal class OppdragTest {
                 ),
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id,
-                    opprettet = nyUtbetaling.sisteOppdragslinje().opprettet,
+                    opprettet = nyUtbetaling.sisteUtbetalingslinje().opprettet,
                     fom = 1.juni(2020),
                     tom = 31.august(2020),
                     beløp = 5700,
@@ -125,7 +125,7 @@ internal class OppdragTest {
                 ),
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[2].id,
-                    opprettet = nyUtbetaling.sisteOppdragslinje().opprettet,
+                    opprettet = nyUtbetaling.sisteUtbetalingslinje().opprettet,
                     fom = 1.september(2020),
                     tom = 31.desember(2020),
                     beløp = 5800,

@@ -23,7 +23,7 @@ data class Utbetaling(
         this.simulering = persistenceObserver.addSimulering(id, simulering)
     }
 
-    fun sisteOppdragslinje() = utbetalingslinjer.last()
+    fun sisteUtbetalingslinje() = utbetalingslinjer.last()
 
     fun førsteDag(): LocalDate = utbetalingslinjer.map { it.fom }.minOrNull()!!
     fun sisteDag(): LocalDate = utbetalingslinjer.map { it.tom }.maxOrNull()!!

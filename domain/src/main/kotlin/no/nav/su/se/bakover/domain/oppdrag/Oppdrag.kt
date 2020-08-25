@@ -29,7 +29,7 @@ data class Oppdrag(
                 Utbetalingslinje(
                     fom = it.fom,
                     tom = it.tom,
-                    forrigeUtbetalingslinjeId = if (harUtbetalinger()) sisteUtbetaling()!!.sisteOppdragslinje().id else null,
+                    forrigeUtbetalingslinjeId = if (harUtbetalinger()) sisteUtbetaling()!!.sisteUtbetalingslinje().id else null,
                     beløp = it.beløp
                 )
             }.also {

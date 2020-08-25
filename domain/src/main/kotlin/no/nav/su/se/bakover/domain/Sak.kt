@@ -59,7 +59,7 @@ data class Sak(
         val oppdragTilSimulering = opprettOppdragIfNotExist()
         val utbetalingTilSimulering = oppdragTilSimulering.generererUtbetaling(behandling.id, behandling.gjeldendeBeregning().hentPerioder())
         return simuleringClient.simulerOppdrag(utbetalingTilSimulering, fnr.toString()).map { simulering ->
-            val oppdrag = persistenceObserver.opprettOppdrag(oppdragTilSimulering)
+            val oppdrag = oppdrag ?: persistenceObserver.opprettOppdrag(oppdragTilSimulering)
             val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering)
             utbetaling.addSimulering(simulering)
             behandling.leggTilUtbetaling(utbetaling)
