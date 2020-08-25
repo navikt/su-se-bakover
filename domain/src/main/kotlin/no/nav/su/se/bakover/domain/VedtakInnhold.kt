@@ -20,5 +20,5 @@ data class VedtakInnhold(
     val redusertStønadGrunn: String?,
     val fradrag: List<FradragDto>,
     val fradragSum: Int,
-    val status: Behandling.Status.BehandlingsStatus
+    val status: Behandling.BehandlingsStatus
 )

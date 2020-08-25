@@ -28,7 +28,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     }
 
     override fun genererPdf(vedtak: VedtakInnhold): Either<ClientError, ByteArray> {
-        val template = if (vedtak.status === Behandling.Status.BehandlingsStatus.INNVILGET) Vedtak.INNVILGELSE.template else Vedtak.AVSLAG.template
+        val template = if (vedtak.status === Behandling.BehandlingsStatus.INNVILGET) Vedtak.INNVILGELSE.template else Vedtak.AVSLAG.template
         return genererPdf(objectMapper.writeValueAsString(vedtak), template)
     }
 

@@ -248,7 +248,7 @@ internal class DatabaseRepo(
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregninger = hentBeregningerInternal(behandlingId, session),
             oppdrag = hentOppdragForBehandling(behandlingId, session),
-            status = Behandling.Status.BehandlingsStatus.valueOf(string("status"))
+            status = Behandling.BehandlingsStatus.valueOf(string("status"))
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
@@ -373,8 +373,8 @@ internal class DatabaseRepo(
 
     override fun oppdaterBehandlingStatus(
         behandlingId: UUID,
-        status: Behandling.Status.BehandlingsStatus
-    ): Behandling.Status.BehandlingsStatus {
+        status: Behandling.BehandlingsStatus
+    ): Behandling.BehandlingsStatus {
         "update behandling set status = :status where id = :id".oppdatering(
             mapOf(
                 "id" to behandlingId,

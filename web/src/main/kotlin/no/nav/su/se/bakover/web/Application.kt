@@ -105,8 +105,8 @@ internal fun Application.susebakover(
             log.error("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
-        exception<Behandling.BehandlingStateException> {
-            log.error("Got BehandlingStateException with message=${it.message}", it)
+        exception<Behandling.TilstandException> {
+            log.error("Got ${Behandling.TilstandException::class.simpleName} with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig operasjon for behandlingens tilstand"))
         }
         exception<Throwable> {

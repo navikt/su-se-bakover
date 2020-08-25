@@ -61,8 +61,8 @@ internal class SakTest {
 
                 override fun oppdaterBehandlingStatus(
                     behandlingId: UUID,
-                    status: Behandling.Status.BehandlingsStatus
-                ): Behandling.Status.BehandlingsStatus {
+                    status: Behandling.BehandlingsStatus
+                ): Behandling.BehandlingsStatus {
                     throw NotImplementedError()
                 }
             })
