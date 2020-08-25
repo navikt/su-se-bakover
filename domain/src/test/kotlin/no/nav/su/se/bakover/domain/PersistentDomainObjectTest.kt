@@ -24,10 +24,8 @@ internal class PersistentDomainObjectTest {
         private val testSøknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
         override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = søknad
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = Behandling(søknad = testSøknad)
-        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag = Oppdrag(
-            sakId = UUID.randomUUID(),
-            behandlingId = UUID.randomUUID(),
-            oppdragslinjer = emptyList(),
+        override fun opprettOppdrag(oppdrag: Oppdrag) = Oppdrag(
+            sakId = UUID.randomUUID()
         )
     }
 }

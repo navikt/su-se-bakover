@@ -1,39 +1,48 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import java.time.Instant
-import java.time.LocalDate
 import java.util.UUID
 
 data class Oppdrag(
-    override val id: UUID = UUID.randomUUID(), // Tror vi kan bruke denne som avstemmingsnøkkel.
-    override val opprettet: Instant = now(),
+    val id: UUID30 = UUID30.randomUUID(),
+    val opprettet: Instant = now(),
     val sakId: UUID,
-    val behandlingId: UUID,
-    private var simulering: Simulering? = null,
-    val oppdragslinjer: List<Oppdragslinje>,
+    private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
+    fun sisteUtbetaling() = utbetalinger.lastOrNull() // TODO Må implementere konsept om utbetalt og sjekke om det finnes en utbetaling
 
-    fun getSimulering(): Simulering? = simulering
-    fun addSimulering(simulering: Simulering) {
-        this.simulering = persistenceObserver.addSimulering(id, simulering)
+    fun harUtbetalinger() = utbetalinger.isNotEmpty() // TODO Må implementere konsept om utbetalt og sjekke om det finnes en utbetaling
+
+    fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
+
+    fun generererUtbetaling(behandlingId: UUID, beregningsperioder: List<BeregningsPeriode>): Utbetaling {
+        return Utbetaling(
+            oppdragId = id,
+            behandlingId = behandlingId,
+            utbetalingslinjer = beregningsperioder.map {
+                Utbetalingslinje(
+                    fom = it.fom,
+                    tom = it.tom,
+                    forrigeUtbetalingslinjeId = if (harUtbetalinger()) sisteUtbetaling()!!.sisteOppdragslinje().id else null,
+                    beløp = it.beløp
+                )
+            }.also {
+                it.zipWithNext { a, b -> b.link(a) }
+            }
+        )
     }
 
-    fun sisteOppdragslinje() = oppdragslinjer.last()
-
-    fun førsteDag(): LocalDate = oppdragslinjer.map { it.fom }.minOrNull()!!
-    fun sisteDag(): LocalDate = oppdragslinjer.map { it.tom }.maxOrNull()!!
-
-    object Opprettet : Comparator<Oppdrag> {
-        override fun compare(o1: Oppdrag?, o2: Oppdrag?): Int {
-            return (o1!!.opprettet.toEpochMilli() - o2!!.opprettet.toEpochMilli()).toInt()
-        }
+    fun opprettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.opprettUbetaling(id, utbetaling).also {
+        utbetalinger.add(it)
     }
-}
 
-interface OppdragPersistenceObserver : PersistenceObserver {
-    fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering
+    interface OppdragPersistenceObserver : PersistenceObserver {
+        fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
+    }
 }

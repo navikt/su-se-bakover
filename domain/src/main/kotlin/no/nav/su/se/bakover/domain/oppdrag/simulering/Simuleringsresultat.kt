@@ -13,19 +13,19 @@ data class Simulering(
 data class SimulertPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
-    val utbetaling: List<Utbetaling>
+    val utbetaling: List<SimulertUtbetaling>
 )
 
-data class Utbetaling(
+data class SimulertUtbetaling(
     val fagSystemId: String,
     val utbetalesTilId: String,
     val utbetalesTilNavn: String,
     val forfall: LocalDate,
     val feilkonto: Boolean,
-    val detaljer: List<Detaljer>
+    val detaljer: List<SimulertDetaljer>
 )
 
-data class Detaljer(
+data class SimulertDetaljer(
     val faktiskFom: LocalDate,
     val faktiskTom: LocalDate,
     val konto: String,

@@ -4,13 +4,12 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Detaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
@@ -32,10 +31,10 @@ internal class SimuleringSoapClient(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun simulerOppdrag(oppdrag: Oppdrag, oppdragGjelder: String): Either<SimuleringFeilet, Simulering> {
+    override fun simulerOppdrag(utbetaling: no.nav.su.se.bakover.domain.oppdrag.Utbetaling, utbetalingGjelder: String): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
-            oppdrag,
-            oppdragGjelder
+            utbetaling,
+            utbetalingGjelder
         ).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
@@ -91,7 +90,7 @@ internal class SimuleringSoapClient(
         )
 
     private fun mapBeregningStoppNivaa(stoppNivaa: BeregningStoppnivaa) =
-        Utbetaling(
+        SimulertUtbetaling(
             fagSystemId = stoppNivaa.fagsystemId.trim(),
             utbetalesTilNavn = stoppNivaa.utbetalesTilNavn.trim(),
             utbetalesTilId = stoppNivaa.utbetalesTilId.removePrefix("00"),
@@ -101,7 +100,7 @@ internal class SimuleringSoapClient(
         )
 
     private fun mapDetaljer(detaljer: BeregningStoppnivaaDetaljer) =
-        Detaljer(
+        SimulertDetaljer(
             faktiskFom = LocalDate.parse(detaljer.faktiskFom),
             faktiskTom = LocalDate.parse(detaljer.faktiskTom),
             uforegrad = detaljer.uforeGrad.intValueExact(),

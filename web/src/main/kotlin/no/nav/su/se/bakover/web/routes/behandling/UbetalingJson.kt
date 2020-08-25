@@ -1,40 +1,38 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Detaljer
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Utbetaling
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.OppdragslinjeJson.Companion.toOppdragslinjeJson
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.SimuleringJson.Companion.toSimuleringJson
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.SimuleringJson.SimulertPeriodeJson.Companion.toSimulertPeriodeJson
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.SimuleringJson.SimulertPeriodeJson.UtbetalingJson.Companion.toUtbetalingJson
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.SimuleringJson.SimulertPeriodeJson.UtbetalingJson.DetaljerJson.Companion.toDetaljerJson
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.SimuleringJson.Companion.toSimuleringJson
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.SimuleringJson.SimulertPeriodeJson.Companion.toSimulertPeriodeJson
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.SimuleringJson.SimulertPeriodeJson.UtbetalingJson.Companion.toUtbetalingJson
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.SimuleringJson.SimulertPeriodeJson.UtbetalingJson.DetaljerJson.Companion.toDetaljerJson
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.UtbetalingslinjeJson.Companion.toUtbetalingslinjeJson
 import java.time.Instant
 import java.time.LocalDate
 
-data class OppdragJson(
+data class UbetalingJson(
     val id: String,
     val opprettet: Instant,
-    val sakId: String,
     val behandlingId: String,
     val simulering: SimuleringJson?,
-    val oppdragslinjer: List<OppdragslinjeJson>,
+    val utbetalingslinjer: List<UtbetalingslinjeJson>,
 ) {
     companion object {
-        fun Oppdrag.toJson() =
-            OppdragJson(
+        fun Utbetaling.toJson() =
+            UbetalingJson(
                 id = this.id.toString(),
                 opprettet = this.opprettet,
-                sakId = this.sakId.toString(),
                 behandlingId = this.behandlingId.toString(),
-                oppdragslinjer = this.oppdragslinjer.toOppdragslinjeJson(),
+                utbetalingslinjer = this.utbetalingslinjer.toUtbetalingslinjeJson(),
                 simulering = this.getSimulering()?.toSimuleringJson(),
             )
     }
 
-    data class OppdragslinjeJson(
+    data class UtbetalingslinjeJson(
         val id: String,
         val opprettet: Instant,
         val fom: LocalDate,
@@ -43,13 +41,13 @@ data class OppdragJson(
         val beløp: Int
     ) {
         companion object {
-            fun List<Oppdragslinje>.toOppdragslinjeJson(): List<OppdragslinjeJson> = this.map {
-                OppdragslinjeJson(
+            fun List<Utbetalingslinje>.toUtbetalingslinjeJson(): List<UtbetalingslinjeJson> = this.map {
+                UtbetalingslinjeJson(
                     id = it.id.toString(),
                     opprettet = it.opprettet,
                     fom = it.fom,
                     tom = it.tom,
-                    forrigeOppdragslinjeId = it.forrigeOppdragslinjeId.toString(),
+                    forrigeOppdragslinjeId = it.forrigeUtbetalingslinjeId.toString(),
                     beløp = it.beløp
                 )
             }
@@ -97,7 +95,7 @@ data class OppdragJson(
                 val detaljer: List<DetaljerJson>
             ) {
                 companion object {
-                    fun List<Utbetaling>.toUtbetalingJson(): List<UtbetalingJson> = this.map {
+                    fun List<SimulertUtbetaling>.toUtbetalingJson(): List<UtbetalingJson> = this.map {
                         UtbetalingJson(
                             fagSystemId = it.fagSystemId,
                             utbetalesTilId = it.utbetalesTilId,
@@ -124,7 +122,7 @@ data class OppdragJson(
                     val refunderesOrgNr: String
                 ) {
                     companion object {
-                        fun List<Detaljer>.toDetaljerJson(): List<DetaljerJson> = this.map {
+                        fun List<SimulertDetaljer>.toDetaljerJson(): List<DetaljerJson> = this.map {
                             DetaljerJson(
                                 faktiskFom = it.faktiskFom,
                                 klassekode = it.klassekode,

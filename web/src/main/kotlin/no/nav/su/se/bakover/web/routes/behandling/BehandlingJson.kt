@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.routes.behandling.OppdragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
@@ -18,7 +18,7 @@ internal data class BehandlingJson(
     val søknad: SøknadJson,
     val beregning: BeregningJson?,
     val status: String,
-    val oppdrag: OppdragJson?,
+    val utbetaling: UbetalingJson?,
     val opprettet: String
 )
 
@@ -28,7 +28,7 @@ internal fun BehandlingDto.toJson() = BehandlingJson(
     søknad = søknad.toJson(),
     beregning = beregning?.toJson(),
     status = status.toString(),
-    oppdrag = oppdrag?.let { it.toJson() },
+    utbetaling = utbetaling?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet)
 )
 

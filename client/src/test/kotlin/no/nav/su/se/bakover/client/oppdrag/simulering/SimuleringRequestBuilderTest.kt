@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg.T
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
@@ -24,29 +25,29 @@ internal class SimuleringRequestBuilderTest {
         private const val KLASSEKODE = "KLASSE"
         private val tidsstempel = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-        val sakId = UUID.randomUUID()
+        val oppdragId = UUID30.randomUUID()
     }
 
     @Test
     fun `bygger simulering request til bruker`() {
-        val oppdragslinjeid1 = UUID.randomUUID()
-        val oppdragslinjeid2 = UUID.randomUUID()
-        val eksisterendeOppdragslinjeid = UUID.randomUUID()
+        val oppdragslinjeid1 = UUID30.randomUUID()
+        val oppdragslinjeid2 = UUID30.randomUUID()
+        val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val simuleringRequest = createOppdrag(
             listOf(
-                Oppdragslinje(
+                Utbetalingslinje(
                     id = oppdragslinjeid1,
                     fom = 1.januar(2020),
                     tom = 14.januar(2020),
                     beløp = BELØP,
-                    forrigeOppdragslinjeId = eksisterendeOppdragslinjeid,
+                    forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
                 ),
-                Oppdragslinje(
+                Utbetalingslinje(
                     id = oppdragslinjeid2,
                     fom = 15.januar(2020),
                     tom = 31.januar(2020),
                     beløp = BELØP,
-                    forrigeOppdragslinjeId = oppdragslinjeid1,
+                    forrigeUtbetalingslinjeId = oppdragslinjeid1,
                 )
             )
         )
@@ -63,8 +64,7 @@ internal class SimuleringRequestBuilderTest {
             tom = 14.januar(2020),
             datoStatusFom = null,
             statuskode = null,
-            refDelytelsesId = eksisterendeOppdragslinjeid.toString(),
-            refFagsystemId = sakId.toString()
+            refDelytelsesId = eksisterendeOppdragslinjeid.toString()
         )
         assertOppdragslinje(
             oppdrag = simuleringRequest.request.oppdrag,
@@ -75,20 +75,19 @@ internal class SimuleringRequestBuilderTest {
             tom = 31.januar(2020),
             datoStatusFom = null,
             statuskode = null,
-            refDelytelsesId = oppdragslinjeid1.toString(),
-            refFagsystemId = sakId.toString()
+            refDelytelsesId = oppdragslinjeid1.toString()
         )
     }
 
     private fun createOppdrag(
-        oppdragslinjer: List<Oppdragslinje>
+        oppdragslinjer: List<Utbetalingslinje>
     ): SimulerBeregningRequest {
 
         val builder = SimuleringRequestBuilder(
-            Oppdrag(
+            Utbetaling(
                 behandlingId = UUID.randomUUID(),
-                oppdragslinjer = oppdragslinjer,
-                sakId = sakId
+                utbetalingslinjer = oppdragslinjer,
+                oppdragId = oppdragId
             ),
             PERSON
         )
@@ -98,7 +97,7 @@ internal class SimuleringRequestBuilderTest {
     private fun assertOppdrag(oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag, endringskode: String) {
         oppdrag.oppdragGjelderId shouldBe PERSON
         oppdrag.saksbehId shouldBe SAKSBEHANDLER
-        oppdrag.fagsystemId shouldBe sakId.toString()
+        oppdrag.fagsystemId shouldBe oppdragId.toString()
         oppdrag.kodeEndring shouldBe endringskode
         oppdrag.kodeFagomraade shouldBe FAGOMRÅDE
         oppdrag.utbetFrekvens shouldBe "MND"
@@ -117,8 +116,7 @@ internal class SimuleringRequestBuilderTest {
         tom: LocalDate,
         datoStatusFom: LocalDate?,
         statuskode: KodeStatusLinje?,
-        refDelytelsesId: String,
-        refFagsystemId: String
+        refDelytelsesId: String
     ) {
         oppdrag.oppdragslinje[index].delytelseId shouldBe delytelseId
         oppdrag.oppdragslinje[index].kodeEndringLinje shouldBe endringskode
@@ -129,7 +127,6 @@ internal class SimuleringRequestBuilderTest {
         oppdrag.oppdragslinje[index].datoStatusFom shouldBe datoStatusFom?.format(tidsstempel)
         oppdrag.oppdragslinje[index].utbetalesTilId shouldBe PERSON
         oppdrag.oppdragslinje[index].refDelytelseId shouldBe refDelytelsesId
-        oppdrag.oppdragslinje[index].refFagsystemId shouldBe refFagsystemId
         oppdrag.oppdragslinje[index].kodeStatusLinje shouldBe statuskode
         oppdrag.oppdragslinje[index].kodeKlassifik shouldBe KLASSEKODE
         oppdrag.oppdragslinje[index].fradragTillegg shouldBe T

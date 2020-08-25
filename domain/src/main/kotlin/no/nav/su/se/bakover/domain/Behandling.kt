@@ -11,23 +11,22 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.Opprettet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 data class Behandling constructor(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
-    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
+    private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
 
     enum class BehandlingsStatus {
@@ -46,10 +45,10 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = utledStatus(),
-        oppdrag = gjeldendeOppdrag()
+        utbetaling = gjeldendeUtbetaling()
     )
 
-    fun gjeldendeOppdrag() = oppdrag.sortedWith(Opprettet).lastOrNull()
+    fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
 
     private fun utledStatus(): BehandlingsStatus {
         return when {
@@ -80,8 +79,8 @@ data class Behandling constructor(
         return vilkårsvurderinger
     }
 
-    fun addOppdrag(oppdrag: Oppdrag) {
-        this.oppdrag.add(oppdrag)
+    fun leggTilUtbetaling(utbetaling: Utbetaling) {
+        this.utbetalinger.add(utbetaling)
     }
 
     fun opprettBeregning(
@@ -103,17 +102,7 @@ data class Behandling constructor(
         return beregning
     }
 
-    internal data class BehandlingOppdragsinformasjon(
-        val behandlingId: UUID,
-        val perioder: List<BeregningsPeriode>
-    )
-
-    internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
-        behandlingId = id,
-        perioder = gjeldendeBeregning().hentPerioder()
-    )
-
-    private fun gjeldendeBeregning(): Beregning = beregninger.toList()
+    internal fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
         .last()
 
@@ -137,5 +126,5 @@ data class BehandlingDto(
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
     val status: BehandlingsStatus,
-    val oppdrag: Oppdrag?
+    val utbetaling: Utbetaling?
 )

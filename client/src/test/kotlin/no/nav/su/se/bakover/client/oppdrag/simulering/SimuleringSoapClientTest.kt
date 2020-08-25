@@ -2,10 +2,11 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
@@ -134,18 +135,18 @@ internal class SimuleringSoapClientTest {
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
-    private fun createOppdrag(): Oppdrag {
-        val sakId = UUID.randomUUID()
-        return Oppdrag(
-            sakId = sakId,
+    private fun createOppdrag(): Utbetaling {
+        val oppdragId = UUID30.randomUUID()
+        return Utbetaling(
+            oppdragId = oppdragId,
             behandlingId = UUID.randomUUID(),
-            oppdragslinjer = listOf(
-                Oppdragslinje(
-                    id = UUID.randomUUID(),
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    id = UUID30.randomUUID(),
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     beløp = 405,
-                    forrigeOppdragslinjeId = null
+                    forrigeUtbetalingslinjeId = null
                 )
             )
         )

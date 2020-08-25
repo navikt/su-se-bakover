@@ -168,7 +168,7 @@ internal class BehandlingRoutesKtTest {
             }
             defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "oppdrag"
+                response.content shouldContain "utbetaling"
             }
         }
     }

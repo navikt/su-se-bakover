@@ -6,8 +6,8 @@ import java.time.Instant
 import java.util.UUID
 
 data class Vilkårsvurdering(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     val vilkår: Vilkår,
     private var begrunnelse: String = "",
     private var status: Status = Status.IKKE_VURDERT

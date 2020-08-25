@@ -61,11 +61,7 @@ internal class SakTest {
             })
         }
 
-        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag = Oppdrag(
-            sakId = UUID.randomUUID(),
-            behandlingId = UUID.randomUUID(),
-            oppdragslinjer = emptyList(),
-        )
+        override fun opprettOppdrag(oppdrag: Oppdrag) = oppdrag
 
         data class NySøknadParams(
             val sakId: UUID,
