@@ -57,6 +57,8 @@ internal class DokArkivClientTest : WiremockBase {
           "dokumenter": [
             {
               "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+              "kategori": "SOK",
+              "brevtype": "XX.YY-ZZ",
               "dokumentvarianter": [
                 {
                   "filtype": "PDFA",
