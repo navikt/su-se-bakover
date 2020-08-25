@@ -35,6 +35,8 @@ class BrevService(
                         fornavn = person.navn.fornavn,
                         etternavn = person.navn.etternavn,
                         adresse = person.adresse?.adressenavn,
+                        bruksenhet = person.adresse?.bruksenhet,
+                        husnummer = person.adresse?.husnummer,
                         postnummer = person.adresse?.poststed?.postnummer,
                         poststed = person.adresse?.poststed?.poststed,
                         status = behandlingDto.status,

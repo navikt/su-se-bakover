@@ -8,6 +8,8 @@ data class VedtakInnhold(
     val fornavn: String,
     val etternavn: String,
     val adresse: String?,
+    val husnummer: String?,
+    val bruksenhet: String?,
     val postnummer: String?,
     val poststed: String?,
     val månedsbeløp: Int?,
