@@ -25,7 +25,7 @@ internal class SimuleringRequestBuilder(
         utbetFrekvens = "MND"
         fagsystemId = utbetaling.oppdragId.toString()
         oppdragGjelderId = oppdragGjelder
-        saksbehId = "saksbehandler"
+        saksbehId = "abc1234"
         datoOppdragGjelderFom = LocalDate.EPOCH.format(tidsstempel)
         enhet.add(
             Enhet().apply {
@@ -37,7 +37,7 @@ internal class SimuleringRequestBuilder(
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
-        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder, "saksbehandler")) }
+        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder, "abc1234")) }
         val førsteDag = utbetaling.førsteDag()
         val sisteDag = utbetaling.sisteDag()
         return SimulerBeregningGrensesnittRequest().apply {
