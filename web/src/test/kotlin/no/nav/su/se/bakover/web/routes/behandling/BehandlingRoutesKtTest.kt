@@ -204,6 +204,34 @@ internal class BehandlingRoutesKtTest {
         }
     }
 
+    @Test
+    fun `client notified about illegal operations on current state of behandling`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                        "fom":"${1.januar(2020)}",
+                        "tom":"${31.desember(2020)}",
+                        "sats":"${Sats.HØY}",
+                        "fradrag":[]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Illegal operation"
+                response.content shouldContain "opprettBeregning"
+                response.content shouldContain "state: OPPRETTET"
+            }
+        }
+    }
+
     data class Objects(
         val sak: Sak,
         val søknad: Søknad,

@@ -104,15 +104,15 @@ data class Behandling constructor(
     interface Tilstand {
         val status: BehandlingsStatus
         fun opprettVilkårsvurderinger() {
-            throw TilstandException()
+            throw TilstandException(status, this::opprettVilkårsvurderinger.toString())
         }
 
         fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            throw TilstandException()
+            throw TilstandException(status, this::oppdaterVilkårsvurderinger.toString())
         }
 
         fun addOppdrag(oppdrag: Oppdrag) {
-            throw TilstandException()
+            throw TilstandException(status, this::addOppdrag.toString())
         }
 
         fun opprettBeregning(
@@ -121,15 +121,15 @@ data class Behandling constructor(
             sats: Sats = Sats.HØY,
             fradrag: List<Fradrag>
         ) {
-            throw TilstandException()
+            throw TilstandException(status, this::opprettBeregning.toString())
         }
 
         fun sendTilAttestering() {
-            throw TilstandException()
+            throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
         fun attester() {
-            throw TilstandException()
+            throw TilstandException(status, this::attester.toString())
         }
     }
 
@@ -141,7 +141,7 @@ data class Behandling constructor(
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
         override fun opprettVilkårsvurderinger() {
-            if (vilkårsvurderinger.isNotEmpty()) throw TilstandException()
+            if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(status, this::opprettVilkårsvurderinger.toString())
             vilkårsvurderinger.addAll(
                 persistenceObserver.opprettVilkårsvurderinger(
                     behandlingId = id,
@@ -227,7 +227,11 @@ data class Behandling constructor(
         TIL_ATTESTERING
     }
 
-    class TilstandException(msg: String = "Illegal operation for state: ${Tilstand::class}") :
+    class TilstandException(
+        val state: BehandlingsStatus,
+        val operation: String,
+        val msg: String = "Illegal operation: $operation for state: $state"
+    ) :
         RuntimeException(msg)
 }
 

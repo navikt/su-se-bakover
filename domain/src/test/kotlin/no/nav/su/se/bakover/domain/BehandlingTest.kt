@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -154,6 +155,11 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { opprettet.opprettBeregning(1.januar(2020), 31.desember(2020)) }
+                .also {
+                    it.msg shouldContain "Illegal operation"
+                    it.msg shouldContain "opprettBeregning"
+                    it.msg shouldContain "state: OPPRETTET"
+                }
             assertThrows<Behandling.TilstandException> {
                 opprettet.addOppdrag(
                     Oppdrag(
