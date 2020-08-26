@@ -106,7 +106,7 @@ internal fun Application.susebakover(
         }
         exception<Behandling.TilstandException> {
             log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg ?: "Ugyldig operasjon for behandlingens tilstand"))
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
         }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
