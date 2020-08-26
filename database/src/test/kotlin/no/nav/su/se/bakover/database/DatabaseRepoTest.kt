@@ -9,6 +9,7 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
@@ -120,6 +121,20 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus
+        }
+    }
+
+    @Test
+    fun `attesterer behandling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            val attestant = repo.attester(behandling.id, Attestant("kjella"))
+            val hentet = repo.hentBehandling(behandling.id)!!
+
+            hentet.attestant() shouldBe attestant
         }
     }
 
@@ -355,6 +370,10 @@ internal class DatabaseRepoTest {
         ): Behandling.BehandlingsStatus {
             throw NotImplementedError()
         }
+
+        override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
+            return attestant
+        }
     }
 
     private fun vilkårsvurderingPersistenceObserver() = object : VilkårsvurderingPersistenceObserver {
@@ -428,15 +447,16 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetalingslinje(utbetalingId: UUID30, forrigeUtbetalingslinjeId: UUID30?) = repo.opprettUtbetalingslinje(
-        utbetalingId = utbetalingId,
-        utbetalingslinje = Utbetalingslinje(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
-            forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-            beløp = 25000
+    private fun insertUtbetalingslinje(utbetalingId: UUID30, forrigeUtbetalingslinjeId: UUID30?) =
+        repo.opprettUtbetalingslinje(
+            utbetalingId = utbetalingId,
+            utbetalingslinje = Utbetalingslinje(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+                beløp = 25000
+            )
         )
-    )
 
     private fun insertBeregning(behandlingId: UUID) = repo.opprettBeregning(
         behandlingId = behandlingId,

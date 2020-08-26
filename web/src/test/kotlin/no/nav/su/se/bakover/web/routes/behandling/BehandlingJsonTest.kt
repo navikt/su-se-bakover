@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
@@ -39,7 +40,8 @@ internal class BehandlingJsonTest {
                 )
             ),
             søknad = søknad,
-            beregninger = mutableListOf(beregning)
+            beregninger = mutableListOf(beregning),
+            attestant = Attestant("kjella")
         )
 
         //language=JSON
@@ -63,7 +65,8 @@ internal class BehandlingJsonTest {
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
           "status": "OPPRETTET",
-          "utbetaling": null
+          "utbetaling": null,
+          "attestant" : "kjella"
         }
             """.trimIndent()
     }
@@ -98,7 +101,8 @@ internal class BehandlingJsonTest {
           "beregning": null,
           "status": "OPPRETTET",
           "utbetaling": null,
-          "opprettet": "$opprettetTidspunkt"
+          "opprettet": "$opprettetTidspunkt",
+          "attestant" : null
         }
         """
 

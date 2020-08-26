@@ -1,7 +1,14 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.now
-
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
@@ -21,11 +28,13 @@ data class Behandling constructor(
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf(),
-    private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+    private var status: BehandlingsStatus = OPPRETTET,
+    private var attestant: Attestant? = null
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
     private var tilstand: Tilstand = resolve(status)
 
     fun status() = tilstand.status
+    fun attestant() = attestant
 
     override fun toDto() = BehandlingDto(
         id = id,
@@ -34,19 +43,21 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = status,
-        utbetaling = gjeldendeUtbetaling()
+        utbetaling = gjeldendeUtbetaling(),
+        attestant = attestant
     )
 
     fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
-        BehandlingsStatus.OPPRETTET -> Opprettet()
-        BehandlingsStatus.VILKÅRSVURDERT -> Vilkårsvurdert()
-        BehandlingsStatus.BEREGNET -> Beregnet()
-        BehandlingsStatus.SIMULERT -> Simulert()
-        BehandlingsStatus.INNVILGET -> Innvilget()
-        BehandlingsStatus.AVSLÅTT -> Avslått()
-        BehandlingsStatus.TIL_ATTESTERING -> TilAttestering()
+        OPPRETTET -> Opprettet()
+        VILKÅRSVURDERT -> Vilkårsvurdert()
+        BEREGNET -> Beregnet()
+        SIMULERT -> Simulert()
+        INNVILGET -> Innvilget()
+        AVSLÅTT -> Avslått()
+        TIL_ATTESTERING -> TilAttestering()
+        ATTESTERT -> Attestert()
     }
 
     fun opprettVilkårsvurderinger(): Behandling {
@@ -76,6 +87,11 @@ data class Behandling constructor(
     // TODO stuff
     fun sendTilAttestering(): Behandling {
         tilstand.sendTilAttestering()
+        return this
+    }
+
+    fun attester(attestant: Attestant): Behandling {
+        tilstand.attester(attestant)
         return this
     }
 
@@ -116,6 +132,10 @@ data class Behandling constructor(
         fun sendTilAttestering() {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
+
+        fun attester(attestant: Attestant) {
+            throw TilstandException(status, this::attester.toString())
+        }
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
@@ -125,7 +145,7 @@ data class Behandling constructor(
     }
 
     private inner class Opprettet : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+        override val status: BehandlingsStatus = OPPRETTET
         override fun opprettVilkårsvurderinger() {
             if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(
                 status,
@@ -156,7 +176,7 @@ data class Behandling constructor(
     }
 
     private inner class Vilkårsvurdert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT
+        override val status: BehandlingsStatus = VILKÅRSVURDERT
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
             beregninger.add(
                 persistenceObserver.opprettBeregning(
@@ -178,7 +198,7 @@ data class Behandling constructor(
     }
 
     private inner class Beregnet : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+        override val status: BehandlingsStatus = BEREGNET
 
         override fun leggTilUtbetaling(utbetaling: Utbetaling) {
             this@Behandling.utbetalinger.add(utbetaling)
@@ -195,7 +215,7 @@ data class Behandling constructor(
     }
 
     private inner class Simulert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
+        override val status: BehandlingsStatus = SIMULERT
 
         override fun sendTilAttestering() {
             nyTilstand(TilAttestering())
@@ -211,18 +231,27 @@ data class Behandling constructor(
     }
 
     private inner class TilAttestering : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING
+        override val status: BehandlingsStatus = TIL_ATTESTERING
+        override fun attester(attestant: Attestant) {
+            this@Behandling.attestant = persistenceObserver.attester(id, attestant)
+            nyTilstand(Attestert())
+        }
+    }
+
+    private inner class Attestert : Tilstand {
+        override val status: BehandlingsStatus = ATTESTERT
+        // TODO send til utbetaling etc
     }
 
     private inner class Avslått : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
+        override val status: BehandlingsStatus = AVSLÅTT
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
             nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
         }
     }
 
     private inner class Innvilget : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.INNVILGET
+        override val status: BehandlingsStatus = INNVILGET
     }
 
     enum class BehandlingsStatus {
@@ -234,7 +263,8 @@ data class Behandling constructor(
         /*VEDTAKSBREV,*/
         INNVILGET,
         AVSLÅTT,
-        TIL_ATTESTERING
+        TIL_ATTESTERING,
+        ATTESTERT
     }
 
     class TilstandException(
@@ -256,6 +286,8 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
     ): Behandling.BehandlingsStatus
+
+    fun attester(behandlingId: UUID, attestant: Attestant): Attestant
 }
 
 data class BehandlingDto(
@@ -265,5 +297,6 @@ data class BehandlingDto(
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
     val status: Behandling.BehandlingsStatus,
-    val utbetaling: Utbetaling?
+    val utbetaling: Utbetaling?,
+    val attestant: Attestant?
 )

@@ -450,6 +450,10 @@ internal class BehandlingTest {
             return status
         }
 
+        override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
+            return attestant
+        }
+
         override fun oppdaterVilkårsvurdering(vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
             oppdaterteVilkårsvurderinger.add(vilkårsvurdering.id to vilkårsvurdering)
             return vilkårsvurdering

@@ -8,6 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
@@ -275,7 +276,8 @@ internal class DatabaseRepo(
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregninger = hentBeregningerInternal(behandlingId, session),
             utbetalinger = hentUtbetalingerForBehandling(behandlingId, session),
-            status = Behandling.BehandlingsStatus.valueOf(string("status"))
+            status = Behandling.BehandlingsStatus.valueOf(string("status")),
+            attestant = stringOrNull("attestant")?.let { Attestant(it) }
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
@@ -407,6 +409,16 @@ internal class DatabaseRepo(
             )
         )
         return status
+    }
+
+    override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
+        "update behandling set attestant = :attestant where id=:id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "attestant" to attestant.id
+            )
+        )
+        return attestant
     }
 
     private fun hentMånedsberegninger(beregningId: UUID, session: Session) =

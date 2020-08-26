@@ -19,7 +19,8 @@ internal data class BehandlingJson(
     val beregning: BeregningJson?,
     val status: String,
     val utbetaling: UbetalingJson?,
-    val opprettet: String
+    val opprettet: String,
+    val attestant: String?
 )
 
 internal fun BehandlingDto.toJson() = BehandlingJson(
@@ -29,7 +30,8 @@ internal fun BehandlingDto.toJson() = BehandlingJson(
     beregning = beregning?.toJson(),
     status = status.toString(),
     utbetaling = utbetaling?.toJson(),
-    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet)
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    attestant = attestant?.id
 )
 
 internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =

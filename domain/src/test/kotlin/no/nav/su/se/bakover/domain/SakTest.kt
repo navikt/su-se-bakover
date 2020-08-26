@@ -65,6 +65,10 @@ internal class SakTest {
                 ): Behandling.BehandlingsStatus {
                     throw NotImplementedError()
                 }
+
+                override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
+                    return attestant
+                }
             })
         }
 
