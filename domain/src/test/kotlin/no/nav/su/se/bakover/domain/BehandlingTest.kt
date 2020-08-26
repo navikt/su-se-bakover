@@ -8,9 +8,16 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -46,7 +53,7 @@ internal class BehandlingTest {
                 Vilkårsvurdering(
                     vilkår = Vilkår.UFØRHET,
                     begrunnelse = "",
-                    status = Vilkårsvurdering.Status.OK
+                    status = OK
                 )
             ),
             søknad = søknad,
@@ -69,7 +76,7 @@ internal class BehandlingTest {
                 Vilkårsvurdering(
                     vilkår = Vilkår.UFØRHET,
                     begrunnelse = "",
-                    status = Vilkårsvurdering.Status.OK
+                    status = OK
                 )
             ),
             søknad = søknad,
@@ -97,7 +104,7 @@ internal class BehandlingTest {
         @Test
         fun `legal operations`() {
             opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.OK))
+            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(OK))
         }
 
         @Test
@@ -120,7 +127,7 @@ internal class BehandlingTest {
         @Test
         fun `should update vilkårsvurderinger`() {
             opprettet.opprettVilkårsvurderinger()
-            val expected = extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.OK)
+            val expected = extractVilkårsvurderinger(opprettet).withStatus(OK)
             opprettet.oppdaterVilkårsvurderinger(expected)
             opprettet.status() shouldBe VILKÅRSVURDERT
             observer.oppdatertStatus shouldBe opprettet.status()
@@ -130,7 +137,7 @@ internal class BehandlingTest {
         @Test
         fun `transition to Vilkårsvurdert`() {
             opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.OK))
+            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(OK))
             opprettet.status() shouldBe VILKÅRSVURDERT
             observer.oppdatertStatus shouldBe opprettet.status()
         }
@@ -138,15 +145,15 @@ internal class BehandlingTest {
         @Test
         fun `transition to Avslått`() {
             opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.IKKE_OK))
-            opprettet.status() shouldBe Behandling.BehandlingsStatus.AVSLÅTT
+            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(IKKE_OK))
+            opprettet.status() shouldBe AVSLÅTT
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
         fun `dont transition if vilkårsvurdering not completed`() {
             opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.IKKE_VURDERT))
+            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(IKKE_VURDERT))
             opprettet.status() shouldBe OPPRETTET
         }
 
@@ -187,7 +194,7 @@ internal class BehandlingTest {
                 .opprettVilkårsvurderinger()
             vilkårsvurdert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(vilkårsvurdert).withStatus(
-                    Vilkårsvurdering.Status.OK
+                    OK
                 )
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
@@ -197,7 +204,7 @@ internal class BehandlingTest {
         @Test
         fun `legal operations`() {
             vilkårsvurdert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            vilkårsvurdert.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
+            vilkårsvurdert.status() shouldBe BEREGNET
         }
 
         @Test
@@ -220,7 +227,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
             vilkårsvurdert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(vilkårsvurdert).withStatus(Vilkårsvurdering.Status.OK)
+                extractVilkårsvurderinger(vilkårsvurdert).withStatus(OK)
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
         }
@@ -251,11 +258,11 @@ internal class BehandlingTest {
                 .opprettVilkårsvurderinger()
             beregnet.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(beregnet).withStatus(
-                    Vilkårsvurdering.Status.OK
+                    OK
                 )
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
+            beregnet.status() shouldBe BEREGNET
             observer.oppdatertStatus shouldBe beregnet.status()
         }
 
@@ -268,19 +275,19 @@ internal class BehandlingTest {
                     utbetalingslinjer = emptyList()
                 )
             )
-            beregnet.status() shouldBe Behandling.BehandlingsStatus.SIMULERT
+            beregnet.status() shouldBe SIMULERT
         }
 
         @Test
         fun `skal kunne beregne på nytt`() {
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
+            beregnet.status() shouldBe BEREGNET
         }
 
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
             beregnet.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(beregnet).withStatus(Vilkårsvurdering.Status.OK)
+                extractVilkårsvurderinger(beregnet).withStatus(OK)
             )
             beregnet.status() shouldBe VILKÅRSVURDERT
         }
@@ -302,7 +309,7 @@ internal class BehandlingTest {
                 .opprettVilkårsvurderinger()
             simulert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(simulert).withStatus(
-                    Vilkårsvurdering.Status.OK
+                    OK
                 )
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
@@ -313,30 +320,34 @@ internal class BehandlingTest {
                     utbetalingslinjer = emptyList()
                 )
             )
-            simulert.status() shouldBe Behandling.BehandlingsStatus.SIMULERT
+            simulert.status() shouldBe SIMULERT
             observer.oppdatertStatus shouldBe simulert.status()
         }
 
         @Test
         fun `skal kunne attestere`() {
             simulert.sendTilAttestering()
-            simulert.status() shouldBe Behandling.BehandlingsStatus.TIL_ATTESTERING
+            simulert.status() shouldBe TIL_ATTESTERING
         }
 
         @Test
         fun `skal kunne beregne på nytt`() {
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
+            simulert.status() shouldBe BEREGNET
+        }
+
+        @Test
+        fun `skal kunne vilkårsvurdere på nytt`() {
+            simulert.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(simulert).withStatus(OK)
+            )
+            simulert.status() shouldBe VILKÅRSVURDERT
         }
 
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                simulert.oppdaterVilkårsvurderinger(
-                    extractVilkårsvurderinger(simulert).withStatus(Vilkårsvurdering.Status.OK)
-                )
-            }
+
             assertThrows<Behandling.TilstandException> {
                 simulert.leggTilUtbetaling(
                     Utbetaling(
@@ -359,16 +370,16 @@ internal class BehandlingTest {
                 .opprettVilkårsvurderinger()
             avslått.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(avslått).withStatus(
-                    Vilkårsvurdering.Status.IKKE_OK
+                    IKKE_OK
                 )
             )
-            avslått.status() shouldBe Behandling.BehandlingsStatus.AVSLÅTT
+            avslått.status() shouldBe AVSLÅTT
             observer.oppdatertStatus shouldBe avslått.status()
         }
 
         @Test
         fun `legal operations`() {
-            avslått.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(avslått).withStatus(Vilkårsvurdering.Status.OK))
+            avslått.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(avslått).withStatus(OK))
             avslått.status() shouldBe VILKÅRSVURDERT
         }
 
@@ -414,7 +425,7 @@ internal class BehandlingTest {
     private class DummyObserver : BehandlingPersistenceObserver, VilkårsvurderingPersistenceObserver {
         lateinit var opprettetVilkårsvurdering: Pair<UUID, List<Vilkårsvurdering>>
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
-        lateinit var oppdatertStatus: Behandling.BehandlingsStatus
+        lateinit var oppdatertStatus: BehandlingsStatus
         var oppdaterteVilkårsvurderinger: MutableList<Pair<UUID, Vilkårsvurdering>> = mutableListOf()
 
         override fun opprettVilkårsvurderinger(
@@ -433,8 +444,8 @@ internal class BehandlingTest {
 
         override fun oppdaterBehandlingStatus(
             behandlingId: UUID,
-            status: Behandling.BehandlingsStatus
-        ): Behandling.BehandlingsStatus {
+            status: BehandlingsStatus
+        ): BehandlingsStatus {
             oppdatertStatus = status
             return status
         }
@@ -447,7 +458,7 @@ internal class BehandlingTest {
 
     private fun createBehandling(
         id: UUID,
-        status: Behandling.BehandlingsStatus
+        status: BehandlingsStatus
     ) = Behandling(
         id = id,
         søknad = søknad,

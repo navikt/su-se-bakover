@@ -204,6 +204,10 @@ data class Behandling constructor(
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
         }
+
+        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
+            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        }
     }
 
     private inner class TilAttestering : Tilstand {
