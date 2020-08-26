@@ -8,8 +8,7 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
-import no.nav.su.se.bakover.client.oppgave.Oppgave
-import no.nav.su.se.bakover.client.oppgave.OppgaveClient
+import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonClient
@@ -18,11 +17,12 @@ import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.slf4j.LoggerFactory
 
 interface HttpClientsBuilder {
@@ -34,7 +34,7 @@ interface HttpClientsBuilder {
         inntektOppslag: InntektOppslag = HttpClientBuilder.inntekt(oAuth = azure, personOppslag = personOppslag),
         pdfGenerator: PdfGenerator = HttpClientBuilder.pdf(),
         dokArkiv: DokArkiv = HttpClientBuilder.dokArkiv(tokenOppslag = tokenOppslag),
-        oppgave: Oppgave = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
+        oppgaveClient: OppgaveClient = HttpClientBuilder.oppgave(tokenOppslag = tokenOppslag)
     ): HttpClients
 }
 
@@ -45,7 +45,7 @@ data class HttpClients(
     val tokenOppslag: TokenOppslag,
     val pdfGenerator: PdfGenerator,
     val dokArkiv: DokArkiv,
-    val oppgave: Oppgave,
+    val oppgaveClient: OppgaveClient,
     val kodeverk: Kodeverk
 )
 
@@ -119,9 +119,9 @@ object HttpClientBuilder : HttpClientsBuilder {
     internal fun oppgave(
         baseUrl: String = Config.oppgaveUrl,
         tokenOppslag: TokenOppslag
-    ): Oppgave = when (Config.isLocalOrRunningTests) {
-        true -> OppgaveStub.also { logger.warn("********** Using stub for ${Oppgave::class.java} **********") }
-        else -> OppgaveClient(baseUrl, tokenOppslag)
+    ): OppgaveClient = when (Config.isLocalOrRunningTests) {
+        true -> OppgaveClientStub.also { logger.warn("********** Using stub for ${OppgaveClient::class.java} **********") }
+        else -> OppgaveHttpClient(baseUrl, tokenOppslag)
     }
 
     internal fun kodeverk(
@@ -137,9 +137,9 @@ object HttpClientBuilder : HttpClientsBuilder {
         inntektOppslag: InntektOppslag,
         pdfGenerator: PdfGenerator,
         dokArkiv: DokArkiv,
-        oppgave: Oppgave
+        oppgaveClient: OppgaveClient
     ): HttpClients {
-        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgave, kodeverk)
+        return HttpClients(azure, personOppslag, inntektOppslag, tokenOppslag, pdfGenerator, dokArkiv, oppgaveClient, kodeverk)
     }
 
     private val logger = LoggerFactory.getLogger(HttpClientBuilder::class.java)
