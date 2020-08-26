@@ -11,7 +11,7 @@ internal data class OppgaveResponse(
     val saksreferanse: String,
     val aktoerId: String,
     val tema: String,
-    val behandlingstema: String,
+    val behandlingstema: String?,
     val oppgavetype: String,
     val behandlingstype: String,
     val versjon: Int,

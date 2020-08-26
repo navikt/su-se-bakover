@@ -39,7 +39,7 @@ internal class OppgaveHttpClient(
                         tema = "SUP",
                         behandlesAvApplikasjon = "SUPSTONAD",
                         oppgavetype = config.oppgavetype.toString(),
-                        behandlingstema = config.behandlingstema.toString(),
+                        behandlingstema = config.behandlingstema?.toString(),
                         behandlingstype = config.behandlingstype.toString(),
                         aktivDato = aktivDato,
                         fristFerdigstillelse = aktivDato.plusDays(30),

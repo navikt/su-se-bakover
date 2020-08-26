@@ -9,7 +9,7 @@ internal data class OppgaveRequest(
     val tema: String,
     val behandlesAvApplikasjon: String,
     val oppgavetype: String,
-    val behandlingstema: String,
+    val behandlingstema: String?,
     val behandlingstype: String,
     val aktivDato: LocalDate,
     val fristFerdigstillelse: LocalDate,

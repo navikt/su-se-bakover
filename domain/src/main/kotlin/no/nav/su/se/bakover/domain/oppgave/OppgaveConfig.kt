@@ -9,7 +9,7 @@ sealed class OppgaveConfig() {
     abstract val journalpostId: String
     abstract val sakId: String
     abstract val aktørId: AktørId
-    abstract val behandlingstema: Behandlingstema
+    abstract val behandlingstema: Behandlingstema?
     abstract val oppgavetype: Oppgavetype
     abstract val behandlingstype: Behandlingstype
 
@@ -18,7 +18,7 @@ sealed class OppgaveConfig() {
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {
-        override val behandlingstema = Behandlingstema.FLYKTNING
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
     }
@@ -28,7 +28,7 @@ sealed class OppgaveConfig() {
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {
-        override val behandlingstema = Behandlingstema.FLYKTNING
+        override val behandlingstema = null // Man kan ikke kombinere oppgavetype ATT med et behandlingstema (det er i hvert fall ikke gjort per nå). Ref: https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
         override val behandlingstype = Behandlingstype.BEHANDLE_VEDTAK
         override val oppgavetype = Oppgavetype.TIL_ATTESTERING
     }
@@ -49,8 +49,8 @@ sealed class OppgaveConfig() {
      * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
      */
     enum class Behandlingstema(val value: String) {
-        FLYKTNING("ab0431"),
-        ALDER("ab0432");
+        SU_UFØRE_FLYKNING("ab0431"),
+        SU_ALDER("ab0432");
 
         override fun toString() = this.value
     }
