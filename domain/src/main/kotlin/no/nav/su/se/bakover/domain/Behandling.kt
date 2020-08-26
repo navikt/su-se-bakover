@@ -116,15 +116,12 @@ data class Behandling constructor(
         fun sendTilAttestering() {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
-
-        fun attester() {
-            throw TilstandException(status, this::attester.toString())
-        }
     }
 
-    private fun nyTilstand(target: Tilstand) {
+    private fun nyTilstand(target: Tilstand): Tilstand {
         status = persistenceObserver.oppdaterBehandlingStatus(id, target.status)
         tilstand = resolve(status)
+        return tilstand
     }
 
     private inner class Opprettet : Tilstand {
@@ -174,20 +171,38 @@ data class Behandling constructor(
             )
             nyTilstand(Beregnet())
         }
+
+        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
+            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        }
     }
 
     private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+
         override fun leggTilUtbetaling(utbetaling: Utbetaling) {
             this@Behandling.utbetalinger.add(utbetaling)
             nyTilstand(Simulert())
+        }
+
+        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
+        }
+
+        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
+            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
         }
     }
 
     private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
+
         override fun sendTilAttestering() {
             nyTilstand(TilAttestering())
+        }
+
+        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
         }
     }
 
@@ -198,8 +213,7 @@ data class Behandling constructor(
     private inner class Avslått : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            nyTilstand(Opprettet())
-            tilstand.oppdaterVilkårsvurderinger(oppdatertListe)
+            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
         }
     }
 

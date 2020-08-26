@@ -8,6 +8,9 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -31,12 +34,12 @@ internal class BehandlingTest {
 
     @BeforeEach
     fun beforeEach() {
-        behandling = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
+        behandling = createBehandling(id1, OPPRETTET)
     }
 
     @Test
     fun equals() {
-        val a = createBehandling(id1, status = Behandling.BehandlingsStatus.VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = VILKÅRSVURDERT)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -47,9 +50,9 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            status = VILKÅRSVURDERT
         )
-        val c = createBehandling(id2, status = Behandling.BehandlingsStatus.VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = VILKÅRSVURDERT)
         assertEquals(a, b)
         assertNotEquals(a, c)
         assertNotEquals(b, c)
@@ -59,7 +62,7 @@ internal class BehandlingTest {
 
     @Test
     fun hashcode() {
-        val a = createBehandling(id1, status = Behandling.BehandlingsStatus.VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = VILKÅRSVURDERT)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -70,9 +73,9 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            status = VILKÅRSVURDERT
         )
-        val c = createBehandling(id2, status = Behandling.BehandlingsStatus.VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = VILKÅRSVURDERT)
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())
         val hashSet = hashSetOf(a, b, c)
@@ -87,8 +90,8 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            opprettet = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
-            opprettet.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
+            opprettet = createBehandling(id1, OPPRETTET)
+            opprettet.status() shouldBe OPPRETTET
         }
 
         @Test
@@ -119,7 +122,7 @@ internal class BehandlingTest {
             opprettet.opprettVilkårsvurderinger()
             val expected = extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.OK)
             opprettet.oppdaterVilkårsvurderinger(expected)
-            opprettet.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            opprettet.status() shouldBe VILKÅRSVURDERT
             observer.oppdatertStatus shouldBe opprettet.status()
             observer.oppdaterteVilkårsvurderinger.map { it.second } shouldContainAll expected
         }
@@ -128,7 +131,7 @@ internal class BehandlingTest {
         fun `transition to Vilkårsvurdert`() {
             opprettet.opprettVilkårsvurderinger()
             opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.OK))
-            opprettet.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            opprettet.status() shouldBe VILKÅRSVURDERT
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
@@ -144,7 +147,7 @@ internal class BehandlingTest {
         fun `dont transition if vilkårsvurdering not completed`() {
             opprettet.opprettVilkårsvurderinger()
             opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(Vilkårsvurdering.Status.IKKE_VURDERT))
-            opprettet.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
+            opprettet.status() shouldBe OPPRETTET
         }
 
         @Test
@@ -180,14 +183,14 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            vilkårsvurdert = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
+            vilkårsvurdert = createBehandling(id1, OPPRETTET)
                 .opprettVilkårsvurderinger()
             vilkårsvurdert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(vilkårsvurdert).withStatus(
                     Vilkårsvurdering.Status.OK
                 )
             )
-            vilkårsvurdert.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
             observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
@@ -215,13 +218,16 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `skal kunne vilkårsvudere på nytt`() {
+            vilkårsvurdert.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(vilkårsvurdert).withStatus(Vilkårsvurdering.Status.OK)
+            )
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
+        }
+
+        @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.oppdaterVilkårsvurderinger(
-                    extractVilkårsvurderinger(vilkårsvurdert).withStatus(Vilkårsvurdering.Status.OK)
-                )
-            }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.leggTilUtbetaling(
                     Utbetaling(
@@ -241,7 +247,7 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            beregnet = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
+            beregnet = createBehandling(id1, OPPRETTET)
                 .opprettVilkårsvurderinger()
             beregnet.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(beregnet).withStatus(
@@ -254,7 +260,7 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `legal operations`() {
+        fun `skal kunne simuleres`() {
             beregnet.leggTilUtbetaling(
                 Utbetaling(
                     oppdragId = UUID30.randomUUID(),
@@ -266,16 +272,22 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `skal kunne beregne på nytt`() {
+            beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+            beregnet.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
+        }
+
+        @Test
+        fun `skal kunne vilkårsvudere på nytt`() {
+            beregnet.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(beregnet).withStatus(Vilkårsvurdering.Status.OK)
+            )
+            beregnet.status() shouldBe VILKÅRSVURDERT
+        }
+
+        @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                beregnet.oppdaterVilkårsvurderinger(
-                    extractVilkårsvurderinger(beregnet).withStatus(Vilkårsvurdering.Status.OK)
-                )
-            }
-            assertThrows<Behandling.TilstandException> {
-                beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            }
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering() }
         }
     }
@@ -286,7 +298,7 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            simulert = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
+            simulert = createBehandling(id1, OPPRETTET)
                 .opprettVilkårsvurderinger()
             simulert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(simulert).withStatus(
@@ -306,9 +318,15 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `legal operations`() {
+        fun `skal kunne attestere`() {
             simulert.sendTilAttestering()
             simulert.status() shouldBe Behandling.BehandlingsStatus.TIL_ATTESTERING
+        }
+
+        @Test
+        fun `skal kunne beregne på nytt`() {
+            simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            simulert.status() shouldBe Behandling.BehandlingsStatus.BEREGNET
         }
 
         @Test
@@ -318,9 +336,6 @@ internal class BehandlingTest {
                 simulert.oppdaterVilkårsvurderinger(
                     extractVilkårsvurderinger(simulert).withStatus(Vilkårsvurdering.Status.OK)
                 )
-            }
-            assertThrows<Behandling.TilstandException> {
-                simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
                 simulert.leggTilUtbetaling(
@@ -340,7 +355,7 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            avslått = createBehandling(id1, Behandling.BehandlingsStatus.OPPRETTET)
+            avslått = createBehandling(id1, OPPRETTET)
                 .opprettVilkårsvurderinger()
             avslått.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(avslått).withStatus(
@@ -354,7 +369,7 @@ internal class BehandlingTest {
         @Test
         fun `legal operations`() {
             avslått.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(avslått).withStatus(Vilkårsvurdering.Status.OK))
-            avslått.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            avslått.status() shouldBe VILKÅRSVURDERT
         }
 
         @Test
