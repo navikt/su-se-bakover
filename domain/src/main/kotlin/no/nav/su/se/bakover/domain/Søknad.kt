@@ -6,8 +6,8 @@ import java.time.Instant
 import java.util.UUID
 
 data class Søknad(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     private val søknadInnhold: SøknadInnhold
 ) : PersistentDomainObject<VoidObserver>(), DtoConvertable<SøknadDto> {
 

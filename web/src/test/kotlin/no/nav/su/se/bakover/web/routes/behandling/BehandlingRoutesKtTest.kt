@@ -199,7 +199,7 @@ internal class BehandlingRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/simuler"
             ) {}.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "oppdrag"
+                response.content shouldContain "utbetaling"
             }
         }
     }

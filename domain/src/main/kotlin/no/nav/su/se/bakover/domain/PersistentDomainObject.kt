@@ -1,11 +1,6 @@
 package no.nav.su.se.bakover.domain
 
-import java.time.Instant
-import java.util.UUID
-
-abstract class PersistentDomainObject<T : PersistenceObserver>() {
-    abstract val id: UUID
-    abstract val opprettet: Instant
+abstract class PersistentDomainObject<T : PersistenceObserver> {
     protected lateinit var persistenceObserver: T
     fun addObserver(observer: T) {
         if (this::persistenceObserver.isInitialized) throw PersistenceObserverException()

@@ -10,8 +10,8 @@ import java.time.Period
 import java.util.UUID
 
 data class Beregning(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     val fom: LocalDate,
     val tom: LocalDate,
     val sats: Sats,

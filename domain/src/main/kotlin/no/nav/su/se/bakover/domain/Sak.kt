@@ -4,19 +4,19 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OppdragFactory
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Instant
 import java.util.UUID
 
 data class Sak(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
-    private val oppdrag: MutableList<Oppdrag> = mutableListOf()
+    private var oppdrag: Oppdrag? = null
 ) : PersistentDomainObject<SakPersistenceObserver>(), DtoConvertable<SakDto> {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
@@ -27,7 +27,7 @@ data class Sak(
         søknader = søknader.map { it.toDto() },
         behandlinger = behandlinger.map { it.toDto() },
         opprettet = opprettet,
-        oppdrag = oppdrag
+        utbetalinger = oppdrag?.hentUtbetalinger() ?: emptyList()
     )
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
@@ -56,38 +56,18 @@ data class Sak(
 
     fun fullførBehandling(behandlingId: UUID, simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlinger.find { it.toDto().id == behandlingId }!!
-        val oppdragTilSimulering = opprettOppdrag(behandling)
-        return simuleringClient.simulerOppdrag(oppdragTilSimulering, fnr.toString()).map {
-            val oppdrag = persistenceObserver.opprettOppdrag(oppdragTilSimulering)
-            oppdrag.addSimulering(it)
-            this.oppdrag.add(oppdrag)
-            behandling.addOppdrag(oppdrag)
+        val oppdragTilSimulering = opprettOppdragIfNotExist()
+        val utbetalingTilSimulering = oppdragTilSimulering.generererUtbetaling(behandling.id, behandling.gjeldendeBeregning().hentPerioder())
+        return simuleringClient.simulerOppdrag(utbetalingTilSimulering, fnr.toString()).map { simulering ->
+            val oppdrag = oppdrag ?: persistenceObserver.opprettOppdrag(oppdragTilSimulering)
+            val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering)
+            utbetaling.addSimulering(simulering)
+            behandling.leggTilUtbetaling(utbetaling)
             behandling
         }
     }
 
-    private fun opprettOppdrag(behandling: Behandling): Oppdrag {
-        return OppdragFactory(
-            behandling = behandling.genererOppdragsinformasjon(),
-            sak = genererOppdragsinformasjon()
-        ).build()
-    }
-
-    internal data class SakOppdragsinformasjon(
-        val sakId: UUID,
-        val sisteOppdrag: Oppdrag?,
-        val fnr: String
-    ) {
-        fun hasOppdrag() = sisteOppdrag != null
-    }
-
-    fun sisteOppdrag() = oppdrag.lastOrNull()
-
-    private fun genererOppdragsinformasjon() = SakOppdragsinformasjon(
-        sakId = id,
-        sisteOppdrag = sisteOppdrag(), // TODO: Hvordan skal vi velge oppdrag? Er oppdraget simulert?  attestert? ferdig? utbetalt?
-        fnr = fnr.toString()
-    )
+    private fun opprettOppdragIfNotExist() = oppdrag ?: Oppdrag(sakId = id)
 }
 
 interface SakObserver
@@ -118,5 +98,5 @@ data class SakDto(
     val søknader: List<SøknadDto> = emptyList(),
     val behandlinger: List<BehandlingDto> = emptyList(),
     val opprettet: Instant,
-    val oppdrag: List<Oppdrag> = emptyList()
+    val utbetalinger: List<Utbetaling> = emptyList()
 )

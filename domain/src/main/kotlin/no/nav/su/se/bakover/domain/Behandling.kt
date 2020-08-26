@@ -5,22 +5,22 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 data class Behandling constructor(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Instant = now(),
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
-    private val oppdrag: MutableList<Oppdrag> = mutableListOf(),
+    private val utbetalinger: MutableList<Utbetaling> = mutableListOf(),
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
     private var tilstand: Tilstand = resolve(status)
@@ -34,8 +34,10 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = status,
-        oppdrag = gjeldendeOppdrag()
+        utbetaling = gjeldendeUtbetaling()
     )
+
+    fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
@@ -47,8 +49,6 @@ data class Behandling constructor(
         BehandlingsStatus.TIL_ATTESTERING -> TilAttestering()
     }
 
-    fun gjeldendeOppdrag() = oppdrag.sortedWith(Oppdrag.Opprettet).lastOrNull()
-
     fun opprettVilkårsvurderinger(): Behandling {
         tilstand.opprettVilkårsvurderinger()
         return this
@@ -59,9 +59,8 @@ data class Behandling constructor(
         return this
     }
 
-    fun addOppdrag(oppdrag: Oppdrag): Behandling {
-        tilstand.addOppdrag(oppdrag)
-        return this
+    fun leggTilUtbetaling(utbetaling: Utbetaling) {
+        tilstand.leggTilUtbetaling(utbetaling)
     }
 
     fun opprettBeregning(
@@ -80,17 +79,7 @@ data class Behandling constructor(
         return this
     }
 
-    internal data class BehandlingOppdragsinformasjon(
-        val behandlingId: UUID,
-        val perioder: List<BeregningsPeriode>
-    )
-
-    internal fun genererOppdragsinformasjon() = BehandlingOppdragsinformasjon(
-        behandlingId = id,
-        perioder = gjeldendeBeregning().hentPerioder()
-    )
-
-    private fun gjeldendeBeregning(): Beregning = beregninger.toList()
+    internal fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
         .last()
 
@@ -111,8 +100,8 @@ data class Behandling constructor(
             throw TilstandException(status, this::oppdaterVilkårsvurderinger.toString())
         }
 
-        fun addOppdrag(oppdrag: Oppdrag) {
-            throw TilstandException(status, this::addOppdrag.toString())
+        fun leggTilUtbetaling(utbetaling: Utbetaling) {
+            throw TilstandException(status, this::leggTilUtbetaling.toString())
         }
 
         fun opprettBeregning(
@@ -141,7 +130,10 @@ data class Behandling constructor(
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
         override fun opprettVilkårsvurderinger() {
-            if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(status, this::opprettVilkårsvurderinger.toString())
+            if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(
+                status,
+                this::opprettVilkårsvurderinger.toString()
+            )
             vilkårsvurderinger.addAll(
                 persistenceObserver.opprettVilkårsvurderinger(
                     behandlingId = id,
@@ -186,8 +178,8 @@ data class Behandling constructor(
 
     private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
-        override fun addOppdrag(oppdrag: Oppdrag) {
-            this@Behandling.oppdrag.add(oppdrag)
+        override fun leggTilUtbetaling(utbetaling: Utbetaling) {
+            this@Behandling.utbetalinger.add(utbetaling)
             nyTilstand(Simulert())
         }
     }
@@ -255,5 +247,5 @@ data class BehandlingDto(
     val søknad: SøknadDto,
     val beregning: BeregningDto?,
     val status: Behandling.BehandlingsStatus,
-    val oppdrag: Oppdrag?
+    val utbetaling: Utbetaling?
 )

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
@@ -11,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
 internal class SimuleringRequestBuilder(
-    private val oppdrag: no.nav.su.se.bakover.domain.oppdrag.Oppdrag,
+    private val utbetaling: Utbetaling,
     private val oppdragGjelder: String
 ) {
     private companion object {
@@ -20,11 +21,11 @@ internal class SimuleringRequestBuilder(
 
     private val oppdragRequest = Oppdrag().apply {
         kodeFagomraade = "SU" // TODO: Finn korrekt
-        kodeEndring = "NY"
+        kodeEndring = "NY" // TODO: Så lenge vi ikke gjør en faktisk utbetaling, vil denne være NY uavhengig hvor mange simuleringer vi gjør.
         utbetFrekvens = "MND"
-        fagsystemId = oppdrag.sakId.toString() // TODO: Finn korrekt
+        fagsystemId = utbetaling.oppdragId.toString()
         oppdragGjelderId = oppdragGjelder
-        saksbehId = "saksbehandler"
+        saksbehId = "abc1234"
         datoOppdragGjelderFom = LocalDate.EPOCH.format(tidsstempel)
         enhet.add(
             Enhet().apply {
@@ -36,9 +37,9 @@ internal class SimuleringRequestBuilder(
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
-        oppdrag.oppdragslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(oppdrag, it, oppdragGjelder, "saksbehandler")) }
-        val førsteDag = oppdrag.førsteDag()
-        val sisteDag = oppdrag.sisteDag()
+        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder, "abc1234")) }
+        val førsteDag = utbetaling.førsteDag()
+        val sisteDag = utbetaling.sisteDag()
         return SimulerBeregningGrensesnittRequest().apply {
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
@@ -51,20 +52,18 @@ internal class SimuleringRequestBuilder(
     }
 
     private fun nyLinje(
-        oppdrag: no.nav.su.se.bakover.domain.oppdrag.Oppdrag,
-        oppdragslinje: no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje,
+        utbetalingslinje: no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje,
         oppdragGjelder: String,
         saksbehandler: String
     ) = Oppdragslinje().apply {
         utbetalesTilId = oppdragGjelder
-        delytelseId = oppdragslinje.id.toString()
-        refDelytelseId = oppdragslinje.forrigeOppdragslinjeId?.toString()
-        refFagsystemId = oppdrag.sakId.toString()
+        delytelseId = utbetalingslinje.id.toString()
+        refDelytelseId = utbetalingslinje.forrigeUtbetalingslinjeId?.toString()
         kodeEndringLinje = "NY"
         kodeKlassifik = "KLASSE"
-        datoVedtakFom = oppdragslinje.fom.format(tidsstempel)
-        datoVedtakTom = oppdragslinje.tom.format(tidsstempel)
-        sats = oppdragslinje.beløp.toBigDecimal()
+        datoVedtakFom = utbetalingslinje.fom.format(tidsstempel)
+        datoVedtakTom = utbetalingslinje.tom.format(tidsstempel)
+        sats = utbetalingslinje.beløp.toBigDecimal()
         fradragTillegg = FradragTillegg.T
         typeSats = "MND"
         saksbehId = saksbehandler

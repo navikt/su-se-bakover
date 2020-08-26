@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.SOAPClientBuilder
 import no.nav.su.se.bakover.client.SOAPClients
-import no.nav.su.se.bakover.client.person.PersonFactory
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -84,7 +83,7 @@ internal fun Application.susebakover(
         pdfGenerator = httpClients.pdfGenerator,
         dokArkiv = httpClients.dokArkiv,
         oppgave = httpClients.oppgave,
-        personFactory = PersonFactory(httpClients.personOppslag, httpClients.kodeverk)
+        personOppslag = httpClients.personOppslag
     )
 
     install(CORS) {
@@ -170,7 +169,7 @@ internal fun Application.susebakover(
                     """.trimIndent()
                 )
             }
-            personRoutes(PersonFactory(httpClients.personOppslag, httpClients.kodeverk))
+            personRoutes(httpClients.personOppslag)
             inntektRoutes(httpClients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
@@ -178,7 +177,7 @@ internal fun Application.susebakover(
                 repo = databaseRepo,
                 brevService = BrevService(
                     pdfGenerator = httpClients.pdfGenerator,
-                    personFactory = PersonFactory(httpClients.personOppslag, httpClients.kodeverk)
+                    personOppslag = httpClients.personOppslag
                 ),
                 simuleringClient = soapClients.simulering
             )

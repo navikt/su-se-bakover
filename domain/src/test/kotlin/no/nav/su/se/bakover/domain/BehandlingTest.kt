@@ -5,11 +5,12 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -161,11 +162,11 @@ internal class BehandlingTest {
                     it.msg shouldContain "state: OPPRETTET"
                 }
             assertThrows<Behandling.TilstandException> {
-                opprettet.addOppdrag(
-                    Oppdrag(
-                        sakId = UUID.randomUUID(),
+                opprettet.leggTilUtbetaling(
+                    Utbetaling(
+                        oppdragId = UUID30.randomUUID(),
                         behandlingId = UUID.randomUUID(),
-                        oppdragslinjer = emptyList()
+                        utbetalingslinjer = emptyList()
                     )
                 )
             }
@@ -222,11 +223,11 @@ internal class BehandlingTest {
                 )
             }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.addOppdrag(
-                    Oppdrag(
-                        sakId = UUID.randomUUID(),
+                vilkårsvurdert.leggTilUtbetaling(
+                    Utbetaling(
+                        oppdragId = UUID30.randomUUID(),
                         behandlingId = UUID.randomUUID(),
-                        oppdragslinjer = emptyList()
+                        utbetalingslinjer = emptyList()
                     )
                 )
             }
@@ -254,11 +255,11 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            beregnet.addOppdrag(
-                Oppdrag(
-                    sakId = UUID.randomUUID(),
+            beregnet.leggTilUtbetaling(
+                Utbetaling(
+                    oppdragId = UUID30.randomUUID(),
                     behandlingId = UUID.randomUUID(),
-                    oppdragslinjer = emptyList()
+                    utbetalingslinjer = emptyList()
                 )
             )
             beregnet.status() shouldBe Behandling.BehandlingsStatus.SIMULERT
@@ -293,11 +294,11 @@ internal class BehandlingTest {
                 )
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.addOppdrag(
-                Oppdrag(
-                    sakId = UUID.randomUUID(),
+            simulert.leggTilUtbetaling(
+                Utbetaling(
+                    oppdragId = UUID30.randomUUID(),
                     behandlingId = UUID.randomUUID(),
-                    oppdragslinjer = emptyList()
+                    utbetalingslinjer = emptyList()
                 )
             )
             simulert.status() shouldBe Behandling.BehandlingsStatus.SIMULERT
@@ -322,11 +323,11 @@ internal class BehandlingTest {
                 simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                simulert.addOppdrag(
-                    Oppdrag(
-                        sakId = UUID.randomUUID(),
+                simulert.leggTilUtbetaling(
+                    Utbetaling(
+                        oppdragId = UUID30.randomUUID(),
                         behandlingId = UUID.randomUUID(),
-                        oppdragslinjer = emptyList()
+                        utbetalingslinjer = emptyList()
                     )
                 )
             }
@@ -363,11 +364,11 @@ internal class BehandlingTest {
                 avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                avslått.addOppdrag(
-                    Oppdrag(
-                        sakId = UUID.randomUUID(),
+                avslått.leggTilUtbetaling(
+                    Utbetaling(
+                        oppdragId = UUID30.randomUUID(),
                         behandlingId = UUID.randomUUID(),
-                        oppdragslinjer = emptyList()
+                        utbetalingslinjer = emptyList()
                     )
                 )
             }

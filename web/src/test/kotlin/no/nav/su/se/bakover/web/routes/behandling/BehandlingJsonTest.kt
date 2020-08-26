@@ -63,7 +63,7 @@ internal class BehandlingJsonTest {
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
           "status": "OPPRETTET",
-          "oppdrag": null
+          "utbetaling": null
         }
             """.trimIndent()
     }
@@ -97,7 +97,7 @@ internal class BehandlingJsonTest {
           "søknad": $søknadJsonString,
           "beregning": null,
           "status": "OPPRETTET",
-          "oppdrag": null,
+          "utbetaling": null,
           "opprettet": "$opprettetTidspunkt"
         }
         """

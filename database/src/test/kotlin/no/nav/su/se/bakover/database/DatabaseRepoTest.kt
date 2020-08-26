@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.database
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Behandling
@@ -23,14 +26,19 @@ import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OppdragPersistenceObserver
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragslinje
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.postgresql.util.PSQLException
+import java.time.LocalDate
 import java.util.UUID
 
 internal class DatabaseRepoTest {
@@ -179,19 +187,36 @@ internal class DatabaseRepoTest {
     fun `opprett og hent oppdrag`() {
         withMigratedDb {
             val sak = insertSak(FNR)
+            val oppdragId = UUID30.randomUUID()
+            val oppdrag = insertOppdrag(oppdragId, sak.id)
+            val hentetOppdrag = repo.hentOppdrag(oppdragId)
+
+            oppdrag shouldBe hentetOppdrag
+            oppdrag.sakId shouldBe sak.id
+            oppdrag.id shouldBe oppdragId
+
+            listOf(oppdrag, hentetOppdrag).forEach {
+                assertPersistenceObserverAssigned(it!!, oppdragPersistenceObserver())
+            }
+        }
+    }
+
+    @Test
+    fun `opprett og hent utbetaling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
+            val oppdragId = UUID30.randomUUID()
 
-            val oppdrag = insertOppdrag(sak.id, behandling.id)
-
-            val hentet = repo.hentOppdrag(oppdrag.id)
-
-            oppdrag shouldBe hentet
-            oppdrag.sakId shouldBe sak.id
-            oppdrag.behandlingId shouldBe behandling.id
-
-            listOf(oppdrag, hentet).forEach {
-                assertPersistenceObserverAssigned(it!!, oppdragPersistenceObserver())
+            insertOppdrag(oppdragId, sak.id)
+            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val hentetUtbetaling = repo.hentUtbetalinger(oppdragId, it).first()
+                utbetaling shouldBe hentetUtbetaling
+                listOf(utbetaling, hentetUtbetaling).forEach {
+                    assertPersistenceObserverAssigned(it, utbetalingPersistenceObserver())
+                }
             }
         }
     }
@@ -201,13 +226,58 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
+            val oppdragId = UUID30.randomUUID()
             val behandling = insertBehandling(sak.id, søknad)
-            val oppdrag = insertOppdrag(sak.id, behandling.id)
-            val oppdragslinje = insertOppdragslinje(oppdrag.id)
+            insertOppdrag(oppdragId, sak.id)
+            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            val utbetalingslinje = insertUtbetalingslinje(utbetaling.id)
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val hentet = repo.hentUtbetalingslinjer(utbetaling.id, it).first()
+                utbetalingslinje shouldBe hentet
+            }
+        }
+    }
 
-            val hentet = repo.hentOppdrag(oppdrag.id)!!.oppdragslinjer.first()
+    @Test
+    fun `legg til og hent simulering`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val oppdragId = UUID30.randomUUID()
+            val behandling = insertBehandling(sak.id, søknad)
+            insertOppdrag(oppdragId, sak.id)
+            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            val simulering = repo.addSimulering(
+                utbetaling.id,
+                Simulering(
+                    gjelderId = "gjelderId",
+                    gjelderNavn = "gjelderNavn",
+                    datoBeregnet = LocalDate.now(),
+                    totalBelop = 1,
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now(),
+                            utbetaling = emptyList() // Just a json in the db.
+                        )
+                    )
+                )
+            )
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val hentet = repo.hentUtbetalinger(oppdragId, it).first().getSimulering()!!
+                simulering shouldBe hentet
+            }
+        }
+    }
 
-            oppdragslinje shouldBe hentet
+    @Test
+    fun `combination of oppdragId and SakId should be unique`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            insertOppdrag(UUID30.randomUUID(), sak.id)
+            shouldThrowExactly<PSQLException> { insertOppdrag(UUID30.randomUUID(), sak.id) }.also {
+                it.message shouldContain "duplicate key value violates unique constraint"
+            }
         }
     }
 
@@ -254,7 +324,13 @@ internal class DatabaseRepoTest {
     }
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
-        override fun addSimulering(oppdragsId: UUID, simulering: Simulering): Simulering {
+        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+            throw NotImplementedError()
+        }
+    }
+
+    private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
             throw NotImplementedError()
         }
     }
@@ -296,20 +372,28 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertOppdrag(sakId: UUID, behandlingId: UUID) = repo.opprettOppdrag(
+    private fun insertOppdrag(oppdragId: UUID30, sakId: UUID) = repo.opprettOppdrag(
         oppdrag = Oppdrag(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            oppdragslinjer = emptyList()
+            id = oppdragId,
+            sakId = sakId
         )
     )
 
-    private fun insertOppdragslinje(oppdragId: UUID) = repo.opprettOppdragslinje(
+    private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUbetaling(
         oppdragId = oppdragId,
-        oppdragslinje = Oppdragslinje(
+        utbetaling = Utbetaling(
+            oppdragId = oppdragId,
+            behandlingId = behandlingId,
+            utbetalingslinjer = emptyList()
+        )
+    )
+
+    private fun insertUtbetalingslinje(utbetalingId: UUID30) = repo.opprettUtbetalingslinje(
+        utbetalingId = utbetalingId,
+        utbetalingslinje = Utbetalingslinje(
             fom = 1.januar(2020),
             tom = 31.desember(2020),
-            forrigeOppdragslinjeId = null,
+            forrigeUtbetalingslinjeId = null,
             beløp = 25000
         )
     )

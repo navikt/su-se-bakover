@@ -5,15 +5,15 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Detaljer
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerOppdrag(oppdrag: Oppdrag, oppdragGjelder: String) =
+    override fun simulerOppdrag(utbetaling: Utbetaling, utbetalingGjelder: String) =
         Simulering(
             gjelderId = "gjelderId",
             gjelderNavn = "gjelderNavn",
@@ -24,14 +24,14 @@ object SimuleringStub : SimuleringClient {
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     utbetaling = listOf(
-                        Utbetaling(
+                        SimulertUtbetaling(
                             fagSystemId = "SUP",
                             feilkonto = false,
                             forfall = 2.februar(2020),
                             utbetalesTilId = "utbetalesTilId",
                             utbetalesTilNavn = "utbetalestTilNavn",
                             detaljer = listOf(
-                                Detaljer(
+                                SimulertDetaljer(
                                     faktiskFom = 1.januar(2020),
                                     faktiskTom = 31.desember(2020),
                                     klassekode = "klassekode",
