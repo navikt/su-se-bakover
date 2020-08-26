@@ -8,6 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import org.json.JSONObject
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.util.*
 
-internal val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
+internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
 internal class DokArkivClient(
@@ -34,50 +35,7 @@ internal class DokArkivClient(
             .header("Accept", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .body(
-                """
-                    {
-                      "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                      "journalpostType": "INNGAAENDE",
-                      "tema": "SUP",
-                      "kanal": "INNSENDT_NAV_ANSATT",
-                      "behandlingstema": "ab0268",
-                      "journalfoerendeEnhet": "9999",
-                      "avsenderMottaker": {
-                        "id": "${person.ident.fnr}",
-                        "idType": "FNR",
-                        "navn": "${søkersNavn(person)}"
-                      },
-                      "bruker": {
-                        "id": "${søknadInnhold.personopplysninger.fnr}",
-                        "idType": "FNR"
-                      },
-                      "sak": {
-                        "fagsakId": "$sakId",
-                        "fagsaksystem": "SUPSTONAD",
-                        "sakstype": "FAGSAK"
-                      },
-                      "dokumenter": [
-                        {
-                          "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                          "dokumentKategori": "SOK",
-                          "brevkode": "XX.YY-ZZ",
-                          "dokumentvarianter": [
-                            {
-                              "filtype": "PDFA",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
-                              "variantformat": "ARKIV"
-                            },
-                            {
-                              "filtype": "JSON",
-                              "fysiskDokument": "${Base64.getEncoder()
-                    .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())}",
-                              "variantformat": "ORIGINAL"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                """.trimIndent()
+                byggJournalpostJson(person.ident.fnr, søkersNavn(person), søknadInnhold, sakId, pdf)
             ).responseString()
 
         return result.fold(
@@ -100,6 +58,53 @@ internal class DokArkivClient(
             }
 
         )
+    }
+
+    fun byggJournalpostJson(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
+        return """
+                    {
+                      "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                      "journalpostType": "INNGAAENDE",
+                      "tema": "SUP",
+                      "kanal": "INNSENDT_NAV_ANSATT",
+                      "behandlingstema": "ab0268",
+                      "journalfoerendeEnhet": "9999",
+                      "avsenderMottaker": {
+                        "id": "$fnr",
+                        "idType": "FNR",
+                        "navn": "$navn"
+                      },
+                      "bruker": {
+                        "id": "$fnr",
+                        "idType": "FNR"
+                      },
+                      "sak": {
+                        "fagsakId": "$sakId",
+                        "fagsaksystem": "SUPSTONAD",
+                        "sakstype": "FAGSAK"
+                      },
+                      "dokumenter": [
+                        {
+                          "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                          "dokumentKategori": "SOK",
+                          "brevkode": "XX.YY-ZZ",
+                          "dokumentvarianter": [
+                            {
+                              "filtype": "PDFA",
+                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
+                              "variantformat": "ARKIV"
+                            },
+                            {
+                              "filtype": "JSON",
+                              "fysiskDokument": "${Base64.getEncoder()
+            .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())}",
+                              "variantformat": "ORIGINAL"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+        """.trimIndent()
     }
 
     private fun søkersNavn(person: Person): String =

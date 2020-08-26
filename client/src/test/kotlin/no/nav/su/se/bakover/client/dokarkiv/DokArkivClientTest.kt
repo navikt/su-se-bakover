@@ -12,18 +12,15 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
-import java.util.Base64
 
 internal class DokArkivClientTest : WiremockBase {
 
-    private val sakId = 1
+    private val sakId = "1"
+    private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -31,50 +28,12 @@ internal class DokArkivClientTest : WiremockBase {
         throw RuntimeException("fnr fants ikke")
     }
 
-    private val forventetRequest =
-        """
-        {
-          "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-          "journalpostType": "INNGAAENDE",
-          "tema": "SUP",
-          "kanal": "INNSENDT_NAV_ANSATT",
-          "behandlingstema": "ab0268",
-          "journalfoerendeEnhet": "9999",
-          "avsenderMottaker": {
-            "id": "$fnr",
-            "idType": "FNR",
-            "navn": "Strømøy, Tore Johnas"
-          },
-          "bruker": {
-            "id": "$fnr",
-            "idType": "FNR"
-          },
-          "sak": {
-            "fagsakId": "$sakId",
-            "fagsaksystem": "SUPSTONAD",
-            "sakstype": "FAGSAK"
-          },
-          "dokumenter": [
-            {
-              "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-              "kategori": "SOK",
-              "brevtype": "XX.YY-ZZ",
-              "dokumentvarianter": [
-                {
-                  "filtype": "PDFA",
-                  "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
-                  "variantformat": "ARKIV"
-                },
-                {
-                  "filtype": "JSON",
-                  "fysiskDokument": "${Base64.getEncoder().encodeToString(søknadInnholdJson.toByteArray())}",
-                  "variantformat": "ORIGINAL"
-                }
-              ]
-            }
-          ]
-        }
-        """.trimIndent()
+    val client = DokArkivClient(
+        wireMockServer.baseUrl(),
+        TokenOppslagStub
+    )
+
+    private val forventetRequest = client.byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf)
 
     @Test
     fun `should send pdf to journal`() {
@@ -98,10 +57,6 @@ internal class DokArkivClientTest : WiremockBase {
                     )
                 )
         )
-        val client = DokArkivClient(
-            wireMockServer.baseUrl(),
-            TokenOppslagStub
-        )
 
         client.opprettJournalpost(søknadInnhold, person, pdf, "1").shouldBe(
             "1".right()
@@ -114,10 +69,6 @@ internal class DokArkivClientTest : WiremockBase {
             wiremockBuilder
                 .withRequestBody(WireMock.equalToJson(forventetRequest))
                 .willReturn(WireMock.forbidden())
-        )
-        val client = DokArkivClient(
-            wireMockServer.baseUrl(),
-            TokenOppslagStub
         )
 
         client.opprettJournalpost(søknadInnhold, person, pdf, "1") shouldBe
