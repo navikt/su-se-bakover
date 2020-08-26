@@ -45,11 +45,7 @@ internal class DatabaseRepo(
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
     private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
-        .hent(mapOf("fnr" to fnr.toString()), session) { row ->
-            row.toSak(session).also {
-                it.addObserver(this)
-            }
-        }
+        .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(session) }
 
     override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad {
         return opprettSøknad(sakId = sakId, søknad = søknad)
@@ -134,7 +130,7 @@ internal class DatabaseRepo(
             søknader = hentSøknaderInternal(sakId, session),
             behandlinger = hentBehandlingerForSak(sakId, session),
             oppdrag = hentOppdragForSak(sakId, session)
-        )
+        ).also { it.addObserver(this@DatabaseRepo) }
     }
 
     private fun hentOppdragForSak(sakId: UUID, session: Session) =
@@ -214,11 +210,7 @@ internal class DatabaseRepo(
     override fun hentSak(sakId: UUID): Sak? = using(sessionOf(dataSource)) { hentSakInternal(sakId, it) }
 
     private fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
-        .hent(mapOf("sakId" to sakId), session) { row ->
-            row.toSak(session).also {
-                it.addObserver(this)
-            }
-        }
+        .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
 
     internal fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
         val søknadDto = søknad.toDto()
@@ -301,10 +293,8 @@ internal class DatabaseRepo(
         "select * from vilkårsvurdering where behandlingId=:behandlingId".hentListe(
             mapOf("behandlingId" to behandlingId),
             session
-        ) { row ->
-            row.toVilkårsvurdering().also {
-                it.addObserver(this)
-            }
+        ) {
+            it.toVilkårsvurdering()
         }.toMutableList()
 
     private fun Row.toVilkårsvurdering() = Vilkårsvurdering(
@@ -313,7 +303,7 @@ internal class DatabaseRepo(
         begrunnelse = string("begrunnelse"),
         status = Vilkårsvurdering.Status.valueOf(string("status")),
         opprettet = instant("opprettet")
-    )
+    ).also { it.addObserver(this@DatabaseRepo) }
 
     private fun opprettVilkårsvurdering(behandlingId: UUID, vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
         val dto = vilkårsvurdering.toDto()
