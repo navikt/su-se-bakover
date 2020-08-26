@@ -5,17 +5,18 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class OppgaveClientTest : WiremockBase {
+internal class OppgaveHttpClientTest : WiremockBase {
 
-    private val client = OppgaveClient(
+    private val client = OppgaveHttpClient(
         wireMockServer.baseUrl(),
         TokenOppslagStub
     )
@@ -143,7 +144,7 @@ internal class OppgaveClientTest : WiremockBase {
     }
 
     @Test
-    fun `returns ClientError`() {
+    fun `returns KunneIkkeOppretteOppgave`() {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
         client.opprettOppgave(
@@ -152,7 +153,7 @@ internal class OppgaveClientTest : WiremockBase {
                 sakId,
                 AktørId(aktørId)
             )
-        ) shouldBeLeft ClientError(403, "Feil i kallet mot oppgave")
+        ) shouldBeLeft KunneIkkeOppretteOppgave(403, "Feil i kallet mot oppgave")
     }
 
     private val stubMapping = WireMock.post(WireMock.urlPathEqualTo(oppgavePath))

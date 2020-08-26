@@ -5,9 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -15,13 +17,13 @@ import java.time.LocalDate
 
 internal val oppgavePath = "/api/v1/oppgaver"
 
-internal class OppgaveClient(
+internal class OppgaveHttpClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
-) : Oppgave {
+) : OppgaveClient {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<ClientError, Long> {
+    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
         val aktivDato = LocalDate.now()
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
@@ -53,7 +55,10 @@ internal class OppgaveClient(
             },
             {
                 logger.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
-                ClientError(response.statusCode, "Feil i kallet mot oppgave").left()
+                KunneIkkeOppretteOppgave(
+                    response.statusCode,
+                    "Feil i kallet mot oppgave"
+                ).left()
             }
         )
     }

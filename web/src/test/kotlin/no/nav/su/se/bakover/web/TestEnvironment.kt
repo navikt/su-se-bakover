@@ -14,26 +14,25 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
-
 import no.nav.su.se.bakover.client.HttpClientBuilder
 import no.nav.su.se.bakover.client.HttpClients
 import no.nav.su.se.bakover.client.SOAPClients
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
-import no.nav.su.se.bakover.client.oppgave.Oppgave
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.json.JSONObject
 import java.util.Base64
 
@@ -80,7 +79,7 @@ internal fun buildHttpClients(
     inntektOppslag: InntektOppslag = InntektOppslagStub,
     dokArkiv: DokArkiv = DokArkivStub,
     pdfGenerator: PdfGenerator = PdfGeneratorStub,
-    oppgave: Oppgave = OppgaveStub
+    oppgaveClient: OppgaveClient = OppgaveClientStub
 ): HttpClients {
     return HttpClientBuilder.build(
         azure = azure,
@@ -88,7 +87,7 @@ internal fun buildHttpClients(
         inntektOppslag = inntektOppslag,
         dokArkiv = dokArkiv,
         pdfGenerator = pdfGenerator,
-        oppgave = oppgave
+        oppgaveClient = oppgaveClient
     )
 }
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.oppgave
+package no.nav.su.se.bakover.domain.oppgave
 
 import no.nav.su.se.bakover.domain.AktørId
 

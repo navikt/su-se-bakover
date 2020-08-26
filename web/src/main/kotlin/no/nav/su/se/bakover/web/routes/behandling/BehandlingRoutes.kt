@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -13,10 +14,13 @@ import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesUUID
@@ -33,7 +37,9 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
     brevService: BrevService,
-    simuleringClient: SimuleringClient
+    simuleringClient: SimuleringClient,
+    personOppslag: PersonOppslag,
+    oppgaveClient: OppgaveClient
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -154,6 +160,36 @@ internal fun Route.behandlingRoutes(
                                     },
                                     {
                                         call.svar(OK.jsonBody(it))
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    post("$behandlingPath/{behandlingId}/tilAttestering") {
+        call.lesUUID("sakId").fold(
+            ifLeft = { call.svar(BadRequest.message(it)) },
+            ifRight = { sakId ->
+                when (val sak = repo.hentSak(sakId)) {
+                    null -> call.svar(NotFound.message("Fant ikke sak med sakId:$sakId"))
+                    else -> {
+                        call.lesUUID("behandlingId").fold(
+                            ifLeft = { call.svar(BadRequest.message(it)) },
+                            ifRight = { behandlingId ->
+                                val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
+                                    log.error("Fant ikke aktør-id med gitt fødselsnummer")
+                                    throw RuntimeException("Kunne ikke finne aktørid")
+                                }
+                                sak.sendTilAttestering(behandlingId, aktørId, oppgaveClient).fold(
+                                    {
+                                        call.svar(InternalServerError.message("$it"))
+                                    },
+                                    {
+                                        call.svar(OK.message("Opprettet oppgave med id : $it"))
                                     }
                                 )
                             }

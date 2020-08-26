@@ -82,7 +82,7 @@ internal fun Application.susebakover(
         repo = databaseRepo,
         pdfGenerator = httpClients.pdfGenerator,
         dokArkiv = httpClients.dokArkiv,
-        oppgave = httpClients.oppgave,
+        oppgaveClient = httpClients.oppgaveClient,
         personOppslag = httpClients.personOppslag
     )
 
@@ -179,7 +179,9 @@ internal fun Application.susebakover(
                     pdfGenerator = httpClients.pdfGenerator,
                     personOppslag = httpClients.personOppslag
                 ),
-                simuleringClient = soapClients.simulering
+                simuleringClient = soapClients.simulering,
+                personOppslag = httpClients.personOppslag,
+                oppgaveClient = httpClients.oppgaveClient
             )
             vilkårsvurderingRoutes(databaseRepo)
         }

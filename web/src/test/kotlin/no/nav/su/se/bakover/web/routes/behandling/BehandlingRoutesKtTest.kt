@@ -70,6 +70,20 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
+    fun `Opprette en oppgave til attestering`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val ids = setup()
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/tilAttestering") {
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                response.content shouldContain "Opprettet oppgave med id"
+            }
+        }
+    }
+
+    @Test
     fun `opprette beregning for behandling`() {
         withTestApplication({
             testSusebakover()
