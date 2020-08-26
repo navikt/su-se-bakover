@@ -75,7 +75,7 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/tilAttestering") {
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sak.id}/behandlinger/${ids.behandling.id}/tilAttestering") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 response.content shouldContain "Opprettet oppgave med id"
