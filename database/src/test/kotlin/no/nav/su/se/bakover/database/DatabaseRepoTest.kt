@@ -31,7 +31,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -157,11 +159,10 @@ internal class DatabaseRepoTest {
             val behandling = insertBehandling(sak.id, søknad)
             val beregning = insertBeregning(behandling.id)
 
-            val hentet = repo.hentBeregninger(behandling.id)
-                .first()
+            val hentetBeregninger = repo.hentBeregninger(behandling.id)
 
-            beregning shouldBe hentet
-            listOf(beregning, hentet).forEach {
+            listOf(beregning) shouldBe hentetBeregninger
+            (hentetBeregninger + beregning).forEach {
                 assertNoPersistenceObserverAssigned(it, voidObserver())
             }
         }
@@ -196,9 +197,9 @@ internal class DatabaseRepoTest {
             insertOppdrag(oppdragId, sak.id)
             val utbetaling = insertUtbetaling(oppdragId, behandling.id)
             using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentetUtbetaling = repo.hentUtbetalinger(oppdragId, it).first()
-                utbetaling shouldBe hentetUtbetaling
-                listOf(utbetaling, hentetUtbetaling).forEach {
+                val hentetUtbetalinger = repo.hentUtbetalinger(oppdragId, it)
+                listOf(utbetaling) shouldBe hentetUtbetalinger
+                (hentetUtbetalinger + utbetaling).forEach {
                     assertPersistenceObserverAssigned(it, utbetalingPersistenceObserver())
                 }
             }
@@ -214,10 +215,11 @@ internal class DatabaseRepoTest {
             val behandling = insertBehandling(sak.id, søknad)
             insertOppdrag(oppdragId, sak.id)
             val utbetaling = insertUtbetaling(oppdragId, behandling.id)
-            val utbetalingslinje = insertUtbetalingslinje(utbetaling.id)
+            val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
+            val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
             using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentet = repo.hentUtbetalingslinjer(utbetaling.id, it).first()
-                utbetalingslinje shouldBe hentet
+                val hentet = repo.hentUtbetalingslinjer(utbetaling.id, it)
+                listOf(utbetalingslinje1, utbetalingslinje2) shouldBe hentet
             }
         }
     }
@@ -242,7 +244,32 @@ internal class DatabaseRepoTest {
                         SimulertPeriode(
                             fom = LocalDate.now(),
                             tom = LocalDate.now(),
-                            utbetaling = emptyList() // Just a json in the db.
+                            utbetaling = listOf(
+                                SimulertUtbetaling(
+                                    fagSystemId = "fagSystemId",
+                                    utbetalesTilId = "utbetalesTilId",
+                                    utbetalesTilNavn = "utbetalesTilNavn",
+                                    forfall = LocalDate.now(),
+                                    feilkonto = false,
+                                    detaljer = listOf(
+                                        SimulertDetaljer(
+                                            faktiskFom = LocalDate.now(),
+                                            faktiskTom = LocalDate.now(),
+                                            konto = "konto",
+                                            belop = 1,
+                                            tilbakeforing = true,
+                                            sats = 1,
+                                            typeSats = "",
+                                            antallSats = 1,
+                                            uforegrad = 2,
+                                            klassekode = "klassekode",
+                                            klassekodeBeskrivelse = "klassekodeBeskrivelse",
+                                            utbetalingsType = "utbetalingsType",
+                                            refunderesOrgNr = "refunderesOrgNr"
+                                        )
+                                    )
+                                )
+                            )
                         )
                     )
                 )
@@ -364,12 +391,12 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetalingslinje(utbetalingId: UUID30) = repo.opprettUtbetalingslinje(
+    private fun insertUtbetalingslinje(utbetalingId: UUID30, forrigeUtbetalingslinjeId: UUID30?) = repo.opprettUtbetalingslinje(
         utbetalingId = utbetalingId,
         utbetalingslinje = Utbetalingslinje(
             fom = 1.januar(2020),
             tom = 31.desember(2020),
-            forrigeUtbetalingslinjeId = null,
+            forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
             beløp = 25000
         )
     )
