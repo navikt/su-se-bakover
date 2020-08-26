@@ -10,12 +10,18 @@ import io.ktor.http.HttpStatusCode
 
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.desember
 
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
@@ -35,13 +41,12 @@ internal class BehandlingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
-            defaultRequest(HttpMethod.Get, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}").apply {
+            val objects = setup()
+            defaultRequest(HttpMethod.Get, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}").apply {
                 objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                    it.id shouldBe ids.behandlingId
+                    it.id shouldBe objects.behandling.id.toString()
                     it.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveSize 6
-                    it.søknad.id shouldBe ids.søknadId
-                    it.beregning!!.id shouldBe ids.beregningId
+                    it.søknad.id shouldBe objects.søknad.id.toString()
                 }
             }
         }
@@ -52,14 +57,14 @@ internal class BehandlingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger") {
-                setBody("""{ "soknadId": "${ids.søknadId}" }""")
+            val objects = setup()
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger") {
+                setBody("""{ "soknadId": "${objects.søknad.id}" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandling.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveAtLeastSize 1
-                behandling.søknad.id shouldBe ids.søknadId
+                behandling.søknad.id shouldBe objects.søknad.id.toString()
             }
         }
     }
@@ -70,7 +75,7 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/tilAttestering") {
+            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sak.id}/behandlinger/${ids.behandling.id}/tilAttestering") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 response.content shouldContain "Opprettet oppgave med id"
@@ -83,12 +88,18 @@ internal class BehandlingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
+            val objects = setup()
             val fom = LocalDate.of(2020, Month.JANUARY, 1)
             val tom = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/beregn") {
+            objects.behandling.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(objects.behandling).withStatus(
+                    Vilkårsvurdering.Status.OK
+                )
+            )
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
                     """
                     {
@@ -115,16 +126,19 @@ internal class BehandlingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/blabla/beregn") {}.apply {
+            val objects = setup()
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/beregn") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldig body"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/beregn") {
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn") {
                 setBody(
                     //language=JSON
                     """
@@ -140,7 +154,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/beregn") {
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn") {
                 setBody(
                     """
                     {
@@ -163,51 +177,106 @@ internal class BehandlingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/missing/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+            val objects = setup()
+            defaultRequest(HttpMethod.Post, "$sakPath/missing/behandlinger/${objects.behandling.id}/simuler") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${UUID.randomUUID()}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${objects.behandling.id}/simuler"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/blabla/simuler") {}.apply {
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${UUID.randomUUID()}/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Ukjent feil"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sakId}/behandlinger/${ids.behandlingId}/simuler") {}.apply {
+
+            objects.behandling.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(objects.behandling).withStatus(
+                    Vilkårsvurdering.Status.OK
+                )
+            )
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/simuler"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 response.content shouldContain "utbetaling"
             }
         }
     }
 
-    data class Ids(
-        val sakId: String,
-        val søknadId: String,
-        val behandlingId: String,
-        val beregningId: String
+    @Test
+    fun `client notified about illegal operations on current state of behandling`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                        "fom":"${1.januar(2020)}",
+                        "tom":"${31.desember(2020)}",
+                        "sats":"${Sats.HØY}",
+                        "fradrag":[]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Illegal operation"
+                response.content shouldContain "opprettBeregning"
+                response.content shouldContain "state: OPPRETTET"
+            }
+        }
+    }
+
+    data class Objects(
+        val sak: Sak,
+        val søknad: Søknad,
+        val behandling: Behandling
     )
 
-    private fun setup(): Ids {
+    private fun setup(): Objects {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
         val behandling = sak.opprettSøknadsbehandling(søknad.toDto().id)
-        val beregning = behandling.opprettBeregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
-            sats = Sats.LAV
-        )
-        return Ids(
-            sak.toDto().id.toString(),
-            søknad.toDto().id.toString(),
-            behandling.toDto().id.toString(),
-            beregning.toDto().id.toString()
+        return Objects(sak, søknad, behandling)
+    }
+
+    private fun List<Vilkårsvurdering>.withStatus(status: Vilkårsvurdering.Status) = map {
+        Vilkårsvurdering(
+            id = it.id,
+            opprettet = it.opprettet,
+            vilkår = it.vilkår,
+            begrunnelse = status.name,
+            status = status
         )
     }
+
+    private fun extractVilkårsvurderinger(behandling: Behandling) =
+        behandling.toDto().vilkårsvurderinger.map {
+            Vilkårsvurdering(
+                id = it.id,
+                opprettet = it.opprettet,
+                vilkår = it.vilkår,
+                begrunnelse = it.begrunnelse,
+                status = it.status
+            )
+        }
 }

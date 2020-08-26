@@ -62,7 +62,7 @@ internal class BehandlingJsonTest {
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
-          "status": "VILKÅRSVURDERING",
+          "status": "OPPRETTET",
           "utbetaling": null
         }
             """.trimIndent()
@@ -96,7 +96,7 @@ internal class BehandlingJsonTest {
           "vilkårsvurderinger": {},
           "søknad": $søknadJsonString,
           "beregning": null,
-          "status": "VILKÅRSVURDERING",
+          "status": "OPPRETTET",
           "utbetaling": null,
           "opprettet": "$opprettetTidspunkt"
         }

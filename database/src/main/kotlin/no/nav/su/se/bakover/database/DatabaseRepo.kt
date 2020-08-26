@@ -56,12 +56,13 @@ internal class DatabaseRepo(
         behandling: Behandling
     ): Behandling {
         val behandlingDto = behandling.toDto()
-        "insert into behandling (id, sakId, søknadId, opprettet) values (:id, :sakId, :soknadId, :opprettet)".oppdatering(
+        "insert into behandling (id, sakId, søknadId, opprettet, status) values (:id, :sakId, :soknadId, :opprettet, :status)".oppdatering(
             mapOf(
                 "id" to behandlingDto.id,
                 "sakId" to sakId,
                 "soknadId" to behandlingDto.søknad.id,
-                "opprettet" to behandlingDto.opprettet
+                "opprettet" to behandlingDto.opprettet,
+                "status" to behandling.status().name
             )
         )
         behandling.addObserver(this)
@@ -260,9 +261,7 @@ internal class DatabaseRepo(
     private fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
         "select * from behandling where id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
-                row.toBehandling(session).also {
-                    it.addObserver(this)
-                }
+                row.toBehandling(session)
             }
 
     private fun Row.uuid(name: String) = UUID.fromString(string(name))
@@ -275,8 +274,11 @@ internal class DatabaseRepo(
             opprettet = instant("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregninger = hentBeregningerInternal(behandlingId, session),
-            utbetalinger = hentUtbetalingerForBehandling(behandlingId, session)
-        )
+            utbetalinger = hentUtbetalingerForBehandling(behandlingId, session),
+            status = Behandling.BehandlingsStatus.valueOf(string("status"))
+        ).also {
+            it.addObserver(this@DatabaseRepo)
+        }
     }
 
     override fun opprettVilkårsvurderinger(
@@ -392,6 +394,19 @@ internal class DatabaseRepo(
         beregning.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
         dto.fradrag.forEach { opprettFradrag(dto.id, it) }
         return beregning
+    }
+
+    override fun oppdaterBehandlingStatus(
+        behandlingId: UUID,
+        status: Behandling.BehandlingsStatus
+    ): Behandling.BehandlingsStatus {
+        "update behandling set status = :status where id = :id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "status" to status.name
+            )
+        )
+        return status
     }
 
     private fun hentMånedsberegninger(beregningId: UUID, session: Session) =

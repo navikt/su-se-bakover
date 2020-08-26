@@ -6,7 +6,7 @@ import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
+import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import org.slf4j.Logger
@@ -28,7 +28,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     }
 
     override fun genererPdf(vedtak: VedtakInnhold): Either<ClientError, ByteArray> {
-        val template = if (vedtak.status === INNVILGET) Vedtak.INNVILGELSE.template else Vedtak.AVSLAG.template
+        val template = if (vedtak.status === Behandling.BehandlingsStatus.INNVILGET) Vedtak.INNVILGELSE.template else Vedtak.AVSLAG.template
         return genererPdf(objectMapper.writeValueAsString(vedtak), template)
     }
 
