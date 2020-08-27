@@ -53,7 +53,7 @@ class BrevService(
                         sats = behandlingDto.beregning?.sats.toString().toLowerCase(),
                         satsbeløp = førsteMånedsberegning?.satsBeløp,
                         satsGrunn = "HVOR SKAL DENNE GRUNNEN HENTES FRA", // hard code
-                        redusertStønadStatus = true,
+                        redusertStønadStatus = behandlingDto.beregning?.fradrag?.isNotEmpty() ?: false,
                         redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                         månedsbeløp = førsteMånedsberegning?.beløp,
                         fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
