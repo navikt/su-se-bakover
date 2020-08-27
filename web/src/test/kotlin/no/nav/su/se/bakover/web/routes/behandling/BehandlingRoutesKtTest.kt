@@ -66,7 +66,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
+            objects.behandling.simuler(SimuleringStub)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
@@ -95,7 +95,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
+            objects.behandling.simuler(SimuleringStub)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
@@ -158,14 +158,14 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn"
-            ) {}.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke behandling med behandlingId"
             }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn"
-            ) {}.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldig body"
             }
@@ -200,9 +200,9 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${UUID.randomUUID()}/behandlinger/${objects.behandling.id}/simuler"
-            ) {}.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke sak"
+                response.content shouldContain "Ugyldig kombinasjon av sak og behandling"
             }
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler") {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -211,9 +211,9 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler"
-            ) {}.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "Ukjent feil"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+                response.content shouldContain "Fant ikke behandling med behandlingId"
             }
 
             objects.behandling.oppdaterVilkårsvurderinger(
@@ -269,7 +269,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
+            objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
 
             defaultRequest(

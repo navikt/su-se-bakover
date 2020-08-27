@@ -16,8 +16,11 @@ import no.nav.su.se.bakover.domain.beregning.BeregningDto
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -76,11 +79,6 @@ data class Behandling constructor(
         return this
     }
 
-    fun leggTilUtbetaling(utbetaling: Utbetaling): Behandling {
-        tilstand.leggTilUtbetaling(utbetaling)
-        return this
-    }
-
     fun opprettBeregning(
         fom: LocalDate,
         tom: LocalDate,
@@ -89,6 +87,10 @@ data class Behandling constructor(
     ): Behandling {
         tilstand.opprettBeregning(fom, tom, sats, fradrag)
         return this
+    }
+
+    fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+        return tilstand.simuler(simuleringClient)
     }
 
     fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
@@ -121,10 +123,6 @@ data class Behandling constructor(
             throw TilstandException(status, this::oppdaterVilkårsvurderinger.toString())
         }
 
-        fun leggTilUtbetaling(utbetaling: Utbetaling) {
-            throw TilstandException(status, this::leggTilUtbetaling.toString())
-        }
-
         fun opprettBeregning(
             fom: LocalDate,
             tom: LocalDate,
@@ -132,6 +130,10 @@ data class Behandling constructor(
             fradrag: List<Fradrag>
         ) {
             throw TilstandException(status, this::opprettBeregning.toString())
+        }
+
+        fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+            throw TilstandException(status, this::simuler.toString())
         }
 
         fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
@@ -205,17 +207,28 @@ data class Behandling constructor(
     private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BEREGNET
 
-        override fun leggTilUtbetaling(utbetaling: Utbetaling) {
-            this@Behandling.utbetalinger.add(utbetaling)
-            nyTilstand(Simulert())
-        }
-
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
         }
 
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
             nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        }
+
+        override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+            val oppdrag = persistenceObserver.hentOppdrag(sakId)
+            val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, gjeldendeBeregning().hentPerioder())
+            return simuleringClient.simulerOppdrag(
+                utbetalingTilSimulering,
+                persistenceObserver.hentFnr(sakId).toString()
+            ).map { simulering ->
+                val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
+                    it.addSimulering(simulering)
+                }
+                this@Behandling.utbetalinger.add(utbetaling)
+                nyTilstand(Simulert())
+                this@Behandling
+            }
         }
     }
 
@@ -227,7 +240,6 @@ data class Behandling constructor(
             oppgave: OppgaveClient
         ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
             OppgaveConfig.Attestering(
-                journalpostId = "",
                 sakId = sakId.toString(),
                 aktørId = aktørId
             )
@@ -302,6 +314,8 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
         status: Behandling.BehandlingsStatus
     ): Behandling.BehandlingsStatus
 
+    fun hentOppdrag(sakId: UUID): Oppdrag
+    fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
 }
 

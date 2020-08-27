@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
@@ -70,18 +71,6 @@ internal class DatabaseRepo(
         return behandling
     }
 
-    override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
-        "insert into oppdrag (id, opprettet, sakId) values (:id, :opprettet, :sakId)".oppdatering(
-            mapOf(
-                "id" to oppdrag.id.toString(),
-                "opprettet" to oppdrag.opprettet,
-                "sakId" to oppdrag.sakId,
-            )
-        )
-        oppdrag.addObserver(this@DatabaseRepo)
-        return oppdrag
-    }
-
     internal fun hentOppdrag(oppdragId: UUID30) = using(sessionOf(dataSource)) { session ->
         "select * from oppdrag where id=:id".hent(mapOf("id" to oppdragId.toString()), session) {
             it.toOppdrag(session)
@@ -138,7 +127,7 @@ internal class DatabaseRepo(
     private fun hentOppdragForSak(sakId: UUID, session: Session) =
         "select * from oppdrag where sakId=:sakId".hent(mapOf("sakId" to sakId), session) {
             it.toOppdrag(session)
-        }
+        }!!
 
     private fun Row.toOppdrag(session: Session): Oppdrag {
         val oppdragId = uuid30("id")
@@ -150,7 +139,7 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    internal fun hentUtbetalingerForBehandling(behandlingId: UUID, session: Session) =
+    private fun hentUtbetalingerForBehandling(behandlingId: UUID, session: Session) =
         "select * from utbetaling where behandlingId=:behandlingId".hentListe(
             mapOf("behandlingId" to behandlingId),
             session
@@ -228,15 +217,29 @@ internal class DatabaseRepo(
     }
 
     override fun opprettSak(fnr: Fnr): Sak {
-        val sak = Sak(fnr = fnr)
-        val dto = sak.toDto()
-        "insert into sak (id, fnr, opprettet) values (:id, :fnr, :opprettet)".oppdatering(
-            mapOf(
-                "id" to dto.id,
-                "fnr" to fnr.toString(),
-                "opprettet" to dto.opprettet
+        val opprettet = now()
+        val sakId = UUID.randomUUID()
+        val sak = Sak(
+            id = sakId,
+            fnr = fnr,
+            opprettet = opprettet,
+            oppdrag = Oppdrag(
+                sakId = sakId,
+                opprettet = opprettet
             )
         )
+        """
+            with inserted_sak as(insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
+            insert into oppdrag (id, opprettet, sakId) values (:oppdragId, :opprettet, :sakId)
+        """.trimIndent().oppdatering(
+            mapOf(
+                "sakId" to sak.id,
+                "fnr" to fnr.toString(),
+                "opprettet" to sak.opprettet,
+                "oppdragId" to sak.oppdrag.id.toString()
+            )
+        )
+        sak.oppdrag.addObserver(this)
         sak.addObserver(this)
         return sak
     }
@@ -410,6 +413,20 @@ internal class DatabaseRepo(
             )
         )
         return status
+    }
+
+    override fun hentOppdrag(sakId: UUID): Oppdrag {
+        return using(sessionOf(dataSource)) {
+            hentOppdragForSak(sakId, it)
+        }
+    }
+
+    override fun hentFnr(sakId: UUID): Fnr {
+        return using(sessionOf(dataSource)) {
+            "select fnr from sak where id=:sakId".hent(mapOf("sakId" to sakId), it) {
+                Fnr(it.string("fnr"))
+            }!!
+        }
     }
 
     override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {

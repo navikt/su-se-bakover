@@ -98,29 +98,12 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/simuler") {
-        call.lesUUID("sakId").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { sakId ->
-                when (val sak = repo.hentSak(sakId)) {
-                    null -> call.svar(NotFound.message("Fant ikke sak med sakId:$sakId"))
-                    else -> {
-                        call.lesUUID("behandlingId").fold(
-                            ifLeft = { call.svar(BadRequest.message(it)) },
-                            ifRight = { behandlingId ->
-                                sak.simulerBehandling(behandlingId, simuleringClient).fold(
-                                    {
-                                        call.svar(InternalServerError.message(it.name))
-                                    },
-                                    {
-                                        call.svar(OK.jsonBody(it))
-                                    }
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-        )
+        call.withBehandling(repo) { behandling ->
+            behandling.simuler(simuleringClient).fold(
+                { call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering")) },
+                { call.svar(OK.jsonBody(behandling)) }
+            )
+        }
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {

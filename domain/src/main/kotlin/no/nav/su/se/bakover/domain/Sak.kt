@@ -1,12 +1,9 @@
 package no.nav.su.se.bakover.domain
 
-import arrow.core.Either
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Instant
 import java.util.UUID
 
@@ -16,7 +13,7 @@ data class Sak(
     val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
-    private var oppdrag: Oppdrag? = null
+    val oppdrag: Oppdrag,
 ) : PersistentDomainObject<SakPersistenceObserver>(), DtoConvertable<SakDto> {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
@@ -27,7 +24,7 @@ data class Sak(
         søknader = søknader.map { it.toDto() },
         behandlinger = behandlinger.map { it.toDto() },
         opprettet = opprettet,
-        utbetalinger = oppdrag?.hentUtbetalinger() ?: emptyList()
+        utbetalinger = oppdrag.hentUtbetalinger()
     )
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
@@ -53,25 +50,6 @@ data class Sak(
         behandlinger.add(behandling)
         return behandling
     }
-
-    fun simulerBehandling(
-        behandlingId: UUID,
-        simuleringClient: SimuleringClient
-    ): Either<SimuleringFeilet, Behandling> {
-        val behandling = behandlinger.find { it.toDto().id == behandlingId }!!
-        val oppdragTilSimulering = opprettOppdragIfNotExist()
-        val utbetalingTilSimulering =
-            oppdragTilSimulering.generererUtbetaling(behandling.id, behandling.gjeldendeBeregning().hentPerioder())
-        return simuleringClient.simulerOppdrag(utbetalingTilSimulering, fnr.toString()).map { simulering ->
-            val oppdrag = oppdrag ?: persistenceObserver.opprettOppdrag(oppdragTilSimulering)
-            val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering)
-            utbetaling.addSimulering(simulering)
-            behandling.leggTilUtbetaling(utbetaling)
-            behandling
-        }
-    }
-
-    private fun opprettOppdragIfNotExist() = oppdrag ?: Oppdrag(sakId = id)
 }
 
 interface SakObserver
@@ -82,8 +60,6 @@ interface SakPersistenceObserver : PersistenceObserver {
         sakId: UUID,
         behandling: Behandling
     ): Behandling
-
-    fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag
 }
 
 interface SakEventObserver : SakObserver {
