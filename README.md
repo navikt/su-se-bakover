@@ -1,6 +1,6 @@
-#su-se-bakover
+# su-se-bakover
 
-##Applikasjon for saksbehandling av supplerende stønad
+## Applikasjon for saksbehandling av supplerende stønad
 
 ### Lokalt oppsett
 #### Gradle
