@@ -427,7 +427,8 @@ internal class DatabaseRepoTest {
         sakId = sakId,
         behandling = Behandling(
             søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT,
+            sakId = sakId
         )
     )
 

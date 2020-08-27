@@ -277,7 +277,8 @@ internal class DatabaseRepo(
             beregninger = hentBeregningerInternal(behandlingId, session),
             utbetalinger = hentUtbetalingerForBehandling(behandlingId, session),
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
-            attestant = stringOrNull("attestant")?.let { Attestant(it) }
+            attestant = stringOrNull("attestant")?.let { Attestant(it) },
+            sakId = uuid("sakId")
         ).also {
             it.addObserver(this@DatabaseRepo)
         }

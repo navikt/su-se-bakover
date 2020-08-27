@@ -29,7 +29,8 @@ data class Behandling constructor(
     private val beregninger: MutableList<Beregning> = mutableListOf(),
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf(),
     private var status: BehandlingsStatus = OPPRETTET,
-    private var attestant: Attestant? = null
+    private var attestant: Attestant? = null,
+    val sakId: UUID
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
     private var tilstand: Tilstand = resolve(status)
 
@@ -44,7 +45,8 @@ data class Behandling constructor(
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = status,
         utbetaling = gjeldendeUtbetaling(),
-        attestant = attestant
+        attestant = attestant,
+        sakId = sakId
     )
 
     fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
@@ -299,5 +301,6 @@ data class BehandlingDto(
     val beregning: BeregningDto?,
     val status: Behandling.BehandlingsStatus,
     val utbetaling: Utbetaling?,
-    val attestant: Attestant?
+    val attestant: Attestant?,
+    val sakId: UUID
 )

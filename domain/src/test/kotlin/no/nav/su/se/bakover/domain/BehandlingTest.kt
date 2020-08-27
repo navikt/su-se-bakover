@@ -57,7 +57,8 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = VILKÅRSVURDERT
+            status = VILKÅRSVURDERT,
+            sakId = id1
         )
         val c = createBehandling(id2, status = VILKÅRSVURDERT)
         assertEquals(a, b)
@@ -80,7 +81,8 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = VILKÅRSVURDERT
+            status = VILKÅRSVURDERT,
+            sakId = id1
         )
         val c = createBehandling(id2, status = VILKÅRSVURDERT)
         assertEquals(a.hashCode(), b.hashCode())
@@ -466,7 +468,8 @@ internal class BehandlingTest {
     ) = Behandling(
         id = id,
         søknad = søknad,
-        status = status
+        status = status,
+        sakId = id1
     ).also {
         observer = DummyObserver()
         it.addObserver(observer)

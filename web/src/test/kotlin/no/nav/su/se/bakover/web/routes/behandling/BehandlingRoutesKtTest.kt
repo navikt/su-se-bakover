@@ -135,26 +135,17 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn"
             ) {}.apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+                response.content shouldContain "Fant ikke behandling med behandlingId"
+            }
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn"
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldig body"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn") {
-                setBody(
-                    //language=JSON
-                    """
-                    {
-                        "fom":"${LocalDate.of(2020, Month.JANUARY, 1)}",
-                        "tom":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
-                        "sats":"LAV",
-                        "fradrag":[]
-                    }
-                    """.trimIndent()
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke"
-            }
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn") {
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
                     """
                     {

@@ -22,6 +22,7 @@ internal class BehandlingJsonTest {
         private val behandlingId = UUID.randomUUID()
         private val vv1id = UUID.randomUUID()
         private val vv2id = UUID.randomUUID()
+        private val sakId = UUID.randomUUID()
 
         internal val behandling = Behandling(
             id = behandlingId,
@@ -41,7 +42,8 @@ internal class BehandlingJsonTest {
             ),
             søknad = søknad,
             beregninger = mutableListOf(beregning),
-            attestant = Attestant("kjella")
+            attestant = Attestant("kjella"),
+            sakId = sakId
         )
 
         //language=JSON
@@ -66,7 +68,8 @@ internal class BehandlingJsonTest {
           "beregning": $expectedBeregningJson,
           "status": "OPPRETTET",
           "utbetaling": null,
-          "attestant" : "kjella"
+          "attestant" : "kjella",
+          "sakId": "$sakId"
         }
             """.trimIndent()
     }
@@ -87,7 +90,8 @@ internal class BehandlingJsonTest {
             id = behandlingId,
             vilkårsvurderinger = mutableListOf(),
             søknad = søknad,
-            beregninger = mutableListOf()
+            beregninger = mutableListOf(),
+            sakId = sakId
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -102,7 +106,8 @@ internal class BehandlingJsonTest {
           "status": "OPPRETTET",
           "utbetaling": null,
           "opprettet": "$opprettetTidspunkt",
-          "attestant" : null
+          "attestant": null,
+          "sakId": "$sakId"
         }
         """
 
