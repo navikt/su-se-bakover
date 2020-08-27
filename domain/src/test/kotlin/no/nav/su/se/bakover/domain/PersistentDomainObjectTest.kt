@@ -9,14 +9,16 @@ import java.util.UUID
 internal class PersistentDomainObjectTest {
     @Test
     fun `throw exception if multiple persistence observers assigned`() {
-        val sak = Sak(fnr = Fnr("12345678910"))
+        val sakId = UUID.randomUUID()
+        val sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId))
         assertDoesNotThrow { sak.addObserver(someObserver) }
         assertThrows<PersistenceObserverException> { sak.addObserver(someObserver) }
     }
 
     @Test
     fun `throw exception if unassigned persistence observer is invoked`() {
-        val sak = Sak(fnr = Fnr("12345678910"))
+        val sakId = UUID.randomUUID()
+        val sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId))
         assertThrows<UninitializedPropertyAccessException> { sak.nySøknad(SøknadInnholdTestdataBuilder.build()) }
     }
 
@@ -24,11 +26,7 @@ internal class PersistentDomainObjectTest {
         val sakId = UUID.randomUUID()
         private val testSøknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
         override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = søknad
-        override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = Behandling(søknad = testSøknad, sakId = sakId)
-        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
-            return Oppdrag(
-                sakId = sakId
-            )
-        }
+        override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) =
+            Behandling(søknad = testSøknad, sakId = sakId)
     }
 }

@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -64,7 +65,7 @@ internal class DatabaseRepoTest {
     fun `opprett og hent sak`() {
         withMigratedDb {
             val opprettet = repo.opprettSak(FNR)
-            val hentetId = repo.hentSak(opprettet.id)
+            val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(FNR)
 
             opprettet shouldBe hentetId
@@ -203,15 +204,12 @@ internal class DatabaseRepoTest {
     fun `opprett og hent oppdrag`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val oppdragId = UUID30.randomUUID()
-            val oppdrag = insertOppdrag(oppdragId, sak.id)
-            val hentetOppdrag = repo.hentOppdrag(oppdragId)
+            val hentetOppdrag = repo.hentOppdrag(sak.oppdrag.id)
 
-            oppdrag shouldBe hentetOppdrag
-            oppdrag.sakId shouldBe sak.id
-            oppdrag.id shouldBe oppdragId
+            sak.oppdrag shouldBe hentetOppdrag
+            sak.oppdrag.sakId shouldBe sak.id
 
-            listOf(oppdrag, hentetOppdrag).forEach {
+            listOf(sak.oppdrag, hentetOppdrag).forEach {
                 assertPersistenceObserverAssigned(it!!, oppdragPersistenceObserver())
             }
         }
@@ -221,7 +219,6 @@ internal class DatabaseRepoTest {
     fun `opprett og hent oppdrag for sak`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            insertOppdrag(UUID30.randomUUID(), sak.id)
             val hentetSak = repo.hentSak(sak.id)
 
             listOf(hentetSak).forEach {
@@ -236,12 +233,10 @@ internal class DatabaseRepoTest {
             val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
-            val oppdragId = UUID30.randomUUID()
 
-            insertOppdrag(oppdragId, sak.id)
-            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
             using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentetUtbetalinger = repo.hentUtbetalinger(oppdragId, it)
+                val hentetUtbetalinger = repo.hentUtbetalinger(sak.oppdrag.id, it)
                 listOf(utbetaling) shouldBe hentetUtbetalinger
                 (hentetUtbetalinger + utbetaling).forEach {
                     assertPersistenceObserverAssigned(it, utbetalingPersistenceObserver())
@@ -255,10 +250,8 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
-            val oppdragId = UUID30.randomUUID()
             val behandling = insertBehandling(sak.id, søknad)
-            insertOppdrag(oppdragId, sak.id)
-            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
             using(sessionOf(EmbeddedDatabase.instance())) {
@@ -273,10 +266,8 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
-            val oppdragId = UUID30.randomUUID()
             val behandling = insertBehandling(sak.id, søknad)
-            insertOppdrag(oppdragId, sak.id)
-            val utbetaling = insertUtbetaling(oppdragId, behandling.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
             val simulering = repo.addSimulering(
                 utbetaling.id,
                 Simulering(
@@ -319,7 +310,7 @@ internal class DatabaseRepoTest {
                 )
             )
             using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentet = repo.hentUtbetalinger(oppdragId, it).first().getSimulering()!!
+                val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getSimulering()!!
                 simulering shouldBe hentet
             }
         }
@@ -328,9 +319,13 @@ internal class DatabaseRepoTest {
     @Test
     fun `combination of oppdragId and SakId should be unique`() {
         withMigratedDb {
-            val sak = insertSak(FNR)
-            insertOppdrag(UUID30.randomUUID(), sak.id)
-            shouldThrowExactly<PSQLException> { insertOppdrag(UUID30.randomUUID(), sak.id) }.also {
+            val sak = repo.opprettSak(FNR)
+            shouldThrowExactly<PSQLException> {
+                using(sessionOf(EmbeddedDatabase.instance())) {
+                    val oppdragId = UUID30.randomUUID()
+                    it.run(queryOf("insert into oppdrag (id, opprettet, sakId) values ('$oppdragId', now(), '${sak.id}')").asUpdate)
+                }
+            }.also {
                 it.message shouldContain "duplicate key value violates unique constraint"
             }
         }
@@ -342,10 +337,6 @@ internal class DatabaseRepoTest {
         }
 
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling): Behandling {
-            throw NotImplementedError()
-        }
-
-        override fun opprettOppdrag(oppdrag: Oppdrag): Oppdrag {
             throw NotImplementedError()
         }
     }
@@ -369,6 +360,14 @@ internal class DatabaseRepoTest {
             status: Behandling.BehandlingsStatus
         ): Behandling.BehandlingsStatus {
             throw NotImplementedError()
+        }
+
+        override fun hentOppdrag(sakId: UUID): Oppdrag {
+            return Oppdrag(sakId = sakId)
+        }
+
+        override fun hentFnr(sakId: UUID): Fnr {
+            return Fnr("sakId")
         }
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
@@ -428,13 +427,6 @@ internal class DatabaseRepoTest {
         behandling = Behandling(
             søknad = søknad,
             status = Behandling.BehandlingsStatus.VILKÅRSVURDERT,
-            sakId = sakId
-        )
-    )
-
-    private fun insertOppdrag(oppdragId: UUID30, sakId: UUID) = repo.opprettOppdrag(
-        oppdrag = Oppdrag(
-            id = oppdragId,
             sakId = sakId
         )
     )

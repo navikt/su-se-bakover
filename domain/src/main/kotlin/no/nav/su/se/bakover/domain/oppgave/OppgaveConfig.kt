@@ -24,7 +24,7 @@ sealed class OppgaveConfig() {
     }
 
     data class Attestering(
-        override val journalpostId: String,
+        override val journalpostId: String = "",
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {

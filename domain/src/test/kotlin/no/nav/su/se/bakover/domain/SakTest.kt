@@ -66,13 +66,19 @@ internal class SakTest {
                     throw NotImplementedError()
                 }
 
+                override fun hentOppdrag(sakId: UUID): Oppdrag {
+                    return Oppdrag(sakId = sakId)
+                }
+
+                override fun hentFnr(sakId: UUID): Fnr {
+                    return Fnr("12345678910")
+                }
+
                 override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
                     return attestant
                 }
             })
         }
-
-        override fun opprettOppdrag(oppdrag: Oppdrag) = oppdrag
 
         data class NySøknadParams(
             val sakId: UUID,
@@ -96,7 +102,8 @@ internal class SakTest {
     fun beforeEach() {
         persistenceObserver = PersistenceObserver()
         eventObserver = EventObserver()
-        sak = Sak(fnr = Fnr("12345678910")).also {
+        val sakId = UUID.randomUUID()
+        sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId)).also {
             it.addObserver(persistenceObserver)
             it.addObserver(eventObserver)
         }

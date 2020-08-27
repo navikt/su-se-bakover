@@ -9,6 +9,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
@@ -21,7 +22,12 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -178,15 +184,7 @@ internal class BehandlingTest {
                     it.msg shouldContain "opprettBeregning"
                     it.msg shouldContain "state: OPPRETTET"
                 }
-            assertThrows<Behandling.TilstandException> {
-                opprettet.leggTilUtbetaling(
-                    Utbetaling(
-                        oppdragId = UUID30.randomUUID(),
-                        behandlingId = UUID.randomUUID(),
-                        utbetalingslinjer = emptyList()
-                    )
-                )
-            }
+            assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
         }
     }
@@ -242,15 +240,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.leggTilUtbetaling(
-                    Utbetaling(
-                        oppdragId = UUID30.randomUUID(),
-                        behandlingId = UUID.randomUUID(),
-                        utbetalingslinjer = emptyList()
-                    )
-                )
-            }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
         }
     }
@@ -275,13 +265,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne simuleres`() {
-            beregnet.leggTilUtbetaling(
-                Utbetaling(
-                    oppdragId = UUID30.randomUUID(),
-                    behandlingId = UUID.randomUUID(),
-                    utbetalingslinjer = emptyList()
-                )
-            )
+            beregnet.simuler(SimuleringClientStub)
             beregnet.status() shouldBe SIMULERT
         }
 
@@ -320,13 +304,7 @@ internal class BehandlingTest {
                 )
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.leggTilUtbetaling(
-                Utbetaling(
-                    oppdragId = UUID30.randomUUID(),
-                    behandlingId = UUID.randomUUID(),
-                    utbetalingslinjer = emptyList()
-                )
-            )
+            simulert.simuler(SimuleringClientStub)
             simulert.status() shouldBe SIMULERT
             observer.oppdatertStatus shouldBe simulert.status()
         }
@@ -356,13 +334,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
 
             assertThrows<Behandling.TilstandException> {
-                simulert.leggTilUtbetaling(
-                    Utbetaling(
-                        oppdragId = UUID30.randomUUID(),
-                        behandlingId = UUID.randomUUID(),
-                        utbetalingslinjer = emptyList()
-                    )
-                )
+                simulert.simuler(SimuleringClientStub)
             }
         }
     }
@@ -397,13 +369,7 @@ internal class BehandlingTest {
                 avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                avslått.leggTilUtbetaling(
-                    Utbetaling(
-                        oppdragId = UUID30.randomUUID(),
-                        behandlingId = UUID.randomUUID(),
-                        utbetalingslinjer = emptyList()
-                    )
-                )
+                avslått.simuler(SimuleringClientStub)
             }
         }
     }
@@ -429,7 +395,11 @@ internal class BehandlingTest {
             )
         }
 
-    private class DummyObserver : BehandlingPersistenceObserver, VilkårsvurderingPersistenceObserver {
+    private class DummyObserver :
+        BehandlingPersistenceObserver,
+        VilkårsvurderingPersistenceObserver,
+        Oppdrag.OppdragPersistenceObserver,
+        UtbetalingPersistenceObserver {
         lateinit var opprettetVilkårsvurdering: Pair<UUID, List<Vilkårsvurdering>>
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
         lateinit var oppdatertStatus: BehandlingsStatus
@@ -457,6 +427,14 @@ internal class BehandlingTest {
             return status
         }
 
+        override fun hentOppdrag(sakId: UUID): Oppdrag {
+            return Oppdrag(sakId = sakId).also { it.addObserver(this) }
+        }
+
+        override fun hentFnr(sakId: UUID): Fnr {
+            return Fnr("12345678910")
+        }
+
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
         }
@@ -465,11 +443,36 @@ internal class BehandlingTest {
             oppdaterteVilkårsvurderinger.add(vilkårsvurdering.id to vilkårsvurdering)
             return vilkårsvurdering
         }
+
+        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+            return utbetaling.also { it.addObserver(this) }
+        }
+
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+            return simulering
+        }
     }
 
     object OppgaveClientStub : OppgaveClient {
         override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
             return Either.right(1L)
+        }
+    }
+
+    object SimuleringClientStub : SimuleringClient {
+        override fun simulerOppdrag(
+            utbetaling: Utbetaling,
+            utbetalingGjelder: String
+        ): Either<SimuleringFeilet, Simulering> {
+            return Either.right(
+                Simulering(
+                    gjelderId = "gjelderId",
+                    gjelderNavn = "gjelderNavn",
+                    datoBeregnet = 1.mai(2020),
+                    totalBelop = 15000,
+                    emptyList()
+                )
+            )
         }
     }
 
