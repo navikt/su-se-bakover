@@ -70,8 +70,9 @@ data class Behandling constructor(
         return this
     }
 
-    fun leggTilUtbetaling(utbetaling: Utbetaling) {
+    fun leggTilUtbetaling(utbetaling: Utbetaling): Behandling {
         tilstand.leggTilUtbetaling(utbetaling)
+        return this
     }
 
     fun opprettBeregning(

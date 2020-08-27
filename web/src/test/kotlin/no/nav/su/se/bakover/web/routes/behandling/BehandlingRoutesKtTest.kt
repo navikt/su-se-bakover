@@ -7,11 +7,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.desember
-
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
@@ -95,7 +95,7 @@ internal class BehandlingRoutesKtTest {
 
             objects.behandling.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(objects.behandling).withStatus(
-                    Vilkårsvurdering.Status.OK
+                    OK
                 )
             )
 
@@ -203,7 +203,7 @@ internal class BehandlingRoutesKtTest {
 
             objects.behandling.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(objects.behandling).withStatus(
-                    Vilkårsvurdering.Status.OK
+                    OK
                 )
             )
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
@@ -246,6 +246,51 @@ internal class BehandlingRoutesKtTest {
         }
     }
 
+    @Test
+    fun `attesterer behandling`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.sak.fullførBehandling(objects.behandling.id, SimuleringStub)
+            objects.behandling.sendTilAttestering()
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/attester"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/attester"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/attester"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/attester"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.OK
+                deserialize<BehandlingJson>(response.content!!).let {
+                    it.attestant shouldBe "enSaksbehandleroid"
+                    it.status shouldBe "ATTESTERT"
+                }
+            }
+        }
+    }
+
     data class Objects(
         val sak: Sak,
         val søknad: Søknad,
@@ -255,7 +300,7 @@ internal class BehandlingRoutesKtTest {
     private fun setup(): Objects {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        val behandling = sak.opprettSøknadsbehandling(søknad.toDto().id)
+        val behandling = sak.opprettSøknadsbehandling(søknad.id)
         return Objects(sak, søknad, behandling)
     }
 

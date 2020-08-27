@@ -11,13 +11,18 @@ import io.ktor.request.receiveStream
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Fnr
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
+internal val sikkerlogg: Logger = LoggerFactory.getLogger("sikkerLogg")
+
 internal fun ApplicationCall.audit(msg: String) {
-    val payload = (this.authentication.principal as JWTPrincipal).payload
-    LoggerFactory.getLogger("sikkerLogg").info("${payload.getClaim("oid").asString()} $msg")
+    sikkerlogg.info("${lesBehandlerId()} $msg")
 }
+
+internal fun ApplicationCall.lesBehandlerId() =
+    (this.authentication.principal as JWTPrincipal).payload.getClaim("oid").asString()
 
 internal fun String.toUUID() =
     runBlocking {

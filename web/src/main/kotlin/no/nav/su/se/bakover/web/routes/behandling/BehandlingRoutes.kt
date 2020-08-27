@@ -13,16 +13,19 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.lesBehandlerId
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -196,6 +199,27 @@ internal fun Route.behandlingRoutes(
                         )
                     }
                 }
+            }
+        )
+    }
+
+    patch("$behandlingPath/{behandlingId}/attester") {
+        // TODO authorize by group
+        call.lesUUID("sakId").fold(
+            ifLeft = { call.svar(BadRequest.message(it)) },
+            ifRight = {
+                call.lesUUID("behandlingId").fold(
+                    ifLeft = { call.svar(BadRequest.message(it)) },
+                    ifRight = { behandlingId ->
+                        call.audit("Attesterer behandling med id: $behandlingId")
+                        when (val behandling = repo.hentBehandling(behandlingId)) {
+                            null -> call.svar(NotFound.message("Fant ikke behandling med id:$behandlingId"))
+                            else -> {
+                                call.svar(OK.jsonBody(behandling.attester(Attestant(call.lesBehandlerId()))))
+                            }
+                        }
+                    }
+                )
             }
         )
     }

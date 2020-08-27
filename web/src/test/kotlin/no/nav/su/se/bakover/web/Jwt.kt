@@ -7,7 +7,7 @@ import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 object Jwt {
     val keys = generate()
@@ -24,7 +24,7 @@ object Jwt {
             .withKeyId("key-1234")
             .withSubject(subject)
             .withArrayClaim("groups", groups.toTypedArray())
-            .withClaim("oid", UUID.randomUUID().toString())
+            .withClaim("oid", subject + "oid")
             .withExpiresAt(expiresAt)
             .sign(algorithm)}"
     }
