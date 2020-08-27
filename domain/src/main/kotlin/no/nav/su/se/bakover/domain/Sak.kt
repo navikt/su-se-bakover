@@ -57,7 +57,7 @@ data class Sak(
         return behandling
     }
 
-    fun fullførBehandling(
+    fun simulerBehandling(
         behandlingId: UUID,
         simuleringClient: SimuleringClient
     ): Either<SimuleringFeilet, Behandling> {

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.toUUID
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -47,31 +45,6 @@ internal fun Route.behandlingRoutes(
     oppgaveClient: OppgaveClient
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
-
-    data class OpprettBehandlingBody(val soknadId: String)
-
-    post(behandlingPath) {
-        call.lesUUID("sakId").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { sakId ->
-                Either.catch { deserialize<OpprettBehandlingBody>(call) }
-                    .flatMap { it.soknadId.toUUID() }
-                    .fold(
-                        ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
-                        ifRight = { søknadId ->
-                            when (val sak = repo.hentSak(sakId)) {
-                                null -> call.svar(NotFound.message("Fant ikke sak med id:$sakId"))
-                                else -> {
-                                    call.audit("Oppretter behandling på sak: $sakId og søknadId: $søknadId")
-                                    val behandling = sak.opprettSøknadsbehandling(søknadId)
-                                    call.svar(Created.jsonBody(behandling))
-                                }
-                            }
-                        }
-                    )
-            }
-        )
-    }
 
     get("$behandlingPath/{behandlingId}") {
         call.withBehandling(repo) {
@@ -134,7 +107,7 @@ internal fun Route.behandlingRoutes(
                         call.lesUUID("behandlingId").fold(
                             ifLeft = { call.svar(BadRequest.message(it)) },
                             ifRight = { behandlingId ->
-                                sak.fullførBehandling(behandlingId, simuleringClient).fold(
+                                sak.simulerBehandling(behandlingId, simuleringClient).fold(
                                     {
                                         call.svar(InternalServerError.message(it.name))
                                     },
@@ -181,24 +154,10 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/attester") {
-        // TODO authorize by group
-        call.lesUUID("sakId").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = {
-                call.lesUUID("behandlingId").fold(
-                    ifLeft = { call.svar(BadRequest.message(it)) },
-                    ifRight = { behandlingId ->
-                        call.audit("Attesterer behandling med id: $behandlingId")
-                        when (val behandling = repo.hentBehandling(behandlingId)) {
-                            null -> call.svar(NotFound.message("Fant ikke behandling med id:$behandlingId"))
-                            else -> {
-                                call.svar(OK.jsonBody(behandling.attester(Attestant(call.lesBehandlerId()))))
-                            }
-                        }
-                    }
-                )
-            }
-        )
+        call.withBehandling(repo) { behandling ->
+            call.audit("Attesterer behandling med id: ${behandling.id}")
+            call.svar(OK.jsonBody(behandling.attester(Attestant(call.lesBehandlerId()))))
+        }
     }
 }
 
@@ -215,6 +174,7 @@ suspend fun ApplicationCall.withBehandling(repo: ObjectRepo, ifRight: suspend (B
                 { behandlingId ->
                     repo.hentBehandling(behandlingId)?.let { behandling ->
                         if (behandling.sakId == sakId) {
+                            this.audit("Hentet behandling med id: $behandlingId")
                             ifRight(behandling)
                         } else {
                             this.svar(NotFound.message("Ugyldig kombinasjon av sak og behandling"))

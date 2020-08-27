@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -48,23 +47,6 @@ internal class BehandlingRoutesKtTest {
                     it.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveSize 6
                     it.søknad.id shouldBe objects.søknad.id.toString()
                 }
-            }
-        }
-    }
-
-    @Test
-    fun `kan opprette behandling på en sak og søknad`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            val objects = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger") {
-                setBody("""{ "soknadId": "${objects.søknad.id}" }""")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
-                behandling.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveAtLeastSize 1
-                behandling.søknad.id shouldBe objects.søknad.id.toString()
             }
         }
     }
@@ -245,7 +227,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.sak.fullførBehandling(objects.behandling.id, SimuleringStub)
+            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
             objects.behandling.sendTilAttestering()
 
             defaultRequest(
