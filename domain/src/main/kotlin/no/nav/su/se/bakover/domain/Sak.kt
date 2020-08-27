@@ -7,9 +7,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import java.time.Instant
 import java.util.UUID
 
@@ -75,19 +72,6 @@ data class Sak(
     }
 
     private fun opprettOppdragIfNotExist() = oppdrag ?: Oppdrag(sakId = id)
-
-    fun sendTilAttestering(behandlingId: UUID, aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Long> {
-        // val behandling = behandlinger.find { it.id == behandlingId }!!
-        // TODO behandling.sendTilAttestering()
-        println(behandlingId)
-        return oppgave.opprettOppgave(
-            OppgaveConfig.Attestering(
-                journalpostId = "",
-                sakId = this.id.toString(),
-                aktørId = aktørId
-            )
-        )
-    }
 }
 
 interface SakObserver

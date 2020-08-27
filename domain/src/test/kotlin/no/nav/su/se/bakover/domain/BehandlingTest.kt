@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -21,6 +22,9 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -34,6 +38,7 @@ internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
+    private val aktørId = AktørId("aktørId")
     private val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
 
     private lateinit var behandling: Behandling
@@ -182,7 +187,7 @@ internal class BehandlingTest {
                     )
                 )
             }
-            assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering() }
+            assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
         }
     }
 
@@ -246,7 +251,7 @@ internal class BehandlingTest {
                     )
                 )
             }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering() }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
         }
     }
 
@@ -297,7 +302,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering() }
+            assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
         }
     }
 
@@ -328,7 +333,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne attestere`() {
-            simulert.sendTilAttestering()
+            simulert.sendTilAttestering(aktørId, OppgaveClientStub)
             simulert.status() shouldBe TIL_ATTESTERING
         }
 
@@ -459,6 +464,12 @@ internal class BehandlingTest {
         override fun oppdaterVilkårsvurdering(vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
             oppdaterteVilkårsvurderinger.add(vilkårsvurdering.id to vilkårsvurdering)
             return vilkårsvurdering
+        }
+    }
+
+    object OppgaveClientStub : OppgaveClient {
+        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
+            return Either.right(1L)
         }
     }
 

@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
@@ -49,7 +48,7 @@ internal fun Route.sakRoutes(
 
     data class OpprettBehandlingBody(val soknadId: String)
 
-    post(behandlingPath) {
+    post("$sakPath/{sakId}/behandlinger") {
         call.withSak(sakRepo) { sak ->
             Either.catch { deserialize<OpprettBehandlingBody>(call) }
                 .flatMap { it.soknadId.toUUID() }

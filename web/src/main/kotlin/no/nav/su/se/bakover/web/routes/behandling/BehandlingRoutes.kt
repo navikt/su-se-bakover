@@ -124,33 +124,22 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {
-        call.lesUUID("sakId").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { sakId ->
-                when (val sak = repo.hentSak(sakId)) {
-                    null -> call.svar(NotFound.message("Fant ikke sak med sakId:$sakId"))
-                    else -> {
-                        call.lesUUID("behandlingId").fold(
-                            ifLeft = { call.svar(BadRequest.message(it)) },
-                            ifRight = { behandlingId ->
-                                val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-                                    log.error("Fant ikke aktør-id med gitt fødselsnummer")
-                                    throw RuntimeException("Kunne ikke finne aktørid")
-                                }
-                                sak.sendTilAttestering(behandlingId, aktørId, oppgaveClient).fold(
-                                    {
-                                        call.svar(InternalServerError.message("$it"))
-                                    },
-                                    {
-                                        call.svar(OK.message("Opprettet oppgave med id : $it"))
-                                    }
-                                )
-                            }
-                        )
-                    }
-                }
+        call.withBehandling(repo) { behandling ->
+            val sak = repo.hentSak(behandling.sakId)!!
+            val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
+                log.error("Fant ikke aktør-id med gitt fødselsnummer")
+                throw RuntimeException("Kunne ikke finne aktørid")
             }
-        )
+            behandling.sendTilAttestering(aktørId, oppgaveClient).fold(
+                {
+                    call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+                },
+                {
+                    call.audit("Sender behandling med id: ${it.id} til attestering")
+                    call.svar(OK.jsonBody(it))
+                }
+            )
+        }
     }
 
     patch("$behandlingPath/{behandlingId}/attester") {

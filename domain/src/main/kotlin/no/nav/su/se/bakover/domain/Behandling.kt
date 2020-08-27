@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
@@ -17,6 +18,9 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -87,10 +91,8 @@ data class Behandling constructor(
         return this
     }
 
-    // TODO stuff
-    fun sendTilAttestering(): Behandling {
-        tilstand.sendTilAttestering()
-        return this
+    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
+        return tilstand.sendTilAttestering(aktørId, oppgave)
     }
 
     fun attester(attestant: Attestant): Behandling {
@@ -132,7 +134,7 @@ data class Behandling constructor(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun sendTilAttestering() {
+        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
@@ -220,8 +222,18 @@ data class Behandling constructor(
     private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = SIMULERT
 
-        override fun sendTilAttestering() {
+        override fun sendTilAttestering(
+            aktørId: AktørId,
+            oppgave: OppgaveClient
+        ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
+            OppgaveConfig.Attestering(
+                journalpostId = "",
+                sakId = sakId.toString(),
+                aktørId = aktørId
+            )
+        ).map {
             nyTilstand(TilAttestering())
+            this@Behandling
         }
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {

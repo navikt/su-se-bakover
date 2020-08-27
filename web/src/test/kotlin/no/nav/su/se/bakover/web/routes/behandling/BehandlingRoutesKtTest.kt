@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import arrow.core.Either
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -9,12 +10,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -22,7 +25,11 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.buildHttpClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -52,15 +59,50 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
-    fun `Opprette en oppgave til attestering`() {
+    fun `Opprette en oppgave til attestering er OK`() {
         withTestApplication({
             testSusebakover()
         }) {
-            val ids = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${ids.sak.id}/behandlinger/${ids.behandling.id}/tilAttestering") {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "Opprettet oppgave med id"
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.status shouldBe "TIL_ATTESTERING"
+            }
+        }
+    }
+
+    @Test
+    fun `Opprette en oppgave til attestering feiler mot oppgave`() {
+        withTestApplication({
+            testSusebakover(
+                httpClients = buildHttpClients(
+                    oppgaveClient = object : OppgaveClient {
+                        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
+                            return Either.left(KunneIkkeOppretteOppgave(500, "Kunne ikke opprette oppgave"))
+                        }
+                    }
+                )
+            )
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
+            ) {
+            }.apply {
+                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.content shouldContain "Kunne ikke opprette oppgave for attestering"
             }
         }
     }
@@ -228,7 +270,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.sak.simulerBehandling(objects.behandling.id, SimuleringStub)
-            objects.behandling.sendTilAttestering()
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
 
             defaultRequest(
                 HttpMethod.Patch,
