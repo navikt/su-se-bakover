@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
@@ -16,61 +17,64 @@ internal class SimuleringRequestBuilder(
     private val oppdragGjelder: String
 ) {
     private companion object {
-        private val tidsstempel = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private const val FAGOMRÅDE = "SUUFORE"
+        private const val KLASSEKODE = "SUUFORE"
+        private const val SAKSBEHANDLER = "SU"
+        private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 
     private val oppdragRequest = Oppdrag().apply {
-        kodeFagomraade = "SU" // TODO: Finn korrekt
-        kodeEndring = "NY" // TODO: Så lenge vi ikke gjør en faktisk utbetaling, vil denne være NY uavhengig hvor mange simuleringer vi gjør.
+        kodeFagomraade = FAGOMRÅDE
+        kodeEndring =
+            "NY" // TODO: Så lenge vi ikke gjør en faktisk utbetaling, vil denne være NY uavhengig hvor mange simuleringer vi gjør.
         utbetFrekvens = "MND"
         fagsystemId = utbetaling.oppdragId.toString()
         oppdragGjelderId = oppdragGjelder
-        saksbehId = "abc1234"
-        datoOppdragGjelderFom = LocalDate.EPOCH.format(tidsstempel)
+        saksbehId = SAKSBEHANDLER
+        datoOppdragGjelderFom = LocalDate.EPOCH.format(yyyyMMdd)
         enhet.add(
             Enhet().apply {
                 enhet = "8020"
                 typeEnhet = "BOS"
-                datoEnhetFom = LocalDate.EPOCH.format(tidsstempel)
+                datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd)
             }
         )
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
-        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder, "abc1234")) }
+        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder)) }
         val førsteDag = utbetaling.førsteDag()
         val sisteDag = utbetaling.sisteDag()
         return SimulerBeregningGrensesnittRequest().apply {
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
                 simuleringsPeriode = SimulerBeregningRequest.SimuleringsPeriode().apply {
-                    datoSimulerFom = førsteDag.format(tidsstempel)
-                    datoSimulerTom = sisteDag.format(tidsstempel)
+                    datoSimulerFom = førsteDag.format(yyyyMMdd)
+                    datoSimulerTom = sisteDag.format(yyyyMMdd)
                 }
             }
         }
     }
 
     private fun nyLinje(
-        utbetalingslinje: no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje,
-        oppdragGjelder: String,
-        saksbehandler: String
+        utbetalingslinje: Utbetalingslinje,
+        oppdragGjelder: String
     ) = Oppdragslinje().apply {
         utbetalesTilId = oppdragGjelder
         delytelseId = utbetalingslinje.id.toString()
         refDelytelseId = utbetalingslinje.forrigeUtbetalingslinjeId?.toString()
         kodeEndringLinje = "NY"
-        kodeKlassifik = "KLASSE"
-        datoVedtakFom = utbetalingslinje.fom.format(tidsstempel)
-        datoVedtakTom = utbetalingslinje.tom.format(tidsstempel)
+        kodeKlassifik = KLASSEKODE
+        datoVedtakFom = utbetalingslinje.fom.format(yyyyMMdd)
+        datoVedtakTom = utbetalingslinje.tom.format(yyyyMMdd)
         sats = utbetalingslinje.beløp.toBigDecimal()
         fradragTillegg = FradragTillegg.T
         typeSats = "MND"
-        saksbehId = saksbehandler
+        saksbehId = SAKSBEHANDLER
         brukKjoreplan = "N"
         attestant.add(
             Attestant().apply {
-                attestantId = saksbehandler // det finnes ikke en attestant på dette tidspunktet
+                attestantId = SAKSBEHANDLER
             }
         )
     }
