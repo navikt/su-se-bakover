@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -15,6 +17,7 @@ import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
 import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
+import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.slf4j.LoggerFactory
 import java.net.SocketException
@@ -31,7 +34,10 @@ internal class SimuleringSoapClient(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun simulerOppdrag(utbetaling: no.nav.su.se.bakover.domain.oppdrag.Utbetaling, utbetalingGjelder: String): Either<SimuleringFeilet, Simulering> {
+    override fun simulerOppdrag(
+        utbetaling: Utbetaling,
+        utbetalingGjelder: String
+    ): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
             utbetaling,
             utbetalingGjelder
@@ -42,7 +48,10 @@ internal class SimuleringSoapClient(
             } ?: SimuleringFeilet.FUNKSJONELL_FEIL.left()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
-            sikkerLogg.error("Simulering feilet med feilmelding=${e.faultInfo.errorMessage}, for request:$simulerRequest", e)
+            sikkerLogg.error(
+                "Simulering feilet med feilmelding=${e.faultInfo.errorMessage}, for request:${simulerRequest.print()}",
+                e
+            )
             SimuleringFeilet.FUNKSJONELL_FEIL.left()
         } catch (e: SOAPFaultException) {
             when (e.cause) {
@@ -57,6 +66,8 @@ internal class SimuleringSoapClient(
             unknownTechnicalExceptionResponse(e)
         }
     }
+
+    private fun SimulerBeregningRequest.print() = objectMapper.writeValueAsString(this)
 
     private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TEKNISK_FEIL.left().also {
         log.error("Ukjent teknisk feil ved simulering", exception)
