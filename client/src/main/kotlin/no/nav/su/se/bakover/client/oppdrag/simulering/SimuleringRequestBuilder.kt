@@ -43,6 +43,7 @@ internal class SimuleringRequestBuilder(
 
     fun build(): SimulerBeregningGrensesnittRequest {
         utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder)) }
+        oppdragRequest.oppdragslinje.firstOrNull()?.refDelytelseId = null
         val førsteDag = utbetaling.førsteDag()
         val sisteDag = utbetaling.sisteDag()
         return SimulerBeregningGrensesnittRequest().apply {
