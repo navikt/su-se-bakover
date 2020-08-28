@@ -255,6 +255,10 @@ data class Behandling constructor(
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
             nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
         }
+
+        override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+            return nyTilstand(Beregnet()).simuler(simuleringClient)
+        }
     }
 
     private inner class TilAttestering : Tilstand {

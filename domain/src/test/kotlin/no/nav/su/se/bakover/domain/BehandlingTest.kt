@@ -186,6 +186,7 @@ internal class BehandlingTest {
                 }
             assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { opprettet.attester(Attestant("id")) }
         }
     }
 
@@ -242,6 +243,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.attester(Attestant("id")) }
         }
     }
 
@@ -287,6 +289,7 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { beregnet.attester(Attestant("id")) }
         }
     }
 
@@ -310,7 +313,7 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal kunne attestere`() {
+        fun `skal kunne sende til attestering`() {
             simulert.sendTilAttestering(aktørId, OppgaveClientStub)
             simulert.status() shouldBe TIL_ATTESTERING
         }
@@ -330,12 +333,15 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `skal kunne simulere på nytt`() {
+            simulert.simuler(SimuleringClientStub)
+            simulert.status() shouldBe SIMULERT
+        }
+
+        @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
-
-            assertThrows<Behandling.TilstandException> {
-                simulert.simuler(SimuleringClientStub)
-            }
+            assertThrows<Behandling.TilstandException> { simulert.attester(Attestant("id")) }
         }
     }
 
