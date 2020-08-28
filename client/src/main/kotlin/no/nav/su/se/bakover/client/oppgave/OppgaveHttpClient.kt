@@ -50,7 +50,7 @@ internal class OppgaveHttpClient(
 
         return result.fold(
             { json ->
-                logger.info("Lagret oppgave i gosys. status=${response.statusCode} body=$json")
+                logger.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
                 objectMapper.readValue(json, OppgaveResponse::class.java).id.right()
             },
             {

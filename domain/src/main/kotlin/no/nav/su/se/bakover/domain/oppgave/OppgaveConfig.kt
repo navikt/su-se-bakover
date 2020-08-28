@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.AktørId
 /**
  * https://jira.adeo.no/browse/OH-580
  */
-sealed class OppgaveConfig() {
-    abstract val journalpostId: String
+sealed class OppgaveConfig {
+    abstract val journalpostId: String?
     abstract val sakId: String
     abstract val aktørId: AktørId
     abstract val behandlingstema: Behandlingstema?
@@ -24,10 +24,10 @@ sealed class OppgaveConfig() {
     }
 
     data class Attestering(
-        override val journalpostId: String = "",
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {
+        override val journalpostId = null
         override val behandlingstema = null // Man kan ikke kombinere oppgavetype ATT med et behandlingstema (det er i hvert fall ikke gjort per nå). Ref: https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
         override val behandlingstype = Behandlingstype.BEHANDLE_VEDTAK
         override val oppgavetype = Oppgavetype.TIL_ATTESTERING

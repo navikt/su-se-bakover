@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.oppgave
 import java.time.LocalDate
 
 internal data class OppgaveRequest(
-    val journalpostId: String,
+    val journalpostId: String?,
     val saksreferanse: String,
     val aktoerId: String,
     val tema: String,

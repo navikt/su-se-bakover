@@ -90,7 +90,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expectedAttesteringRequest =
             """
                 {
-                    "journalpostId": "$journalId",
+                    "journalpostId": null,
                     "saksreferanse": "$sakId",
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
@@ -112,7 +112,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                     {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
-                                                      "journalpostId": "$journalId",
                                                       "saksreferanse": "$sakId",
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
@@ -136,9 +135,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Attestering(
-                journalId,
-                sakId,
-                AktørId(aktørId)
+                sakId = sakId,
+                aktørId = AktørId(aktørId)
             )
         ) shouldBeRight 111
     }

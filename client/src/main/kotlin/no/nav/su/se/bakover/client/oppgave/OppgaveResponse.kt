@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 internal data class OppgaveResponse(
     val id: Long,
     val tildeltEnhetsnr: String,
-    val journalpostId: String,
+    val journalpostId: String?,
     val behandlesAvApplikasjon: String,
     val saksreferanse: String,
     val aktoerId: String,
