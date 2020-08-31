@@ -1,55 +1,85 @@
 package no.nav.su.se.bakover.client.stubs.oppdrag
 
+import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import java.time.LocalDate
+import java.time.Month
+import java.time.Period
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerOppdrag(utbetaling: Utbetaling, utbetalingGjelder: String) =
-        Simulering(
-            gjelderId = "gjelderId",
-            gjelderNavn = "gjelderNavn",
-            datoBeregnet = idag(),
-            totalBelop = 15000,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
-                    utbetaling = listOf(
-                        SimulertUtbetaling(
-                            fagSystemId = "SUP",
-                            feilkonto = false,
-                            forfall = 2.februar(2020),
-                            utbetalesTilId = "utbetalesTilId",
-                            utbetalesTilNavn = "utbetalestTilNavn",
-                            detaljer = listOf(
-                                SimulertDetaljer(
-                                    faktiskFom = 1.januar(2020),
-                                    faktiskTom = 31.desember(2020),
-                                    klassekode = "klassekode",
-                                    sats = 240,
-                                    antallSats = 20,
-                                    belop = 15000,
-                                    klassekodeBeskrivelse = "klassekodebeskrivelse",
-                                    konto = "1234.12.12345",
-                                    refunderesOrgNr = "refundersOrgnr",
-                                    tilbakeforing = false,
-                                    typeSats = "MND",
-                                    uforegrad = 50,
-                                    utbetalingsType = "utbetalingstype"
-                                )
-                            )
+    override fun simulerOppdrag(
+        utbetaling: Utbetaling,
+        utbetalingGjelder: String
+    ): Either<SimuleringFeilet, Simulering> {
+        val months = 0L until Period.between(utbetaling.førsteDag(), utbetaling.sisteDag().plusDays(1)).toTotalMonths()
+        val perioder = months.map {
+            val fom = LocalDate.of(2020, Month.of((it + 1L).toInt()), 1)
+            val tom = fom.plusMonths(1).minusDays(1)
+            SimulertPeriode(
+                fom = fom,
+                tom = tom,
+                utbetaling = listOf(
+                    SimulertUtbetaling(
+                        fagSystemId = UUID30.randomUUID().toString(),
+                        feilkonto = false,
+                        forfall = idag(),
+                        utbetalesTilId = utbetalingGjelder,
+                        utbetalesTilNavn = "MYGG LUR",
+                        detaljer = listOf(
+                            createYtelse(fom, tom),
+                            createForskuddsskatt(fom, tom)
                         )
                     )
                 )
             )
+        }
+
+        return Simulering(
+            gjelderId = utbetalingGjelder,
+            gjelderNavn = "MYGG LUR",
+            datoBeregnet = idag(),
+            nettoBeløp = perioder.sumBy { it.bruttoYtelse() / 2 },
+            periodeList = perioder
         ).right()
+    }
+
+    private fun createYtelse(fom: LocalDate, tom: LocalDate) = SimulertDetaljer(
+        faktiskFom = fom,
+        faktiskTom = tom,
+        konto = "4952000",
+        belop = 20637,
+        tilbakeforing = false,
+        sats = 20637,
+        typeSats = "MND",
+        antallSats = 1,
+        uforegrad = 0,
+        klassekode = "SUUFORE",
+        klassekodeBeskrivelse = "Supplerende stønad Uføre",
+        klasseType = KlasseType.YTEL
+    )
+
+    private fun createForskuddsskatt(fom: LocalDate, tom: LocalDate) = SimulertDetaljer(
+        faktiskFom = fom,
+        faktiskTom = tom,
+        konto = "0510000",
+        belop = -10318,
+        tilbakeforing = false,
+        sats = 0,
+        typeSats = "MND",
+        antallSats = 31,
+        uforegrad = 0,
+        klassekode = "FSKTSKAT",
+        klassekodeBeskrivelse = "Forskuddskatt",
+        klasseType = KlasseType.SKAT
+    )
 }

@@ -6,15 +6,21 @@ data class Simulering(
     val gjelderId: String,
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
-    val totalBelop: Int,
+    val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>
-)
+) {
+    fun bruttoYtelse() = periodeList
+        .sumBy { it.bruttoYtelse() }
+}
 
 data class SimulertPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val utbetaling: List<SimulertUtbetaling>
-)
+) {
+    fun bruttoYtelse() = utbetaling
+        .sumBy { it.bruttoYtelse() }
+}
 
 data class SimulertUtbetaling(
     val fagSystemId: String,
@@ -23,7 +29,11 @@ data class SimulertUtbetaling(
     val forfall: LocalDate,
     val feilkonto: Boolean,
     val detaljer: List<SimulertDetaljer>
-)
+) {
+    fun bruttoYtelse() = detaljer
+        .filter { it.isYtelse() }
+        .sumBy { it.belop }
+}
 
 data class SimulertDetaljer(
     val faktiskFom: LocalDate,
@@ -37,12 +47,18 @@ data class SimulertDetaljer(
     val uforegrad: Int,
     val klassekode: String,
     val klassekodeBeskrivelse: String,
-    val utbetalingsType: String,
-    val refunderesOrgNr: String
-)
+    val klasseType: KlasseType
+) {
+    fun isYtelse() = KlasseType.YTEL == klasseType
+}
 
 enum class SimuleringFeilet {
     OPPDRAG_UR_ER_STENGT,
     FUNKSJONELL_FEIL,
     TEKNISK_FEIL
+}
+
+enum class KlasseType {
+    YTEL,
+    SKAT
 }

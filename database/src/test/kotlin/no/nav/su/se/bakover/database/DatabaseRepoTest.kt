@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -274,7 +275,7 @@ internal class DatabaseRepoTest {
                     gjelderId = "gjelderId",
                     gjelderNavn = "gjelderNavn",
                     datoBeregnet = LocalDate.now(),
-                    totalBelop = 1,
+                    nettoBeløp = 1,
                     periodeList = listOf(
                         SimulertPeriode(
                             fom = LocalDate.now(),
@@ -299,8 +300,7 @@ internal class DatabaseRepoTest {
                                             uforegrad = 2,
                                             klassekode = "klassekode",
                                             klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                            utbetalingsType = "utbetalingsType",
-                                            refunderesOrgNr = "refunderesOrgNr"
+                                            klasseType = KlasseType.YTEL
                                         )
                                     )
                                 )

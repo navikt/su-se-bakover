@@ -475,7 +475,7 @@ internal class BehandlingTest {
                     gjelderId = "gjelderId",
                     gjelderNavn = "gjelderNavn",
                     datoBeregnet = 1.mai(2020),
-                    totalBelop = 15000,
+                    nettoBeløp = 15000,
                     emptyList()
                 )
             )
