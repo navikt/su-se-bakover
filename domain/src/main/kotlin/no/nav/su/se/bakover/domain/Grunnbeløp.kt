@@ -18,5 +18,6 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         val `2,28G` = Grunnbeløp(2.28)
         val `2,48G` = Grunnbeløp(2.48)
         val `1G` = Grunnbeløp(1.0)
+        val `0,5G` = Grunnbeløp(0.5)
     }
 }

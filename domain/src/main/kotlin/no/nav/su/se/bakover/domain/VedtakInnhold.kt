@@ -24,7 +24,8 @@ data class VedtakInnhold(
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,
     val avslagsgrunn: Avslagsgrunn?,
-    val avslagsgrunnBeskrivelse: AvslagsgrunnBeskrivelseFlagg?
+    val avslagsgrunnBeskrivelse: AvslagsgrunnBeskrivelseFlagg?,
+    val halvGrunnbeløp: Int?,
 )
 
 enum class Avslagsgrunn {
