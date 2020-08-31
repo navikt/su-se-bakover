@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
 import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
 import no.nav.su.se.bakover.domain.BehandlingDto
+import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
@@ -57,7 +58,8 @@ class BrevService(
                         redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                         månedsbeløp = førsteMånedsberegning?.beløp,
                         fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
-                        fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0
+                        fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0,
+                        halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
                     )
                 )
             }
