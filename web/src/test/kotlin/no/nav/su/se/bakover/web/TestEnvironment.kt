@@ -14,26 +14,10 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
-import no.nav.su.se.bakover.client.HttpClientBuilder
-import no.nav.su.se.bakover.client.HttpClients
-import no.nav.su.se.bakover.client.SOAPClients
-import no.nav.su.se.bakover.client.azure.OAuth
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.inntekt.InntektOppslag
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
-import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
-import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
-import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import org.json.JSONObject
 import java.util.Base64
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
@@ -58,42 +42,18 @@ fun authenticationHttpClient() = HttpClient(MockEngine) {
 }
 
 internal fun Application.testSusebakover(
-    httpClients: HttpClients = buildHttpClients(),
+    clients: Clients = TestClientsBuilder.build(),
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance()),
-    authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    soapClients: SOAPClients = buildSOAPClients()
+    authenticationHttpClient: HttpClient = authenticationHttpClient()
 ) {
     return susebakover(
         databaseRepo = databaseRepo,
-        httpClients = httpClients,
+        clients = clients,
         jwkProvider = jwkProvider,
-        authenticationHttpClient = authenticationHttpClient,
-        soapClients = soapClients
+        authenticationHttpClient = authenticationHttpClient
     )
 }
-
-internal fun buildHttpClients(
-    azure: OAuth = OauthStub(),
-    personOppslag: PersonOppslag = PersonOppslagStub,
-    inntektOppslag: InntektOppslag = InntektOppslagStub,
-    dokArkiv: DokArkiv = DokArkivStub,
-    pdfGenerator: PdfGenerator = PdfGeneratorStub,
-    oppgaveClient: OppgaveClient = OppgaveClientStub
-): HttpClients {
-    return HttpClientBuilder.build(
-        azure = azure,
-        personOppslag = personOppslag,
-        inntektOppslag = inntektOppslag,
-        dokArkiv = dokArkiv,
-        pdfGenerator = pdfGenerator,
-        oppgaveClient = oppgaveClient
-    )
-}
-
-internal fun buildSOAPClients(
-    simulering: SimuleringClient = SimuleringStub
-): SOAPClients = SOAPClients(simulering)
 
 internal object JwkProviderStub : JwkProvider {
     override fun get(keyId: String?) = Jwk(
@@ -109,21 +69,6 @@ internal object JwkProviderStub : JwkProvider {
             "e" to String(Base64.getEncoder().encode(Jwt.keys.first.publicExponent.toByteArray())),
             "n" to String(Base64.getEncoder().encode(Jwt.keys.first.modulus.toByteArray()))
         )
-    )
-}
-
-internal class OauthStub : OAuth {
-    override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"
-    override fun refreshTokens(refreshToken: String) = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
-    override fun jwkConfig() = JSONObject(
-        """
-            {
-                "jwks_uri": "http://localhost/keys",
-                "token_endpoint": "http://localhost/token",
-                "issuer": "azure",
-                "authorization_endpoint": "http://localhost/authorize"
-            }
-        """.trimIndent()
     )
 }
 

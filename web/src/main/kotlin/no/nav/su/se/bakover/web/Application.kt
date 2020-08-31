@@ -33,10 +33,9 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import no.nav.su.se.bakover.client.HttpClientBuilder
-import no.nav.su.se.bakover.client.HttpClients
-import no.nav.su.se.bakover.client.SOAPClientBuilder
-import no.nav.su.se.bakover.client.SOAPClients
+import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.ProdClientsBuilder
+import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -66,8 +65,8 @@ fun main(args: Array<String>) {
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
-    httpClients: HttpClients = HttpClientBuilder.build(),
-    jwkConfig: JSONObject = httpClients.oauth.jwkConfig(),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder.build(),
+    jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     authenticationHttpClient: HttpClient = HttpClient(Apache) {
         engine {
@@ -76,14 +75,13 @@ internal fun Application.susebakover(
             }
         }
     },
-    soapClients: SOAPClients = SOAPClientBuilder.build()
 ) {
     val søknadRoutesMediator = SøknadRouteMediator(
         repo = databaseRepo,
-        pdfGenerator = httpClients.pdfGenerator,
-        dokArkiv = httpClients.dokArkiv,
-        oppgaveClient = httpClients.oppgaveClient,
-        personOppslag = httpClients.personOppslag
+        pdfGenerator = clients.pdfGenerator,
+        dokArkiv = clients.dokArkiv,
+        oppgaveClient = clients.oppgaveClient,
+        personOppslag = clients.personOppslag
     )
 
     install(CORS) {
@@ -125,7 +123,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
-        oAuth = httpClients.oauth
+        oAuth = clients.oauth
     )
 
     install(Locations)
@@ -169,19 +167,19 @@ internal fun Application.susebakover(
                     """.trimIndent()
                 )
             }
-            personRoutes(httpClients.personOppslag)
-            inntektRoutes(httpClients.inntektOppslag)
+            personRoutes(clients.personOppslag)
+            inntektRoutes(clients.inntektOppslag)
             sakRoutes(databaseRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepo,
                 brevService = BrevService(
-                    pdfGenerator = httpClients.pdfGenerator,
-                    personOppslag = httpClients.personOppslag
+                    pdfGenerator = clients.pdfGenerator,
+                    personOppslag = clients.personOppslag
                 ),
-                simuleringClient = soapClients.simulering,
-                personOppslag = httpClients.personOppslag,
-                oppgaveClient = httpClients.oppgaveClient
+                simuleringClient = clients.simuleringClient,
+                personOppslag = clients.personOppslag,
+                oppgaveClient = clients.oppgaveClient
             )
             vilkårsvurderingRoutes(databaseRepo)
         }

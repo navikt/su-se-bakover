@@ -4,6 +4,7 @@ import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import org.apache.cxf.Bus
 import org.apache.cxf.binding.soap.Soap12
 import org.apache.cxf.binding.soap.SoapMessage
+import org.apache.cxf.bus.extension.ExtensionManagerBus
 import org.apache.cxf.configuration.jsse.TLSClientParameters
 import org.apache.cxf.endpoint.Client
 import org.apache.cxf.ext.logging.LoggingFeature
@@ -37,7 +38,7 @@ class SimuleringConfig(
         private val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
     }
 
-    fun wrapWithSTSSimulerFpService(bus: Bus): SimulerFpService {
+    fun wrapWithSTSSimulerFpService(bus: Bus = ExtensionManagerBus()): SimulerFpService {
         log.info("using simuleringservice url $simuleringServiceUrl")
         val factory = JaxWsProxyFactoryBean().apply {
             address = simuleringServiceUrl

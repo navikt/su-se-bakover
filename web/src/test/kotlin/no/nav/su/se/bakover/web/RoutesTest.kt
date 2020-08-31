@@ -17,6 +17,7 @@ import io.ktor.server.testing.withTestApplication
 
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.personPath
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -82,7 +83,7 @@ class RoutesTest {
     fun `should transform exceptions to appropriate error responses`() {
         withTestApplication({
             testSusebakover(
-                httpClients = buildHttpClients(
+                clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
                         override fun person(fnr: Fnr) = throw RuntimeException("thrown exception")

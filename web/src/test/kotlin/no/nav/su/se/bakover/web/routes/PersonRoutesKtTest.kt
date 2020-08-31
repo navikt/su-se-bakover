@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.web.buildHttpClients
+import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -85,7 +85,7 @@ internal class PersonRoutesKtTest {
             """.trimIndent()
 
         withTestApplication({
-            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(200, testIdent)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(200, testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -99,7 +99,7 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testSusebakover(httpClients = buildHttpClients(personOppslag = personoppslag(Unauthorized.value, null)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(Unauthorized.value, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {

@@ -9,7 +9,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.buildHttpClients
+import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
@@ -52,10 +52,15 @@ internal class InntektRoutesKtTest {
             """{"message": "nich gut"}"""
         withTestApplication({
             testSusebakover(
-                httpClients = buildHttpClients(
+                clients = testClients.copy(
                     inntektOppslag = object :
                         InntektOppslag {
-                        override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(500, errorMessage)
+                        override fun inntekt(
+                            ident: Fnr,
+                            innloggetSaksbehandlerToken: String,
+                            fomDato: String,
+                            tomDato: String
+                        ) = ClientResponse(500, errorMessage)
                     }
                 )
             )

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import org.junit.jupiter.api.Test
@@ -42,7 +43,7 @@ internal class CallContextTest {
 
         withTestApplication({
             testSusebakover(
-                httpClients = buildHttpClients(
+                clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
                         override fun person(fnr: Fnr): Either<ClientError, Person> = PersonOppslagStub.person(fnr)

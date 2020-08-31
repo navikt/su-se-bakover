@@ -37,6 +37,22 @@ object Config {
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     val suSeFramoverRedirectUrl = env["FRONTEND_REDIRECT_URL"] ?: "http://localhost:1234/auth/complete"
 
+    val utbetaling = Utbetaling()
+
+    data class Utbetaling(
+        val mqUsername: String = env["MQ_USERNAME"] ?: "username",
+        val mqPassword: String = env["MQ_PASSWORD"] ?: "password",
+        val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "queuemanager",
+        val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1234,
+        val mqHostname: String = env["MQ_HOSTNAME"] ?: "hostname",
+        val mqChannel: String = env["MQ_CHANNEL"] ?: "channel"
+    )
+
+    data class Simulering(
+        val url: String = env["SIMULERING_URL"] ?: "",
+        val stsSoapUrl: String = env["STS_URL_SOAP"] ?: ""
+    )
+
     fun init(): Dotenv {
         return dotenv {
             ignoreIfMissing = true

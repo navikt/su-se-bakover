@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.buildHttpClients
+import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -83,7 +83,7 @@ internal class BehandlingRoutesKtTest {
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
         withTestApplication({
             testSusebakover(
-                httpClients = buildHttpClients(
+                clients = testClients.copy(
                     oppgaveClient = object : OppgaveClient {
                         override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
                             return Either.left(KunneIkkeOppretteOppgave(500, "Kunne ikke opprette oppgave"))
