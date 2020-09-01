@@ -46,45 +46,45 @@ internal class UtbetalingClientTest {
 
         client.sendUtbetaling(utbetaling, "Saksbehandler") shouldBe Unit.right()
         mqClient.count shouldBe 1
-        mqClient.message?.trimIndent() shouldBe """
-            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        val expected =
+            """
+            <?xml version='1.0' encoding='UTF-8'?>
             <Oppdrag>
-                <oppdrag-110>
-                    <kodeAksjon>1</kodeAksjon>
-                    <kodeEndring>NY</kodeEndring>
-                    <kodeFagomraade>SUUFORE</kodeFagomraade>
-                    <fagsystemId>${utbetaling.oppdragId}</fagsystemId>
-                    <utbetFrekvens>MND</utbetFrekvens>
-                    <oppdragGjelderId>Saksbehandler</oppdragGjelderId>
-                    <datoOppdragGjelderFom>1970-01-01+01:00</datoOppdragGjelderFom>
-                    <saksbehId>SU</saksbehId>
-                    <avstemming-115>
-                        <kodeKomponent>SUUFORE</kodeKomponent>
-                        <nokkelAvstemming>TODO</nokkelAvstemming>
-                        <tidspktMelding>1970-01-01-00.00.00.000000</tidspktMelding>
-                    </avstemming-115>
-                    <oppdrags-enhet-120>
-                        <typeEnhet>BOS</typeEnhet>
-                        <enhet>8020</enhet>
-                        <datoEnhetFom>1970-01-01+01:00</datoEnhetFom>
-                    </oppdrags-enhet-120>
-                    <oppdrags-linje-150>
-                        <kodeEndringLinje>NY</kodeEndringLinje>
-                        <delytelseId>${utbetaling.utbetalingslinjer[0].id}</delytelseId>
-                        <kodeKlassifik>SUUFORE</kodeKlassifik>
-                        <datoVedtakFom>2020-01-01+01:00</datoVedtakFom>
-                        <datoVedtakTom>2020-01-14+01:00</datoVedtakTom>
-                        <sats>10</sats>
-                        <fradragTillegg>T</fradragTillegg>
-                        <typeSats>MND</typeSats>
-                        <brukKjoreplan>N</brukKjoreplan>
-                        <saksbehId>SU</saksbehId>
-                        <utbetalesTilId>Saksbehandler</utbetalesTilId>
-                        <attestant-180>
-                            <attestantId>SU</attestantId>
-                        </attestant-180>
-                    </oppdrags-linje-150>
-                </oppdrag-110>
-            </Oppdrag>""".trimIndent()
+              <oppdrag-110>
+                <kodeAksjon>1</kodeAksjon>
+                <kodeEndring>NY</kodeEndring>
+                <kodeFagomraade>SUUFORE</kodeFagomraade>
+                <fagsystemId>${utbetaling.oppdragId}</fagsystemId>
+                <utbetFrekvens>MND</utbetFrekvens>
+                <oppdragGjelderId>Saksbehandler</oppdragGjelderId>
+                <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
+                <saksbehId>SU</saksbehId>
+                <avstemming-115>
+                  <kodeKomponent>SUUFORE</kodeKomponent>
+                  <nokkelAvstemming>TODO</nokkelAvstemming>
+                  <tidspktMelding>1970-01-01-00.00.00.000000</tidspktMelding>
+                </avstemming-115>
+                <oppdrags-enhet-120>
+                  <typeEnhet>BOS</typeEnhet>
+                  <enhet>8020</enhet>
+                  <datoEnhetFom>1970-01-01</datoEnhetFom>
+                </oppdrags-enhet-120>
+                <oppdrags-linje-150>
+                  <kodeEndringLinje>NY</kodeEndringLinje>
+                  <delytelseId>${utbetaling.utbetalingslinjer[0].id}</delytelseId>
+                  <kodeKlassifik>SUUFORE</kodeKlassifik>
+                  <datoVedtakFom>2020-01-01</datoVedtakFom>
+                  <datoVedtakTom>2020-01-14</datoVedtakTom>
+                  <sats>10</sats>
+                  <fradragTillegg>T</fradragTillegg>
+                  <typeSats>MND</typeSats>
+                  <brukKjoreplan>N</brukKjoreplan>
+                  <saksbehId>SU</saksbehId>
+                  <utbetalesTilId>Saksbehandler</utbetalesTilId>
+                </oppdrags-linje-150>
+              </oppdrag-110>
+            </Oppdrag>
+            """.trimIndent()
+        mqClient.message?.trimIndent() shouldBe expected
     }
 }

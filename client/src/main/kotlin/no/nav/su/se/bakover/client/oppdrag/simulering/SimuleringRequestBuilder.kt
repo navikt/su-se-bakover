@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.FAGOMRÅDE
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.KLASSEKODE
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.SAKSBEHANDLER
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.toOppdragDate
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
@@ -9,7 +13,6 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
 internal class SimuleringRequestBuilder(
@@ -17,10 +20,7 @@ internal class SimuleringRequestBuilder(
     private val oppdragGjelder: String
 ) {
     private companion object {
-        private const val FAGOMRÅDE = "SUUFORE"
-        private const val KLASSEKODE = "SUUFORE"
-        private const val SAKSBEHANDLER = "SU"
-        private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        // private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 
     private val oppdragRequest = Oppdrag().apply {
@@ -31,12 +31,12 @@ internal class SimuleringRequestBuilder(
         fagsystemId = utbetaling.oppdragId.toString()
         oppdragGjelderId = oppdragGjelder
         saksbehId = SAKSBEHANDLER
-        datoOppdragGjelderFom = LocalDate.EPOCH.format(yyyyMMdd)
+        datoOppdragGjelderFom = LocalDate.EPOCH.toOppdragDate()
         enhet.add(
             Enhet().apply {
                 enhet = "8020"
                 typeEnhet = "BOS"
-                datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd)
+                datoEnhetFom = LocalDate.EPOCH.toOppdragDate()
             }
         )
     }
@@ -50,8 +50,8 @@ internal class SimuleringRequestBuilder(
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
                 simuleringsPeriode = SimulerBeregningRequest.SimuleringsPeriode().apply {
-                    datoSimulerFom = førsteDag.format(yyyyMMdd)
-                    datoSimulerTom = sisteDag.format(yyyyMMdd)
+                    datoSimulerFom = førsteDag.toOppdragDate()
+                    datoSimulerTom = sisteDag.toOppdragDate()
                 }
             }
         }
@@ -66,8 +66,8 @@ internal class SimuleringRequestBuilder(
         refDelytelseId = utbetalingslinje.forrigeUtbetalingslinjeId?.toString()
         kodeEndringLinje = "NY"
         kodeKlassifik = KLASSEKODE
-        datoVedtakFom = utbetalingslinje.fom.format(yyyyMMdd)
-        datoVedtakTom = utbetalingslinje.tom.format(yyyyMMdd)
+        datoVedtakFom = utbetalingslinje.fom.toOppdragDate()
+        datoVedtakTom = utbetalingslinje.tom.toOppdragDate()
         sats = utbetalingslinje.beløp.toBigDecimal()
         fradragTillegg = FradragTillegg.T
         typeSats = "MND"
