@@ -182,8 +182,7 @@ internal class SimuleringSoapClientTest {
                                     isTilbakeforing = false
                                     klassekode = "klasseKode"
                                     klasseKodeBeskrivelse = "klasseKodeBeskrivelse"
-                                    typeKlasse = "typeKlasse"
-                                    refunderesOrgNr = "123456789"
+                                    typeKlasse = "YTEL"
                                 }
                             )
                         }

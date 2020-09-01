@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.routes.behandling.UbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.VilkårsvurderingJson
@@ -19,7 +19,7 @@ internal data class BehandlingJson(
     val søknad: SøknadJson,
     val beregning: BeregningJson?,
     val status: String,
-    val utbetaling: UbetalingJson?,
+    val utbetaling: UtbetalingJson?,
     val opprettet: String,
     val attestant: String?,
     val sakId: UUID

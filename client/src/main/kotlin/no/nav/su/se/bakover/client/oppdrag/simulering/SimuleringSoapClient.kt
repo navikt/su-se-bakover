@@ -6,6 +6,7 @@ import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -90,7 +91,7 @@ internal class SimuleringSoapClient(
             gjelderId = response.simulering.gjelderId,
             gjelderNavn = response.simulering.gjelderNavn.trim(),
             datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
-            totalBelop = response.simulering.belop.intValueExact(),
+            nettoBeløp = response.simulering.belop.intValueExact(),
             periodeList = response.simulering.beregningsPeriode.map { mapBeregningsPeriode(it) }
         ).right()
 
@@ -115,16 +116,15 @@ internal class SimuleringSoapClient(
         SimulertDetaljer(
             faktiskFom = LocalDate.parse(detaljer.faktiskFom),
             faktiskTom = LocalDate.parse(detaljer.faktiskTom),
-            uforegrad = detaljer.uforeGrad.intValueExact(),
-            antallSats = detaljer.antallSats.intValueExact(),
-            typeSats = detaljer.typeSats.trim(),
-            sats = detaljer.sats.intValueExact(),
-            belop = detaljer.belop.intValueExact(),
             konto = detaljer.kontoStreng.trim(),
+            belop = detaljer.belop.intValueExact(),
             tilbakeforing = detaljer.isTilbakeforing,
+            sats = detaljer.sats.intValueExact(),
+            typeSats = detaljer.typeSats.trim(),
+            antallSats = detaljer.antallSats.intValueExact(),
+            uforegrad = detaljer.uforeGrad.intValueExact(),
             klassekode = detaljer.klassekode.trim(),
             klassekodeBeskrivelse = detaljer.klasseKodeBeskrivelse.trim(),
-            utbetalingsType = detaljer.typeKlasse,
-            refunderesOrgNr = detaljer.refunderesOrgNr.removePrefix("00")
+            klasseType = KlasseType.valueOf(detaljer.typeKlasse)
         )
 }
