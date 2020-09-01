@@ -57,7 +57,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(errorResponseJson))
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.aktørId(Fnr("12345678912")) shouldBe ClientError(200, "Feil i kallet mot pdl").left()
     }
 
@@ -69,7 +69,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.serverError())
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.aktørId(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl.").left()
     }
 
@@ -101,7 +101,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
     }
 
@@ -140,7 +140,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(errorResponseJson))
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.person(Fnr("12345678912")) shouldBe ClientError(200, "Feil i kallet mot pdl").left()
     }
 
@@ -152,7 +152,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.serverError())
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.person(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl.").left()
     }
 
@@ -250,7 +250,7 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag, CLIENT_ID, tokenExchange)
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -279,7 +279,7 @@ internal class PdlClientTest : WiremockBase {
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
-        .withHeader("Authorization", WireMock.equalTo("Bearer ON BEHALF OF!"))
+        .withHeader("Authorization", WireMock.equalTo("Bearer abc"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token()}"))
@@ -287,6 +287,6 @@ internal class PdlClientTest : WiremockBase {
 
     @BeforeEach
     fun beforeEach() {
-        MDC.put("Authorization", "abc")
+        MDC.put("Authorization", "Bearer abc")
     }
 }

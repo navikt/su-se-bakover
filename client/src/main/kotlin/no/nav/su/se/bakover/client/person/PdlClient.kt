@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PdlData.Adresse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
@@ -27,9 +26,7 @@ const val SUP = "SUP"
 
 internal class PdlClient(
     private val pdlUrl: String,
-    private val tokenOppslag: TokenOppslag,
-    private val azureClientId: String,
-    private val oAuth: OAuth
+    private val tokenOppslag: TokenOppslag
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PdlClient::class.java)
@@ -44,7 +41,8 @@ internal class PdlClient(
             val navn = hentPerson.navn.sortedBy {
                 folkeregisteretAsMaster(it.metadata)
             }.first()
-            val vegadresser = hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
+            val vegadresser =
+                hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
             // TODO jah: Don't throw exception if we can't find this person
             PdlData(
                 ident = Ident(hentIdent(response.data.hentIdenter).fnr, hentIdent(response.data.hentIdenter).aktørId),
@@ -87,10 +85,9 @@ internal class PdlClient(
         )
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<ClientError, T> {
-        val onBehalfOfToken = oAuth.onBehalfOFToken(MDC.get("Authorization"), azureClientId)
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val (_, response, result) = "$pdlUrl/graphql".httpPost()
-            .header("Authorization", "Bearer $onBehalfOfToken")
+            .header("Authorization", MDC.get("Authorization"))
             .header(NAV_CONSUMER_TOKEN, "Bearer ${tokenOppslag.token()}")
             .header(NAV_TEMA, SUP)
             .header("Accept", "application/json")
@@ -109,7 +106,12 @@ internal class PdlClient(
                 }
             },
             {
-                logger.warn("Feil i kallet mot pdl. status=${response.statusCode} body=${response.body().asString("application/json")}", it)
+                logger.warn(
+                    "Feil i kallet mot pdl. status=${response.statusCode} body=${
+                    response.body().asString("application/json")
+                    }",
+                    it
+                )
                 ClientError(response.statusCode, "Feil i kallet mot pdl.").left()
             }
         )
@@ -119,6 +121,7 @@ internal class PdlClient(
 data class IdentResponse(
     val data: IdentResponseData
 )
+
 data class IdentResponseData(
     val hentIdenter: HentIdenter
 )

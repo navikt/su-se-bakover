@@ -18,7 +18,7 @@ object ProdClientsBuilder : ClientsBuilder {
         val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad")
         val tokenOppslag = StsClient(Config.stsUrl, Config.stsUsername, Config.stsPassword)
-        val personOppslag = PersonClient(kodeverk, Config.pdlUrl, tokenOppslag, Config.azureClientId, oAuth)
+        val personOppslag = PersonClient(kodeverk, Config.pdlUrl, tokenOppslag)
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
