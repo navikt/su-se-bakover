@@ -7,7 +7,6 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import no.nav.su.se.bakover.client.oppdrag.MqClient
-import no.nav.su.se.bakover.client.oppdrag.MqClient.CouldNotPublish
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Avstemming
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragsEnhet
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.FradragTillegg
@@ -16,16 +15,18 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrags
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Utbetalingsfrekvens
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient.KunneIkkeSendeUtbetaling
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class UtbetalingClient(
+class UtbetalingMqClient(
     private val clock: Clock = Clock.systemUTC(),
     private val mqClient: MqClient
-) {
+) : UtbetalingClient {
 
     companion object {
         const val FAGOMRÅDE = "SUUFORE"
@@ -47,12 +48,12 @@ class UtbetalingClient(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    fun sendUtbetaling(
+    override fun sendUtbetaling(
         utbetaling: Utbetaling,
         oppdragGjelder: String
-    ): Either<CouldNotPublish, Unit> {
+    ): Either<KunneIkkeSendeUtbetaling, Unit> {
         val xml = xmlMapper.writeValueAsString(utbetaling.toExternal(oppdragGjelder))
-        return mqClient.publish(xml)
+        return mqClient.publish(xml).mapLeft { KunneIkkeSendeUtbetaling }
     }
 
     private fun Utbetaling.toExternal(oppdragGjelder: String) = UtbetalingRequest(

@@ -42,10 +42,12 @@ object Config {
     data class Utbetaling(
         val mqUsername: String = env["MQ_USERNAME"] ?: "username",
         val mqPassword: String = env["MQ_PASSWORD"] ?: "password",
-        val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "queuemanager",
+        val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "queueManager",
         val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1234,
         val mqHostname: String = env["MQ_HOSTNAME"] ?: "hostname",
-        val mqChannel: String = env["MQ_CHANNEL"] ?: "channel"
+        val mqChannel: String = env["MQ_CHANNEL"] ?: "channel",
+        val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "sendQueue",
+        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "replyTo",
     )
 
     data class Simulering(

@@ -29,7 +29,7 @@ internal class UtbetalingClientTest {
             }
         }
         val clock = Clock.fixed(Instant.parse("1970-01-01T00:00:00.000+01:00"), ZoneOffset.UTC)
-        val client = UtbetalingClient(clock, mqClient)
+        val client = UtbetalingMqClient(clock, mqClient)
 
         val utbetaling = Utbetaling(
             behandlingId = UUID.randomUUID(),

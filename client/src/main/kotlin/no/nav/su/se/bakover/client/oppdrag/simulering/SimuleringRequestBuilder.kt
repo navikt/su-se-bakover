@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.FAGOMRÅDE
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.KLASSEKODE
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.SAKSBEHANDLER
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingClient.Companion.toOppdragDate
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.FAGOMRÅDE
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.KLASSEKODE
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.SAKSBEHANDLER
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.toOppdragDate
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
