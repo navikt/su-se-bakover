@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
-import com.ibm.mq.jms.MQQueue
+import arrow.core.Either
+import no.nav.su.se.bakover.client.oppdrag.MqClient
+import no.nav.su.se.bakover.client.oppdrag.MqClient.CouldNotPublish
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.trygdeetaten.skjema.oppdrag.Attestant180
@@ -10,18 +12,17 @@ import no.trygdeetaten.skjema.oppdrag.OppdragsEnhet120
 import no.trygdeetaten.skjema.oppdrag.OppdragsLinje150
 import no.trygdeetaten.skjema.oppdrag.TfradragTillegg
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.GregorianCalendar
-import javax.jms.Connection
 import javax.xml.datatype.DatatypeFactory
 import no.trygdeetaten.skjema.oppdrag.Oppdrag as ExternalOppdrag
 
 class UtbetalingClient(
-    jmsConnection: Connection,
-    sendQueue: String,
-    private val replyTo: String
+    private val clock: Clock = Clock.systemUTC(),
+    private val mqClient: MqClient
 ) {
 
     private companion object {
@@ -30,7 +31,8 @@ class UtbetalingClient(
         private const val KLASSEKODE = "SUUFORE"
         private const val SAKSBEHANDLER = "SU"
 
-        // private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        private val datostempel = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            .withZone(ZoneId.systemDefault())
         private val tidsstempel = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
             .withZone(ZoneId.systemDefault())
         private val datatypeFactory = DatatypeFactory.newInstance()
@@ -38,17 +40,12 @@ class UtbetalingClient(
             datatypeFactory.newXMLGregorianCalendar(GregorianCalendar.from(this.atStartOfDay(ZoneId.systemDefault())))
     }
 
-    private val jmsSession = jmsConnection.createSession()
-    private val producer = jmsSession.createProducer(jmsSession.createQueue(sendQueue))
-
     fun sendUtbetaling(
         utbetaling: Utbetaling,
         oppdragGjelder: String
-    ) {
+    ) : Either<CouldNotPublish, Unit> {
         val xml = OppdragXml.marshal(utbetaling.toExternal(oppdragGjelder))
-        val message = jmsSession.createTextMessage(xml)
-        message.jmsReplyTo = MQQueue(replyTo)
-        producer.send(message)
+        return mqClient.publish(xml)
     }
 
     private fun Utbetaling.toExternal(oppdragGjelder: String) = ExternalOppdrag().also {
@@ -70,7 +67,7 @@ class UtbetalingClient(
             )
             it.avstemming115 = Avstemming115().apply {
                 nokkelAvstemming = "TODO" // TODO hent verdi
-                tidspktMelding = tidsstempel.format(now())
+                tidspktMelding = tidsstempel.format(now(clock))
                 kodeKomponent = KLASSEKODE // TODO. Verifiser hva denne skal være
             }
             utbetalingslinjer.forEach { utbetalingslinje ->
