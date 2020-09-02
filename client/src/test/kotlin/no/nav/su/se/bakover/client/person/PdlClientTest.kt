@@ -4,19 +4,14 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.MDC
-
-private const val CLIENT_ID = "clientId"
 
 internal class PdlClientTest : WiremockBase {
 
@@ -58,7 +53,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.aktørId(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl").left()
+        client.aktørId(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
     }
 
     @Test
@@ -70,7 +65,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.aktørId(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl.").left()
+        client.aktørId(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
     }
 
     @Test
@@ -106,7 +101,7 @@ internal class PdlClientTest : WiremockBase {
     }
 
     @Test
-    fun `hent person inneholder errors`() {
+    fun `hent person inneholder kjent feil`() {
 
         //language=JSON
         val errorResponseJson =
@@ -125,7 +120,7 @@ internal class PdlClientTest : WiremockBase {
                     "hentPerson"
                   ],
                   "extensions": {
-                    "code": "unauthenticated",
+                    "code": "not_found",
                     "classification": "ExecutionAborted"
                   }
                 }
@@ -141,7 +136,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.person(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl").left()
+        client.person(Fnr("12345678912")) shouldBe PdlFeil.FantIkkePerson.left()
     }
 
     @Test
@@ -153,7 +148,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.person(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl.").left()
+        client.person(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
     }
 
     @Test
@@ -270,12 +265,6 @@ internal class PdlClientTest : WiremockBase {
             ),
             statsborgerskap = "SYR"
         ).right()
-    }
-
-    private val tokenExchange = object : OAuth {
-        override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
-        override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
-        override fun jwkConfig() = JSONObject()
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

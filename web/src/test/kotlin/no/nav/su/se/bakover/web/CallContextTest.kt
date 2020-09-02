@@ -13,7 +13,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
@@ -46,7 +46,7 @@ internal class CallContextTest {
                 clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(fnr: Fnr): Either<ClientError, Person> = PersonOppslagStub.person(fnr)
+                        override fun person(fnr: Fnr): Either<PdlFeil, Person> = PersonOppslagStub.person(fnr)
 
                         override fun aktørId(fnr: Fnr) =
                             AktørId("aktørid".also { downstreamCorrelationIds.add(MDC.get("X-Correlation-ID")) }).right()

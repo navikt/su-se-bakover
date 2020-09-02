@@ -5,11 +5,11 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
@@ -23,8 +23,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
-    private val errorMessage = "beklager, det gikk dårlig"
-
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
@@ -85,7 +83,7 @@ internal class PersonRoutesKtTest {
             """.trimIndent()
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(200, testIdent)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(testIdent = testIdent)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
@@ -95,26 +93,37 @@ internal class PersonRoutesKtTest {
     }
 
     @Test
-    fun `skal propagere httpStatus fra PDL kall`() {
+    fun `skal svare med 500 hvis ukjent feil`() {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(Unauthorized.value, null)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.Ukjent, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent")
         }.apply {
-            assertEquals(Unauthorized, response.status())
-            response.content shouldBe errorMessage
+            response.status() shouldBe HttpStatusCode.InternalServerError
         }
     }
 
-    private fun personoppslag(statusCode: Int, testIdent: String?) = object :
-        PersonOppslag {
-        override fun person(fnr: Fnr): Either<ClientError, Person> = when (testIdent) {
+    @Test
+    fun `skal svare med 404 hvis person ikke funnet`() {
+        val testIdent = "12345678910"
+
+        withTestApplication({
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.FantIkkePerson, null)))
+        }) {
+            defaultRequest(Get, "$personPath/$testIdent")
+        }.apply {
+            response.status() shouldBe NotFound
+        }
+    }
+
+    private fun personoppslag(pdlFeil: PdlFeil = PdlFeil.Ukjent, testIdent: String?) = object : PersonOppslag {
+        override fun person(fnr: Fnr): Either<PdlFeil, Person> = when (testIdent) {
             fnr.toString() -> PersonOppslagStub.person(fnr)
-            else -> ClientError(statusCode, "beklager, det gikk dårlig").left()
+            else -> pdlFeil.left()
         }
 
-        override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> = throw NotImplementedError()
+        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> = throw NotImplementedError()
     }
 }

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
 import arrow.core.orNull
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.domain.AktørId
@@ -17,8 +16,8 @@ class PersonClient(
 ) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag)
 
-    override fun person(fnr: Fnr): Either<ClientError, Person> = pdlClient.person(fnr).map { toPerson(it) }
-    override fun aktørId(fnr: Fnr): Either<ClientError, AktørId> = pdlClient.aktørId(fnr)
+    override fun person(fnr: Fnr): Either<PdlFeil, Person> = pdlClient.person(fnr).map { toPerson(it) }
+    override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> = pdlClient.aktørId(fnr)
 
     private fun toPerson(pdlData: PdlData) =
         Person(

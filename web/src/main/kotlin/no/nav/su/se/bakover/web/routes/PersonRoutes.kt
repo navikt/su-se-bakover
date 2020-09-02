@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.web.routes
 
 import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.su.se.bakover.client.ClientResponse
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
@@ -26,23 +27,19 @@ internal fun Route.personRoutes(
             ifRight = { fnr ->
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
-                    Resultat.from(
-                        personOppslag.person(fnr).fold(
-                            { ClientResponse(it.httpStatus, it.message) },
-                            {
-                                ClientResponse(
-                                    200,
-                                    objectMapper.writeValueAsString(
-                                        it.toJson()
-                                    )
-                                )
-                            }
-                        )
+                    personOppslag.person(fnr).fold(
+                        { Resultat.message(HttpStatusCode.fromValue(httpCodeFor(it)), it.message) },
+                        { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
                     )
                 )
             }
         )
     }
+}
+
+private fun httpCodeFor(pdlFeil: PdlFeil) = when (pdlFeil) {
+    is PdlFeil.FantIkkePerson -> 404
+    else -> 500
 }
 
 data class PersonResponseJson(

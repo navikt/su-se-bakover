@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.client.inntekt
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -31,7 +32,7 @@ internal class InntektClientTest : WiremockBase {
             persontilgang403
         )
         val result = inntektClient.inntekt(Fnr("01010112345"), "innlogget bruker", "2000-01", "2000-12")
-        assertEquals(ClientResponse(403, "Du hakke lov"), result)
+        assertEquals(ClientResponse(500, PdlFeil.Ukjent.message), result)
     }
 
     @Test
@@ -48,7 +49,7 @@ internal class InntektClientTest : WiremockBase {
 
     private val clientId = "inntektclientid"
     private val persontilgang200 = object : PersonOppslag {
-        override fun person(fnr: Fnr) = Person(
+        override fun person(fnr: Fnr): Either<PdlFeil, Person> = Person(
             ident = Ident(fnr, AktørId("aktørId")),
             navn = Person.Navn(
                 fornavn = "Tore",
@@ -68,16 +69,20 @@ internal class InntektClientTest : WiremockBase {
             kjønn = "MANN"
 
         ).right()
+
         override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }
     private val persontilgang403 = object : PersonOppslag {
-        override fun person(fnr: Fnr) =
-            ClientError(403, "Du hakke lov").left()
+        override fun person(fnr: Fnr): Either<PdlFeil, Person> =
+            PdlFeil.Ukjent.left()
+
         override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()
     }
     private val tokenExchange = object : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = "ON BEHALF OF!"
-        override fun refreshTokens(refreshToken: String): JSONObject = JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
+        override fun refreshTokens(refreshToken: String): JSONObject =
+            JSONObject("""{"access_token":"abc","refresh_token":"cba"}""")
+
         override fun jwkConfig() = JSONObject()
     }
 

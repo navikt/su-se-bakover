@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
 import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
@@ -31,7 +32,7 @@ class BrevService(
         return personOppslag.person(fnr)
             .mapLeft {
                 log.warn("Fant ikke person for søknad $fnr")
-                it
+                ClientError(httpCodeFor(it), it.message)
             }.flatMap { person ->
                 // TODO variabelt beløp pr mnd? wtf?
                 val førsteMånedsberegning = behandlingDto.beregning?.månedsberegninger?.firstOrNull()
@@ -58,12 +59,18 @@ class BrevService(
                         redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                         månedsbeløp = førsteMånedsberegning?.beløp,
                         fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
-                        fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0,
+                        fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()
+                            ?.sumBy { fradrag -> fradrag.beløp } ?: 0,
                         halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
                     )
                 )
             }
     }
+}
+
+private fun httpCodeFor(pdlFeil: PdlFeil) = when (pdlFeil) {
+    is PdlFeil.FantIkkePerson -> 404
+    else -> 500
 }
 
 fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFlagg? =
@@ -96,4 +103,5 @@ fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
 
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear() = this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
-fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> = this.map { it -> FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }
+fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> =
+    this.map { it -> FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.person.PdlData.Adresse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
-import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.LocalDate
@@ -35,9 +33,9 @@ internal class PdlClient(
     val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
-    fun person(fnr: Fnr): Either<ClientError, PdlData> {
-        return kallpdl<PersonResponse>(fnr, hentPersonQuery).map { response ->
-            val hentPerson = response.data.hentPerson
+    fun person(fnr: Fnr): Either<PdlFeil, PdlData> {
+        return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
+            val hentPerson = response.hentPerson!!
             val navn = hentPerson.navn.sortedBy {
                 folkeregisteretAsMaster(it.metadata)
             }.first()
@@ -45,7 +43,7 @@ internal class PdlClient(
                 hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
             // TODO jah: Don't throw exception if we can't find this person
             PdlData(
-                ident = Ident(hentIdent(response.data.hentIdenter).fnr, hentIdent(response.data.hentIdenter).aktørId),
+                ident = Ident(hentIdent(response.hentIdenter!!).fnr, hentIdent(response.hentIdenter).aktørId),
                 navn = Navn(
                     fornavn = navn.fornavn,
                     mellomnavn = navn.mellomnavn,
@@ -72,9 +70,9 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
-    fun aktørId(fnr: Fnr): Either<ClientError, AktørId> {
-        return kallpdl<IdentResponse>(fnr, hentIdenterQuery).map {
-            hentIdent(it.data.hentIdenter).aktørId
+    fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+        return kallpdl<IdentResponseData>(fnr, hentIdenterQuery).map {
+            hentIdent(it.hentIdenter!!).aktørId
         }
     }
 
@@ -84,7 +82,7 @@ internal class PdlClient(
             aktørId = it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
         )
 
-    private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<ClientError, T> {
+    private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<PdlFeil, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val token = tokenOppslag.token()
         logger.info("Authorization: " + MDC.get("Authorization"))
@@ -98,46 +96,76 @@ internal class PdlClient(
             .body(objectMapper.writeValueAsString(pdlRequest))
             .responseString()
         return result.fold(
-            { json ->
-                JSONObject(json).let {
-                    if (it.has("errors")) {
-                        logger.warn("Feil i kallet mot pdl. status={}, body = {}", response.statusCode, json)
-                        ClientError(500, "Feil i kallet mot pdl").left()
-                        // TODO: Skal vi lese ut en mer presis feilkode fra extensions.code?
-                        // https://navikt.github.io/pdl/#_feilmeldinger_og_bruk_av_http_koder_i_pdl_og_over_graphql
-                    } else {
-                        objectMapper.readValue(json, T::class.java).right()
-                    }
+            {
+                val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
+                if (pdlResponse.hasErrors()) {
+                    logger.warn("Feil i kallet mod PDL: {}", pdlResponse)
+                    PdlFeil.from(pdlResponse.errors!!).left()
+                } else {
+                    pdlResponse.data.right()
                 }
             },
             {
                 logger.warn(
-                    "Feil i kallet mot pdl. status=${response.statusCode} body=${
+                    "Feil i kallet mot PDL, status:{}, body:{}",
+                    response.statusCode,
                     response.body().asString("application/json")
-                    }",
-                    it
                 )
-                ClientError(response.statusCode, "Feil i kallet mot pdl.").left()
+                PdlFeil.Ukjent.left()
             }
         )
     }
+
+    private fun specializedType(clazz: Class<*>) =
+        objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
 }
 
-data class IdentResponse(
-    val data: IdentResponseData
+sealed class PdlFeil(
+    val message: String
+) {
+    companion object {
+        fun from(errors: List<PdlError>): PdlFeil {
+            return if (errors.size == 1) {
+                resolveError(errors.first().extensions.code)
+            } else {
+                Ukjent
+            }
+        }
+
+        private fun resolveError(code: String) = when (code.toLowerCase()) {
+            "not_found" -> FantIkkePerson
+            else -> Ukjent
+        }
+    }
+
+    object FantIkkePerson : PdlFeil("Fant ikke person i PDL")
+    object Ukjent : PdlFeil("Ukjent feil mot PDL")
+}
+
+data class PdlResponse<T>(
+    val data: T,
+    val errors: List<PdlError>?
+) {
+    fun hasErrors() = !errors.isNullOrEmpty()
+}
+
+data class PdlError(
+    val message: String,
+    val path: List<String>,
+    val extensions: PdlExtension
+)
+
+class PdlExtension(
+    val code: String
 )
 
 data class IdentResponseData(
-    val hentIdenter: HentIdenter
-)
-
-data class PersonResponse(
-    val data: PersonResponseData
+    val hentIdenter: HentIdenter?
 )
 
 data class PersonResponseData(
-    val hentPerson: HentPerson,
-    val hentIdenter: HentIdenter
+    val hentPerson: HentPerson?,
+    val hentIdenter: HentIdenter?
 )
 
 data class HentPerson(

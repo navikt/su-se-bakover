@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.client.stubs.person
 
+import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -10,7 +12,7 @@ import no.nav.su.se.bakover.domain.Telefonnummer
 
 object PersonOppslagStub :
     PersonOppslag {
-    override fun person(fnr: Fnr) = Person(
+    override fun person(fnr: Fnr): Either<PdlFeil, Person> = Person(
         ident = Ident(fnr, AktørId("2437280977705")),
         navn = Person.Navn(
             fornavn = "Tore",

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import arrow.core.Either
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
@@ -14,9 +15,11 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.client.person.PdlFeil
 
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.personPath
 import org.junit.jupiter.api.Test
@@ -86,7 +89,7 @@ class RoutesTest {
                 clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(fnr: Fnr) = throw RuntimeException("thrown exception")
+                        override fun person(fnr: Fnr): Either<PdlFeil, Person> = throw RuntimeException("thrown exception")
                         override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
                     }
                 )
