@@ -72,7 +72,7 @@ internal class UtbetalingClientTest {
                 <saksbehId>SU</saksbehId>
                 <avstemming-115>
                   <kodeKomponent>SUUFORE</kodeKomponent>
-                  <nokkelAvstemming>TODO</nokkelAvstemming>
+                  <nokkelAvstemming>${utbetaling.id}</nokkelAvstemming>
                   <tidspktMelding>1970-01-01-00.00.00.000000</tidspktMelding>
                 </avstemming-115>
                 <oppdrags-enhet-120>

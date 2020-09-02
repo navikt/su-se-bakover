@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.client.oppdrag.MqClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Avstemming
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragsEnhet
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.FradragTillegg
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeEndringLinje
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.TypeSats
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Utbetalingsfrekvens
 import no.nav.su.se.bakover.common.now
@@ -29,9 +28,30 @@ class UtbetalingMqClient(
 ) : UtbetalingClient {
 
     companion object {
-        const val FAGOMRÅDE = "SUUFORE"
-        const val KLASSEKODE = "SUUFORE"
-        const val SAKSBEHANDLER = "SU"
+        object OppdragDefaults {
+            const val KODE_FAGOMRÅDE = "SUUFORE"
+            const val SAKSBEHANDLER_ID = "SU"
+            val utbetalingsfrekvens = Utbetalingsfrekvens.MND
+            val oppdragKodeendring = UtbetalingRequest.KodeEndring.NY // TODO: Denne må endres til å være dynamisk etter vi har lest/lagret kvitteringsresponsen
+            val datoOppdragGjelderFom = LocalDate.EPOCH.toOppdragDate()
+            const val AVSTEMMING_KODE_KOMPONENT = "SUUFORE"
+            val oppdragsenheter = listOf(
+                OppdragsEnhet(
+                    enhet = "8020",
+                    typeEnhet = "BOS",
+                    datoEnhetFom = LocalDate.EPOCH.toOppdragDate()
+                )
+            )
+        }
+
+        object OppdragslinjeDefaults {
+            val kodeEndring = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY
+            const val KODE_KLASSIFIK = "SUUFORE"
+            val fradragEllerTillegg = FradragTillegg.TILLEGG
+            const val SAKSBEHANDLER_ID = "SU"
+            val typeSats = TypeSats.MND
+            const val BRUK_KJOREPLAN = "N"
+        }
 
         fun LocalDate.toOppdragDate() = DateTimeFormatter.ofPattern("yyyy-MM-dd")
             .withZone(ZoneId.systemDefault()).format(this)
@@ -56,44 +76,41 @@ class UtbetalingMqClient(
         return mqClient.publish(xml).mapLeft { KunneIkkeSendeUtbetaling }
     }
 
-    private fun Utbetaling.toExternal(oppdragGjelder: String) = UtbetalingRequest(
-        oppdrag = UtbetalingRequest.Oppdrag(
-            kodeAksjon = UtbetalingRequest.KodeAksjon.EN,
-            kodeEndring = UtbetalingRequest.KodeEndring.NY,
-            kodeFagomraade = FAGOMRÅDE,
-            fagsystemId = this.oppdragId.toString(),
-            utbetFrekvens = Utbetalingsfrekvens.MND,
-            oppdragGjelderId = oppdragGjelder,
-            saksbehId = SAKSBEHANDLER,
-            datoOppdragGjelderFom = LocalDate.EPOCH.toOppdragDate(),
-            oppdragsEnheter = listOf(
-                OppdragsEnhet(
-                    enhet = "8020",
-                    typeEnhet = "BOS",
-                    datoEnhetFom = LocalDate.EPOCH.toOppdragDate()
-                )
-            ),
-            avstemming = Avstemming(
-                nokkelAvstemming = "TODO", // TODO hent verdi
-                tidspktMelding = now(clock).toOppdragTimestamp(),
-                kodeKomponent = KLASSEKODE // TODO. Verifiser hva denne skal være
-            ),
-            oppdragslinjer = utbetalingslinjer.map {
-                UtbetalingRequest.Oppdragslinje(
-                    kodeEndringLinje = KodeEndringLinje.NY,
-                    delytelseId = it.id.toString(),
-                    kodeKlassifik = KLASSEKODE,
-                    datoVedtakFom = it.fom.toOppdragDate(),
-                    datoVedtakTom = it.tom.toOppdragDate(),
-                    sats = it.beløp.toString(),
-                    fradragTillegg = FradragTillegg.TILLEGG,
-                    typeSats = TypeSats.MND,
-                    brukKjoreplan = "N",
-                    saksbehId = SAKSBEHANDLER,
-                    utbetalesTilId = oppdragGjelder,
-                    refDelytelseId = it.forrigeUtbetalingslinjeId?.toString()
-                )
-            }
+    private fun Utbetaling.toExternal(oppdragGjelder: String): UtbetalingRequest {
+
+        return UtbetalingRequest(
+            oppdrag = UtbetalingRequest.Oppdrag(
+                kodeAksjon = UtbetalingRequest.KodeAksjon.EN, // Kodeaksjon brukes ikke av simulering
+                kodeEndring = OppdragDefaults.oppdragKodeendring,
+                kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
+                fagsystemId = oppdragId.toString(),
+                utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
+                oppdragGjelderId = oppdragGjelder,
+                saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
+                datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
+                oppdragsEnheter = OppdragDefaults.oppdragsenheter,
+                avstemming = Avstemming( // Avstemming brukes ikke av simulering
+                    nokkelAvstemming = this.id.toString(),
+                    tidspktMelding = now(clock).toOppdragTimestamp(),
+                    kodeKomponent = OppdragDefaults.AVSTEMMING_KODE_KOMPONENT
+                ),
+                oppdragslinjer = utbetalingslinjer.map {
+                    UtbetalingRequest.Oppdragslinje(
+                        kodeEndringLinje = OppdragslinjeDefaults.kodeEndring,
+                        delytelseId = it.id.toString(),
+                        kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK,
+                        datoVedtakFom = it.fom.toOppdragDate(),
+                        datoVedtakTom = it.tom.toOppdragDate(),
+                        sats = it.beløp.toString(),
+                        fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg,
+                        typeSats = OppdragslinjeDefaults.typeSats,
+                        brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
+                        saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
+                        utbetalesTilId = oppdragGjelder,
+                        refDelytelseId = it.forrigeUtbetalingslinjeId?.toString()
+                    )
+                }
+            )
         )
-    )
+    }
 }
