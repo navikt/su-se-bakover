@@ -5,18 +5,18 @@ import com.ibm.mq.jms.MQConnectionFactory
 import com.ibm.mq.jms.MQQueue
 import com.ibm.msg.client.wmq.WMQConstants
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.client.oppdrag.MqClient.CouldNotPublish
-import no.nav.su.se.bakover.client.oppdrag.MqClient.MqConfig
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import javax.jms.Connection
 import javax.jms.MessageProducer
 import javax.jms.Session
 
-class IbmMqClient(
+class IbmMqPublisher(
     private val config: MqConfig
 
-) : MqClient {
+) : MqPublisher {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val connection: Connection = MQConnectionFactory().apply {
         hostName = config.hostname

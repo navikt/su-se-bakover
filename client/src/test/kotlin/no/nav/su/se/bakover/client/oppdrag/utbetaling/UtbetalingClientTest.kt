@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.oppdrag.MqClient
-import no.nav.su.se.bakover.client.oppdrag.MqClient.CouldNotPublish
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -43,7 +43,7 @@ internal class UtbetalingClientTest {
     )
     @Test
     fun `feil skal ikke propageres`() {
-        val mqClient = MqClientMock(CouldNotPublish.left())
+        val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqClient(clock, mqClient)
         client.sendUtbetaling(utbetaling, "Saksbehandler") shouldBe KunneIkkeSendeUtbetaling.left()
         mqClient.count shouldBe 1
@@ -51,7 +51,7 @@ internal class UtbetalingClientTest {
 
     @Test
     fun `verifiser xml request`() {
-        val mqClient = MqClientMock(Unit.right())
+        val mqClient = MqPublisherMock(Unit.right())
 
         val client = UtbetalingMqClient(clock, mqClient)
 
@@ -113,7 +113,7 @@ internal class UtbetalingClientTest {
         mqClient.message?.trimIndent() shouldBe expected
     }
 
-    class MqClientMock(val response: Either<CouldNotPublish, Unit>) : MqClient {
+    class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
         var count = 0
         var message: String? = null
         override fun publish(message: String): Either<CouldNotPublish, Unit> {

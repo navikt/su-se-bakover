@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
-import no.nav.su.se.bakover.client.oppdrag.IbmMqClient
-import no.nav.su.se.bakover.client.oppdrag.MqClient.MqConfig
+import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient
@@ -46,8 +46,8 @@ object ProdClientsBuilder : ClientsBuilder {
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingClient = UtbetalingMqClient(
-                mqClient = Config.Utbetaling().let {
-                    IbmMqClient(
+                mqPublisher = Config.Utbetaling().let {
+                    IbmMqPublisher(
                         MqConfig(
                             username = it.mqUsername,
                             password = it.mqPassword,

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
-import no.nav.su.se.bakover.client.oppdrag.MqClient
+import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Avstemming
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragsEnhet
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.FradragTillegg
@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter
 
 class UtbetalingMqClient(
     private val clock: Clock = Clock.systemUTC(),
-    private val mqClient: MqClient
+    private val mqPublisher: MqPublisher
 ) : UtbetalingClient {
 
     companion object {
@@ -75,7 +75,7 @@ class UtbetalingMqClient(
         oppdragGjelder: String
     ): Either<KunneIkkeSendeUtbetaling, Unit> {
         val xml = xmlMapper.writeValueAsString(utbetaling.toExternal(oppdragGjelder))
-        return mqClient.publish(xml).mapLeft { KunneIkkeSendeUtbetaling }
+        return mqPublisher.publish(xml).mapLeft { KunneIkkeSendeUtbetaling }
     }
 
     private fun Utbetaling.toExternal(oppdragGjelder: String): UtbetalingRequest {
