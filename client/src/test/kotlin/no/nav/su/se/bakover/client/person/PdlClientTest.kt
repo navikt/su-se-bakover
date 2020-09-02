@@ -58,7 +58,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.aktørId(Fnr("12345678912")) shouldBe ClientError(200, "Feil i kallet mot pdl").left()
+        client.aktørId(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl").left()
     }
 
     @Test
@@ -141,7 +141,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.person(Fnr("12345678912")) shouldBe ClientError(200, "Feil i kallet mot pdl").left()
+        client.person(Fnr("12345678912")) shouldBe ClientError(500, "Feil i kallet mot pdl").left()
     }
 
     @Test

@@ -102,7 +102,9 @@ internal class PdlClient(
                 JSONObject(json).let {
                     if (it.has("errors")) {
                         logger.warn("Feil i kallet mot pdl. status={}, body = {}", response.statusCode, json)
-                        ClientError(response.statusCode, "Feil i kallet mot pdl").left()
+                        ClientError(500, "Feil i kallet mot pdl").left()
+                        // TODO: Skal vi lese ut en mer presis feilkode fra extensions.code?
+                        // https://navikt.github.io/pdl/#_feilmeldinger_og_bruk_av_http_koder_i_pdl_og_over_graphql
                     } else {
                         objectMapper.readValue(json, T::class.java).right()
                     }
