@@ -45,9 +45,9 @@ object Config {
         val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
         val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1413,
         val mqHostname: String = env["MQ_HOSTNAME"] ?: "b27apvl176.preprod.local",
-        val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_FPSAK",
+        val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_SU_SE_BAKOVER",
         val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
-        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "Q1_SU_SE_BAKOVER.SU_OPPDRAG_KVITTERING",
+        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
     )
 
     data class Simulering(
