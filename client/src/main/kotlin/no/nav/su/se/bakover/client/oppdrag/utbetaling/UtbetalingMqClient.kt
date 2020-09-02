@@ -53,11 +53,13 @@ class UtbetalingMqClient(
             const val BRUK_KJOREPLAN = "N"
         }
 
+        private val zoneId = ZoneId.of("Europe/Oslo")
+
         fun LocalDate.toOppdragDate() = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            .withZone(ZoneId.systemDefault()).format(this)
+            .withZone(zoneId).format(this)
 
         fun Instant.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
-            .withZone(ZoneId.systemDefault()).format(this)
+            .withZone(zoneId).format(this)
     }
 
     val xmlMapper = XmlMapper(
