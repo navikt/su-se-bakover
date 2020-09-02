@@ -37,7 +37,9 @@ object ProdClientsBuilder : ClientsBuilder {
         KvitteringIbmMqConsumer(
             kvitteringQueueName = Config.utbetaling.mqReplyTo,
             connection = jmsConnection
-        )
+        ).also {
+            jmsConnection.start()
+        }
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
