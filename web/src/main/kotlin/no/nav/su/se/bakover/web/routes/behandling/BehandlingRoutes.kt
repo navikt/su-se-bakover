@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -42,7 +43,8 @@ internal fun Route.behandlingRoutes(
     brevService: BrevService,
     simuleringClient: SimuleringClient,
     personOppslag: PersonOppslag,
-    oppgaveClient: OppgaveClient
+    oppgaveClient: OppgaveClient,
+    utbetalingPublisher: UtbetalingPublisher
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -129,6 +131,15 @@ internal fun Route.behandlingRoutes(
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
             call.svar(OK.jsonBody(behandling.attester(Attestant(call.lesBehandlerId()))))
+        }
+    }
+
+    post("$behandlingPath/{behandlingId}/utbetal") {
+        call.withBehandling(repo) { behandling ->
+            behandling.sendTilUtbetaling(utbetalingPublisher).fold(
+                { call.svar(InternalServerError.message("Kunne ikke sende utbetaling til oppdrag")) },
+                { call.svar(OK.jsonBody(behandling)) }
+            )
         }
     }
 }

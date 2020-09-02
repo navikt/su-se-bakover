@@ -179,7 +179,8 @@ internal fun Application.susebakover(
                 ),
                 simuleringClient = clients.simuleringClient,
                 personOppslag = clients.personOppslag,
-                oppgaveClient = clients.oppgaveClient
+                oppgaveClient = clients.oppgaveClient,
+                utbetalingPublisher = clients.utbetalingPublisher
             )
             vilkårsvurderingRoutes(databaseRepo)
         }

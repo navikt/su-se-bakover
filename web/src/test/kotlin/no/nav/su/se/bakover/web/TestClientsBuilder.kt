@@ -27,7 +27,7 @@ object TestClientsBuilder : ClientsBuilder {
         oppgaveClient = OppgaveClientStub,
         kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "kodeverkConsumerId"),
         simuleringClient = SimuleringStub,
-        utbetalingClient = UtbetalingStub
+        utbetalingPublisher = UtbetalingStub
     )
 
     override fun build(): Clients = testClients

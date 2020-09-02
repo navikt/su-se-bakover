@@ -14,18 +14,18 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrags
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Utbetalingsfrekvens
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient.KunneIkkeSendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class UtbetalingMqClient(
+class UtbetalingMqPublisher(
     private val clock: Clock = Clock.systemUTC(),
     private val mqPublisher: MqPublisher
-) : UtbetalingClient {
+) : UtbetalingPublisher {
 
     companion object {
         object OppdragDefaults {
@@ -70,7 +70,7 @@ class UtbetalingMqClient(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override fun sendUtbetaling(
+    override fun publish(
         utbetaling: Utbetaling,
         oppdragGjelder: String
     ): Either<KunneIkkeSendeUtbetaling, Unit> {

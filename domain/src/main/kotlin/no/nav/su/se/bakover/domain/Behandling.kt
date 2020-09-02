@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -35,7 +36,7 @@ data class Behandling constructor(
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf(),
-    private var status: BehandlingsStatus = OPPRETTET,
+    private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
@@ -101,6 +102,9 @@ data class Behandling constructor(
         tilstand.attester(attestant)
         return this
     }
+
+    fun sendTilUtbetaling(utbetalingPublisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> =
+        utbetalingPublisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString()).map { this }
 
     internal fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)

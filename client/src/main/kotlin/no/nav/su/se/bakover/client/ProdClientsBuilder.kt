@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import no.nav.su.se.bakover.client.oppdrag.kvittering.KvitteringIbmMqConsumer
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.PersonClient
@@ -60,7 +60,7 @@ object ProdClientsBuilder : ClientsBuilder {
                     serviceUser = Config.serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
-            utbetalingClient = UtbetalingMqClient(
+            utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = Config.Utbetaling(serviceUser = Config.serviceUser).let {
                     IbmMqPublisher(
                         MqPublisherConfig(

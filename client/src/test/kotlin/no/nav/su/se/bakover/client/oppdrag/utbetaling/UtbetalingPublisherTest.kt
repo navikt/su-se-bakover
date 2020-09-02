@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient.KunneIkkeSendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-internal class UtbetalingClientTest {
+internal class UtbetalingPublisherTest {
 
     val clock = Clock.fixed(Instant.parse("1970-01-01T00:00:00.000+01:00"), ZoneOffset.UTC)
     val førsteUtbetalingsLinje = Utbetalingslinje(
@@ -44,8 +44,8 @@ internal class UtbetalingClientTest {
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
-        val client = UtbetalingMqClient(clock, mqClient)
-        client.sendUtbetaling(utbetaling, "Saksbehandler") shouldBe KunneIkkeSendeUtbetaling.left()
+        val client = UtbetalingMqPublisher(clock, mqClient)
+        client.publish(utbetaling, "Saksbehandler") shouldBe KunneIkkeSendeUtbetaling.left()
         mqClient.count shouldBe 1
     }
 
@@ -53,9 +53,9 @@ internal class UtbetalingClientTest {
     fun `verifiser xml request`() {
         val mqClient = MqPublisherMock(Unit.right())
 
-        val client = UtbetalingMqClient(clock, mqClient)
+        val client = UtbetalingMqPublisher(clock, mqClient)
 
-        client.sendUtbetaling(utbetaling, "Saksbehandler") shouldBe Unit.right()
+        client.publish(utbetaling, "Saksbehandler") shouldBe Unit.right()
         mqClient.count shouldBe 1
         val expected =
             """
