@@ -4,8 +4,11 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.oppdrag.IbmMqClient
+import no.nav.su.se.bakover.client.oppdrag.MqClient.MqConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.PersonClient
@@ -41,6 +44,23 @@ object ProdClientsBuilder : ClientsBuilder {
                     password = Config.stsPassword,
                     disableCNCheck = true
                 ).wrapWithSTSSimulerFpService()
+            ),
+            utbetalingClient = UtbetalingMqClient(
+                mqClient = Config.Utbetaling().let {
+                    IbmMqClient(
+                        MqConfig(
+                            username = it.mqUsername,
+                            password = it.mqPassword,
+                            queueManager = it.mqQueueManager,
+                            port = it.mqPort,
+                            hostname = it.mqHostname,
+                            channel = it.mqChannel,
+                            sendQueue = it.mqSendQueue,
+                            replyTo = it.mqReplyTo
+
+                        )
+                    )
+                }
             )
         )
     }

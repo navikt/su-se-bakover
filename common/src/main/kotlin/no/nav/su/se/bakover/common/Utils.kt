@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common
 
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
@@ -20,4 +21,4 @@ fun Int.desember(year: Int) = LocalDate.of(year, Month.DECEMBER, this)
 fun idag() = LocalDate.now()
 
 // TODO brukbart? - truncate for samme format som databasen har?
-fun now(): Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
+fun now(clock: Clock = Clock.systemUTC()): Instant = Instant.now(clock).truncatedTo(ChronoUnit.MILLIS)

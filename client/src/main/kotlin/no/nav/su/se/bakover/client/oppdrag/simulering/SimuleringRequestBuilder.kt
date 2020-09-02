@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.OppdragDefaults
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.OppdragslinjeDefaults
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqClient.Companion.toOppdragDate
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
@@ -8,37 +11,29 @@ import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
 internal class SimuleringRequestBuilder(
     private val utbetaling: Utbetaling,
     private val oppdragGjelder: String
 ) {
-    private companion object {
-        private const val FAGOMRÅDE = "SUUFORE"
-        private const val KLASSEKODE = "SUUFORE"
-        private const val SAKSBEHANDLER = "SU"
-        private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    }
-
     private val oppdragRequest = Oppdrag().apply {
-        kodeFagomraade = FAGOMRÅDE
-        kodeEndring =
-            "NY" // TODO: Så lenge vi ikke gjør en faktisk utbetaling, vil denne være NY uavhengig hvor mange simuleringer vi gjør.
-        utbetFrekvens = "MND"
+        kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE
+        kodeEndring = OppdragDefaults.oppdragKodeendring.value // TODO: Se Utbetalings TODO
+        utbetFrekvens = OppdragDefaults.utbetalingsfrekvens.value
         fagsystemId = utbetaling.oppdragId.toString()
         oppdragGjelderId = oppdragGjelder
-        saksbehId = SAKSBEHANDLER
-        datoOppdragGjelderFom = LocalDate.EPOCH.format(yyyyMMdd)
-        enhet.add(
-            Enhet().apply {
-                enhet = "8020"
-                typeEnhet = "BOS"
-                datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd)
-            }
-        )
+        saksbehId = OppdragDefaults.SAKSBEHANDLER_ID // TODO: Denne må utledes fra JWT eller hentes fra DB/system eller noe slikt.
+        datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom
+        OppdragDefaults.oppdragsenheter.forEach {
+            enhet.add(
+                Enhet().apply {
+                    enhet = it.enhet
+                    typeEnhet = it.typeEnhet
+                    datoEnhetFom = it.datoEnhetFom
+                }
+            )
+        }
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
@@ -50,8 +45,8 @@ internal class SimuleringRequestBuilder(
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
                 simuleringsPeriode = SimulerBeregningRequest.SimuleringsPeriode().apply {
-                    datoSimulerFom = førsteDag.format(yyyyMMdd)
-                    datoSimulerTom = sisteDag.format(yyyyMMdd)
+                    datoSimulerFom = førsteDag.toOppdragDate()
+                    datoSimulerTom = sisteDag.toOppdragDate()
                 }
             }
         }
@@ -65,17 +60,17 @@ internal class SimuleringRequestBuilder(
         delytelseId = utbetalingslinje.id.toString()
         refDelytelseId = utbetalingslinje.forrigeUtbetalingslinjeId?.toString()
         kodeEndringLinje = "NY"
-        kodeKlassifik = KLASSEKODE
-        datoVedtakFom = utbetalingslinje.fom.format(yyyyMMdd)
-        datoVedtakTom = utbetalingslinje.tom.format(yyyyMMdd)
+        kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK
+        datoVedtakFom = utbetalingslinje.fom.toOppdragDate()
+        datoVedtakTom = utbetalingslinje.tom.toOppdragDate()
         sats = utbetalingslinje.beløp.toBigDecimal()
         fradragTillegg = FradragTillegg.T
-        typeSats = "MND"
-        saksbehId = SAKSBEHANDLER
-        brukKjoreplan = "N"
+        typeSats = OppdragslinjeDefaults.typeSats.value
+        saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID
+        brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN
         attestant.add(
             Attestant().apply {
-                attestantId = SAKSBEHANDLER
+                attestantId = OppdragslinjeDefaults.SAKSBEHANDLER_ID
             }
         )
     }

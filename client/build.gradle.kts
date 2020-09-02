@@ -24,6 +24,7 @@ dependencies {
     implementation("javax.jws:javax.jws-api:1.1")
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.ibm.mq:com.ibm.mq.allclient:9.1.5.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.1")
 
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
         exclude(group = "junit")

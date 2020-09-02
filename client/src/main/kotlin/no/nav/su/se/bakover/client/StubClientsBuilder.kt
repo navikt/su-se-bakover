@@ -11,12 +11,14 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import org.slf4j.LoggerFactory
 
@@ -36,7 +38,8 @@ object StubClientsBuilder : ClientsBuilder {
             dokArkiv = DokArkivStub.also { logger.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { logger.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
             kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad"),
-            simuleringClient = SimuleringStub.also { logger.warn("********** Using stub for ${SimuleringClient::class.java} **********") }
+            simuleringClient = SimuleringStub.also { logger.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
+            utbetalingClient = UtbetalingStub.also { logger.warn("********** Using stub for ${UtbetalingClient::class.java} **********") },
         )
     }
 
