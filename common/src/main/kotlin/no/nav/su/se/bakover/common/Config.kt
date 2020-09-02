@@ -29,25 +29,31 @@ object Config {
     val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
     val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
 
-    val stsUsername = env["username"] ?: "username"
-    val stsPassword = env["password"] ?: "password"
+    val serviceUser = ServiceUser()
+    data class ServiceUser(
+        val username: String = env["username"] ?: "username",
+        val password: String = env["password"] ?: "password"
+    ) {
+        override fun toString(): String {
+            return "ServiceUser(username='$username', password='****')"
+        }
+    }
 
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     val suSeFramoverRedirectUrl = env["FRONTEND_REDIRECT_URL"] ?: "http://localhost:1234/auth/complete"
 
-    val utbetaling = Utbetaling()
+    val utbetaling = Utbetaling(serviceUser = serviceUser)
 
     data class Utbetaling(
-        val mqUsername: String = env["username"] ?: "username",
-        val mqPassword: String = env["password"] ?: "password",
         val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
         val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1413,
         val mqHostname: String = env["MQ_HOSTNAME"] ?: "b27apvl176.preprod.local",
         val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_SU_SE_BAKOVER",
         val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
-        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
+        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
+        val serviceUser: ServiceUser,
     )
 
     data class Simulering(

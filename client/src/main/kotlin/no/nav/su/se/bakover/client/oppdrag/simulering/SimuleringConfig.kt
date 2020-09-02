@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.Config
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import org.apache.cxf.Bus
 import org.apache.cxf.binding.soap.Soap12
@@ -24,9 +25,8 @@ import javax.xml.namespace.QName
 class SimuleringConfig(
     private val simuleringServiceUrl: String,
     private val stsSoapUrl: String,
-    private val username: String,
-    private val password: String,
-    private val disableCNCheck: Boolean
+    private val disableCNCheck: Boolean,
+    private val serviceUser: Config.ServiceUser
 ) {
     private companion object {
         private val log = LoggerFactory.getLogger(SimuleringConfig::class.java)
@@ -43,10 +43,8 @@ class SimuleringConfig(
         val factory = JaxWsProxyFactoryBean().apply {
             address = simuleringServiceUrl
             wsdlURL = WSDL
-            serviceName =
-                SERVICE
-            endpointName =
-                PORT
+            serviceName = SERVICE
+            endpointName = PORT
             serviceClass = SimulerFpService::class.java
             features = listOf(WSAddressingFeature(), LoggingFeature())
         }
@@ -57,8 +55,8 @@ class SimuleringConfig(
 
                 location = stsSoapUrl
                 properties = mapOf(
-                    SecurityConstants.USERNAME to username,
-                    SecurityConstants.PASSWORD to password
+                    SecurityConstants.USERNAME to serviceUser.username,
+                    SecurityConstants.PASSWORD to serviceUser.password
                 )
                 setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
             }
