@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
@@ -573,6 +574,10 @@ internal class BehandlingTest {
 
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
             return simulering
+        }
+
+        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
+            return kvittering
         }
     }
 

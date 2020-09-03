@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -389,6 +390,10 @@ internal class DatabaseRepoTest {
 
     private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+            throw NotImplementedError()
+        }
+
+        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
             throw NotImplementedError()
         }
     }

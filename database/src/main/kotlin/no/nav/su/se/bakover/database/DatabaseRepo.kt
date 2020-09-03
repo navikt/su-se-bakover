@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.FradragDto
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -76,6 +77,16 @@ internal class DatabaseRepo(
             it.toOppdrag(session)
         }
     }
+
+    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
+        using(sessionOf(dataSource)) { session ->
+            "select * from utbetaling where id = :utbetalingId".hent(
+                mapOf(
+                    "utbetalingId" to utbetalingId.toString()
+                ),
+                session
+            ) { it.toUtbetaling(session) }
+        }
 
     override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         (
@@ -514,5 +525,15 @@ internal class DatabaseRepo(
             )
         )
         return simulering
+    }
+
+    override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
+        "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
+            mapOf(
+                "id" to utbetalingId.toString(),
+                "kvittering" to objectMapper.writeValueAsString(kvittering)
+            )
+        )
+        return kvittering
     }
 }

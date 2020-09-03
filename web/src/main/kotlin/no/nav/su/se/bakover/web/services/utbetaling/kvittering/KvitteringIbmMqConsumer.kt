@@ -1,12 +1,20 @@
-package no.nav.su.se.bakover.client.oppdrag.kvittering
+package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.database.ObjectRepo
 import org.slf4j.LoggerFactory
 import javax.jms.Connection
 import javax.jms.Session
 
 class KvitteringIbmMqConsumer(
     kvitteringQueueName: String,
-    connection: Connection
+    connection: Connection,
+    private val kvitteringConsumer: KvitteringConsumer
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val secureLog = LoggerFactory.getLogger("sikkerlogg")
@@ -18,8 +26,9 @@ class KvitteringIbmMqConsumer(
             try {
                 val body = message.getBody(String::class.java)
                 try {
+                    log.info("Mottok kvittering fra oppdrag - se secure log for meldingsinnholdet.")
                     secureLog.info("Mottok kvittering fra oppdrag body: $body")
-                    onMessage(body)
+                    kvitteringConsumer.onMessage(body)
                 } catch (err: Exception) {
                     log.error("Feil med mottak av MQ-melding: ${err.message}", err)
                     secureLog.error("Feil med mottak av MQ-melding: ${err.message} $body", err)
@@ -28,9 +37,5 @@ class KvitteringIbmMqConsumer(
                 log.error("Klarte ikke å hente ut meldingsinnholdet: ${err.message}", err)
             }
         }
-    }
-
-    private fun onMessage(xmlMessage: String) {
-        log.info("Received message: $xmlMessage")
     }
 }
