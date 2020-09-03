@@ -137,8 +137,10 @@ internal fun Route.behandlingRoutes(
 
             dokDistFordeling.bestillDistribusjon(journalPostId).fold(
                 ifLeft = { call.svar(InternalServerError.message("Kunne ikke gjennomføre utsending av vedtak")) },
-                ifRight = { call.svar(OK.message("Sendt ut vedtak")) }
+                ifRight = { println("Sendt ut vedtak") }
             )
+
+            call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))))
         }
     }
 
