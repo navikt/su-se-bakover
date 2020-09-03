@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.VedtakInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -35,7 +36,7 @@ internal class DokArkivClient(
             .header("Accept", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .body(
-                byggJournalpostJson(person.ident.fnr, søkersNavn(person), søknadInnhold, sakId, pdf)
+                byggSøknadspost(person.ident.fnr, søkersNavn(person), søknadInnhold, sakId, pdf)
             ).responseString()
 
         return result.fold(
@@ -60,11 +61,19 @@ internal class DokArkivClient(
         )
     }
 
-    fun byggJournalpostJson(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
+    fun byggSøknadspost(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
+        return byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf, JournalPostType.INGAAENDE, DokumentKategori.SOK)
+    }
+
+    fun byggVedtakspost(fnr: Fnr, navn: String, vedtakInnhold: VedtakInnhold, sakId: String, pdf: ByteArray): String {
+        return byggJournalpostJson(fnr, navn, vedtakInnhold, sakId, pdf, JournalPostType.UTGAAENDE, DokumentKategori.VB)
+    }
+
+    private fun <T> byggJournalpostJson(fnr: Fnr, navn: String, dokumentInnhold: T, sakId: String, pdf: ByteArray, journalPostType: JournalPostType, dokumentKategori: DokumentKategori): String {
         return """
                     {
                       "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                      "journalpostType": "INNGAAENDE",
+                      "journalpostType": "$journalPostType",
                       "tema": "SUP",
                       "kanal": "INNSENDT_NAV_ANSATT",
                       "behandlingstema": "ab0268",
@@ -86,7 +95,7 @@ internal class DokArkivClient(
                       "dokumenter": [
                         {
                           "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                          "dokumentKategori": "SOK",
+                          "dokumentKategori": "$dokumentKategori",
                           "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
                             {
@@ -97,7 +106,7 @@ internal class DokArkivClient(
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())}",
+            .encodeToString(objectMapper.writeValueAsString(dokumentInnhold).toByteArray())}",
                               "variantformat": "ORIGINAL"
                             }
                           ]
@@ -109,4 +118,14 @@ internal class DokArkivClient(
 
     private fun søkersNavn(person: Person): String =
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
+
+    enum class JournalPostType(val type: String) {
+        INGAAENDE("INGAAENDE"),
+        UTGAAENDE("UTGAAENDE")
+    }
+
+    enum class DokumentKategori(val type: String) {
+        SOK("SOK"),
+        VB("VB")
+    }
 }

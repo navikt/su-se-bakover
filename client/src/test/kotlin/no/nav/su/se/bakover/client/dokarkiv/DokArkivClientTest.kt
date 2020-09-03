@@ -33,7 +33,7 @@ internal class DokArkivClientTest : WiremockBase {
         TokenOppslagStub
     )
 
-    private val forventetRequest = client.byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf)
+    private val forventetRequest = client.byggSøknadspost(fnr, navn, søknadInnhold, sakId, pdf)
 
     @Test
     fun `should send pdf to journal`() {
