@@ -5,7 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 
-object DokDistFordelingClientStub: DokDistFordeling {
+object DokDistFordelingStub: DokDistFordeling {
     override fun bestillDistribusjon(
         journalPostId: String
     ): Either<ClientError, String> =

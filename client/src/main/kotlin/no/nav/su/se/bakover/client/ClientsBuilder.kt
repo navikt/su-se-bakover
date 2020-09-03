@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -26,4 +27,5 @@ data class Clients(
     val kodeverk: Kodeverk,
     val simuleringClient: SimuleringClient,
     val utbetalingPublisher: UtbetalingPublisher,
+    val dokDistFordeling: DokDistFordeling
 )

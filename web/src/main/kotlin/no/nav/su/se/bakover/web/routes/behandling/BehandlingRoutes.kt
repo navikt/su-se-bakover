@@ -15,6 +15,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -44,7 +45,8 @@ internal fun Route.behandlingRoutes(
     simuleringClient: SimuleringClient,
     personOppslag: PersonOppslag,
     oppgaveClient: OppgaveClient,
-    utbetalingPublisher: UtbetalingPublisher
+    utbetalingPublisher: UtbetalingPublisher,
+    dokDistFordeling: DokDistFordeling
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -95,6 +97,17 @@ internal fun Route.behandlingRoutes(
             brevService.lagUtkastTilBrev(behandling.toDto()).fold(
                 ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
                 ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
+            )
+        }
+    }
+
+    get("$behandlingPath/{behandlingId}/sendVedtak") {
+        call.withBehandling(repo) {
+            val journalPostId = "453629194"
+
+            dokDistFordeling.bestillDistribusjon(journalPostId).fold(
+                ifLeft = { call.svar(InternalServerError.message("Kunne ikke gjennomføre utsending av vedtak")) },
+                ifRight = { call.svar(OK.message("Sendt ut vedtak")) }
             )
         }
     }

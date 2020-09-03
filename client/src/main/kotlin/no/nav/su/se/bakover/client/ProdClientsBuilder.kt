@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
@@ -56,7 +57,8 @@ data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBu
                         connection = jmsConnection
                     )
                 }
-            )
+            ),
+            dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag)
         )
     }
 }

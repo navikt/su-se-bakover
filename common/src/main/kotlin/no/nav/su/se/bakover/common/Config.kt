@@ -22,6 +22,7 @@ object Config {
     val suInntektAzureClientId = env["SU_INNTEKT_AZURE_CLIENT_ID"] ?: "9cd61904-33ad-40e8-9cc8-19e4dab588c5"
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
+    val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
     val suInntektUrl = env["SU_INNTEKT_URL"] ?: "http://su-inntekt.default.svc.nais.local"
     val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.default.svc.nais.local"
     val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
