@@ -12,7 +12,7 @@ import org.slf4j.MDC
 import org.slf4j.LoggerFactory
 
 internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
-class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag): DokDistFordeling {
+class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(
@@ -30,7 +30,8 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
 
         return result.fold(
             {
-                json -> JSONObject(json).let {
+                json ->
+                JSONObject(json).let {
                     it.optString("bestillingsId").right()
                 }
             },

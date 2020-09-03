@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 internal class DokDistFordelingClientTest : WiremockBase {
     val journalId = "1"
-    val client = DokDistFordelingClient(wireMockServer.baseUrl(),TokenOppslagStub)
+    val client = DokDistFordelingClient(wireMockServer.baseUrl(), TokenOppslagStub)
 
     val requestBody = client.byggDistribusjonPostJson(journalId)
 
@@ -30,7 +30,6 @@ internal class DokDistFordelingClientTest : WiremockBase {
                 )
         )
         client.bestillDistribusjon(journalId) shouldBe "id på tingen".right()
-
     }
     val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokDistFordelingPath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
