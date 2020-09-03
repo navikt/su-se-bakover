@@ -101,17 +101,6 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    get("$behandlingPath/{behandlingId}/sendVedtak") {
-        call.withBehandling(repo) {
-            val journalPostId = "453629194"
-
-            dokDistFordeling.bestillDistribusjon(journalPostId).fold(
-                ifLeft = { call.svar(InternalServerError.message("Kunne ikke gjennomføre utsending av vedtak")) },
-                ifRight = { call.svar(OK.message("Sendt ut vedtak")) }
-            )
-        }
-    }
-
     post("$behandlingPath/{behandlingId}/simuler") {
         call.withBehandling(repo) { behandling ->
             behandling.simuler(simuleringClient).fold(
@@ -144,7 +133,12 @@ internal fun Route.behandlingRoutes(
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
-            call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))))
+            val journalPostId = "453629194"
+
+            dokDistFordeling.bestillDistribusjon(journalPostId).fold(
+                ifLeft = { call.svar(InternalServerError.message("Kunne ikke gjennomføre utsending av vedtak")) },
+                ifRight = { call.svar(OK.message("Sendt ut vedtak")) }
+            )
         }
     }
 
