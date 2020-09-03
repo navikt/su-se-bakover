@@ -2,14 +2,6 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningDto
@@ -57,17 +49,17 @@ data class Behandling constructor(
         sakId = sakId
     )
 
-    fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
+    private fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
-        OPPRETTET -> Opprettet()
-        VILKÅRSVURDERT -> Vilkårsvurdert()
-        BEREGNET -> Beregnet()
-        SIMULERT -> Simulert()
-        INNVILGET -> Innvilget()
-        AVSLÅTT -> Avslått()
-        TIL_ATTESTERING -> TilAttestering()
-        ATTESTERT -> Attestert()
+        BehandlingsStatus.OPPRETTET -> Opprettet()
+        BehandlingsStatus.VILKÅRSVURDERT -> Vilkårsvurdert()
+        BehandlingsStatus.BEREGNET -> Beregnet()
+        BehandlingsStatus.SIMULERT -> Simulert()
+        BehandlingsStatus.INNVILGET -> Innvilget()
+        BehandlingsStatus.AVSLÅTT -> Avslått()
+        BehandlingsStatus.TIL_ATTESTERING -> TilAttestering()
+        BehandlingsStatus.ATTESTERT -> Attestert()
     }
 
     fun opprettVilkårsvurderinger(): Behandling {
@@ -103,10 +95,12 @@ data class Behandling constructor(
         return this
     }
 
-    fun sendTilUtbetaling(utbetalingPublisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> =
-        utbetalingPublisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString()).map { this }
+    // TODO should this be triggered by a web-endpoint, or just invoked in the background?
+    fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+        return tilstand.sendTilUtbetaling(publisher)
+    }
 
-    internal fun gjeldendeBeregning(): Beregning = beregninger.toList()
+    private fun gjeldendeBeregning(): Beregning = beregninger.toList()
         .sortedWith(Beregning.Opprettet)
         .last()
 
@@ -147,6 +141,9 @@ data class Behandling constructor(
         fun attester(attestant: Attestant) {
             throw TilstandException(status, this::attester.toString())
         }
+
+        fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> =
+            throw TilstandException(status, this::sendTilUtbetaling.toString())
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
@@ -156,7 +153,7 @@ data class Behandling constructor(
     }
 
     private inner class Opprettet : Tilstand {
-        override val status: BehandlingsStatus = OPPRETTET
+        override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
         override fun opprettVilkårsvurderinger() {
             if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(
                 status,
@@ -187,7 +184,7 @@ data class Behandling constructor(
     }
 
     private inner class Vilkårsvurdert : Tilstand {
-        override val status: BehandlingsStatus = VILKÅRSVURDERT
+        override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
             beregninger.add(
                 persistenceObserver.opprettBeregning(
@@ -209,7 +206,7 @@ data class Behandling constructor(
     }
 
     private inner class Beregnet : Tilstand {
-        override val status: BehandlingsStatus = BEREGNET
+        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
@@ -237,7 +234,7 @@ data class Behandling constructor(
     }
 
     private inner class Simulert : Tilstand {
-        override val status: BehandlingsStatus = SIMULERT
+        override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
             aktørId: AktørId,
@@ -266,7 +263,7 @@ data class Behandling constructor(
     }
 
     private inner class TilAttestering : Tilstand {
-        override val status: BehandlingsStatus = TIL_ATTESTERING
+        override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING
         override fun attester(attestant: Attestant) {
             this@Behandling.attestant = persistenceObserver.attester(id, attestant)
             nyTilstand(Attestert())
@@ -274,19 +271,29 @@ data class Behandling constructor(
     }
 
     private inner class Attestert : Tilstand {
-        override val status: BehandlingsStatus = ATTESTERT
-        // TODO send til utbetaling etc
+        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT
+        override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            // TODO neeed to handle avslag somehow
+            val result = publisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString())
+                .map { this@Behandling }
+            when (result) {
+                is Either.Right -> nyTilstand(Innvilget())
+                else -> {
+                } // noop
+            }
+            return result
+        }
     }
 
     private inner class Avslått : Tilstand {
-        override val status: BehandlingsStatus = AVSLÅTT
+        override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
             nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
         }
     }
 
     private inner class Innvilget : Tilstand {
-        override val status: BehandlingsStatus = INNVILGET
+        override val status: BehandlingsStatus = BehandlingsStatus.INNVILGET
     }
 
     enum class BehandlingsStatus {
@@ -296,8 +303,8 @@ data class Behandling constructor(
         SIMULERT,
 
         /*VEDTAKSBREV,*/
-        INNVILGET,
-        AVSLÅTT,
+        INNVILGET, // TODO need to redefine the meaning of this... i think - intent is to keep track of where we are in the process, not the outcome
+        AVSLÅTT, // TODO need to redefine the meaning of this... i think - intent is to keep track of where we are in the process, not the outcome
         TIL_ATTESTERING,
         ATTESTERT
     }

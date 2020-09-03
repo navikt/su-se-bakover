@@ -128,17 +128,21 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/attester") {
+        // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
-            call.svar(OK.jsonBody(behandling.attester(Attestant(call.lesBehandlerId()))))
+            call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))))
         }
     }
 
-    post("$behandlingPath/{behandlingId}/utbetal") {
+    // TODO should this be an actual endpoint?
+    patch("$behandlingPath/{behandlingId}/utbetal") {
+        // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
+            call.audit("Sender behandling med id: ${behandling.id} til utbetaling")
             behandling.sendTilUtbetaling(utbetalingPublisher).fold(
-                { call.svar(InternalServerError.message("Kunne ikke sende utbetaling til oppdrag")) },
-                { call.svar(OK.jsonBody(behandling)) }
+                { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
+                { call.svar(OK.jsonBody(it)) }
             )
         }
     }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -25,6 +27,8 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -302,6 +306,80 @@ internal class BehandlingRoutesKtTest {
                     it.attestant shouldBe "enSaksbehandleroid"
                     it.status shouldBe "ATTESTERT"
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `iverksetter behandling`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.behandling.simuler(SimuleringStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.attester(Attestant("attestant"))
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/utbetal"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/utbetal"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/utbetal"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/utbetal"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.OK
+                deserialize<BehandlingJson>(response.content!!).let {
+                    it.attestant shouldBe "attestant"
+                    it.status shouldBe "INNVILGET"
+                }
+            }
+        }
+
+        withTestApplication({
+            testSusebakover(
+                testClients.copy(
+                    utbetalingPublisher = object : UtbetalingPublisher {
+                        override fun publish(
+                            utbetaling: Utbetaling,
+                            oppdragGjelder: String
+                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
+                            UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
+                    }
+                )
+            )
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.behandling.simuler(SimuleringStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.attester(Attestant("attestant"))
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/utbetal"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.InternalServerError
             }
         }
     }

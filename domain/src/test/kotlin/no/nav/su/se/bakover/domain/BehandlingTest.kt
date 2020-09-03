@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -11,8 +13,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
@@ -28,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -186,7 +191,11 @@ internal class BehandlingTest {
                 }
             assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
-            assertThrows<Behandling.TilstandException> { opprettet.attester(Attestant("id")) }
+            assertThrows<Behandling.TilstandException> {
+                opprettet.attester(
+                    Attestant("id")
+                )
+            }
         }
     }
 
@@ -243,7 +252,11 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.attester(Attestant("id")) }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.attester(
+                    Attestant("id")
+                )
+            }
         }
     }
 
@@ -289,7 +302,11 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
-            assertThrows<Behandling.TilstandException> { beregnet.attester(Attestant("id")) }
+            assertThrows<Behandling.TilstandException> {
+                beregnet.attester(
+                    Attestant("id")
+                )
+            }
         }
     }
 
@@ -341,7 +358,11 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> { simulert.attester(Attestant("id")) }
+            assertThrows<Behandling.TilstandException> {
+                simulert.attester(
+                    Attestant("id")
+                )
+            }
         }
     }
 
@@ -376,6 +397,102 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 avslått.simuler(SimuleringClientStub)
+            }
+        }
+    }
+
+    @Nested
+    inner class TilAttestering {
+        private lateinit var tilAttestering: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            tilAttestering = createBehandling(id1, OPPRETTET)
+                .opprettVilkårsvurderinger()
+            tilAttestering.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(tilAttestering).withStatus(
+                    OK
+                )
+            )
+            tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+            tilAttestering.simuler(SimuleringClientStub)
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            tilAttestering.status() shouldBe TIL_ATTESTERING
+            observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `skal kunne attestere`() {
+            tilAttestering.attester(Attestant("attestant"))
+            tilAttestering.status() shouldBe ATTESTERT
+            observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `illegal operations`() {
+            assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.simuler(SimuleringClientStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            }
+        }
+    }
+
+    @Nested
+    inner class Attestert {
+        private lateinit var attestert: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            attestert = createBehandling(id1, OPPRETTET)
+                .opprettVilkårsvurderinger()
+            attestert.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(attestert).withStatus(
+                    OK
+                )
+            )
+            attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            attestert.simuler(SimuleringClientStub)
+            attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            attestert.attester(Attestant("attestant"))
+            attestert.status() shouldBe ATTESTERT
+            observer.oppdatertStatus shouldBe attestert.status()
+        }
+
+        @Test
+        fun `skal kunne sende til utbetaling`() {
+            attestert.sendTilUtbetaling(UtbetalingPublisherStub)
+            attestert.status() shouldBe INNVILGET
+        }
+
+        @Test
+        fun `oversendelse av av utbetaling feiler`() {
+            attestert.sendTilUtbetaling(object : UtbetalingPublisher {
+                override fun publish(
+                    utbetaling: Utbetaling,
+                    oppdragGjelder: String
+                ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
+                    UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
+            })
+            attestert.status() shouldBe ATTESTERT
+        }
+
+        @Test
+        fun `illegal operations`() {
+            assertThrows<Behandling.TilstandException> { attestert.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            }
+            assertThrows<Behandling.TilstandException> {
+                attestert.simuler(SimuleringClientStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             }
         }
     }
@@ -480,6 +597,13 @@ internal class BehandlingTest {
                 )
             )
         }
+    }
+
+    object UtbetalingPublisherStub : UtbetalingPublisher {
+        override fun publish(
+            utbetaling: Utbetaling,
+            oppdragGjelder: String
+        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> = Unit.right()
     }
 
     private fun createBehandling(
