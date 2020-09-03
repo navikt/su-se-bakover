@@ -31,16 +31,18 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should return ok simulering`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                    .apply { response = okSimuleringResponse() }
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                        .apply { response = okSimuleringResponse() }
+                }
             }
-        })
+        )
 
         val actual = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
         actual.isRight() shouldBe true
@@ -48,15 +50,17 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should handle simulering with empty response`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                }
             }
-        })
+        )
 
         val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
@@ -64,20 +68,22 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should handle known error situations`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                throw SimulerBeregningFeilUnderBehandling(
-                    "Simulering feilet",
-                    FeilUnderBehandling().apply {
-                        errorMessage = "Detaljert feilmelding"
-                    }
-                )
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    throw SimulerBeregningFeilUnderBehandling(
+                        "Simulering feilet",
+                        FeilUnderBehandling().apply {
+                            errorMessage = "Detaljert feilmelding"
+                        }
+                    )
+                }
             }
-        })
+        )
 
         val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
@@ -86,15 +92,17 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should handle utenfor åpningstid exception SSLException`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                throw WebServiceException(SSLException(""))
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    throw WebServiceException(SSLException(""))
+                }
             }
-        })
+        )
 
         val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
@@ -103,15 +111,17 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should handle utenfor åpningstid exception SocketException`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                throw WebServiceException(SocketException(""))
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    throw WebServiceException(SocketException(""))
+                }
             }
-        })
+        )
 
         val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 
@@ -120,15 +130,17 @@ internal class SimuleringSoapClientTest {
 
     @Test
     fun `should handle unknown technical errors`() {
-        val simuleringService = SimuleringSoapClient(object : SimulerFpService {
-            override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                throw IllegalStateException()
-            }
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
 
-            override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                throw WebServiceException(IllegalArgumentException())
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    throw WebServiceException(IllegalArgumentException())
+                }
             }
-        })
+        )
 
         val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
 

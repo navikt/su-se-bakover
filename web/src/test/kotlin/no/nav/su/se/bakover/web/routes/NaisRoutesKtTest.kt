@@ -13,9 +13,10 @@ internal class NaisRoutesKtTest {
 
     @Test
     fun naisRoutes() {
-        withTestApplication({
-            testSusebakover()
-        }
+        withTestApplication(
+            {
+                testSusebakover()
+            }
         ) {
             handleRequest(Get, "/isalive").apply {
                 assertEquals(200, response.status()!!.value)

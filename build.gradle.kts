@@ -36,6 +36,7 @@ allprojects {
     val arrowVersion = "0.10.5"
     val kotestVersion = "4.1.3"
     val jacksonVersion = "2.11.1"
+    val ktlintVersion = "0.38.1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
@@ -80,12 +81,17 @@ allprojects {
         gradleVersion = "6.6"
     }
 
-    tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java).configure {
-        checkForGradleUpdate = true
-        gradleReleaseChannel = "current"
-        outputFormatter = "json"
-        outputDir = "build/dependencyUpdates"
-        reportfileName = "report"
-        revision = "release" // Not waterproof
+    tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java)
+        .configure {
+            checkForGradleUpdate = true
+            gradleReleaseChannel = "current"
+            outputFormatter = "json"
+            outputDir = "build/dependencyUpdates"
+            reportfileName = "report"
+            revision = "release" // Not waterproof
+        }
+
+    ktlint {
+        this.version.set(ktlintVersion)
     }
 }
