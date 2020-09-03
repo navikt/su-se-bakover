@@ -28,8 +28,8 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId
     ) : OppgaveConfig() {
         override val journalpostId = null
-        override val behandlingstema = null // Man kan ikke kombinere oppgavetype ATT med et behandlingstema (det er i hvert fall ikke gjort per nå). Ref: https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
-        override val behandlingstype = Behandlingstype.BEHANDLE_VEDTAK
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.TIL_ATTESTERING
     }
 
