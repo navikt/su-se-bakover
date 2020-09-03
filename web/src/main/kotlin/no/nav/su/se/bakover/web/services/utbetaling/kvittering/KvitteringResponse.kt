@@ -9,12 +9,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrag
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.OK
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.SQL_FEIL
+import java.time.Clock
 
 /**
  * https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
@@ -56,13 +58,14 @@ data class KvitteringResponse(
             ?: throw IllegalArgumentException("Kunne ikke parse alvorlighetsgrad fra utbetalingskvittering. Verdien var $value")
     }
 
-    fun toKvittering(originalKvittering: String) = Kvittering(
+    fun toKvittering(originalKvittering: String, clock: Clock) = Kvittering(
         utbetalingsstatus = when (mmel.alvorlighetsgrad) {
             OK -> Utbetalingsstatus.OK
             OK_MED_VARSEL -> Utbetalingsstatus.OK_MED_VARSEL
             ALVORLIG_FEIL, SQL_FEIL -> Utbetalingsstatus.FEIL
         },
-        originalKvittering = originalKvittering
+        originalKvittering = originalKvittering,
+        mottattTidspunkt = now(clock)
     )
 
     companion object {
