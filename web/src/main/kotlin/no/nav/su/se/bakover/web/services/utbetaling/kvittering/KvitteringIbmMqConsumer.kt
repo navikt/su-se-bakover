@@ -1,12 +1,5 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.ObjectRepo
 import org.slf4j.LoggerFactory
 import javax.jms.Connection
 import javax.jms.Session

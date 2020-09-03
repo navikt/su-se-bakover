@@ -79,6 +79,4 @@ data class KvitteringResponse(
                 }
             }
     }
-
-
 }

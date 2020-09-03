@@ -33,7 +33,7 @@ data class Utbetaling(
     fun sisteDag(): LocalDate = utbetalingslinjer.map { it.tom }.maxOrNull()!!
 
     fun addKvittering(kvittering: Kvittering) {
-        if(this.kvittering != null) {
+        if (this.kvittering != null) {
             log.info("Kvittering allerede lagret.")
         } else {
             this.kvittering = persistenceObserver.addKvittering(id, kvittering)
