@@ -45,7 +45,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
     fun byggDistribusjonPostJson(journalPostId: String): String {
         return """
                     {
-                        "journalPostId": "$journalPostId",
+                        "journalpostId": "$journalPostId",
                         "bestillendeFagsystem": "SUPSTONAD",
                         "dokumentProdApp": "su-se-bakover"
                     }

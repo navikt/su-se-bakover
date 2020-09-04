@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.brev
 import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
@@ -22,7 +23,8 @@ import java.util.Locale
 
 class BrevService(
     private val pdfGenerator: PdfGenerator,
-    private val personOppslag: PersonOppslag
+    private val personOppslag: PersonOppslag,
+    private val dokDistFordeling: DokDistFordeling
 ) {
     private val log = LoggerFactory.getLogger(BrevService::class.java)
 
@@ -72,6 +74,10 @@ class BrevService(
                 val vedtakInnhold = lagVedtakInnhold(person, behandlingDto)
                 pdfGenerator.genererPdf(vedtakInnhold)
             }
+    }
+
+    fun sendBrev(journalPostId: String): Either<ClientError, String> {
+        return dokDistFordeling.bestillDistribusjon(journalPostId)
     }
 }
 

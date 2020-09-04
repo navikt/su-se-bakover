@@ -15,7 +15,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -46,7 +46,7 @@ internal fun Route.behandlingRoutes(
     personOppslag: PersonOppslag,
     oppgaveClient: OppgaveClient,
     utbetalingPublisher: UtbetalingPublisher,
-    dokDistFordeling: DokDistFordeling
+    dokArkiv: DokArkiv
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -133,12 +133,24 @@ internal fun Route.behandlingRoutes(
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
-            val sak = repo.hentSak(sakId)
-            val journalPostId = "453629194"
 
-            dokDistFordeling.bestillDistribusjon(journalPostId).fold(
-                ifLeft = { call.svar(InternalServerError.message("Kunne ikke gjennomføre utsending av vedtak")) },
-                ifRight = { println("Sendt ut vedtak") }
+            val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
+            val person = personOppslag.person(sak.fnr).getOrElse { throw RuntimeException("Finner ikke person") }
+            val pdf = brevService.lagUtkastTilBrev(behandling.toDto()).getOrElse {
+                throw RuntimeException("Kunne ikke lage utkast av brev")
+            }
+
+            dokArkiv.opprettJournalpost(
+                dokumentInnhold = BrevService.lagVedtakInnhold(person = person, behandlingDto = behandling.toDto()),
+                person = person,
+                pdf = pdf,
+                sakId = sak.id.toString()
+            ).fold(
+                ifLeft = {
+                    log.error("Kunne ikke opprette journalpost for attestering")
+                    call.svar(InternalServerError.message("Kunne ikke opprette journalpost for attestering"))
+                },
+                ifRight = { journalPostId -> brevService.sendBrev(journalPostId) }
             )
 
             call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))))

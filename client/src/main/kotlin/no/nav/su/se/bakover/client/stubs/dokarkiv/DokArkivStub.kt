@@ -5,11 +5,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.SøknadInnhold
 
 object DokArkivStub : DokArkiv {
-    override fun opprettJournalpost(
-        søknadInnhold: SøknadInnhold,
+    override fun <T> opprettJournalpost(
+        dokumentInnhold: T,
         person: Person,
         pdf: ByteArray,
         sakId: String

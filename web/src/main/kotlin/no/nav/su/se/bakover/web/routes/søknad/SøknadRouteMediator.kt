@@ -40,7 +40,7 @@ internal class SøknadRouteMediator(
             { pdfByteArray ->
                 val fnr = nySøknadEvent.søknadInnhold.personopplysninger.fnr
                 dokArkiv.opprettJournalpost(
-                    søknadInnhold = nySøknadEvent.søknadInnhold,
+                    dokumentInnhold = nySøknadEvent.søknadInnhold,
                     person = personOppslag.person(fnr).getOrElse {
                         log.error("Fant ikke person med gitt fødselsnummer")
                         throw RuntimeException("Kunne ikke finne person")

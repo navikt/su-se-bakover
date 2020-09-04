@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.VedtakInnhold
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.lang.IllegalArgumentException
 import java.util.*
 
 internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
@@ -24,8 +25,8 @@ internal class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : DokArkiv {
-    override fun opprettJournalpost(
-        søknadInnhold: SøknadInnhold,
+    override fun <T> opprettJournalpost(
+        dokumentInnhold: T,
         person: Person,
         pdf: ByteArray,
         sakId: String
@@ -36,7 +37,7 @@ internal class DokArkivClient(
             .header("Accept", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .body(
-                byggSøknadspost(person.ident.fnr, søkersNavn(person), søknadInnhold, sakId, pdf)
+                byggPost(person = person, dokumentInnhold = dokumentInnhold, sakId = sakId, pdf = pdf)
             ).responseString()
 
         return result.fold(
@@ -61,15 +62,31 @@ internal class DokArkivClient(
         )
     }
 
-    fun byggSøknadspost(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
-        return byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf, JournalPostType.INGAAENDE, DokumentKategori.SOK)
+    private fun <T> byggPost(person: Person, sakId: String, pdf: ByteArray, dokumentInnhold: T): String {
+        return when (dokumentInnhold) {
+            is VedtakInnhold -> byggVedtakspost(fnr = person.ident.fnr, sakId = sakId, pdf = pdf, vedtakInnhold = dokumentInnhold, navn = søkersNavn(person))
+            is SøknadInnhold -> byggSøknadspost(fnr = person.ident.fnr, sakId = sakId, pdf = pdf, søknadInnhold = dokumentInnhold, navn = søkersNavn(person))
+            else -> throw IllegalArgumentException("Ugyldig dokumentInnhold")
+        }
     }
 
-    fun byggVedtakspost(fnr: Fnr, navn: String, vedtakInnhold: VedtakInnhold, sakId: String, pdf: ByteArray): String {
+    private fun byggSøknadspost(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
+        return byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf, JournalPostType.INNGAAENDE, DokumentKategori.SOK)
+    }
+
+    private fun byggVedtakspost(fnr: Fnr, navn: String, vedtakInnhold: VedtakInnhold, sakId: String, pdf: ByteArray): String {
         return byggJournalpostJson(fnr, navn, vedtakInnhold, sakId, pdf, JournalPostType.UTGAAENDE, DokumentKategori.VB)
     }
 
-    private fun <T> byggJournalpostJson(fnr: Fnr, navn: String, dokumentInnhold: T, sakId: String, pdf: ByteArray, journalPostType: JournalPostType, dokumentKategori: DokumentKategori): String {
+    private fun <T> byggJournalpostJson(
+        fnr: Fnr,
+        navn: String,
+        dokumentInnhold: T,
+        sakId: String,
+        pdf: ByteArray,
+        journalPostType: JournalPostType,
+        dokumentKategori: DokumentKategori
+    ): String {
         return """
                     {
                       "tittel": "Søknad om supplerende stønad for uføre flyktninger",
@@ -120,7 +137,7 @@ internal class DokArkivClient(
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 
     enum class JournalPostType(val type: String) {
-        INGAAENDE("INGAAENDE"),
+        INNGAAENDE("INNGAAENDE"),
         UTGAAENDE("UTGAAENDE")
     }
 

@@ -192,13 +192,14 @@ internal fun Application.susebakover(
                 repo = databaseRepo,
                 brevService = BrevService(
                     pdfGenerator = clients.pdfGenerator,
-                    personOppslag = clients.personOppslag
+                    personOppslag = clients.personOppslag,
+                    dokDistFordeling = clients.dokDistFordeling
                 ),
                 simuleringClient = clients.simuleringClient,
                 personOppslag = clients.personOppslag,
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
-                dokDistFordeling = clients.dokDistFordeling,
+                dokArkiv = clients.dokArkiv,
             )
             vilkårsvurderingRoutes(databaseRepo)
         }
