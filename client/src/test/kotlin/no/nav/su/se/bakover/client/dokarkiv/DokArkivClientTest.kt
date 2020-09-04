@@ -90,7 +90,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "tittel": "Søknad om supplerende stønad for uføre flyktninger",
                       "journalpostType": "UTGAAENDE",
                       "tema": "SUP",
-                      "kanal": "INNSENDT_NAV_ANSATT",
+                      "kanal": null,
                       "behandlingstema": "ab0268",
                       "journalfoerendeEnhet": "9999",
                       "avsenderMottaker": {

@@ -8,6 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
@@ -21,7 +22,7 @@ import java.util.*
 internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
-internal class DokArkivClient(
+class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : DokArkiv {
@@ -71,7 +72,7 @@ internal class DokArkivClient(
     }
 
     private fun byggSøknadspost(fnr: Fnr, navn: String, søknadInnhold: SøknadInnhold, sakId: String, pdf: ByteArray): String {
-        return byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf, JournalPostType.INNGAAENDE, DokumentKategori.SOK)
+        return byggJournalpostJson(fnr, navn, søknadInnhold, sakId, pdf, JournalPostType.INNGAAENDE, DokumentKategori.SOK, kanal = "INNSENDT_NAV_ANSATT")
     }
 
     private fun byggVedtakspost(fnr: Fnr, navn: String, vedtakInnhold: VedtakInnhold, sakId: String, pdf: ByteArray): String {
@@ -85,52 +86,43 @@ internal class DokArkivClient(
         sakId: String,
         pdf: ByteArray,
         journalPostType: JournalPostType,
-        dokumentKategori: DokumentKategori
+        dokumentKategori: DokumentKategori,
+        kanal: String? = null
     ): String {
-        return """
-                    {
-                      "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                      "journalpostType": "$journalPostType",
-                      "tema": "SUP",
-                      "kanal": "INNSENDT_NAV_ANSATT",
-                      "behandlingstema": "ab0268",
-                      "journalfoerendeEnhet": "9999",
-                      "avsenderMottaker": {
-                        "id": "$fnr",
-                        "idType": "FNR",
-                        "navn": "$navn"
-                      },
-                      "bruker": {
-                        "id": "$fnr",
-                        "idType": "FNR"
-                      },
-                      "sak": {
-                        "fagsakId": "$sakId",
-                        "fagsaksystem": "SUPSTONAD",
-                        "sakstype": "FAGSAK"
-                      },
-                      "dokumenter": [
-                        {
-                          "tittel": "Søknad om supplerende stønad for uføre flyktninger",
-                          "dokumentKategori": "$dokumentKategori",
-                          "brevkode": "XX.YY-ZZ",
-                          "dokumentvarianter": [
-                            {
-                              "filtype": "PDFA",
-                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
-                              "variantformat": "ARKIV"
-                            },
-                            {
-                              "filtype": "JSON",
-                              "fysiskDokument": "${Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(dokumentInnhold).toByteArray())}",
-                              "variantformat": "ORIGINAL"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-        """.trimIndent()
+        return serialize(
+            JournalpostRequest(
+                journalpostType = journalPostType,
+                avsenderMottaker = AvsenderMottaker(
+                    id = "$fnr",
+                    navn = "$navn"
+                ),
+                bruker = Bruker(
+                    id = "$fnr"
+                ),
+                kanal = kanal,
+                sak = Sak(
+                    fagsakId = "$sakId"
+                ),
+                dokumenter = listOf(
+                    JournalpostDokument(
+                        dokumentKategori = dokumentKategori,
+                        dokumentvarianter = listOf(
+                            DokumentVariant(
+                                filtype = "PDFA",
+                                fysiskDokument = Base64.getEncoder().encodeToString(pdf),
+                                variantformat = "ARKIV"
+                            ),
+                            DokumentVariant(
+                                filtype = "JSON",
+                                fysiskDokument = Base64.getEncoder()
+                                    .encodeToString(objectMapper.writeValueAsString(dokumentInnhold).toByteArray()),
+                                variantformat = "ORIGINAL"
+                            )
+                        )
+                    )
+                )
+            )
+        )
     }
 
     private fun søkersNavn(person: Person): String =
