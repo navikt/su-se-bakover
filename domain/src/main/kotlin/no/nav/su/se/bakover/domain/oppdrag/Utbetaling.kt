@@ -21,7 +21,7 @@ data class Utbetaling(
 ) : PersistentDomainObject<UtbetalingPersistenceObserver>() {
 
     private val log = LoggerFactory.getLogger(this::class.java)
-
+    fun getKvittering() = kvittering
     fun getSimulering(): Simulering? = simulering
     fun addSimulering(simulering: Simulering) {
         this.simulering = persistenceObserver.addSimulering(id, simulering)

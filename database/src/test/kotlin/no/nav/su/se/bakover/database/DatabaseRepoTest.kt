@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -313,6 +314,26 @@ internal class DatabaseRepoTest {
             using(sessionOf(EmbeddedDatabase.instance())) {
                 val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getSimulering()!!
                 simulering shouldBe hentet
+            }
+        }
+    }
+
+    @Test
+    fun `legg til og hent kvittering`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere",
+                mottattTidspunkt = Instant.EPOCH
+            )
+            repo.addKvittering(utbetaling.id, kvittering)
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getKvittering()!!
+                kvittering shouldBe hentet
             }
         }
     }

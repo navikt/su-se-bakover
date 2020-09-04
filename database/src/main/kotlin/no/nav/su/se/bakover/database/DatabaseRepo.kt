@@ -175,6 +175,7 @@ internal class DatabaseRepo(
             behandlingId = uuid("behandlingId"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
+            kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) }
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
