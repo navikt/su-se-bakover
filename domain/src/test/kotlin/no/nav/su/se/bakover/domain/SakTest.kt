@@ -49,35 +49,37 @@ internal class SakTest {
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = behandling.also {
             opprettSøknadsbehandlingParams = OpprettSøknadsbehandlingParams(sakId, behandling)
             // TODO Possible to avoid?
-            it.addObserver(object : BehandlingPersistenceObserver {
-                override fun opprettVilkårsvurderinger(
-                    behandlingId: UUID,
-                    vilkårsvurderinger: List<Vilkårsvurdering>
-                ): List<Vilkårsvurdering> = emptyList()
+            it.addObserver(
+                object : BehandlingPersistenceObserver {
+                    override fun opprettVilkårsvurderinger(
+                        behandlingId: UUID,
+                        vilkårsvurderinger: List<Vilkårsvurdering>
+                    ): List<Vilkårsvurdering> = emptyList()
 
-                override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-                    throw IllegalStateException()
-                }
+                    override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
+                        throw IllegalStateException()
+                    }
 
-                override fun oppdaterBehandlingStatus(
-                    behandlingId: UUID,
-                    status: Behandling.BehandlingsStatus
-                ): Behandling.BehandlingsStatus {
-                    throw NotImplementedError()
-                }
+                    override fun oppdaterBehandlingStatus(
+                        behandlingId: UUID,
+                        status: Behandling.BehandlingsStatus
+                    ): Behandling.BehandlingsStatus {
+                        throw NotImplementedError()
+                    }
 
-                override fun hentOppdrag(sakId: UUID): Oppdrag {
-                    return Oppdrag(sakId = sakId)
-                }
+                    override fun hentOppdrag(sakId: UUID): Oppdrag {
+                        return Oppdrag(sakId = sakId)
+                    }
 
-                override fun hentFnr(sakId: UUID): Fnr {
-                    return Fnr("12345678910")
-                }
+                    override fun hentFnr(sakId: UUID): Fnr {
+                        return Fnr("12345678910")
+                    }
 
-                override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-                    return attestant
+                    override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
+                        return attestant
+                    }
                 }
-            })
+            )
         }
 
         data class NySøknadParams(

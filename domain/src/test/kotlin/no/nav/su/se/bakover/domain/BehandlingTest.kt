@@ -472,13 +472,15 @@ internal class BehandlingTest {
 
         @Test
         fun `oversendelse av av utbetaling feiler`() {
-            attestert.sendTilUtbetaling(object : UtbetalingPublisher {
-                override fun publish(
-                    utbetaling: Utbetaling,
-                    oppdragGjelder: String
-                ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
-                    UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
-            })
+            attestert.sendTilUtbetaling(
+                object : UtbetalingPublisher {
+                    override fun publish(
+                        utbetaling: Utbetaling,
+                        oppdragGjelder: String
+                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
+                }
+            )
             attestert.status() shouldBe ATTESTERT
         }
 

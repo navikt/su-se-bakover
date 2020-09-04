@@ -78,10 +78,10 @@ internal class DatabaseRepo(
     }
 
     override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
-        (
-            "insert into utbetaling (id, opprettet, oppdragId, behandlingId) " +
-                "values (:id, :opprettet, :oppdragId, :behandlingId)"
-            ).oppdatering(
+        """
+            insert into utbetaling (id, opprettet, oppdragId, behandlingId)
+            values (:id, :opprettet, :oppdragId, :behandlingId)
+         """.oppdatering(
             mapOf(
                 "id" to utbetaling.id.toString(),
                 "opprettet" to utbetaling.opprettet,
@@ -95,10 +95,10 @@ internal class DatabaseRepo(
     }
 
     internal fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje): Utbetalingslinje {
-        (
-            "insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp) " +
-                "values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop)"
-            ).oppdatering(
+        """
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop)
+        """.oppdatering(
             mapOf(
                 "id" to utbetalingslinje.id.toString(),
                 "opprettet" to utbetalingslinje.opprettet,
@@ -231,7 +231,7 @@ internal class DatabaseRepo(
         """
             with inserted_sak as(insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into oppdrag (id, opprettet, sakId) values (:oppdragId, :opprettet, :sakId)
-        """.trimIndent().oppdatering(
+        """.oppdatering(
             mapOf(
                 "sakId" to sak.id,
                 "fnr" to fnr.toString(),
@@ -457,10 +457,8 @@ internal class DatabaseRepo(
 
     private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
         """
-            insert into månedsberegning
-                (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
-            values
-                (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop, :fradrag)
+            insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
+            values (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop, :fradrag)
         """.oppdatering(
             mapOf(
                 "id" to månedsberegning.id,
@@ -490,10 +488,8 @@ internal class DatabaseRepo(
 
     private fun opprettFradrag(beregningId: UUID, fradrag: FradragDto) {
         """
-            insert into fradrag
-                (id, beregningId, fradragstype, beløp, beskrivelse)
-            values
-                (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
+            insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
+            values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
         """
             .oppdatering(
                 mapOf(
