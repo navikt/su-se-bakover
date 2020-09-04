@@ -133,6 +133,7 @@ internal fun Route.behandlingRoutes(
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
+            val sak = repo.hentSak(sakId)
             val journalPostId = "453629194"
 
             dokDistFordeling.bestillDistribusjon(journalPostId).fold(
