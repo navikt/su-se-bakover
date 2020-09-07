@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.web.services.brev
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PdlFeil
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
@@ -24,6 +27,7 @@ import java.util.Locale
 class BrevService(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
+    private val dokArkiv: DokArkiv,
     private val dokDistFordeling: DokDistFordeling
 ) {
     private val log = LoggerFactory.getLogger(BrevService::class.java)
@@ -62,6 +66,26 @@ class BrevService(
                 halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
             )
         }
+    }
+
+    fun oprettJournalpostOgSendBrev(sak: Sak, behandlingDto: BehandlingDto): Either<ClientError, String> {
+        val person = personOppslag.person(sak.fnr).getOrElse { throw RuntimeException("Finner ikke person") }
+        val pdf = lagUtkastTilBrev(behandlingDto).getOrElse {
+            throw RuntimeException("Kunne ikke lage utkast av brev")
+        }
+
+        return dokArkiv.opprettJournalpost(
+            dokumentInnhold = lagVedtakInnhold(person = person, behandlingDto = behandlingDto),
+            person = person,
+            pdf = pdf,
+            sakId = sak.id.toString()
+        ).fold(
+            ifLeft = {
+                log.error("Kunne ikke opprette journalpost for attestering")
+                throw RuntimeException("Kunne ikke opprette journalpost for attestering")
+            },
+            ifRight = { journalPostId -> sendBrev(journalPostId) }
+        )
     }
 
     fun lagUtkastTilBrev(behandlingDto: BehandlingDto): Either<ClientError, ByteArray> {
