@@ -202,14 +202,15 @@ internal fun Application.susebakover(
             vilkårsvurderingRoutes(databaseRepo)
         }
     }
-
-    KvitteringIbmMqConsumer(
-        kvitteringQueueName = Config.utbetaling.mqReplyTo,
-        connection = jmsConnection,
-        kvitteringConsumer = KvitteringConsumer(
-            repo = databaseRepo
-        )
-    ).also {
-        jmsConnection.start()
+    if (!Config.isLocalOrRunningTests) {
+        KvitteringIbmMqConsumer(
+            kvitteringQueueName = Config.utbetaling.mqReplyTo,
+            connection = jmsConnection,
+            kvitteringConsumer = KvitteringConsumer(
+                repo = databaseRepo
+            )
+        ).also {
+            jmsConnection.start()
+        }
     }
 }
