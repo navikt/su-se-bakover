@@ -102,7 +102,10 @@ internal fun Route.behandlingRoutes(
     post("$behandlingPath/{behandlingId}/simuler") {
         call.withBehandling(repo) { behandling ->
             behandling.simuler(simuleringClient).fold(
-                { call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering")) },
+                {
+                    log.info("Feil ved simulering: ", it)
+                    call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
+                },
                 { call.svar(OK.jsonBody(behandling)) }
             )
         }
