@@ -68,7 +68,7 @@ class BrevService(
         }
     }
 
-    fun oprettJournalpostOgSendBrev(sak: Sak, behandlingDto: BehandlingDto): Either<ClientError, String> {
+    fun opprettJournalpostOgSendBrev(sak: Sak, behandlingDto: BehandlingDto): Either<ClientError, String> {
         val person = personOppslag.person(sak.fnr).getOrElse { throw RuntimeException("Finner ikke person") }
         val pdf = lagUtkastTilBrev(behandlingDto).getOrElse {
             throw RuntimeException("Kunne ikke lage utkast av brev")
