@@ -17,4 +17,4 @@ else
   fi
 fi
 echo "Linting complete, running: ./gradlew clean build"
-./gradlew clean build
+./gradlew build

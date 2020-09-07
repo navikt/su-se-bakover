@@ -37,7 +37,7 @@ internal class SimuleringRequestBuilder(
     }
 
     fun build(): SimulerBeregningGrensesnittRequest {
-        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder)) }
+        utbetaling.utbetalingslinjer.forEach { oppdragRequest.oppdragslinje.add(nyLinje(it, oppdragGjelder, utbetaling.oppdragId.toString())) }
         oppdragRequest.oppdragslinje.firstOrNull()?.refDelytelseId = null
         val førsteDag = utbetaling.førsteDag()
         val sisteDag = utbetaling.sisteDag()
@@ -54,11 +54,15 @@ internal class SimuleringRequestBuilder(
 
     private fun nyLinje(
         utbetalingslinje: Utbetalingslinje,
-        oppdragGjelder: String
+        oppdragGjelder: String,
+        fagsystemId: String
     ) = Oppdragslinje().apply {
         utbetalesTilId = oppdragGjelder
         delytelseId = utbetalingslinje.id.toString()
         refDelytelseId = utbetalingslinje.forrigeUtbetalingslinjeId?.toString()
+        refFagsystemId = utbetalingslinje.forrigeUtbetalingslinjeId?.let {
+            fagsystemId
+        }
         kodeEndringLinje = "NY"
         kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK
         datoVedtakFom = utbetalingslinje.fom.toOppdragDate()
