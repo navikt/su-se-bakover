@@ -78,7 +78,7 @@ internal class BehandlingRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.status shouldBe "TIL_ATTESTERING"
+                behandlingJson.status shouldBe "TIL_ATTESTERING_INNVILGET"
             }
         }
     }
@@ -304,7 +304,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
                     it.attestant shouldBe "enSaksbehandleroid"
-                    it.status shouldBe "ATTESTERT"
+                    it.status shouldBe "ATTESTERT_INNVILGET"
                 }
             }
         }
@@ -350,7 +350,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
                     it.attestant shouldBe "attestant"
-                    it.status shouldBe "INNVILGET"
+                    it.status shouldBe "ATTESTERT_INNVILGET"
                 }
             }
         }

@@ -43,7 +43,7 @@ data class Behandling constructor(
         vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
-        status = status,
+        status = tilstand.status,
         utbetaling = gjeldendeUtbetaling(),
         attestant = attestant,
         sakId = sakId
@@ -53,13 +53,14 @@ data class Behandling constructor(
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
-        BehandlingsStatus.VILKÅRSVURDERT -> Vilkårsvurdert()
+        BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
+        BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Vilkårsvurdert().Avslag()
         BehandlingsStatus.BEREGNET -> Beregnet()
         BehandlingsStatus.SIMULERT -> Simulert()
-        BehandlingsStatus.INNVILGET -> Innvilget()
-        BehandlingsStatus.AVSLÅTT -> Avslått()
-        BehandlingsStatus.TIL_ATTESTERING -> TilAttestering()
-        BehandlingsStatus.ATTESTERT -> Attestert()
+        BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
+        BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
+        BehandlingsStatus.ATTESTERT_INNVILGET -> Attestert().Innvilget()
+        BehandlingsStatus.ATTESTERT_AVSLAG -> Attestert().Avslag()
     }
 
     fun opprettVilkårsvurderinger(): Behandling {
@@ -154,6 +155,7 @@ data class Behandling constructor(
 
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+
         override fun opprettVilkårsvurderinger() {
             if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(
                 status,
@@ -174,34 +176,54 @@ data class Behandling constructor(
                     .apply { oppdater(oppdatert) }
             }
             if (vilkårsvurderinger.innvilget()) {
-                nyTilstand(Vilkårsvurdert())
+                nyTilstand(Vilkårsvurdert().Innvilget())
             } else {
-                if (vilkårsvurderinger.harAvslag()) {
-                    nyTilstand(Avslått())
+                if (vilkårsvurderinger.alleVurdert() && vilkårsvurderinger.harAvslag()) {
+                    nyTilstand(Vilkårsvurdert().Avslag())
                 }
             }
         }
     }
 
-    private inner class Vilkårsvurdert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
-            beregninger.add(
-                persistenceObserver.opprettBeregning(
-                    behandlingId = id,
-                    beregning = Beregning(
-                        fom = fom,
-                        tom = tom,
-                        sats = sats,
-                        fradrag = fradrag
-                    )
-                )
-            )
-            nyTilstand(Beregnet())
-        }
+    private open inner class Vilkårsvurdert : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
             nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        }
+
+        inner class Innvilget : Vilkårsvurdert() {
+            override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
+                beregninger.add(
+                    persistenceObserver.opprettBeregning(
+                        behandlingId = id,
+                        beregning = Beregning(
+                            fom = fom,
+                            tom = tom,
+                            sats = sats,
+                            fradrag = fradrag
+                        )
+                    )
+                )
+                nyTilstand(Beregnet())
+            }
+        }
+
+        inner class Avslag : Vilkårsvurdert() {
+            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+
+            override fun sendTilAttestering(
+                aktørId: AktørId,
+                oppgave: OppgaveClient
+            ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
+                OppgaveConfig.Attestering(
+                    sakId = sakId.toString(),
+                    aktørId = aktørId
+                )
+            ).map {
+                nyTilstand(TilAttestering().Avslag())
+                this@Behandling
+            }
         }
     }
 
@@ -245,12 +267,12 @@ data class Behandling constructor(
                 aktørId = aktørId
             )
         ).map {
-            nyTilstand(TilAttestering())
+            nyTilstand(TilAttestering().Innvilget())
             this@Behandling
         }
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
+            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, sats, fradrag)
         }
 
         override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
@@ -262,51 +284,57 @@ data class Behandling constructor(
         }
     }
 
-    private inner class TilAttestering : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING
-        override fun attester(attestant: Attestant) {
-            this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-            nyTilstand(Attestert())
-        }
-    }
+    private open inner class TilAttestering : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
-    private inner class Attestert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT
-        override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-            // TODO neeed to handle avslag somehow
-            val result = publisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString())
-                .map { this@Behandling }
-            when (result) {
-                is Either.Right -> nyTilstand(Innvilget())
-                else -> {
-                } // noop
+        inner class Innvilget : TilAttestering() {
+            override fun attester(attestant: Attestant) {
+                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
+                nyTilstand(Attestert().Innvilget())
             }
-            return result
+        }
+
+        inner class Avslag : TilAttestering() {
+            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+            override fun attester(attestant: Attestant) {
+                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
+                nyTilstand(Attestert().Avslag())
+            }
         }
     }
 
-    private inner class Avslått : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.AVSLÅTT
-        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
-        }
-    }
+    private open inner class Attestert : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_INNVILGET
 
-    private inner class Innvilget : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.INNVILGET
+        inner class Innvilget : Attestert() {
+            override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+                val result = publisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString())
+                    .map { this@Behandling }
+                when (result) {
+                    is Either.Right -> {
+                    } // TODO
+                    else -> {
+                    } // noop
+                }
+                return result
+            }
+        }
+
+        inner class Avslag : Attestert() {
+            override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_AVSLAG
+        }
     }
 
     enum class BehandlingsStatus {
         OPPRETTET,
-        VILKÅRSVURDERT,
+        VILKÅRSVURDERT_INNVILGET,
+        VILKÅRSVURDERT_AVSLAG,
         BEREGNET,
         SIMULERT,
-
-        /*VEDTAKSBREV,*/
-        INNVILGET, // TODO need to redefine the meaning of this... i think - intent is to keep track of where we are in the process, not the outcome
-        AVSLÅTT, // TODO need to redefine the meaning of this... i think - intent is to keep track of where we are in the process, not the outcome
-        TIL_ATTESTERING,
-        ATTESTERT
+        TIL_ATTESTERING_INNVILGET,
+        TIL_ATTESTERING_AVSLAG,
+        ATTESTERT_INNVILGET,
+        ATTESTERT_AVSLAG,
     }
 
     class TilstandException(

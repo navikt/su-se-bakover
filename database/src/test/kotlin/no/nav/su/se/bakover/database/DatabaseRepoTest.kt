@@ -119,7 +119,7 @@ internal class DatabaseRepoTest {
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
 
-            behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT
+            behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
             val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET)
             val hentet = repo.hentBehandling(behandling.id)
@@ -452,7 +452,7 @@ internal class DatabaseRepoTest {
         sakId = sakId,
         behandling = Behandling(
             søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT,
+            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
             sakId = sakId
         )
     )

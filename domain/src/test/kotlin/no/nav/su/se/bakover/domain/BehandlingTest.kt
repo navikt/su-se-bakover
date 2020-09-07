@@ -16,14 +16,15 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.AVSLÅTT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
@@ -47,7 +48,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.*
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
 import java.util.UUID
 
@@ -68,7 +70,7 @@ internal class BehandlingTest {
 
     @Test
     fun equals() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -79,10 +81,10 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = VILKÅRSVURDERT,
+            status = VILKÅRSVURDERT_INNVILGET,
             sakId = id1
         )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
         assertEquals(a, b)
         assertNotEquals(a, c)
         assertNotEquals(b, c)
@@ -92,7 +94,7 @@ internal class BehandlingTest {
 
     @Test
     fun hashcode() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT)
+        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
         val b = Behandling(
             id1,
             vilkårsvurderinger = mutableListOf(
@@ -103,10 +105,10 @@ internal class BehandlingTest {
                 )
             ),
             søknad = søknad,
-            status = VILKÅRSVURDERT,
+            status = VILKÅRSVURDERT_INNVILGET,
             sakId = id1
         )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT)
+        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
         assertEquals(a.hashCode(), b.hashCode())
         assertNotEquals(a.hashCode(), c.hashCode())
         val hashSet = hashSetOf(a, b, c)
@@ -153,7 +155,7 @@ internal class BehandlingTest {
             opprettet.opprettVilkårsvurderinger()
             val expected = extractVilkårsvurderinger(opprettet).withStatus(OK)
             opprettet.oppdaterVilkårsvurderinger(expected)
-            opprettet.status() shouldBe VILKÅRSVURDERT
+            opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
             observer.oppdatertStatus shouldBe opprettet.status()
             observer.oppdaterteVilkårsvurderinger.map { it.second } shouldContainAll expected
         }
@@ -162,7 +164,7 @@ internal class BehandlingTest {
         fun `transition to Vilkårsvurdert`() {
             opprettet.opprettVilkårsvurderinger()
             opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(OK))
-            opprettet.status() shouldBe VILKÅRSVURDERT
+            opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
@@ -170,7 +172,7 @@ internal class BehandlingTest {
         fun `transition to Avslått`() {
             opprettet.opprettVilkårsvurderinger()
             opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(IKKE_OK))
-            opprettet.status() shouldBe AVSLÅTT
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
@@ -206,7 +208,7 @@ internal class BehandlingTest {
     }
 
     @Nested
-    inner class Vilkårsvurdert {
+    inner class VilkårsvurdertInnvilget {
         private lateinit var vilkårsvurdert: Behandling
 
         @BeforeEach
@@ -218,7 +220,7 @@ internal class BehandlingTest {
                     OK
                 )
             )
-            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
             observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
@@ -250,7 +252,7 @@ internal class BehandlingTest {
             vilkårsvurdert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(vilkårsvurdert).withStatus(OK)
             )
-            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -262,6 +264,50 @@ internal class BehandlingTest {
                 vilkårsvurdert.attester(
                     Attestant("id")
                 )
+            }
+        }
+    }
+
+    @Nested
+    inner class VilkårsvurdertAvslag {
+        private lateinit var vilkårsvurdert: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            vilkårsvurdert = createBehandling(id1, OPPRETTET).opprettVilkårsvurderinger()
+            vilkårsvurdert.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(vilkårsvurdert).withStatus(
+                    IKKE_OK
+                )
+            )
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            observer.oppdatertStatus shouldBe vilkårsvurdert.status()
+        }
+
+        @Test
+        fun `skal kunne sende til attestering`() {
+            vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub)
+            vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
+        }
+
+        @Test
+        fun `skal kunne vilkårsvudere på nytt`() {
+            vilkårsvurdert.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(vilkårsvurdert).withStatus(OK))
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
+        }
+
+        @Test
+        fun `illegal operations`() {
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.opprettBeregning(
+                    1.januar(2020),
+                    31.desember(2020)
+                )
+            }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.attester(Attestant("id"))
             }
         }
     }
@@ -301,7 +347,7 @@ internal class BehandlingTest {
             beregnet.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(beregnet).withStatus(OK)
             )
-            beregnet.status() shouldBe VILKÅRSVURDERT
+            beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -338,7 +384,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne sende til attestering`() {
             simulert.sendTilAttestering(aktørId, OppgaveClientStub)
-            simulert.status() shouldBe TIL_ATTESTERING
+            simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
 
         @Test
@@ -352,7 +398,7 @@ internal class BehandlingTest {
             simulert.oppdaterVilkårsvurderinger(
                 extractVilkårsvurderinger(simulert).withStatus(OK)
             )
-            simulert.status() shouldBe VILKÅRSVURDERT
+            simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -385,14 +431,14 @@ internal class BehandlingTest {
                     IKKE_OK
                 )
             )
-            avslått.status() shouldBe AVSLÅTT
+            avslått.status() shouldBe VILKÅRSVURDERT_AVSLAG
             observer.oppdatertStatus shouldBe avslått.status()
         }
 
         @Test
         fun `legal operations`() {
             avslått.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(avslått).withStatus(OK))
-            avslått.status() shouldBe VILKÅRSVURDERT
+            avslått.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -408,7 +454,7 @@ internal class BehandlingTest {
     }
 
     @Nested
-    inner class TilAttestering {
+    inner class TilAttesteringInnvilget {
         private lateinit var tilAttestering: Behandling
 
         @BeforeEach
@@ -423,14 +469,14 @@ internal class BehandlingTest {
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             tilAttestering.simuler(SimuleringClientStub)
             tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            tilAttestering.status() shouldBe TIL_ATTESTERING
+            tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
         fun `skal kunne attestere`() {
             tilAttestering.attester(Attestant("attestant"))
-            tilAttestering.status() shouldBe ATTESTERT
+            tilAttestering.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
@@ -450,7 +496,47 @@ internal class BehandlingTest {
     }
 
     @Nested
-    inner class Attestert {
+    inner class TilAttesteringAvslag {
+        private lateinit var tilAttestering: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            tilAttestering = createBehandling(id1, OPPRETTET)
+                .opprettVilkårsvurderinger()
+            tilAttestering.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(tilAttestering).withStatus(
+                    IKKE_OK
+                )
+            )
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
+            observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `skal kunne attestere`() {
+            tilAttestering.attester(Attestant("attestant"))
+            tilAttestering.status() shouldBe ATTESTERT_AVSLAG
+            observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `illegal operations`() {
+            assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.simuler(SimuleringClientStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            }
+        }
+    }
+
+    @Nested
+    inner class AttestertInnvilget {
         private lateinit var attestert: Behandling
 
         @BeforeEach
@@ -466,14 +552,14 @@ internal class BehandlingTest {
             attestert.simuler(SimuleringClientStub)
             attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             attestert.attester(Attestant("attestant"))
-            attestert.status() shouldBe ATTESTERT
+            attestert.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe attestert.status()
         }
 
         @Test
         fun `skal kunne sende til utbetaling`() {
             attestert.sendTilUtbetaling(UtbetalingPublisherStub)
-            attestert.status() shouldBe INNVILGET
+            attestert.status() shouldBe ATTESTERT_INNVILGET
         }
 
         @Test
@@ -487,7 +573,7 @@ internal class BehandlingTest {
                         UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
                 }
             )
-            attestert.status() shouldBe ATTESTERT
+            attestert.status() shouldBe ATTESTERT_INNVILGET
         }
 
         @Test
@@ -501,6 +587,43 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            }
+        }
+    }
+
+    @Nested
+    inner class AttestertAvslag {
+        private lateinit var attestert: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            attestert = createBehandling(id1, OPPRETTET)
+                .opprettVilkårsvurderinger()
+            attestert.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(attestert).withStatus(
+                    IKKE_OK
+                )
+            )
+            attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            attestert.attester(Attestant("attestant"))
+            attestert.status() shouldBe ATTESTERT_AVSLAG
+            observer.oppdatertStatus shouldBe attestert.status()
+        }
+
+        @Test
+        fun `illegal operations`() {
+            assertThrows<Behandling.TilstandException> { attestert.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            }
+            assertThrows<Behandling.TilstandException> {
+                attestert.simuler(SimuleringClientStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                attestert.sendTilUtbetaling(UtbetalingPublisherStub)
             }
         }
     }
