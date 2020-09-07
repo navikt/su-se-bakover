@@ -26,7 +26,7 @@ object VedtakInnholdTestdataBuilder {
             redusertStønadGrunn = "en redusert stønadsgrunn",
             fradrag = emptyList(),
             fradragSum = 0,
-            status = Behandling.BehandlingsStatus.TIL_ATTESTERING,
+            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             avslagsgrunn = Avslagsgrunn.FLYKTNING,
             avslagsgrunnBeskrivelse = AvslagsgrunnBeskrivelseFlagg.FORMUE,
             halvGrunnbeløp = 50

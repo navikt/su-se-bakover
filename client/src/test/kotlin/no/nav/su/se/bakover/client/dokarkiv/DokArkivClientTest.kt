@@ -87,7 +87,7 @@ internal class DokArkivClientTest : WiremockBase {
     val forventetVedtaksRequest =
         """
                     {
-                      "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                      "tittel": "Vedtaksbrev for soknad om supplerende stønad",
                       "journalpostType": "UTGAAENDE",
                       "tema": "SUP",
                       "kanal": null,
@@ -109,7 +109,7 @@ internal class DokArkivClientTest : WiremockBase {
                       },
                       "dokumenter": [
                         {
-                          "tittel": "Søknad om supplerende stønad for uføre flyktninger",
+                          "tittel": "Vedtaksbrev for soknad om supplerende stønad",
                           "dokumentKategori": "VB",
                           "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
@@ -153,7 +153,14 @@ internal class DokArkivClientTest : WiremockBase {
                     )
                 )
         )
-        client.opprettJournalpost(søknadInnhold, person, pdf, "1").shouldBe(
+        client.opprettJournalpost(
+            Journalpost.Søknadspost(
+                sakId = "1",
+                person = person,
+                søknadInnhold = søknadInnhold,
+                pdf = pdf
+            )
+        ).shouldBe(
             "1".right()
         )
     }
@@ -166,7 +173,14 @@ internal class DokArkivClientTest : WiremockBase {
                 .willReturn(WireMock.forbidden())
         )
 
-        client.opprettJournalpost(søknadInnhold, person, pdf, "1") shouldBe
+        client.opprettJournalpost(
+            Journalpost.Søknadspost(
+                sakId = "1",
+                person = person,
+                søknadInnhold = søknadInnhold,
+                pdf = pdf
+            )
+        ) shouldBe
             ClientError(403, "Feil ved journalføring av søknad.").left()
     }
 
@@ -194,7 +208,14 @@ internal class DokArkivClientTest : WiremockBase {
                 )
         )
 
-        client.opprettJournalpost(VedtakInnholdTestdataBuilder.build(), person, pdf, sakId) shouldBe(
+        client.opprettJournalpost(
+            Journalpost.Vedtakspost(
+                vedtakInnhold = VedtakInnholdTestdataBuilder.build(),
+                person = person,
+                pdf = pdf,
+                sakId = sakId
+            )
+        ) shouldBe(
             "1".right()
             )
     }

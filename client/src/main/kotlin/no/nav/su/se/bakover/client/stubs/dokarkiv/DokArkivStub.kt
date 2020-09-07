@@ -4,14 +4,11 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 
 object DokArkivStub : DokArkiv {
-    override fun <T> opprettJournalpost(
-        dokumentInnhold: T,
-        person: Person,
-        pdf: ByteArray,
-        sakId: String
+    override fun opprettJournalpost(
+        dokumentInnhold: Journalpost,
     ): Either<ClientError, String> =
         """
                         {

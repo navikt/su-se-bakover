@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PdlFeil
@@ -75,10 +76,12 @@ class BrevService(
         }
 
         return dokArkiv.opprettJournalpost(
-            dokumentInnhold = lagVedtakInnhold(person = person, behandlingDto = behandlingDto),
-            person = person,
-            pdf = pdf,
-            sakId = sak.id.toString()
+            Journalpost.Vedtakspost(
+                person = person,
+                sakId = sak.id.toString(),
+                vedtakInnhold = lagVedtakInnhold(person, behandlingDto),
+                pdf = pdf
+            )
         ).fold(
             ifLeft = {
                 log.error("Kunne ikke opprette journalpost for attestering")
