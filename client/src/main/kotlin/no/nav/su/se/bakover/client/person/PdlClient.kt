@@ -85,8 +85,6 @@ internal class PdlClient(
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<PdlFeil, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val token = tokenOppslag.token()
-        logger.info("Authorization: " + MDC.get("Authorization"))
-        logger.info("NAV_CONSUMER_TOKEN: $token")
         val (_, response, result) = "$pdlUrl/graphql".httpPost()
             .header("Authorization", MDC.get("Authorization"))
             .header(NAV_CONSUMER_TOKEN, "Bearer $token")
