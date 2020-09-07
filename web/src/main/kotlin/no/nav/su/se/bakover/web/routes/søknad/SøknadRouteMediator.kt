@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import arrow.core.getOrElse
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -40,13 +41,15 @@ internal class SøknadRouteMediator(
             { pdfByteArray ->
                 val fnr = nySøknadEvent.søknadInnhold.personopplysninger.fnr
                 dokArkiv.opprettJournalpost(
-                    søknadInnhold = nySøknadEvent.søknadInnhold,
-                    person = personOppslag.person(fnr).getOrElse {
-                        log.error("Fant ikke person med gitt fødselsnummer")
-                        throw RuntimeException("Kunne ikke finne person")
-                    },
-                    pdf = pdfByteArray,
-                    sakId = nySøknadEvent.sakId.toString()
+                    Journalpost.Søknadspost(
+                        person = personOppslag.person(fnr).getOrElse {
+                            log.error("Fant ikke person med gitt fødselsnummer")
+                            throw RuntimeException("Kunne ikke finne person")
+                        },
+                        søknadInnhold = nySøknadEvent.søknadInnhold,
+                        pdf = pdfByteArray,
+                        sakId = nySøknadEvent.sakId.toString()
+                    )
                 ).fold(
                     {
                         log.error("$it")

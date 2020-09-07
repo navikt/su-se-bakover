@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
+import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -27,7 +28,8 @@ object TestClientsBuilder : ClientsBuilder {
         oppgaveClient = OppgaveClientStub,
         kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "kodeverkConsumerId"),
         simuleringClient = SimuleringStub,
-        utbetalingPublisher = UtbetalingStub
+        utbetalingPublisher = UtbetalingStub,
+        dokDistFordeling = DokDistFordelingStub
     )
 
     override fun build(): Clients = testClients

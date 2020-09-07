@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
+import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -40,6 +42,7 @@ object StubClientsBuilder : ClientsBuilder {
             kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad"),
             simuleringClient = SimuleringStub.also { logger.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { logger.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
+            dokDistFordeling = DokDistFordelingStub.also { logger.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
         )
     }
 

@@ -44,7 +44,7 @@ internal fun Route.behandlingRoutes(
     simuleringClient: SimuleringClient,
     personOppslag: PersonOppslag,
     oppgaveClient: OppgaveClient,
-    utbetalingPublisher: UtbetalingPublisher
+    utbetalingPublisher: UtbetalingPublisher,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -102,7 +102,10 @@ internal fun Route.behandlingRoutes(
     post("$behandlingPath/{behandlingId}/simuler") {
         call.withBehandling(repo) { behandling ->
             behandling.simuler(simuleringClient).fold(
-                { call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering")) },
+                {
+                    log.info("Feil ved simulering: ", it)
+                    call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
+                },
                 { call.svar(OK.jsonBody(behandling)) }
             )
         }
@@ -131,7 +134,12 @@ internal fun Route.behandlingRoutes(
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
-            call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))))
+            val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
+
+            brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
+                ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
+                ifRight = { call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId())))) }
+            )
         }
     }
 
