@@ -41,7 +41,7 @@ internal class KvitteringConsumerTest {
         val xmlMessage = kvitteringXml(utbetalingId.toString())
         val clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
         val kvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+            utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
             originalKvittering = xmlMessage,
             mottattTidspunkt = now(clock)
         )

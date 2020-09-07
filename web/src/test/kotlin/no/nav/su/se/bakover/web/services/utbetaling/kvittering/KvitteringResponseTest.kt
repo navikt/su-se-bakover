@@ -14,7 +14,7 @@ internal class KvitteringResponseTest {
             mmel = KvitteringResponse.Mmel(
                 systemId = "231-OPPD",
                 kodeMelding = null,
-                alvorlighetsgrad = KvitteringResponse.Alvorlighetsgrad.OK,
+                alvorlighetsgrad = KvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL,
                 beskrMelding = null,
                 sqlKode = null,
                 sqlState = null,
@@ -73,7 +73,7 @@ internal class KvitteringResponseTest {
 <oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
    <mmel>
       <systemId>231-OPPD</systemId>
-      <alvorlighetsgrad>00</alvorlighetsgrad>
+      <alvorlighetsgrad>08</alvorlighetsgrad>
    </mmel>
    <oppdrag-110>
       <kodeAksjon>1</kodeAksjon>

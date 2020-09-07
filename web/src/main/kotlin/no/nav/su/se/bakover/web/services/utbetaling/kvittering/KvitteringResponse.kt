@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
@@ -41,7 +41,7 @@ data class KvitteringResponse(
         val sectionNavn: String?,
     )
 
-    enum class Alvorlighetsgrad(val value: String) {
+    enum class Alvorlighetsgrad(@JsonValue val value: String) {
         OK("00"),
         /** En varselmelding følger med */
         OK_MED_VARSEL("04"),
@@ -50,12 +50,6 @@ data class KvitteringResponse(
         SQL_FEIL("12");
 
         override fun toString() = value
-
-        /** Denne brukes av Jackson for deserialisere */
-        @Suppress("unused")
-        @JsonCreator
-        fun fromString(value: String) = values().firstOrNull { it.value == value }
-            ?: throw IllegalArgumentException("Kunne ikke parse alvorlighetsgrad fra utbetalingskvittering. Verdien var $value")
     }
 
     fun toKvittering(originalKvittering: String, clock: Clock) = Kvittering(
