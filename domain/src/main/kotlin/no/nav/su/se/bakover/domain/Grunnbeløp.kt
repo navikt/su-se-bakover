@@ -7,7 +7,8 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
     private val datoToBeløp: Map<LocalDate, Int> = mapOf(
         LocalDate.of(2017, Month.MAY, 1) to 93634,
         LocalDate.of(2018, Month.MAY, 1) to 96883,
-        LocalDate.of(2019, Month.MAY, 1) to 99858
+        LocalDate.of(2019, Month.MAY, 1) to 99858,
+        LocalDate.of(2020, Month.MAY, 1) to 101351
     )
 
     fun fraDato(dato: LocalDate): Double = datoToBeløp.entries

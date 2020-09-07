@@ -178,8 +178,14 @@ internal class BeregningTest {
         b.hentPerioder() shouldBe listOf(
             BeregningsPeriode(
                 fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                tom = 30.april(2020),
                 beløp = 20637,
+                sats = Sats.HØY
+            ),
+            BeregningsPeriode(
+                fom = 1.mai(2020),
+                tom = 31.desember(2020),
+                beløp = 20946,
                 sats = Sats.HØY
             )
         )
