@@ -133,7 +133,7 @@ internal fun Route.behandlingRoutes(
             call.audit("Attesterer behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
 
-            brevService.oprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
+            brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = { call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId())))) }
             )
