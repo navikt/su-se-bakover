@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web
 import SuMetrics
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import com.ibm.mq.jms.MQConnectionFactory
+import com.ibm.msg.client.wmq.WMQConstants
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -53,19 +55,34 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import no.nav.su.se.bakover.web.services.brev.BrevService
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringIbmMqConsumer
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
+import javax.jms.Connection
 
 fun main(args: Array<String>) {
     Config.init()
     io.ktor.server.netty.EngineMain.main(args)
 }
 
+private val jmsConnection: Connection by lazy {
+    MQConnectionFactory().apply {
+        Config.utbetaling.let {
+            hostName = it.mqHostname
+            port = it.mqPort
+            channel = it.mqChannel
+            queueManager = it.mqQueueManager
+            transportType = WMQConstants.WMQ_CM_CLIENT
+        }
+    }.createConnection(Config.serviceUser.username, Config.serviceUser.password)
+}
+
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder.build(),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsConnection).build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     authenticationHttpClient: HttpClient = HttpClient(Apache) {
@@ -184,5 +201,15 @@ internal fun Application.susebakover(
             )
             vilkårsvurderingRoutes(databaseRepo)
         }
+    }
+
+    KvitteringIbmMqConsumer(
+        kvitteringQueueName = Config.utbetaling.mqReplyTo,
+        connection = jmsConnection,
+        kvitteringConsumer = KvitteringConsumer(
+            repo = databaseRepo
+        )
+    ).also {
+        jmsConnection.start()
     }
 }

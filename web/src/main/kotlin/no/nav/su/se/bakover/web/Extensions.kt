@@ -9,6 +9,7 @@ import io.ktor.request.header
 import io.ktor.request.receiveStream
 
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
@@ -28,6 +29,12 @@ internal fun String.toUUID() =
     runBlocking {
         Either.catch { UUID.fromString(this@toUUID) }
             .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
+    }
+
+internal fun String.toUUID30() =
+    runBlocking {
+        Either.catch { UUID30.fromString(this@toUUID30) }
+            .mapLeft { "${this@toUUID30} er ikke en gyldig UUID" }
     }
 
 internal fun ApplicationCall.lesUUID(param: String) =

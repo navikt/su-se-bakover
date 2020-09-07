@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -26,6 +29,7 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
@@ -43,6 +47,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito.*
+import org.mockito.internal.verification.Times
 import java.util.UUID
 
 internal class BehandlingTest {
@@ -499,6 +505,58 @@ internal class BehandlingTest {
         }
     }
 
+    @Nested
+    inner class KvitteringTest {
+        private lateinit var behandling: Behandling
+
+        @BeforeEach
+        internal fun beforeEach() {
+            behandling = createBehandling(id1, OPPRETTET)
+                .opprettVilkårsvurderinger()
+            behandling.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(behandling).withStatus(
+                    OK
+                )
+            )
+            behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            behandling.simuler(SimuleringClientStub)
+            behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            behandling.attester(Attestant("attestant"))
+            val publisherMock = mock<UtbetalingPublisher> {
+                on { publish(any(), anyString()) } doReturn Unit.right()
+            }
+            behandling.sendTilUtbetaling(publisherMock)
+            verify(publisherMock, Times(1)).publish(behandling.gjeldendeUtbetaling()!!, "12345678910")
+        }
+
+        @Test
+        internal fun `ny kvittering`() {
+
+            val utbetaling = behandling.gjeldendeUtbetaling()!!
+            utbetaling.getKvittering() shouldBe null
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere"
+            )
+            utbetaling.addKvittering(kvittering)
+            utbetaling.getKvittering() shouldBe kvittering
+        }
+
+        @Test
+        internal fun `ignorer kvittering hvis den finnes fra før`() {
+            val utbetaling = behandling.gjeldendeUtbetaling()!!
+            utbetaling.getKvittering() shouldBe null
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere"
+            )
+            utbetaling.addKvittering(kvittering)
+            utbetaling.getKvittering() shouldBe kvittering
+            utbetaling.addKvittering(kvittering.copy(mottattTidspunkt = kvittering.mottattTidspunkt.plusSeconds(1)))
+            utbetaling.getKvittering() shouldBe kvittering
+        }
+    }
+
     private fun List<Vilkårsvurdering>.withStatus(status: Vilkårsvurdering.Status) = map {
         Vilkårsvurdering(
             id = it.id,
@@ -575,6 +633,10 @@ internal class BehandlingTest {
 
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
             return simulering
+        }
+
+        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
+            return kvittering
         }
     }
 

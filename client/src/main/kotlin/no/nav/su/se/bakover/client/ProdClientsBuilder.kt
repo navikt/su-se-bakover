@@ -1,14 +1,11 @@
 package no.nav.su.se.bakover.client
 
-import com.ibm.mq.jms.MQConnectionFactory
-import com.ibm.msg.client.wmq.WMQConstants
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
-import no.nav.su.se.bakover.client.oppdrag.kvittering.KvitteringIbmMqConsumer
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
@@ -17,29 +14,16 @@ import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.Config
+import javax.jms.Connection
 
-object ProdClientsBuilder : ClientsBuilder {
+data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBuilder {
 
     override fun build(): Clients {
         val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad")
         val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
         val personOppslag = PersonClient(kodeverk, Config.pdlUrl, tokenOppslag)
-        val jmsConnection = MQConnectionFactory().apply {
-            Config.utbetaling.let {
-                hostName = it.mqHostname
-                port = it.mqPort
-                channel = it.mqChannel
-                queueManager = it.mqQueueManager
-                transportType = WMQConstants.WMQ_CM_CLIENT
-            }
-        }.createConnection(Config.serviceUser.username, Config.serviceUser.password)
-        KvitteringIbmMqConsumer(
-            kvitteringQueueName = Config.utbetaling.mqReplyTo,
-            connection = jmsConnection
-        ).also {
-            jmsConnection.start()
-        }
+
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,

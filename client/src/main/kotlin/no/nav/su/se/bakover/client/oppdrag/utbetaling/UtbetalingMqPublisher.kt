@@ -24,7 +24,14 @@ import java.time.format.DateTimeFormatter
 
 class UtbetalingMqPublisher(
     private val clock: Clock = Clock.systemUTC(),
-    private val mqPublisher: MqPublisher
+    private val mqPublisher: MqPublisher,
+    private val xmlMapper: XmlMapper = XmlMapper(
+        JacksonXmlModule().apply { setDefaultUseWrapper(false) }
+    ).apply {
+        configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
+        enable(SerializationFeature.INDENT_OUTPUT)
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    }
 ) : UtbetalingPublisher {
 
     companion object {
@@ -60,14 +67,6 @@ class UtbetalingMqPublisher(
 
         fun Instant.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
             .withZone(zoneId).format(this)
-    }
-
-    val xmlMapper = XmlMapper(
-        JacksonXmlModule().apply { setDefaultUseWrapper(false) }
-    ).apply {
-        configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
-        enable(SerializationFeature.INDENT_OUTPUT)
-        setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
     override fun publish(

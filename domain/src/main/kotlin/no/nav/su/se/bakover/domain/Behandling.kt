@@ -49,7 +49,7 @@ data class Behandling constructor(
         sakId = sakId
     )
 
-    private fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
+    fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()

@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -317,6 +319,26 @@ internal class DatabaseRepoTest {
     }
 
     @Test
+    fun `legg til og hent kvittering`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere",
+                mottattTidspunkt = Instant.EPOCH
+            )
+            repo.addKvittering(utbetaling.id, kvittering)
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getKvittering()!!
+                kvittering shouldBe hentet
+            }
+        }
+    }
+
+    @Test
     fun `combination of oppdragId and SakId should be unique`() {
         withMigratedDb {
             val sak = repo.opprettSak(FNR)
@@ -389,6 +411,10 @@ internal class DatabaseRepoTest {
 
     private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+            throw NotImplementedError()
+        }
+
+        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
             throw NotImplementedError()
         }
     }

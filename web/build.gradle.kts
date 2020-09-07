@@ -23,6 +23,8 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.1")
+    implementation("com.ibm.mq:com.ibm.mq.allclient:9.1.5.0")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
