@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg.T
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
+import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -27,7 +28,59 @@ internal class SimuleringRequestBuilderTest {
     }
 
     @Test
-    fun `bygger simulering request til bruker`() {
+    fun `bygger simulering request til bruker uten eksisterende oppdragslinjer`() {
+        val oppdragslinjeid1 = UUID30.randomUUID()
+        val oppdragslinjeid2 = UUID30.randomUUID()
+        val simuleringRequest = createOppdrag(
+            listOf(
+                Utbetalingslinje(
+                    id = oppdragslinjeid1,
+                    fom = 1.januar(2020),
+                    tom = 14.januar(2020),
+                    beløp = BELØP,
+                    forrigeUtbetalingslinjeId = null,
+                ),
+                Utbetalingslinje(
+                    id = oppdragslinjeid2,
+                    fom = 15.januar(2020),
+                    tom = 31.januar(2020),
+                    beløp = BELØP,
+                    forrigeUtbetalingslinjeId = oppdragslinjeid1,
+                )
+            )
+        )
+        simuleringRequest.request.simuleringsPeriode.datoSimulerFom shouldBe 1.januar(2020).format(yyyyMMdd)
+        simuleringRequest.request.simuleringsPeriode.datoSimulerTom shouldBe 31.januar(2020).format(yyyyMMdd)
+
+        assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_NY)
+        assertOppdragslinje(
+            oppdrag = simuleringRequest.request.oppdrag,
+            index = 0,
+            delytelseId = oppdragslinjeid1.toString(),
+            endringskode = ENDRINGSKODE_NY,
+            fom = 1.januar(2020),
+            tom = 14.januar(2020),
+            datoStatusFom = null,
+            statuskode = null,
+            refDelytelsesId = null,
+            refFagsystemId = null
+        )
+        assertOppdragslinje(
+            oppdrag = simuleringRequest.request.oppdrag,
+            index = 1,
+            delytelseId = oppdragslinjeid2.toString(),
+            endringskode = ENDRINGSKODE_NY,
+            fom = 15.januar(2020),
+            tom = 31.januar(2020),
+            datoStatusFom = null,
+            statuskode = null,
+            refDelytelsesId = oppdragslinjeid1.toString(),
+            refFagsystemId = oppdragId.toString()
+        )
+    }
+
+    @Test
+    fun `bygger simulering request til bruker med eksisterende oppdragslinjer`() {
         val oppdragslinjeid1 = UUID30.randomUUID()
         val oppdragslinjeid2 = UUID30.randomUUID()
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
@@ -53,7 +106,7 @@ internal class SimuleringRequestBuilderTest {
         simuleringRequest.request.simuleringsPeriode.datoSimulerTom shouldBe 31.januar(2020).format(yyyyMMdd)
 
         assertOppdrag(simuleringRequest.request.oppdrag, ENDRINGSKODE_NY)
-      /*  assertOppdragslinje(
+        assertOppdragslinje(
             oppdrag = simuleringRequest.request.oppdrag,
             index = 0,
             delytelseId = oppdragslinjeid1.toString(),
@@ -62,8 +115,9 @@ internal class SimuleringRequestBuilderTest {
             tom = 14.januar(2020),
             datoStatusFom = null,
             statuskode = null,
-            refDelytelsesId = eksisterendeOppdragslinjeid.toString()
-        )*/
+            refDelytelsesId = eksisterendeOppdragslinjeid.toString(),
+            refFagsystemId = oppdragId.toString()
+        )
         assertOppdragslinje(
             oppdrag = simuleringRequest.request.oppdrag,
             index = 1,
@@ -73,7 +127,8 @@ internal class SimuleringRequestBuilderTest {
             tom = 31.januar(2020),
             datoStatusFom = null,
             statuskode = null,
-            refDelytelsesId = oppdragslinjeid1.toString()
+            refDelytelsesId = oppdragslinjeid1.toString(),
+            refFagsystemId = oppdragId.toString()
         )
     }
 
@@ -92,7 +147,10 @@ internal class SimuleringRequestBuilderTest {
         return builder.build()
     }
 
-    private fun assertOppdrag(oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag, endringskode: String) {
+    private fun assertOppdrag(
+        oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag,
+        endringskode: String
+    ) {
         oppdrag.oppdragGjelderId shouldBe PERSON
         oppdrag.saksbehId shouldBe SAKSBEHANDLER
         oppdrag.fagsystemId shouldBe oppdragId.toString()
@@ -106,7 +164,7 @@ internal class SimuleringRequestBuilderTest {
     }
 
     private fun assertOppdragslinje(
-        oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag,
+        oppdrag: Oppdrag,
         index: Int,
         delytelseId: String,
         endringskode: String,
@@ -114,7 +172,8 @@ internal class SimuleringRequestBuilderTest {
         tom: LocalDate,
         datoStatusFom: LocalDate?,
         statuskode: KodeStatusLinje?,
-        refDelytelsesId: String
+        refDelytelsesId: String?,
+        refFagsystemId: String?
     ) {
         oppdrag.oppdragslinje[index].delytelseId shouldBe delytelseId
         oppdrag.oppdragslinje[index].kodeEndringLinje shouldBe endringskode
@@ -125,6 +184,7 @@ internal class SimuleringRequestBuilderTest {
         oppdrag.oppdragslinje[index].datoStatusFom shouldBe datoStatusFom?.format(yyyyMMdd)
         oppdrag.oppdragslinje[index].utbetalesTilId shouldBe PERSON
         oppdrag.oppdragslinje[index].refDelytelseId shouldBe refDelytelsesId
+        oppdrag.oppdragslinje[index].refFagsystemId shouldBe refFagsystemId
         oppdrag.oppdragslinje[index].kodeStatusLinje shouldBe statuskode
         oppdrag.oppdragslinje[index].kodeKlassifik shouldBe KLASSEKODE
         oppdrag.oppdragslinje[index].fradragTillegg shouldBe T
