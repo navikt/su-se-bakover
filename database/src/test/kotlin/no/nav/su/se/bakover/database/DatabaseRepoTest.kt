@@ -23,11 +23,8 @@ import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Vilkår.FLYKTNING
-import no.nav.su.se.bakover.domain.Vilkår.UFØRHET
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import no.nav.su.se.bakover.domain.VoidObserver
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
@@ -46,7 +43,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -67,7 +63,6 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             assertNull(repo.hentSak(FnrGenerator.random()))
             assertNull(repo.hentSak(UUID.randomUUID()))
-            assertTrue(repo.hentVilkårsvurderinger(UUID.randomUUID()).isEmpty())
             assertNull(repo.hentBehandling(UUID.randomUUID()))
             assertNull(repo.hentSøknad(UUID.randomUUID()))
         }
@@ -152,46 +147,26 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent vilkårsvurderinger`() {
+    fun `oppdater behandlingsinformasjon`() {
         withMigratedDb {
             val sak = insertSak(FNR)
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
-            val vilkårsvurderinger = insertVilkårsvurderinger(behandling.id)
 
-            val hentet = repo.hentVilkårsvurderinger(behandling.id)
-
-            vilkårsvurderinger shouldBe hentet
-            vilkårsvurderinger shouldHaveSize 2
-
-            (vilkårsvurderinger + hentet).forEach {
-                assertPersistenceObserverAssigned(it, vilkårsvurderingPersistenceObserver())
-            }
-        }
-    }
-
-    @Test
-    fun `oppdater vilkårsvurderinger`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-            val vilkårsvurderinger = insertVilkårsvurderinger(behandling.id)
-            val uførhet = vilkårsvurderinger.first { it.vilkår == UFØRHET }
-
-            val oppdatert = repo.oppdaterVilkårsvurdering(
-                Vilkårsvurdering(
-                    id = uførhet.id,
-                    vilkår = UFØRHET,
-                    begrunnelse = "OK",
-                    status = Vilkårsvurdering.Status.OK
+            val oppdatert = repo.oppdaterBehandlingsinformasjon(
+                behandling.id,
+                Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        uføregrad = 40,
+                        forventetInntekt = 200
+                    )
                 )
             )
 
-            val hentet = repo.hentVilkårsvurderinger(behandling.id)
-                .first { it.vilkår == UFØRHET }
+            val hentet = repo.hentBehandling(behandling.id)
 
-            oppdatert shouldBe hentet
+            oppdatert shouldBe hentet!!.behandlingsinformasjon()
         }
     }
 
@@ -572,13 +547,6 @@ internal class DatabaseRepoTest {
     private fun voidObserver() = object : VoidObserver {}
 
     private fun behandlingPersistenceObserver() = object : BehandlingPersistenceObserver {
-        override fun opprettVilkårsvurderinger(
-            behandlingId: UUID,
-            vilkårsvurderinger: List<Vilkårsvurdering>
-        ): List<Vilkårsvurdering> {
-            throw NotImplementedError()
-        }
-
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
             throw NotImplementedError()
         }
@@ -587,6 +555,13 @@ internal class DatabaseRepoTest {
             behandlingId: UUID,
             status: Behandling.BehandlingsStatus
         ): Behandling.BehandlingsStatus {
+            throw NotImplementedError()
+        }
+
+        override fun oppdaterBehandlingsinformasjon(
+            behandlingId: UUID,
+            behandlingsinformasjon: Behandlingsinformasjon
+        ): Behandlingsinformasjon {
             throw NotImplementedError()
         }
 
@@ -600,12 +575,6 @@ internal class DatabaseRepoTest {
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
-        }
-    }
-
-    private fun vilkårsvurderingPersistenceObserver() = object : VilkårsvurderingPersistenceObserver {
-        override fun oppdaterVilkårsvurdering(vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
-            throw NotImplementedError()
         }
     }
 
@@ -699,21 +668,4 @@ internal class DatabaseRepoTest {
             fradrag = emptyList()
         )
     )
-
-    private fun insertVilkårsvurderinger(behandlingId: UUID) =
-        repo.opprettVilkårsvurderinger(
-            behandlingId = behandlingId,
-            vilkårsvurderinger = listOf(
-                Vilkårsvurdering(
-                    vilkår = UFØRHET,
-                    begrunnelse = "",
-                    status = Vilkårsvurdering.Status.IKKE_VURDERT
-                ),
-                Vilkårsvurdering(
-                    vilkår = FLYKTNING,
-                    begrunnelse = "",
-                    status = Vilkårsvurdering.Status.IKKE_VURDERT
-                )
-            )
-        )
 }

@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.collections.shouldContainAll
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -22,9 +20,11 @@ import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_OK
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.IKKE_VURDERT
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -79,13 +79,6 @@ internal class BehandlingTest {
         val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
         val b = Behandling(
             id1,
-            vilkårsvurderinger = mutableListOf(
-                Vilkårsvurdering(
-                    vilkår = Vilkår.UFØRHET,
-                    begrunnelse = "",
-                    status = OK
-                )
-            ),
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
             sakId = id1
@@ -103,13 +96,6 @@ internal class BehandlingTest {
         val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
         val b = Behandling(
             id1,
-            vilkårsvurderinger = mutableListOf(
-                Vilkårsvurdering(
-                    vilkår = Vilkår.UFØRHET,
-                    begrunnelse = "",
-                    status = OK
-                )
-            ),
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
             sakId = id1
@@ -135,64 +121,34 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(OK))
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
         }
 
         @Test
-        fun `should create all vilkårsvurderinger`() {
-            val expected = listOf(
-                Vilkår.UFØRHET,
-                Vilkår.FLYKTNING,
-                Vilkår.OPPHOLDSTILLATELSE,
-                Vilkår.PERSONLIG_OPPMØTE,
-                Vilkår.FORMUE,
-                Vilkår.BOR_OG_OPPHOLDER_SEG_I_NORGE
-            )
-            opprettet.opprettVilkårsvurderinger()
-
-            observer.opprettetVilkårsvurdering.first shouldBe id1
-            observer.opprettetVilkårsvurdering.second.size shouldBe 6
-            observer.opprettetVilkårsvurdering.second.map { it.vilkår } shouldContainExactly expected
-        }
-
-        @Test
-        fun `should update vilkårsvurderinger`() {
-            opprettet.opprettVilkårsvurderinger()
-            val expected = extractVilkårsvurderinger(opprettet).withStatus(OK)
-            opprettet.oppdaterVilkårsvurderinger(expected)
-            opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
-            observer.oppdatertStatus shouldBe opprettet.status()
-            observer.oppdaterteVilkårsvurderinger.map { it.second } shouldContainAll expected
+        fun `should update behandlingsinformasjon`() {
+            val expected = extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
+            opprettet.oppdaterBehandlingsinformasjon(expected)
+            observer.oppdatertBehandlingsinformasjon shouldBe expected
         }
 
         @Test
         fun `transition to Vilkårsvurdert`() {
-            opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(OK))
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
         fun `transition to Avslått`() {
-            opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(IKKE_OK))
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
             opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
             observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
         fun `dont transition if vilkårsvurdering not completed`() {
-            opprettet.opprettVilkårsvurderinger()
-            opprettet.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(opprettet).withStatus(IKKE_VURDERT))
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.status() shouldBe OPPRETTET
-        }
-
-        @Test
-        fun `should only create vilkårsvurderinger once`() {
-            opprettet.opprettVilkårsvurderinger()
-            assertThrows<Behandling.TilstandException> { opprettet.opprettVilkårsvurderinger() }
         }
 
         @Test
@@ -221,11 +177,8 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             vilkårsvurdert = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            vilkårsvurdert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(vilkårsvurdert).withStatus(
-                    OK
-                )
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
             observer.oppdatertStatus shouldBe vilkårsvurdert.status()
@@ -256,15 +209,14 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
-            vilkårsvurdert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(vilkårsvurdert).withStatus(OK)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
@@ -282,11 +234,9 @@ internal class BehandlingTest {
 
         @BeforeEach
         fun beforeEach() {
-            vilkårsvurdert = createBehandling(id1, OPPRETTET).opprettVilkårsvurderinger()
-            vilkårsvurdert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(vilkårsvurdert).withStatus(
-                    IKKE_OK
-                )
+            vilkårsvurdert = createBehandling(id1, OPPRETTET)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(vilkårsvurdert).withVilkårAvslått()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
             observer.oppdatertStatus shouldBe vilkårsvurdert.status()
@@ -300,13 +250,14 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
-            vilkårsvurdert.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(vilkårsvurdert).withStatus(OK))
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.opprettBeregning(
                     1.januar(2020),
@@ -327,11 +278,8 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             beregnet = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            beregnet.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(beregnet).withStatus(
-                    OK
-                )
+            beregnet.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET
@@ -352,15 +300,14 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
-            beregnet.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(beregnet).withStatus(OK)
+            beregnet.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(beregnet)
             )
             beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 beregnet.iverksett(
@@ -378,11 +325,9 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             simulert = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            simulert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(simulert).withStatus(
-                    OK
-                )
+            simulert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(simulert)
+                    .withAlleVilkårOppfylt()
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
             simulert.simuler(SimuleringClientStub)
@@ -404,8 +349,9 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne vilkårsvurdere på nytt`() {
-            simulert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(simulert).withStatus(OK)
+            simulert.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(simulert)
+                    .withAlleVilkårOppfylt()
             )
             simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
@@ -418,7 +364,6 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
                 simulert.iverksett(
                     Attestant("A123456"),
@@ -435,11 +380,8 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             avslått = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            avslått.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(avslått).withStatus(
-                    IKKE_OK
-                )
+            avslått.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(avslått).withVilkårAvslått()
             )
             avslått.status() shouldBe VILKÅRSVURDERT_AVSLAG
             observer.oppdatertStatus shouldBe avslått.status()
@@ -447,13 +389,12 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            avslått.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(avslått).withStatus(OK))
+            avslått.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(avslått).withAlleVilkårOppfylt())
             avslått.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { avslått.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
                 avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
@@ -470,11 +411,8 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             tilAttestering = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            tilAttestering.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(tilAttestering).withStatus(
-                    OK
-                )
+            tilAttestering.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             tilAttestering.simuler(SimuleringClientStub)
@@ -542,14 +480,6 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.oppdaterVilkårsvurderinger(
-                    extractVilkårsvurderinger(behandling).withStatus(
-                        OK
-                    )
-                )
-            }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
@@ -569,11 +499,8 @@ internal class BehandlingTest {
         @BeforeEach
         fun beforeEach() {
             tilAttestering = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            tilAttestering.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(tilAttestering).withStatus(
-                    IKKE_OK
-                )
+            tilAttestering.oppdaterBehandlingsinformasjon(
+                extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
             tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
@@ -589,14 +516,6 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.oppdaterVilkårsvurderinger(
-                    extractVilkårsvurderinger(behandling).withStatus(
-                        OK
-                    )
-                )
-            }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
@@ -609,46 +528,14 @@ internal class BehandlingTest {
         }
     }
 
-    private fun List<Vilkårsvurdering>.withStatus(status: Vilkårsvurdering.Status) = map {
-        Vilkårsvurdering(
-            id = it.id,
-            opprettet = it.opprettet,
-            vilkår = it.vilkår,
-            begrunnelse = status.name,
-            status = status
-        )
-    }
-
-    private fun extractVilkårsvurderinger(behandling: Behandling) =
-        behandling.vilkårsvurderinger().map {
-            Vilkårsvurdering(
-                id = it.id,
-                opprettet = it.opprettet,
-                vilkår = it.vilkår,
-                begrunnelse = it.begrunnelse(),
-                status = it.status()
-            )
-        }
-
     private class DummyObserver :
         BehandlingPersistenceObserver,
-        VilkårsvurderingPersistenceObserver,
         Oppdrag.OppdragPersistenceObserver,
         UtbetalingPersistenceObserver {
-        lateinit var opprettetVilkårsvurdering: Pair<UUID, List<Vilkårsvurdering>>
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
         lateinit var oppdatertStatus: BehandlingsStatus
-        var oppdaterteVilkårsvurderinger: MutableList<Pair<UUID, Vilkårsvurdering>> = mutableListOf()
         lateinit var oppdragsmelding: Oppdragsmelding
-
-        override fun opprettVilkårsvurderinger(
-            behandlingId: UUID,
-            vilkårsvurderinger: List<Vilkårsvurdering>
-        ): List<Vilkårsvurdering> {
-            vilkårsvurderinger.forEach { it.addObserver(this) }
-            opprettetVilkårsvurdering = behandlingId to vilkårsvurderinger
-            return opprettetVilkårsvurdering.second
-        }
+        lateinit var oppdatertBehandlingsinformasjon: Behandlingsinformasjon
 
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
             opprettetBeregning = behandlingId to beregning
@@ -663,6 +550,14 @@ internal class BehandlingTest {
             return status
         }
 
+        override fun oppdaterBehandlingsinformasjon(
+            behandlingId: UUID,
+            behandlingsinformasjon: Behandlingsinformasjon
+        ): Behandlingsinformasjon {
+            oppdatertBehandlingsinformasjon = behandlingsinformasjon
+            return behandlingsinformasjon
+        }
+
         override fun hentOppdrag(sakId: UUID): Oppdrag {
             return oppdrag.copy(sakId = sakId).also { it.addObserver(this) }
         }
@@ -673,11 +568,6 @@ internal class BehandlingTest {
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
-        }
-
-        override fun oppdaterVilkårsvurdering(vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
-            oppdaterteVilkårsvurderinger.add(vilkårsvurdering.id to vilkårsvurdering)
-            return vilkårsvurdering
         }
 
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonDto
 
 data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -15,7 +14,7 @@ data class BehandlingsinformasjonJson(
     val sats: SatsJson? = null
 ) {
     companion object {
-        fun BehandlingsinformasjonDto.toJson() =
+        fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
                 uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
@@ -101,38 +100,38 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         }
     )
 
-internal fun Behandlingsinformasjon.Uførhet.Dto.toJson() =
+internal fun Behandlingsinformasjon.Uførhet.toJson() =
     UførhetJson(
         status = status.name,
         uføregrad = uføregrad,
         forventetInntekt = forventetInntekt
     )
 
-internal fun Behandlingsinformasjon.Flyktning.Dto.toJson() =
+internal fun Behandlingsinformasjon.Flyktning.toJson() =
     FlyktningJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.LovligOpphold.Dto.toJson() =
+internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
     LovligOppholdJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.FastOppholdINorge.Dto.toJson() =
+internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
     FastOppholdINorgeJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.OppholdIUtlandet.Dto.toJson() =
+internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
     OppholdIUtlandetJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.Formue.Dto.toJson() =
+internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
         verdiIkkePrimærbolig = verdiIkkePrimærbolig,
@@ -144,13 +143,13 @@ internal fun Behandlingsinformasjon.Formue.Dto.toJson() =
         depositumskonto = depositumskonto
     )
 
-internal fun Behandlingsinformasjon.PersonligOppmøte.Dto.toJson() =
+internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
     PersonligOppmøteJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.Sats.Dto.toJson() =
+internal fun Behandlingsinformasjon.Sats.toJson() =
     SatsJson(
         delerBolig = delerBolig,
         delerBoligMed = delerBoligMed?.name,

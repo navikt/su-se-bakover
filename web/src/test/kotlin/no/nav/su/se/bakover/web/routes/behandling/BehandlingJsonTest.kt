@@ -5,8 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Vilkår
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknad
@@ -26,18 +25,48 @@ internal class BehandlingJsonTest {
 
         internal val behandling = Behandling(
             id = behandlingId,
-            vilkårsvurderinger = mutableListOf(
-                Vilkårsvurdering(
-                    id = vv1id,
-                    vilkår = Vilkår.UFØRHET,
-                    begrunnelse = "uførhetBegrunnelse",
-                    status = Vilkårsvurdering.Status.OK
+            behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    uføregrad = 20,
+                    forventetInntekt = 10
                 ),
-                Vilkårsvurdering(
-                    id = vv2id,
-                    vilkår = Vilkår.FORMUE,
-                    begrunnelse = "formueBegrunnelse",
-                    status = Vilkårsvurdering.Status.IKKE_VURDERT
+                flyktning = Behandlingsinformasjon.Flyktning(
+                    status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+                    begrunnelse = null
+                ),
+                lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+                    status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
+                    begrunnelse = null
+                ),
+                fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
+                    status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
+                    begrunnelse = null
+                ),
+                oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
+                    status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                    begrunnelse = null
+                ),
+                formue = Behandlingsinformasjon.Formue(
+                    status = Behandlingsinformasjon.Formue.Status.Ok,
+                    verdiIkkePrimærbolig = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0
+                ),
+                personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
+                    status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
+                    begrunnelse = null
+                ),
+                sats = Behandlingsinformasjon.Sats(
+                    delerBolig = false,
+                    delerBoligMed = null,
+                    ektemakeEllerSamboerUnder67År = false,
+                    ektemakeEllerSamboerUførFlyktning = false,
+                    begrunnelse = null
                 )
             ),
             søknad = søknad,
@@ -52,17 +81,49 @@ internal class BehandlingJsonTest {
         {
           "id": "$behandlingId",
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(behandling.opprettet)}",
-          "vilkårsvurderinger": {
-            "UFØRHET": {
-              "id": "$vv1id",
-              "begrunnelse": "uførhetBegrunnelse",
-              "status": "OK"
-            },
-            "FORMUE": {
-              "id": "$vv2id",
-              "begrunnelse": "formueBegrunnelse",
-              "status": "IKKE_VURDERT"
-            }
+          "behandlingsinformasjon": {
+                "uførhet": {
+                    "status": "VilkårOppfylt",
+                    "uføregrad": 20,
+                    "forventetInntekt": 10
+                },
+                "flyktning": {
+                    "status" : "VilkårOppfylt",
+                    "begrunnelse" : null
+                },
+                "lovligOpphold": {
+                    "status" : "VilkårOppfylt",
+                    "begrunnelse" : null
+                },
+                "fastOppholdINorge": {
+                    "status": "VilkårOppfylt",
+                    "begrunnelse": null
+                },
+                "oppholdIUtlandet": {
+                    "status": "SkalHoldeSegINorge",
+                    "begrunnelse": null
+                },
+                "formue": {
+                    "status": "Ok",
+                    "verdiIkkePrimærbolig": 0,
+                    "verdiKjøretøy": 0,
+                    "innskudd": 0,
+                    "verdipapir": 0,
+                    "pengerSkyldt": 0,
+                    "kontanter": 0,
+                    "depositumskonto": 0
+                },
+                "personligOppmøte": {
+                    "status": "MøttPersonlig",
+                    "begrunnelse": null
+                },
+                "sats": {
+                    "delerBolig": false,
+                    "delerBoligMed": null,
+                    "ektemakeEllerSamboerUnder67År": false,
+                    "ektemakeEllerSamboerUførFlyktning": false,
+                    "begrunnelse": null
+                }
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
@@ -88,7 +149,7 @@ internal class BehandlingJsonTest {
     fun nullables() {
         val behandlingWithNulls = Behandling(
             id = behandlingId,
-            vilkårsvurderinger = mutableListOf(),
+            behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = søknad,
             sakId = sakId
         )
@@ -99,7 +160,16 @@ internal class BehandlingJsonTest {
             """
         {
           "id": "$behandlingId",
-          "vilkårsvurderinger": {},
+          "behandlingsinformasjon": {
+            "uførhet": null,
+            "flyktning": null,
+            "lovligOpphold": null,
+            "fastOppholdINorge": null,
+            "oppholdIUtlandet": null,
+            "formue": null,
+            "personligOppmøte": null,
+            "sats": null
+          },
           "søknad": $søknadJsonString,
           "beregning": null,
           "status": "OPPRETTET",

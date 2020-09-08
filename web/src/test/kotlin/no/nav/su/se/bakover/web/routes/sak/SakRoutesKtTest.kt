@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
@@ -107,7 +106,6 @@ internal class SakRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
-                behandling.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveAtLeastSize 1
                 behandling.søknad.id shouldBe nySøknad.id.toString()
             }
         }

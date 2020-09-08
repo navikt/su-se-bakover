@@ -5,6 +5,7 @@ import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -23,8 +24,8 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
+import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -54,7 +55,7 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(HttpMethod.Get, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}").apply {
                 objectMapper.readValue<BehandlingJson>(response.content!!).let {
                     it.id shouldBe objects.behandling.id.toString()
-                    it.vilkårsvurderinger.vilkårsvurderinger.keys shouldHaveSize 6
+                    it.behandlingsinformasjon shouldNotBe null
                     it.søknad.id shouldBe objects.søknad.id.toString()
                 }
             }
@@ -67,7 +68,7 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             defaultRequest(
@@ -96,7 +97,7 @@ internal class BehandlingRoutesKtTest {
             )
         }) {
             val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             defaultRequest(
@@ -120,11 +121,7 @@ internal class BehandlingRoutesKtTest {
             val tom = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            objects.behandling.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(objects.behandling).withStatus(
-                    OK
-                )
-            )
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
 
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
@@ -219,11 +216,7 @@ internal class BehandlingRoutesKtTest {
                 response.content shouldContain "Fant ikke behandling med behandlingId"
             }
 
-            objects.behandling.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(objects.behandling).withStatus(
-                    OK
-                )
-            )
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
 
             defaultRequest(
@@ -270,7 +263,7 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
@@ -321,7 +314,7 @@ internal class BehandlingRoutesKtTest {
             )
         }) {
             val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
@@ -347,16 +340,4 @@ internal class BehandlingRoutesKtTest {
         val behandling = sak.opprettSøknadsbehandling(søknad.id)
         return Objects(sak, søknad, behandling)
     }
-
-    private fun List<Vilkårsvurdering>.withStatus(status: Vilkårsvurdering.Status) = map {
-        Vilkårsvurdering(
-            id = it.id,
-            opprettet = it.opprettet,
-            vilkår = it.vilkår,
-            begrunnelse = status.name,
-            status = status
-        )
-    }
-
-    private fun extractVilkårsvurderinger(behandling: Behandling) = behandling.vilkårsvurderinger()
 }

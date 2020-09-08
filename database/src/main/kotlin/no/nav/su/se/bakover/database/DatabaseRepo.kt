@@ -16,9 +16,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Vilkår
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
@@ -42,7 +40,6 @@ internal class DatabaseRepo(
 ) : ObjectRepo,
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
-    VilkårsvurderingPersistenceObserver,
     OppdragPersistenceObserver,
     UtbetalingPersistenceObserver {
 
@@ -59,13 +56,19 @@ internal class DatabaseRepo(
         sakId: UUID,
         behandling: Behandling
     ): Behandling {
-        "insert into behandling (id, sakId, søknadId, opprettet, status) values (:id, :sakId, :soknadId, :opprettet, :status)".oppdatering(
+        """
+            insert into behandling
+                (id, sakId, søknadId, opprettet, status, behandlingsinformasjon)
+            values
+                (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
+        """.trimIndent().oppdatering(
             mapOf(
                 "id" to behandling.id,
                 "sakId" to sakId,
                 "soknadId" to behandling.søknad.id,
                 "opprettet" to behandling.opprettet,
-                "status" to behandling.status().name
+                "status" to behandling.status().name,
+                "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
             )
         )
         behandling.addObserver(this)
@@ -313,7 +316,7 @@ internal class DatabaseRepo(
         val behandlingId = uuid("id")
         return Behandling(
             id = behandlingId,
-            vilkårsvurderinger = hentVilkårsvurderingerInternal(behandlingId, session),
+            behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = instant("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
@@ -326,48 +329,6 @@ internal class DatabaseRepo(
         }
     }
 
-    override fun opprettVilkårsvurderinger(
-        behandlingId: UUID,
-        vilkårsvurderinger: List<Vilkårsvurdering>
-    ): List<Vilkårsvurdering> {
-        return vilkårsvurderinger.map { opprettVilkårsvurdering(behandlingId, it) }
-    }
-
-    override fun hentVilkårsvurderinger(behandlingId: UUID): MutableList<Vilkårsvurdering> =
-        using(sessionOf(dataSource)) { hentVilkårsvurderingerInternal(behandlingId, it) }
-
-    private fun hentVilkårsvurderingerInternal(behandlingId: UUID, session: Session): MutableList<Vilkårsvurdering> =
-        "select * from vilkårsvurdering where behandlingId=:behandlingId".hentListe(
-            mapOf("behandlingId" to behandlingId),
-            session
-        ) {
-            it.toVilkårsvurdering()
-        }.toMutableList()
-
-    private fun Row.toVilkårsvurdering() = Vilkårsvurdering(
-        id = UUID.fromString(string("id")),
-        vilkår = Vilkår.valueOf(string("vilkår")),
-        begrunnelse = string("begrunnelse"),
-        status = Vilkårsvurdering.Status.valueOf(string("status")),
-        opprettet = instant("opprettet")
-    ).also { it.addObserver(this@DatabaseRepo) }
-
-    private fun opprettVilkårsvurdering(behandlingId: UUID, vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
-        "insert into vilkårsvurdering (id, behandlingId, vilkår, begrunnelse, status, opprettet) values (:id, :behandlingId, :vilkar, :begrunnelse, :status, :opprettet)"
-            .oppdatering(
-                mapOf(
-                    "id" to vilkårsvurdering.id,
-                    "behandlingId" to behandlingId,
-                    "vilkar" to vilkårsvurdering.vilkår.name,
-                    "begrunnelse" to vilkårsvurdering.begrunnelse(),
-                    "status" to vilkårsvurdering.status().name,
-                    "opprettet" to vilkårsvurdering.opprettet
-                )
-            )
-        vilkårsvurdering.addObserver(this)
-        return vilkårsvurdering
-    }
-
     private fun String.oppdatering(params: Map<String, Any?>) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) {
             it.run(
@@ -378,8 +339,6 @@ internal class DatabaseRepo(
             )
         }
     }
-//    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): T? = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle) }
-//    private fun <T> String.hentListe(params: Map<String, Any> = emptyMap(), rowMapping: (Row) -> T): List<T> = using(sessionOf(dataSource)) { it.run(queryOf(this, params).map { row -> rowMapping(row) }.asList) }
 
     private fun <T> String.hent(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): T? =
         session.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle)
@@ -389,20 +348,6 @@ internal class DatabaseRepo(
         session: Session,
         rowMapping: (Row) -> T
     ): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
-
-    override fun oppdaterVilkårsvurdering(
-        vilkårsvurdering: Vilkårsvurdering
-    ): Vilkårsvurdering {
-        "update vilkårsvurdering set begrunnelse = :begrunnelse, status = :status where id = :id"
-            .oppdatering(
-                mapOf(
-                    "id" to vilkårsvurdering.id,
-                    "begrunnelse" to vilkårsvurdering.begrunnelse(),
-                    "status" to vilkårsvurdering.status().name
-                )
-            )
-        return vilkårsvurdering
-    }
 
     override fun hentBeregning(behandlingId: UUID): Beregning? =
         using(sessionOf(dataSource)) { hentBeregningInternal(behandlingId, it) }
@@ -454,6 +399,19 @@ internal class DatabaseRepo(
             )
         )
         return status
+    }
+
+    override fun oppdaterBehandlingsinformasjon(
+        behandlingId: UUID,
+        behandlingsinformasjon: Behandlingsinformasjon
+    ): Behandlingsinformasjon {
+        "update behandling set behandlingsinformasjon = to_json(:behandlingsinformasjon::json) where id = :id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "behandlingsinformasjon" to objectMapper.writeValueAsString(behandlingsinformasjon)
+            )
+        )
+        return behandlingsinformasjon
     }
 
     override fun hentOppdrag(sakId: UUID): Oppdrag {

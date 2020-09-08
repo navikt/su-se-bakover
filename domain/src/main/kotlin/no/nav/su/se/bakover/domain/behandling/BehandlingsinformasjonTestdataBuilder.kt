@@ -8,100 +8,96 @@ import no.nav.su.se.bakover.domain.Behandling
  */
 
 fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
-    this.toDto().let {
-        Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                uføregrad = it.uførhet?.uføregrad ?: 20,
-                forventetInntekt = it.uførhet?.forventetInntekt ?: 10
-            ),
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = it.flyktning?.begrunnelse
-            ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = it.lovligOpphold?.begrunnelse
-            ),
-            fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = it.fastOppholdINorge?.begrunnelse
-            ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = it.oppholdIUtlandet?.begrunnelse
-            ),
-            formue = Behandlingsinformasjon.Formue(
-                status = Behandlingsinformasjon.Formue.Status.Ok,
-                verdiIkkePrimærbolig = it.formue?.verdiIkkePrimærbolig ?: 0,
-                verdiKjøretøy = it.formue?.verdiKjøretøy ?: 0,
-                innskudd = it.formue?.innskudd ?: 0,
-                verdipapir = it.formue?.verdipapir ?: 0,
-                pengerSkyldt = it.formue?.pengerSkyldt ?: 0,
-                kontanter = it.formue?.kontanter ?: 0,
-                depositumskonto = it.formue?.depositumskonto ?: 0
-            ),
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = it.personligOppmøte?.begrunnelse
-            ),
-            sats = Behandlingsinformasjon.Sats(
-                delerBolig = it.sats?.delerBolig ?: false,
-                delerBoligMed = it.sats?.delerBoligMed,
-                ektemakeEllerSamboerUnder67År = it.sats?.ektemakeEllerSamboerUnder67År,
-                ektemakeEllerSamboerUførFlyktning = it.sats?.ektemakeEllerSamboerUførFlyktning,
-                begrunnelse = it.sats?.begrunnelse
-            )
+    Behandlingsinformasjon(
+        uførhet = Behandlingsinformasjon.Uførhet(
+            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+            uføregrad = uførhet?.uføregrad ?: 20,
+            forventetInntekt = uførhet?.forventetInntekt ?: 10
+        ),
+        flyktning = Behandlingsinformasjon.Flyktning(
+            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+            begrunnelse = flyktning?.begrunnelse
+        ),
+        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
+            begrunnelse = lovligOpphold?.begrunnelse
+        ),
+        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
+            begrunnelse = fastOppholdINorge?.begrunnelse
+        ),
+        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+            begrunnelse = oppholdIUtlandet?.begrunnelse
+        ),
+        formue = Behandlingsinformasjon.Formue(
+            status = Behandlingsinformasjon.Formue.Status.Ok,
+            verdiIkkePrimærbolig = formue?.verdiIkkePrimærbolig ?: 0,
+            verdiKjøretøy = formue?.verdiKjøretøy ?: 0,
+            innskudd = formue?.innskudd ?: 0,
+            verdipapir = formue?.verdipapir ?: 0,
+            pengerSkyldt = formue?.pengerSkyldt ?: 0,
+            kontanter = formue?.kontanter ?: 0,
+            depositumskonto = formue?.depositumskonto ?: 0
+        ),
+        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
+            begrunnelse = personligOppmøte?.begrunnelse
+        ),
+        sats = Behandlingsinformasjon.Sats(
+            delerBolig = sats?.delerBolig ?: false,
+            delerBoligMed = sats?.delerBoligMed,
+            ektemakeEllerSamboerUnder67År = sats?.ektemakeEllerSamboerUnder67År,
+            ektemakeEllerSamboerUførFlyktning = sats?.ektemakeEllerSamboerUførFlyktning,
+            begrunnelse = sats?.begrunnelse
         )
-    }
+    )
 
 fun Behandlingsinformasjon.withVilkårAvslått() =
-    this.toDto().let {
-        Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-                uføregrad = null,
-                forventetInntekt = null
-            ),
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = it.flyktning?.begrunnelse
-            ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = it.lovligOpphold?.begrunnelse
-            ),
-            fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = it.fastOppholdINorge?.begrunnelse
-            ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = it.oppholdIUtlandet?.begrunnelse
-            ),
-            formue = Behandlingsinformasjon.Formue(
-                status = Behandlingsinformasjon.Formue.Status.Ok,
-                verdiIkkePrimærbolig = it.formue?.verdiIkkePrimærbolig,
-                verdiKjøretøy = it.formue?.verdiKjøretøy,
-                innskudd = it.formue?.innskudd,
-                verdipapir = it.formue?.verdipapir,
-                pengerSkyldt = it.formue?.pengerSkyldt,
-                kontanter = it.formue?.kontanter,
-                depositumskonto = it.formue?.depositumskonto
-            ),
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = it.personligOppmøte?.begrunnelse
-            ),
-            sats = Behandlingsinformasjon.Sats(
-                delerBolig = it.sats?.delerBolig ?: false,
-                delerBoligMed = it.sats?.delerBoligMed,
-                ektemakeEllerSamboerUnder67År = it.sats?.ektemakeEllerSamboerUnder67År,
-                ektemakeEllerSamboerUførFlyktning = it.sats?.ektemakeEllerSamboerUførFlyktning,
-                begrunnelse = it.sats?.begrunnelse
-            )
+    Behandlingsinformasjon(
+        uførhet = Behandlingsinformasjon.Uførhet(
+            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+            uføregrad = null,
+            forventetInntekt = null
+        ),
+        flyktning = Behandlingsinformasjon.Flyktning(
+            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+            begrunnelse = flyktning?.begrunnelse
+        ),
+        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
+            begrunnelse = lovligOpphold?.begrunnelse
+        ),
+        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
+            begrunnelse = fastOppholdINorge?.begrunnelse
+        ),
+        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+            begrunnelse = oppholdIUtlandet?.begrunnelse
+        ),
+        formue = Behandlingsinformasjon.Formue(
+            status = Behandlingsinformasjon.Formue.Status.Ok,
+            verdiIkkePrimærbolig = formue?.verdiIkkePrimærbolig,
+            verdiKjøretøy = formue?.verdiKjøretøy,
+            innskudd = formue?.innskudd,
+            verdipapir = formue?.verdipapir,
+            pengerSkyldt = formue?.pengerSkyldt,
+            kontanter = formue?.kontanter,
+            depositumskonto = formue?.depositumskonto
+        ),
+        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
+            begrunnelse = personligOppmøte?.begrunnelse
+        ),
+        sats = Behandlingsinformasjon.Sats(
+            delerBolig = sats?.delerBolig ?: false,
+            delerBoligMed = sats?.delerBoligMed,
+            ektemakeEllerSamboerUnder67År = sats?.ektemakeEllerSamboerUnder67År,
+            ektemakeEllerSamboerUførFlyktning = sats?.ektemakeEllerSamboerUførFlyktning,
+            begrunnelse = sats?.begrunnelse
         )
-    }
+    )
 
 fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
     Behandlingsinformasjon(
@@ -116,7 +112,7 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
     )
 
 fun extractBehandlingsinformasjon(behandling: Behandling) =
-    behandling.toDto().behandlingsinformasjon.let {
+    behandling.behandlingsinformasjon().let {
         Behandlingsinformasjon(
             uførhet = it.uførhet?.let { u ->
                 Behandlingsinformasjon.Uførhet(

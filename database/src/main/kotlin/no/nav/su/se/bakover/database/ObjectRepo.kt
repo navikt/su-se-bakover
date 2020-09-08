@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -18,7 +17,6 @@ interface ObjectRepo {
     fun opprettSak(fnr: Fnr): Sak
     fun hentSøknad(søknadId: UUID): Søknad?
     fun hentBehandling(behandlingId: UUID): Behandling?
-    fun hentVilkårsvurderinger(behandlingId: UUID): MutableList<Vilkårsvurdering>
     fun hentBeregning(behandlingId: UUID): Beregning?
     fun hentUtbetaling(utbetalingId: UUID30): Utbetaling?
     fun hentUtbetalingerTilAvstemming(fom: Instant, tom: Instant): List<Utbetaling>

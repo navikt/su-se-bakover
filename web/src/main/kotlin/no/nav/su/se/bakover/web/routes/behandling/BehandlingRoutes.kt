@@ -54,6 +54,25 @@ internal fun Route.behandlingRoutes(
         }
     }
 
+    patch("$behandlingPath/{behandlingId}/informasjon") {
+        call.withBehandling(repo) { behandling ->
+            Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
+                ifLeft = {
+                    log.info("Ugylding behandlingsinformasjon-body", it)
+                    call.svar(BadRequest.message("Klarte ikke deserialisere body"))
+                },
+                ifRight = { body ->
+                    call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
+                    if (body.isValid()) {
+                        behandling.oppdaterBehandlingsinformasjon(behandlingsinformasjonFromJson(body))
+                    } else {
+                        call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
+                    }
+                }
+            )
+        }
+    }
+
     data class OpprettBeregningBody(
         val fom: LocalDate,
         val tom: LocalDate,

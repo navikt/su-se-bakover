@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -23,7 +24,16 @@ import java.util.UUID
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Instant = now(),
-    private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
+    private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon(
+        uførhet = null,
+        flyktning = null,
+        lovligOpphold = null,
+        fastOppholdINorge = null,
+        oppholdIUtlandet = null,
+        formue = null,
+        personligOppmøte = null,
+        sats = null
+    ),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
     private var utbetaling: Utbetaling? = null,
@@ -40,7 +50,7 @@ data class Behandling(
 
     fun beregning() = beregning
 
-    fun vilkårsvurderinger() = vilkårsvurderinger.toList()
+    fun behandlingsinformasjon() = behandlingsinformasjon
 
     /**
      * Henter fødselsnummer fra sak via persisteringslaget (lazy)
@@ -61,13 +71,8 @@ data class Behandling(
         BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
 
-    fun opprettVilkårsvurderinger(): Behandling {
-        tilstand.opprettVilkårsvurderinger()
-        return this
-    }
-
-    fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>): Behandling {
-        tilstand.oppdaterVilkårsvurderinger(oppdatertListe)
+    fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon): Behandling {
+        tilstand.oppdaterBehandlingsinformasjon(oppdatert)
         return this
     }
 
@@ -99,18 +104,11 @@ data class Behandling(
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
 
-    private fun List<Vilkårsvurdering>.alleVurdert() = none { !it.vurdert() }
-    private fun List<Vilkårsvurdering>.harAvslag() = any { it.avslått() }
-    private fun List<Vilkårsvurdering>.innvilget() = alleVurdert() && !harAvslag()
-
     interface Tilstand {
         val status: BehandlingsStatus
-        fun opprettVilkårsvurderinger() {
-            throw TilstandException(status, this::opprettVilkårsvurderinger.toString())
-        }
 
-        fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            throw TilstandException(status, this::oppdaterVilkårsvurderinger.toString())
+        fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            throw TilstandException(status, this::oppdaterBehandlingsinformasjon.toString())
         }
 
         fun opprettBeregning(
@@ -147,31 +145,12 @@ data class Behandling(
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
-        override fun opprettVilkårsvurderinger() {
-            if (vilkårsvurderinger.isNotEmpty()) throw TilstandException(
-                status,
-                this::opprettVilkårsvurderinger.toString()
-            )
-            vilkårsvurderinger.addAll(
-                persistenceObserver.opprettVilkårsvurderinger(
-                    behandlingId = id,
-                    vilkårsvurderinger = Vilkår.values().map { Vilkårsvurdering(vilkår = it) }
-                )
-            )
-        }
-
-        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            oppdatertListe.forEach { oppdatert ->
-                vilkårsvurderinger
-                    .single { it == oppdatert }
-                    .apply { oppdater(oppdatert) }
-            }
-            if (vilkårsvurderinger.innvilget()) {
+        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(this@Behandling.id, oppdatert)
+            if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
-            } else {
-                if (vilkårsvurderinger.alleVurdert() && vilkårsvurderinger.harAvslag()) {
-                    nyTilstand(Vilkårsvurdert().Avslag())
-                }
+            } else if (behandlingsinformasjon.isAvslag()) {
+                nyTilstand(Vilkårsvurdert().Avslag())
             }
         }
     }
@@ -179,8 +158,8 @@ data class Behandling(
     private open inner class Vilkårsvurdert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
-        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
         inner class Innvilget : Vilkårsvurdert() {
@@ -223,8 +202,8 @@ data class Behandling(
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
         }
 
-        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
@@ -267,8 +246,8 @@ data class Behandling(
             nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, sats, fradrag)
         }
 
-        override fun oppdaterVilkårsvurderinger(oppdatertListe: List<Vilkårsvurdering>) {
-            nyTilstand(Opprettet()).oppdaterVilkårsvurderinger(oppdatertListe)
+        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
@@ -356,16 +335,15 @@ data class Behandling(
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
-    fun opprettVilkårsvurderinger(
-        behandlingId: UUID,
-        vilkårsvurderinger: List<Vilkårsvurdering>
-    ): List<Vilkårsvurdering>
-
     fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
     fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
     ): Behandling.BehandlingsStatus
+    fun oppdaterBehandlingsinformasjon(
+        behandlingId: UUID,
+        behandlingsinformasjon: Behandlingsinformasjon
+    ): Behandlingsinformasjon
 
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
