@@ -12,6 +12,19 @@ data class Behandlingsinformasjon(
     val personligOppmøte: PersonligOppmøte? = null,
     val sats: Sats? = null
 ) {
+    fun patch(
+        b: Behandlingsinformasjon
+    ) = Behandlingsinformasjon(
+        uførhet = b.uførhet ?: this.uførhet,
+        flyktning = b.flyktning ?: this.flyktning,
+        lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
+        fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
+        oppholdIUtlandet = b.oppholdIUtlandet ?: this.oppholdIUtlandet,
+        formue = b.formue ?: this.formue,
+        personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
+        sats = b.sats ?: this.sats
+    )
+
     fun isComplete() =
         listOf(
             uførhet,

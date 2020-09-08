@@ -132,6 +132,38 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `should update only specified fields in behandlingsinformasjon`() {
+            val original = extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
+            val expected = original.patch(
+                Behandlingsinformasjon(
+                    formue = Behandlingsinformasjon.Formue(
+                        status = Behandlingsinformasjon.Formue.Status.Ok,
+                        verdiIkkePrimærbolig = 52889,
+                        verdiKjøretøy = 8823,
+                        innskudd = 3291,
+                        verdipapir = 291,
+                        pengerSkyldt = 8921,
+                        kontanter = 49,
+                        depositumskonto = 315177
+                    )
+                )
+            )
+
+            opprettet.oppdaterBehandlingsinformasjon(expected)
+
+            observer.oppdatertBehandlingsinformasjon shouldBe expected
+            observer.oppdatertBehandlingsinformasjon.toDto().let {
+                it.fastOppholdINorge shouldNotBe null
+                it.flyktning shouldNotBe null
+                it.formue shouldNotBe null
+                it.lovligOpphold shouldNotBe null
+                it.oppholdIUtlandet shouldNotBe null
+                it.sats shouldNotBe null
+                it.uførhet shouldNotBe null
+            }
+        }
+
+        @Test
         fun `transition to Vilkårsvurdert`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET

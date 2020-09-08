@@ -146,7 +146,7 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
-            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(this@Behandling.id, oppdatert)
+            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(this@Behandling.id, behandlingsinformasjon.patch(oppdatert))
             if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
             } else if (behandlingsinformasjon.isAvslag()) {

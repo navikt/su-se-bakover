@@ -54,48 +54,13 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     )
 
 fun Behandlingsinformasjon.withVilkårAvslått() =
-    Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-            uføregrad = null,
-            forventetInntekt = null
-        ),
-        flyktning = Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = flyktning?.begrunnelse
-        ),
-        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse
-        ),
-        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = fastOppholdINorge?.begrunnelse
-        ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = oppholdIUtlandet?.begrunnelse
-        ),
-        formue = Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.Ok,
-            verdiIkkePrimærbolig = formue?.verdiIkkePrimærbolig,
-            verdiKjøretøy = formue?.verdiKjøretøy,
-            innskudd = formue?.innskudd,
-            verdipapir = formue?.verdipapir,
-            pengerSkyldt = formue?.pengerSkyldt,
-            kontanter = formue?.kontanter,
-            depositumskonto = formue?.depositumskonto
-        ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse
-        ),
-        sats = Behandlingsinformasjon.Sats(
-            delerBolig = sats?.delerBolig ?: false,
-            delerBoligMed = sats?.delerBoligMed,
-            ektemakeEllerSamboerUnder67År = sats?.ektemakeEllerSamboerUnder67År,
-            ektemakeEllerSamboerUførFlyktning = sats?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = sats?.begrunnelse
+    this.withAlleVilkårOppfylt().patch(
+        Behandlingsinformasjon(
+            uførhet = Behandlingsinformasjon.Uførhet(
+                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                uføregrad = null,
+                forventetInntekt = null
+            )
         )
     )
 
