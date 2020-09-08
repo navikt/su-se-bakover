@@ -3,15 +3,19 @@ package no.nav.su.se.bakover.web.services.brev
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
+import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
 import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 import no.nav.su.se.bakover.domain.BehandlingDto
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
@@ -87,7 +91,18 @@ class BrevService(
                 log.error("Kunne ikke opprette journalpost for attestering")
                 throw RuntimeException("Kunne ikke opprette journalpost for attestering")
             },
-            ifRight = { journalPostId -> sendBrev(journalPostId) }
+            ifRight = { journalPostId ->
+                sendBrev(journalPostId)
+                    .fold(
+                        ifLeft = {
+                            log.error("Kunne ikke sende brev")
+                            throw RuntimeException("Kunne ikke sende brev")
+                        },
+                        ifRight = {
+                            it.right()
+                        }
+                    )
+            }
         )
     }
 
@@ -99,11 +114,13 @@ class BrevService(
                 ClientError(httpCodeFor(it), it.message)
             }.flatMap { person ->
                 val vedtakInnhold = lagVedtakInnhold(person, behandlingDto)
-                pdfGenerator.genererPdf(vedtakInnhold)
+                val innvilgelse = vedtakInnhold.status === SIMULERT || vedtakInnhold.status === TIL_ATTESTERING_INNVILGET
+                val template = if (innvilgelse) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+                pdfGenerator.genererPdf(vedtakInnhold, template)
             }
     }
 
-    fun sendBrev(journalPostId: String): Either<ClientError, String> {
+    private fun sendBrev(journalPostId: String): Either<ClientError, String> {
         return dokDistFordeling.bestillDistribusjon(journalPostId)
     }
 }
@@ -142,6 +159,5 @@ fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
     }
 
 // TODO Hente Locale fra brukerens målform
-fun LocalDate.formatMonthYear() = this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
-fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> =
-    this.map { it -> FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }
+fun LocalDate.formatMonthYear(): String = this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
+fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> = this.map { FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }
