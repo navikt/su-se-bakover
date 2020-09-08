@@ -47,7 +47,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
                     {
                         "journalpostId": "$journalPostId",
                         "bestillendeFagsystem": "SUPSTONAD",
-                        "dokumentProdApp": "su-se-bakover"
+                        "dokumentProdApp": "SU_SE_BAKOVER"
                     }
         """.trimIndent()
     }
