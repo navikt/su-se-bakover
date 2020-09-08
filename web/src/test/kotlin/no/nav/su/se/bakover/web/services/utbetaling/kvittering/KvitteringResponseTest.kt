@@ -24,8 +24,8 @@ internal class KvitteringResponseTest {
                 programId = null,
                 sectionNavn = null
             ),
-            oppdrag = UtbetalingRequest.Oppdrag(
-                kodeAksjon = UtbetalingRequest.KodeAksjon.EN,
+            oppdragRequest = UtbetalingRequest.OppdragRequest(
+                kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 kodeEndring = UtbetalingRequest.KodeEndring.NY,
                 kodeFagomraade = "SUUFORE",
                 fagsystemId = "35413bd5-f66a-44d8-b7e9-1006d5",
@@ -58,7 +58,8 @@ internal class KvitteringResponseTest {
                         brukKjoreplan = "N",
                         saksbehId = "SU",
                         utbetalesTilId = "18127621833",
-                        refDelytelseId = null
+                        refDelytelseId = null,
+                        refFagsystemId = null
                     )
                 )
             )

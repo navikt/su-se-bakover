@@ -9,10 +9,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 @JacksonXmlRootElement(localName = "Oppdrag")
 data class UtbetalingRequest(
     @field:JacksonXmlProperty(localName = "oppdrag-110")
-    val oppdrag: Oppdrag
+    val oppdragRequest: OppdragRequest
 ) {
 
-    data class Oppdrag(
+    data class OppdragRequest(
         val kodeAksjon: KodeAksjon,
         val kodeEndring: KodeEndring,
         /**  [1-8] tegn */
@@ -37,8 +37,8 @@ data class UtbetalingRequest(
     )
 
     enum class KodeAksjon(@JsonValue val value: Int) {
-        EN(1),
-        TRE(3);
+        UTBETALING(1),
+        SIMULERING(3);
 
         override fun toString() = value.toString()
     }
@@ -57,6 +57,8 @@ data class UtbetalingRequest(
         MND("MND"),
         FJORTEN_DAGER("14DG"),
         ENGANGSUTBETALING("ENG");
+
+        override fun toString() = value
     }
 
     data class OppdragsEnhet(
@@ -100,6 +102,7 @@ data class UtbetalingRequest(
         val utbetalesTilId: String,
         /** Makslengde 30 tegn */
         val refDelytelseId: String?,
+        val refFagsystemId: String?
 
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
@@ -125,6 +128,8 @@ data class UtbetalingRequest(
             AAR("AAR"),
             ENGANGSUTBETALING("ENG"),
             AKTO("AKTO");
+
+            override fun toString() = value
         }
     }
 }

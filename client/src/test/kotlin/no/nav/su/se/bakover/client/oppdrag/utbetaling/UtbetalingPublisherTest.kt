@@ -41,6 +41,7 @@ internal class UtbetalingPublisherTest {
         ),
         oppdragId = UUID30.randomUUID()
     )
+
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
@@ -106,6 +107,7 @@ internal class UtbetalingPublisherTest {
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>Saksbehandler</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
+                  <refFagsystemId>${utbetaling.oppdragId}</refFagsystemId>
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>

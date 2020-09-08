@@ -25,7 +25,7 @@ class KvitteringConsumer(
     }
     internal fun onMessage(xmlMessage: String) {
         val kvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
-        val utbetalingId = UUID30.fromString(kvitteringResponse.oppdrag.avstemming.nokkelAvstemming)
+        val utbetalingId = UUID30.fromString(kvitteringResponse.oppdragRequest.avstemming.nokkelAvstemming)
         repo.hentUtbetaling(utbetalingId)
             ?.addKvittering(kvitteringResponse.toKvittering(xmlMessage, clock))
             ?: throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med id $utbetalingId")

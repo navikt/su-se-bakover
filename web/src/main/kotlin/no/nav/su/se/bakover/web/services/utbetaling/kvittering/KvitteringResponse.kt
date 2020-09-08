@@ -8,7 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdrag
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
@@ -25,7 +25,7 @@ import java.time.Clock
 data class KvitteringResponse(
     val mmel: Mmel,
     @field:JacksonXmlProperty(localName = "oppdrag-110")
-    val oppdrag: Oppdrag
+    val oppdragRequest: OppdragRequest
 ) {
     data class Mmel(
         val systemId: String?,
