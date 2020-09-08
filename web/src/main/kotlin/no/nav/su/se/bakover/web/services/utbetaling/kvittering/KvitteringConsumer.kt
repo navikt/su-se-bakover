@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Companion.toKvitteringResponse
+import org.slf4j.LoggerFactory
 import java.time.Clock
 
 class KvitteringConsumer(
@@ -15,7 +16,7 @@ class KvitteringConsumer(
     private val clock: Clock = Clock.systemUTC(),
     private val xmlMapper: XmlMapper = KvitteringConsumer.xmlMapper
 ) {
-
+    private val log = LoggerFactory.getLogger(this::class.java)
     companion object {
         val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
             registerModule(KotlinModule())

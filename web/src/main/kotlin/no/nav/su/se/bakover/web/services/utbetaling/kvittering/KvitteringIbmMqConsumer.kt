@@ -11,23 +11,21 @@ class KvitteringIbmMqConsumer(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val secureLog = LoggerFactory.getLogger("sikkerlogg")
-    private val jmsSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE) // TODO vurder hvordan vi skal håndtere dette
+    private val jmsSession =
+        connection.createSession(false, Session.AUTO_ACKNOWLEDGE) // TODO vurder hvordan vi skal håndtere dette
     private val consumer = jmsSession.createConsumer(jmsSession.createQueue(kvitteringQueueName))
 
     init {
         consumer.setMessageListener { message ->
             try {
-                val body = message.getBody(String::class.java)
-                try {
-                    log.info("Mottok kvittering fra oppdrag - se secure log for meldingsinnholdet.")
-                    secureLog.info("Mottok kvittering fra oppdrag body: $body")
-                    kvitteringConsumer.onMessage(body)
-                } catch (err: Exception) {
-                    log.error("Feil med mottak av MQ-melding: ${err.message}", err)
-                    secureLog.error("Feil med mottak av MQ-melding: ${err.message} $body", err)
+                log.info("Leser kvittering fra $kvitteringQueueName")
+                message.getBody(String::class.java).let {
+                    secureLog.info("Kvittering lest fra $kvitteringQueueName, innhold:$it")
+                    kvitteringConsumer.onMessage(it)
                 }
-            } catch (err: Exception) {
-                log.error("Klarte ikke å hente ut meldingsinnholdet: ${err.message}", err)
+            } catch (ex: Exception) {
+                log.error("Feil ved prossessering av melding fra: $kvitteringQueueName", ex)
+                throw ex
             }
         }
     }
