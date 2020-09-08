@@ -27,7 +27,8 @@ data class Utbetaling(
         this.simulering = persistenceObserver.addSimulering(id, simulering)
     }
 
-    fun sisteUtbetalingslinje() = utbetalingslinjer.last()
+    fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
+    fun erUtbetalt() = kvittering?.erUtbetalt() ?: false
 
     fun førsteDag(): LocalDate = utbetalingslinjer.map { it.fom }.minOrNull()!!
     fun sisteDag(): LocalDate = utbetalingslinjer.map { it.tom }.maxOrNull()!!
@@ -42,7 +43,7 @@ data class Utbetaling(
 
     object Opprettet : Comparator<Utbetaling> {
         override fun compare(o1: Utbetaling?, o2: Utbetaling?): Int {
-            return (o1!!.opprettet.toEpochMilli() - o2!!.opprettet.toEpochMilli()).toInt()
+            return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
     }
 }

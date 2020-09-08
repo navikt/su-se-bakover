@@ -15,11 +15,9 @@ data class Oppdrag(
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
-    fun sisteUtbetaling() =
-        utbetalinger.lastOrNull() // TODO Må implementere konsept om utbetalt og sjekke om det finnes en utbetaling
-
-    fun harUtbetalinger() =
-        utbetalinger.isNotEmpty() // TODO Må implementere konsept om utbetalt og sjekke om det finnes en utbetaling
+    fun sisteUtbetaling() = utbetalinger.toList()
+        .sortedWith(Utbetaling.Opprettet)
+        .lastOrNull() { it.erUtbetalt() }
 
     fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
 
@@ -31,7 +29,7 @@ data class Oppdrag(
                 Utbetalingslinje(
                     fom = it.fom,
                     tom = it.tom,
-                    forrigeUtbetalingslinjeId = if (harUtbetalinger()) sisteUtbetaling()!!.sisteUtbetalingslinje().id else null,
+                    forrigeUtbetalingslinjeId = sisteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp
                 )
             }.also {

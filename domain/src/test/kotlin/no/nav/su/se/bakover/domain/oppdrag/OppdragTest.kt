@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.beregning.Sats.HØY
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.Month
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class OppdragTest {
@@ -21,10 +23,9 @@ internal class OppdragTest {
         sakId = sakId
     )
     private val behandlingId = UUID.randomUUID()
-    private val fnr = "12345678910"
 
     @Test
-    fun `no existing oppdrag`() {
+    fun `ingen eksisterende utbetalinger`() {
         val actual = oppdrag.generererUtbetaling(
             behandlingId = behandlingId,
             beregningsperioder = listOf(
@@ -54,7 +55,7 @@ internal class OppdragTest {
     }
 
     @Test
-    fun `nye oppdragslinjer skal refere til forutgående oppdragslinjer`() {
+    fun `nye utbetalingslinjer skal refere til forutgående utbetalingslinjer`() {
         val forrigeUtbetalingslinjeId = UUID30.randomUUID()
 
         val eksisterendeOppdrag = Oppdrag(
@@ -72,7 +73,8 @@ internal class OppdragTest {
                             forrigeUtbetalingslinjeId = null,
                             beløp = 5000
                         )
-                    )
+                    ),
+                    kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "")
                 )
             )
         )
@@ -133,6 +135,46 @@ internal class OppdragTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
+        val first = Utbetaling(
+            opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragId = UUID30.randomUUID(),
+            behandlingId = behandlingId,
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+            utbetalingslinjer = emptyList()
+        )
+
+        val second = Utbetaling(
+            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragId = UUID30.randomUUID(),
+            behandlingId = behandlingId,
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
+            utbetalingslinjer = emptyList()
+        )
+
+        val third = Utbetaling(
+            opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragId = UUID30.randomUUID(),
+            behandlingId = behandlingId,
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
+            utbetalingslinjer = emptyList()
+        )
+        val fourth = Utbetaling(
+            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragId = UUID30.randomUUID(),
+            behandlingId = behandlingId,
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
+            utbetalingslinjer = emptyList()
+        )
+
+        val oppdrag = Oppdrag(
+            sakId = sakId,
+            utbetalinger = mutableListOf(first, second, third, fourth)
+        )
+        oppdrag.sisteUtbetaling() shouldBe third
     }
 
     private fun expectedUtbetaling(actual: Utbetaling, oppdragslinjer: List<Utbetalingslinje>): Utbetaling {

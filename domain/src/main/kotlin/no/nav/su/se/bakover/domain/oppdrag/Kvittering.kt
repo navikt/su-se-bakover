@@ -11,9 +11,14 @@ data class Kvittering(
 ) {
     enum class Utbetalingsstatus {
         OK,
+
         /** Akseptert og lagret i opprdag, men det følger med en varselmelding **/
         OK_MED_VARSEL,
+
         /** Ikke lagret */
         FEIL
     }
+
+    fun erUtbetalt() = setOf(Utbetalingsstatus.OK, Utbetalingsstatus.OK_MED_VARSEL)
+        .contains(utbetalingsstatus)
 }
