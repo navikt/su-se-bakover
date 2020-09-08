@@ -64,7 +64,8 @@ internal fun Route.behandlingRoutes(
                 ifRight = { body ->
                     call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
                     if (body.isValid()) {
-                        behandling.oppdaterBehandlingsinformasjon(behandlingsinformasjonFromJson(body))
+                        val oppdatert = behandling.oppdaterBehandlingsinformasjon(behandlingsinformasjonFromJson(body))
+                        call.svar(OK.jsonBody(oppdatert))
                     } else {
                         call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
                     }

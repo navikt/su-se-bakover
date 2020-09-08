@@ -152,7 +152,7 @@ internal class BehandlingTest {
             opprettet.oppdaterBehandlingsinformasjon(expected)
 
             observer.oppdatertBehandlingsinformasjon shouldBe expected
-            observer.oppdatertBehandlingsinformasjon.toDto().let {
+            observer.oppdatertBehandlingsinformasjon.let {
                 it.fastOppholdINorge shouldNotBe null
                 it.flyktning shouldNotBe null
                 it.formue shouldNotBe null
