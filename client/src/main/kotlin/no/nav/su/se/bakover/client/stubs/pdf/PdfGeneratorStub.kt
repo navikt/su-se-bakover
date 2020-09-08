@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 
@@ -28,7 +29,7 @@ object PdfGeneratorStub : PdfGenerator {
         return pdf.toByteArray().right()
     }
 
-    override fun genererPdf(vedtak: VedtakInnhold): Either<ClientError, ByteArray> {
+    override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()
     }
 }
