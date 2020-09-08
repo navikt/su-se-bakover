@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
 
 internal class SimuleringTest {
@@ -17,8 +18,10 @@ internal class SimuleringTest {
         simulering.periodeList[1].bruttoYtelse() shouldBe 20637
     }
 
+    private val FNR = Fnr("07028820547")
+
     private val simulering = Simulering(
-        gjelderId = "07028820547",
+        gjelderId = FNR,
         gjelderNavn = "MYGG LUR",
         datoBeregnet = idag(),
         nettoBeløp = 20638,
@@ -31,7 +34,7 @@ internal class SimuleringTest {
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
                         forfall = idag(),
-                        utbetalesTilId = "07028820547",
+                        utbetalesTilId = FNR,
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             SimulertDetaljer(
@@ -74,7 +77,7 @@ internal class SimuleringTest {
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
                         forfall = idag(),
-                        utbetalesTilId = "07028820547",
+                        utbetalesTilId = FNR,
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             SimulertDetaljer(

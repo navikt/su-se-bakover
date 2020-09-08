@@ -33,11 +33,11 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -274,7 +274,7 @@ internal class DatabaseRepoTest {
             val simulering = repo.addSimulering(
                 utbetaling.id,
                 Simulering(
-                    gjelderId = "gjelderId",
+                    gjelderId = Fnr("12345678910"),
                     gjelderNavn = "gjelderNavn",
                     datoBeregnet = LocalDate.now(),
                     nettoBeløp = 1,
@@ -285,7 +285,7 @@ internal class DatabaseRepoTest {
                             utbetaling = listOf(
                                 SimulertUtbetaling(
                                     fagSystemId = "fagSystemId",
-                                    utbetalesTilId = "utbetalesTilId",
+                                    utbetalesTilId = Fnr("12345678910"),
                                     utbetalesTilNavn = "utbetalesTilNavn",
                                     forfall = LocalDate.now(),
                                     feilkonto = false,

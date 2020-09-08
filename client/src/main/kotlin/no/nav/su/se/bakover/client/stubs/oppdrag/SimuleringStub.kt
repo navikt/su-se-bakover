@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -19,7 +20,7 @@ import java.time.Period
 object SimuleringStub : SimuleringClient {
     override fun simulerOppdrag(
         utbetaling: Utbetaling,
-        utbetalingGjelder: String
+        simuleringGjelder: Fnr
     ): Either<SimuleringFeilet, Simulering> {
         val months = 0L until Period.between(utbetaling.førsteDag(), utbetaling.sisteDag().plusDays(1)).toTotalMonths()
         val perioder = months.map {
@@ -33,7 +34,7 @@ object SimuleringStub : SimuleringClient {
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
                         forfall = idag(),
-                        utbetalesTilId = utbetalingGjelder,
+                        utbetalesTilId = simuleringGjelder,
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             createYtelse(fom, tom),
@@ -45,7 +46,7 @@ object SimuleringStub : SimuleringClient {
         }
 
         return Simulering(
-            gjelderId = utbetalingGjelder,
+            gjelderId = simuleringGjelder,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
             nettoBeløp = perioder.sumBy { it.bruttoYtelse() / 2 },

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.time.Clock
 import java.time.Instant
@@ -8,7 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-fun Utbetaling.toExternal(oppdragGjelder: String, clock: Clock): UtbetalingRequest {
+fun Utbetaling.toExternal(oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
@@ -16,7 +17,7 @@ fun Utbetaling.toExternal(oppdragGjelder: String, clock: Clock): UtbetalingReque
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
             fagsystemId = oppdragId.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
-            oppdragGjelderId = oppdragGjelder,
+            oppdragGjelderId = oppdragGjelder.fnr!!,
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
@@ -37,7 +38,7 @@ fun Utbetaling.toExternal(oppdragGjelder: String, clock: Clock): UtbetalingReque
                     typeSats = OppdragslinjeDefaults.typeSats,
                     brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
-                    utbetalesTilId = oppdragGjelder,
+                    utbetalesTilId = oppdragGjelder.fnr!!,
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { oppdragId.toString() }
                 )

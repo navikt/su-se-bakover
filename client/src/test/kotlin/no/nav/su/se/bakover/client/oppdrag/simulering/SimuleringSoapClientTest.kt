@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -29,6 +30,8 @@ import javax.xml.ws.WebServiceException
 
 internal class SimuleringSoapClientTest {
 
+    private val FNR = Fnr("12345678910")
+
     @Test
     fun `should return ok simulering`() {
         val simuleringService = SimuleringSoapClient(
@@ -44,7 +47,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val actual = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val actual = simuleringService.simulerOppdrag(createOppdrag(), FNR)
         actual.isRight() shouldBe true
     }
 
@@ -62,7 +65,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
@@ -85,7 +88,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
 
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
@@ -104,7 +107,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -123,7 +126,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -142,7 +145,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), "12345678910")
+        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
 
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
@@ -166,7 +169,7 @@ internal class SimuleringSoapClientTest {
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {
         simulering = Beregning().apply {
-            gjelderId = "gjelderId"
+            gjelderId = FNR.fnr!!
             gjelderNavn = "gjelderNavn"
             datoBeregnet = "2020-01-01"
             belop = BigDecimal(15000)
@@ -177,7 +180,7 @@ internal class SimuleringSoapClientTest {
                     beregningStoppnivaa.add(
                         BeregningStoppnivaa().apply {
                             fagsystemId = "SUP"
-                            utbetalesTilId = "utbetalesTilId"
+                            utbetalesTilId = FNR.fnr!!
                             utbetalesTilNavn = "utbetalesTilNavn"
                             forfall = "2020-02-01"
                             isFeilkonto = false

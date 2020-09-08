@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toExternal
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
@@ -15,9 +16,9 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.S
 
 internal class SimuleringRequestBuilder(
     utbetaling: Utbetaling,
-    oppdragGjelder: String
+    simuleringGjelder: Fnr
 ) {
-    private val mappedRequest = utbetaling.toExternal(oppdragGjelder, Clock.systemUTC()).oppdragRequest
+    private val mappedRequest = utbetaling.toExternal(simuleringGjelder, Clock.systemUTC()).oppdragRequest
     private val oppdragRequest = Oppdrag().apply {
         kodeFagomraade = mappedRequest.kodeFagomraade
         kodeEndring = mappedRequest.kodeEndring.value

@@ -8,12 +8,13 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -23,6 +24,7 @@ import java.util.UUID
 internal class UtbetalingJsonTest {
     private val id = UUID30.randomUUID()
     private val opprettet = now()
+    private val FNR = Fnr("12345678910")
 
     @Test
     fun `should serialize to json string`() {
@@ -64,7 +66,7 @@ internal class UtbetalingJsonTest {
         oppdragId = UUID30.randomUUID(),
         behandlingId = UUID.randomUUID(),
         simulering = Simulering(
-            gjelderId = "gjelder",
+            gjelderId = FNR,
             gjelderNavn = "gjelder",
             datoBeregnet = idag(),
             nettoBeløp = 123828,
@@ -77,7 +79,7 @@ internal class UtbetalingJsonTest {
                             fagSystemId = UUID30.randomUUID().toString(),
                             feilkonto = false,
                             forfall = idag(),
-                            utbetalesTilId = "gjelder",
+                            utbetalesTilId = FNR,
                             utbetalesTilNavn = "gjelder",
                             detaljer = listOf(
                                 SimulertDetaljer(
@@ -106,7 +108,7 @@ internal class UtbetalingJsonTest {
                             fagSystemId = UUID30.randomUUID().toString(),
                             feilkonto = false,
                             forfall = idag(),
-                            utbetalesTilId = "gjelder",
+                            utbetalesTilId = FNR,
                             utbetalesTilNavn = "gjelder",
                             detaljer = listOf(
                                 SimulertDetaljer(

@@ -48,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -568,7 +567,7 @@ internal class BehandlingTest {
                 object : UtbetalingPublisher {
                     override fun publish(
                         utbetaling: Utbetaling,
-                        oppdragGjelder: String
+                        oppdragGjelder: Fnr
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
                         UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
                 }
@@ -646,10 +645,10 @@ internal class BehandlingTest {
             behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             behandling.attester(Attestant("attestant"))
             val publisherMock = mock<UtbetalingPublisher> {
-                on { publish(any(), anyString()) } doReturn Unit.right()
+                on { publish(any(), any()) } doReturn Unit.right()
             }
             behandling.sendTilUtbetaling(publisherMock)
-            verify(publisherMock, Times(1)).publish(behandling.gjeldendeUtbetaling()!!, "12345678910")
+            verify(publisherMock, Times(1)).publish(behandling.gjeldendeUtbetaling()!!, Fnr("12345678910"))
         }
 
         @Test
@@ -772,11 +771,11 @@ internal class BehandlingTest {
     object SimuleringClientStub : SimuleringClient {
         override fun simulerOppdrag(
             utbetaling: Utbetaling,
-            utbetalingGjelder: String
+            simuleringGjelder: Fnr
         ): Either<SimuleringFeilet, Simulering> {
             return Either.right(
                 Simulering(
-                    gjelderId = "gjelderId",
+                    gjelderId = Fnr("12345678910"),
                     gjelderNavn = "gjelderNavn",
                     datoBeregnet = 1.mai(2020),
                     nettoBeløp = 15000,
@@ -789,7 +788,7 @@ internal class BehandlingTest {
     object UtbetalingPublisherStub : UtbetalingPublisher {
         override fun publish(
             utbetaling: Utbetaling,
-            oppdragGjelder: String
+            oppdragGjelder: Fnr
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> = Unit.right()
     }
 

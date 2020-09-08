@@ -243,7 +243,7 @@ data class Behandling constructor(
             val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, gjeldendeBeregning().hentPerioder())
             return simuleringClient.simulerOppdrag(
                 utbetalingTilSimulering,
-                persistenceObserver.hentFnr(sakId).toString()
+                persistenceObserver.hentFnr(sakId)
             ).map { simulering ->
                 val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
                     it.addSimulering(simulering)
@@ -308,7 +308,7 @@ data class Behandling constructor(
 
         inner class Innvilget : Attestert() {
             override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                val result = publisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId).toString())
+                val result = publisher.publish(gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId))
                     .map { this@Behandling }
                 when (result) {
                     is Either.Right -> {

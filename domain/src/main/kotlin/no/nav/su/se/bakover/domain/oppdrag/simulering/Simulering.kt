@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import no.nav.su.se.bakover.domain.Fnr
 import java.time.LocalDate
 
 data class Simulering(
-    val gjelderId: String,
+    val gjelderId: Fnr,
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
@@ -24,7 +25,7 @@ data class SimulertPeriode(
 
 data class SimulertUtbetaling(
     val fagSystemId: String,
-    val utbetalesTilId: String,
+    val utbetalesTilId: Fnr,
     val utbetalesTilNavn: String,
     val forfall: LocalDate,
     val feilkonto: Boolean,

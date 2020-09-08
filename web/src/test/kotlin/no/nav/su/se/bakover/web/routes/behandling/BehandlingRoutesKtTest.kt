@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -361,7 +362,7 @@ internal class BehandlingRoutesKtTest {
                     utbetalingPublisher = object : UtbetalingPublisher {
                         override fun publish(
                             utbetaling: Utbetaling,
-                            oppdragGjelder: String
+                            oppdragGjelder: Fnr
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
                             UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
                     }

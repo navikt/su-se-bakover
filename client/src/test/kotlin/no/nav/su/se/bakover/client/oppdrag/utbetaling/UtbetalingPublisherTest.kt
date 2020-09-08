@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
@@ -41,12 +42,13 @@ internal class UtbetalingPublisherTest {
         ),
         oppdragId = UUID30.randomUUID()
     )
+    val fnr = Fnr("12345678910")
 
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(clock, mqClient)
-        client.publish(utbetaling, "Saksbehandler") shouldBe KunneIkkeSendeUtbetaling.left()
+        client.publish(utbetaling, fnr) shouldBe KunneIkkeSendeUtbetaling.left()
         mqClient.count shouldBe 1
     }
 
@@ -56,7 +58,7 @@ internal class UtbetalingPublisherTest {
 
         val client = UtbetalingMqPublisher(clock, mqClient)
 
-        client.publish(utbetaling, "Saksbehandler") shouldBe Unit.right()
+        client.publish(utbetaling, fnr) shouldBe Unit.right()
         mqClient.count shouldBe 1
         val expected =
             """
@@ -68,7 +70,7 @@ internal class UtbetalingPublisherTest {
                 <kodeFagomraade>SUUFORE</kodeFagomraade>
                 <fagsystemId>${utbetaling.oppdragId}</fagsystemId>
                 <utbetFrekvens>MND</utbetFrekvens>
-                <oppdragGjelderId>Saksbehandler</oppdragGjelderId>
+                <oppdragGjelderId>${fnr.fnr!!}</oppdragGjelderId>
                 <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
                 <saksbehId>SU</saksbehId>
                 <avstemming-115>
@@ -92,7 +94,7 @@ internal class UtbetalingPublisherTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>Saksbehandler</utbetalesTilId>
+                  <utbetalesTilId>${fnr.fnr!!}</utbetalesTilId>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>NY</kodeEndringLinje>
@@ -105,7 +107,7 @@ internal class UtbetalingPublisherTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>Saksbehandler</utbetalesTilId>
+                  <utbetalesTilId>${fnr.fnr!!}</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>${utbetaling.oppdragId}</refFagsystemId>
                 </oppdrags-linje-150>

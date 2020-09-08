@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg.T
@@ -18,10 +19,10 @@ internal class SimuleringRequestBuilderTest {
     private companion object {
         private const val FAGOMRÅDE = "SUUFORE"
         private const val ENDRINGSKODE_NY = "NY"
-        private const val PERSON = "12345678911"
         private const val BELØP = 1000
         private const val SAKSBEHANDLER = "SU"
         private const val KLASSEKODE = "SUUFORE"
+        private val FNR = Fnr("12345678911")
         private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
         val oppdragId = UUID30.randomUUID()
@@ -142,7 +143,7 @@ internal class SimuleringRequestBuilderTest {
                 utbetalingslinjer = oppdragslinjer,
                 oppdragId = oppdragId
             ),
-            PERSON
+            FNR
         )
         return builder.build()
     }
@@ -151,7 +152,7 @@ internal class SimuleringRequestBuilderTest {
         oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag,
         endringskode: String
     ) {
-        oppdrag.oppdragGjelderId shouldBe PERSON
+        oppdrag.oppdragGjelderId shouldBe FNR.fnr!!
         oppdrag.saksbehId shouldBe SAKSBEHANDLER
         oppdrag.fagsystemId shouldBe oppdragId.toString()
         oppdrag.kodeEndring shouldBe endringskode
@@ -182,7 +183,7 @@ internal class SimuleringRequestBuilderTest {
         oppdrag.oppdragslinje[index].datoVedtakFom shouldBe fom.format(yyyyMMdd)
         oppdrag.oppdragslinje[index].datoVedtakTom shouldBe tom.format(yyyyMMdd)
         oppdrag.oppdragslinje[index].datoStatusFom shouldBe datoStatusFom?.format(yyyyMMdd)
-        oppdrag.oppdragslinje[index].utbetalesTilId shouldBe PERSON
+        oppdrag.oppdragslinje[index].utbetalesTilId shouldBe FNR.fnr!!
         oppdrag.oppdragslinje[index].refDelytelseId shouldBe refDelytelsesId
         oppdrag.oppdragslinje[index].refFagsystemId shouldBe refFagsystemId
         oppdrag.oppdragslinje[index].kodeStatusLinje shouldBe statuskode

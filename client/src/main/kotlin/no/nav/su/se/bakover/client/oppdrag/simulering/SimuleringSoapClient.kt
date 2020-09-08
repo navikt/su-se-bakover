@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -37,11 +38,11 @@ internal class SimuleringSoapClient(
 
     override fun simulerOppdrag(
         utbetaling: Utbetaling,
-        utbetalingGjelder: String
+        simuleringGjelder: Fnr
     ): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
             utbetaling,
-            utbetalingGjelder
+            simuleringGjelder
         ).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
@@ -88,7 +89,7 @@ internal class SimuleringSoapClient(
 
     private fun mapResponseToResultat(response: SimulerBeregningResponse) =
         Simulering(
-            gjelderId = response.simulering.gjelderId,
+            gjelderId = Fnr(response.simulering.gjelderId),
             gjelderNavn = response.simulering.gjelderNavn.trim(),
             datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
             nettoBeløp = response.simulering.belop.intValueExact(),
@@ -106,7 +107,7 @@ internal class SimuleringSoapClient(
         SimulertUtbetaling(
             fagSystemId = stoppNivaa.fagsystemId.trim(),
             utbetalesTilNavn = stoppNivaa.utbetalesTilNavn.trim(),
-            utbetalesTilId = stoppNivaa.utbetalesTilId.removePrefix("00"),
+            utbetalesTilId = Fnr(stoppNivaa.utbetalesTilId),
             forfall = LocalDate.parse(stoppNivaa.forfall),
             feilkonto = stoppNivaa.isFeilkonto,
             detaljer = stoppNivaa.beregningStoppnivaaDetaljer.map { mapDetaljer(it) }
