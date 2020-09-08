@@ -33,7 +33,7 @@ internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService
 ) : SimuleringClient {
     private companion object {
-        // private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
+        private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
@@ -52,9 +52,8 @@ internal class SimuleringSoapClient(
                 mapResponseToResultat(it)
             } ?: SimuleringFeilet.FUNKSJONELL_FEIL.left()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
-            // TODO: Bytt til sikkerlogg etter vi har debugget ferdig
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
-            log.error(
+            sikkerLogg.error(
                 "Simulering feilet med feilmelding=${e.faultInfo.errorMessage}, for request:${simulerRequest.print()}",
                 e
             )
