@@ -17,7 +17,7 @@ fun Utbetaling.toExternal(oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest 
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
             fagsystemId = oppdragId.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
-            oppdragGjelderId = oppdragGjelder.fnr!!,
+            oppdragGjelderId = oppdragGjelder.fnr,
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
@@ -38,7 +38,7 @@ fun Utbetaling.toExternal(oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest 
                     typeSats = OppdragslinjeDefaults.typeSats,
                     brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
-                    utbetalesTilId = oppdragGjelder.fnr!!,
+                    utbetalesTilId = oppdragGjelder.fnr,
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { oppdragId.toString() }
                 )

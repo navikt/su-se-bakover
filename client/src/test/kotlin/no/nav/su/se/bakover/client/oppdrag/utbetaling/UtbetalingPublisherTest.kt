@@ -70,7 +70,7 @@ internal class UtbetalingPublisherTest {
                 <kodeFagomraade>SUUFORE</kodeFagomraade>
                 <fagsystemId>${utbetaling.oppdragId}</fagsystemId>
                 <utbetFrekvens>MND</utbetFrekvens>
-                <oppdragGjelderId>${fnr.fnr!!}</oppdragGjelderId>
+                <oppdragGjelderId>${fnr.fnr}</oppdragGjelderId>
                 <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
                 <saksbehId>SU</saksbehId>
                 <avstemming-115>
@@ -94,7 +94,7 @@ internal class UtbetalingPublisherTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr!!}</utbetalesTilId>
+                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>NY</kodeEndringLinje>
@@ -107,7 +107,7 @@ internal class UtbetalingPublisherTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr!!}</utbetalesTilId>
+                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>${utbetaling.oppdragId}</refFagsystemId>
                 </oppdrags-linje-150>

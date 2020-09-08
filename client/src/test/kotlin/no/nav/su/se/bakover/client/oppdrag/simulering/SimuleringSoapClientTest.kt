@@ -169,7 +169,7 @@ internal class SimuleringSoapClientTest {
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {
         simulering = Beregning().apply {
-            gjelderId = FNR.fnr!!
+            gjelderId = FNR.fnr
             gjelderNavn = "gjelderNavn"
             datoBeregnet = "2020-01-01"
             belop = BigDecimal(15000)
@@ -180,7 +180,7 @@ internal class SimuleringSoapClientTest {
                     beregningStoppnivaa.add(
                         BeregningStoppnivaa().apply {
                             fagsystemId = "SUP"
-                            utbetalesTilId = FNR.fnr!!
+                            utbetalesTilId = FNR.fnr
                             utbetalesTilNavn = "utbetalesTilNavn"
                             forfall = "2020-02-01"
                             isFeilkonto = false

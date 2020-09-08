@@ -7,7 +7,6 @@ import org.junit.jupiter.api.assertThrows
 internal class FnrTest {
     @Test
     fun `validity`() {
-        assertThrows<UgyldigFnrException> { Fnr(null) }
         assertThrows<UgyldigFnrException> { Fnr("12345") }
         assertThrows<UgyldigFnrException> { Fnr("1234567891012") }
         assertThrows<UgyldigFnrException> { Fnr("qwertyuiopå") }

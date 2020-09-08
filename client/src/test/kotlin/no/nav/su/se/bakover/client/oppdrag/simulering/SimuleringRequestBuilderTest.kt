@@ -152,7 +152,7 @@ internal class SimuleringRequestBuilderTest {
         oppdrag: no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag,
         endringskode: String
     ) {
-        oppdrag.oppdragGjelderId shouldBe FNR.fnr!!
+        oppdrag.oppdragGjelderId shouldBe FNR.fnr
         oppdrag.saksbehId shouldBe SAKSBEHANDLER
         oppdrag.fagsystemId shouldBe oppdragId.toString()
         oppdrag.kodeEndring shouldBe endringskode
@@ -183,7 +183,7 @@ internal class SimuleringRequestBuilderTest {
         oppdrag.oppdragslinje[index].datoVedtakFom shouldBe fom.format(yyyyMMdd)
         oppdrag.oppdragslinje[index].datoVedtakTom shouldBe tom.format(yyyyMMdd)
         oppdrag.oppdragslinje[index].datoStatusFom shouldBe datoStatusFom?.format(yyyyMMdd)
-        oppdrag.oppdragslinje[index].utbetalesTilId shouldBe FNR.fnr!!
+        oppdrag.oppdragslinje[index].utbetalesTilId shouldBe FNR.fnr
         oppdrag.oppdragslinje[index].refDelytelseId shouldBe refDelytelsesId
         oppdrag.oppdragslinje[index].refFagsystemId shouldBe refFagsystemId
         oppdrag.oppdragslinje[index].kodeStatusLinje shouldBe statuskode
