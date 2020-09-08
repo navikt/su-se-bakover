@@ -62,8 +62,8 @@ internal class OppdragTest {
             sakId = oppdrag.sakId,
             utbetalinger = mutableListOf(
                 Utbetaling(
-                    oppdragId = oppdrag.id,
                     behandlingId = behandlingId,
+                    kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             id = forrigeUtbetalingslinjeId,
@@ -73,8 +73,7 @@ internal class OppdragTest {
                             forrigeUtbetalingslinjeId = null,
                             beløp = 5000
                         )
-                    ),
-                    kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "")
+                    )
                 )
             )
         )
@@ -105,9 +104,8 @@ internal class OppdragTest {
         nyUtbetaling shouldBe Utbetaling(
             id = nyUtbetaling.id,
             opprettet = nyUtbetaling.opprettet,
-            oppdragId = nyUtbetaling.oppdragId,
-            simulering = null,
             behandlingId = behandlingId,
+            simulering = null,
             utbetalingslinjer = listOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
@@ -141,7 +139,6 @@ internal class OppdragTest {
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            oppdragId = UUID30.randomUUID(),
             behandlingId = behandlingId,
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList()
@@ -149,7 +146,6 @@ internal class OppdragTest {
 
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            oppdragId = UUID30.randomUUID(),
             behandlingId = behandlingId,
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList()
@@ -157,14 +153,12 @@ internal class OppdragTest {
 
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            oppdragId = UUID30.randomUUID(),
             behandlingId = behandlingId,
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList()
         )
         val fourth = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            oppdragId = UUID30.randomUUID(),
             behandlingId = behandlingId,
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList()
@@ -181,7 +175,6 @@ internal class OppdragTest {
         return Utbetaling(
             id = actual.id,
             opprettet = actual.opprettet,
-            oppdragId = oppdrag.id,
             behandlingId = behandlingId,
             simulering = null,
             utbetalingslinjer = oppdragslinjer,

@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -18,11 +19,12 @@ import java.time.Month
 import java.time.Period
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerOppdrag(
+    override fun simulerUtbetaling(
+        oppdrag: Oppdrag,
         utbetaling: Utbetaling,
         simuleringGjelder: Fnr
     ): Either<SimuleringFeilet, Simulering> {
-        val months = 0L until Period.between(utbetaling.førsteDag(), utbetaling.sisteDag().plusDays(1)).toTotalMonths()
+        val months = 0L until Period.between(utbetaling.utbetalingslinjer.map { it.fom }.minOrNull()!!, utbetaling.utbetalingslinjer.map { it.tom }.maxOrNull()!!.plusDays(1)).toTotalMonths()
         val perioder = months.map {
             val fom = LocalDate.of(2020, Month.of((it + 1L).toInt()), 1)
             val tom = fom.plusMonths(1).minusDays(1)

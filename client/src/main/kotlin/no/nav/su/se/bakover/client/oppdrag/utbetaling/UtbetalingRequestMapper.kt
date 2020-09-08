@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.time.Clock
 import java.time.Instant
@@ -9,24 +10,24 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-fun Utbetaling.toExternal(oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest {
+internal fun toUtbetalingRequest(oppdrag: Oppdrag, utbetaling: Utbetaling, oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = OppdragDefaults.oppdragKodeendring,
+            kodeEndring = if (oppdrag.sisteUtbetaling() != null) UtbetalingRequest.KodeEndring.ENDRING else UtbetalingRequest.KodeEndring.NY,
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
-            fagsystemId = oppdragId.toString(),
+            fagsystemId = oppdrag.id.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
             oppdragGjelderId = oppdragGjelder.fnr,
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
-                nokkelAvstemming = this.id.toString(),
+                nokkelAvstemming = utbetaling.id.toString(),
                 tidspktMelding = now(clock).toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.AVSTEMMING_KODE_KOMPONENT
             ),
-            oppdragslinjer = utbetalingslinjer.map {
+            oppdragslinjer = utbetaling.utbetalingslinjer.map {
                 UtbetalingRequest.Oppdragslinje(
                     kodeEndringLinje = OppdragslinjeDefaults.kodeEndring,
                     delytelseId = it.id.toString(),
@@ -40,7 +41,7 @@ fun Utbetaling.toExternal(oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest 
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
                     utbetalesTilId = oppdragGjelder.fnr,
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
-                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { oppdragId.toString() }
+                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { oppdrag.id.toString() }
                 )
             }
         )
@@ -51,8 +52,6 @@ private object OppdragDefaults {
     const val KODE_FAGOMRÅDE = "SUUFORE"
     const val SAKSBEHANDLER_ID = "SU"
     val utbetalingsfrekvens = UtbetalingRequest.Utbetalingsfrekvens.MND
-    val oppdragKodeendring =
-        UtbetalingRequest.KodeEndring.NY // TODO: Denne må endres til å være dynamisk etter vi har lest/lagret kvitteringsresponsen
     val datoOppdragGjelderFom = LocalDate.EPOCH.toOppdragDate()
     const val AVSTEMMING_KODE_KOMPONENT = "SUUFORE"
     val oppdragsenheter = listOf(

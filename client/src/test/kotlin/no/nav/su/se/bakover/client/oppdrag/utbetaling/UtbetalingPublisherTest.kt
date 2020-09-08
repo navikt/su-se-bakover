@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
@@ -34,13 +35,18 @@ internal class UtbetalingPublisherTest {
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
     )
+    val oppdrag = Oppdrag(
+        id = UUID30.randomUUID(),
+        opprettet = Instant.EPOCH,
+        sakId = UUID.randomUUID(),
+        utbetalinger = mutableListOf()
+    )
     val utbetaling = Utbetaling(
         behandlingId = UUID.randomUUID(),
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
-        ),
-        oppdragId = UUID30.randomUUID()
+        )
     )
     val fnr = Fnr("12345678910")
 
@@ -48,7 +54,7 @@ internal class UtbetalingPublisherTest {
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(clock, mqClient)
-        client.publish(utbetaling, fnr) shouldBe KunneIkkeSendeUtbetaling.left()
+        client.publish(oppdrag, utbetaling, fnr) shouldBe KunneIkkeSendeUtbetaling.left()
         mqClient.count shouldBe 1
     }
 
@@ -58,7 +64,7 @@ internal class UtbetalingPublisherTest {
 
         val client = UtbetalingMqPublisher(clock, mqClient)
 
-        client.publish(utbetaling, fnr) shouldBe Unit.right()
+        client.publish(oppdrag, utbetaling, fnr) shouldBe Unit.right()
         mqClient.count shouldBe 1
         val expected =
             """
@@ -68,7 +74,7 @@ internal class UtbetalingPublisherTest {
                 <kodeAksjon>1</kodeAksjon>
                 <kodeEndring>NY</kodeEndring>
                 <kodeFagomraade>SUUFORE</kodeFagomraade>
-                <fagsystemId>${utbetaling.oppdragId}</fagsystemId>
+                <fagsystemId>${oppdrag.id}</fagsystemId>
                 <utbetFrekvens>MND</utbetFrekvens>
                 <oppdragGjelderId>${fnr.fnr}</oppdragGjelderId>
                 <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
@@ -109,7 +115,7 @@ internal class UtbetalingPublisherTest {
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
-                  <refFagsystemId>${utbetaling.oppdragId}</refFagsystemId>
+                  <refFagsystemId>${oppdrag.id}</refFagsystemId>
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>

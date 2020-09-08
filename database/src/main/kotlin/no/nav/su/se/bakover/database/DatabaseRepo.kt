@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -171,11 +170,10 @@ internal class DatabaseRepo(
         return Utbetaling(
             id = utbetalingId,
             opprettet = instant("opprettet"),
-            oppdragId = uuid30("oppdragId"),
             behandlingId = uuid("behandlingId"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
-            utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
-            kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) }
+            kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
+            utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session)
         ).also {
             it.addObserver(this@DatabaseRepo)
         }

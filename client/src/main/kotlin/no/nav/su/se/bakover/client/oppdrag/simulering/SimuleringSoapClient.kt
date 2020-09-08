@@ -6,6 +6,7 @@ import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -36,11 +37,13 @@ internal class SimuleringSoapClient(
         private val log = LoggerFactory.getLogger(this::class.java)
     }
 
-    override fun simulerOppdrag(
+    override fun simulerUtbetaling(
+        oppdrag: Oppdrag,
         utbetaling: Utbetaling,
         simuleringGjelder: Fnr
     ): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(
+            oppdrag,
             utbetaling,
             simuleringGjelder
         ).build()

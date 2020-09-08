@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
+import java.time.Instant
 import java.util.UUID
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
@@ -47,7 +49,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val actual = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val actual = simuleringService.simulerUtbetaling(createOppdrag(), createUtbetaling(), FNR)
         actual.isRight() shouldBe true
     }
 
@@ -65,7 +67,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val response = simuleringService.simulerUtbetaling(createOppdrag(), createUtbetaling(), FNR)
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
@@ -88,7 +90,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val response = simuleringService.simulerUtbetaling(createOppdrag(), createUtbetaling(), FNR)
 
         response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
@@ -107,7 +109,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val response = simuleringService.simulerUtbetaling(createOppdrag(), createUtbetaling(), FNR)
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -126,7 +128,11 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val response = simuleringService.simulerUtbetaling(
+            oppdrag = createOppdrag(),
+            utbetaling = createUtbetaling(),
+            simuleringGjelder = FNR
+        )
 
         response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
@@ -145,27 +151,30 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerOppdrag(createOppdrag(), FNR)
+        val response = simuleringService.simulerUtbetaling(createOppdrag(), createUtbetaling(), FNR)
 
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
-    private fun createOppdrag(): Utbetaling {
-        val oppdragId = UUID30.randomUUID()
-        return Utbetaling(
-            oppdragId = oppdragId,
-            behandlingId = UUID.randomUUID(),
-            utbetalingslinjer = listOf(
-                Utbetalingslinje(
-                    id = UUID30.randomUUID(),
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
-                    beløp = 405,
-                    forrigeUtbetalingslinjeId = null
-                )
+    private fun createOppdrag() = Oppdrag(
+        id = UUID30.randomUUID(),
+        opprettet = Instant.EPOCH,
+        sakId = UUID.randomUUID(),
+        utbetalinger = mutableListOf()
+    )
+
+    private fun createUtbetaling() = Utbetaling(
+        behandlingId = UUID.randomUUID(),
+        utbetalingslinjer = listOf(
+            Utbetalingslinje(
+                id = UUID30.randomUUID(),
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                beløp = 405,
+                forrigeUtbetalingslinjeId = null
             )
         )
-    }
+    )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {
         simulering = Beregning().apply {
