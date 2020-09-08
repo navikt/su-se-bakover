@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
@@ -361,6 +362,7 @@ internal class BehandlingRoutesKtTest {
                 testClients.copy(
                     utbetalingPublisher = object : UtbetalingPublisher {
                         override fun publish(
+                            oppdrag: Oppdrag,
                             utbetaling: Utbetaling,
                             oppdragGjelder: Fnr
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =

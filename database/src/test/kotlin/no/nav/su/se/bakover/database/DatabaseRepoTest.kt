@@ -460,7 +460,6 @@ internal class DatabaseRepoTest {
     private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUbetaling(
         oppdragId = oppdragId,
         utbetaling = Utbetaling(
-            oppdragId = oppdragId,
             behandlingId = behandlingId,
             utbetalingslinjer = emptyList()
         )

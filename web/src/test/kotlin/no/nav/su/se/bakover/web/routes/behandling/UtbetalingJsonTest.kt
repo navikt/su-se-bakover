@@ -63,7 +63,6 @@ internal class UtbetalingJsonTest {
     private val utbetaling = Utbetaling(
         id = id,
         opprettet = opprettet,
-        oppdragId = UUID30.randomUUID(),
         behandlingId = UUID.randomUUID(),
         simulering = Simulering(
             gjelderId = FNR,

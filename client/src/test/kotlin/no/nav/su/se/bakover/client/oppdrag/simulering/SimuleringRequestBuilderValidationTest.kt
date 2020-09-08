@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
+import java.time.Instant
 import java.util.UUID
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXBContext
@@ -27,7 +29,15 @@ internal class SimuleringRequestBuilderValidationTest {
     @Test
     fun `valider soap xml mot xsd skjema`() {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
+        val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
+            oppdrag = Oppdrag(
+                id = oppdragId,
+                opprettet = Instant.EPOCH,
+                sakId = UUID.randomUUID(),
+                utbetalinger = mutableListOf()
+
+            ),
             utbetaling = Utbetaling(
                 behandlingId = UUID.randomUUID(),
                 utbetalingslinjer = listOf(
@@ -37,8 +47,7 @@ internal class SimuleringRequestBuilderValidationTest {
                         beløp = 10,
                         forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                     )
-                ),
-                oppdragId = UUID30.randomUUID()
+                )
             ),
             simuleringGjelder = Fnr("01010198765")
         ).build().request

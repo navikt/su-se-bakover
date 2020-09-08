@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 data class Fnr @JsonCreator(mode = DELEGATING) constructor(
     @JsonValue
-    val fnr: String?
+    val fnr: String
 ) {
     private val fnrPattern = Regex("[0-9]{11}")
 
@@ -14,15 +14,10 @@ data class Fnr @JsonCreator(mode = DELEGATING) constructor(
         validate(fnr)
     }
 
-    override fun toString(): String = fnr!!
+    override fun toString(): String = fnr
 
-    private fun validate(fnr: String?) {
-        if (fnr == null) throw UgyldigFnrException(fnr)
+    private fun validate(fnr: String) {
         if (!fnr.matches(fnrPattern)) throw UgyldigFnrException(fnr)
-    }
-
-    companion object {
-        const val FNR = "fnr"
     }
 }
 

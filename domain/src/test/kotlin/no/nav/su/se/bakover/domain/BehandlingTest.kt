@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
+import java.time.Instant
 import java.util.UUID
 
 internal class BehandlingTest {
@@ -58,6 +59,15 @@ internal class BehandlingTest {
     private val id2 = UUID.randomUUID()
     private val aktørId = AktørId("aktørId")
     private val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
+
+    companion object {
+        val oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = UUID.randomUUID(),
+            utbetalinger = mutableListOf()
+        )
+    }
 
     private lateinit var behandling: Behandling
     private lateinit var observer: DummyObserver
@@ -566,6 +576,7 @@ internal class BehandlingTest {
             attestert.sendTilUtbetaling(
                 object : UtbetalingPublisher {
                     override fun publish(
+                        oppdrag: Oppdrag,
                         utbetaling: Utbetaling,
                         oppdragGjelder: Fnr
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
@@ -645,10 +656,10 @@ internal class BehandlingTest {
             behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             behandling.attester(Attestant("attestant"))
             val publisherMock = mock<UtbetalingPublisher> {
-                on { publish(any(), any()) } doReturn Unit.right()
+                on { publish(any(), any(), any()) } doReturn Unit.right()
             }
             behandling.sendTilUtbetaling(publisherMock)
-            verify(publisherMock, Times(1)).publish(behandling.gjeldendeUtbetaling()!!, Fnr("12345678910"))
+            verify(publisherMock, Times(1)).publish(oppdrag.copy(sakId = behandling.sakId), behandling.gjeldendeUtbetaling()!!, Fnr("12345678910"))
         }
 
         @Test
@@ -733,7 +744,7 @@ internal class BehandlingTest {
         }
 
         override fun hentOppdrag(sakId: UUID): Oppdrag {
-            return Oppdrag(sakId = sakId).also { it.addObserver(this) }
+            return oppdrag.copy(sakId = sakId).also { it.addObserver(this) }
         }
 
         override fun hentFnr(sakId: UUID): Fnr {
@@ -769,7 +780,8 @@ internal class BehandlingTest {
     }
 
     object SimuleringClientStub : SimuleringClient {
-        override fun simulerOppdrag(
+        override fun simulerUtbetaling(
+            oppdrag: Oppdrag,
             utbetaling: Utbetaling,
             simuleringGjelder: Fnr
         ): Either<SimuleringFeilet, Simulering> {
@@ -787,6 +799,7 @@ internal class BehandlingTest {
 
     object UtbetalingPublisherStub : UtbetalingPublisher {
         override fun publish(
+            oppdrag: Oppdrag,
             utbetaling: Utbetaling,
             oppdragGjelder: Fnr
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> = Unit.right()

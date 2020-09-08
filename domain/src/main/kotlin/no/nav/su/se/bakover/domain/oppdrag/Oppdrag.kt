@@ -23,7 +23,6 @@ data class Oppdrag(
 
     fun generererUtbetaling(behandlingId: UUID, beregningsperioder: List<BeregningsPeriode>): Utbetaling {
         return Utbetaling(
-            oppdragId = id,
             behandlingId = behandlingId,
             utbetalingslinjer = beregningsperioder.map {
                 Utbetalingslinje(
