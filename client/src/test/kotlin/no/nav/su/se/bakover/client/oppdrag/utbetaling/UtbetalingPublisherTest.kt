@@ -14,7 +14,11 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Test
+import org.xmlunit.diff.DefaultNodeMatcher
+import org.xmlunit.diff.ElementSelectors
+import org.xmlunit.matchers.CompareMatcher.isSimilarTo
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -22,39 +26,15 @@ import java.util.UUID
 
 internal class UtbetalingPublisherTest {
 
-    val clock = Clock.fixed(Instant.parse("1970-01-01T00:00:00.000+01:00"), ZoneOffset.UTC)
-    val førsteUtbetalingsLinje = Utbetalingslinje(
-        fom = 1.januar(2020),
-        tom = 31.januar(2020),
-        beløp = 10,
-        forrigeUtbetalingslinjeId = null
-    )
-    val andreUtbetalingslinje = Utbetalingslinje(
-        fom = 1.februar(2020),
-        tom = 29.februar(2020),
-        beløp = 20,
-        forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
-    )
-    val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Instant.EPOCH,
-        sakId = UUID.randomUUID(),
-        utbetalinger = mutableListOf()
-    )
-    val utbetaling = Utbetaling(
-        behandlingId = UUID.randomUUID(),
-        utbetalingslinjer = listOf(
-            førsteUtbetalingsLinje,
-            andreUtbetalingslinje
-        )
-    )
-    val fnr = Fnr("12345678910")
-
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(clock, mqClient)
-        client.publish(oppdrag, utbetaling, fnr) shouldBe KunneIkkeSendeUtbetaling.left()
+
+        assertThat(
+            client.publish(oppdrag, utbetaling, fnr),
+            isSimilarTo(KunneIkkeSendeUtbetaling(expected).left()).withNodeMatcher(nodeMatcher)
+        )
         mqClient.count shouldBe 1
     }
 
@@ -64,10 +44,44 @@ internal class UtbetalingPublisherTest {
 
         val client = UtbetalingMqPublisher(clock, mqClient)
 
-        client.publish(oppdrag, utbetaling, fnr) shouldBe Unit.right()
+        assertThat(
+            client.publish(oppdrag, utbetaling, fnr),
+            isSimilarTo(expected.right()).withNodeMatcher(nodeMatcher)
+        )
         mqClient.count shouldBe 1
-        val expected =
-            """
+        mqClient.message?.trimIndent() shouldBe expected
+    }
+
+    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
+    private val clock = Clock.fixed(Instant.parse("1970-01-01T00:00:00.000+01:00"), ZoneOffset.UTC)
+    private val førsteUtbetalingsLinje = Utbetalingslinje(
+        fom = 1.januar(2020),
+        tom = 31.januar(2020),
+        beløp = 10,
+        forrigeUtbetalingslinjeId = null
+    )
+    private val andreUtbetalingslinje = Utbetalingslinje(
+        fom = 1.februar(2020),
+        tom = 29.februar(2020),
+        beløp = 20,
+        forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
+    )
+    private val oppdrag = Oppdrag(
+        id = UUID30.randomUUID(),
+        opprettet = Instant.EPOCH,
+        sakId = UUID.randomUUID(),
+        utbetalinger = mutableListOf()
+    )
+    private val utbetaling = Utbetaling(
+        behandlingId = UUID.randomUUID(),
+        utbetalingslinjer = listOf(
+            førsteUtbetalingsLinje,
+            andreUtbetalingslinje
+        )
+    )
+    private val fnr = Fnr("12345678910")
+    private val expected =
+        """
             <?xml version='1.0' encoding='UTF-8'?>
             <Oppdrag>
               <oppdrag-110>
@@ -119,9 +133,7 @@ internal class UtbetalingPublisherTest {
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>
-            """.trimIndent()
-        mqClient.message?.trimIndent() shouldBe expected
-    }
+        """.trimIndent()
 
     class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
         var count = 0

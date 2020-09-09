@@ -29,6 +29,7 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
         exclude(group = "junit")
     }
+    testImplementation("org.xmlunit:xmlunit-matchers:2.7.0")
 }
 
 configure<SourceSetContainer> {

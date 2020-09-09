@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -309,15 +310,27 @@ data class Behandling constructor(
 
         inner class Innvilget : Attestert() {
             override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                val result = publisher.publish(persistenceObserver.hentOppdrag(sakId), gjeldendeUtbetaling()!!, persistenceObserver.hentFnr(sakId))
-                    .map { this@Behandling }
-                when (result) {
-                    is Either.Right -> {
-                    } // TODO
-                    else -> {
-                    } // noop
+                return publisher.publish(
+                    oppdrag = persistenceObserver.hentOppdrag(sakId),
+                    utbetaling = gjeldendeUtbetaling()!!,
+                    oppdragGjelder = persistenceObserver.hentFnr(sakId)
+                ).mapLeft {
+                    gjeldendeUtbetaling()!!.addOppdragsmelding(
+                        Oppdragsmelding(
+                            Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                            it.originalMelding
+                        )
+                    )
+                    it
+                }.map {
+                    gjeldendeUtbetaling()!!.addOppdragsmelding(
+                        Oppdragsmelding(
+                            Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                            it
+                        )
+                    )
+                    this@Behandling
                 }
-                return result
             }
         }
 

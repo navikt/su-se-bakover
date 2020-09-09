@@ -16,6 +16,7 @@ data class Utbetaling(
     val behandlingId: UUID,
     private var simulering: Simulering? = null,
     private var kvittering: Kvittering? = null,
+    private var oppdragsmelding: Oppdragsmelding? = null,
     val utbetalingslinjer: List<Utbetalingslinje>,
 ) : PersistentDomainObject<UtbetalingPersistenceObserver>() {
 
@@ -29,6 +30,8 @@ data class Utbetaling(
         this.simulering = persistenceObserver.addSimulering(id, simulering)
     }
 
+    fun getOppdragsmelding() = oppdragsmelding
+
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
     fun erUtbetalt() = kvittering?.erUtbetalt() ?: false
@@ -38,6 +41,14 @@ data class Utbetaling(
             log.info("Kvittering allerede lagret.")
         } else {
             this.kvittering = persistenceObserver.addKvittering(id, kvittering)
+        }
+    }
+
+    fun addOppdragsmelding(oppdragsmelding: Oppdragsmelding) {
+        this.oppdragsmelding = persistenceObserver.addOppdragsmelding(id, oppdragsmelding)
+        when (this.oppdragsmelding!!.erSendt()) {
+            true -> log.info("Oppdragsmelding for utbetaling: $id oversendt oppdrag")
+            else -> log.warn("Oversendelse av oppdragsmelding for utbetaling: $id feilet")
         }
     }
 
@@ -51,4 +62,5 @@ data class Utbetaling(
 interface UtbetalingPersistenceObserver : PersistenceObserver {
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering
     fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
+    fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
 }

@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -311,10 +312,8 @@ internal class DatabaseRepoTest {
                     )
                 )
             )
-            using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getSimulering()!!
-                simulering shouldBe hentet
-            }
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getSimulering()!!
+            simulering shouldBe hentet
         }
     }
 
@@ -331,10 +330,23 @@ internal class DatabaseRepoTest {
                 mottattTidspunkt = Instant.EPOCH
             )
             repo.addKvittering(utbetaling.id, kvittering)
-            using(sessionOf(EmbeddedDatabase.instance())) {
-                val hentet = repo.hentUtbetalinger(sak.oppdrag.id, it).first().getKvittering()!!
-                kvittering shouldBe hentet
-            }
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
+            kvittering shouldBe hentet
+        }
+    }
+
+    @Test
+    fun `legg til og hent oppdragsmelding`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
+            repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
+
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
+            hentet shouldBe oppdragsmelding
         }
     }
 
@@ -415,6 +427,10 @@ internal class DatabaseRepoTest {
         }
 
         override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
+            throw NotImplementedError()
+        }
+
+        override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
             throw NotImplementedError()
         }
     }

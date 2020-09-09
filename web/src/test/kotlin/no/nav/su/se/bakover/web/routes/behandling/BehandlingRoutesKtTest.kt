@@ -365,8 +365,8 @@ internal class BehandlingRoutesKtTest {
                             oppdrag: Oppdrag,
                             utbetaling: Utbetaling,
                             oppdragGjelder: Fnr
-                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
-                            UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
+                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
+                            UtbetalingPublisher.KunneIkkeSendeUtbetaling("").left()
                     }
                 )
             )

@@ -30,8 +30,10 @@ class UtbetalingMqPublisher(
         oppdrag: Oppdrag,
         utbetaling: Utbetaling,
         oppdragGjelder: Fnr
-    ): Either<KunneIkkeSendeUtbetaling, Unit> {
+    ): Either<KunneIkkeSendeUtbetaling, String> {
         val xml = xmlMapper.writeValueAsString(toUtbetalingRequest(oppdrag, utbetaling, oppdragGjelder, clock))
-        return mqPublisher.publish(xml).mapLeft { KunneIkkeSendeUtbetaling }
+        return mqPublisher.publish(xml)
+            .mapLeft { KunneIkkeSendeUtbetaling(xml) }
+            .map { xml }
     }
 }

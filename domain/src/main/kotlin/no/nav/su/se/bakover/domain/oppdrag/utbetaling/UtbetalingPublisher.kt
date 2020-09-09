@@ -10,7 +10,7 @@ interface UtbetalingPublisher {
         oppdrag: Oppdrag,
         utbetaling: Utbetaling,
         oppdragGjelder: Fnr
-    ): Either<KunneIkkeSendeUtbetaling, Unit>
+    ): Either<KunneIkkeSendeUtbetaling, String>
 
-    object KunneIkkeSendeUtbetaling
+    data class KunneIkkeSendeUtbetaling(val originalMelding: String)
 }

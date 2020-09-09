@@ -41,6 +41,7 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling(
+            behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -56,8 +57,7 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
-            ),
-            behandlingId = behandlingId
+            )
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -136,6 +136,12 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling(
+                    behandlingId = behandlingId,
+                    kvittering = Kvittering(
+                        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                        originalKvittering = "someFakeData",
+                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10)
+                    ),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             id = eksisterendeOppdragslinjeId,
@@ -144,12 +150,6 @@ internal class UtbetalingRequestTest {
                             beløp = BELØP,
                             forrigeUtbetalingslinjeId = null,
                         )
-                    ),
-                    behandlingId = behandlingId,
-                    kvittering = Kvittering(
-                        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                        originalKvittering = "someFakeData",
-                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10)
                     )
                 )
             )
@@ -158,6 +158,7 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
         val nyUtbetaling = Utbetaling(
+            behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
@@ -173,8 +174,7 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )
-            ),
-            behandlingId = behandlingId
+            )
         )
         val utbetalingRequest = toUtbetalingRequest(
             oppdrag = eksisterendeOppdrag,

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -173,6 +174,12 @@ internal class DatabaseRepo(
             behandlingId = uuid("behandlingId"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
+            oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
+                objectMapper.readValue(
+                    it,
+                    Oppdragsmelding::class.java
+                )
+            },
             utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session)
         ).also {
             it.addObserver(this@DatabaseRepo)
@@ -530,5 +537,15 @@ internal class DatabaseRepo(
             )
         )
         return kvittering
+    }
+
+    override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
+        "update utbetaling set oppdragsmelding = to_json(:oppdragsmelding::json) where id = :id".oppdatering(
+            mapOf(
+                "id" to utbetalingId.toString(),
+                "oppdragsmelding" to objectMapper.writeValueAsString(oppdragsmelding)
+            )
+        )
+        return oppdragsmelding
     }
 }

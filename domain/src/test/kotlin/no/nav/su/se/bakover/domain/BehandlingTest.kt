@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -569,6 +570,10 @@ internal class BehandlingTest {
         fun `skal kunne sende til utbetaling`() {
             attestert.sendTilUtbetaling(UtbetalingPublisherStub)
             attestert.status() shouldBe ATTESTERT_INNVILGET
+            attestert.gjeldendeUtbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+                Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                "great success"
+            )
         }
 
         @Test
@@ -579,11 +584,15 @@ internal class BehandlingTest {
                         oppdrag: Oppdrag,
                         utbetaling: Utbetaling,
                         oppdragGjelder: Fnr
-                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling.left()
+                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here").left()
                 }
             )
             attestert.status() shouldBe ATTESTERT_INNVILGET
+            attestert.gjeldendeUtbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                "some xml here"
+            )
         }
 
         @Test
@@ -656,10 +665,14 @@ internal class BehandlingTest {
             behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             behandling.attester(Attestant("attestant"))
             val publisherMock = mock<UtbetalingPublisher> {
-                on { publish(any(), any(), any()) } doReturn Unit.right()
+                on { publish(any(), any(), any()) } doReturn "".right()
             }
             behandling.sendTilUtbetaling(publisherMock)
-            verify(publisherMock, Times(1)).publish(oppdrag.copy(sakId = behandling.sakId), behandling.gjeldendeUtbetaling()!!, Fnr("12345678910"))
+            verify(publisherMock, Times(1)).publish(
+                oppdrag.copy(sakId = behandling.sakId),
+                behandling.gjeldendeUtbetaling()!!,
+                Fnr("12345678910")
+            )
         }
 
         @Test
@@ -720,6 +733,7 @@ internal class BehandlingTest {
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
         lateinit var oppdatertStatus: BehandlingsStatus
         var oppdaterteVilkårsvurderinger: MutableList<Pair<UUID, Vilkårsvurdering>> = mutableListOf()
+        lateinit var oppdragsmelding: Oppdragsmelding
 
         override fun opprettVilkårsvurderinger(
             behandlingId: UUID,
@@ -771,6 +785,11 @@ internal class BehandlingTest {
         override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
             return kvittering
         }
+
+        override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
+            this.oppdragsmelding = oppdragsmelding
+            return this.oppdragsmelding
+        }
     }
 
     object OppgaveClientStub : OppgaveClient {
@@ -802,7 +821,7 @@ internal class BehandlingTest {
             oppdrag: Oppdrag,
             utbetaling: Utbetaling,
             oppdragGjelder: Fnr
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Unit> = Unit.right()
+        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> = "great success".right()
     }
 
     private fun createBehandling(
