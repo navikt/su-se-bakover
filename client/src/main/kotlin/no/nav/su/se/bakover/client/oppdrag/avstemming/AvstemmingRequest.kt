@@ -67,7 +67,7 @@ data class AvstemmingDataRequest(
          */
         val offnr: String,
         val avleverendeTransaksjonNokkel: String,
-        val tidspunkt: String  // TODO: Finne format på denne
+        val tidspunkt: String // TODO: Finne format på denne
     ) {
         enum class Detaljtype(@JsonValue val value: String) {
             GODKJENT_MED_VARSEL("VARS"),
@@ -91,7 +91,7 @@ data class Aksjonsdata(
     val kildeType: KildeType,
     val avstemmingType: AvstemmingType,
     val mottakendeKomponentKode: String,
-    val brukerId: String   //Saksbehandler
+    val brukerId: String // Saksbehandler
 ) {
     enum class AksjonType(@JsonValue val value: String) {
         START("START"),

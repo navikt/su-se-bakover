@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
+import no.nav.su.se.bakover.web.routes.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
@@ -69,7 +70,7 @@ fun main(args: Array<String>) {
 
 private val jmsConnection: Connection by lazy {
     MQConnectionFactory().apply {
-        Config.utbetaling.let {
+        Config.oppdrag.let {
             hostName = it.mqHostname
             port = it.mqPort
             channel = it.mqChannel
@@ -202,11 +203,12 @@ internal fun Application.susebakover(
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
             vilkårsvurderingRoutes(databaseRepo)
+            avstemmingRoutes(databaseRepo, clients.avstemmingPublisher)
         }
     }
     if (!Config.isLocalOrRunningTests) {
         KvitteringIbmMqConsumer(
-            kvitteringQueueName = Config.utbetaling.mqReplyTo,
+            kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             connection = jmsConnection,
             kvitteringConsumer = KvitteringConsumer(
                 repo = databaseRepo

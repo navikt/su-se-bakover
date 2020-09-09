@@ -44,7 +44,8 @@ class AvstemmingPublisherTest {
             )
         )
 
-        val expected = """
+        val expected =
+            """
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
@@ -55,7 +56,7 @@ class AvstemmingPublisherTest {
                 <brukerId>su</brukerId>
               </aksjon>
             </avstemmingsdata>
-        """.trimIndent()
+            """.trimIndent()
 
         client.publishStart(startRequest) shouldBe Unit.right()
 
@@ -82,7 +83,8 @@ class AvstemmingPublisherTest {
             )
         )
 
-        val expected = """
+        val expected =
+            """
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
@@ -93,7 +95,7 @@ class AvstemmingPublisherTest {
                 <brukerId>su</brukerId>
               </aksjon>
             </avstemmingsdata>
-        """.trimIndent()
+            """.trimIndent()
 
         client.publishStopp(stoppRequest) shouldBe Unit.right()
 
@@ -151,7 +153,8 @@ class AvstemmingPublisherTest {
             )
         )
 
-        val expected = """
+        val expected =
+            """
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
@@ -191,7 +194,7 @@ class AvstemmingPublisherTest {
                 <tidspunkt>2020-09-02.01.01.01.000000</tidspunkt>
               </detalj>
             </avstemmingsdata>
-        """.trimIndent()
+            """.trimIndent()
 
         client.publishData(dataRequest) shouldBe Unit.right()
 

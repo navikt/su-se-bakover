@@ -45,17 +45,27 @@ object Config {
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     val suSeFramoverRedirectUrl = env["FRONTEND_REDIRECT_URL"] ?: "http://localhost:1234/auth/complete"
 
-    val utbetaling = Utbetaling(serviceUser = serviceUser)
+    val oppdrag = Oppdrag(serviceUser = serviceUser)
 
-    data class Utbetaling(
+    data class Oppdrag(
         val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
         val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1413,
         val mqHostname: String = env["MQ_HOSTNAME"] ?: "b27apvl176.preprod.local",
         val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_SU_SE_BAKOVER",
-        val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
-        val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
         val serviceUser: ServiceUser,
-    )
+        val utbetaling: Utbetaling = Utbetaling(),
+        val avstemming: Avstemming = Avstemming()
+    ) {
+        data class Utbetaling(
+            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
+            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
+        )
+
+        data class Avstemming(
+            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
+            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
+        )
+    }
 
     data class Simulering(
         val url: String = env["SIMULERING_URL"] ?: "",
