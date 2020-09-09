@@ -32,7 +32,9 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             {
                 json ->
                 JSONObject(json).let {
-                    it.optString("bestillingsId").right()
+                    val bestillingsId = it.optString("bestillingsId")
+                    log.info("Bestilt distribusjon med bestillingsId $bestillingsId")
+                    bestillingsId.right()
                 }
             },
             {
