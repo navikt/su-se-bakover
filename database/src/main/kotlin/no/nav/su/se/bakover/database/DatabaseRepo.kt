@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.VilkårsvurderingPersistenceObserver
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.FradragDto
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -315,7 +314,7 @@ internal class DatabaseRepo(
             vilkårsvurderinger = hentVilkårsvurderingerInternal(behandlingId, session),
             opprettet = instant("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
-            beregninger = hentBeregningerInternal(behandlingId, session),
+            beregning = hentBeregningInternal(behandlingId, session),
             utbetaling = hentUtbetalingForBehandlingInternal(behandlingId, session),
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
@@ -405,13 +404,13 @@ internal class DatabaseRepo(
         return vilkårsvurdering
     }
 
-    override fun hentBeregninger(behandlingId: UUID): MutableList<Beregning> =
-        using(sessionOf(dataSource)) { hentBeregningerInternal(behandlingId, it) }
+    override fun hentBeregning(behandlingId: UUID): Beregning? =
+        using(sessionOf(dataSource)) { hentBeregningInternal(behandlingId, it) }
 
-    private fun hentBeregningerInternal(behandlingId: UUID, session: Session) =
-        "select * from beregning where behandlingId = :id".hentListe(mapOf("id" to behandlingId), session) {
+    private fun hentBeregningInternal(behandlingId: UUID, session: Session) =
+        "select * from beregning where behandlingId = :id".hent(mapOf("id" to behandlingId), session) {
             it.toBeregning(session)
-        }.toMutableList()
+        }
 
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
@@ -424,20 +423,24 @@ internal class DatabaseRepo(
     )
 
     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-        val dto = beregning.toDto()
+        deleteBeregninger(behandlingId)
         "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
             mapOf(
-                "id" to dto.id,
-                "opprettet" to dto.opprettet,
-                "fom" to dto.fom,
-                "tom" to dto.tom,
+                "id" to beregning.id,
+                "opprettet" to beregning.opprettet,
+                "fom" to beregning.fom,
+                "tom" to beregning.tom,
                 "behandlingId" to behandlingId,
-                "sats" to dto.sats.name
+                "sats" to beregning.sats.name
             )
         )
-        beregning.månedsberegninger.forEach { opprettMånedsberegning(dto.id, it) }
-        dto.fradrag.forEach { opprettFradrag(dto.id, it) }
+        beregning.månedsberegninger.forEach { opprettMånedsberegning(beregning.id, it) }
+        beregning.fradrag.forEach { opprettFradrag(beregning.id, it) }
         return beregning
+    }
+
+    private fun deleteBeregninger(behandlingId: UUID) {
+        "delete from beregning where behandlingId=:id".oppdatering(mapOf("id" to behandlingId))
     }
 
     override fun oppdaterBehandlingStatus(
@@ -524,7 +527,7 @@ internal class DatabaseRepo(
         type = Fradragstype.valueOf(string("fradragstype"))
     )
 
-    private fun opprettFradrag(beregningId: UUID, fradrag: FradragDto) {
+    private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
             insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
             values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)

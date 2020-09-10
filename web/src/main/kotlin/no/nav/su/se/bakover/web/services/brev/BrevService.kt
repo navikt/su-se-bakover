@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.beregning.FradragDto
+import no.nav.su.se.bakover.domain.beregning.Fradrag
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -159,5 +159,8 @@ fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
     }
 
 // TODO Hente Locale fra brukerens målform
-fun LocalDate.formatMonthYear(): String = this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
-fun List<FradragDto>.toFradragPerMåned(): List<FradragDto> = this.map { FradragDto(it.id, it.type, it.beløp / 12, it.beskrivelse) }
+fun LocalDate.formatMonthYear(): String =
+    this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
+
+fun List<Fradrag>.toFradragPerMåned(): List<Fradrag> =
+    this.map { Fradrag(it.id, it.type, it.beløp / 12, it.beskrivelse) }

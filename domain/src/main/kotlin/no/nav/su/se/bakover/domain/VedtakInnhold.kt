@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.domain.beregning.FradragDto
+import no.nav.su.se.bakover.domain.beregning.Fradrag
 
 data class VedtakInnhold(
     val dato: String,
@@ -20,7 +20,7 @@ data class VedtakInnhold(
     val satsGrunn: String,
     val redusertStønadStatus: Boolean,
     val redusertStønadGrunn: String?,
-    val fradrag: List<FradragDto>,
+    val fradrag: List<Fradrag>,
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,
     val avslagsgrunn: Avslagsgrunn?,
