@@ -348,7 +348,7 @@ class AvstemmingPublisherTest {
 
     private fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
         id = UUID30.randomUUID(),
-        opprettet = fom.atStartOfDay(ZoneId.systemDefault()).toInstant(),
+        opprettet = fom.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
         fom = fom,
         tom = tom,
         forrigeUtbetalingslinjeId = null,
@@ -357,7 +357,7 @@ class AvstemmingPublisherTest {
 
     private fun lagUtbetaling(opprettet: LocalDate, status: Utbetalingsstatus, linjer: List<Utbetalingslinje>) = Utbetaling(
         id = UUID30.randomUUID(),
-        opprettet = opprettet.atStartOfDay(ZoneId.systemDefault()).toInstant(),
+        opprettet = opprettet.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
         behandlingId = UUID.randomUUID(),
         simulering = null,
         kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
