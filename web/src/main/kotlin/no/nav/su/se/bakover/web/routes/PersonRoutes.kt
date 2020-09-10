@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
@@ -28,18 +27,13 @@ internal fun Route.personRoutes(
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     personOppslag.person(fnr).fold(
-                        { Resultat.message(HttpStatusCode.fromValue(httpCodeFor(it)), it.message) },
+                        { Resultat.message(HttpStatusCode.fromValue(it.httpCode), it.message) },
                         { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
                     )
                 )
             }
         )
     }
-}
-
-private fun httpCodeFor(pdlFeil: PdlFeil) = when (pdlFeil) {
-    is PdlFeil.FantIkkePerson -> 404
-    else -> 500
 }
 
 data class PersonResponseJson(

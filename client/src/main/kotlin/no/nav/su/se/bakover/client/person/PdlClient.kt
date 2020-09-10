@@ -30,8 +30,8 @@ internal class PdlClient(
         private val logger = LoggerFactory.getLogger(PdlClient::class.java)
     }
 
-    val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
-    val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
+    private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
+    private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
     fun person(fnr: Fnr): Either<PdlFeil, PdlData> {
         return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
@@ -119,7 +119,8 @@ internal class PdlClient(
 }
 
 sealed class PdlFeil(
-    val message: String
+    val message: String,
+    val httpCode: Int
 ) {
     companion object {
         fun from(errors: List<PdlError>): PdlFeil {
@@ -132,12 +133,14 @@ sealed class PdlFeil(
 
         private fun resolveError(code: String) = when (code.toLowerCase()) {
             "not_found" -> FantIkkePerson
+            "unauthorized" -> IkkeTilgangTilPerson
             else -> Ukjent
         }
     }
 
-    object FantIkkePerson : PdlFeil("Fant ikke person i PDL")
-    object Ukjent : PdlFeil("Ukjent feil mot PDL")
+    object FantIkkePerson : PdlFeil("Fant ikke person i PDL", 404)
+    object IkkeTilgangTilPerson : PdlFeil("Ikke tilgang til å se person", 403)
+    object Ukjent : PdlFeil("Ukjent feil mot PDL", 500)
 }
 
 data class PdlResponse<T>(
@@ -153,7 +156,7 @@ data class PdlError(
     val extensions: PdlExtension
 )
 
-class PdlExtension(
+data class PdlExtension(
     val code: String
 )
 
