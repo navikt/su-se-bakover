@@ -61,14 +61,14 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringIbmMqCo
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
-import javax.jms.Connection
+import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-private val jmsConnection: Connection by lazy {
+private val jmsContext: JMSContext by lazy {
     MQConnectionFactory().apply {
         Config.oppdrag.let {
             hostName = it.mqHostname
@@ -77,13 +77,13 @@ private val jmsConnection: Connection by lazy {
             queueManager = it.mqQueueManager
             transportType = WMQConstants.WMQ_CM_CLIENT
         }
-    }.createConnection(Config.serviceUser.username, Config.serviceUser.password)
+    }.createContext(Config.serviceUser.username, Config.serviceUser.password)
 }
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
     databaseRepo: ObjectRepo = DatabaseBuilder.build(),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsConnection).build(),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     authenticationHttpClient: HttpClient = HttpClient(Apache) {
@@ -209,12 +209,12 @@ internal fun Application.susebakover(
     if (!Config.isLocalOrRunningTests) {
         KvitteringIbmMqConsumer(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
-            connection = jmsConnection,
+            jmsContext = jmsContext,
             kvitteringConsumer = KvitteringConsumer(
                 repo = databaseRepo
             )
         ).also {
-            jmsConnection.start()
+            jmsContext.start()
         }
     }
 }

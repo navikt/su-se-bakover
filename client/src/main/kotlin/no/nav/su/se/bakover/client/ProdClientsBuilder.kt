@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.Config
-import javax.jms.Connection
+import javax.jms.JMSContext
 
-data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBuilder {
+data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuilder {
 
     override fun build(): Clients {
         val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
@@ -55,7 +55,7 @@ data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBu
                             sendQueue = it.utbetaling.mqSendQueue,
                             replyTo = it.utbetaling.mqReplyTo
                         ),
-                        connection = jmsConnection
+                        jmsContext = jmsContext
                     )
                 }
             ),
@@ -67,7 +67,7 @@ data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBu
                             sendQueue = it.avstemming.mqSendQueue,
                             replyTo = it.avstemming.mqReplyTo
                         ),
-                        connection = jmsConnection
+                        jmsContext = jmsContext
                     )
                 }
             )

@@ -142,5 +142,9 @@ internal class UtbetalingPublisherTest {
             this.message = message
             return response
         }
+
+        override fun publish(messages: List<String>, commit: Boolean): Either<CouldNotPublish, Unit> {
+            TODO("Not yet implemented")
+        }
     }
 }

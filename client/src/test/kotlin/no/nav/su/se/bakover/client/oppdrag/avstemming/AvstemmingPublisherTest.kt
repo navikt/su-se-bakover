@@ -352,6 +352,10 @@ class AvstemmingPublisherTest {
             this.listMessage.add(message)
             return response
         }
+
+        override fun publish(messages: List<String>, commit: Boolean): Either<MqPublisher.CouldNotPublish, Unit> {
+            TODO("Not yet implemented")
+        }
     }
 
     private fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
