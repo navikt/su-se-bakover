@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Either
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.util.UUID
-import kotlinx.coroutines.runBlocking
 
 enum class Fradragstype {
     Uføretrygd,
@@ -23,11 +23,11 @@ enum class Fradragstype {
     }
 }
 
-class Fradrag(
-    private val id: UUID = UUID.randomUUID(),
-    private val type: Fradragstype,
-    private val beløp: Int,
-    private val beskrivelse: String? = null
+data class Fradrag(
+    val id: UUID = UUID.randomUUID(),
+    val type: Fradragstype,
+    val beløp: Int,
+    val beskrivelse: String? = null
 ) : DtoConvertable<FradragDto> {
     fun perMåned(): Int = beløp / 12
 

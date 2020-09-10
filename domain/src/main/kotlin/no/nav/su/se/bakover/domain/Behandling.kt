@@ -26,7 +26,7 @@ data class Behandling(
     val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
-    private val beregninger: MutableList<Beregning> = mutableListOf(),
+    private var beregning: Beregning? = null,
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
@@ -42,7 +42,7 @@ data class Behandling(
         opprettet = opprettet,
         vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
-        beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
+        beregning = beregning?.toDto(),
         status = tilstand.status,
         utbetaling = utbetaling,
         attestant = attestant,
@@ -100,10 +100,6 @@ data class Behandling(
     fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
         return tilstand.sendTilUtbetaling(publisher)
     }
-
-    private fun gjeldendeBeregning(): Beregning = beregninger.toList()
-        .sortedWith(Beregning.Opprettet)
-        .last()
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
@@ -194,15 +190,13 @@ data class Behandling(
 
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
-                beregninger.add(
-                    persistenceObserver.opprettBeregning(
-                        behandlingId = id,
-                        beregning = Beregning(
-                            fom = fom,
-                            tom = tom,
-                            sats = sats,
-                            fradrag = fradrag
-                        )
+                this@Behandling.beregning = persistenceObserver.opprettBeregning(
+                    behandlingId = id,
+                    beregning = Beregning(
+                        fom = fom,
+                        tom = tom,
+                        sats = sats,
+                        fradrag = fradrag
                     )
                 )
                 nyTilstand(Beregnet())
@@ -240,7 +234,7 @@ data class Behandling(
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, gjeldendeBeregning().hentPerioder())
+            val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, beregning!!.hentPerioder())
             return simuleringClient.simulerUtbetaling(
                 oppdrag,
                 utbetalingTilSimulering,

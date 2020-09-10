@@ -41,7 +41,7 @@ internal class BehandlingJsonTest {
                 )
             ),
             søknad = søknad,
-            beregninger = mutableListOf(beregning),
+            beregning = beregning,
             attestant = Attestant("kjella"),
             sakId = sakId
         )
@@ -90,7 +90,6 @@ internal class BehandlingJsonTest {
             id = behandlingId,
             vilkårsvurderinger = mutableListOf(),
             søknad = søknad,
-            beregninger = mutableListOf(),
             sakId = sakId
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)

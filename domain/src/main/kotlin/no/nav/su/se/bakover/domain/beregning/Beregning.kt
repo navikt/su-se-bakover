@@ -15,7 +15,7 @@ data class Beregning(
     val fom: LocalDate,
     val tom: LocalDate,
     val sats: Sats,
-    private val fradrag: List<Fradrag>,
+    val fradrag: List<Fradrag>,
     val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag)
 ) : PersistentDomainObject<VoidObserver>(), DtoConvertable<BeregningDto> {
 
