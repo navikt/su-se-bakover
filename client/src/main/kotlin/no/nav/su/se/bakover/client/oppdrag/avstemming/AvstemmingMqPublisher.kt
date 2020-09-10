@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Grun
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Periodedata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Totaldata
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.FEIL
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_VARSEL
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -76,9 +77,10 @@ class AvstemmingMqPublisher(
                 datoAvstemtTom = utbetalinger.maxByOrNull { it.opprettet }!!.opprettet.toAvstemmingsdatoFormat()
             ),
             grunnlag = Grunnlagdata(
-                godkjentAntall = utbetalinger.count { it.erUtbetalt() },
-                godkjentBelop = utbetalinger.filter { it.erUtbetalt() }.flatMap { it.utbetalingslinjer }
-                    .sumBy { it.beløp }.toBigDecimal(),
+                godkjentAntall = utbetalinger.mapNotNull { it.getKvittering() }.map { it.utbetalingsstatus }
+                    .filter { it == OK }.size,
+                godkjentBelop = utbetalinger.filter { it.getKvittering()?.utbetalingsstatus == OK }
+                    .flatMap { it.utbetalingslinjer }.sumBy { it.beløp }.toBigDecimal(),
                 godkjenttFortegn = TILLEGG,
                 varselAntall = utbetalinger.mapNotNull { it.getKvittering() }.map { it.utbetalingsstatus }
                     .filter { it == OK_MED_VARSEL }.size,
