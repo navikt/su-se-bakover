@@ -42,7 +42,7 @@ data class Oppdrag(
             utbetalinger.filter { it.behandlingId == utbetaling.behandlingId }.all { it.kanSlettes() }
         ) { "Behandling ${utbetaling.behandlingId} har en utbetaling som har kommet for langt i behandlingsløpet til å slettes" }
         removeUtbetalingerWith(utbetaling.behandlingId)
-        return persistenceObserver.opprettUbetaling(id, utbetaling)
+        return persistenceObserver.opprettUtbetaling(id, utbetaling)
             .also {
                 utbetalinger.add(it)
             }
@@ -53,6 +53,6 @@ data class Oppdrag(
     }
 
     interface OppdragPersistenceObserver : PersistenceObserver {
-        fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
+        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
     }
 }

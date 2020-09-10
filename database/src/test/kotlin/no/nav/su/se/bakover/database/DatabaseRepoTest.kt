@@ -294,7 +294,7 @@ internal class DatabaseRepoTest {
                 utbetalingslinjer = nyeLinjer
             )
 
-            repo.opprettUbetaling(
+            repo.opprettUtbetaling(
                 oppdragId = sak.oppdrag.id,
                 utbetaling = nyUtbetaling
             )
@@ -316,7 +316,7 @@ internal class DatabaseRepoTest {
             utbetaling.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
 
             assertThrows<IllegalStateException> {
-                repo.opprettUbetaling(
+                repo.opprettUtbetaling(
                     sak.oppdrag.id,
                     Utbetaling(
                         behandlingId = behandling.id,
@@ -482,7 +482,7 @@ internal class DatabaseRepoTest {
     }
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
-        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             throw NotImplementedError()
         }
     }
@@ -539,7 +539,7 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUbetaling(
+    private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUtbetaling(
         oppdragId = oppdragId,
         utbetaling = Utbetaling(
             behandlingId = behandlingId,

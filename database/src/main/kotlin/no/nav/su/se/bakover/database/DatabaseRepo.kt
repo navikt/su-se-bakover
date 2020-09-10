@@ -88,7 +88,7 @@ internal class DatabaseRepo(
             ) { it.toUtbetaling(session) }
         }
 
-    override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         check(
             hentUtbetalingForBehandling(utbetaling.behandlingId)?.kanSlettes() ?: true
         ) { "Behandling ${utbetaling.behandlingId} har en utbetaling som har kommet for langt i behandlingsløpet til å slettes" }

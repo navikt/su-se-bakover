@@ -227,7 +227,7 @@ internal class OppdragTest {
 
     private class DummyObserver : Oppdrag.OppdragPersistenceObserver {
         var utbetaling: Utbetaling? = null
-        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             this.utbetaling = utbetaling
             return utbetaling
         }

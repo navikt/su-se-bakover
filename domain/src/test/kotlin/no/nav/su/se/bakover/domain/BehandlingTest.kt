@@ -774,7 +774,7 @@ internal class BehandlingTest {
             return vilkårsvurdering
         }
 
-        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             return utbetaling.also { it.addObserver(this) }
         }
 
