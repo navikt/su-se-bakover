@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -14,6 +15,7 @@ internal class SøknadJsonTest {
     companion object {
         val søknadId = UUID.randomUUID()
         val søknad = Søknad(
+            opprettet = Instant.EPOCH,
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
