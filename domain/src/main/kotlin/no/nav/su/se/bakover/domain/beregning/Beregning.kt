@@ -62,7 +62,7 @@ data class Beregning(
             tom = tom,
             sats = sats,
             månedsberegninger = månedsberegninger.map { it.toDto() },
-            fradrag = fradrag.map { it.toDto() }
+            fradrag = fradrag
         )
 
     object Opprettet : Comparator<Beregning> {
@@ -86,5 +86,5 @@ data class BeregningDto(
     val tom: LocalDate,
     val sats: Sats,
     val månedsberegninger: List<MånedsberegningDto>,
-    val fradrag: List<FradragDto>
+    val fradrag: List<Fradrag>
 )
