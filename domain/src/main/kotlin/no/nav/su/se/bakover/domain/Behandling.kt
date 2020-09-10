@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningDto
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
@@ -42,7 +41,7 @@ data class Behandling(
         opprettet = opprettet,
         vilkårsvurderinger = vilkårsvurderinger.toDto(),
         søknad = søknad.toDto(),
-        beregning = beregning?.toDto(),
+        beregning = beregning,
         status = tilstand.status,
         utbetaling = utbetaling,
         attestant = attestant,
@@ -373,7 +372,7 @@ data class BehandlingDto(
     val opprettet: Instant,
     val vilkårsvurderinger: List<VilkårsvurderingDto>,
     val søknad: SøknadDto,
-    val beregning: BeregningDto?,
+    val beregning: Beregning?,
     val status: Behandling.BehandlingsStatus,
     val utbetaling: Utbetaling?,
     val attestant: Attestant?,

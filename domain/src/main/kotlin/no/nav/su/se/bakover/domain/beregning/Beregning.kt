@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Period
@@ -17,7 +16,7 @@ data class Beregning(
     val sats: Sats,
     val fradrag: List<Fradrag>,
     val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag)
-) : PersistentDomainObject<VoidObserver>(), DtoConvertable<BeregningDto> {
+) : PersistentDomainObject<VoidObserver>() {
 
     init {
         require(fom.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fom" }
@@ -54,17 +53,6 @@ data class Beregning(
             )
         }
 
-    override fun toDto(): BeregningDto =
-        BeregningDto(
-            id = id,
-            opprettet = opprettet,
-            fom = fom,
-            tom = tom,
-            sats = sats,
-            månedsberegninger = månedsberegninger.map { it },
-            fradrag = fradrag
-        )
-
     object Opprettet : Comparator<Beregning> {
         override fun compare(o1: Beregning?, o2: Beregning?): Int {
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
@@ -77,14 +65,4 @@ data class BeregningsPeriode(
     val tom: LocalDate,
     val beløp: Int,
     val sats: Sats
-)
-
-data class BeregningDto(
-    val id: UUID,
-    val opprettet: Instant,
-    val fom: LocalDate,
-    val tom: LocalDate,
-    val sats: Sats,
-    val månedsberegninger: List<Månedsberegning>,
-    val fradrag: List<Fradrag>
 )

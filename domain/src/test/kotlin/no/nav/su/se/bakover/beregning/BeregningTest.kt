@@ -32,7 +32,7 @@ internal class BeregningTest {
             tom = fom.plusMonths(1).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList()
-        ).toDto()
+        )
         oneMonth.månedsberegninger shouldHaveSize 1
 
         val threeMonths = Beregning(
@@ -40,7 +40,7 @@ internal class BeregningTest {
             tom = fom.plusMonths(3).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList()
-        ).toDto()
+        )
         threeMonths.månedsberegninger shouldHaveSize 3
 
         val twelweMonths = Beregning(
@@ -48,7 +48,7 @@ internal class BeregningTest {
             tom = fom.plusMonths(12).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList()
-        ).toDto()
+        )
         twelweMonths.månedsberegninger shouldHaveSize 12
     }
 
@@ -100,7 +100,7 @@ internal class BeregningTest {
             ),
             fradrag = emptyList()
         )
-        beregning.toDto().månedsberegninger shouldHaveSize 1
+        beregning.månedsberegninger shouldHaveSize 1
     }
 
     @Test
@@ -147,7 +147,7 @@ internal class BeregningTest {
                 Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
             )
         )
-        b.toDto().månedsberegninger.forEach { it.fradrag shouldBe 1100 }
+        b.månedsberegninger.forEach { it.fradrag shouldBe 1100 }
     }
 
     @Test

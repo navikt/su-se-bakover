@@ -44,6 +44,6 @@ internal class BeregningJsonTest {
 
     @Test
     fun json() {
-        JSONAssert.assertEquals(expectedBeregningJson.trimIndent(), serialize(beregning.toDto().toJson()), true)
+        JSONAssert.assertEquals(expectedBeregningJson.trimIndent(), serialize(beregning.toJson()), true)
     }
 }
