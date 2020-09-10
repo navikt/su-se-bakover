@@ -62,7 +62,7 @@ object Config {
         )
 
         data class Avstemming(
-            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "queue:///QA.P234.OB29_AVSTEMMING_XML?targetClient=1", // Kopiert fra helse-spenn
+            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_234.OB29_AVSTEMMING_XML", // Kopiert fra helse-spenn
             val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "avstemmingMqReplyTo", // Oppe til vurdering om vi skal benytte denne
         )
     }
