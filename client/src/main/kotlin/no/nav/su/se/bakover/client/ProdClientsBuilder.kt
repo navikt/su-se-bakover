@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
+import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringConfig
 import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
@@ -48,17 +49,28 @@ data class ProdClientsBuilder(private val jmsConnection: Connection) : ClientsBu
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
-                mqPublisher = Config.Utbetaling(serviceUser = Config.serviceUser).let {
+                mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
                     IbmMqPublisher(
                         MqPublisherConfig(
-                            sendQueue = it.mqSendQueue,
-                            replyTo = it.mqReplyTo
+                            sendQueue = it.utbetaling.mqSendQueue,
+                            replyTo = it.utbetaling.mqReplyTo
                         ),
                         connection = jmsConnection
                     )
                 }
             ),
-            dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag)
+            dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag),
+            avstemmingPublisher = AvstemmingMqPublisher(
+                mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
+                    IbmMqPublisher(
+                        MqPublisherConfig(
+                            sendQueue = it.avstemming.mqSendQueue,
+                            replyTo = it.avstemming.mqReplyTo
+                        ),
+                        connection = jmsConnection
+                    )
+                }
+            )
         )
     }
 }

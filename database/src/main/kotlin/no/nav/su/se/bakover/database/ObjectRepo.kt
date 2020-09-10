@@ -19,4 +19,5 @@ interface ObjectRepo {
     fun hentVilkårsvurderinger(behandlingId: UUID): MutableList<Vilkårsvurdering>
     fun hentBeregninger(behandlingId: UUID): MutableList<Beregning>
     fun hentUtbetaling(utbetalingId: UUID30): Utbetaling?
+    fun hentUtbetalingerTilAvstemming(): List<Utbetaling>
 }

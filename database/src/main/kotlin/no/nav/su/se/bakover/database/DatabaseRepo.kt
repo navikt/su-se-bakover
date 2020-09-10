@@ -569,4 +569,12 @@ internal class DatabaseRepo(
         )
         return oppdragsmelding
     }
+
+    override fun hentUtbetalingerTilAvstemming(): List<Utbetaling> =
+        using(sessionOf(dataSource)) { session ->
+            "select * from utbetaling where oppdragsmelding is not null".hentListe(
+                mapOf(),
+                session
+            ) { it.toUtbetaling(session) }
+        }
 }
