@@ -225,7 +225,28 @@ data class Behandlingsinformasjon(
         val begrunnelse: String?
     ) : Base() {
         fun utledSats() =
-            no.nav.su.se.bakover.domain.beregning.Sats.HØY
+            if (!delerBolig) {
+                no.nav.su.se.bakover.domain.beregning.Sats.HØY
+            } else {
+                // Vi gjør en del null assertions her for at logikken ikke skal bli så vanskelig å følge
+                // Det _bør_ være trygt fordi gyldighet av objektet skal bli sjekket andre plasser
+                when (delerBoligMed!!) {
+                    Boforhold.DelerBoligMed.VOKSNE_BARN ->
+                        no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                    Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
+                        no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                    Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER ->
+                        if (!ektemakeEllerSamboerUnder67År!!) {
+                            no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                        } else {
+                            if (ektemakeEllerSamboerUførFlyktning!!) {
+                                no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                            } else {
+                                no.nav.su.se.bakover.domain.beregning.Sats.HØY
+                            }
+                        }
+                }
+            }
 
         override fun isValid(): Boolean =
             if (delerBolig) {
