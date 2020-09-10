@@ -21,7 +21,7 @@ data class Sak(
     override fun toDto() = SakDto(
         id,
         fnr = fnr,
-        søknader = søknader.map { it.toDto() },
+        søknader = søknader.map { it },
         behandlinger = behandlinger.map { it.toDto() },
         opprettet = opprettet,
         utbetalinger = oppdrag.hentUtbetalinger()
@@ -30,7 +30,7 @@ data class Sak(
     fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
         val søknad = persistenceObserver.nySøknad(id, søknad = Søknad(søknadInnhold = søknadInnhold))
         søknader.add(søknad)
-        val søknadDto = søknad.toDto()
+        val søknadDto = søknad
         observers.filterIsInstance(SakEventObserver::class.java).forEach {
             it.nySøknadEvent(
                 SakEventObserver.NySøknadEvent(
@@ -44,7 +44,7 @@ data class Sak(
     }
 
     fun opprettSøknadsbehandling(søknadId: UUID): Behandling {
-        val søknad = søknader.single { it.toDto().id == søknadId }
+        val søknad = søknader.single { it.id == søknadId }
         val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad, sakId = id))
         behandling.opprettVilkårsvurderinger()
         behandlinger.add(behandling)
@@ -75,7 +75,7 @@ interface SakEventObserver : SakObserver {
 data class SakDto(
     val id: UUID,
     val fnr: Fnr,
-    val søknader: List<SøknadDto> = emptyList(),
+    val søknader: List<Søknad> = emptyList(),
     val behandlinger: List<BehandlingDto> = emptyList(),
     val opprettet: Instant,
     val utbetalinger: List<Utbetaling> = emptyList()

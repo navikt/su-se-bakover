@@ -129,11 +129,11 @@ internal class SøknadJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(søknadJsonString, serialize(søknad.toDto().toJson()), true)
+        JSONAssert.assertEquals(søknadJsonString, serialize(søknad.toJson()), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<SøknadJson>(søknadJsonString) shouldBe søknad.toDto().toJson()
+        deserialize<SøknadJson>(søknadJsonString) shouldBe søknad.toJson()
     }
 }

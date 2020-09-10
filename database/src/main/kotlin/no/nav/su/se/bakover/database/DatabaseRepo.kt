@@ -241,13 +241,12 @@ internal class DatabaseRepo(
         .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
 
     internal fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
-        val søknadDto = søknad.toDto()
         "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
             mapOf(
-                "id" to søknadDto.id,
+                "id" to søknad.id,
                 "sakId" to sakId,
-                "soknad" to objectMapper.writeValueAsString(søknadDto.søknadInnhold),
-                "opprettet" to søknadDto.opprettet
+                "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
+                "opprettet" to søknad.opprettet
             )
         )
         return søknad

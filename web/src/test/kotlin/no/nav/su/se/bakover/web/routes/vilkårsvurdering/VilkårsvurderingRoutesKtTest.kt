@@ -55,6 +55,6 @@ internal class VilkårsvurderingRoutesKtTest {
     private fun setupForBehandling(): Behandling {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        return sak.opprettSøknadsbehandling(søknad.toDto().id)
+        return sak.opprettSøknadsbehandling(søknad.id)
     }
 }
