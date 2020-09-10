@@ -44,7 +44,7 @@ internal class MånedsberegningJsonTest {
     fun json() {
         JSONAssert.assertEquals(
             expectedMånedsberegningJson.trimIndent(),
-            serialize(månedsberegning.toDto().toJson()),
+            serialize(månedsberegning.toJson()),
             true
         )
     }

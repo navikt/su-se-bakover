@@ -61,7 +61,7 @@ data class Beregning(
             fom = fom,
             tom = tom,
             sats = sats,
-            månedsberegninger = månedsberegninger.map { it.toDto() },
+            månedsberegninger = månedsberegninger.map { it },
             fradrag = fradrag
         )
 
@@ -85,6 +85,6 @@ data class BeregningDto(
     val fom: LocalDate,
     val tom: LocalDate,
     val sats: Sats,
-    val månedsberegninger: List<MånedsberegningDto>,
+    val månedsberegninger: List<Månedsberegning>,
     val fradrag: List<Fradrag>
 )

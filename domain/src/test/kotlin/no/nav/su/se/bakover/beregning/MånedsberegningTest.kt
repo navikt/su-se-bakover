@@ -15,7 +15,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             sats = Sats.HØY,
             fradrag = 0
-        ).toDto()
+        )
 
         dto.fom shouldBe LocalDate.of(2020, Month.JANUARY, 1)
         dto.tom shouldBe LocalDate.of(2020, Month.JANUARY, 31)
@@ -30,7 +30,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 0
-        ).toDto()
+        )
 
         dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
         dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
@@ -45,7 +45,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 100
-        ).toDto()
+        )
 
         dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
         dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
@@ -60,7 +60,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = Int.MAX_VALUE
-        ).toDto()
+        )
 
         dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
         dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
@@ -75,7 +75,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 0
-        ).toDto()
+        )
 
         old.grunnbeløp shouldBe 93634
         old.beløp shouldBe 17790
@@ -84,7 +84,7 @@ internal class MånedsberegningTest {
             fom = LocalDate.of(2018, Month.SEPTEMBER, 1),
             sats = Sats.LAV,
             fradrag = 0
-        ).toDto()
+        )
 
         new.grunnbeløp shouldBe 96883
         new.beløp shouldBe 18408

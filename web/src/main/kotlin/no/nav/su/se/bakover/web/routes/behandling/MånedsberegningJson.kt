@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningDto
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.web.Resultat
 import java.time.format.DateTimeFormatter
@@ -16,7 +16,7 @@ internal data class MånedsberegningJson(
     val beløp: Int
 )
 
-internal fun MånedsberegningDto.toJson() = MånedsberegningJson(
+internal fun Månedsberegning.toJson() = MånedsberegningJson(
     id = id.toString(),
     fom = fom.format(DateTimeFormatter.ISO_DATE),
     tom = tom.format(DateTimeFormatter.ISO_DATE),
@@ -25,5 +25,5 @@ internal fun MånedsberegningDto.toJson() = MånedsberegningJson(
     beløp = beløp
 )
 
-internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<MånedsberegningDto>) =
+internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<Månedsberegning>) =
     Resultat.json(this, serialize(dtoConvertable.toDto().toJson()))

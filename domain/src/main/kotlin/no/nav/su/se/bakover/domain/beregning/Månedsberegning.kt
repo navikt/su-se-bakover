@@ -35,28 +35,4 @@ data class Månedsberegning(
                 .max(BigDecimal.ZERO)
                 .toInt()
     }
-
-    fun toDto() = MånedsberegningDto(
-        id = id,
-        opprettet = opprettet,
-        fom = fom,
-        tom = tom,
-        grunnbeløp = grunnbeløp,
-        sats = sats,
-        satsBeløp = satsBeløp,
-        beløp = beløp,
-        fradrag = fradrag
-    )
 }
-
-data class MånedsberegningDto(
-    val id: UUID,
-    val opprettet: Instant,
-    val fom: LocalDate,
-    val tom: LocalDate,
-    val grunnbeløp: Int,
-    val sats: Sats,
-    val satsBeløp: Int,
-    val beløp: Int,
-    val fradrag: Int
-)
