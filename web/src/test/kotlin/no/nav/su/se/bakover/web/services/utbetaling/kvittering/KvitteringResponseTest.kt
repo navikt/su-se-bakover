@@ -34,7 +34,7 @@ internal class KvitteringResponseTest {
                 datoOppdragGjelderFom = "1970-01-01",
                 saksbehId = "SU",
                 avstemming = UtbetalingRequest.Avstemming(
-                    kodeKomponent = "SUUFORE",
+                    kodeKomponent = "SU",
                     nokkelAvstemming = "2a08e16a-7569-47cd-b600-039158",
                     tidspktMelding = "2020-09-02-15.57.08.298000"
                 ),
@@ -86,7 +86,7 @@ internal class KvitteringResponseTest {
       <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
       <saksbehId>SU</saksbehId>
       <avstemming-115>
-         <kodeKomponent>SUUFORE</kodeKomponent>
+         <kodeKomponent>SU</kodeKomponent>
          <nokkelAvstemming>$nokkelAvstemming</nokkelAvstemming>
          <tidspktMelding>2020-09-02-15.57.08.298000</tidspktMelding>
       </avstemming-115>

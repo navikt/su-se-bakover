@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import java.math.BigDecimal
 
 // Denne klassen skal brukes til å lage avstemming xml requesten vi skal sende til oppdrag
@@ -90,8 +91,10 @@ data class Aksjonsdata(
     val aksjonType: AksjonType,
     val kildeType: KildeType,
     val avstemmingType: AvstemmingType,
-    val mottakendeKomponentKode: String,
-    val brukerId: String // Saksbehandler
+    val mottakendeKomponentKode: String = "OS",
+    val brukerId: String = OppdragDefaults.SAKSBEHANDLER_ID,
+    val avleverendeKomponentKode: String = OppdragDefaults.KODE_KOMPONENT,
+    val underkomponentKode: String = OppdragDefaults.KODE_FAGOMRÅDE
 ) {
     enum class AksjonType(@JsonValue val value: String) {
         START("START"),

@@ -133,8 +133,6 @@ class AvstemmingMqPublisher(
     fun lagAksjonsdata(aksjonType: AksjonType) = Aksjonsdata(
         aksjonType = aksjonType,
         kildeType = KildeType.AVLEVERT,
-        avstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING,
-        mottakendeKomponentKode = "os",
-        brukerId = "su"
+        avstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING
     )
 }

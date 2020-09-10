@@ -78,7 +78,7 @@ internal class UtbetalingRequestTest {
                     )
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
-                    kodeKomponent = "SUUFORE",
+                    kodeKomponent = "SU",
                     nokkelAvstemming = nyUtbetaling.id.toString(),
                     tidspktMelding = "1970-01-01-01.00.00.000000"
                 ),
@@ -201,7 +201,7 @@ internal class UtbetalingRequestTest {
                     )
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
-                    kodeKomponent = "SUUFORE",
+                    kodeKomponent = "SU",
                     nokkelAvstemming = nyUtbetaling.id.toString(),
                     tidspktMelding = "1970-01-01-01.00.00.000000"
                 ),

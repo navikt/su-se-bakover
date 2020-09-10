@@ -122,8 +122,10 @@ class AvstemmingPublisherTest {
                 <aksjonType>DATA</aksjonType>
                 <kildeType>AVLEV</kildeType>
                 <avstemmingType>GRSN</avstemmingType>
-                <mottakendeKomponentKode>os</mottakendeKomponentKode>
-                <brukerId>su</brukerId>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                <brukerId>SU</brukerId>
+                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <underkomponentKode>SUUFORE</underkomponentKode>
               </aksjon>
               <total>
                 <totalAntall>$totalAntall</totalAntall>
@@ -167,8 +169,8 @@ class AvstemmingPublisherTest {
                 aksjonType = START,
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "os",
-                brukerId = "su"
+                mottakendeKomponentKode = "OS",
+                brukerId = "SU"
             )
         )
 
@@ -180,8 +182,10 @@ class AvstemmingPublisherTest {
                 <aksjonType>START</aksjonType>
                 <kildeType>AVLEV</kildeType>
                 <avstemmingType>GRSN</avstemmingType>
-                <mottakendeKomponentKode>os</mottakendeKomponentKode>
-                <brukerId>su</brukerId>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                <brukerId>SU</brukerId>
+                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <underkomponentKode>SUUFORE</underkomponentKode>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
@@ -206,8 +210,8 @@ class AvstemmingPublisherTest {
                 aksjonType = AVSLUTT,
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "os",
-                brukerId = "su"
+                mottakendeKomponentKode = "OS",
+                brukerId = "SU"
             )
         )
 
@@ -219,8 +223,10 @@ class AvstemmingPublisherTest {
                 <aksjonType>AVSL</aksjonType>
                 <kildeType>AVLEV</kildeType>
                 <avstemmingType>GRSN</avstemmingType>
-                <mottakendeKomponentKode>os</mottakendeKomponentKode>
-                <brukerId>su</brukerId>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                <brukerId>SU</brukerId>
+                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <underkomponentKode>SUUFORE</underkomponentKode>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
@@ -245,8 +251,8 @@ class AvstemmingPublisherTest {
                 aksjonType = DATA,
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "os",
-                brukerId = "su"
+                mottakendeKomponentKode = "OS",
+                brukerId = "SU"
             ),
             total = Totaldata(
                 totalAntall = 1,
@@ -289,8 +295,10 @@ class AvstemmingPublisherTest {
                 <aksjonType>DATA</aksjonType>
                 <kildeType>AVLEV</kildeType>
                 <avstemmingType>GRSN</avstemmingType>
-                <mottakendeKomponentKode>os</mottakendeKomponentKode>
-                <brukerId>su</brukerId>
+                <mottakendeKomponentKode>OS</mottakendeKomponentKode>
+                <brukerId>SU</brukerId>
+                <avleverendeKomponentKode>SU</avleverendeKomponentKode>
+                <underkomponentKode>SUUFORE</underkomponentKode>
               </aksjon>
               <total>
                 <totalAntall>1</totalAntall>
@@ -355,13 +363,14 @@ class AvstemmingPublisherTest {
         beløp = beløp
     )
 
-    private fun lagUtbetaling(opprettet: LocalDate, status: Utbetalingsstatus, linjer: List<Utbetalingslinje>) = Utbetaling(
-        id = UUID30.randomUUID(),
-        opprettet = opprettet.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
-        behandlingId = UUID.randomUUID(),
-        simulering = null,
-        kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
-        oppdragsmelding = Oppdragsmelding(SENDT, "Melding"),
-        utbetalingslinjer = linjer
-    )
+    private fun lagUtbetaling(opprettet: LocalDate, status: Utbetalingsstatus, linjer: List<Utbetalingslinje>) =
+        Utbetaling(
+            id = UUID30.randomUUID(),
+            opprettet = opprettet.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
+            behandlingId = UUID.randomUUID(),
+            simulering = null,
+            kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
+            oppdragsmelding = Oppdragsmelding(SENDT, "Melding"),
+            utbetalingslinjer = linjer
+        )
 }
