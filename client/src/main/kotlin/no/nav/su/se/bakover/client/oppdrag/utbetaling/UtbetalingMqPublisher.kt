@@ -12,10 +12,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
-import java.time.Clock
 
 class UtbetalingMqPublisher(
-    private val clock: Clock = Clock.systemUTC(),
     private val mqPublisher: MqPublisher,
     private val xmlMapper: XmlMapper = XmlMapper(
         JacksonXmlModule().apply { setDefaultUseWrapper(false) }
@@ -31,7 +29,7 @@ class UtbetalingMqPublisher(
         utbetaling: Utbetaling,
         oppdragGjelder: Fnr
     ): Either<KunneIkkeSendeUtbetaling, String> {
-        val xml = xmlMapper.writeValueAsString(toUtbetalingRequest(oppdrag, utbetaling, oppdragGjelder, clock))
+        val xml = xmlMapper.writeValueAsString(toUtbetalingRequest(oppdrag, utbetaling, oppdragGjelder))
         return mqPublisher.publish(xml)
             .mapLeft { KunneIkkeSendeUtbetaling(xml) }
             .map { xml }

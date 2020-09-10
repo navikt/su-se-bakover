@@ -19,9 +19,7 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
-import java.time.Clock
 import java.time.Instant
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class UtbetalingPublisherTest {
@@ -29,7 +27,7 @@ internal class UtbetalingPublisherTest {
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
-        val client = UtbetalingMqPublisher(clock, mqClient)
+        val client = UtbetalingMqPublisher(mqClient)
 
         assertThat(
             client.publish(oppdrag, utbetaling, fnr),
@@ -42,7 +40,7 @@ internal class UtbetalingPublisherTest {
     fun `verifiser xml request`() {
         val mqClient = MqPublisherMock(Unit.right())
 
-        val client = UtbetalingMqPublisher(clock, mqClient)
+        val client = UtbetalingMqPublisher(mqClient)
 
         assertThat(
             client.publish(oppdrag, utbetaling, fnr),
@@ -53,7 +51,7 @@ internal class UtbetalingPublisherTest {
     }
 
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
-    private val clock = Clock.fixed(Instant.parse("1970-01-01T00:00:00.000+01:00"), ZoneOffset.UTC)
+
     private val førsteUtbetalingsLinje = Utbetalingslinje(
         fom = 1.januar(2020),
         tom = 31.januar(2020),
@@ -73,6 +71,7 @@ internal class UtbetalingPublisherTest {
         utbetalinger = mutableListOf()
     )
     private val utbetaling = Utbetaling(
+        opprettet = Instant.EPOCH,
         behandlingId = UUID.randomUUID(),
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
@@ -96,7 +95,7 @@ internal class UtbetalingPublisherTest {
                 <avstemming-115>
                   <kodeKomponent>SUUFORE</kodeKomponent>
                   <nokkelAvstemming>${utbetaling.id}</nokkelAvstemming>
-                  <tidspktMelding>1970-01-01-00.00.00.000000</tidspktMelding>
+                  <tidspktMelding>1970-01-01-01.00.00.000000</tidspktMelding>
                 </avstemming-115>
                 <oppdrags-enhet-120>
                   <typeEnhet>BOS</typeEnhet>

@@ -10,7 +10,6 @@ import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
-import java.time.Clock
 import java.time.LocalDate
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
@@ -22,7 +21,7 @@ internal class SimuleringRequestBuilder(
         utbetaling: Utbetaling,
         simuleringGjelder: Fnr
     ) : this(
-        toUtbetalingRequest(oppdrag, utbetaling, simuleringGjelder, Clock.systemUTC()).oppdragRequest
+        toUtbetalingRequest(oppdrag, utbetaling, simuleringGjelder).oppdragRequest
     )
 
     private val oppdragRequest = Oppdrag().apply {

@@ -1,16 +1,14 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-internal fun toUtbetalingRequest(oppdrag: Oppdrag, utbetaling: Utbetaling, oppdragGjelder: Fnr, clock: Clock): UtbetalingRequest {
+internal fun toUtbetalingRequest(oppdrag: Oppdrag, utbetaling: Utbetaling, oppdragGjelder: Fnr): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
@@ -24,7 +22,7 @@ internal fun toUtbetalingRequest(oppdrag: Oppdrag, utbetaling: Utbetaling, oppdr
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
                 nokkelAvstemming = utbetaling.id.toString(),
-                tidspktMelding = now(clock).toOppdragTimestamp(),
+                tidspktMelding = utbetaling.opprettet.toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.AVSTEMMING_KODE_KOMPONENT
             ),
             oppdragslinjer = utbetaling.utbetalingslinjer.map {

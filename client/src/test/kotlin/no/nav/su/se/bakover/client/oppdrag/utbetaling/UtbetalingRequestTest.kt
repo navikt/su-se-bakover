@@ -41,6 +41,7 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling(
+            opprettet = Instant.EPOCH,
             behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
@@ -124,8 +125,7 @@ internal class UtbetalingRequestTest {
         val utbetalingRequest = toUtbetalingRequest(
             oppdrag = oppdrag,
             utbetaling = nyUtbetaling,
-            oppdragGjelder = FNR,
-            clock = clock
+            oppdragGjelder = FNR
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -136,6 +136,7 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling(
+                    opprettet = Instant.EPOCH,
                     behandlingId = behandlingId,
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -158,6 +159,7 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
         val nyUtbetaling = Utbetaling(
+            opprettet = Instant.EPOCH,
             behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
@@ -179,8 +181,7 @@ internal class UtbetalingRequestTest {
         val utbetalingRequest = toUtbetalingRequest(
             oppdrag = eksisterendeOppdrag,
             utbetaling = nyUtbetaling,
-            oppdragGjelder = FNR,
-            clock = clock
+            oppdragGjelder = FNR
         )
 
         utbetalingRequest shouldBe UtbetalingRequest(
