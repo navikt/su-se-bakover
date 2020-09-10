@@ -8,8 +8,10 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -266,6 +268,70 @@ internal class DatabaseRepoTest {
     }
 
     @Test
+    fun `sletter eksisterende utbetalinger og utbetalingslinjer dersom det lages nye for samme behandling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+            val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
+            val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
+
+            val hentet = repo.hentUtbetalingForBehandling(behandling.id)
+            hentet!!.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
+
+            val nyeLinjer = listOf(
+                Utbetalingslinje(
+                    fom = 1.mai(2020),
+                    tom = 30.april(2020),
+                    beløp = 5000,
+                    forrigeUtbetalingslinjeId = null
+                )
+            )
+
+            val nyUtbetaling = Utbetaling(
+                behandlingId = behandling.id,
+                utbetalingslinjer = nyeLinjer
+            )
+
+            repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = nyUtbetaling
+            )
+            val nyHenting = repo.hentUtbetalingForBehandling(behandling.id)
+            nyHenting!!.utbetalingslinjer shouldBe nyeLinjer
+        }
+    }
+
+    @Test
+    fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+            val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
+            val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
+            utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+            utbetaling.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+
+            assertThrows<IllegalStateException> {
+                repo.opprettUtbetaling(
+                    sak.oppdrag.id,
+                    Utbetaling(
+                        behandlingId = behandling.id,
+                        utbetalingslinjer = emptyList()
+                    )
+                )
+            }
+
+            val skulleIkkeSlettes = repo.hentUtbetalingForBehandling(behandling.id)
+            skulleIkkeSlettes!!.id shouldBe utbetaling.id
+            skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
+        }
+    }
+
+    @Test
     fun `legg til og hent simulering`() {
         withMigratedDb {
             val sak = insertSak(FNR)
@@ -416,7 +482,7 @@ internal class DatabaseRepoTest {
     }
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
-        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             throw NotImplementedError()
         }
     }
@@ -473,7 +539,7 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUbetaling(
+    private fun insertUtbetaling(oppdragId: UUID30, behandlingId: UUID) = repo.opprettUtbetaling(
         oppdragId = oppdragId,
         utbetaling = Utbetaling(
             behandlingId = behandlingId,

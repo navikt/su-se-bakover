@@ -52,6 +52,8 @@ data class Utbetaling(
         }
     }
 
+    fun kanSlettes() = oppdragsmelding == null && kvittering == null
+
     object Opprettet : Comparator<Utbetaling> {
         override fun compare(o1: Utbetaling?, o2: Utbetaling?): Int {
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
