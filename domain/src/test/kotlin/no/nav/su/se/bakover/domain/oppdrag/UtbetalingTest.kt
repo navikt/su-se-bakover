@@ -55,6 +55,25 @@ internal class UtbetalingTest {
         it.addObserver(observer)
     }
 
+    @Test
+    fun `ikke lov å slette utbetalinger som er forsøkt oversendt oppdrag eller utbetalt`() {
+        createUtbetaling().also {
+            it.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml"))
+        }.let { it.kanSlettes() shouldBe false }
+        createUtbetaling().also {
+            it.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, "some xml"))
+        }.let { it.kanSlettes() shouldBe false }
+        createUtbetaling().also {
+            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+        }.let { it.kanSlettes() shouldBe false }
+        createUtbetaling().also {
+            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""))
+        }.let { it.kanSlettes() shouldBe false }
+        createUtbetaling().also {
+            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""))
+        }.let { it.kanSlettes() shouldBe false }
+    }
+
     private class DummyObserver : UtbetalingPersistenceObserver {
         lateinit var simulering: Simulering
         lateinit var kvittering: Kvittering

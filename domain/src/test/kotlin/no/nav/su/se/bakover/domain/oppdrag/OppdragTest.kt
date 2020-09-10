@@ -10,7 +10,9 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats.HØY
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
@@ -19,10 +21,17 @@ import java.util.UUID
 
 internal class OppdragTest {
     private val sakId = UUID.randomUUID()
-    val oppdrag = Oppdrag(
-        sakId = sakId
-    )
+    private lateinit var oppdrag: Oppdrag
+    private lateinit var observer: DummyObserver
     private val behandlingId = UUID.randomUUID()
+
+    @BeforeEach
+    fun beforeEach() {
+        oppdrag = Oppdrag(sakId = sakId).also {
+            observer = DummyObserver()
+            it.addObserver(observer)
+        }
+    }
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
@@ -37,6 +46,7 @@ internal class OppdragTest {
                 )
             )
         )
+        observer.utbetaling shouldBe null
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(
@@ -133,33 +143,35 @@ internal class OppdragTest {
                 )
             )
         )
+
+        observer.utbetaling shouldBe null
     }
 
     @Test
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = behandlingId,
+            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList()
         )
 
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = behandlingId,
+            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList()
         )
 
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = behandlingId,
+            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList()
         )
         val fourth = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = behandlingId,
+            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList()
         )
@@ -169,6 +181,56 @@ internal class OppdragTest {
             utbetalinger = mutableListOf(first, second, third, fourth)
         )
         oppdrag.sisteUtbetaling() shouldBe third
+    }
+
+    @Test
+    fun `fjerner slettbare utbetalinger for samme behandling`() {
+        val first = Utbetaling(
+            behandlingId = behandlingId,
+            utbetalingslinjer = emptyList()
+        )
+
+        val second = Utbetaling(
+            behandlingId = behandlingId,
+            utbetalingslinjer = emptyList()
+        )
+
+        oppdrag.opprettUtbetaling(first)
+        observer.utbetaling shouldBe first
+        oppdrag.hentUtbetalinger() shouldBe listOf(first)
+        oppdrag.opprettUtbetaling(second)
+        observer.utbetaling shouldBe second
+        oppdrag.hentUtbetalinger() shouldBe listOf(second)
+    }
+
+    @Test
+    fun `forhindrer sletting av utbetalinger som er oversendt oppdrag for samme behandling`() {
+        val first = Utbetaling(
+            behandlingId = behandlingId,
+            utbetalingslinjer = emptyList(),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "")
+        )
+
+        val second = Utbetaling(
+            behandlingId = behandlingId,
+            utbetalingslinjer = emptyList()
+        )
+
+        oppdrag.opprettUtbetaling(first)
+        observer.utbetaling shouldBe first
+        oppdrag.hentUtbetalinger() shouldBe listOf(first)
+
+        assertThrows<IllegalStateException> { oppdrag.opprettUtbetaling(second) }
+        observer.utbetaling shouldBe first
+        oppdrag.hentUtbetalinger() shouldBe listOf(first)
+    }
+
+    private class DummyObserver : Oppdrag.OppdragPersistenceObserver {
+        var utbetaling: Utbetaling? = null
+        override fun opprettUbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+            this.utbetaling = utbetaling
+            return utbetaling
+        }
     }
 
     private fun expectedUtbetaling(actual: Utbetaling, oppdragslinjer: List<Utbetalingslinje>): Utbetaling {

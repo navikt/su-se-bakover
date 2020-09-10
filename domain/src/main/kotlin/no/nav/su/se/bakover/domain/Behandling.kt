@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Opprettet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -22,13 +21,13 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-data class Behandling constructor(
+data class Behandling(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
     private val søknad: Søknad,
     private val beregninger: MutableList<Beregning> = mutableListOf(),
-    private val utbetalinger: MutableList<Utbetaling> = mutableListOf(),
+    private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID
@@ -45,12 +44,12 @@ data class Behandling constructor(
         søknad = søknad.toDto(),
         beregning = if (beregninger.isEmpty()) null else gjeldendeBeregning().toDto(),
         status = tilstand.status,
-        utbetaling = gjeldendeUtbetaling(),
+        utbetaling = utbetaling,
         attestant = attestant,
         sakId = sakId
     )
 
-    fun gjeldendeUtbetaling() = utbetalinger.sortedWith(Opprettet).lastOrNull()
+    fun utbetaling() = utbetaling
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
@@ -247,10 +246,9 @@ data class Behandling constructor(
                 utbetalingTilSimulering,
                 persistenceObserver.hentFnr(sakId)
             ).map { simulering ->
-                val utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
+                this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
                     it.addSimulering(simulering)
                 }
-                this@Behandling.utbetalinger.add(utbetaling)
                 nyTilstand(Simulert())
                 this@Behandling
             }
@@ -312,10 +310,10 @@ data class Behandling constructor(
             override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
                 return publisher.publish(
                     oppdrag = persistenceObserver.hentOppdrag(sakId),
-                    utbetaling = gjeldendeUtbetaling()!!,
+                    utbetaling = utbetaling!!,
                     oppdragGjelder = persistenceObserver.hentFnr(sakId)
                 ).mapLeft {
-                    gjeldendeUtbetaling()!!.addOppdragsmelding(
+                    utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                             it.originalMelding
@@ -323,7 +321,7 @@ data class Behandling constructor(
                     )
                     it
                 }.map {
-                    gjeldendeUtbetaling()!!.addOppdragsmelding(
+                    utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                             it

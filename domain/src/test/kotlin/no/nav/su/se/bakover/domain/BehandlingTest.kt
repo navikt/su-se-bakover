@@ -570,7 +570,7 @@ internal class BehandlingTest {
         fun `skal kunne sende til utbetaling`() {
             attestert.sendTilUtbetaling(UtbetalingPublisherStub)
             attestert.status() shouldBe ATTESTERT_INNVILGET
-            attestert.gjeldendeUtbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+            attestert.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 "great success"
             )
@@ -589,7 +589,7 @@ internal class BehandlingTest {
                 }
             )
             attestert.status() shouldBe ATTESTERT_INNVILGET
-            attestert.gjeldendeUtbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+            attestert.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                 "some xml here"
             )
@@ -670,7 +670,7 @@ internal class BehandlingTest {
             behandling.sendTilUtbetaling(publisherMock)
             verify(publisherMock, Times(1)).publish(
                 oppdrag.copy(sakId = behandling.sakId),
-                behandling.gjeldendeUtbetaling()!!,
+                behandling.utbetaling()!!,
                 Fnr("12345678910")
             )
         }
@@ -678,7 +678,7 @@ internal class BehandlingTest {
         @Test
         internal fun `ny kvittering`() {
 
-            val utbetaling = behandling.gjeldendeUtbetaling()!!
+            val utbetaling = behandling.utbetaling()!!
             utbetaling.getKvittering() shouldBe null
             val kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -690,7 +690,7 @@ internal class BehandlingTest {
 
         @Test
         internal fun `ignorer kvittering hvis den finnes fra før`() {
-            val utbetaling = behandling.gjeldendeUtbetaling()!!
+            val utbetaling = behandling.utbetaling()!!
             utbetaling.getKvittering() shouldBe null
             val kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
