@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -24,7 +25,7 @@ data class Behandling(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Instant = now(),
     private val vilkårsvurderinger: MutableList<Vilkårsvurdering> = mutableListOf(),
-    private val søknad: Søknad,
+    val søknad: Søknad,
     private var beregning: Beregning? = null,
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
@@ -235,9 +236,12 @@ data class Behandling(
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
             val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, beregning!!.hentPerioder())
             return simuleringClient.simulerUtbetaling(
-                oppdrag,
-                utbetalingTilSimulering,
-                persistenceObserver.hentFnr(sakId)
+                NyUtbetaling(
+                    oppdrag = oppdrag,
+                    utbetaling = utbetalingTilSimulering,
+                    oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                    attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
+                )
             ).map { simulering ->
                 this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
                     it.addSimulering(simulering)
@@ -302,9 +306,12 @@ data class Behandling(
         inner class Innvilget : Attestert() {
             override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
                 return publisher.publish(
-                    oppdrag = persistenceObserver.hentOppdrag(sakId),
-                    utbetaling = utbetaling!!,
-                    oppdragGjelder = persistenceObserver.hentFnr(sakId)
+                    NyUtbetaling(
+                        oppdrag = persistenceObserver.hentOppdrag(sakId),
+                        utbetaling = utbetaling!!,
+                        oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                        attestant = attestant!!
+                    )
                 ).mapLeft {
                     utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(

@@ -2,8 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
@@ -17,11 +16,9 @@ internal class SimuleringRequestBuilder(
     private val mappedRequest: UtbetalingRequest.OppdragRequest
 ) {
     constructor(
-        oppdrag: no.nav.su.se.bakover.domain.oppdrag.Oppdrag,
-        utbetaling: Utbetaling,
-        simuleringGjelder: Fnr
+        nyUtbetaling: NyUtbetaling
     ) : this(
-        toUtbetalingRequest(oppdrag, utbetaling, simuleringGjelder).oppdragRequest
+        toUtbetalingRequest(nyUtbetaling).oppdragRequest
     )
 
     private val oppdragRequest = Oppdrag().apply {

@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -31,25 +33,28 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            oppdrag = Oppdrag(
-                id = oppdragId,
-                opprettet = Instant.EPOCH,
-                sakId = UUID.randomUUID(),
-                utbetalinger = mutableListOf()
+            NyUtbetaling(
+                oppdrag = Oppdrag(
+                    id = oppdragId,
+                    opprettet = Instant.EPOCH,
+                    sakId = UUID.randomUUID(),
+                    utbetalinger = mutableListOf()
 
-            ),
-            utbetaling = Utbetaling(
-                behandlingId = UUID.randomUUID(),
-                utbetalingslinjer = listOf(
-                    Utbetalingslinje(
-                        fom = 1.januar(2020),
-                        tom = 14.januar(2020),
-                        beløp = 10,
-                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
+                ),
+                utbetaling = Utbetaling(
+                    behandlingId = UUID.randomUUID(),
+                    utbetalingslinjer = listOf(
+                        Utbetalingslinje(
+                            fom = 1.januar(2020),
+                            tom = 14.januar(2020),
+                            beløp = 10,
+                            forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
+                        )
                     )
-                )
-            ),
-            simuleringGjelder = Fnr("01010198765")
+                ),
+                oppdragGjelder = Fnr("01010198765"),
+                attestant = Attestant("A123456")
+            )
         ).build().request
 
         val skjema = this::class.java.getResource("/simulering/simulerFpServiceServiceTypes.xsd").toURI()

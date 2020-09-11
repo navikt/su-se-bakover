@@ -7,9 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
 
@@ -25,11 +23,9 @@ class UtbetalingMqPublisher(
 ) : UtbetalingPublisher {
 
     override fun publish(
-        oppdrag: Oppdrag,
-        utbetaling: Utbetaling,
-        oppdragGjelder: Fnr
+        nyUtbetaling: NyUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, String> {
-        val xml = xmlMapper.writeValueAsString(toUtbetalingRequest(oppdrag, utbetaling, oppdragGjelder))
+        val xml = xmlMapper.writeValueAsString(toUtbetalingRequest(nyUtbetaling))
         return mqPublisher.publish(xml)
             .mapLeft { KunneIkkeSendeUtbetaling(xml) }
             .map { xml }

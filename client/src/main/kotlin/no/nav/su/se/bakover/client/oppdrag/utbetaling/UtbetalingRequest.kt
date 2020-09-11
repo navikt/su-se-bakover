@@ -102,7 +102,9 @@ data class UtbetalingRequest(
         val utbetalesTilId: String,
         /** Makslengde 30 tegn */
         val refDelytelseId: String?,
-        val refFagsystemId: String?
+        val refFagsystemId: String?,
+        @field:JacksonXmlProperty(localName = "attestant-180")
+        val attestant: List<Attestant>
 
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
@@ -122,6 +124,7 @@ data class UtbetalingRequest(
         enum class TypeSats(@JsonValue val value: String) {
             DAG("DAG"),
             UKE("UKE"),
+
             /** sic */
             FJORTEN_DB("14DB"),
             MND("MND"),
@@ -131,5 +134,10 @@ data class UtbetalingRequest(
 
             override fun toString() = value
         }
+
+        data class Attestant(
+            /** [1,8] tegn */
+            val attestantId: String
+        )
     }
 }
