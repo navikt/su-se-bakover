@@ -47,7 +47,7 @@ internal class UtbetalingPublisherTest {
             isSimilarTo(expected.right()).withNodeMatcher(nodeMatcher)
         )
         mqClient.count shouldBe 1
-        mqClient.message?.trimIndent() shouldBe expected
+        mqClient.messages.first().trimIndent() shouldBe expected
     }
 
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
@@ -136,15 +136,12 @@ internal class UtbetalingPublisherTest {
 
     class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
         var count = 0
-        var message: String? = null
-        override fun publish(message: String): Either<CouldNotPublish, Unit> {
-            ++count
-            this.message = message
-            return response
-        }
+        var messages: MutableList<String> = mutableListOf()
 
-        override fun publish(messages: List<String>, commit: Boolean): Either<CouldNotPublish, Unit> {
-            TODO("Not yet implemented")
+        override fun publish(vararg messages: String): Either<CouldNotPublish, Unit> {
+            ++count
+            this.messages.addAll(messages)
+            return response
         }
     }
 }
