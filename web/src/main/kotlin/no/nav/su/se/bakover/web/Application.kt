@@ -56,8 +56,9 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.vilkårsvurdering.vilkårsvurderingRoutes
 import no.nav.su.se.bakover.web.services.brev.BrevService
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringIbmMqConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitteringIbmMqConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
@@ -207,14 +208,17 @@ internal fun Application.susebakover(
         }
     }
     if (!Config.isLocalOrRunningTests) {
-        KvitteringIbmMqConsumer(
+        UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             jmsContext = jmsContext,
-            kvitteringConsumer = KvitteringConsumer(
+            kvitteringConsumer = UtbetalingKvitteringConsumer(
                 repo = databaseRepo
             )
-        ).also {
-            jmsContext.start()
-        }
+        )
+        AvstemmingKvitteringIbmMqConsumer(
+            kvitteringQueueName = Config.oppdrag.avstemming.mqReplyTo,
+            jmsContext = jmsContext
+        )
+        jmsContext.start()
     }
 }

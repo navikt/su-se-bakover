@@ -5,14 +5,14 @@ import org.slf4j.LoggerFactory
 import javax.jms.JMSContext
 import javax.jms.Session
 
-class KvitteringIbmMqConsumer(
+class UtbetalingKvitteringIbmMqConsumer(
     kvitteringQueueName: String,
     jmsContext: JMSContext,
-    private val kvitteringConsumer: KvitteringConsumer
+    private val kvitteringConsumer: UtbetalingKvitteringConsumer
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jmsSession =
-        jmsContext.createContext(Session.AUTO_ACKNOWLEDGE) // TODO vurder hvordan vi skal håndtere dette
+        jmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
     private val consumer = jmsSession.createConsumer(jmsSession.createQueue(kvitteringQueueName))
 
     init {

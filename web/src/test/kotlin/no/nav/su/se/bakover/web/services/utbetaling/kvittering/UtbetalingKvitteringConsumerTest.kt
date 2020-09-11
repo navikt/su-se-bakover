@@ -10,14 +10,14 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponseTest.Companion.kvitteringXml
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 
-internal class KvitteringConsumerTest {
+internal class UtbetalingKvitteringConsumerTest {
 
     @Test
     fun `should throw when unknown utbetalingId`() {
@@ -25,7 +25,7 @@ internal class KvitteringConsumerTest {
         val repoMock = mock<ObjectRepo> {
             on { hentUtbetaling(utbetalingId) } doReturn null
         }
-        val consumer = KvitteringConsumer(repoMock)
+        val consumer = UtbetalingKvitteringConsumer(repoMock)
 
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml(utbetalingId.toString()))
@@ -50,7 +50,7 @@ internal class KvitteringConsumerTest {
         val repoMock = mock<ObjectRepo> {
             on { hentUtbetaling(utbetalingId) } doReturn utbetalingMock
         }
-        val consumer = KvitteringConsumer(repoMock, clock)
+        val consumer = UtbetalingKvitteringConsumer(repoMock, clock)
 
         consumer.onMessage(xmlMessage)
         verify(utbetalingMock, Times(1)).addKvittering(kvittering)
