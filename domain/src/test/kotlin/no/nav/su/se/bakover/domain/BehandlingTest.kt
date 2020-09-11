@@ -144,7 +144,8 @@ internal class BehandlingTest {
                         verdipapir = 291,
                         pengerSkyldt = 8921,
                         kontanter = 49,
-                        depositumskonto = 315177
+                        depositumskonto = 315177,
+                        begrunnelse = null
                     )
                 )
             )

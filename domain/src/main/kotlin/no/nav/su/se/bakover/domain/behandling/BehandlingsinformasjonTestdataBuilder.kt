@@ -38,7 +38,8 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             verdipapir = formue?.verdipapir ?: 0,
             pengerSkyldt = formue?.pengerSkyldt ?: 0,
             kontanter = formue?.kontanter ?: 0,
-            depositumskonto = formue?.depositumskonto ?: 0
+            depositumskonto = formue?.depositumskonto ?: 0,
+            begrunnelse = formue?.begrunnelse
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,

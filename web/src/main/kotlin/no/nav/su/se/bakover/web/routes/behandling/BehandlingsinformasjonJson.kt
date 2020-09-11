@@ -80,7 +80,8 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 verdipapir = f.verdipapir,
                 pengerSkyldt = f.pengerSkyldt,
                 kontanter = f.kontanter,
-                depositumskonto = f.depositumskonto
+                depositumskonto = f.depositumskonto,
+                begrunnelse = f.begrunnelse
             )
         },
         personligOppmøte = b.personligOppmøte?.let { p ->
@@ -140,7 +141,8 @@ internal fun Behandlingsinformasjon.Formue.toJson() =
         verdipapir = verdipapir,
         pengerSkyldt = pengerSkyldt,
         kontanter = kontanter,
-        depositumskonto = depositumskonto
+        depositumskonto = depositumskonto,
+        begrunnelse = begrunnelse
     )
 
 internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
@@ -211,7 +213,8 @@ data class FormueJson(
     val verdipapir: Int?,
     val pengerSkyldt: Int?,
     val kontanter: Int?,
-    val depositumskonto: Int?
+    val depositumskonto: Int?,
+    val begrunnelse: String?
 )
 
 data class PersonligOppmøteJson(

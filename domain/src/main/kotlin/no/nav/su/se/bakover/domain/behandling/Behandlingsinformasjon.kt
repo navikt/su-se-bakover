@@ -178,7 +178,8 @@ data class Behandlingsinformasjon(
         val verdipapir: Int?,
         val pengerSkyldt: Int?,
         val kontanter: Int?,
-        val depositumskonto: Int?
+        val depositumskonto: Int?,
+        val begrunnelse: String?
     ) : Base() {
         enum class Status {
             Ok,
