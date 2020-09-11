@@ -347,14 +347,10 @@ class AvstemmingPublisherTest {
         var count = 0
         var listMessage = mutableListOf<String>()
 
-        override fun publish(message: String): Either<MqPublisher.CouldNotPublish, Unit> {
+        override fun publish(vararg messages: String): Either<MqPublisher.CouldNotPublish, Unit> {
             ++count
-            this.listMessage.add(message)
+            this.listMessage.addAll(messages)
             return response
-        }
-
-        override fun publish(messages: List<String>, commit: Boolean): Either<MqPublisher.CouldNotPublish, Unit> {
-            TODO("Not yet implemented")
         }
     }
 
