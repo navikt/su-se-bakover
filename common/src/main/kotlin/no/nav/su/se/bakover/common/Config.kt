@@ -63,7 +63,7 @@ object Config {
 
         data class Avstemming(
             val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_234.OB29_AVSTEMMING_XML",
-            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.AVSTEMMING_KVITTERING ",
+            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.AVSTEMMING_KVITTERING",
         )
     }
 
