@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -211,7 +212,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 opprettet.attester(
-                    Attestant("id")
+                    Attestant("A123456")
                 )
             }
         }
@@ -272,7 +273,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.attester(
-                    Attestant("id")
+                    Attestant("A123456")
                 )
             }
         }
@@ -317,7 +318,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.attester(Attestant("id"))
+                vilkårsvurdert.attester(Attestant("A123456"))
             }
         }
     }
@@ -366,7 +367,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 beregnet.attester(
-                    Attestant("id")
+                    Attestant("A123456")
                 )
             }
         }
@@ -422,7 +423,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
                 simulert.attester(
-                    Attestant("id")
+                    Attestant("A123456")
                 )
             }
         }
@@ -485,7 +486,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("attestant"))
+            tilAttestering.attester(Attestant("A123456"))
             tilAttestering.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -525,7 +526,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("attestant"))
+            tilAttestering.attester(Attestant("A123456"))
             tilAttestering.status() shouldBe ATTESTERT_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -561,7 +562,7 @@ internal class BehandlingTest {
             attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
             attestert.simuler(SimuleringClientStub)
             attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("attestant"))
+            attestert.attester(Attestant("A123456"))
             attestert.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe attestert.status()
         }
@@ -581,9 +582,7 @@ internal class BehandlingTest {
             attestert.sendTilUtbetaling(
                 object : UtbetalingPublisher {
                     override fun publish(
-                        oppdrag: Oppdrag,
-                        utbetaling: Utbetaling,
-                        oppdragGjelder: Fnr
+                        nyUtbetaling: NyUtbetaling
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
                         UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here").left()
                 }
@@ -624,7 +623,7 @@ internal class BehandlingTest {
                 )
             )
             attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("attestant"))
+            attestert.attester(Attestant("A123456"))
             attestert.status() shouldBe ATTESTERT_AVSLAG
             observer.oppdatertStatus shouldBe attestert.status()
         }
@@ -663,15 +662,18 @@ internal class BehandlingTest {
             behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             behandling.simuler(SimuleringClientStub)
             behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            behandling.attester(Attestant("attestant"))
+            behandling.attester(Attestant("A123456"))
             val publisherMock = mock<UtbetalingPublisher> {
-                on { publish(any(), any(), any()) } doReturn "".right()
+                on { publish(any()) } doReturn "".right()
             }
             behandling.sendTilUtbetaling(publisherMock)
             verify(publisherMock, Times(1)).publish(
-                oppdrag.copy(sakId = behandling.sakId),
-                behandling.utbetaling()!!,
-                Fnr("12345678910")
+                NyUtbetaling(
+                    oppdrag = oppdrag.copy(sakId = behandling.sakId),
+                    utbetaling = behandling.utbetaling()!!,
+                    oppdragGjelder = Fnr("12345678910"),
+                    attestant = Attestant("A123456")
+                )
             )
         }
 
@@ -800,9 +802,7 @@ internal class BehandlingTest {
 
     object SimuleringClientStub : SimuleringClient {
         override fun simulerUtbetaling(
-            oppdrag: Oppdrag,
-            utbetaling: Utbetaling,
-            simuleringGjelder: Fnr
+            nyUtbetaling: NyUtbetaling
         ): Either<SimuleringFeilet, Simulering> {
             return Either.right(
                 Simulering(
@@ -818,9 +818,7 @@ internal class BehandlingTest {
 
     object UtbetalingPublisherStub : UtbetalingPublisher {
         override fun publish(
-            oppdrag: Oppdrag,
-            utbetaling: Utbetaling,
-            oppdragGjelder: Fnr
+            nyUtbetaling: NyUtbetaling
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> = "great success".right()
     }
 

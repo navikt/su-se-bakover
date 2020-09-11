@@ -6,8 +6,10 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -97,7 +99,8 @@ internal class UtbetalingRequestTest {
                         saksbehId = "SU",
                         utbetalesTilId = FNR.fnr,
                         refDelytelseId = null,
-                        refFagsystemId = null
+                        refFagsystemId = null,
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
@@ -112,7 +115,8 @@ internal class UtbetalingRequestTest {
                         saksbehId = "SU",
                         utbetalesTilId = FNR.fnr,
                         refDelytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
-                        refFagsystemId = oppdrag.id.toString()
+                        refFagsystemId = oppdrag.id.toString(),
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
                     )
                 )
             )
@@ -123,9 +127,12 @@ internal class UtbetalingRequestTest {
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
 
         val utbetalingRequest = toUtbetalingRequest(
-            oppdrag = oppdrag,
-            utbetaling = nyUtbetaling,
-            oppdragGjelder = FNR
+            nyUtbetaling = NyUtbetaling(
+                oppdrag = oppdrag,
+                utbetaling = nyUtbetaling,
+                oppdragGjelder = FNR,
+                attestant = Attestant("A123456")
+            )
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -179,9 +186,12 @@ internal class UtbetalingRequestTest {
             )
         )
         val utbetalingRequest = toUtbetalingRequest(
-            oppdrag = eksisterendeOppdrag,
-            utbetaling = nyUtbetaling,
-            oppdragGjelder = FNR
+            nyUtbetaling = NyUtbetaling(
+                oppdrag = eksisterendeOppdrag,
+                utbetaling = nyUtbetaling,
+                oppdragGjelder = FNR,
+                attestant = Attestant("A123456")
+            )
         )
 
         utbetalingRequest shouldBe UtbetalingRequest(
@@ -220,7 +230,8 @@ internal class UtbetalingRequestTest {
                         saksbehId = "SU",
                         utbetalesTilId = FNR.fnr,
                         refDelytelseId = eksisterendeOppdragslinjeId.toString(),
-                        refFagsystemId = eksisterendeOppdrag.id.toString()
+                        refFagsystemId = eksisterendeOppdrag.id.toString(),
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
@@ -235,7 +246,8 @@ internal class UtbetalingRequestTest {
                         saksbehId = "SU",
                         utbetalesTilId = FNR.fnr,
                         refDelytelseId = nyOppdragslinjeid1.toString(),
-                        refFagsystemId = eksisterendeOppdrag.id.toString()
+                        refFagsystemId = eksisterendeOppdrag.id.toString(),
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
                     )
                 )
             )

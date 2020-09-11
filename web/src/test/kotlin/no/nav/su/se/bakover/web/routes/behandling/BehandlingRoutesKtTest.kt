@@ -21,15 +21,13 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.Vilkårsvurdering.Status.OK
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -362,9 +360,7 @@ internal class BehandlingRoutesKtTest {
                 testClients.copy(
                     utbetalingPublisher = object : UtbetalingPublisher {
                         override fun publish(
-                            oppdrag: Oppdrag,
-                            utbetaling: Utbetaling,
-                            oppdragGjelder: Fnr
+                            nyUtbetaling: NyUtbetaling
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
                             UtbetalingPublisher.KunneIkkeSendeUtbetaling("").left()
                     }

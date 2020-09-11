@@ -59,7 +59,8 @@ internal class KvitteringResponseTest {
                         saksbehId = "SU",
                         utbetalesTilId = "18127621833",
                         refDelytelseId = null,
-                        refFagsystemId = null
+                        refFagsystemId = null,
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
                     )
                 )
             )
@@ -107,6 +108,9 @@ internal class KvitteringResponseTest {
          <brukKjoreplan>N</brukKjoreplan>
          <saksbehId>SU</saksbehId>
          <utbetalesTilId>18127621833</utbetalesTilId>
+         <attestant-180>
+            <attestantId>A123456</attestantId>
+         </attestant-180>
          <ukjentFeltBørIgnorereres>ukjent</ukjentFeltBørIgnorereres>
       </oppdrags-linje-150>
    </oppdrag-110>

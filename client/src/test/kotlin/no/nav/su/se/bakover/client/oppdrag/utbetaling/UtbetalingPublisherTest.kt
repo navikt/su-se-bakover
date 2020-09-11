@@ -9,7 +9,9 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -30,7 +32,7 @@ internal class UtbetalingPublisherTest {
         val client = UtbetalingMqPublisher(mqClient)
 
         assertThat(
-            client.publish(oppdrag, utbetaling, fnr),
+            client.publish(nyUtbetaling),
             isSimilarTo(KunneIkkeSendeUtbetaling(expected).left()).withNodeMatcher(nodeMatcher)
         )
         mqClient.count shouldBe 1
@@ -43,7 +45,7 @@ internal class UtbetalingPublisherTest {
         val client = UtbetalingMqPublisher(mqClient)
 
         assertThat(
-            client.publish(oppdrag, utbetaling, fnr),
+            client.publish(nyUtbetaling),
             isSimilarTo(expected.right()).withNodeMatcher(nodeMatcher)
         )
         mqClient.count shouldBe 1
@@ -79,6 +81,12 @@ internal class UtbetalingPublisherTest {
         )
     )
     private val fnr = Fnr("12345678910")
+    private val nyUtbetaling = NyUtbetaling(
+        oppdrag = oppdrag,
+        utbetaling = utbetaling,
+        oppdragGjelder = fnr,
+        attestant = Attestant("A123456")
+    )
     private val expected =
         """
             <?xml version='1.0' encoding='UTF-8'?>
@@ -114,6 +122,9 @@ internal class UtbetalingPublisherTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
+                  <attestant-180>
+                    <attestantId>A123456</attestantId>
+                  </attestant-180>
                 </oppdrags-linje-150>
                 <oppdrags-linje-150>
                   <kodeEndringLinje>NY</kodeEndringLinje>
@@ -129,6 +140,9 @@ internal class UtbetalingPublisherTest {
                   <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>${oppdrag.id}</refFagsystemId>
+                  <attestant-180>
+                    <attestantId>A123456</attestantId>
+                  </attestant-180>
                 </oppdrags-linje-150>
               </oppdrag-110>
             </Oppdrag>

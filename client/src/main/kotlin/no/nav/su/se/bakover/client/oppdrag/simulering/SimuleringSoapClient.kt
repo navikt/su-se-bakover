@@ -6,8 +6,7 @@ import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -38,15 +37,9 @@ internal class SimuleringSoapClient(
     }
 
     override fun simulerUtbetaling(
-        oppdrag: Oppdrag,
-        utbetaling: Utbetaling,
-        simuleringGjelder: Fnr
+        nyUtbetaling: NyUtbetaling
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(
-            oppdrag,
-            utbetaling,
-            simuleringGjelder
-        ).build()
+        val simulerRequest = SimuleringRequestBuilder(nyUtbetaling).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 mapResponseToResultat(it)
