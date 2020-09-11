@@ -8,5 +8,5 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 object AvstemmingStub : AvstemmingPublisher {
     override fun publish(
         utbetalinger: List<Utbetaling>
-    ): Either<AvstemmingPublisher.KunneIkkeSendeAvstemming, Unit> = Unit.right()
+    ): Either<AvstemmingPublisher.KunneIkkeSendeAvstemming, String> = "".right()
 }

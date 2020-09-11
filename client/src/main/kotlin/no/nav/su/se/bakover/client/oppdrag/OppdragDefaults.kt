@@ -37,3 +37,6 @@ fun LocalDate.toOppdragDate() = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 fun Instant.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
     .withZone(zoneId).format(this)
+
+fun Instant.toAvstemmingsdatoFormat() = DateTimeFormatter.ofPattern("yyyyMMddHH")
+    .withZone(zoneId).format(this)

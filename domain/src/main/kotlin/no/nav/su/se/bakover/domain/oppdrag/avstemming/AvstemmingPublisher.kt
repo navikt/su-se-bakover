@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 interface AvstemmingPublisher {
     fun publish(
         utbetalinger: List<Utbetaling>
-    ): Either<KunneIkkeSendeAvstemming, Unit>
+    ): Either<KunneIkkeSendeAvstemming, String>
 
     object KunneIkkeSendeAvstemming
 }
