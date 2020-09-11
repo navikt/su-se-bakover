@@ -5,9 +5,9 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.0"
-    id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
-    id("com.github.ben-manes.versions") version "0.29.0" // Finds latest versions
+    id("org.jetbrains.kotlin.jvm") version "1.4.10"
+    id("org.jlleitschuh.gradle.ktlint") version "9.4.0"
+    id("com.github.ben-manes.versions") version "0.31.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.14"
 }
 
@@ -35,7 +35,7 @@ allprojects {
     val junitJupiterVersion = "5.6.2"
     val arrowVersion = "0.10.5"
     val kotestVersion = "4.1.3"
-    val jacksonVersion = "2.11.1"
+    val jacksonVersion = "2.11.2"
     val ktlintVersion = "0.38.1"
     dependencies {
         api(kotlin("stdlib-jdk8"))
