@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -11,7 +12,8 @@ data class BehandlingsinformasjonJson(
     val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val sats: SatsJson? = null
+    val sats: SatsJson? = null,
+    val utledetSats: Sats? = null
 ) {
     companion object {
         fun Behandlingsinformasjon.toJson() =
@@ -23,7 +25,8 @@ data class BehandlingsinformasjonJson(
                 oppholdIUtlandet = oppholdIUtlandet?.toJson(),
                 formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
-                sats = sats?.toJson()
+                sats = sats?.toJson(),
+                utledetSats = sats?.utledSats()
             )
     }
 }

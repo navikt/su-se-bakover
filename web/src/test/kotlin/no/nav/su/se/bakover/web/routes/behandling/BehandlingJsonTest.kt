@@ -55,7 +55,8 @@ internal class BehandlingJsonTest {
                     verdipapir = 0,
                     pengerSkyldt = 0,
                     kontanter = 0,
-                    depositumskonto = 0
+                    depositumskonto = 0,
+                    begrunnelse = null
                 ),
                 personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
                     status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
@@ -111,7 +112,8 @@ internal class BehandlingJsonTest {
                     "verdipapir": 0,
                     "pengerSkyldt": 0,
                     "kontanter": 0,
-                    "depositumskonto": 0
+                    "depositumskonto": 0,
+                    "begrunnelse": null
                 },
                 "personligOppmøte": {
                     "status": "MøttPersonlig",
@@ -123,7 +125,8 @@ internal class BehandlingJsonTest {
                     "ektemakeEllerSamboerUnder67År": false,
                     "ektemakeEllerSamboerUførFlyktning": false,
                     "begrunnelse": null
-                }
+                },
+                "utledetSats": "HØY"
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
@@ -168,7 +171,8 @@ internal class BehandlingJsonTest {
             "oppholdIUtlandet": null,
             "formue": null,
             "personligOppmøte": null,
-            "sats": null
+            "sats": null,
+            "utledetSats": null
           },
           "søknad": $søknadJsonString,
           "beregning": null,
