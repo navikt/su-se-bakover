@@ -44,7 +44,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.web.routes.avstemmingRoutes
+import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics

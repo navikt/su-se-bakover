@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.avstemming
 
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -11,16 +11,19 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 
 private const val AVSTEMMING_PATH = "/avstem"
 
+// TODO automatic job or something probably
 internal fun Application.avstemmingRoutes(
     repo: ObjectRepo,
     publisher: AvstemmingPublisher
 ) {
     routing {
         post(AVSTEMMING_PATH) {
-            val utbetalingerTilAvstemming = repo.hentUtbetalingerTilAvstemming()
-            publisher.publish(utbetalingerTilAvstemming).fold(
+            publisher.publish(AvstemmingBuilder(repo).build()).fold(
                 { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-                { call.respond("Avstemt ok") }
+                {
+                    repo.opprettAvstemming(it).also { it.updateUtbetalinger() }
+                    call.respond("Avstemt ok")
+                }
             )
         }
     }

@@ -18,6 +18,7 @@ data class Utbetaling(
     private var kvittering: Kvittering? = null,
     private var oppdragsmelding: Oppdragsmelding? = null,
     val utbetalingslinjer: List<Utbetalingslinje>,
+    private var avstemmingId: UUID? = null
 ) : PersistentDomainObject<UtbetalingPersistenceObserver>() {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -32,6 +33,8 @@ data class Utbetaling(
 
     fun getOppdragsmelding() = oppdragsmelding
 
+    fun getAvstemmingId() = avstemmingId
+
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
     fun erUtbetalt() = kvittering?.erUtbetalt() ?: false
@@ -42,6 +45,11 @@ data class Utbetaling(
         } else {
             this.kvittering = persistenceObserver.addKvittering(id, kvittering)
         }
+    }
+
+    fun addAvstemmingId(avstemmingId: UUID): UUID {
+        this.avstemmingId = persistenceObserver.addAvstemmingId(id, avstemmingId)
+        return this.avstemmingId!!
     }
 
     fun addOppdragsmelding(oppdragsmelding: Oppdragsmelding) {
@@ -65,4 +73,5 @@ interface UtbetalingPersistenceObserver : PersistenceObserver {
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering
     fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
+    fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID
 }

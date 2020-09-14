@@ -11,7 +11,9 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -38,6 +40,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
@@ -51,6 +54,8 @@ import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class DatabaseRepoTest {
@@ -489,6 +494,71 @@ internal class DatabaseRepoTest {
         }
     }
 
+    @Test
+    fun `henter siste avstemming`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, behandling.id)
+
+            val zero = repo.hentSisteAvstemming()
+            zero shouldBe null
+
+            repo.opprettAvstemming(
+                Avstemming(
+                    fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    utbetalinger = listOf(utbetaling)
+                )
+            )
+
+            val second = repo.opprettAvstemming(
+                Avstemming(
+                    fom = 3.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    tom = 4.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    utbetalinger = listOf(utbetaling)
+                )
+            )
+
+            val hentet = repo.hentSisteAvstemming()!!
+            hentet shouldBe second
+        }
+    }
+
+    @Test
+    fun `hent utbetalinger for avstemming`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+            val utbetaling = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    behandlingId = behandling.id,
+                    utbetalingslinjer = emptyList()
+                )
+            )
+            repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+
+            repo.hentUtbetalingerTilAvstemming(
+                fom = utbetaling.opprettet.minus(1, ChronoUnit.DAYS),
+                tom = utbetaling.opprettet
+            ) shouldBe emptyList()
+
+            repo.hentUtbetalingerTilAvstemming(
+                fom = utbetaling.opprettet,
+                tom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS)
+            ) shouldHaveSize 1
+
+            repo.hentUtbetalingerTilAvstemming(
+                fom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS),
+                tom = utbetaling.opprettet.plus(3, ChronoUnit.DAYS)
+            ) shouldBe emptyList()
+        }
+    }
+
     private fun sakPersistenceObserver() = object : SakPersistenceObserver {
         override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad {
             throw NotImplementedError()
@@ -555,6 +625,10 @@ internal class DatabaseRepoTest {
         }
 
         override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
+            throw NotImplementedError()
+        }
+
+        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
             throw NotImplementedError()
         }
     }
@@ -640,6 +714,15 @@ internal class DatabaseRepoTest {
                     begrunnelse = "",
                     status = Vilkårsvurdering.Status.IKKE_VURDERT
                 )
+            )
+        )
+
+    private fun insertAvstemming(utbetaling: Utbetaling) =
+        repo.opprettAvstemming(
+            Avstemming(
+                fom = now(),
+                tom = now(),
+                utbetalinger = listOf(utbetaling)
             )
         )
 }

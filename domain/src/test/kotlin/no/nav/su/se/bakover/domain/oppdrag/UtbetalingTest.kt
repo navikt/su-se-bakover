@@ -93,5 +93,9 @@ internal class UtbetalingTest {
             this.oppdragsmelding = oppdragsmelding
             return oppdragsmelding
         }
+
+        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
+            return avstemmingId
+        }
     }
 }

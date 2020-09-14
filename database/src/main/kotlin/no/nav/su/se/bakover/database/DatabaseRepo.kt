@@ -31,7 +31,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -78,14 +80,15 @@ internal class DatabaseRepo(
     }
 
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
-        using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where id = :utbetalingId".hent(
-                mapOf(
-                    "utbetalingId" to utbetalingId.toString()
-                ),
-                session
-            ) { it.toUtbetaling(session) }
-        }
+        using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session) }
+
+    private fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
+        "select * from utbetaling where id = :utbetalingId".hent(
+            mapOf(
+                "utbetalingId" to utbetalingId.toString()
+            ),
+            session
+        ) { it.toUtbetaling(session) }
 
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         check(
@@ -200,7 +203,8 @@ internal class DatabaseRepo(
                     Oppdragsmelding::class.java
                 )
             },
-            utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session)
+            utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
+            avstemmingId = stringOrNull("avstemmingId")?.let { UUID.fromString(it) }
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
@@ -572,11 +576,64 @@ internal class DatabaseRepo(
         return oppdragsmelding
     }
 
-    override fun hentUtbetalingerTilAvstemming(): List<Utbetaling> =
+    override fun hentUtbetalingerTilAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where oppdragsmelding is not null".hentListe(
-                mapOf(),
+            "select * from utbetaling where oppdragsmelding is not null and opprettet >= :fom and opprettet < :tom".hentListe(
+                mapOf(
+                    "fom" to fom,
+                    "tom" to tom
+                ),
                 session
             ) { it.toUtbetaling(session) }
         }
+
+    override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
+        """
+            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
+            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), to_json(:avstemmingXmlRequest::json))
+        """.oppdatering(
+            mapOf(
+                "id" to avstemming.id,
+                "opprettet" to avstemming.opprettet,
+                "fom" to avstemming.fom,
+                "tom" to avstemming.tom,
+                "utbetalinger" to objectMapper.writeValueAsString(avstemming.utbetalinger.map { it.id.toString() }),
+                "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest
+            )
+        )
+        return avstemming
+    }
+
+    override fun hentSisteAvstemming() = using(sessionOf(dataSource)) { session ->
+        """
+            select * from avstemming order by tom desc limit 1
+        """.hent(emptyMap(), session) {
+            it.toAvstemming(session)
+        }
+    }
+
+    private fun Row.toAvstemming(session: Session) = Avstemming(
+        id = uuid("id"),
+        opprettet = instant("opprettet"),
+        fom = instant("fom"),
+        tom = instant("tom"),
+        utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
+            objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
+                hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
+            }
+        }!!,
+        avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+    )
+
+    override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
+        """
+            update utbetaling set avstemmingId = :avstemmingId where id = :id
+        """.oppdatering(
+            mapOf(
+                "id" to utbetalingId.toString(),
+                "avstemmingId" to avstemmingId
+            )
+        )
+        return avstemmingId
+    }
 }

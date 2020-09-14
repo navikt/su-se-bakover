@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVS
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.START
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AvstemmingType
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.KildeType
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher.KunneIkkeSendeAvstemming
 
@@ -16,16 +16,16 @@ class AvstemmingMqPublisher(
 ) : AvstemmingPublisher {
 
     override fun publish(
-        utbetalinger: List<Utbetaling>
-    ): Either<KunneIkkeSendeAvstemming, String> {
+        avstemming: Avstemming
+    ): Either<KunneIkkeSendeAvstemming, Avstemming> {
 
         val startXml = AvstemmingXmlMapper.map(AvstemmingStartRequest(lagAksjonsdata(START)))
-        val dataXml = AvstemmingXmlMapper.map(AvstemmingDataBuilder(utbetalinger).build())
+        val dataXml = AvstemmingXmlMapper.map(AvstemmingDataBuilder(avstemming.utbetalinger).build())
         val stoppXml = AvstemmingXmlMapper.map(AvstemmingStoppRequest(lagAksjonsdata(AVSLUTT)))
 
-        return mqPublisher.publish(startXml, dataXml, stoppXml).mapLeft { KunneIkkeSendeAvstemming }.map {
-            dataXml
-        }
+        return mqPublisher.publish(startXml, dataXml, stoppXml)
+            .mapLeft { KunneIkkeSendeAvstemming }
+            .map { avstemming.copy(avstemmingXmlRequest = dataXml) }
     }
 
     private fun lagAksjonsdata(aksjonType: AksjonType) = Aksjonsdata(
