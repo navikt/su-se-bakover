@@ -12,17 +12,17 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragR
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.OK
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Alvorlighetsgrad.SQL_FEIL
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.SQL_FEIL
 import java.time.Clock
 
 /**
  * https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
  */
 @JacksonXmlRootElement(localName = "Oppdrag")
-data class KvitteringResponse(
+data class UtbetalingKvitteringResponse(
     val mmel: Mmel,
     @field:JacksonXmlProperty(localName = "oppdrag-110")
     val oppdragRequest: OppdragRequest
@@ -63,12 +63,12 @@ data class KvitteringResponse(
     )
 
     companion object {
-        internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): KvitteringResponse = this
+        internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): UtbetalingKvitteringResponse = this
             .replace("<oppdrag xmlns", "<Oppdrag xmlns")
             .let {
                 runBlocking {
                     Either.catch {
-                        xmlMapper.readValue<KvitteringResponse>(it)
+                        xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
                     }.getOrHandle {
                         // TODO metric og sikkerlogg
                         throw it

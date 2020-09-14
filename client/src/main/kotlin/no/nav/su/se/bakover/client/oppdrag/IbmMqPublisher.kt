@@ -17,7 +17,7 @@ class IbmMqPublisher(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun publish(vararg messages: String): Either<CouldNotPublish, Unit> {
-        log.info("Sender ${messages.size} til kø ${publisherConfig.replyTo}")
+        log.info("Sender ${messages.size} meldinger til kø ${publisherConfig.sendQueue} med reply-kø ${publisherConfig.replyTo}")
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
             runBlocking {
                 Either.catch {

@@ -7,13 +7,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Companion.toKvitteringResponse
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import java.time.Clock
 
-class KvitteringConsumer(
+class UtbetalingKvitteringConsumer(
     private val repo: ObjectRepo,
     private val clock: Clock = Clock.systemUTC(),
-    private val xmlMapper: XmlMapper = KvitteringConsumer.xmlMapper
+    private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper
 ) {
     companion object {
         val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {

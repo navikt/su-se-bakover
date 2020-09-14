@@ -2,19 +2,19 @@ package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.KvitteringResponse.Companion.toKvitteringResponse
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.junit.jupiter.api.Test
 
-internal class KvitteringResponseTest {
+internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
 
-        kvitteringXml().toKvitteringResponse(KvitteringConsumer.xmlMapper) shouldBe KvitteringResponse(
-            mmel = KvitteringResponse.Mmel(
+        kvitteringXml().toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
+            mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",
                 kodeMelding = null,
-                alvorlighetsgrad = KvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL,
+                alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL,
                 beskrMelding = null,
                 sqlKode = null,
                 sqlState = null,
