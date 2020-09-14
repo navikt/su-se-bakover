@@ -628,7 +628,7 @@ internal class DatabaseRepoTest {
             throw NotImplementedError()
         }
 
-        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
+        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30 {
             throw NotImplementedError()
         }
     }

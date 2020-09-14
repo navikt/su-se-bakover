@@ -5,8 +5,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import java.math.BigDecimal
 
-// Denne klassen skal brukes til å lage avstemming xml requesten vi skal sende til oppdrag
-
+/**
+ * https://github.com/navikt/tjenestespesifikasjoner/blob/master/avstemming-v1-tjenestespesifikasjon/src/main/wsdl/no/nav/virksomhet/tjenester/avstemming/meldinger/meldinger.xsd
+ */
 @JacksonXmlRootElement(localName = "avstemmingsdata")
 data class AvstemmingStartRequest(
     val aksjon: Aksjonsdata
@@ -94,7 +95,10 @@ data class Aksjonsdata(
     val mottakendeKomponentKode: String = "OS",
     val brukerId: String = OppdragDefaults.SAKSBEHANDLER_ID,
     val avleverendeKomponentKode: String = OppdragDefaults.KODE_KOMPONENT,
-    val underkomponentKode: String = OppdragDefaults.KODE_FAGOMRÅDE
+    val underkomponentKode: String = OppdragDefaults.KODE_FAGOMRÅDE,
+    val nokkelFom: String,
+    val nokkelTom: String,
+    val avleverendeAvstemmingId: String
 ) {
     enum class AksjonType(@JsonValue val value: String) {
         START("START"),

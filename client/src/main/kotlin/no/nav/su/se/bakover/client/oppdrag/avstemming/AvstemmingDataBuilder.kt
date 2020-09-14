@@ -1,24 +1,24 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
+import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import java.math.BigDecimal
 
 class AvstemmingDataBuilder(
-    val utbetalinger: List<Utbetaling>
+    val avstemming: Avstemming
 ) {
-    init {
-        require(utbetalinger.isNotEmpty()) {
-            "Umulig å bygge en request av en tom liste med utbetalinger"
-        }
-    }
+    val utbetalinger = avstemming.utbetalinger
     fun build(): AvstemmingDataRequest {
         return AvstemmingDataRequest(
             aksjon = Aksjonsdata(
                 aksjonType = Aksjonsdata.AksjonType.DATA,
                 kildeType = Aksjonsdata.KildeType.AVLEVERT,
-                avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING
+                avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
+                nokkelFom = avstemming.fom.toOppdragTimestamp(),
+                nokkelTom = avstemming.tom.toOppdragTimestamp(),
+                avleverendeAvstemmingId = avstemming.id.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(
                 totalAntall = utbetalinger.size,
@@ -26,8 +26,8 @@ class AvstemmingDataBuilder(
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(
-                datoAvstemtFom = utbetalinger.minByOrNull { it.opprettet }!!.opprettet.toAvstemmingsdatoFormat(),
-                datoAvstemtTom = utbetalinger.maxByOrNull { it.opprettet }!!.opprettet.toAvstemmingsdatoFormat()
+                datoAvstemtFom = avstemming.fom.toAvstemmingsdatoFormat(),
+                datoAvstemtTom = avstemming.tom.toAvstemmingsdatoFormat()
             ),
             grunnlag = AvstemmingDataRequest.Grunnlagdata(
                 godkjentAntall = utbetalinger.mapNotNull { it.getKvittering() }.map { it.utbetalingsstatus }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
+import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.START
@@ -11,23 +12,12 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Fort
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Grunnlagdata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Periodedata
 import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Totaldata
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.UUID
 
 internal class AvstemmingXmlMapperTest {
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
@@ -40,7 +30,12 @@ internal class AvstemmingXmlMapperTest {
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
                 mottakendeKomponentKode = "OS",
-                brukerId = "SU"
+                brukerId = "SU",
+                nokkelFom = "nokkelFom",
+                nokkelTom = "nokkelTom",
+                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
+                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
+                avleverendeAvstemmingId = "avleverendeAvstemmingId"
             )
         )
 
@@ -56,6 +51,9 @@ internal class AvstemmingXmlMapperTest {
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <nokkelFom>nokkelFom</nokkelFom>
+                <nokkelTom>nokkelTom</nokkelTom>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
@@ -74,7 +72,12 @@ internal class AvstemmingXmlMapperTest {
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
                 mottakendeKomponentKode = "OS",
-                brukerId = "SU"
+                brukerId = "SU",
+                nokkelFom = "nokkelFom",
+                nokkelTom = "nokkelTom",
+                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
+                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
+                avleverendeAvstemmingId = "avleverendeAvstemmingId"
             ),
             total = Totaldata(
                 totalAntall = 1,
@@ -121,6 +124,9 @@ internal class AvstemmingXmlMapperTest {
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <nokkelFom>nokkelFom</nokkelFom>
+                <nokkelTom>nokkelTom</nokkelTom>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
               </aksjon>
               <total>
                 <totalAntall>1</totalAntall>
@@ -168,7 +174,12 @@ internal class AvstemmingXmlMapperTest {
                 kildeType = AVLEVERT,
                 avstemmingType = GRENSESNITTAVSTEMMING,
                 mottakendeKomponentKode = "OS",
-                brukerId = "SU"
+                brukerId = "SU",
+                nokkelFom = "nokkelFom",
+                nokkelTom = "nokkelTom",
+                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
+                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
+                avleverendeAvstemmingId = "avleverendeAvstemmingId",
             )
         )
 
@@ -184,6 +195,9 @@ internal class AvstemmingXmlMapperTest {
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <nokkelFom>nokkelFom</nokkelFom>
+                <nokkelTom>nokkelTom</nokkelTom>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
@@ -193,24 +207,4 @@ internal class AvstemmingXmlMapperTest {
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }
-
-    private fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
-        id = UUID30.randomUUID(),
-        opprettet = fom.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
-        fom = fom,
-        tom = tom,
-        forrigeUtbetalingslinjeId = null,
-        beløp = beløp
-    )
-
-    private fun lagUtbetaling(opprettet: LocalDate, status: Utbetalingsstatus, linjer: List<Utbetalingslinje>) =
-        Utbetaling(
-            id = UUID30.randomUUID(),
-            opprettet = opprettet.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
-            behandlingId = UUID.randomUUID(),
-            simulering = null,
-            kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
-            oppdragsmelding = Oppdragsmelding(SENDT, "Melding"),
-            utbetalingslinjer = linjer
-        )
 }

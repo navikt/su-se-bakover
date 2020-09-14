@@ -94,7 +94,7 @@ internal class UtbetalingTest {
             return oppdragsmelding
         }
 
-        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
+        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30 {
             return avstemmingId
         }
     }

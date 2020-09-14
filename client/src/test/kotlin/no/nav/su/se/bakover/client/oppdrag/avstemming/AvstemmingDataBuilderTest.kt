@@ -11,29 +11,28 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
 internal class AvstemmingDataBuilderTest {
-
-    @Test
-    fun `Sjekk at man ikke kan sende inn tom utbetalingsliste`() {
-        assertThrows<IllegalArgumentException> { AvstemmingDataBuilder(emptyList()).build() }
-    }
-
+    val zoneId = ZoneId.of("Europe/Oslo")
     @Test
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
+        val avstemmingId = UUID30.randomUUID()
         val expected = AvstemmingDataRequest(
             aksjon = Aksjonsdata(
                 aksjonType = Aksjonsdata.AksjonType.DATA,
                 kildeType = Aksjonsdata.KildeType.AVLEVERT,
                 avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
                 mottakendeKomponentKode = "OS",
-                brukerId = "SU"
+                brukerId = "SU",
+                nokkelFom = "2020-03-01-00.00.00.000000",
+                nokkelTom = "2020-03-02-00.00.00.000000",
+                avleverendeAvstemmingId = avstemmingId.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(
                 totalAntall = 4,
@@ -107,12 +106,21 @@ internal class AvstemmingDataBuilderTest {
             )
         )
 
-        AvstemmingDataBuilder(listUtbetaling).build() shouldBe expected
+        AvstemmingDataBuilder(
+            Avstemming(
+                id = avstemmingId,
+                opprettet = now(),
+                fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
+                tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                utbetalinger = listUtbetaling,
+                avstemmingXmlRequest = null
+            ),
+        ).build() shouldBe expected
     }
 
     private fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
         id = UUID30.randomUUID(),
-        opprettet = fom.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
+        opprettet = fom.atStartOfDay(zoneId).toInstant(),
         fom = fom,
         tom = tom,
         forrigeUtbetalingslinjeId = null,
@@ -122,7 +130,7 @@ internal class AvstemmingDataBuilderTest {
     private fun lagUtbetaling(opprettet: LocalDate, status: Kvittering.Utbetalingsstatus, linjer: List<Utbetalingslinje>) =
         Utbetaling(
             id = UUID30.randomUUID(),
-            opprettet = opprettet.atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(),
+            opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
             behandlingId = UUID.randomUUID(),
             simulering = null,
             kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),

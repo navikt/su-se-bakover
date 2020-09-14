@@ -204,7 +204,7 @@ internal class DatabaseRepo(
                 )
             },
             utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
-            avstemmingId = stringOrNull("avstemmingId")?.let { UUID.fromString(it) }
+            avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
@@ -593,7 +593,7 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), to_json(:avstemmingXmlRequest::json))
         """.oppdatering(
             mapOf(
-                "id" to avstemming.id,
+                "id" to avstemming.id.toString(),
                 "opprettet" to avstemming.opprettet,
                 "fom" to avstemming.fom,
                 "tom" to avstemming.tom,
@@ -613,7 +613,7 @@ internal class DatabaseRepo(
     }
 
     private fun Row.toAvstemming(session: Session) = Avstemming(
-        id = uuid("id"),
+        id = uuid30("id"),
         opprettet = instant("opprettet"),
         fom = instant("fom"),
         tom = instant("tom"),
@@ -625,13 +625,13 @@ internal class DatabaseRepo(
         avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
     )
 
-    override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID): UUID {
+    override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30 {
         """
             update utbetaling set avstemmingId = :avstemmingId where id = :id
         """.oppdatering(
             mapOf(
                 "id" to utbetalingId.toString(),
-                "avstemmingId" to avstemmingId
+                "avstemmingId" to avstemmingId.toString()
             )
         )
         return avstemmingId
