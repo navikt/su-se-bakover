@@ -11,19 +11,17 @@ import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
-
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
@@ -62,7 +60,7 @@ internal class SøknadRoutesKtTest {
 
             val sakFraDb = objectRepo.hentSak(fnr)
             sakFraDb shouldNotBe null
-            sakFraDb!!.toDto().søknader shouldHaveAtLeastSize 1
+            sakFraDb!!.søknader() shouldHaveAtLeastSize 1
         }
     }
 

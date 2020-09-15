@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.time.Instant
 import java.util.UUID
 
@@ -14,29 +12,23 @@ data class Sak(
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     val oppdrag: Oppdrag,
-) : PersistentDomainObject<SakPersistenceObserver>(), DtoConvertable<SakDto> {
+) : PersistentDomainObject<SakPersistenceObserver>() {
     private val observers: MutableList<SakObserver> = mutableListOf()
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
-    override fun toDto() = SakDto(
-        id,
-        fnr = fnr,
-        søknader = søknader.map { it },
-        behandlinger = behandlinger.map { it.toDto() },
-        opprettet = opprettet,
-        utbetalinger = oppdrag.hentUtbetalinger()
-    )
+    fun søknader() = søknader.toList()
+
+    fun behandlinger() = behandlinger.toList()
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
         val søknad = persistenceObserver.nySøknad(id, søknad = Søknad(søknadInnhold = søknadInnhold))
         søknader.add(søknad)
-        val søknadDto = søknad
         observers.filterIsInstance(SakEventObserver::class.java).forEach {
             it.nySøknadEvent(
                 SakEventObserver.NySøknadEvent(
                     sakId = id,
-                    søknadId = søknadDto.id,
-                    søknadInnhold = søknadDto.søknadInnhold
+                    søknadId = søknad.id,
+                    søknadInnhold = søknad.søknadInnhold
                 )
             )
         }
@@ -71,12 +63,3 @@ interface SakEventObserver : SakObserver {
         val søknadInnhold: SøknadInnhold
     )
 }
-
-data class SakDto(
-    val id: UUID,
-    val fnr: Fnr,
-    val søknader: List<Søknad> = emptyList(),
-    val behandlinger: List<BehandlingDto> = emptyList(),
-    val opprettet: Instant,
-    val utbetalinger: List<Utbetaling> = emptyList()
-)

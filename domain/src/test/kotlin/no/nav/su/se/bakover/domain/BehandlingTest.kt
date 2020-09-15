@@ -158,7 +158,7 @@ internal class BehandlingTest {
 
             observer.opprettetVilkårsvurdering.first shouldBe id1
             observer.opprettetVilkårsvurdering.second.size shouldBe 6
-            observer.opprettetVilkårsvurdering.second.map { it.toDto().vilkår } shouldContainExactly expected
+            observer.opprettetVilkårsvurdering.second.map { it.vilkår } shouldContainExactly expected
         }
 
         @Test
@@ -716,13 +716,13 @@ internal class BehandlingTest {
     }
 
     private fun extractVilkårsvurderinger(behandling: Behandling) =
-        behandling.toDto().vilkårsvurderinger.map {
+        behandling.vilkårsvurderinger().map {
             Vilkårsvurdering(
                 id = it.id,
                 opprettet = it.opprettet,
                 vilkår = it.vilkår,
-                begrunnelse = it.begrunnelse,
-                status = it.status
+                begrunnelse = it.begrunnelse(),
+                status = it.status()
             )
         }
 

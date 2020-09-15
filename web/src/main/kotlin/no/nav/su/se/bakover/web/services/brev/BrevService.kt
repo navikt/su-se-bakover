@@ -157,8 +157,8 @@ fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFl
         else -> null
     }
 
-fun avslagsgrunnForBehandling(behandling: Behandling) = behandling.getVilkårsvurderinger()
-    .find { it.getStatus() == Vilkårsvurdering.Status.IKKE_OK }
+fun avslagsgrunnForBehandling(behandling: Behandling) = behandling.vilkårsvurderinger()
+    .find { it.status() == Vilkårsvurdering.Status.IKKE_OK }
     ?.let { vilkårToAvslagsgrunn(it.vilkår) }
 
 fun vilkårToAvslagsgrunn(vilkår: Vilkår) =

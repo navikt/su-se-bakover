@@ -59,13 +59,12 @@ internal class DatabaseRepo(
         sakId: UUID,
         behandling: Behandling
     ): Behandling {
-        val behandlingDto = behandling.toDto()
         "insert into behandling (id, sakId, søknadId, opprettet, status) values (:id, :sakId, :soknadId, :opprettet, :status)".oppdatering(
             mapOf(
-                "id" to behandlingDto.id,
+                "id" to behandling.id,
                 "sakId" to sakId,
-                "soknadId" to behandlingDto.søknad.id,
-                "opprettet" to behandlingDto.opprettet,
+                "soknadId" to behandling.søknad.id,
+                "opprettet" to behandling.opprettet,
                 "status" to behandling.status().name
             )
         )
@@ -354,16 +353,15 @@ internal class DatabaseRepo(
     ).also { it.addObserver(this@DatabaseRepo) }
 
     private fun opprettVilkårsvurdering(behandlingId: UUID, vilkårsvurdering: Vilkårsvurdering): Vilkårsvurdering {
-        val dto = vilkårsvurdering.toDto()
         "insert into vilkårsvurdering (id, behandlingId, vilkår, begrunnelse, status, opprettet) values (:id, :behandlingId, :vilkar, :begrunnelse, :status, :opprettet)"
             .oppdatering(
                 mapOf(
-                    "id" to dto.id,
+                    "id" to vilkårsvurdering.id,
                     "behandlingId" to behandlingId,
-                    "vilkar" to dto.vilkår.name,
-                    "begrunnelse" to dto.begrunnelse,
-                    "status" to dto.status.name,
-                    "opprettet" to dto.opprettet
+                    "vilkar" to vilkårsvurdering.vilkår.name,
+                    "begrunnelse" to vilkårsvurdering.begrunnelse(),
+                    "status" to vilkårsvurdering.status().name,
+                    "opprettet" to vilkårsvurdering.opprettet
                 )
             )
         vilkårsvurdering.addObserver(this)
@@ -395,13 +393,12 @@ internal class DatabaseRepo(
     override fun oppdaterVilkårsvurdering(
         vilkårsvurdering: Vilkårsvurdering
     ): Vilkårsvurdering {
-        val vilkårsvurderingDto = vilkårsvurdering.toDto()
         "update vilkårsvurdering set begrunnelse = :begrunnelse, status = :status where id = :id"
             .oppdatering(
                 mapOf(
-                    "id" to vilkårsvurderingDto.id,
-                    "begrunnelse" to vilkårsvurderingDto.begrunnelse,
-                    "status" to vilkårsvurderingDto.status.name
+                    "id" to vilkårsvurdering.id,
+                    "begrunnelse" to vilkårsvurdering.begrunnelse(),
+                    "status" to vilkårsvurdering.status().name
                 )
             )
         return vilkårsvurdering

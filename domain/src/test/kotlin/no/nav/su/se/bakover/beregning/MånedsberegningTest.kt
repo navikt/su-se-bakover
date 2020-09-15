@@ -11,62 +11,62 @@ import java.time.Month
 internal class MånedsberegningTest {
     @Test
     fun `calculation 1`() {
-        val dto = Månedsberegning(
+        val månedsberegning = Månedsberegning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             sats = Sats.HØY,
             fradrag = 0
         )
 
-        dto.fom shouldBe LocalDate.of(2020, Month.JANUARY, 1)
-        dto.tom shouldBe LocalDate.of(2020, Month.JANUARY, 31)
-        dto.grunnbeløp shouldBe 99858
-        dto.sats shouldBe Sats.HØY
-        dto.beløp shouldBe 20637
+        månedsberegning.fom shouldBe LocalDate.of(2020, Month.JANUARY, 1)
+        månedsberegning.tom shouldBe LocalDate.of(2020, Month.JANUARY, 31)
+        månedsberegning.grunnbeløp shouldBe 99858
+        månedsberegning.sats shouldBe Sats.HØY
+        månedsberegning.beløp shouldBe 20637
     }
 
     @Test
     fun `calculation 2`() {
-        val dto = Månedsberegning(
+        val månedsberegning = Månedsberegning(
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 0
         )
 
-        dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
-        dto.grunnbeløp shouldBe 93634
-        dto.sats shouldBe Sats.LAV
-        dto.beløp shouldBe 17790
+        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.grunnbeløp shouldBe 93634
+        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.beløp shouldBe 17790
     }
 
     @Test
     fun `trekker fra fradrag`() {
-        val dto = Månedsberegning(
+        val månedsberegning = Månedsberegning(
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 100
         )
 
-        dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
-        dto.grunnbeløp shouldBe 93634
-        dto.sats shouldBe Sats.LAV
-        dto.beløp shouldBe 17690
+        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.grunnbeløp shouldBe 93634
+        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.beløp shouldBe 17690
     }
 
     @Test
     fun `beløp kan ikke bli negativt pga fradrag`() {
-        val dto = Månedsberegning(
+        val månedsberegning = Månedsberegning(
             fom = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = Int.MAX_VALUE
         )
 
-        dto.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        dto.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
-        dto.grunnbeløp shouldBe 93634
-        dto.sats shouldBe Sats.LAV
-        dto.beløp shouldBe 0
+        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.grunnbeløp shouldBe 93634
+        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.beløp shouldBe 0
     }
 
     @Test

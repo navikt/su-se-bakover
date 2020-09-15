@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.VilkårsvurderingDto
 import java.util.UUID
 
 internal data class VilkårsvurderingJson @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
@@ -17,10 +16,10 @@ internal data class VilkårsvurderingData(
     val status: String
 )
 
-internal fun VilkårsvurderingDto.toJson() = vilkår.name to VilkårsvurderingData(
+internal fun Vilkårsvurdering.toJson() = vilkår.name to VilkårsvurderingData(
     id = id.toString(),
-    begrunnelse = begrunnelse,
-    status = status.name
+    begrunnelse = begrunnelse(),
+    status = status().name
 )
 
 internal fun Map<String, VilkårsvurderingData>.toVilkårsvurderinger() = this.map {
@@ -32,4 +31,4 @@ internal fun Map<String, VilkårsvurderingData>.toVilkårsvurderinger() = this.m
     )
 }
 
-internal fun List<VilkårsvurderingDto>.toJson() = VilkårsvurderingJson(this.map { it.toJson() }.toMap())
+internal fun List<Vilkårsvurdering>.toJson() = VilkårsvurderingJson(this.map { it.toJson() }.toMap())

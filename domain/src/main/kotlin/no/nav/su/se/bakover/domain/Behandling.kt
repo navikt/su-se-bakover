@@ -2,11 +2,9 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -31,7 +29,7 @@ data class Behandling(
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID
-) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
+) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
 
@@ -41,24 +39,12 @@ data class Behandling(
 
     fun beregning() = beregning
 
-    fun getVilkårsvurderinger() = vilkårsvurderinger.toList()
+    fun vilkårsvurderinger() = vilkårsvurderinger.toList()
 
     /**
      * Henter fødselsnummer fra sak via persisteringslaget (lazy)
      */
     val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
-
-    override fun toDto() = BehandlingDto(
-        id = id,
-        opprettet = opprettet,
-        vilkårsvurderinger = vilkårsvurderinger.toDto(),
-        søknad = søknad,
-        beregning = beregning,
-        status = tilstand.status,
-        utbetaling = utbetaling,
-        attestant = attestant,
-        sakId = sakId
-    )
 
     fun utbetaling() = utbetaling
 
@@ -389,15 +375,3 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
 }
-
-data class BehandlingDto(
-    val id: UUID,
-    val opprettet: Instant,
-    val vilkårsvurderinger: List<VilkårsvurderingDto>,
-    val søknad: Søknad,
-    val beregning: Beregning?,
-    val status: Behandling.BehandlingsStatus,
-    val utbetaling: Utbetaling?,
-    val attestant: Attestant?,
-    val sakId: UUID
-)

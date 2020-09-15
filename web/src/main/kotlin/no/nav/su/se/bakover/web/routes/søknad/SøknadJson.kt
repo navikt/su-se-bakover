@@ -15,6 +15,3 @@ internal fun Søknad.toJson() = SøknadJson(
     søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet)
 )
-
-// internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<SøknadDto>) =
-//     Resultat.json(this, objectMapper.writeValueAsString(dtoConvertable.toDto().toJson()))

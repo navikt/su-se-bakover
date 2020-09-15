@@ -40,7 +40,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId = sakRepo.opprettSak(Fnr(sakFnr01)).toDto().id
+            val opprettetSakId = sakRepo.opprettSak(Fnr(sakFnr01)).id
 
             defaultRequest(Get, "$sakPath/$opprettetSakId").apply {
                 assertEquals(OK, response.status())
@@ -58,7 +58,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            sakRepo.opprettSak(Fnr(sakFnr01)).toDto()
+            sakRepo.opprettSak(Fnr(sakFnr01))
 
             defaultRequest(Get, "$sakPath/?fnr=$sakFnr01").apply {
                 assertEquals(OK, response.status())

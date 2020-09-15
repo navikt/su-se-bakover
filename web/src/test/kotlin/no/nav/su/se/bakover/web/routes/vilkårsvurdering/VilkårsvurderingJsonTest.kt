@@ -1,11 +1,10 @@
 package no.nav.su.se.bakover.web.routes.vilkårsvurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Vilkår
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
-import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Vilkår
+import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
@@ -37,13 +36,13 @@ internal class VilkårsvurderingJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(vilkårsvurderingJsonString, serialize(vilkårsvurderinger.toDto().toJson()), true)
+        JSONAssert.assertEquals(vilkårsvurderingJsonString, serialize(vilkårsvurderinger.toJson()), true)
     }
 
     @Test
     fun `should deserialize json string`() {
         deserialize<VilkårsvurderingJson>(vilkårsvurderingJsonString).shouldBe(
-            vilkårsvurderinger.map { it.toDto() }.toJson()
+            vilkårsvurderinger.toJson()
         )
     }
 }
