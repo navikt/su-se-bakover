@@ -92,7 +92,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "tema": "SUP",
                       "kanal": null,
                       "behandlingstema": "ab0268",
-                      "journalfoerendeEnhet": "9999",
+                      "journalfoerendeEnhet": "4815",
                       "avsenderMottaker": {
                         "id": "$fnr",
                         "idType": "FNR",

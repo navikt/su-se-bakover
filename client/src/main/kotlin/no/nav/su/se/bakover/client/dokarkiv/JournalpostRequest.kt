@@ -8,8 +8,8 @@ import java.util.Base64
 
 sealed class Journalpost {
     val tema: String = "SUP"
-    val journalfoerendeEnhet: String = "9999"
     val behandlingstema: String = "ab0268"
+    abstract val journalfoerendeEnhet: String
     abstract val tittel: String
     abstract val journalpostType: JournalPostType
     abstract val kanal: String?
@@ -35,8 +35,10 @@ sealed class Journalpost {
         override val sak: Fagsak = Fagsak(sakId)
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String? = "INNSENDT_NAV_ANSATT"
+        override val journalfoerendeEnhet: String = "9999"
         override val dokumenter: List<JournalpostDokument> = søknadInnhold.toJournalpostDokument()
-        fun SøknadInnhold.toJournalpostDokument() = listOf(
+
+        private fun SøknadInnhold.toJournalpostDokument() = listOf(
             JournalpostDokument(
                 tittel = "Søknad om supplerende stønad for uføre flyktninger",
                 dokumentKategori = DokumentKategori.SOK,
@@ -72,8 +74,10 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
+        override val journalfoerendeEnhet: String = "4815"
         override val dokumenter: List<JournalpostDokument> = vedtakInnhold.toJournalpostDokument()
-        fun VedtakInnhold.toJournalpostDokument() = listOf(
+
+        private fun VedtakInnhold.toJournalpostDokument() = listOf(
             JournalpostDokument(
                 tittel = "Vedtaksbrev for soknad om supplerende stønad",
                 dokumentKategori = DokumentKategori.VB,
