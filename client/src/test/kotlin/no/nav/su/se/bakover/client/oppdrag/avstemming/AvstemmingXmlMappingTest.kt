@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.START
@@ -19,7 +20,7 @@ import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher
 import java.math.BigDecimal
 
-internal class AvstemmingXmlMapperTest {
+internal class AvstemmingXmlMappingTest {
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     @Test
@@ -59,7 +60,7 @@ internal class AvstemmingXmlMapperTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            AvstemmingXmlMapper.map(request),
+            XmlMapper.writeValueAsString(request),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }
@@ -161,7 +162,7 @@ internal class AvstemmingXmlMapperTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            AvstemmingXmlMapper.map(dataRequest),
+            XmlMapper.writeValueAsString(dataRequest),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }
@@ -203,7 +204,7 @@ internal class AvstemmingXmlMapperTest {
             """.trimIndent()
 
         MatcherAssert.assertThat(
-            AvstemmingXmlMapper.map(request),
+            XmlMapper.writeValueAsString(request),
             CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import arrow.core.Either
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.START
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -17,10 +18,9 @@ class AvstemmingMqPublisher(
     ): Either<KunneIkkeSendeAvstemming, Avstemming> {
 
         val avstemmingsdata = AvstemmingDataBuilder(avstemming).build()
-        val startXml = AvstemmingXmlMapper.map(AvstemmingStartRequest(avstemmingsdata.aksjon.copy(aksjonType = START)))
-        val dataXml = AvstemmingXmlMapper.map(avstemmingsdata)
-        val stoppXml =
-            AvstemmingXmlMapper.map(AvstemmingStoppRequest(avstemmingsdata.aksjon.copy(aksjonType = AVSLUTT)))
+        val startXml = XmlMapper.writeValueAsString(AvstemmingStartRequest(avstemmingsdata.aksjon.copy(aksjonType = START)))
+        val dataXml = XmlMapper.writeValueAsString(avstemmingsdata)
+        val stoppXml = XmlMapper.writeValueAsString(AvstemmingStoppRequest(avstemmingsdata.aksjon.copy(aksjonType = AVSLUTT)))
 
         return mqPublisher.publish(startXml, dataXml, stoppXml)
             .mapLeft { KunneIkkeSendeAvstemming }
