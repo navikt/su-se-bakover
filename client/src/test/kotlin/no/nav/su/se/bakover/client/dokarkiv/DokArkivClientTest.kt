@@ -181,7 +181,7 @@ internal class DokArkivClientTest : WiremockBase {
                 pdf = pdf
             )
         ) shouldBe
-            ClientError(403, "Feil ved journalføring av søknad.").left()
+            ClientError(403, "Feil ved journalføring").left()
     }
 
     @Test
