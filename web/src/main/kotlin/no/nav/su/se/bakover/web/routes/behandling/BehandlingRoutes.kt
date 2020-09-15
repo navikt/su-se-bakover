@@ -92,8 +92,8 @@ internal fun Route.behandlingRoutes(
 
     get("$behandlingPath/{behandlingId}/vedtaksutkast") {
         call.withBehandling(repo) { behandling ->
-            brevService.lagUtkastTilBrev(behandling.toDto()).fold(
-                ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
+            brevService.lagUtkastTilBrev(behandling).fold(
+                ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
                 ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
             )
         }
@@ -133,17 +133,17 @@ internal fun Route.behandlingRoutes(
     patch("$behandlingPath/{behandlingId}/attester") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
-            call.audit("Attesterer behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
-
-            brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
-                ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
-                ifRight = { call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId())))) }
-            )
+            // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
+            brevService.journalførVedtakOgSendBrev(sak, behandling)
+            // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
+            val oppdatertBehandling = behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))
+            call.audit("Attestert behandling med sakId: ${sak.id} og behandlingId: ${behandling.id}")
+            call.svar(OK.jsonBody(oppdatertBehandling))
         }
     }
 
-    // TODO should this be an actual endpoint?
+    // TODO jah: Midlertidig endepunkt for å trigge utbetaling manuelt fra curl/postman e.l.
     patch("$behandlingPath/{behandlingId}/utbetal") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->

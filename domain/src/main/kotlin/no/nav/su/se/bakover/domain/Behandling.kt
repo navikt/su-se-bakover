@@ -32,10 +32,21 @@ data class Behandling(
     private var attestant: Attestant? = null,
     val sakId: UUID
 ) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
+
     private var tilstand: Tilstand = resolve(status)
 
     fun status() = tilstand.status
+
     fun attestant() = attestant
+
+    fun beregning() = beregning
+
+    fun getVilkårsvurderinger() = vilkårsvurderinger.toList()
+
+    /**
+     * Henter fødselsnummer fra sak via persisteringslaget (lazy)
+     */
+    val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     override fun toDto() = BehandlingDto(
         id = id,
@@ -239,7 +250,7 @@ data class Behandling(
                 NyUtbetaling(
                     oppdrag = oppdrag,
                     utbetaling = utbetalingTilSimulering,
-                    oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                    oppdragGjelder = fnr,
                     attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
                 )
             ).map { simulering ->
@@ -309,7 +320,7 @@ data class Behandling(
                     NyUtbetaling(
                         oppdrag = persistenceObserver.hentOppdrag(sakId),
                         utbetaling = utbetaling!!,
-                        oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                        oppdragGjelder = fnr,
                         attestant = attestant!!
                     )
                 ).mapLeft {
@@ -346,7 +357,12 @@ data class Behandling(
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
         ATTESTERT_INNVILGET,
-        ATTESTERT_AVSLAG,
+        ATTESTERT_AVSLAG;
+
+        /**
+         * Brukes for å bestemme brevmal. Simulert vil føre til innvilgelse.
+         */
+        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET, ATTESTERT_INNVILGET).contains(this)
     }
 
     class TilstandException(
