@@ -590,7 +590,7 @@ internal class DatabaseRepo(
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
         """
             insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
-            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), to_json(:avstemmingXmlRequest::json))
+            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
         """.oppdatering(
             mapOf(
                 "id" to avstemming.id.toString(),
