@@ -13,6 +13,7 @@ data class Vilkårsvurdering(
     private var status: Status = Status.IKKE_VURDERT
 ) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(), DtoConvertable<VilkårsvurderingDto> {
 
+    fun getStatus() = status
     override fun toDto() = VilkårsvurderingDto(
         id = id,
         vilkår = vilkår,
