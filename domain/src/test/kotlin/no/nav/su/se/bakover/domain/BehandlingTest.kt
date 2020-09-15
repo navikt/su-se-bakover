@@ -212,7 +212,8 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 opprettet.attester(
-                    Attestant("A123456")
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -273,7 +274,8 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.attester(
-                    Attestant("A123456")
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -318,7 +320,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.attester(Attestant("A123456"))
+                vilkårsvurdert.attester(Attestant("A123456"), UtbetalingPublisherStub)
             }
         }
     }
@@ -367,7 +369,8 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
                 beregnet.attester(
-                    Attestant("A123456")
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -423,7 +426,8 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
                 simulert.attester(
-                    Attestant("A123456")
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -486,7 +490,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("A123456"))
+            tilAttestering.attester(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -526,7 +530,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("A123456"))
+            tilAttestering.attester(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe ATTESTERT_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -562,14 +566,14 @@ internal class BehandlingTest {
             attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
             attestert.simuler(SimuleringClientStub)
             attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("A123456"))
+            attestert.attester(Attestant("A123456"), UtbetalingPublisherStub)
             attestert.status() shouldBe ATTESTERT_INNVILGET
             observer.oppdatertStatus shouldBe attestert.status()
         }
 
         @Test
         fun `skal kunne sende til utbetaling`() {
-            attestert.sendTilUtbetaling(UtbetalingPublisherStub)
+            attestert.attester()  .sendTilUtbetaling(UtbetalingPublisherStub)
             attestert.status() shouldBe ATTESTERT_INNVILGET
             attestert.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
@@ -623,7 +627,7 @@ internal class BehandlingTest {
                 )
             )
             attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("A123456"))
+            attestert.attester(Attestant("A123456"), UtbetalingPublisherStub)
             attestert.status() shouldBe ATTESTERT_AVSLAG
             observer.oppdatertStatus shouldBe attestert.status()
         }
@@ -662,7 +666,7 @@ internal class BehandlingTest {
             behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             behandling.simuler(SimuleringClientStub)
             behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            behandling.attester(Attestant("A123456"))
+            behandling.attester(Attestant("A123456"), UtbetalingPublisherStub)
             val publisherMock = mock<UtbetalingPublisher> {
                 on { publish(any()) } doReturn "".right()
             }

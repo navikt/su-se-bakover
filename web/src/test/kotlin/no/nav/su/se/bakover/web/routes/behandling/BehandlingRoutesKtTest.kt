@@ -320,7 +320,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
-            objects.behandling.attester(Attestant("attestant"))
+            objects.behandling.attester(Attestant("attestant"), testClients.utbetalingPublisher)
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -372,7 +372,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
-            objects.behandling.attester(Attestant("attestant"))
+            objects.behandling.attester(Attestant("attestant"), testClients.utbetalingPublisher)
 
             defaultRequest(
                 HttpMethod.Patch,

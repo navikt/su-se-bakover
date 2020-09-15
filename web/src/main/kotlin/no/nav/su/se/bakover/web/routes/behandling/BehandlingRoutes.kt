@@ -138,7 +138,12 @@ internal fun Route.behandlingRoutes(
 
             brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
-                ifRight = { call.svar(OK.jsonBody(behandling.attester(attestant = Attestant(id = call.lesBehandlerId())))) }
+                ifRight = {
+                    behandling.attester(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
+                        { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
+                        { call.svar(OK.jsonBody(it)) }
+                    )
+                }
             )
         }
     }
