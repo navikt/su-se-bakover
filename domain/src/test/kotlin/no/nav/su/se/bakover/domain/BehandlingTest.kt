@@ -229,15 +229,14 @@ internal class BehandlingTest {
             val tom = 31.desember(2020)
             vilkårsvurdert.opprettBeregning(
                 fom = fom,
-                tom = tom,
-                sats = Sats.LAV
+                tom = tom
             )
             observer.opprettetBeregning.first shouldBe id1
             observer.opprettetBeregning.second shouldNotBe null
             val beregning = observer.opprettetBeregning.second
             beregning.fom shouldBe fom
             beregning.tom shouldBe tom
-            beregning.sats shouldBe Sats.LAV
+            beregning.sats shouldBe Sats.HØY
         }
 
         @Test

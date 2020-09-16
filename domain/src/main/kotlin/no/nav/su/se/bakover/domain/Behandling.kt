@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -79,10 +78,9 @@ data class Behandling(
     fun opprettBeregning(
         fom: LocalDate,
         tom: LocalDate,
-        sats: Sats = Sats.HØY,
         fradrag: List<Fradrag> = emptyList()
     ): Behandling {
-        tilstand.opprettBeregning(fom, tom, sats, fradrag)
+        tilstand.opprettBeregning(fom, tom, fradrag)
         return this
     }
 
@@ -114,7 +112,6 @@ data class Behandling(
         fun opprettBeregning(
             fom: LocalDate,
             tom: LocalDate,
-            sats: Sats = Sats.HØY,
             fradrag: List<Fradrag>
         ) {
             throw TilstandException(status, this::opprettBeregning.toString())
@@ -163,7 +160,10 @@ data class Behandling(
         }
 
         inner class Innvilget : Vilkårsvurdert() {
-            override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
+            override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
+                val sats = this@Behandling.behandlingsinformasjon.sats?.utledSats()
+                    ?: throw TilstandException(status, this::opprettBeregning.toString(), "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett.")
+
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
                     beregning = Beregning(
@@ -198,8 +198,8 @@ data class Behandling(
     private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, sats, fradrag)
+        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -242,8 +242,8 @@ data class Behandling(
             this@Behandling
         }
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, sats: Sats, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, sats, fradrag)
+        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
