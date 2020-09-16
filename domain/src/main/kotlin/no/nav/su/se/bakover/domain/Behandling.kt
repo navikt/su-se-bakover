@@ -60,8 +60,6 @@ data class Behandling(
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
-        BehandlingsStatus.ATTESTERT_INNVILGET -> Attestert().Innvilget()
-        BehandlingsStatus.ATTESTERT_AVSLAG -> Attestert().Avslag()
         BehandlingsStatus.IVERKSATT -> Iverksatt()
     }
 
@@ -93,11 +91,11 @@ data class Behandling(
         return tilstand.sendTilAttestering(aktørId, oppgave)
     }
 
-    fun attester(
+    fun iverksett(
         attestant: Attestant,
         publisher: UtbetalingPublisher
     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-        return tilstand.attester(attestant, publisher)
+        return tilstand.iverksett(attestant, publisher)
     }
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
@@ -134,15 +132,12 @@ data class Behandling(
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
-        fun attester(
+        fun iverksett(
             attestant: Attestant,
             publish: UtbetalingPublisher
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-            throw TilstandException(status, this::attester.toString())
+            throw TilstandException(status, this::iverksett.toString())
         }
-
-        fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> =
-            throw TilstandException(status, this::sendTilUtbetaling.toString())
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
@@ -287,39 +282,17 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
         inner class Innvilget : TilAttestering() {
-            override fun attester(
+            override fun iverksett(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                return nyTilstand(Attestert().Innvilget()).sendTilUtbetaling(publish)
-            }
-        }
-
-        inner class Avslag : TilAttestering() {
-            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
-            override fun attester(
-                attestant: Attestant,
-                publish: UtbetalingPublisher
-            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                nyTilstand(Attestert().Avslag())
-                return this@Behandling.right()
-            }
-        }
-    }
-
-    private open inner class Attestert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_INNVILGET
-
-        inner class Innvilget : Attestert() {
-            override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                return publisher.publish(
+                return publish.publish(
                     NyUtbetaling(
                         oppdrag = persistenceObserver.hentOppdrag(sakId),
                         utbetaling = utbetaling!!,
                         oppdragGjelder = persistenceObserver.hentFnr(sakId),
-                        attestant = attestant!!
+                        attestant = attestant
                     )
                 ).mapLeft {
                     utbetaling!!.addOppdragsmelding(
@@ -342,10 +315,13 @@ data class Behandling(
             }
         }
 
-        inner class Avslag : Attestert() {
-            override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_AVSLAG
-
-            override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+        inner class Avslag : TilAttestering() {
+            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+            override fun iverksett(
+                attestant: Attestant,
+                publish: UtbetalingPublisher
+            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
                 nyTilstand(Iverksatt())
                 return this@Behandling.right()
             }
@@ -354,7 +330,6 @@ data class Behandling(
 
     private inner class Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT
-
     }
 
     enum class BehandlingsStatus {
@@ -365,8 +340,6 @@ data class Behandling(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
-        ATTESTERT_INNVILGET,
-        ATTESTERT_AVSLAG,
         IVERKSATT
     }
 

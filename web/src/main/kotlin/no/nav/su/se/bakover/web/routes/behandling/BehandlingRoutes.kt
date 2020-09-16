@@ -130,7 +130,7 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    patch("$behandlingPath/{behandlingId}/attester") {
+    patch("$behandlingPath/{behandlingId}/iverksett") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("Attesterer behandling med id: ${behandling.id}")
@@ -139,23 +139,11 @@ internal fun Route.behandlingRoutes(
             brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = {
-                    behandling.attester(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
+                    behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
                         { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
                         { call.svar(OK.jsonBody(it)) }
                     )
                 }
-            )
-        }
-    }
-
-    // TODO should this be an actual endpoint?
-    patch("$behandlingPath/{behandlingId}/utbetal") {
-        // TODO authorize attestant
-        call.withBehandling(repo) { behandling ->
-            call.audit("Sender behandling med id: ${behandling.id} til utbetaling")
-            behandling.sendTilUtbetaling(utbetalingPublisher).fold(
-                { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
-                { call.svar(OK.jsonBody(it)) }
             )
         }
     }

@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -266,51 +265,6 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
-    fun `attesterer behandling`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(extractVilkårsvurderinger(objects.behandling).withStatus(OK))
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/attester"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/attester"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/attester"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-            }
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/attester"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.OK
-                deserialize<BehandlingJson>(response.content!!).let {
-                    it.attestant shouldBe "enSaksbehandleroid"
-                    it.status shouldBe "ATTESTERT_INNVILGET"
-                }
-            }
-        }
-    }
-
-    @Test
     fun `iverksetter behandling`() {
         withTestApplication({
             testSusebakover()
@@ -320,37 +274,36 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
-            objects.behandling.attester(Attestant("attestant"), testClients.utbetalingPublisher)
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/utbetal"
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/utbetal"
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/utbetal"
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/utbetal"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
-                    it.attestant shouldBe "attestant"
-                    it.status shouldBe "ATTESTERT_INNVILGET"
+                    it.attestant shouldBe "enSaksbehandleroid"
+                    it.status shouldBe "IVERKSATT"
                 }
             }
         }
@@ -372,11 +325,10 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
-            objects.behandling.attester(Attestant("attestant"), testClients.utbetalingPublisher)
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/utbetal"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
             }
