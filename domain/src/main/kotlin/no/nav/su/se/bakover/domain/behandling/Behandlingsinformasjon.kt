@@ -255,7 +255,7 @@ data class Behandlingsinformasjon(
                     ektemakeEllerSamboerUnder67År != null &&
                         ektemakeEllerSamboerUførFlyktning != null
                 } else {
-                    false
+                    true
                 }
             } else {
                 true
