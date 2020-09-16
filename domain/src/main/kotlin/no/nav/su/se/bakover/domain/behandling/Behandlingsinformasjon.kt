@@ -250,12 +250,11 @@ data class Behandlingsinformasjon(
             }
 
         override fun isValid(): Boolean =
-            if (delerBolig) {
-                if (delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER) {
-                    ektemakeEllerSamboerUnder67År != null &&
-                        ektemakeEllerSamboerUførFlyktning != null
+            if (delerBolig && delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER) {
+                if (ektemakeEllerSamboerUnder67År == true) {
+                    ektemakeEllerSamboerUførFlyktning != null
                 } else {
-                    true
+                    ektemakeEllerSamboerUførFlyktning == null
                 }
             } else {
                 true
