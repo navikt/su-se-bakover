@@ -28,26 +28,26 @@ import org.slf4j.LoggerFactory
 
 object StubClientsBuilder : ClientsBuilder {
 
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun build(): Clients {
         return Clients(
             oauth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl),
-            personOppslag = PersonOppslagStub.also { logger.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
-            inntektOppslag = InntektOppslagStub.also { logger.warn("********** Using stub for ${InntektOppslag::class.java} **********") },
-            tokenOppslag = TokenOppslagStub.also { logger.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
+            personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
+            inntektOppslag = InntektOppslagStub.also { log.warn("********** Using stub for ${InntektOppslag::class.java} **********") },
+            tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
             pdfGenerator = if (Config.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
             } else {
-                PdfGeneratorStub.also { logger.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
+                PdfGeneratorStub.also { log.warn("********** Using stub for ${PdfGenerator::class.java} **********") }
             },
-            dokArkiv = DokArkivStub.also { logger.warn("********** Using stub for ${DokArkiv::class.java} **********") },
-            oppgaveClient = OppgaveClientStub.also { logger.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
+            dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
+            oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
             kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad"),
-            simuleringClient = SimuleringStub.also { logger.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
-            utbetalingPublisher = UtbetalingStub.also { logger.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
-            dokDistFordeling = DokDistFordelingStub.also { logger.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
-            avstemmingPublisher = AvstemmingStub.also { logger.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") }
+            simuleringClient = SimuleringStub.also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
+            utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
+            dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
+            avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") }
         )
     }
-
-    private val logger = LoggerFactory.getLogger(StubClientsBuilder::class.java)
 }

@@ -17,7 +17,7 @@ internal const val SOKNAD_TEMPLATE = "soknad"
 
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun genererPdf(søknad: SøknadInnhold): Either<ClientError, ByteArray> {
         return genererPdf(objectMapper.writeValueAsString(søknad), SOKNAD_TEMPLATE)
@@ -38,7 +38,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
                 it.right()
             },
             {
-                logger.warn("Kall mot PdfClient feilet", it)
+                log.warn("Kall mot PdfClient feilet", it)
                 ClientError(response.statusCode, "Kall mot PdfClient feilet").left()
             }
         )

@@ -26,9 +26,7 @@ internal class PdlClient(
     private val pdlUrl: String,
     private val tokenOppslag: TokenOppslag
 ) {
-    companion object {
-        private val logger = LoggerFactory.getLogger(PdlClient::class.java)
-    }
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
@@ -97,14 +95,14 @@ internal class PdlClient(
             {
                 val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
                 if (pdlResponse.hasErrors()) {
-                    logger.warn("Feil i kallet mod PDL: {}", pdlResponse)
+                    log.warn("Feil i kallet mod PDL: {}", pdlResponse)
                     PdlFeil.from(pdlResponse.errors!!).left()
                 } else {
                     pdlResponse.data.right()
                 }
             },
             {
-                logger.warn(
+                log.warn(
                     "Feil i kallet mot PDL, status:{}, body:{}",
                     response.statusCode,
                     response.body().asString("application/json")

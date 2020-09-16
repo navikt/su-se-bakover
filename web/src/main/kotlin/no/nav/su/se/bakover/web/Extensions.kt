@@ -7,19 +7,15 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpHeaders
 import io.ktor.request.header
 import io.ktor.request.receiveStream
-
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.util.UUID
 
-internal val sikkerlogg: Logger = LoggerFactory.getLogger("sikkerLogg")
-
 internal fun ApplicationCall.audit(msg: String) {
-    sikkerlogg.info("${lesBehandlerId()} $msg")
+    sikkerLogg.info("${lesBehandlerId()} $msg")
 }
 
 internal fun ApplicationCall.lesBehandlerId() =

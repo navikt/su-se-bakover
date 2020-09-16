@@ -15,7 +15,8 @@ internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/bet
 internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"
 
 class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : Kodeverk {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun hentPoststed(postnummer: String): Either<CouldNotGetKode, String?> {
         return hentKodebetydning(kodeverkPoststedPath, postnummer)
@@ -41,7 +42,12 @@ class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : Kodeverk
                     .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
             },
             {
-                logger.warn("Feil i kallet mot kodeverk. status=${response.statusCode} body=${response.body().asString("application/json")}", it)
+                log.warn(
+                    "Feil i kallet mot kodeverk. status={} body={}",
+                    response.statusCode,
+                    response.body().asString("application/json"),
+                    it
+                )
                 CouldNotGetKode.left()
             }
         )

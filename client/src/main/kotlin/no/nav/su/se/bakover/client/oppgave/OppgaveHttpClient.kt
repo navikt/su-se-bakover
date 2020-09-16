@@ -21,7 +21,8 @@ internal class OppgaveHttpClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : OppgaveClient {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
         val aktivDato = LocalDate.now()
@@ -50,11 +51,11 @@ internal class OppgaveHttpClient(
 
         return result.fold(
             { json ->
-                logger.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
+                log.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
                 objectMapper.readValue(json, OppgaveResponse::class.java).id.right()
             },
             {
-                logger.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeOppretteOppgave(
                     response.statusCode,
                     "Feil i kallet mot oppgave"

@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -31,10 +32,8 @@ import javax.xml.ws.soap.SOAPFaultException
 internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService
 ) : SimuleringClient {
-    private companion object {
-        private val sikkerLogg = LoggerFactory.getLogger("sikkerLogg")
-        private val log = LoggerFactory.getLogger(this::class.java)
-    }
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun simulerUtbetaling(
         nyUtbetaling: NyUtbetaling

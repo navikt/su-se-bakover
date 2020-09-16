@@ -13,12 +13,14 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
-private val log = LoggerFactory.getLogger(DokArkivClient::class.java)
 
 class DokArkivClient(
     private val baseUrl: String,
     private val tokenOppslag: TokenOppslag
 ) : DokArkiv {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun opprettJournalpost(
         dokumentInnhold: Journalpost,
     ): Either<ClientError, String> {

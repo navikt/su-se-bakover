@@ -30,7 +30,7 @@ class BrevService(
     private val dokArkiv: DokArkiv,
     private val dokDistFordeling: DokDistFordeling
 ) {
-    private val log = LoggerFactory.getLogger(BrevService::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     companion object {
         fun lagVedtakInnhold(person: Person, behandling: Behandling): VedtakInnhold {

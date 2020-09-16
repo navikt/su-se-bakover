@@ -16,6 +16,9 @@ internal class SuInntektClient(
     private val exchange: OAuth,
     private val personOppslag: PersonOppslag
 ) : InntektOppslag {
+
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     private val inntektResource = "$suInntektBaseUrl/inntekt"
     private val suInntektIdentLabel = "fnr"
 
@@ -58,7 +61,7 @@ internal class SuInntektClient(
             { error ->
                 val errorMessage = error.response.body().asString("application/json")
                 val statusCode = error.response.statusCode
-                logger.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage")
+                log.debug("Kall mot Inntektskomponenten feilet, statuskode: $statusCode, feilmelding: $errorMessage")
                 ClientResponse(response.statusCode, errorMessage)
             }
         )
@@ -67,10 +70,6 @@ internal class SuInntektClient(
     private fun httpCodeFor(pdlFeil: PdlFeil) = when (pdlFeil) {
         is PdlFeil.FantIkkePerson -> 404
         else -> 500
-    }
-
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(SuInntektClient::class.java)
     }
 }
 

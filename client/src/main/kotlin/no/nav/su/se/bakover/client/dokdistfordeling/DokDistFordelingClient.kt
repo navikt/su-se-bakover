@@ -8,11 +8,12 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import org.json.JSONObject
-import org.slf4j.MDC
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
 class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {
+
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(

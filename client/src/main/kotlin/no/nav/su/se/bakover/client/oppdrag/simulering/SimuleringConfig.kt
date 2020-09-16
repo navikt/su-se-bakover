@@ -28,8 +28,10 @@ class SimuleringConfig(
     private val disableCNCheck: Boolean,
     private val serviceUser: Config.ServiceUser
 ) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     private companion object {
-        private val log = LoggerFactory.getLogger(SimuleringConfig::class.java)
         private val WSDL = "wsdl/no/nav/system/os/eksponering/simulerFpServiceWSBinding.wsdl"
         private val NAMESPACE = "http://nav.no/system/os/eksponering/simulerFpServiceWSBinding"
         private val SERVICE = QName(NAMESPACE, "simulerFpService")
