@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
+import no.nav.su.se.bakover.web.routes.behandllinger.stopp.toResultat
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 
@@ -60,6 +61,12 @@ internal fun Route.sakRoutes(
                         call.svar(HttpStatusCode.Created.jsonBody(behandling))
                     }
                 )
+        }
+    }
+
+    post("$sakPath/{sakId}/stopp-utbetalinger") {
+        call.withSak(sakRepo) { sak ->
+            call.svar(sak.stoppUtbetaling().toResultat(OK))
         }
     }
 }

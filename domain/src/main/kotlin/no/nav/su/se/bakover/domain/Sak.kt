@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Instant
 import java.util.UUID
@@ -40,6 +41,17 @@ data class Sak(
         val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad, sakId = id))
         behandlinger.add(behandling)
         return behandling
+    }
+
+    /**
+     * Idempotent. Oppretter en ny stopp behandling dersom det ikke finnes noen aktive.
+     * Hvis en aktiv finnes returneres den istedet.
+     */
+    fun stoppUtbetaling(): Stoppbehandling {
+        // TODO: Lag implementasjon
+        return Stoppbehandling.Opprettet(
+            sakId = id
+        )
     }
 }
 

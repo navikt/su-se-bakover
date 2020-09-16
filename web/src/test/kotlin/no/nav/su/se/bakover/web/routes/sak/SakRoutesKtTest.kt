@@ -9,16 +9,15 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
-
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
-
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
+import no.nav.su.se.bakover.web.routes.behandllinger.stopp.StoppbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -107,6 +106,22 @@ internal class SakRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandling.søknad.id shouldBe nySøknad.id.toString()
+            }
+        }
+    }
+
+    @Test
+    fun `stopp utbetalinger`() {
+        val nySak = sakRepo.opprettSak(Fnr(sakFnr01))
+
+        withTestApplication({
+            testSusebakover()
+        }) {
+            defaultRequest(HttpMethod.Post, "$sakPath/${nySak.id}/stopp-utbetalinger") {}.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                val behandling = objectMapper.readValue<StoppbehandlingJson>(response.content!!)
+                behandling.sakId shouldBe nySak.id.toString()
+                behandling.status shouldBe "OPPRETTET"
             }
         }
     }
