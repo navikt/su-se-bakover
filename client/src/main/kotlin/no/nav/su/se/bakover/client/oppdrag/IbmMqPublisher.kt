@@ -23,7 +23,6 @@ class IbmMqPublisher(
         } else {
             log.info("Publiserer ${messages.size} melding(er) på køen  ${publisherConfig.sendQueue} uten reply-kø")
         }
-
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
             runBlocking {
                 Either.catch {
