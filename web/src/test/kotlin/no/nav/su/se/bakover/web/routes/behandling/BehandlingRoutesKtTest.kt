@@ -300,6 +300,78 @@ internal class BehandlingRoutesKtTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `ikke godkjenn`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterVilkårsvurderinger(
+                extractVilkårsvurderinger(objects.behandling).withStatus(
+                    OK
+                )
+            )
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.behandling.simuler(SimuleringStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/ikkegodkjent"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/ikkegodkjent"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/ikkegodkjent"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/ikkegodkjent"
+            ) {
+                setBody(
+                    """
+                    {
+                        "begrunnelse":""
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Må anngi en begrunnelse"
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/ikkegodkjent"
+            ) {
+                setBody(
+                    """
+                    {
+                        "begrunnelse":"begrunnelse"
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                deserialize<BehandlingJson>(response.content!!).let {
+                    it.status shouldBe "SIMULERT"
+                }
+            }
+        }
 
         withTestApplication({
             testSusebakover(

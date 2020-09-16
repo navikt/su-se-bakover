@@ -99,6 +99,10 @@ data class Behandling(
         return tilstand.iverksett(attestant, publisher)
     }
 
+    fun ikkeGodkjenn(begrunnelse: String): Behandling {
+        return tilstand.ikkeGodkjenn(begrunnelse)
+    }
+
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
 
@@ -130,6 +134,10 @@ data class Behandling(
             publish: UtbetalingPublisher
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
+        }
+
+        fun ikkeGodkjenn(begrunnelse: String): Behandling {
+            throw TilstandException(status, this::ikkeGodkjenn.toString())
         }
     }
 
@@ -307,6 +315,11 @@ data class Behandling(
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
+        }
+
+        override fun ikkeGodkjenn(begrunnelse: String): Behandling {
+            nyTilstand(Simulert())
+            return this@Behandling
         }
     }
 
