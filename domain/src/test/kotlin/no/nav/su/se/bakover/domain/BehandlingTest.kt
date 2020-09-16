@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -16,9 +13,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.ATTESTERT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
@@ -50,8 +47,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.verify
-import org.mockito.internal.verification.Times
 import java.time.Instant
 import java.util.UUID
 
@@ -211,8 +206,9 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
-                opprettet.attester(
-                    Attestant("A123456")
+                opprettet.iverksett(
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -272,8 +268,9 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.attester(
-                    Attestant("A123456")
+                vilkårsvurdert.iverksett(
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -318,7 +315,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.attester(Attestant("A123456"))
+                vilkårsvurdert.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
             }
         }
     }
@@ -366,8 +363,9 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { beregnet.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
             assertThrows<Behandling.TilstandException> {
-                beregnet.attester(
-                    Attestant("A123456")
+                beregnet.iverksett(
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -422,8 +420,9 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { simulert.opprettVilkårsvurderinger() }
             assertThrows<Behandling.TilstandException> {
-                simulert.attester(
-                    Attestant("A123456")
+                simulert.iverksett(
+                    Attestant("A123456"),
+                    UtbetalingPublisherStub
                 )
             }
         }
@@ -485,15 +484,72 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("A123456"))
-            tilAttestering.status() shouldBe ATTESTERT_INNVILGET
+        fun `skal kunne iverksette`() {
+            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            tilAttestering.status() shouldBe IVERKSATT_INNVILGET
+            tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+                Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                "great success"
+            )
             observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `oversendelse av av utbetaling feiler`() {
+            tilAttestering.iverksett(
+                Attestant("A123456"),
+                object : UtbetalingPublisher {
+                    override fun publish(
+                        nyUtbetaling: NyUtbetaling
+                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here").left()
+                }
+            )
+            tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
+            tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
+                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                "some xml here"
+            )
+        }
+
+        @Test
+        fun `legger til kvittering for utbetaling`() {
+            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            val utbetaling = tilAttestering.utbetaling()!!
+            utbetaling.getKvittering() shouldBe null
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere"
+            )
+            utbetaling.addKvittering(kvittering)
+            utbetaling.getKvittering() shouldBe kvittering
+        }
+
+        @Test
+        fun `ignorer kvittering for utbetaling hvis den finnes fra før`() {
+            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            val utbetaling = tilAttestering.utbetaling()!!
+            utbetaling.getKvittering() shouldBe null
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = "someXmlHere"
+            )
+            utbetaling.addKvittering(kvittering)
+            utbetaling.getKvittering() shouldBe kvittering
+            utbetaling.addKvittering(kvittering.copy(mottattTidspunkt = kvittering.mottattTidspunkt.plusSeconds(1)))
+            utbetaling.getKvittering() shouldBe kvittering
         }
 
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.oppdaterVilkårsvurderinger(
+                    extractVilkårsvurderinger(behandling).withStatus(
+                        OK
+                    )
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
@@ -525,15 +581,22 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal kunne attestere`() {
-            tilAttestering.attester(Attestant("A123456"))
-            tilAttestering.status() shouldBe ATTESTERT_AVSLAG
+        fun `skal kunne iverksette`() {
+            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            tilAttestering.status() shouldBe IVERKSATT_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { tilAttestering.opprettVilkårsvurderinger() }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.oppdaterVilkårsvurderinger(
+                    extractVilkårsvurderinger(behandling).withStatus(
+                        OK
+                    )
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
@@ -543,165 +606,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
             }
-        }
-    }
-
-    @Nested
-    inner class AttestertInnvilget {
-        private lateinit var attestert: Behandling
-
-        @BeforeEach
-        fun beforeEach() {
-            attestert = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            attestert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(attestert).withStatus(
-                    OK
-                )
-            )
-            attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            attestert.simuler(SimuleringClientStub)
-            attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("A123456"))
-            attestert.status() shouldBe ATTESTERT_INNVILGET
-            observer.oppdatertStatus shouldBe attestert.status()
-        }
-
-        @Test
-        fun `skal kunne sende til utbetaling`() {
-            attestert.sendTilUtbetaling(UtbetalingPublisherStub)
-            attestert.status() shouldBe ATTESTERT_INNVILGET
-            attestert.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                "great success"
-            )
-        }
-
-        @Test
-        fun `oversendelse av av utbetaling feiler`() {
-            attestert.sendTilUtbetaling(
-                object : UtbetalingPublisher {
-                    override fun publish(
-                        nyUtbetaling: NyUtbetaling
-                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here").left()
-                }
-            )
-            attestert.status() shouldBe ATTESTERT_INNVILGET
-            attestert.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                "some xml here"
-            )
-        }
-
-        @Test
-        fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { attestert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            }
-            assertThrows<Behandling.TilstandException> {
-                attestert.simuler(SimuleringClientStub)
-            }
-            assertThrows<Behandling.TilstandException> {
-                attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            }
-        }
-    }
-
-    @Nested
-    inner class AttestertAvslag {
-        private lateinit var attestert: Behandling
-
-        @BeforeEach
-        fun beforeEach() {
-            attestert = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            attestert.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(attestert).withStatus(
-                    IKKE_OK
-                )
-            )
-            attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            attestert.attester(Attestant("A123456"))
-            attestert.status() shouldBe ATTESTERT_AVSLAG
-            observer.oppdatertStatus shouldBe attestert.status()
-        }
-
-        @Test
-        fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { attestert.opprettVilkårsvurderinger() }
-            assertThrows<Behandling.TilstandException> {
-                attestert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            }
-            assertThrows<Behandling.TilstandException> {
-                attestert.simuler(SimuleringClientStub)
-            }
-            assertThrows<Behandling.TilstandException> {
-                attestert.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            }
-            assertThrows<Behandling.TilstandException> {
-                attestert.sendTilUtbetaling(UtbetalingPublisherStub)
-            }
-        }
-    }
-
-    @Nested
-    inner class KvitteringTest {
-        private lateinit var behandling: Behandling
-
-        @BeforeEach
-        internal fun beforeEach() {
-            behandling = createBehandling(id1, OPPRETTET)
-                .opprettVilkårsvurderinger()
-            behandling.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(behandling).withStatus(
-                    OK
-                )
-            )
-            behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            behandling.simuler(SimuleringClientStub)
-            behandling.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
-            behandling.attester(Attestant("A123456"))
-            val publisherMock = mock<UtbetalingPublisher> {
-                on { publish(any()) } doReturn "".right()
-            }
-            behandling.sendTilUtbetaling(publisherMock)
-            verify(publisherMock, Times(1)).publish(
-                NyUtbetaling(
-                    oppdrag = oppdrag.copy(sakId = behandling.sakId),
-                    utbetaling = behandling.utbetaling()!!,
-                    oppdragGjelder = Fnr("12345678910"),
-                    attestant = Attestant("A123456")
-                )
-            )
-        }
-
-        @Test
-        internal fun `ny kvittering`() {
-
-            val utbetaling = behandling.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-        }
-
-        @Test
-        internal fun `ignorer kvittering hvis den finnes fra før`() {
-            val utbetaling = behandling.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-            utbetaling.addKvittering(kvittering.copy(mottattTidspunkt = kvittering.mottattTidspunkt.plusSeconds(1)))
-            utbetaling.getKvittering() shouldBe kvittering
         }
     }
 

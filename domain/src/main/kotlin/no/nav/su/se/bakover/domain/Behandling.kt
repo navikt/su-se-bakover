@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
@@ -56,8 +57,8 @@ data class Behandling(
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
-        BehandlingsStatus.ATTESTERT_INNVILGET -> Attestert().Innvilget()
-        BehandlingsStatus.ATTESTERT_AVSLAG -> Attestert().Avslag()
+        BehandlingsStatus.IVERKSATT_INNVILGET -> Iverksatt().Innvilget()
+        BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
 
     fun opprettVilkårsvurderinger(): Behandling {
@@ -88,14 +89,11 @@ data class Behandling(
         return tilstand.sendTilAttestering(aktørId, oppgave)
     }
 
-    fun attester(attestant: Attestant): Behandling {
-        tilstand.attester(attestant)
-        return this
-    }
-
-    // TODO should this be triggered by a web-endpoint, or just invoked in the background?
-    fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-        return tilstand.sendTilUtbetaling(publisher)
+    fun iverksett(
+        attestant: Attestant,
+        publisher: UtbetalingPublisher
+    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+        return tilstand.iverksett(attestant, publisher)
     }
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
@@ -132,12 +130,12 @@ data class Behandling(
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
-        fun attester(attestant: Attestant) {
-            throw TilstandException(status, this::attester.toString())
+        fun iverksett(
+            attestant: Attestant,
+            publish: UtbetalingPublisher
+        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            throw TilstandException(status, this::iverksett.toString())
         }
-
-        fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> =
-            throw TilstandException(status, this::sendTilUtbetaling.toString())
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
@@ -282,32 +280,17 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
         inner class Innvilget : TilAttestering() {
-            override fun attester(attestant: Attestant) {
+            override fun iverksett(
+                attestant: Attestant,
+                publish: UtbetalingPublisher
+            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                nyTilstand(Attestert().Innvilget())
-            }
-        }
-
-        inner class Avslag : TilAttestering() {
-            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
-            override fun attester(attestant: Attestant) {
-                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                nyTilstand(Attestert().Avslag())
-            }
-        }
-    }
-
-    private open inner class Attestert : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_INNVILGET
-
-        inner class Innvilget : Attestert() {
-            override fun sendTilUtbetaling(publisher: UtbetalingPublisher): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                return publisher.publish(
+                return publish.publish(
                     NyUtbetaling(
                         oppdrag = persistenceObserver.hentOppdrag(sakId),
                         utbetaling = utbetaling!!,
                         oppdragGjelder = fnr,
-                        attestant = attestant!!
+                        attestant = attestant
                     )
                 ).mapLeft {
                     utbetaling!!.addOppdragsmelding(
@@ -324,13 +307,31 @@ data class Behandling(
                             it
                         )
                     )
+                    nyTilstand(Iverksatt().Innvilget())
                     this@Behandling
                 }
             }
         }
 
-        inner class Avslag : Attestert() {
-            override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERT_AVSLAG
+        inner class Avslag : TilAttestering() {
+            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+            override fun iverksett(
+                attestant: Attestant,
+                publish: UtbetalingPublisher
+            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
+                nyTilstand(Iverksatt().Avslag())
+                return this@Behandling.right()
+            }
+        }
+    }
+
+    private open inner class Iverksatt : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
+
+        inner class Innvilget : Iverksatt()
+        inner class Avslag : Iverksatt() {
+            override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
         }
     }
 
@@ -342,13 +343,8 @@ data class Behandling(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
-        ATTESTERT_INNVILGET,
-        ATTESTERT_AVSLAG;
-
-        /**
-         * Brukes for å bestemme brevmal. Simulert vil føre til innvilgelse.
-         */
-        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET, ATTESTERT_INNVILGET).contains(this)
+        IVERKSATT_INNVILGET,
+        IVERKSATT_AVSLAG
     }
 
     class TilstandException(

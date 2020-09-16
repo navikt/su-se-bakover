@@ -130,27 +130,21 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    patch("$behandlingPath/{behandlingId}/attester") {
+    patch("$behandlingPath/{behandlingId}/iverksett") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
+            call.audit("Iverksetter behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-            brevService.journalførVedtakOgSendBrev(sak, behandling)
             // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
-            val oppdatertBehandling = behandling.attester(attestant = Attestant(id = call.lesBehandlerId()))
-            call.audit("Attestert behandling med sakId: ${sak.id} og behandlingId: ${behandling.id}")
-            call.svar(OK.jsonBody(oppdatertBehandling))
-        }
-    }
-
-    // TODO jah: Midlertidig endepunkt for å trigge utbetaling manuelt fra curl/postman e.l.
-    patch("$behandlingPath/{behandlingId}/utbetal") {
-        // TODO authorize attestant
-        call.withBehandling(repo) { behandling ->
-            call.audit("Sender behandling med id: ${behandling.id} til utbetaling")
-            behandling.sendTilUtbetaling(utbetalingPublisher).fold(
-                { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
-                { call.svar(OK.jsonBody(it)) }
+            brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
+                ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
+                ifRight = {
+                    behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
+                        { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
+                        { call.svar(OK.jsonBody(it)) }
+                    )
+                }
             )
         }
     }
