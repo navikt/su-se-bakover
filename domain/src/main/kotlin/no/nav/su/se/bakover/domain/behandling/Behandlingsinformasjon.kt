@@ -88,7 +88,6 @@ data class Behandlingsinformasjon(
                 Status.VilkårIkkeOppfylt -> uføregrad == null && forventetInntekt == null
                 Status.HarUføresakTilBehandling -> uføregrad != null && uføregrad > 0 && forventetInntekt != null && forventetInntekt > 0
             }
-
         override fun isComplete(): Boolean = isValid()
     }
 
@@ -102,13 +101,7 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun isValid(): Boolean =
-            when (status) {
-                Status.VilkårOppfylt -> begrunnelse == null
-                Status.VilkårIkkeOppfylt -> begrunnelse == null
-                Status.Uavklart -> begrunnelse != null
-            }
-
+        override fun isValid(): Boolean = true
         override fun isComplete(): Boolean = status != Status.Uavklart
     }
 
@@ -122,13 +115,7 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun isValid(): Boolean =
-            when (status) {
-                Status.VilkårOppfylt -> begrunnelse == null
-                Status.VilkårIkkeOppfylt -> begrunnelse == null
-                Status.Uavklart -> begrunnelse != null
-            }
-
+        override fun isValid(): Boolean = true
         override fun isComplete(): Boolean = status != Status.Uavklart
     }
 
@@ -142,13 +129,7 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun isValid(): Boolean =
-            when (status) {
-                Status.VilkårOppfylt -> begrunnelse == null
-                Status.VilkårIkkeOppfylt -> begrunnelse == null
-                Status.Uavklart -> begrunnelse != null
-            }
-
+        override fun isValid(): Boolean = true
         override fun isComplete(): Boolean = status != Status.Uavklart
     }
 
@@ -161,12 +142,7 @@ data class Behandlingsinformasjon(
             SkalHoldeSegINorge
         }
 
-        override fun isValid(): Boolean =
-            when (status) {
-                Status.SkalVæreMerEnn90DagerIUtlandet -> begrunnelse != null
-                Status.SkalHoldeSegINorge -> begrunnelse == null
-            }
-
+        override fun isValid(): Boolean = true
         override fun isComplete(): Boolean = true
     }
 
@@ -198,7 +174,6 @@ data class Behandlingsinformasjon(
                         depositumskonto !== null
                 Status.MåInnhenteMerInformasjon -> true
             }
-
         override fun isComplete(): Boolean = status != Status.MåInnhenteMerInformasjon
     }
 
@@ -259,7 +234,6 @@ data class Behandlingsinformasjon(
             } else {
                 true
             }
-
         override fun isComplete(): Boolean = true
     }
 }
