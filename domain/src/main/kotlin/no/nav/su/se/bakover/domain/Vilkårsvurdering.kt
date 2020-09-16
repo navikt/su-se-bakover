@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import java.time.Instant
 import java.util.UUID
 
@@ -11,15 +10,10 @@ data class Vilkårsvurdering(
     val vilkår: Vilkår,
     private var begrunnelse: String = "",
     private var status: Status = Status.IKKE_VURDERT
-) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>(), DtoConvertable<VilkårsvurderingDto> {
+) : PersistentDomainObject<VilkårsvurderingPersistenceObserver>() {
 
-    override fun toDto() = VilkårsvurderingDto(
-        id = id,
-        vilkår = vilkår,
-        begrunnelse = begrunnelse,
-        status = status,
-        opprettet = opprettet
-    )
+    fun begrunnelse() = begrunnelse
+    fun status() = status
 
     enum class Status {
         OK,
@@ -55,18 +49,4 @@ interface VilkårsvurderingPersistenceObserver : PersistenceObserver {
     fun oppdaterVilkårsvurdering(
         vilkårsvurdering: Vilkårsvurdering
     ): Vilkårsvurdering
-}
-
-data class VilkårsvurderingDto(
-    val id: UUID,
-    val vilkår: Vilkår,
-    val begrunnelse: String,
-    val status: Vilkårsvurdering.Status,
-    val opprettet: Instant
-) : Comparable<VilkårsvurderingDto> {
-    companion object {
-        fun List<Vilkårsvurdering>.toDto() = this.map { it.toDto() }.sorted()
-    }
-
-    override fun compareTo(other: VilkårsvurderingDto) = this.vilkår.name.compareTo(other.vilkår.name)
 }

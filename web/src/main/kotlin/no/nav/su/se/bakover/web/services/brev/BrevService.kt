@@ -1,22 +1,17 @@
 package no.nav.su.se.bakover.web.services.brev
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.getOrElse
-import arrow.core.right
-import no.nav.su.se.bakover.client.ClientError
+import arrow.core.left
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
-import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
 import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelseFlagg
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
-import no.nav.su.se.bakover.domain.BehandlingDto
+import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
@@ -38,11 +33,11 @@ class BrevService(
     private val log = LoggerFactory.getLogger(BrevService::class.java)
 
     companion object {
-        fun lagVedtakInnhold(person: Person, behandlingDto: BehandlingDto): VedtakInnhold {
-            val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-            val avslagsgrunn = avslagsgrunnForBehandling(behandlingDto)
+        fun lagVedtakInnhold(person: Person, behandling: Behandling): VedtakInnhold {
+            val fnr = behandling.søknad.søknadInnhold.personopplysninger.fnr
+            val avslagsgrunn = avslagsgrunnForBehandling(behandling)
             val avslagsgrunnBeskrivelse = flaggForAvslagsgrunn(avslagsgrunn)
-            val førsteMånedsberegning = behandlingDto.beregning?.månedsberegninger?.firstOrNull()
+            val førsteMånedsberegning = behandling.beregning()?.månedsberegninger?.firstOrNull()
 
             return VedtakInnhold(
                 dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
@@ -54,80 +49,103 @@ class BrevService(
                 husnummer = person.adresse?.husnummer,
                 postnummer = person.adresse?.poststed?.postnummer,
                 poststed = person.adresse?.poststed?.poststed,
-                status = behandlingDto.status,
+                status = behandling.status(),
                 avslagsgrunn = avslagsgrunn,
                 avslagsgrunnBeskrivelse = avslagsgrunnBeskrivelse,
-                fradato = behandlingDto.beregning?.fom?.formatMonthYear(),
-                tildato = behandlingDto.beregning?.tom?.formatMonthYear(),
-                sats = behandlingDto.beregning?.sats.toString().toLowerCase(),
+                fradato = behandling.beregning()?.fom?.formatMonthYear(),
+                tildato = behandling.beregning()?.tom?.formatMonthYear(),
+                sats = behandling.beregning()?.sats.toString().toLowerCase(),
                 satsbeløp = førsteMånedsberegning?.satsBeløp,
                 satsGrunn = "HVOR SKAL DENNE GRUNNEN HENTES FRA",
-                redusertStønadStatus = behandlingDto.beregning?.fradrag?.isNotEmpty() ?: false,
+                redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
                 redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                 månedsbeløp = førsteMånedsberegning?.beløp,
-                fradrag = behandlingDto.beregning?.fradrag?.toFradragPerMåned() ?: emptyList(),
-                fradragSum = behandlingDto.beregning?.fradrag?.toFradragPerMåned()
+                fradrag = behandling.beregning()?.fradrag?.toFradragPerMåned() ?: emptyList(),
+                fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
                     ?.sumBy { fradrag -> fradrag.beløp } ?: 0,
                 halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
             )
         }
     }
 
-    fun opprettJournalpostOgSendBrev(sak: Sak, behandlingDto: BehandlingDto): Either<ClientError, String> {
-        val person = personOppslag.person(sak.fnr).getOrElse { throw RuntimeException("Finner ikke person") }
-        val pdf = lagUtkastTilBrev(behandlingDto).getOrElse {
-            throw RuntimeException("Kunne ikke lage utkast av brev")
-        }
+    fun journalførVedtakOgSendBrev(
+        sak: Sak,
+        behandling: Behandling
+    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
+        val loggtema = "Journalføring og sending av vedtaksbrev"
 
-        return dokArkiv.opprettJournalpost(
+        val person = hentPersonFraFnr(sak.fnr).fold({ return it.left() }, { it })
+
+        val brevInnhold = lagUtkastTilBrev(behandling, person).fold({ return it.left() }, { it })
+
+        val journalPostId = dokArkiv.opprettJournalpost(
             Journalpost.Vedtakspost(
                 person = person,
                 sakId = sak.id.toString(),
-                vedtakInnhold = lagVedtakInnhold(person, behandlingDto),
-                pdf = pdf
+                vedtakInnhold = lagVedtakInnhold(person, behandling),
+                pdf = brevInnhold
             )
         ).fold(
-            ifLeft = {
-                log.error("Kunne ikke opprette journalpost for attestering")
-                throw RuntimeException("Kunne ikke opprette journalpost for attestering")
+            {
+                log.error("$loggtema: Kunne ikke journalføre i ekstern system (joark/dokarkiv)")
+                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
             },
-            ifRight = { journalPostId ->
-                sendBrev(journalPostId)
-                    .fold(
-                        ifLeft = {
-                            log.error("Kunne ikke sende brev")
-                            throw RuntimeException("Kunne ikke sende brev")
-                        },
-                        ifRight = {
-                            it.right()
-                        }
-                    )
+            {
+                log.error("$loggtema: Journalført i ekstern system (joark/dokarkiv) OK")
+                it
             }
         )
-    }
 
-    fun lagUtkastTilBrev(behandlingDto: BehandlingDto): Either<ClientError, ByteArray> {
-        val fnr = behandlingDto.søknad.søknadInnhold.personopplysninger.fnr
-        return personOppslag.person(fnr)
+        return sendBrev(journalPostId)
             .mapLeft {
-                log.warn("Fant ikke person for søknad $fnr")
-                ClientError(httpCodeFor(it), it.message)
-            }.flatMap { person ->
-                val vedtakInnhold = lagVedtakInnhold(person, behandlingDto)
-                val innvilgelse = vedtakInnhold.status === SIMULERT || vedtakInnhold.status === TIL_ATTESTERING_INNVILGET
-                val template = if (innvilgelse) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
-                pdfGenerator.genererPdf(vedtakInnhold, template)
+                log.error("$loggtema: Kunne sende brev via ekternt system")
+                KunneIkkeOppretteJournalpostOgSendeBrev
+            }
+            .map {
+                log.error("$loggtema: Brev sendt OK via ekstern system")
+                it
             }
     }
 
-    private fun sendBrev(journalPostId: String): Either<ClientError, String> {
-        return dokDistFordeling.bestillDistribusjon(journalPostId)
+    fun lagUtkastTilBrev(
+        behandling: Behandling
+    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
+        val fnr = behandling.fnr
+        val person = hentPersonFraFnr(fnr).fold({ return it.left() }, { it })
+        return lagUtkastTilBrev(behandling, person)
     }
-}
 
-private fun httpCodeFor(pdlFeil: PdlFeil) = when (pdlFeil) {
-    is PdlFeil.FantIkkePerson -> 404
-    else -> 500
+    private fun lagUtkastTilBrev(
+        behandling: Behandling,
+        person: Person
+    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
+        val vedtakinnhold = lagVedtakInnhold(person, behandling)
+        val template = if (vedtakinnhold.status.erInnvilget()) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+        return pdfGenerator.genererPdf(vedtakinnhold, template)
+            .mapLeft {
+                log.error("Journalføring og sending av vedtaksbrev: Kunne ikke generere brevinnhold")
+                KunneIkkeOppretteJournalpostOgSendeBrev
+            }
+            .map {
+                log.error("Journalføring og sending av vedtaksbrev: Generert brevinnhold OK")
+                it
+            }
+    }
+
+    private fun hentPersonFraFnr(fnr: Fnr) = personOppslag.person(fnr)
+        .mapLeft {
+            log.error("Journalføring og sending av vedtaksbrev: Fant ikke person i ekstern system basert på sakens fødselsnummer.")
+            KunneIkkeOppretteJournalpostOgSendeBrev
+        }.map {
+            log.info("Journalføring og sending av vedtaksbrev: Hentet person fra eksternt system OK")
+            it
+        }
+
+    private fun sendBrev(journalPostId: String): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
+        return dokDistFordeling.bestillDistribusjon(journalPostId).mapLeft { KunneIkkeOppretteJournalpostOgSendeBrev }
+    }
+
+    object KunneIkkeOppretteJournalpostOgSendeBrev
 }
 
 fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFlagg? =
@@ -139,14 +157,9 @@ fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFl
         else -> null
     }
 
-fun avslagsgrunnForBehandling(behandlingDto: BehandlingDto): Avslagsgrunn? {
-    val vilkårIkkeOK = behandlingDto.vilkårsvurderinger.find { it.status == Vilkårsvurdering.Status.IKKE_OK }
-
-    if (vilkårIkkeOK != null) {
-        return vilkårToAvslagsgrunn(vilkårIkkeOK.vilkår)
-    }
-    return null
-}
+fun avslagsgrunnForBehandling(behandling: Behandling) = behandling.vilkårsvurderinger()
+    .find { it.status() == Vilkårsvurdering.Status.IKKE_OK }
+    ?.let { vilkårToAvslagsgrunn(it.vilkår) }
 
 fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
     when (vilkår) {
@@ -162,5 +175,6 @@ fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
 
+// TODO jah: Unngå utregninger i BrevService
 fun List<Fradrag>.toFradragPerMåned(): List<Fradrag> =
     this.map { Fradrag(it.id, it.type, it.beløp / 12, it.beskrivelse) }

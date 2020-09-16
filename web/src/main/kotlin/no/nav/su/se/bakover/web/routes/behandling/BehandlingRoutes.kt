@@ -92,8 +92,8 @@ internal fun Route.behandlingRoutes(
 
     get("$behandlingPath/{behandlingId}/vedtaksutkast") {
         call.withBehandling(repo) { behandling ->
-            brevService.lagUtkastTilBrev(behandling.toDto()).fold(
-                ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere pdf")) },
+            brevService.lagUtkastTilBrev(behandling).fold(
+                ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
                 ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
             )
         }
@@ -133,10 +133,11 @@ internal fun Route.behandlingRoutes(
     patch("$behandlingPath/{behandlingId}/iverksett") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
-            call.audit("Attesterer behandling med id: ${behandling.id}")
+            call.audit("Iverksetter behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
-
-            brevService.opprettJournalpostOgSendBrev(sak, behandling.toDto()).fold(
+            // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
+            // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
+            brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = {
                     behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(

@@ -53,14 +53,18 @@ class DokArkivClient(
                         log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
                     }
 
-                    journalpostId?.right() ?: ClientError(response.statusCode, "Feil ved journalføring av søknad.").left().also {
+                    if (journalpostId != null) {
+                        log.info("Opprettet journalpost med id $journalpostId")
+                        journalpostId.right()
+                    } else {
                         log.warn("Kunne ikke ferdigstille journalføring, fant ingen journalpostId. body=$json")
+                        ClientError(response.statusCode, "Feil ved journalføring.").left()
                     }
                 }
             },
             {
-                log.warn("Feil ved journalføring av søknad.", it)
-                ClientError(response.statusCode, "Feil ved journalføring av søknad.").left()
+                log.warn("Feil ved journalføring", it)
+                ClientError(response.statusCode, "Feil ved journalføring").left()
             }
 
         )

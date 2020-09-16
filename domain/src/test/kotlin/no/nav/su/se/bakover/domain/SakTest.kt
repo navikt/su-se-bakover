@@ -18,25 +18,23 @@ internal class SakTest {
     @Test
     fun `should handle nySøknad`() {
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        val sakDto = sak.toDto()
 
         persistenceObserver.nySøknadParams.søknad shouldBeSameInstanceAs søknad
-        persistenceObserver.nySøknadParams.sakId shouldBe sakDto.id
+        persistenceObserver.nySøknadParams.sakId shouldBe sak.id
         eventObserver.events shouldHaveSize 1
-        sakDto.behandlinger shouldHaveSize 0
-        sakDto.søknader shouldHaveSize 1
+        sak.behandlinger() shouldHaveSize 0
+        sak.søknader() shouldHaveSize 1
     }
 
     @Test
     fun `should handle opprettSøknadsbehandling`() {
         val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
         val behandling = sak.opprettSøknadsbehandling(søknad.id)
-        val sakDto = sak.toDto()
 
         persistenceObserver.opprettSøknadsbehandlingParams.behandling shouldBeSameInstanceAs behandling
-        persistenceObserver.opprettSøknadsbehandlingParams.sakId shouldBe sakDto.id
-        sakDto.behandlinger shouldHaveSize 1
-        behandling.toDto().søknad.id shouldBe søknad.id
+        persistenceObserver.opprettSøknadsbehandlingParams.sakId shouldBe sak.id
+        sak.behandlinger() shouldHaveSize 1
+        behandling.søknad.id shouldBe søknad.id
     }
 
     class PersistenceObserver : SakPersistenceObserver {

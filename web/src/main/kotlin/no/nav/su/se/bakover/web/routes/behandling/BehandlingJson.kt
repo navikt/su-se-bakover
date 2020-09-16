@@ -2,8 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.BehandlingDto
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
+import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -25,17 +24,17 @@ internal data class BehandlingJson(
     val sakId: UUID
 )
 
-internal fun BehandlingDto.toJson() = BehandlingJson(
+internal fun Behandling.toJson() = BehandlingJson(
     id = id.toString(),
-    vilkårsvurderinger = vilkårsvurderinger.toJson(),
+    vilkårsvurderinger = vilkårsvurderinger().toJson(),
     søknad = søknad.toJson(),
-    beregning = beregning?.toJson(),
-    status = status.toString(),
-    utbetaling = utbetaling?.toJson(),
+    beregning = beregning()?.toJson(),
+    status = status().toString(),
+    utbetaling = utbetaling()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    attestant = attestant?.id,
+    attestant = attestant()?.id,
     sakId = sakId
 )
 
-internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<BehandlingDto>) =
-    Resultat.json(this, serialize(dtoConvertable.toDto().toJson()))
+internal fun HttpStatusCode.jsonBody(behandling: Behandling) =
+    Resultat.json(this, serialize(behandling.toJson()))

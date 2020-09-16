@@ -3,11 +3,9 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.VilkårsvurderingDto.Companion.toDto
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -32,23 +30,22 @@ data class Behandling(
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID
-) : PersistentDomainObject<BehandlingPersistenceObserver>(), DtoConvertable<BehandlingDto> {
+) : PersistentDomainObject<BehandlingPersistenceObserver>() {
+
     private var tilstand: Tilstand = resolve(status)
 
     fun status() = tilstand.status
+
     fun attestant() = attestant
 
-    override fun toDto() = BehandlingDto(
-        id = id,
-        opprettet = opprettet,
-        vilkårsvurderinger = vilkårsvurderinger.toDto(),
-        søknad = søknad,
-        beregning = beregning,
-        status = tilstand.status,
-        utbetaling = utbetaling,
-        attestant = attestant,
-        sakId = sakId
-    )
+    fun beregning() = beregning
+
+    fun vilkårsvurderinger() = vilkårsvurderinger.toList()
+
+    /**
+     * Henter fødselsnummer fra sak via persisteringslaget (lazy)
+     */
+    val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     fun utbetaling() = utbetaling
 
@@ -236,7 +233,7 @@ data class Behandling(
                 NyUtbetaling(
                     oppdrag = oppdrag,
                     utbetaling = utbetalingTilSimulering,
-                    oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                    oppdragGjelder = fnr,
                     attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
                 )
             ).map { simulering ->
@@ -291,7 +288,7 @@ data class Behandling(
                     NyUtbetaling(
                         oppdrag = persistenceObserver.hentOppdrag(sakId),
                         utbetaling = utbetaling!!,
-                        oppdragGjelder = persistenceObserver.hentFnr(sakId),
+                        oppdragGjelder = fnr,
                         attestant = attestant
                     )
                 ).mapLeft {
@@ -340,7 +337,12 @@ data class Behandling(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
-        IVERKSATT
+        IVERKSATT;
+
+        /**
+         * Brukes for å bestemme brevmal. Simulert vil føre til innvilgelse.
+         */
+        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET).contains(this)
     }
 
     class TilstandException(
@@ -367,15 +369,3 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
 }
-
-data class BehandlingDto(
-    val id: UUID,
-    val opprettet: Instant,
-    val vilkårsvurderinger: List<VilkårsvurderingDto>,
-    val søknad: Søknad,
-    val beregning: Beregning?,
-    val status: Behandling.BehandlingsStatus,
-    val utbetaling: Utbetaling?,
-    val attestant: Attestant?,
-    val sakId: UUID
-)

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -517,7 +516,8 @@ internal class DatabaseRepoTest {
                 Avstemming(
                     fom = 3.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
                     tom = 4.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    utbetalinger = listOf(utbetaling)
+                    utbetalinger = listOf(utbetaling),
+                    avstemmingXmlRequest = "<Root></Root>"
                 )
             )
 
@@ -714,15 +714,6 @@ internal class DatabaseRepoTest {
                     begrunnelse = "",
                     status = Vilkårsvurdering.Status.IKKE_VURDERT
                 )
-            )
-        )
-
-    private fun insertAvstemming(utbetaling: Utbetaling) =
-        repo.opprettAvstemming(
-            Avstemming(
-                fom = now(),
-                tom = now(),
-                utbetalinger = listOf(utbetaling)
             )
         )
 }

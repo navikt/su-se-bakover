@@ -76,12 +76,12 @@ internal class BehandlingJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(behandlingJsonString, serialize(behandling.toDto().toJson()), true)
+        JSONAssert.assertEquals(behandlingJsonString, serialize(behandling.toJson()), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<BehandlingJson>(behandlingJsonString) shouldBe behandling.toDto().toJson()
+        deserialize<BehandlingJson>(behandlingJsonString) shouldBe behandling.toJson()
     }
 
     @Test
@@ -110,7 +110,7 @@ internal class BehandlingJsonTest {
         }
         """
 
-        JSONAssert.assertEquals(expectedNullsJson, serialize(behandlingWithNulls.toDto().toJson()), true)
-        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toDto().toJson()
+        JSONAssert.assertEquals(expectedNullsJson, serialize(behandlingWithNulls.toJson()), true)
+        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson()
     }
 }

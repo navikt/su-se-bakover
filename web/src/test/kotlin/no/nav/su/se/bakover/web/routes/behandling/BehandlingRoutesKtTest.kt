@@ -358,14 +358,5 @@ internal class BehandlingRoutesKtTest {
         )
     }
 
-    private fun extractVilkårsvurderinger(behandling: Behandling) =
-        behandling.toDto().vilkårsvurderinger.map {
-            Vilkårsvurdering(
-                id = it.id,
-                opprettet = it.opprettet,
-                vilkår = it.vilkår,
-                begrunnelse = it.begrunnelse,
-                status = it.status
-            )
-        }
+    private fun extractVilkårsvurderinger(behandling: Behandling) = behandling.vilkårsvurderinger()
 }

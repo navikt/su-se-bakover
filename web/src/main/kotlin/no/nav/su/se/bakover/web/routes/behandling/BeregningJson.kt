@@ -32,6 +32,3 @@ internal data class FradragJson(
 ) {
     fun toFradrag(): Fradrag = Fradrag(type = Fradragstype.valueOf(type), beløp = beløp, beskrivelse = beskrivelse)
 }
-
-// internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<Beregning>) =
-//     Resultat.json(this, serialize(dtoConvertable.toDto().toJson()))

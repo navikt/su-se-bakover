@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.domain.SakDto
-import no.nav.su.se.bakover.domain.dto.DtoConvertable
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -17,12 +16,12 @@ internal data class SakJson(
     val behandlinger: List<BehandlingJson>
 )
 
-internal fun SakDto.toJson() = SakJson(
+internal fun Sak.toJson() = SakJson(
     id = id.toString(),
     fnr = fnr.toString(),
-    søknader = søknader.map { it.toJson() },
-    behandlinger = behandlinger.map { it.toJson() }
+    søknader = søknader().map { it.toJson() },
+    behandlinger = behandlinger().map { it.toJson() }
 )
 
-internal fun HttpStatusCode.jsonBody(dtoConvertable: DtoConvertable<SakDto>) =
-    Resultat.json(this, objectMapper.writeValueAsString(dtoConvertable.toDto().toJson()))
+internal fun HttpStatusCode.jsonBody(sak: Sak) =
+    Resultat.json(this, objectMapper.writeValueAsString(sak.toJson()))

@@ -5,15 +5,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Vilkår
 import no.nav.su.se.bakover.domain.Vilkårsvurdering
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.routes.behandling.behandlingPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -28,9 +28,9 @@ internal class VilkårsvurderingRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            val behandling = setupForBehandling().toDto()
+            val behandling = setupForBehandling()
             val behandlingsId = behandling.id
-            val vilkårsvurdering = behandling.vilkårsvurderinger.first { it.vilkår == Vilkår.UFØRHET }
+            val vilkårsvurdering = behandling.vilkårsvurderinger().first { it.vilkår == Vilkår.UFØRHET }
             val oppdatering =
                 mapOf(
                     vilkårsvurdering.vilkår.name to VilkårsvurderingData(
@@ -44,11 +44,11 @@ internal class VilkårsvurderingRoutesKtTest {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 setBody(objectMapper.writeValueAsString(oppdatering))
             }
-            val oppdatert = repo.hentBehandling(behandlingsId)!!.toDto()
+            val oppdatert = repo.hentBehandling(behandlingsId)!!
             assertEquals(behandlingsId, oppdatert.id)
-            val uførhetVilkår = oppdatert.vilkårsvurderinger.first { it.vilkår == Vilkår.UFØRHET }
-            assertEquals(Vilkårsvurdering.Status.OK, uførhetVilkår.status)
-            assertEquals("Dette kravet er ok", uførhetVilkår.begrunnelse)
+            val uførhetVilkår = oppdatert.vilkårsvurderinger().first { it.vilkår == Vilkår.UFØRHET }
+            assertEquals(Vilkårsvurdering.Status.OK, uførhetVilkår.status())
+            assertEquals("Dette kravet er ok", uførhetVilkår.begrunnelse())
         }
     }
 

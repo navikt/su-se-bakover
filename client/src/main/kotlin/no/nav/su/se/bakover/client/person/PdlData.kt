@@ -32,21 +32,3 @@ internal data class PdlData(
         val kommunenummer: String?
     )
 }
-
-/*
-{
-    fun toDto() = PersonDto.AdresseDto(
-        adressenavn = adressenavn,
-        husnummer = husnummer,
-        husbokstav = husbokstav,
-        poststed = postnummer?.let {
-            PersonDto.PoststedDto(
-                postnummer = it,
-                poststed = kodeverk.hentPoststed(it)
-            )
-        }
-            bruksenhet = bruksenhet,
-        kommunenummer = adresse.kommunenummer,
-        kommunenavn = null // TODO: Oppslag kommunenummer -> kommunenavn
-    )
-}*/
