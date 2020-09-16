@@ -64,8 +64,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
                 mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
                     IbmMqPublisher(
                         MqPublisherConfig(
-                            sendQueue = it.avstemming.mqSendQueue,
-                            replyTo = it.avstemming.mqReplyTo
+                            sendQueue = it.avstemming.mqSendQueue
                         ),
                         jmsContext = jmsContext
                     )

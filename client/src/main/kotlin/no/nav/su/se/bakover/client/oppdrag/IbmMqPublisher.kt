@@ -14,10 +14,16 @@ class IbmMqPublisher(
     private val publisherConfig: MqPublisherConfig,
     private val jmsContext: JMSContext
 ) : MqPublisher {
+
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun publish(vararg messages: String): Either<CouldNotPublish, Unit> {
-        log.info("Sender ${messages.size} meldinger til kø ${publisherConfig.sendQueue} med reply-kø ${publisherConfig.replyTo}")
+        if (publisherConfig.replyTo != null) {
+            log.info("Publiserer ${messages.size} melding(er) på køen ${publisherConfig.sendQueue} med reply-kø ${publisherConfig.replyTo}")
+        } else {
+            log.info("Publiserer ${messages.size} melding(er) på køen  ${publisherConfig.sendQueue} uten reply-kø")
+        }
+
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
             runBlocking {
                 Either.catch {
@@ -26,7 +32,9 @@ class IbmMqPublisher(
                         producer.send(
                             MQQueue(publisherConfig.sendQueue),
                             context.createTextMessage(it).apply {
-                                jmsReplyTo = MQQueue(publisherConfig.replyTo)
+                                if (publisherConfig.replyTo != null) {
+                                    jmsReplyTo = MQQueue(publisherConfig.replyTo)
+                                }
                             }
                         )
                     }
