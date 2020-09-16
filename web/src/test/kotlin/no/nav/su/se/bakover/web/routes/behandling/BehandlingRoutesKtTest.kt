@@ -303,7 +303,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
                     it.attestant shouldBe "enSaksbehandleroid"
-                    it.status shouldBe "IVERKSATT"
+                    it.status shouldBe "IVERKSATT_INNVILGET"
                 }
             }
         }

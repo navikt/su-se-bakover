@@ -14,7 +14,8 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
@@ -485,7 +486,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne iverksette`() {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            tilAttestering.status() shouldBe IVERKSATT
+            tilAttestering.status() shouldBe IVERKSATT_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 "great success"
@@ -582,7 +583,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne iverksette`() {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            tilAttestering.status() shouldBe IVERKSATT
+            tilAttestering.status() shouldBe IVERKSATT_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 

@@ -57,7 +57,8 @@ data class Behandling(
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
-        BehandlingsStatus.IVERKSATT -> Iverksatt()
+        BehandlingsStatus.IVERKSATT_INNVILGET -> Iverksatt().Innvilget()
+        BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
 
     fun opprettVilkårsvurderinger(): Behandling {
@@ -306,7 +307,7 @@ data class Behandling(
                             it
                         )
                     )
-                    nyTilstand(Iverksatt())
+                    nyTilstand(Iverksatt().Innvilget())
                     this@Behandling
                 }
             }
@@ -319,14 +320,19 @@ data class Behandling(
                 publish: UtbetalingPublisher
             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                nyTilstand(Iverksatt())
+                nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
         }
     }
 
-    private inner class Iverksatt : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT
+    private open inner class Iverksatt : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
+
+        inner class Innvilget : Iverksatt()
+        inner class Avslag : Iverksatt() {
+            override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
+        }
     }
 
     enum class BehandlingsStatus {
@@ -337,12 +343,13 @@ data class Behandling(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
-        IVERKSATT;
+        IVERKSATT_INNVILGET,
+        IVERKSATT_AVSLAG;
 
         /**
          * Brukes for å bestemme brevmal. Simulert vil føre til innvilgelse.
          */
-        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET).contains(this)
+        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET, IVERKSATT_INNVILGET).contains(this)
     }
 
     class TilstandException(
