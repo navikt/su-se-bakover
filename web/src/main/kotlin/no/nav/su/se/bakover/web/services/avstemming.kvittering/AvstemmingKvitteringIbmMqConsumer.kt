@@ -7,12 +7,11 @@ import javax.jms.Session
 
 class AvstemmingKvitteringIbmMqConsumer(
     kvitteringQueueName: String,
-    jmsContext: JMSContext
+    globalJmxContext: JMSContext
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jmsSession =
-        jmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
-    private val consumer = jmsSession.createConsumer(jmsSession.createQueue(kvitteringQueueName))
+    private val jmxContext = globalJmxContext.createContext(Session.AUTO_ACKNOWLEDGE)
+    private val consumer = jmxContext.createConsumer(jmxContext.createQueue(kvitteringQueueName))
 
     init {
         consumer.setMessageListener { message ->
@@ -27,5 +26,6 @@ class AvstemmingKvitteringIbmMqConsumer(
                 throw ex
             }
         }
+        jmxContext.start()
     }
 }

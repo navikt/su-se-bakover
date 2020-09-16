@@ -7,13 +7,12 @@ import javax.jms.Session
 
 class UtbetalingKvitteringIbmMqConsumer(
     kvitteringQueueName: String,
-    jmsContext: JMSContext,
+    globalJmsContext: JMSContext,
     private val kvitteringConsumer: UtbetalingKvitteringConsumer
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val jmsSession =
-        jmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
-    private val consumer = jmsSession.createConsumer(jmsSession.createQueue(kvitteringQueueName))
+    private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
+    private val consumer = jmsContext.createConsumer(jmsContext.createQueue(kvitteringQueueName))
 
     init {
         consumer.setMessageListener { message ->
@@ -28,5 +27,6 @@ class UtbetalingKvitteringIbmMqConsumer(
                 throw ex
             }
         }
+        jmsContext.start()
     }
 }

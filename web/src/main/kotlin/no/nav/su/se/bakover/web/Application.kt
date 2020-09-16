@@ -210,15 +210,14 @@ internal fun Application.susebakover(
     if (!Config.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
-            jmsContext = jmsContext,
+            globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
                 repo = databaseRepo
             )
         )
         AvstemmingKvitteringIbmMqConsumer(
             kvitteringQueueName = Config.oppdrag.avstemming.mqReplyTo,
-            jmsContext = jmsContext
+            globalJmxContext = jmsContext
         )
-        jmsContext.start()
     }
 }
