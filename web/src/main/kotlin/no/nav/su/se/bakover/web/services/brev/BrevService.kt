@@ -120,7 +120,13 @@ class BrevService(
         person: Person
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
         val vedtakinnhold = lagVedtakInnhold(person, behandling)
-        val template = if (vedtakinnhold.status.erInnvilget()) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+        val innvilget = listOf(
+            Behandling.BehandlingsStatus.SIMULERT,
+            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+        )
+        val template = if (innvilget.contains(vedtakinnhold.status)
+        ) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
         return pdfGenerator.genererPdf(vedtakinnhold, template)
             .mapLeft {
                 log.error("Journalføring og sending av vedtaksbrev: Kunne ikke generere brevinnhold")

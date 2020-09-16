@@ -344,12 +344,7 @@ data class Behandling(
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
         IVERKSATT_INNVILGET,
-        IVERKSATT_AVSLAG;
-
-        /**
-         * Brukes for å bestemme brevmal. Simulert vil føre til innvilgelse.
-         */
-        fun erInnvilget() = listOf(SIMULERT, TIL_ATTESTERING_INNVILGET, IVERKSATT_INNVILGET).contains(this)
+        IVERKSATT_AVSLAG
     }
 
     class TilstandException(
