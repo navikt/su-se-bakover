@@ -128,9 +128,9 @@ data class SøknadInnholdJson(
 
         private fun toBoforholdType(str: String): Boforhold.DelerBoligMed {
             return when (str) {
-                "ektemake-eller-samboer" -> Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
-                "voksne-barn" -> Boforhold.DelerBoligMed.VOKSNE_BARN
-                "andre" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
+                "EKTEMAKE_SAMBOER" -> Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
+                "VOKSNE_BARN" -> Boforhold.DelerBoligMed.VOKSNE_BARN
+                "ANNEN_VOKSEN" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
                 else -> throw IllegalArgumentException("delerBoligMed feltet er ugyldig")
             }
         }
@@ -416,9 +416,9 @@ private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
 
 private fun Boforhold.DelerBoligMed.toJson(): String {
     return when (this) {
-        Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER -> "ektemake-eller-samboer"
-        Boforhold.DelerBoligMed.VOKSNE_BARN -> "voksne-barn"
-        Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "andre"
+        Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER -> "EKTEMAKE_SAMBOER"
+        Boforhold.DelerBoligMed.VOKSNE_BARN -> "VOKSNE_BARN"
+        Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "ANNEN_VOKSEN"
     }
 }
 

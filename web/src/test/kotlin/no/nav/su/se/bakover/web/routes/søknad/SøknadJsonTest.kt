@@ -39,7 +39,7 @@ internal class SøknadJsonTest {
             "boforhold":{
                 "borOgOppholderSegINorge":true,
                 "delerBoligMedVoksne":true,
-                "delerBoligMed":"ektemake-eller-samboer",
+                "delerBoligMed":"EKTEMAKE_SAMBOER",
                 "ektemakeEllerSamboerUnder67År":true,
                 "ektemakeEllerSamboerUførFlyktning":false
             },
