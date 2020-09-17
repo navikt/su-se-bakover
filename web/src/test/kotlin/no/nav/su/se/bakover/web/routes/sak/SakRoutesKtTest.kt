@@ -118,7 +118,7 @@ internal class SakRoutesKtTest {
             testSusebakover()
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/${nySak.id}/stopp-utbetalinger") {}.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                response.status() shouldBe OK
                 val behandling = objectMapper.readValue<StoppbehandlingJson>(response.content!!)
                 behandling.sakId shouldBe nySak.id.toString()
                 behandling.status shouldBe "OPPRETTET"

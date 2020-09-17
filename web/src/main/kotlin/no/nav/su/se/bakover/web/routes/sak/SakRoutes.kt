@@ -6,6 +6,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
@@ -13,6 +14,8 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
@@ -26,6 +29,7 @@ import no.nav.su.se.bakover.web.toUUID
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
+    stoppbehandlingFactory: StoppbehandlingFactory,
     sakRepo: ObjectRepo
 ) {
     get(sakPath) {
@@ -66,7 +70,20 @@ internal fun Route.sakRoutes(
 
     post("$sakPath/{sakId}/stopp-utbetalinger") {
         call.withSak(sakRepo) { sak ->
-            call.svar(sak.stoppUtbetaling().toResultat(OK))
+            call.svar(
+                sak.stoppUtbetalinger(
+                    stoppbehandlingFactory = stoppbehandlingFactory,
+                    saksbehandler = Saksbehandler(id = "saksbehandler"),
+                    stoppÅrsak = "Årsaken til stoppen er ..."
+                ).fold(
+                    {
+                        InternalServerError.message("Kunne ikke opprette stoppbehandling for sak id ${sak.id}")
+                    },
+                    {
+                        it.toResultat(OK)
+                    }
+                )
+            )
         }
     }
 }

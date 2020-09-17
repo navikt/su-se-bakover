@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -61,6 +62,7 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitter
 import org.json.JSONObject
 import org.slf4j.event.Level
 import java.net.URL
+import java.time.Clock
 import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
@@ -187,7 +189,7 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(databaseRepo)
+            sakRoutes(StoppbehandlingFactory(clients.simuleringClient, Clock.systemUTC()), databaseRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepo,

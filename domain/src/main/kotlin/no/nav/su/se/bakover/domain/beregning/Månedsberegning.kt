@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.VoidObserver
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
@@ -19,8 +17,7 @@ data class Månedsberegning(
     val sats: Sats,
     val fradrag: Int,
     val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
-) : PersistentDomainObject<VoidObserver>() {
-
+) {
     val satsBeløp: Int = sats.fraDatoAsInt(fom) / 12
 
     init {

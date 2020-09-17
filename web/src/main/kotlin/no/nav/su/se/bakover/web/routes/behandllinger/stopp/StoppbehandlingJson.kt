@@ -17,13 +17,12 @@ internal fun Stoppbehandling.toResultat(statusCode: HttpStatusCode) =
     Resultat.json(statusCode, serialize(this.toJson()))
 
 fun Stoppbehandling.toJson() = when (this) {
-    is Stoppbehandling.Opprettet -> this.toJson()
-    is Stoppbehandling.Simulert -> TODO()
+    is Stoppbehandling.Simulert -> this.toJson()
     is Stoppbehandling.TilAttestering -> TODO()
     is Stoppbehandling.Iverksatt -> TODO()
 }
 
-fun Stoppbehandling.Opprettet.toJson() = StoppbehandlingJson(
+fun Stoppbehandling.Simulert.toJson() = StoppbehandlingJson(
     id = id.toString(),
     opprettet = opprettet,
     sakId = sakId.toString(),

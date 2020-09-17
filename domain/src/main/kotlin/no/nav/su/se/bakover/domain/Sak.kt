@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Instant
 import java.util.UUID
@@ -44,15 +47,21 @@ data class Sak(
     }
 
     /**
-     * Idempotent. Oppretter en ny stopp behandling dersom det ikke finnes noen aktive.
-     * Hvis en aktiv finnes returneres den istedet.
+     * Idempotent. Oppretter en ny stopp behandling dersom det ikke finnes en pågående.
+     * Hvis en pågående finnes returneres den istedet.
      */
-    fun stoppUtbetaling(): Stoppbehandling {
-        // TODO: Lag implementasjon
-        return Stoppbehandling.Opprettet(
-            sakId = id
-        )
+    fun stoppUtbetalinger(
+        stoppbehandlingFactory: StoppbehandlingFactory,
+        saksbehandler: Saksbehandler,
+        stoppÅrsak: String
+    ): Either<KunneIkkeOppretteStoppbehandling, Stoppbehandling> {
+        return persistenceObserver.hentPågåendeStoppbehandling(id)?.right()
+            ?: stoppbehandlingFactory.nyStoppbehandling(this, saksbehandler, stoppÅrsak)
+                .mapLeft { KunneIkkeOppretteStoppbehandling }
+                .map { persistenceObserver.nyStoppbehandling(it) }
     }
+
+    object KunneIkkeOppretteStoppbehandling
 }
 
 interface SakObserver
@@ -63,6 +72,14 @@ interface SakPersistenceObserver : PersistenceObserver {
         sakId: UUID,
         behandling: Behandling
     ): Behandling
+
+    fun nyStoppbehandling(nyBehandling: Stoppbehandling.Simulert): Stoppbehandling.Simulert
+
+    /**
+     * Verifiserer samtidig at vi kun har 0 eller 1 pågående stoppbehandling.
+     * Foreløpig har vi bare en ferdig status: Stoppbehandling.Iverksatt
+     */
+    fun hentPågåendeStoppbehandling(sakId: UUID): Stoppbehandling?
 }
 
 interface SakEventObserver : SakObserver {

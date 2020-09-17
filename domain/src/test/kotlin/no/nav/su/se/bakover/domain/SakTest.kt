@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
@@ -96,6 +97,9 @@ internal class SakTest {
             val sakId: UUID,
             val behandling: Behandling
         )
+
+        override fun nyStoppbehandling(nyBehandling: Stoppbehandling.Simulert) = throw NotImplementedError()
+        override fun hentPågåendeStoppbehandling(sakId: UUID) = throw NotImplementedError()
     }
 
     class EventObserver : SakEventObserver {
