@@ -21,14 +21,9 @@ sealed class Stoppbehandling {
     abstract val id: UUID
     abstract val opprettet: Instant
     abstract val sakId: UUID
-    abstract val status: StoppbehandlingStatus
+    abstract val status: String
 
-    enum class StoppbehandlingStatus {
-        OPPRETTET,
-        SIMULERT,
-        TIL_ATTESTERING,
-        IVERKSATT,
-    }
+
 
     data class Opprettet(
         override val id: UUID = UUID.randomUUID(),
@@ -36,7 +31,7 @@ sealed class Stoppbehandling {
         override val sakId: UUID
     ) : Stoppbehandling() {
 
-        override val status: StoppbehandlingStatus = StoppbehandlingStatus.OPPRETTET
+        override val status = "OPPRETTET"
 
         fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Simulert> {
             throw NotImplementedError("$simuleringClient")
@@ -50,7 +45,7 @@ sealed class Stoppbehandling {
         var utbetaling: Utbetaling
     ) : Stoppbehandling() {
 
-        override val status: StoppbehandlingStatus = StoppbehandlingStatus.SIMULERT
+        override val status = "SIMULERT"
 
         fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Simulert> {
             throw NotImplementedError("$simuleringClient")
@@ -72,7 +67,7 @@ sealed class Stoppbehandling {
         val attestant: Attestant
     ) : Stoppbehandling() {
 
-        override val status: StoppbehandlingStatus = StoppbehandlingStatus.TIL_ATTESTERING
+        override val status = "TIL_ATTESTERING"
 
         fun iverksett(
             publisher: UtbetalingPublisher
@@ -89,6 +84,6 @@ sealed class Stoppbehandling {
         val attestant: Attestant
     ) : Stoppbehandling() {
 
-        override val status: StoppbehandlingStatus = StoppbehandlingStatus.IVERKSATT
+        override val status = "IVERKSATT"
     }
 }

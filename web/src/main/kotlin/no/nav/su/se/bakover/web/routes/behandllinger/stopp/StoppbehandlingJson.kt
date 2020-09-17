@@ -27,5 +27,5 @@ fun Stoppbehandling.Opprettet.toJson() = StoppbehandlingJson(
     id = id.toString(),
     opprettet = opprettet,
     sakId = sakId.toString(),
-    status = status.name
+    status = status
 )
