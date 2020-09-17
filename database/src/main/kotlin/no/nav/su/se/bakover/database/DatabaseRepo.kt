@@ -22,6 +22,10 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
@@ -41,7 +45,8 @@ internal class DatabaseRepo(
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
     OppdragPersistenceObserver,
-    UtbetalingPersistenceObserver {
+    UtbetalingPersistenceObserver,
+    HendelsesloggPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
@@ -590,5 +595,31 @@ internal class DatabaseRepo(
             )
         )
         return avstemmingId
+    }
+
+    override fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg): Hendelseslogg {
+        "insert into hendelseslogg (id, hendelser) values (:id, to_json(:hendelser::json)) on conflict(id) do update set hendelser=to_json(:hendelser::json)".oppdatering(
+            mapOf(
+                "id" to hendelseslogg.id,
+                "hendelser" to HendelseListWriter.writeValueAsString(hendelseslogg.hendelser())
+            )
+        )
+        return hendelseslogg
+    }
+
+    internal fun hentHendelseslogg(id: String) = using(sessionOf(dataSource)) { session ->
+        "select * from hendelseslogg where id=:id".hent(
+            mapOf("id" to id),
+            session
+        ) { it.toHendelseslogg() }
+    }
+
+    fun Row.toHendelseslogg(): Hendelseslogg {
+        return Hendelseslogg(
+            id = string(columnLabel = "id"),
+            hendelser = HendelseListReader.readValue(string("hendelser"))
+        ).also {
+            it.addObserver(this@DatabaseRepo)
+        }
     }
 }

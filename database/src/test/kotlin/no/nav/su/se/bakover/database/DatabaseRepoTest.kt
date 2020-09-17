@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -29,6 +31,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
@@ -531,6 +535,29 @@ internal class DatabaseRepoTest {
                 fom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS),
                 tom = utbetaling.opprettet.plus(3, ChronoUnit.DAYS)
             ) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `opprett og hent hendelseslogg`() {
+        withMigratedDb {
+            val tidspunkt = now()
+            val underkjentAttestering = UnderkjentAttestering(
+                attestant = "attestant",
+                begrunnelse = "Dette er feil begrunnelse",
+                tidspunkt = tidspunkt
+            )
+
+            val opprettet = repo.oppdaterHendelseslogg(Hendelseslogg("id"))
+            val hentet = repo.hentHendelseslogg("id")!!
+            hentet shouldBe opprettet
+
+            repo.oppdaterHendelseslogg(Hendelseslogg("id", mutableListOf(underkjentAttestering)))
+            repo.oppdaterHendelseslogg(Hendelseslogg("id", mutableListOf(underkjentAttestering)))
+
+            val medHendelse = repo.hentHendelseslogg("id")!!
+            medHendelse.id shouldBe "id"
+            medHendelse.hendelser() shouldContainAll listOf(underkjentAttestering)
         }
     }
 
