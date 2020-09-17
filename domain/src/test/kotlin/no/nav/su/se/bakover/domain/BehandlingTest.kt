@@ -159,7 +159,7 @@ internal class BehandlingTest {
                 it.formue shouldNotBe null
                 it.lovligOpphold shouldNotBe null
                 it.oppholdIUtlandet shouldNotBe null
-                it.sats shouldNotBe null
+                it.bosituasjon shouldNotBe null
                 it.uførhet shouldNotBe null
             }
         }

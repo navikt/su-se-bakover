@@ -62,7 +62,7 @@ internal class BehandlingJsonTest {
                     status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
                     begrunnelse = null
                 ),
-                sats = Behandlingsinformasjon.Sats(
+                bosituasjon = Behandlingsinformasjon.Bosituasjon(
                     delerBolig = false,
                     delerBoligMed = null,
                     ektemakeEllerSamboerUnder67År = false,
@@ -119,7 +119,7 @@ internal class BehandlingJsonTest {
                     "status": "MøttPersonlig",
                     "begrunnelse": null
                 },
-                "sats": {
+                "bosituasjon": {
                     "delerBolig": false,
                     "delerBoligMed": null,
                     "ektemakeEllerSamboerUnder67År": false,
@@ -171,7 +171,7 @@ internal class BehandlingJsonTest {
             "oppholdIUtlandet": null,
             "formue": null,
             "personligOppmøte": null,
-            "sats": null,
+            "bosituasjon": null,
             "utledetSats": null
           },
           "søknad": $søknadJsonString,

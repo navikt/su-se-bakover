@@ -31,7 +31,7 @@ data class Behandling(
         oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,
-        sats = null
+        bosituasjon = null
     ),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
@@ -161,7 +161,7 @@ data class Behandling(
 
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
-                val sats = this@Behandling.behandlingsinformasjon.sats?.utledSats()
+                val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
                     ?: throw TilstandException(status, this::opprettBeregning.toString(), "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett.")
 
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(

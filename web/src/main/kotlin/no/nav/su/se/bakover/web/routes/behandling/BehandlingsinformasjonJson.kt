@@ -12,7 +12,7 @@ data class BehandlingsinformasjonJson(
     val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val sats: SatsJson? = null,
+    val bosituasjon: BosituasjonJson? = null,
     val utledetSats: Sats? = null
 ) {
     companion object {
@@ -25,8 +25,8 @@ data class BehandlingsinformasjonJson(
                 oppholdIUtlandet = oppholdIUtlandet?.toJson(),
                 formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
-                sats = sats?.toJson(),
-                utledetSats = sats?.utledSats()
+                bosituasjon = bosituasjon?.toJson(),
+                utledetSats = bosituasjon?.utledSats()
             )
     }
 }
@@ -39,7 +39,7 @@ fun BehandlingsinformasjonJson.isValid() =
         oppholdIUtlandet?.isValid() ?: true &&
         formue?.isValid() ?: true &&
         personligOppmøte?.isValid() ?: true &&
-        sats?.isValid() ?: true
+        bosituasjon?.isValid() ?: true
 
 internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     Behandlingsinformasjon(
@@ -93,8 +93,8 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = p.begrunnelse
             )
         },
-        sats = b.sats?.let { s ->
-            Behandlingsinformasjon.Sats(
+        bosituasjon = b.bosituasjon?.let { s ->
+            Behandlingsinformasjon.Bosituasjon(
                 delerBolig = s.delerBolig,
                 delerBoligMed = s.delerBoligMed?.let { Boforhold.DelerBoligMed.valueOf(it) },
                 ektemakeEllerSamboerUnder67År = s.ektemakeEllerSamboerUnder67År,
@@ -154,8 +154,8 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.Sats.toJson() =
-    SatsJson(
+internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
+    BosituasjonJson(
         delerBolig = delerBolig,
         delerBoligMed = delerBoligMed?.name,
         ektemakeEllerSamboerUnder67År = ektemakeEllerSamboerUnder67År,
@@ -171,7 +171,7 @@ internal fun FlyktningJson.isValid() =
     enumContains<Behandlingsinformasjon.Flyktning.Status>(status)
 internal fun LovligOppholdJson.isValid() =
     enumContains<Behandlingsinformasjon.LovligOpphold.Status>(status)
-internal fun SatsJson.isValid() =
+internal fun BosituasjonJson.isValid() =
     delerBoligMed == null || enumContains<Boforhold.DelerBoligMed>(delerBoligMed)
 internal fun PersonligOppmøteJson.isValid() =
     enumContains<Behandlingsinformasjon.PersonligOppmøte.Status>(status)
@@ -225,7 +225,7 @@ data class PersonligOppmøteJson(
     val begrunnelse: String?
 )
 
-data class SatsJson(
+data class BosituasjonJson(
     val delerBolig: Boolean,
     val delerBoligMed: String?,
     val ektemakeEllerSamboerUnder67År: Boolean?,

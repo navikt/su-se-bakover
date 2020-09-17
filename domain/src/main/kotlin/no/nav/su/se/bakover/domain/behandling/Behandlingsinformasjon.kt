@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -10,7 +11,7 @@ data class Behandlingsinformasjon(
     val oppholdIUtlandet: OppholdIUtlandet? = null,
     val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
-    val sats: Sats? = null
+    val bosituasjon: Bosituasjon? = null
 ) {
     fun patch(
         b: Behandlingsinformasjon
@@ -22,7 +23,7 @@ data class Behandlingsinformasjon(
         oppholdIUtlandet = b.oppholdIUtlandet ?: this.oppholdIUtlandet,
         formue = b.formue ?: this.formue,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
-        sats = b.sats ?: this.sats
+        bosituasjon = b.bosituasjon ?: this.bosituasjon
     )
 
     fun isComplete() =
@@ -34,7 +35,7 @@ data class Behandlingsinformasjon(
             oppholdIUtlandet,
             formue,
             personligOppmøte,
-            sats
+            bosituasjon
         ).all { it != null && it.isValid() && it.isComplete() }
 
     fun isInnvilget() =
@@ -193,7 +194,7 @@ data class Behandlingsinformasjon(
         override fun isComplete(): Boolean = true
     }
 
-    data class Sats(
+    data class Bosituasjon(
         val delerBolig: Boolean,
         val delerBoligMed: Boforhold.DelerBoligMed?,
         val ektemakeEllerSamboerUnder67År: Boolean?,
@@ -202,23 +203,23 @@ data class Behandlingsinformasjon(
     ) : Base() {
         fun utledSats() =
             if (!delerBolig) {
-                no.nav.su.se.bakover.domain.beregning.Sats.HØY
+                Sats.HØY
             } else {
                 // Vi gjør en del null assertions her for at logikken ikke skal bli så vanskelig å følge
                 // Det _bør_ være trygt fordi gyldighet av objektet skal bli sjekket andre plasser
                 when (delerBoligMed!!) {
                     Boforhold.DelerBoligMed.VOKSNE_BARN ->
-                        no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                        Sats.LAV
                     Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
-                        no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                        Sats.LAV
                     Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER ->
                         if (!ektemakeEllerSamboerUnder67År!!) {
-                            no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                            Sats.LAV
                         } else {
                             if (ektemakeEllerSamboerUførFlyktning!!) {
-                                no.nav.su.se.bakover.domain.beregning.Sats.LAV
+                                Sats.LAV
                             } else {
-                                no.nav.su.se.bakover.domain.beregning.Sats.HØY
+                                Sats.HØY
                             }
                         }
                 }

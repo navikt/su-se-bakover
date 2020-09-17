@@ -45,12 +45,12 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
             begrunnelse = personligOppmøte?.begrunnelse
         ),
-        sats = Behandlingsinformasjon.Sats(
-            delerBolig = sats?.delerBolig ?: false,
-            delerBoligMed = sats?.delerBoligMed,
-            ektemakeEllerSamboerUnder67År = sats?.ektemakeEllerSamboerUnder67År,
-            ektemakeEllerSamboerUførFlyktning = sats?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = sats?.begrunnelse
+        bosituasjon = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = bosituasjon?.delerBolig ?: false,
+            delerBoligMed = bosituasjon?.delerBoligMed,
+            ektemakeEllerSamboerUnder67År = bosituasjon?.ektemakeEllerSamboerUnder67År,
+            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
+            begrunnelse = bosituasjon?.begrunnelse
         )
     )
 
@@ -74,7 +74,7 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
         oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,
-        sats = null
+        bosituasjon = null
     )
 
 fun extractBehandlingsinformasjon(behandling: Behandling) =
