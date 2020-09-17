@@ -303,44 +303,40 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
-    fun `ikke godkjenn`() {
+    fun `underkjenn`() {
         withTestApplication({
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.oppdaterVilkårsvurderinger(
-                extractVilkårsvurderinger(objects.behandling).withStatus(
-                    OK
-                )
-            )
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/ikkegodkjent"
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/ikkegodkjent"
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/ikkegodkjent"
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
             }
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/ikkegodkjent"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
                 setBody(
                     """
@@ -356,7 +352,7 @@ internal class BehandlingRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/ikkegodkjent"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
                 setBody(
                     """
@@ -368,7 +364,9 @@ internal class BehandlingRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
+                    println(it.hendelser)
                     it.status shouldBe "SIMULERT"
+                    it.hendelser?.last()?.melding shouldBe "begrunnelse"
                 }
             }
         }

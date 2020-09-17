@@ -83,7 +83,7 @@ internal fun Route.behandlingRoutes(
             fradrag.all { Fradragstype.isValid(it.type) }
     }
 
-    data class IkkeGodkjennBody(
+    data class UnderkjennBody(
         val begrunnelse: String
     ) {
         fun valid() = begrunnelse.isNotBlank()
@@ -171,21 +171,21 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    patch("$behandlingPath/{behandlingId}/ikkegodkjent") {
+    patch("$behandlingPath/{behandlingId}/underkjenn") {
         // TODO authorize attestant
         call.withBehandling(repo) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
             // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
 
-            Either.catch { deserialize<IkkeGodkjennBody>(call) }.fold(
+            Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                 ifLeft = {
                     log.info("Ugyldig behandling-body: ", it)
                     call.svar(BadRequest.message("Ugyldig body"))
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.ikkeGodkjenn(body.begrunnelse)
+                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId()))
                         call.svar(OK.jsonBody(behandling))
                     } else {
                         call.svar(BadRequest.message("Må anngi en begrunnelse"))

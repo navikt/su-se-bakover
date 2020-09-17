@@ -5,3 +5,8 @@ create table if not exists hendelseslogg
     hendelser
         jsonb
 );
+
+insert into hendelseslogg
+(
+ select id from behandling
+);

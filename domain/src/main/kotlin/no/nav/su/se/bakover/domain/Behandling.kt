@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -38,7 +40,8 @@ data class Behandling(
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
-    val sakId: UUID
+    val sakId: UUID,
+    private val hendelseslogg: Hendelseslogg? = null
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
@@ -57,6 +60,8 @@ data class Behandling(
     val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     fun utbetaling() = utbetaling
+
+    fun hendelser() = hendelseslogg?.hendelser()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
@@ -99,8 +104,8 @@ data class Behandling(
         return tilstand.iverksett(attestant, publisher)
     }
 
-    fun ikkeGodkjenn(begrunnelse: String): Behandling {
-        return tilstand.ikkeGodkjenn(begrunnelse)
+    fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        return tilstand.underkjenn(begrunnelse, attestant)
     }
 
     override fun equals(other: Any?) = other is Behandling && id == other.id
@@ -136,8 +141,8 @@ data class Behandling(
             throw TilstandException(status, this::iverksett.toString())
         }
 
-        fun ikkeGodkjenn(begrunnelse: String): Behandling {
-            throw TilstandException(status, this::ikkeGodkjenn.toString())
+        fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+            throw TilstandException(status, this::underkjenn.toString())
         }
     }
 
@@ -317,7 +322,8 @@ data class Behandling(
             }
         }
 
-        override fun ikkeGodkjenn(begrunnelse: String): Behandling {
+        override fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+            hendelseslogg!!.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
             nyTilstand(Simulert())
             return this@Behandling
         }

@@ -76,8 +76,8 @@ internal class DatabaseRepo(
                 "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
             )
         )
-        behandling.addObserver(this)
-        return behandling
+        oppdaterHendelseslogg(Hendelseslogg(behandling.id.toString()))
+        return hentBehandling(behandling.id)!!
     }
 
     internal fun hentOppdrag(oppdragId: UUID30) = using(sessionOf(dataSource)) { session ->
@@ -328,7 +328,8 @@ internal class DatabaseRepo(
             utbetaling = hentUtbetalingForBehandlingInternal(behandlingId, session),
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
-            sakId = uuid("sakId")
+            sakId = uuid("sakId"),
+            hendelseslogg = hentHendelseslogg(behandlingId.toString())!!
         ).also {
             it.addObserver(this@DatabaseRepo)
         }

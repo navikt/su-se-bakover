@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
+import no.nav.su.se.bakover.web.routes.hendelse.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import java.time.format.DateTimeFormatter
@@ -20,7 +22,8 @@ internal data class BehandlingJson(
     val utbetaling: UtbetalingJson?,
     val opprettet: String,
     val attestant: String?,
-    val sakId: UUID
+    val sakId: UUID,
+    val hendelser: List<HendelseJson>?
 )
 
 internal fun Behandling.toJson() = BehandlingJson(
@@ -32,7 +35,8 @@ internal fun Behandling.toJson() = BehandlingJson(
     utbetaling = utbetaling()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     attestant = attestant()?.id,
-    sakId = sakId
+    sakId = sakId,
+    hendelser = hendelser()?.toJson()
 )
 
 internal fun HttpStatusCode.jsonBody(behandling: Behandling) =
