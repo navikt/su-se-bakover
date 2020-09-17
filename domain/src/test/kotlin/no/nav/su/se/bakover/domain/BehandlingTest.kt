@@ -331,11 +331,12 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal kunne vilkårsvudere på nytt`() {
+        fun `skal kunne vilkårsvudere på nytt og skal slette eksisterende beregning`() {
             beregnet.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(beregnet)
             )
             beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
+            beregnet.beregning() shouldBe null
         }
 
         @Test
@@ -377,6 +378,15 @@ internal class BehandlingTest {
         fun `skal kunne beregne på nytt`() {
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
             simulert.status() shouldBe BEREGNET
+        }
+
+        @Test
+        fun `skal fjerne beregning hvis behandlingsinformasjon endres`() {
+            simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            simulert.oppdaterBehandlingsinformasjon(simulert.behandlingsinformasjon())
+
+            simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
+            simulert.beregning() shouldBe null
         }
 
         @Test
@@ -565,6 +575,7 @@ internal class BehandlingTest {
         Oppdrag.OppdragPersistenceObserver,
         UtbetalingPersistenceObserver {
         lateinit var opprettetBeregning: Pair<UUID, Beregning>
+        lateinit var slettetBeregningBehandlingId: UUID
         lateinit var oppdatertStatus: BehandlingsStatus
         lateinit var oppdragsmelding: Oppdragsmelding
         lateinit var oppdatertBehandlingsinformasjon: Behandlingsinformasjon
@@ -572,6 +583,10 @@ internal class BehandlingTest {
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
             opprettetBeregning = behandlingId to beregning
             return opprettetBeregning.second
+        }
+
+        override fun deleteBeregninger(behandlingId: UUID) {
+            slettetBeregningBehandlingId = behandlingId
         }
 
         override fun oppdaterBehandlingStatus(

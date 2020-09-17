@@ -192,6 +192,21 @@ internal class DatabaseRepoTest {
     }
 
     @Test
+    fun `opprett og slett beregning`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            insertBeregning(behandling.id)
+            repo.deleteBeregninger(behandling.id)
+
+            val hentet = repo.hentBehandling(behandling.id)
+            hentet!!.beregning() shouldBe null
+        }
+    }
+
+    @Test
     fun `sletter eksisterende beregninger når nye opprettes`() {
         withMigratedDb {
             val sak = insertSak(FNR)
@@ -575,6 +590,10 @@ internal class DatabaseRepoTest {
 
     private fun behandlingPersistenceObserver() = object : BehandlingPersistenceObserver {
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
+            throw NotImplementedError()
+        }
+
+        override fun deleteBeregninger(behandlingId: UUID) {
             throw NotImplementedError()
         }
 

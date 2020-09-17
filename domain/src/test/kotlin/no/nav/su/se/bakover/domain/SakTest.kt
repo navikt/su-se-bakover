@@ -54,6 +54,10 @@ internal class SakTest {
                         throw IllegalStateException()
                     }
 
+                    override fun deleteBeregninger(behandlingId: UUID) {
+                        throw NotImplementedError()
+                    }
+
                     override fun oppdaterBehandlingStatus(
                         behandlingId: UUID,
                         status: Behandling.BehandlingsStatus

@@ -143,6 +143,11 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+            if (this@Behandling.beregning != null) {
+                persistenceObserver.deleteBeregninger(this@Behandling.id)
+                this@Behandling.beregning = null
+            }
+
             behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(this@Behandling.id, behandlingsinformasjon.patch(oppdatert))
             if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
@@ -336,6 +341,7 @@ data class Behandling(
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
     fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
+    fun deleteBeregninger(behandlingId: UUID)
     fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus

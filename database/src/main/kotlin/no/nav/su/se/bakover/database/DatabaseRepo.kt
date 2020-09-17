@@ -389,7 +389,7 @@ internal class DatabaseRepo(
         return beregning
     }
 
-    private fun deleteBeregninger(behandlingId: UUID) {
+    override fun deleteBeregninger(behandlingId: UUID) {
         "delete from beregning where behandlingId=:id".oppdatering(mapOf("id" to behandlingId))
     }
 
