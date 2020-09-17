@@ -61,7 +61,8 @@ internal class PdlClient(
                     )
                 },
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
-                kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull()
+                kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
+                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering
             )
         }
     }
@@ -174,7 +175,8 @@ data class HentPerson(
     val kontaktadresse: List<Kontaktadresse>,
     val oppholdsadresse: List<Oppholdsadresse>,
     val statsborgerskap: List<Statsborgerskap>,
-    val kjoenn: List<Kjønn>
+    val kjoenn: List<Kjønn>,
+    val adressebeskyttelse: List<Adressebeskyttelse>
 )
 
 data class NavnResponse(
@@ -234,4 +236,8 @@ data class Id(
 
 data class Kjønn(
     val kjoenn: String
+)
+
+data class Adressebeskyttelse(
+    val gradering: String
 )

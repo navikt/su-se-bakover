@@ -29,7 +29,8 @@ object PersonOppslagStub :
             kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO")
         ),
         statsborgerskap = "NOR",
-        kjønn = "MANN"
+        kjønn = "MANN",
+        adressebeskyttelse = null
     ).right()
 
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()

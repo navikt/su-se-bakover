@@ -15,7 +15,7 @@ import org.slf4j.MDC
 
 internal class PdlClientTest : WiremockBase {
 
-    val tokenOppslag = TokenOppslagStub
+    private val tokenOppslag = TokenOppslagStub
 
     @Test
     fun `hent aktørid inneholder errors`() {
@@ -223,7 +223,8 @@ internal class PdlClientTest : WiremockBase {
                     {
                       "kjoenn": "MANN"
                     }
-                  ]
+                  ],
+                  "adressebeskyttelse": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -263,7 +264,8 @@ internal class PdlClientTest : WiremockBase {
                 bruksenhet = null,
                 kommunenummer = "5427"
             ),
-            statsborgerskap = "SYR"
+            statsborgerskap = "SYR",
+            adressebeskyttelse = null
         ).right()
     }
 

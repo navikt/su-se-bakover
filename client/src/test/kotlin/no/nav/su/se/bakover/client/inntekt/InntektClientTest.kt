@@ -66,7 +66,8 @@ internal class InntektClientTest : WiremockBase {
                 kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = null)
             ),
             statsborgerskap = "NOR",
-            kjønn = "MANN"
+            kjønn = "MANN",
+            adressebeskyttelse = null
 
         ).right()
 

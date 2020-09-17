@@ -46,7 +46,8 @@ data class PersonResponseJson(
     val telefonnummer: TelefonnummerJson?,
     val adresse: AdresseJson?,
     val statsborgerskap: String?,
-    val kjønn: String?
+    val kjønn: String?,
+    val adressebeskyttelse: String?
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -101,7 +102,8 @@ data class PersonResponseJson(
                 )
             },
             statsborgerskap = this.statsborgerskap,
-            kjønn = this.kjønn
+            kjønn = this.kjønn,
+            adressebeskyttelse = this.adressebeskyttelse
         )
     }
 }

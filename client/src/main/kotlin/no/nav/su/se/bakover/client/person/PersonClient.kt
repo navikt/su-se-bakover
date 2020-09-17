@@ -35,25 +35,26 @@ class PersonClient(
                     adressenavn = it.adressenavn,
                     husnummer = it.husnummer,
                     husbokstav = it.husbokstav,
-                    poststed = it.postnummer?.let {
-                        toPoststed(it)
+                    poststed = it.postnummer?.let { postnummer ->
+                        toPoststed(postnummer)
                     },
                     bruksenhet = it.bruksenhet,
-                    kommune = it.kommunenummer?.let {
-                        toKommune(it)
+                    kommune = it.kommunenummer?.let { kommunenummer ->
+                        toKommune(kommunenummer)
                     }
                 )
             },
             statsborgerskap = pdlData.statsborgerskap,
-            kjønn = pdlData.kjønn
+            kjønn = pdlData.kjønn,
+            adressebeskyttelse = pdlData.adressebeskyttelse
         )
 
-    fun toPoststed(postnummer: String) = Person.Poststed(
+    private fun toPoststed(postnummer: String) = Person.Poststed(
         postnummer = postnummer,
         poststed = kodeverk.hentPoststed(postnummer).orNull()
     )
 
-    fun toKommune(kommunenummer: String) = Person.Kommune(
+    private fun toKommune(kommunenummer: String) = Person.Kommune(
         kommunenummer = kommunenummer,
         kommunenavn = kodeverk.hentKommunenavn(kommunenummer).orNull()
     )

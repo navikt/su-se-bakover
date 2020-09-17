@@ -50,6 +50,9 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
       },
       kjoenn(historikk: $historikk) {
          kjoenn
+      },
+      adressebeskyttelse(historikk: $historikk) {
+         gradering
       }
    }
    hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {

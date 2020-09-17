@@ -78,7 +78,8 @@ internal class PersonRoutesKtTest {
                         "kommunenummer":"0301"
                     },
                     "statsborgerskap": "NOR",
-                    "kjønn": "MANN"
+                    "kjønn": "MANN",
+                    "adressebeskyttelse": null
                 }
             """.trimIndent()
 

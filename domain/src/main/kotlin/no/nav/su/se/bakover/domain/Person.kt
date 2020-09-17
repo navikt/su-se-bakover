@@ -6,7 +6,8 @@ data class Person(
     val telefonnummer: Telefonnummer?,
     val adresse: Adresse?,
     val statsborgerskap: String?,
-    val kjønn: String?
+    val kjønn: String?,
+    val adressebeskyttelse: String?
 ) {
     data class Navn(
         val fornavn: String,

@@ -10,7 +10,8 @@ internal data class PdlData(
     val telefonnummer: Telefonnummer?,
     val adresse: Adresse?,
     val statsborgerskap: String?,
-    val kjønn: String?
+    val kjønn: String?,
+    val adressebeskyttelse: String?
 ) {
     internal data class Ident(
         val fnr: Fnr,
