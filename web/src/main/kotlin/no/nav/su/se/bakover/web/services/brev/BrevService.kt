@@ -16,8 +16,7 @@ import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.VedtakInnhold
-import no.nav.su.se.bakover.domain.Vilkår
-import no.nav.su.se.bakover.domain.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -163,18 +162,20 @@ fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFl
         else -> null
     }
 
-fun avslagsgrunnForBehandling(behandling: Behandling) = behandling.vilkårsvurderinger()
-    .find { it.status() == Vilkårsvurdering.Status.IKKE_OK }
-    ?.let { vilkårToAvslagsgrunn(it.vilkår) }
-
-fun vilkårToAvslagsgrunn(vilkår: Vilkår) =
-    when (vilkår) {
-        Vilkår.UFØRHET -> Avslagsgrunn.UFØRHET
-        Vilkår.FLYKTNING -> Avslagsgrunn.FLYKTNING
-        Vilkår.FORMUE -> Avslagsgrunn.FORMUE
-        Vilkår.BOR_OG_OPPHOLDER_SEG_I_NORGE -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-        Vilkår.OPPHOLDSTILLATELSE -> Avslagsgrunn.OPPHOLDSTILLATELSE
-        Vilkår.PERSONLIG_OPPMØTE -> Avslagsgrunn.PERSONLIG_OPPMØTE
+fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? =
+    behandling.behandlingsinformasjon().let {
+        when {
+            it.uførhet?.status == Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Avslagsgrunn.UFØRHET
+            it.flyktning?.status == Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FLYKTNING
+            it.lovligOpphold?.status == Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt -> Avslagsgrunn.OPPHOLDSTILLATELSE
+            it.fastOppholdINorge?.status == Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+            it.oppholdIUtlandet?.status == Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+            it.personligOppmøte?.status.let { s ->
+                s == Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttOpp ||
+                    s == Behandlingsinformasjon.PersonligOppmøte.Status.FullmektigUtenLegeattest
+            } -> Avslagsgrunn.PERSONLIG_OPPMØTE
+            else -> null
+        }
     }
 
 // TODO Hente Locale fra brukerens målform

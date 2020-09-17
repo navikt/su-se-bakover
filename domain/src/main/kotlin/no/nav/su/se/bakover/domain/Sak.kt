@@ -38,7 +38,6 @@ data class Sak(
     fun opprettSøknadsbehandling(søknadId: UUID): Behandling {
         val søknad = søknader.single { it.id == søknadId }
         val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad, sakId = id))
-        behandling.opprettVilkårsvurderinger()
         behandlinger.add(behandling)
         return behandling
     }

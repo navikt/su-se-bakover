@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
@@ -49,11 +50,6 @@ internal class SakTest {
             // TODO Possible to avoid?
             it.addObserver(
                 object : BehandlingPersistenceObserver {
-                    override fun opprettVilkårsvurderinger(
-                        behandlingId: UUID,
-                        vilkårsvurderinger: List<Vilkårsvurdering>
-                    ): List<Vilkårsvurdering> = emptyList()
-
                     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
                         throw IllegalStateException()
                     }
@@ -62,6 +58,13 @@ internal class SakTest {
                         behandlingId: UUID,
                         status: Behandling.BehandlingsStatus
                     ): Behandling.BehandlingsStatus {
+                        throw NotImplementedError()
+                    }
+
+                    override fun oppdaterBehandlingsinformasjon(
+                        behandlingId: UUID,
+                        behandlingsinformasjon: Behandlingsinformasjon
+                    ): Behandlingsinformasjon {
                         throw NotImplementedError()
                     }
 

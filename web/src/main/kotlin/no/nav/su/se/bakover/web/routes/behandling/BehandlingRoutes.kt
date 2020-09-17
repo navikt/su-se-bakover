@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -54,15 +53,33 @@ internal fun Route.behandlingRoutes(
         }
     }
 
+    patch("$behandlingPath/{behandlingId}/informasjon") {
+        call.withBehandling(repo) { behandling ->
+            Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
+                ifLeft = {
+                    log.info("Ugylding behandlingsinformasjon-body", it)
+                    call.svar(BadRequest.message("Klarte ikke deserialisere body"))
+                },
+                ifRight = { body ->
+                    call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
+                    if (body.isValid()) {
+                        val oppdatert = behandling.oppdaterBehandlingsinformasjon(behandlingsinformasjonFromJson(body))
+                        call.svar(OK.jsonBody(oppdatert))
+                    } else {
+                        call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
+                    }
+                }
+            )
+        }
+    }
+
     data class OpprettBeregningBody(
         val fom: LocalDate,
         val tom: LocalDate,
-        val sats: String,
         val fradrag: List<FradragJson>
     ) {
         fun valid() = fom.dayOfMonth == 1 &&
             tom.dayOfMonth == tom.lengthOfMonth() &&
-            (sats == Sats.HØY.name || sats == Sats.LAV.name) &&
             fradrag.all { Fradragstype.isValid(it.type) }
     }
 
@@ -78,7 +95,6 @@ internal fun Route.behandlingRoutes(
                         behandling.opprettBeregning(
                             fom = body.fom,
                             tom = body.tom,
-                            sats = Sats.valueOf(body.sats),
                             fradrag = body.fradrag.map { it.toFradrag() }
                         )
                         call.svar(Created.jsonBody(behandling))
