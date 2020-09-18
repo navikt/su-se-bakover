@@ -300,6 +300,76 @@ internal class BehandlingRoutesKtTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `underkjenn`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            objects.behandling.simuler(SimuleringStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.NotFound
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+            ) {
+                setBody(
+                    """
+                    {
+                        "begrunnelse":""
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Må anngi en begrunnelse"
+            }
+
+            defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+            ) {
+                setBody(
+                    """
+                    {
+                        "begrunnelse":"begrunnelse"
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                deserialize<BehandlingJson>(response.content!!).let {
+                    println(it.hendelser)
+                    it.status shouldBe "SIMULERT"
+                    it.hendelser?.last()?.melding shouldBe "begrunnelse"
+                }
+            }
+        }
 
         withTestApplication({
             testSusebakover(

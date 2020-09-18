@@ -2,10 +2,13 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -38,7 +41,8 @@ data class Behandling(
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
-    val sakId: UUID
+    val sakId: UUID,
+    private val hendelseslogg: Hendelseslogg? = null
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
@@ -57,6 +61,8 @@ data class Behandling(
     val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     fun utbetaling() = utbetaling
+
+    fun hendelser() = hendelseslogg?.hendelser()
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
@@ -99,6 +105,10 @@ data class Behandling(
         return tilstand.iverksett(attestant, publisher)
     }
 
+    fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        return tilstand.underkjenn(begrunnelse, attestant)
+    }
+
     override fun equals(other: Any?) = other is Behandling && id == other.id
     override fun hashCode() = id.hashCode()
 
@@ -131,6 +141,10 @@ data class Behandling(
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
+
+        fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+            throw TilstandException(status, this::underkjenn.toString())
+        }
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
@@ -148,7 +162,10 @@ data class Behandling(
                 this@Behandling.beregning = null
             }
 
-            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(this@Behandling.id, behandlingsinformasjon.patch(oppdatert))
+            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(
+                this@Behandling.id,
+                behandlingsinformasjon.patch(oppdatert)
+            )
             if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
             } else if (behandlingsinformasjon.isAvslag()) {
@@ -167,7 +184,11 @@ data class Behandling(
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
                 val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
-                    ?: throw TilstandException(status, this::opprettBeregning.toString(), "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett.")
+                    ?: throw TilstandException(
+                        status,
+                        this::opprettBeregning.toString(),
+                        "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
+                    )
 
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
@@ -213,7 +234,7 @@ data class Behandling(
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.generererUtbetaling(id, beregning!!.hentPerioder())
+            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!.hentPerioder())
             return simuleringClient.simulerUtbetaling(
                 NyUtbetaling(
                     oppdrag = oppdrag,
@@ -222,16 +243,23 @@ data class Behandling(
                     attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
                 )
             ).map { simulering ->
+                utbetaling?.let { slettEksisterendeUtbetaling(oppdrag, it) }
                 this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
                     it.addSimulering(simulering)
+                    persistenceObserver.leggTilUtbetaling(id, it.id)
                 }
                 nyTilstand(Simulert())
                 this@Behandling
             }
         }
+
+        private fun slettEksisterendeUtbetaling(oppdrag: Oppdrag, utbetaling: Utbetaling) {
+            check(utbetaling.kanSlettes()) { "Utbetalingen har kommet for langt i utbetalingsløpet til å kunne slettes" }
+            oppdrag.slettUtbetaling(utbetaling)
+        }
     }
 
-    private inner class Simulert : Tilstand {
+    private inner class Simulert : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
@@ -260,7 +288,7 @@ data class Behandling(
         }
     }
 
-    private open inner class TilAttestering : Tilstand {
+    private open inner class TilAttestering : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
         inner class Innvilget : TilAttestering() {
@@ -308,9 +336,15 @@ data class Behandling(
                 return this@Behandling.right()
             }
         }
+
+        override fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+            hendelseslogg!!.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
+            nyTilstand(Simulert())
+            return this@Behandling
+        }
     }
 
-    private open inner class Iverksatt : Tilstand {
+    private open inner class Iverksatt : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         inner class Innvilget : Iverksatt()
@@ -346,6 +380,7 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
     ): Behandling.BehandlingsStatus
+
     fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
         behandlingsinformasjon: Behandlingsinformasjon
@@ -354,4 +389,5 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
+    fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)
 }

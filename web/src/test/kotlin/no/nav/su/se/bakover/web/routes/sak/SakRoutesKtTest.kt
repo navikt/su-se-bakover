@@ -121,7 +121,7 @@ internal class SakRoutesKtTest {
                 response.status() shouldBe OK
                 val behandling = objectMapper.readValue<StoppbehandlingJson>(response.content!!)
                 behandling.sakId shouldBe nySak.id.toString()
-                behandling.status shouldBe "OPPRETTET"
+                behandling.status shouldBe "SIMULERT"
             }
         }
     }

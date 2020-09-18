@@ -133,7 +133,8 @@ internal class BehandlingJsonTest {
           "status": "OPPRETTET",
           "utbetaling": null,
           "attestant" : "kjella",
-          "sakId": "$sakId"
+          "sakId": "$sakId",
+          "hendelser": null
         }
             """.trimIndent()
     }
@@ -180,7 +181,8 @@ internal class BehandlingJsonTest {
           "utbetaling": null,
           "opprettet": "$opprettetTidspunkt",
           "attestant": null,
-          "sakId": "$sakId"
+          "sakId": "$sakId",
+          "hendelser": null
         }
         """
 

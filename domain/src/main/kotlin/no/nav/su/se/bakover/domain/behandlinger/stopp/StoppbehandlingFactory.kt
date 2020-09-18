@@ -23,9 +23,7 @@ class StoppbehandlingFactory(
         saksbehandler: Saksbehandler,
         stoppÅrsak: String,
     ): Either<SimuleringFeilet, Stoppbehandling.Simulert> {
-        val behandlingId = UUID.randomUUID()
         val utbetalingTilSimulering = sak.oppdrag.generererUtbetaling(
-            behandlingId = behandlingId,
             beregningsperioder = listOf(
                 BeregningsPeriode( // TODO jah: Gjør litt mer bevisste valg rundt disse verdiene
                     fom = idag(),

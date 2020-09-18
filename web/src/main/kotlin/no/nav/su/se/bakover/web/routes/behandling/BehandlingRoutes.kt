@@ -83,6 +83,12 @@ internal fun Route.behandlingRoutes(
             fradrag.all { Fradragstype.isValid(it.type) }
     }
 
+    data class UnderkjennBody(
+        val begrunnelse: String
+    ) {
+        fun valid() = begrunnelse.isNotBlank()
+    }
+
     post("$behandlingPath/{behandlingId}/beregn") {
         call.withBehandling(repo) { behandling ->
             Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
@@ -160,6 +166,30 @@ internal fun Route.behandlingRoutes(
                         { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
                         { call.svar(OK.jsonBody(it)) }
                     )
+                }
+            )
+        }
+    }
+
+    patch("$behandlingPath/{behandlingId}/underkjenn") {
+        // TODO authorize attestant
+        call.withBehandling(repo) { behandling ->
+            call.audit("behandling med id: ${behandling.id} godkjennes ikke")
+            // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
+            // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
+
+            Either.catch { deserialize<UnderkjennBody>(call) }.fold(
+                ifLeft = {
+                    log.info("Ugyldig behandling-body: ", it)
+                    call.svar(BadRequest.message("Ugyldig body"))
+                },
+                ifRight = { body ->
+                    if (body.valid()) {
+                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId()))
+                        call.svar(OK.jsonBody(behandling))
+                    } else {
+                        call.svar(BadRequest.message("Må anngi en begrunnelse"))
+                    }
                 }
             )
         }

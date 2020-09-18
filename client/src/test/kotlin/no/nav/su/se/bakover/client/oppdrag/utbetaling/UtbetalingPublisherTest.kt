@@ -74,7 +74,6 @@ internal class UtbetalingPublisherTest {
     )
     private val utbetaling = Utbetaling(
         opprettet = Instant.EPOCH,
-        behandlingId = UUID.randomUUID(),
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje

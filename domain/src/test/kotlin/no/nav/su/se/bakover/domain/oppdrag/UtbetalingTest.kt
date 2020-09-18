@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
 import java.time.ZoneOffset
-import java.util.UUID
 
 internal class UtbetalingTest {
 
@@ -18,19 +17,16 @@ internal class UtbetalingTest {
     fun `sorts utbetalinger ascending by opprettet`() {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.APRIL, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList()
         )
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList()
         )
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
-            behandlingId = UUID.randomUUID(),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList()
         )
@@ -48,7 +44,6 @@ internal class UtbetalingTest {
     }
 
     private fun createUtbetaling() = Utbetaling(
-        behandlingId = UUID.randomUUID(),
         utbetalingslinjer = emptyList()
     ).also {
         observer = DummyObserver()

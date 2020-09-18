@@ -325,6 +325,25 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `sletter eksisterende utbetalinger ved ny simulering`() {
+            beregnet.simuler(SimuleringClientStub)
+            val utbetaling = beregnet.utbetaling()
+            beregnet.simuler(SimuleringClientStub)
+            val nyUtbetaling = beregnet.utbetaling()
+            utbetaling shouldNotBe nyUtbetaling
+            observer.slettetUtbetaling shouldBe utbetaling
+        }
+
+        @Test
+        fun `tillater ikke sletting av oversendte eller kvitterte utbetalinger`() {
+            beregnet.simuler(SimuleringClientStub)
+            beregnet.utbetaling()!!.apply {
+                addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+            }
+            assertThrows<IllegalStateException> { beregnet.simuler(SimuleringClientStub) }
+        }
+
+        @Test
         fun `skal kunne beregne på nytt`() {
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET
@@ -579,6 +598,7 @@ internal class BehandlingTest {
         lateinit var oppdatertStatus: BehandlingsStatus
         lateinit var oppdragsmelding: Oppdragsmelding
         lateinit var oppdatertBehandlingsinformasjon: Behandlingsinformasjon
+        lateinit var slettetUtbetaling: Utbetaling
 
         override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
             opprettetBeregning = behandlingId to beregning
@@ -617,8 +637,15 @@ internal class BehandlingTest {
             return attestant
         }
 
+        override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
+        }
+
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             return utbetaling.also { it.addObserver(this) }
+        }
+
+        override fun slettUtbetaling(utbetaling: Utbetaling) {
+            slettetUtbetaling = utbetaling
         }
 
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {

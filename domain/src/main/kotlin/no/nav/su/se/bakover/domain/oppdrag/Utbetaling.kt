@@ -8,12 +8,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.Comparator
-import java.util.UUID
 
 data class Utbetaling(
     val id: UUID30 = UUID30.randomUUID(),
     val opprettet: Instant = now(),
-    val behandlingId: UUID,
     private var simulering: Simulering? = null,
     private var kvittering: Kvittering? = null,
     private var oppdragsmelding: Oppdragsmelding? = null,

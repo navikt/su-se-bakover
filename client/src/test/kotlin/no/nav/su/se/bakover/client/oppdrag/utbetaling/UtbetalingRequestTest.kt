@@ -31,7 +31,6 @@ internal class UtbetalingRequestTest {
 
         val oppdragId = UUID30.randomUUID()
         val sakId = UUID.randomUUID()
-        val behandlingId = UUID.randomUUID()
 
         val oppdrag = no.nav.su.se.bakover.domain.oppdrag.Oppdrag(
             id = oppdragId,
@@ -44,7 +43,6 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling(
             opprettet = Instant.EPOCH,
-            behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -144,7 +142,6 @@ internal class UtbetalingRequestTest {
             utbetalinger = mutableListOf(
                 Utbetaling(
                     opprettet = Instant.EPOCH,
-                    behandlingId = behandlingId,
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",
@@ -167,7 +164,6 @@ internal class UtbetalingRequestTest {
 
         val nyUtbetaling = Utbetaling(
             opprettet = Instant.EPOCH,
-            behandlingId = behandlingId,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,

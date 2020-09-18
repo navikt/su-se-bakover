@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
-import java.util.UUID
 
 class AvstemmingPublisherTest {
 
@@ -40,7 +39,6 @@ class AvstemmingPublisherTest {
         tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
         utbetalinger = listOf(
             Utbetaling(
-                behandlingId = UUID.randomUUID(),
                 utbetalingslinjer = listOf()
             )
         )
