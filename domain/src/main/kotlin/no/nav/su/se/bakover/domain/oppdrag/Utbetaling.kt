@@ -35,7 +35,9 @@ data class Utbetaling(
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
-    fun erUtbetalt() = kvittering?.erUtbetalt() ?: false
+    fun erOversendtOppdrag() = getOppdragsmelding()?.erSendt() ?: false
+    fun erKvittert() = getKvittering() != null
+    fun erUtbetalt() = getKvittering()?.erUtbetalt() ?: false
 
     fun addKvittering(kvittering: Kvittering) {
         if (this.kvittering != null) {

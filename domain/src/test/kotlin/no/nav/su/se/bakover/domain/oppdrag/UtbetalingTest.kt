@@ -54,18 +54,26 @@ internal class UtbetalingTest {
     fun `ikke lov å slette utbetalinger som er forsøkt oversendt oppdrag eller utbetalt`() {
         createUtbetaling().also {
             it.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml"))
+            it.erOversendtOppdrag() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, "some xml"))
+            it.erOversendtOppdrag() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+            it.erKvittert() shouldBe true
+            it.erUtbetalt() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""))
+            it.erKvittert() shouldBe true
+            it.erUtbetalt() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""))
+            it.erKvittert() shouldBe true
+            it.erUtbetalt() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
     }
 
