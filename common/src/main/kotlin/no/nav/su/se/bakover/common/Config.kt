@@ -29,6 +29,7 @@ object Config {
     val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.default.svc.nais.local"
     val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
     val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
+    val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.svc.nais.local"
 
     val serviceUser = ServiceUser()
     data class ServiceUser(

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.Either
 import arrow.core.orNull
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -11,8 +12,9 @@ import no.nav.su.se.bakover.domain.Person
 
 class PersonClient(
     private val kodeverk: Kodeverk,
+    private val skjerming: Skjerming,
     pdlUrl: String,
-    tokenOppslag: TokenOppslag,
+    tokenOppslag: TokenOppslag
 ) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag)
 
@@ -46,7 +48,8 @@ class PersonClient(
             },
             statsborgerskap = pdlData.statsborgerskap,
             kjønn = pdlData.kjønn,
-            adressebeskyttelse = pdlData.adressebeskyttelse
+            adressebeskyttelse = pdlData.adressebeskyttelse,
+            skjermet = skjerming.erSkjermet(pdlData.ident.fnr)
         )
 
     private fun toPoststed(postnummer: String) = Person.Poststed(
