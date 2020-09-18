@@ -618,7 +618,7 @@ internal class DatabaseRepo(
     fun Row.toHendelseslogg(): Hendelseslogg {
         return Hendelseslogg(
             id = string(columnLabel = "id"),
-            hendelser = HendelseListReader.readValue(string("hendelser"))
+            hendelser = stringOrNull("hendelser")?.let { HendelseListReader.readValue(it) } ?: mutableListOf()
         ).also {
             it.addObserver(this@DatabaseRepo)
         }
