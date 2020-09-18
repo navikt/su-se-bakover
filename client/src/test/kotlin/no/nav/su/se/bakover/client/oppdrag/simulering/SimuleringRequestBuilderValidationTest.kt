@@ -42,7 +42,6 @@ internal class SimuleringRequestBuilderValidationTest {
 
                 ),
                 utbetaling = Utbetaling(
-                    behandlingId = UUID.randomUUID(),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             fom = 1.januar(2020),

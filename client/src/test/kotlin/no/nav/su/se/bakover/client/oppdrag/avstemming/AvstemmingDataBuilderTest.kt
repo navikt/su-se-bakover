@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.UUID
 
 internal class AvstemmingDataBuilderTest {
     val zoneId = ZoneId.of("Europe/Oslo")
@@ -131,7 +130,6 @@ internal class AvstemmingDataBuilderTest {
         Utbetaling(
             id = UUID30.randomUUID(),
             opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
-            behandlingId = UUID.randomUUID(),
             simulering = null,
             kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding"),

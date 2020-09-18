@@ -21,9 +21,8 @@ data class Oppdrag(
 
     fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
 
-    fun generererUtbetaling(behandlingId: UUID, beregningsperioder: List<BeregningsPeriode>): Utbetaling {
+    fun generererUtbetaling(beregningsperioder: List<BeregningsPeriode>): Utbetaling {
         return Utbetaling(
-            behandlingId = behandlingId,
             utbetalingslinjer = beregningsperioder.map {
                 Utbetalingslinje(
                     fom = it.fom,
@@ -37,22 +36,17 @@ data class Oppdrag(
         )
     }
 
-    fun opprettUtbetaling(utbetaling: Utbetaling): Utbetaling {
-        check(
-            utbetalinger.filter { it.behandlingId == utbetaling.behandlingId }.all { it.kanSlettes() }
-        ) { "Behandling ${utbetaling.behandlingId} har en utbetaling som har kommet for langt i behandlingsløpet til å slettes" }
-        removeUtbetalingerWith(utbetaling.behandlingId)
-        return persistenceObserver.opprettUtbetaling(id, utbetaling)
+    fun opprettUtbetaling(utbetaling: Utbetaling, behandlingId: UUID): Utbetaling {
+        return persistenceObserver.opprettUtbetaling(id, utbetaling, behandlingId)
             .also {
                 utbetalinger.add(it)
             }
     }
 
-    private fun removeUtbetalingerWith(behandlingId: UUID) = utbetalinger.removeAll {
-        it.behandlingId == behandlingId && it.kanSlettes()
-    }
+    fun slettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.slettUtbetaling(utbetaling)
 
     interface OppdragPersistenceObserver : PersistenceObserver {
-        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
+        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling, behandlingId: UUID): Utbetaling
+        fun slettUtbetaling(utbetaling: Utbetaling)
     }
 }

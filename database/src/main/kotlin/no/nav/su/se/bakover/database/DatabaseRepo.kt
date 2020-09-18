@@ -90,27 +90,22 @@ internal class DatabaseRepo(
         using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session) }
 
     private fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
-        "select * from utbetaling where id = :utbetalingId".hent(
+        "select * from utbetaling where id = :id".hent(
             mapOf(
-                "utbetalingId" to utbetalingId.toString()
+                "id" to utbetalingId.toString()
             ),
             session
         ) { it.toUtbetaling(session) }
 
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
-        check(
-            hentUtbetalingForBehandling(utbetaling.behandlingId)?.kanSlettes() ?: true
-        ) { "Behandling ${utbetaling.behandlingId} har en utbetaling som har kommet for langt i behandlingsløpet til å slettes" }
-        deleteUtbetalingForBehandling(utbetaling.behandlingId)
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling, behandlingId: UUID): Utbetaling {
         """
-            insert into utbetaling (id, opprettet, oppdragId, behandlingId)
-            values (:id, :opprettet, :oppdragId, :behandlingId)
+            insert into utbetaling (id, opprettet, oppdragId)
+            values (:id, :opprettet, :oppdragId)
          """.oppdatering(
             mapOf(
                 "id" to utbetaling.id.toString(),
                 "opprettet" to utbetaling.opprettet,
-                "oppdragId" to oppdragId.toString(),
-                "behandlingId" to utbetaling.behandlingId
+                "oppdragId" to oppdragId.toString()
             )
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
@@ -118,12 +113,14 @@ internal class DatabaseRepo(
         return utbetaling
     }
 
-    private fun deleteUtbetalingForBehandling(behandlingId: UUID) =
-        "delete from utbetaling where behandlingId=:id".oppdatering(
+    override fun slettUtbetaling(utbetaling: Utbetaling) {
+        check(utbetaling.kanSlettes()) { "Utbetaling har kommet for langt i utbetalingsløpet til å kunne slettes" }
+        "delete from utbetaling where id=:id".oppdatering(
             mapOf(
-                "id" to behandlingId
+                "id" to utbetaling.id.toString()
             )
         )
+    }
 
     internal fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje): Utbetalingslinje {
         """
@@ -170,16 +167,6 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    internal fun hentUtbetalingForBehandling(behandlingId: UUID) =
-        using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where behandlingId=:behandlingId".hent(
-                mapOf("behandlingId" to behandlingId),
-                session
-            ) {
-                it.toUtbetaling(session)
-            }
-        }
-
     private fun hentUtbetalingForBehandlingInternal(behandlingId: UUID, session: Session) =
         "select * from utbetaling where behandlingId=:behandlingId".hent(
             mapOf("behandlingId" to behandlingId),
@@ -201,7 +188,6 @@ internal class DatabaseRepo(
         return Utbetaling(
             id = utbetalingId,
             opprettet = instant("opprettet"),
-            behandlingId = uuid("behandlingId"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
             oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
@@ -325,7 +311,7 @@ internal class DatabaseRepo(
             opprettet = instant("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
-            utbetaling = hentUtbetalingForBehandlingInternal(behandlingId, session),
+            utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
             sakId = uuid("sakId"),
@@ -442,6 +428,17 @@ internal class DatabaseRepo(
             )
         )
         return attestant
+    }
+
+    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
+        """
+            update behandling set utbetalingId=:utbetalingId where id=:id
+        """.oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "utbetalingId" to utbetalingId.toString()
+            )
+        )
     }
 
     private fun hentMånedsberegninger(beregningId: UUID, session: Session) =

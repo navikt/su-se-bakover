@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJso
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 internal class UtbetalingJsonTest {
     private val id = UUID30.randomUUID()
@@ -63,7 +62,6 @@ internal class UtbetalingJsonTest {
     private val utbetaling = Utbetaling(
         id = id,
         opprettet = opprettet,
-        behandlingId = UUID.randomUUID(),
         simulering = Simulering(
             gjelderId = FNR,
             gjelderNavn = "gjelder",

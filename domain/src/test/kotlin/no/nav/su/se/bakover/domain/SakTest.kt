@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -82,6 +83,9 @@ internal class SakTest {
 
                     override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
                         return attestant
+                    }
+
+                    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
                     }
                 }
             )

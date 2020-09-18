@@ -169,7 +169,6 @@ internal class SimuleringSoapClientTest {
     )
 
     private fun createUtbetaling() = Utbetaling(
-        behandlingId = UUID.randomUUID(),
         utbetalingslinjer = listOf(
             Utbetalingslinje(
                 id = UUID30.randomUUID(),
