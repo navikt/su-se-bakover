@@ -20,7 +20,7 @@ class GrunnlagBuilder(
         return AvstemmingDataRequest.Grunnlagdata(
             godkjentAntall = kvittertOk.antall,
             godkjentBelop = kvittertOk.beløp,
-            godkjenttFortegn = kvittertOk.fortegn,
+            godkjentFortegn = kvittertOk.fortegn,
             varselAntall = kvittertMedVarsel.antall,
             varselBelop = kvittertMedVarsel.beløp,
             varselFortegn = kvittertMedVarsel.fortegn,

@@ -50,7 +50,7 @@ data class AvstemmingDataRequest(
     data class Grunnlagdata(
         val godkjentAntall: Int,
         val godkjentBelop: BigDecimal,
-        val godkjenttFortegn: Fortegn,
+        val godkjentFortegn: Fortegn,
         val varselAntall: Int,
         val varselBelop: BigDecimal,
         val varselFortegn: Fortegn,

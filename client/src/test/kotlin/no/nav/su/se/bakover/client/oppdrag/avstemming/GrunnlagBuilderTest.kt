@@ -12,7 +12,7 @@ internal class GrunnlagBuilderTest {
         val expected = AvstemmingDataRequest.Grunnlagdata(
             godkjentAntall = 2,
             godkjentBelop = BigDecimal(1600),
-            godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             varselAntall = 1,
             varselBelop = BigDecimal(1400),
             varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
@@ -32,7 +32,7 @@ internal class GrunnlagBuilderTest {
         val expected = expected().copy(
             godkjentAntall = 1,
             godkjentBelop = BigDecimal(1000),
-            godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
         )
 
         GrunnlagBuilder(
@@ -53,7 +53,7 @@ internal class GrunnlagBuilderTest {
         val expected = expected().copy(
             godkjentAntall = 1,
             godkjentBelop = BigDecimal(1000),
-            godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             avvistAntall = 1,
             avvistBelop = BigDecimal(-1000),
             avvistFortegn = AvstemmingDataRequest.Fortegn.FRADRAG
@@ -82,7 +82,7 @@ internal class GrunnlagBuilderTest {
     private fun expected() = AvstemmingDataRequest.Grunnlagdata(
         godkjentAntall = 0,
         godkjentBelop = BigDecimal.ZERO,
-        godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+        godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
         varselAntall = 0,
         varselBelop = BigDecimal.ZERO,
         varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,

@@ -92,7 +92,7 @@ internal class AvstemmingXmlMappingTest {
             grunnlag = Grunnlagdata(
                 godkjentAntall = 1,
                 godkjentBelop = BigDecimal("100.45"),
-                godkjenttFortegn = TILLEGG,
+                godkjentFortegn = TILLEGG,
                 varselAntall = 0,
                 varselBelop = BigDecimal(0),
                 varselFortegn = TILLEGG,
@@ -141,7 +141,7 @@ internal class AvstemmingXmlMappingTest {
               <grunnlag>
                 <godkjentAntall>1</godkjentAntall>
                 <godkjentBelop>100.45</godkjentBelop>
-                <godkjenttFortegn>T</godkjenttFortegn>
+                <godkjentFortegn>T</godkjentFortegn>
                 <varselAntall>0</varselAntall>
                 <varselBelop>0</varselBelop>
                 <varselFortegn>T</varselFortegn>

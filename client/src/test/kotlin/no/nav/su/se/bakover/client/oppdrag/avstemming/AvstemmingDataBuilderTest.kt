@@ -46,7 +46,7 @@ internal class AvstemmingDataBuilderTest {
             grunnlag = AvstemmingDataRequest.Grunnlagdata(
                 godkjentAntall = 2,
                 godkjentBelop = BigDecimal(1600),
-                godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+                godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 varselAntall = 1,
                 varselBelop = BigDecimal(1400),
                 varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
