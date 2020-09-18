@@ -17,7 +17,9 @@ data class Sak(
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     val oppdrag: Oppdrag,
 ) : PersistentDomainObject<SakPersistenceObserver>() {
+
     private val observers: MutableList<SakObserver> = mutableListOf()
+
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
     fun søknader() = søknader.toList()

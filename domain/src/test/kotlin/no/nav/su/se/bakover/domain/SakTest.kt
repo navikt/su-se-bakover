@@ -1,22 +1,43 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.internal.verification.Times
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class SakTest {
 
-    lateinit var persistenceObserver: PersistenceObserver
-    lateinit var eventObserver: EventObserver
-    lateinit var sak: Sak
+    private val clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
+    private val sakId = UUID.randomUUID()
+    private val fnr = Fnr("12345678910")
+
+    private lateinit var persistenceObserver: PersistenceObserver
+    private lateinit var eventObserver: EventObserver
+    private lateinit var sak: Sak
 
     @Test
     fun `should handle nySøknad`() {
@@ -40,6 +61,116 @@ internal class SakTest {
         behandling.søknad.id shouldBe søknad.id
     }
 
+    @Test
+    fun `stopp utbetalinger`() {
+        val oppdragId = UUID30.randomUUID()
+        val saksbehandler = Saksbehandler("saksbehandler")
+        val stoppÅrsak = "stoppÅrsak"
+
+        val nySimulering = Simulering(
+            gjelderId = fnr,
+            gjelderNavn = "",
+            datoBeregnet = LocalDate.EPOCH,
+            nettoBeløp = 0,
+            periodeList = listOf()
+        )
+        val nyUtbetaling = Utbetaling(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            simulering = nySimulering,
+            kvittering = null,
+            oppdragsmelding = null,
+            utbetalingslinjer = listOf(),
+            avstemmingId = null
+        )
+        val simulertStoppbehandlingId = UUID.fromString("7b0db8ea-0d77-48e0-a8b5-65dddd44287b")
+        val simulertStoppbehandling = Stoppbehandling.Simulert(
+            id = simulertStoppbehandlingId,
+            opprettet = Instant.EPOCH,
+            sakId = sakId,
+            utbetaling = nyUtbetaling,
+            stoppÅrsak = stoppÅrsak,
+            saksbehandler = saksbehandler
+        )
+        val sakPersistenceObserverMock = mock<SakPersistenceObserver> {
+            on { nyStoppbehandling(simulertStoppbehandling) } doReturn simulertStoppbehandling
+            on { hentPågåendeStoppbehandling(sakId) } doReturn null
+        }
+
+        val utbetalingPersistenceObserverMock = mock<UtbetalingPersistenceObserver> {
+            on { addSimulering(nyUtbetaling.id, nySimulering) } doReturn nySimulering
+        }
+
+        val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
+            on { opprettUtbetaling(eq(oppdragId), any()) } doReturn nyUtbetaling.apply {
+                addObserver(utbetalingPersistenceObserverMock)
+            }
+        }
+
+        val sak = nySak().copy(
+            oppdrag = Oppdrag(
+                id = oppdragId,
+                opprettet = Instant.EPOCH,
+                sakId = sakId,
+                utbetalinger = mutableListOf(
+                    Utbetaling(
+                        id = UUID30.randomUUID(),
+                        opprettet = Instant.EPOCH,
+                        simulering = Simulering(
+                            gjelderId = fnr,
+                            gjelderNavn = "",
+                            datoBeregnet = LocalDate.EPOCH,
+                            nettoBeløp = 10000,
+                            periodeList = listOf()
+                        ),
+                        kvittering = Kvittering(
+                            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                            originalKvittering = "<someXml></someXml>",
+                            mottattTidspunkt = Instant.EPOCH
+                        ),
+                        oppdragsmelding = null,
+                        utbetalingslinjer = listOf(
+                            Utbetalingslinje(
+                                id = UUID30.randomUUID(),
+                                opprettet = Instant.EPOCH,
+                                fom = LocalDate.EPOCH,
+                                tom = LocalDate.EPOCH.plusMonths(12),
+                                forrigeUtbetalingslinjeId = null,
+                                beløp = 10000
+                            )
+                        ),
+                        avstemmingId = null
+                    )
+                )
+            ).apply {
+                addObserver(oppdragPersistenceObserverMock)
+            }
+        ).apply {
+            addObserver(sakPersistenceObserverMock)
+        }
+        val simuleringClientMock = mock<SimuleringClient> {
+            on { simulerUtbetaling(any()) } doReturn nySimulering.right()
+        }
+        val uuidFactoryMock = mock<UUIDFactory> {
+            on { newUUID() } doReturn simulertStoppbehandlingId
+        }
+        val stoppbehandlingFactory = StoppbehandlingFactory(
+            simuleringClient = simuleringClientMock,
+            clock = clock,
+            uuidFactory = uuidFactoryMock
+        )
+
+        sak.stoppUtbetalinger(
+            stoppbehandlingFactory = stoppbehandlingFactory,
+            saksbehandler = saksbehandler,
+            stoppÅrsak = stoppÅrsak
+        ) shouldBe simulertStoppbehandling.right()
+
+        verify(sakPersistenceObserverMock, Times(1)).nyStoppbehandling(simulertStoppbehandling)
+        // Oppdrag.genererUtbetaling inneholder ikke-forutsigbareverdier (UUID, Instant)
+        verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(oppdragId), any())
+    }
+
     class PersistenceObserver : SakPersistenceObserver {
         lateinit var nySøknadParams: NySøknadParams
         override fun nySøknad(sakId: UUID, søknad: Søknad) = søknad.also {
@@ -49,47 +180,6 @@ internal class SakTest {
         lateinit var opprettSøknadsbehandlingParams: OpprettSøknadsbehandlingParams
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = behandling.also {
             opprettSøknadsbehandlingParams = OpprettSøknadsbehandlingParams(sakId, behandling)
-            // TODO Possible to avoid?
-            it.addObserver(
-                object : BehandlingPersistenceObserver {
-                    override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-                        throw IllegalStateException()
-                    }
-
-                    override fun deleteBeregninger(behandlingId: UUID) {
-                        throw NotImplementedError()
-                    }
-
-                    override fun oppdaterBehandlingStatus(
-                        behandlingId: UUID,
-                        status: Behandling.BehandlingsStatus
-                    ): Behandling.BehandlingsStatus {
-                        throw NotImplementedError()
-                    }
-
-                    override fun oppdaterBehandlingsinformasjon(
-                        behandlingId: UUID,
-                        behandlingsinformasjon: Behandlingsinformasjon
-                    ): Behandlingsinformasjon {
-                        throw NotImplementedError()
-                    }
-
-                    override fun hentOppdrag(sakId: UUID): Oppdrag {
-                        return Oppdrag(sakId = sakId)
-                    }
-
-                    override fun hentFnr(sakId: UUID): Fnr {
-                        return Fnr("12345678910")
-                    }
-
-                    override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-                        return attestant
-                    }
-
-                    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
-                    }
-                }
-            )
         }
 
         data class NySøknadParams(
@@ -117,10 +207,12 @@ internal class SakTest {
     fun beforeEach() {
         persistenceObserver = PersistenceObserver()
         eventObserver = EventObserver()
-        val sakId = UUID.randomUUID()
-        sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId)).also {
+
+        sak = nySak().also {
             it.addObserver(persistenceObserver)
             it.addObserver(eventObserver)
         }
     }
+
+    private fun nySak() = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
 }

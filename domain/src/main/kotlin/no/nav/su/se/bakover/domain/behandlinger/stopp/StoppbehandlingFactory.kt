@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandlinger.stopp
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Attestant
@@ -12,11 +13,11 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
 import java.time.temporal.TemporalAdjusters
-import java.util.UUID
 
 class StoppbehandlingFactory(
     private val simuleringClient: SimuleringClient,
-    private val clock: Clock
+    private val clock: Clock = Clock.systemUTC(),
+    private val uuidFactory: UUIDFactory = UUIDFactory()
 ) {
     fun nyStoppbehandling(
         sak: Sak,
@@ -25,7 +26,7 @@ class StoppbehandlingFactory(
     ): Either<SimuleringFeilet, Stoppbehandling.Simulert> {
 
         val sisteUtbetaling = sak.oppdrag.sisteUtbetaling()!!
-        require(sisteUtbetaling.erNullUtbetaling()) {
+        require(!sisteUtbetaling.erNullUtbetaling()) {
             "Kan ikke stoppbehandle siden forrige behandling var en stoppbehandling."
         }
         // TODO validere: Sjekk at vi har faktiske utbetalinger som kan stoppes
@@ -51,7 +52,7 @@ class StoppbehandlingFactory(
                 it.addSimulering(simulering)
             }
             Stoppbehandling.Simulert(
-                id = UUID.randomUUID(),
+                id = uuidFactory.newUUID(),
                 opprettet = now(clock),
                 sakId = sak.id,
                 utbetaling = utbetaling,
