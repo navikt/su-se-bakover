@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
@@ -18,7 +20,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 internal class AvstemmingDataBuilderTest {
-    val zoneId = ZoneId.of("Europe/Oslo")
     @Test
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
         val avstemmingId = UUID30.randomUUID()
@@ -34,8 +35,8 @@ internal class AvstemmingDataBuilderTest {
                 avleverendeAvstemmingId = avstemmingId.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(
-                totalAntall = 4,
-                totalBelop = BigDecimal(13000),
+                totalAntall = 5,
+                totalBelop = BigDecimal(18000),
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(
@@ -44,7 +45,7 @@ internal class AvstemmingDataBuilderTest {
             ),
             grunnlag = AvstemmingDataRequest.Grunnlagdata(
                 godkjentAntall = 2,
-                godkjentBelop = BigDecimal("1600"),
+                godkjentBelop = BigDecimal(1600),
                 godkjenttFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 varselAntall = 1,
                 varselBelop = BigDecimal(1400),
@@ -52,57 +53,11 @@ internal class AvstemmingDataBuilderTest {
                 avvistAntall = 1,
                 avvistBelop = BigDecimal(10000),
                 avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
-                manglerAntall = 0,
-                manglerBelop = BigDecimal(0),
+                manglerAntall = 1,
+                manglerBelop = BigDecimal(5000),
                 manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             detalj = emptyList()
-        )
-
-        val listUtbetaling = mutableListOf<Utbetaling>()
-
-        listUtbetaling.add(
-            lagUtbetaling(
-                1.mars(2020),
-                Kvittering.Utbetalingsstatus.OK,
-                listOf(
-                    lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
-                    lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
-                )
-            )
-        )
-        listUtbetaling.add(
-            lagUtbetaling(
-                1.mars(2020),
-                Kvittering.Utbetalingsstatus.OK,
-                listOf(
-                    lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
-                    lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
-                )
-            )
-        )
-        listUtbetaling.add(
-            lagUtbetaling(
-                2.mars(2020),
-                Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-                listOf(
-                    lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
-                    lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
-                    lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
-                )
-            )
-        )
-        listUtbetaling.add(
-            lagUtbetaling(
-                1.mars(2020),
-                Kvittering.Utbetalingsstatus.FEIL,
-                listOf(
-                    lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
-                    lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
-                    lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
-                    lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000)
-                )
-            )
         )
 
         AvstemmingDataBuilder(
@@ -111,28 +66,84 @@ internal class AvstemmingDataBuilderTest {
                 opprettet = now(),
                 fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
                 tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
-                utbetalinger = listUtbetaling,
+                utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null
             ),
         ).build() shouldBe expected
     }
+}
 
-    private fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
+private val zoneId = ZoneId.of("Europe/Oslo")
+fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
+    id = UUID30.randomUUID(),
+    opprettet = fom.atStartOfDay(zoneId).toInstant(),
+    fom = fom,
+    tom = tom,
+    forrigeUtbetalingslinjeId = null,
+    beløp = beløp
+)
+
+fun lagUtbetaling(
+    opprettet: LocalDate,
+    status: Kvittering.Utbetalingsstatus?,
+    linjer: List<Utbetalingslinje>
+) =
+    Utbetaling(
         id = UUID30.randomUUID(),
-        opprettet = fom.atStartOfDay(zoneId).toInstant(),
-        fom = fom,
-        tom = tom,
-        forrigeUtbetalingslinjeId = null,
-        beløp = beløp
+        opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
+        simulering = null,
+        kvittering = status?.let {
+            Kvittering(
+                utbetalingsstatus = it,
+                originalKvittering = "hallo",
+                mottattTidspunkt = now()
+            )
+        },
+        oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding"),
+        utbetalingslinjer = linjer
     )
 
-    private fun lagUtbetaling(opprettet: LocalDate, status: Kvittering.Utbetalingsstatus, linjer: List<Utbetalingslinje>) =
-        Utbetaling(
-            id = UUID30.randomUUID(),
-            opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
-            simulering = null,
-            kvittering = Kvittering(utbetalingsstatus = status, originalKvittering = "hallo", mottattTidspunkt = now()),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding"),
-            utbetalingslinjer = linjer
+fun alleUtbetalinger() = listOf(
+    lagUtbetaling(
+        1.mars(2020),
+        Kvittering.Utbetalingsstatus.OK,
+        listOf(
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
         )
-}
+    ),
+    lagUtbetaling(
+        1.mars(2020),
+        Kvittering.Utbetalingsstatus.OK,
+        listOf(
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
+        )
+    ),
+    lagUtbetaling(
+        2.mars(2020),
+        Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
+        listOf(
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
+            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
+        )
+    ),
+    lagUtbetaling(
+        1.mars(2020),
+        Kvittering.Utbetalingsstatus.FEIL,
+        listOf(
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
+            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
+            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000)
+        )
+    ),
+    lagUtbetaling(
+        2.mars(2020),
+        null,
+        listOf(
+            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000)
+        )
+    )
+)
