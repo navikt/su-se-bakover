@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
-import no.nav.su.se.bakover.domain.beregning.Sats.HØY
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -40,7 +39,6 @@ internal class OppdragTest {
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     beløp = 5600,
-                    sats = HØY
                 )
             )
         )
@@ -90,19 +88,16 @@ internal class OppdragTest {
                     fom = 1.januar(2020),
                     tom = 31.mai(2020),
                     beløp = 5600,
-                    sats = HØY
                 ),
                 BeregningsPeriode(
                     fom = 1.juni(2020),
                     tom = 31.august(2020),
                     beløp = 5700,
-                    sats = HØY
                 ),
                 BeregningsPeriode(
                     fom = 1.september(2020),
                     tom = 31.desember(2020),
                     beløp = 5800,
-                    sats = HØY
                 )
             )
         )

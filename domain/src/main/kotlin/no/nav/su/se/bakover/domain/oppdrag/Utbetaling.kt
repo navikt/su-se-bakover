@@ -37,6 +37,8 @@ data class Utbetaling(
 
     fun erUtbetalt() = kvittering?.erUtbetalt() ?: false
 
+    fun erNullUtbetaling() = utbetalingslinjer.any { it.beløp == 0 }
+
     fun addKvittering(kvittering: Kvittering) {
         if (this.kvittering != null) {
             log.info("Kvittering allerede lagret.")

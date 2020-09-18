@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
@@ -10,24 +14,33 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandllinger.stopp.StoppbehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.util.UUID
 import kotlin.test.assertEquals
 
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val sakRepo: ObjectRepo by lazy {
+        DatabaseBuilder.build(EmbeddedDatabase.instance())
+    }
 
     @Test
     fun `henter sak for sak id`() {
@@ -112,16 +125,44 @@ internal class SakRoutesKtTest {
 
     @Test
     fun `stopp utbetalinger`() {
-        val nySak = sakRepo.opprettSak(Fnr(sakFnr01))
+        val sakId = UUID.randomUUID()
+
+        val stoppbehandling = Stoppbehandling.Simulert(
+            id = UUID.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = sakId,
+            utbetaling = Utbetaling(
+                id = UUID30.randomUUID(),
+                opprettet = Instant.EPOCH,
+                simulering = null,
+                kvittering = null,
+                oppdragsmelding = null,
+                utbetalingslinjer = listOf(),
+                avstemmingId = null
+            ),
+            stoppÅrsak = "stoppÅrsak",
+            saksbehandler = Saksbehandler(id = "saksbehandler")
+        )
+
+        val sakMock = mock<Sak> {
+            on { stoppUtbetalinger(any(), any(), any()) } doReturn stoppbehandling.right()
+        }
+        val objectRepoMock = mock<ObjectRepo> {
+            on { hentSak(sakId) } doReturn sakMock
+        }
 
         withTestApplication({
-            testSusebakover()
+
+            testSusebakover(databaseRepo = objectRepoMock)
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/${nySak.id}/stopp-utbetalinger") {}.apply {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/stopp-utbetalinger") {}.apply {
                 response.status() shouldBe OK
-                val behandling = objectMapper.readValue<StoppbehandlingJson>(response.content!!)
-                behandling.sakId shouldBe nySak.id.toString()
-                behandling.status shouldBe "SIMULERT"
+                objectMapper.readValue<StoppbehandlingJson>(response.content!!) shouldBe StoppbehandlingJson(
+                    id = stoppbehandling.id.toString(),
+                    opprettet = stoppbehandling.opprettet,
+                    sakId = sakId.toString(),
+                    status = stoppbehandling.status
+                )
             }
         }
     }

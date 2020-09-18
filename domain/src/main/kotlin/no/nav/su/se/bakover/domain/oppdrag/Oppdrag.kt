@@ -15,6 +15,7 @@ data class Oppdrag(
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
+
     fun sisteUtbetaling() = utbetalinger.toList()
         .sortedWith(Utbetaling.Opprettet)
         .lastOrNull() { it.erUtbetalt() }

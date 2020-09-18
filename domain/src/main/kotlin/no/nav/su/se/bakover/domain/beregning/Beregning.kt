@@ -49,7 +49,6 @@ data class Beregning(
                 fom = it.value.minByOrNull { it.fom }!!.fom,
                 tom = it.value.maxByOrNull { it.tom }!!.tom,
                 beløp = it.key,
-                sats = it.value.first().sats // TODO: Forventer at denne må skrives om uansett
             )
         }
 
@@ -64,5 +63,4 @@ data class BeregningsPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val beløp: Int,
-    val sats: Sats
 )

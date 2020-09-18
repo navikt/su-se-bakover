@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 class StoppbehandlingFactory(
@@ -23,13 +23,19 @@ class StoppbehandlingFactory(
         saksbehandler: Saksbehandler,
         stoppÅrsak: String,
     ): Either<SimuleringFeilet, Stoppbehandling.Simulert> {
+
+        val sisteUtbetaling = sak.oppdrag.sisteUtbetaling()!!
+        require(sisteUtbetaling.erNullUtbetaling()) {
+            "Kan ikke stoppbehandle siden forrige behandling var en stoppbehandling."
+        }
+        // TODO validere: Sjekk at vi har faktiske utbetalinger som kan stoppes
+        val firstDayNextMonth = idag().with(TemporalAdjusters.firstDayOfNextMonth())
         val utbetalingTilSimulering = sak.oppdrag.generererUtbetaling(
             beregningsperioder = listOf(
-                BeregningsPeriode( // TODO jah: Gjør litt mer bevisste valg rundt disse verdiene
-                    fom = idag(),
-                    tom = idag().plusYears(1),
+                BeregningsPeriode(
+                    fom = firstDayNextMonth,
+                    tom = sisteUtbetaling.sisteUtbetalingslinje()!!.tom,
                     beløp = 0,
-                    sats = Sats.HØY
                 )
             )
         )

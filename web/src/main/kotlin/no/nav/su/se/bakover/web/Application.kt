@@ -8,7 +8,6 @@ import com.ibm.msg.client.wmq.WMQConstants
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.application.log
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -60,6 +59,8 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitter
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
 import java.time.Clock
@@ -95,7 +96,12 @@ internal fun Application.susebakover(
             }
         }
     },
+    stoppbehandlingFactory: StoppbehandlingFactory = StoppbehandlingFactory(clients.simuleringClient, Clock.systemUTC())
+
 ) {
+    // Application er allerede reservert av Ktor
+    val log: Logger = LoggerFactory.getLogger("su-se-bakover")
+
     val søknadRoutesMediator = SøknadRouteMediator(
         repo = databaseRepo,
         pdfGenerator = clients.pdfGenerator,
@@ -189,7 +195,7 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(StoppbehandlingFactory(clients.simuleringClient, Clock.systemUTC()), databaseRepo)
+            sakRoutes(stoppbehandlingFactory, databaseRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepo,
