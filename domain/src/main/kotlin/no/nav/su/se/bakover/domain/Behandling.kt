@@ -42,7 +42,7 @@ data class Behandling(
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID,
-    private val hendelseslogg: Hendelseslogg? = null
+    private val hendelseslogg: Hendelseslogg? = null,
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
@@ -63,6 +63,13 @@ data class Behandling(
     fun utbetaling() = utbetaling
 
     fun hendelser() = hendelseslogg?.hendelser()
+
+    fun getUtledetSatsBeløp() : Int? {
+        if(status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET){
+            return this.behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
+        }
+        return null
+    }
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
