@@ -13,5 +13,7 @@ create table if not exists stoppbehandling
     stoppÅrsak    text
         not null,
     saksbehandler text
-        not null
+        not null,
+    attestant text
+        null
 );
