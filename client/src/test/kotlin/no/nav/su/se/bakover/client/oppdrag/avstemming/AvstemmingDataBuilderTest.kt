@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
@@ -91,6 +92,37 @@ internal class AvstemmingDataBuilderTest {
             ),
         ).build() shouldBe expected
     }
+
+    @Test
+    fun `kast exception inkonsistens i data`() {
+        assertThrows<IllegalStateException> {
+            AvstemmingDataBuilder(
+                Avstemming(
+                    fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    utbetalinger = alleUtbetalinger() + listOf(Utbetaling(utbetalingslinjer = emptyList(), fnr = fnr)),
+                    avstemmingXmlRequest = null
+                ),
+            ).build()
+        }
+
+        assertThrows<IllegalStateException> {
+            AvstemmingDataBuilder(
+                Avstemming(
+                    fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    utbetalinger = alleUtbetalinger() + listOf(
+                        Utbetaling(
+                            utbetalingslinjer = emptyList(),
+                            fnr = fnr,
+                            oppdragsmelding = Oppdragsmelding(status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL, "")
+                        )
+                    ),
+                    avstemmingXmlRequest = null
+                ),
+            ).build()
+        }
+    }
 }
 
 private val zoneId = ZoneId.of("Europe/Oslo")
@@ -125,6 +157,7 @@ fun lagUtbetaling(
         utbetalingslinjer = linjer,
         fnr = fnr
     )
+
 val fnr = Fnr("12345678910")
 val ok1Id = UUID30.randomUUID()
 val ok2Id = UUID30.randomUUID()

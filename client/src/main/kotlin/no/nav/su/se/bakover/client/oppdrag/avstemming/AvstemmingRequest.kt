@@ -60,7 +60,9 @@ data class AvstemmingDataRequest(
         val manglerAntall: Int,
         val manglerBelop: BigDecimal,
         val manglerFortegn: Fortegn
-    )
+    ) {
+        fun totaltAntall() = godkjentAntall + varselAntall + avvistAntall + manglerAntall
+    }
 
     data class Detaljdata(
         val detaljType: Detaljtype,

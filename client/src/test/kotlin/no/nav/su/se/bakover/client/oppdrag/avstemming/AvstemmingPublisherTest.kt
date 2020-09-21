@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -41,7 +42,8 @@ class AvstemmingPublisherTest {
         utbetalinger = listOf(
             Utbetaling(
                 utbetalingslinjer = listOf(),
-                fnr = Fnr("12345678910")
+                fnr = Fnr("12345678910"),
+                oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "")
             )
         )
     )

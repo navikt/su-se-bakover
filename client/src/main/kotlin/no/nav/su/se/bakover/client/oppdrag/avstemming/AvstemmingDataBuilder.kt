@@ -30,6 +30,13 @@ class AvstemmingDataBuilder(
             ),
             grunnlag = GrunnlagBuilder(utbetalinger).build(),
             detalj = DetaljBuilder(utbetalinger).build()
-        )
+        ).also {
+            it.sanityCheck()
+        }
+    }
+
+    private fun AvstemmingDataRequest.sanityCheck() {
+        check(this.total?.totalAntall == this.grunnlag.totaltAntall()) { "Totaldata og grunnlag er uenige om totalt antall utbetalinger!" }
+        check(this.grunnlag.avvistAntall + this.grunnlag.manglerAntall + this.grunnlag.varselAntall == this.detalj.size) { "Det skal eksistere detaljer for alle utbetalinger med avvist/mangler/varsel" }
     }
 }
