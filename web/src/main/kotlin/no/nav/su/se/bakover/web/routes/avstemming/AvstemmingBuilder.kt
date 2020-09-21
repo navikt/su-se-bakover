@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -30,7 +31,7 @@ class AvstemmingBuilder(
         val twoDaysAgo = LocalDate.now(clock).atStartOfDay().minusDays(2).toInstant(ZoneOffset.UTC)
         fun build() = when (sisteAvstemming) {
             null -> AvstemmingsPeriode(
-                fom = Instant.EPOCH,
+                fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
                 tom = twoDaysAgo
             )
             else -> AvstemmingsPeriode(
