@@ -18,7 +18,7 @@ data class Oppdrag(
 
     fun sisteUtbetaling() = utbetalinger.toList()
         .sortedWith(Utbetaling.Opprettet)
-        .lastOrNull() { it.erUtbetalt() }
+        .lastOrNull { it.erKvittertOk() }
 
     fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
 

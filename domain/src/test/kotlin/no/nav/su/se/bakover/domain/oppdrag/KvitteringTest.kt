@@ -9,8 +9,8 @@ internal class KvitteringTest {
         val k1 = Kvittering(utbetalingsstatus = Kvittering.Utbetalingsstatus.OK, originalKvittering = "")
         val k2 = Kvittering(utbetalingsstatus = Kvittering.Utbetalingsstatus.OK_MED_VARSEL, originalKvittering = "")
         val k3 = Kvittering(utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL, originalKvittering = "")
-        k1.erUtbetalt() shouldBe true
-        k2.erUtbetalt() shouldBe true
-        k3.erUtbetalt() shouldBe false
+        k1.erKvittertOk() shouldBe true
+        k2.erKvittertOk() shouldBe true
+        k3.erKvittertOk() shouldBe false
     }
 }

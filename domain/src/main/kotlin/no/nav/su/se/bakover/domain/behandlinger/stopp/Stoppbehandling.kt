@@ -3,10 +3,7 @@ package no.nav.su.se.bakover.domain.behandlinger.stopp
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
-import no.nav.su.se.bakover.domain.PersistenceObserver
-import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.Saksbehandler
-import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling.StoppbehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -20,7 +17,7 @@ import java.util.UUID
  * Behandling for midlertidig stopp av ytelsen(e). Det er mulig å starte den igjen etter dette.
  * Den første versjonen stopper alle aktive utbetalinger (de som ikke er utbetalt enda).
  */
-sealed class Stoppbehandling : PersistentDomainObject<StoppbehandlingPersistenceObserver>() {
+sealed class Stoppbehandling {
     abstract val id: UUID
     abstract val opprettet: Instant
     abstract val sakId: UUID
@@ -93,11 +90,5 @@ sealed class Stoppbehandling : PersistentDomainObject<StoppbehandlingPersistence
         }
 
         override val status = STATUS
-    }
-
-    interface StoppbehandlingPersistenceObserver : PersistenceObserver {
-        // fun hentOppdrag(sakId: UUID): Oppdrag
-        // fun hentFnr(sakId: UUID): Fnr
-        // fun attester(behandlingId: UUID, attestant: Attestant): Attestant
     }
 }

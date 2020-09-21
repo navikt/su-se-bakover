@@ -15,7 +15,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.web.toUUID
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
-    stoppbehandlingFactory: StoppbehandlingFactory,
+    stoppbehandlingFactory: StoppbehandlingService,
     sakRepo: ObjectRepo
 ) {
     get(sakPath) {

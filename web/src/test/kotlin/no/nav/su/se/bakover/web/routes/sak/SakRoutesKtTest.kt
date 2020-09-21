@@ -17,6 +17,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingRepo
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
@@ -39,7 +41,7 @@ internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
     private val sakRepo: ObjectRepo by lazy {
-        DatabaseBuilder.build(EmbeddedDatabase.instance())
+        DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
     }
 
     @Test
@@ -153,7 +155,7 @@ internal class SakRoutesKtTest {
 
         withTestApplication({
 
-            testSusebakover(databaseRepo = objectRepoMock)
+            testSusebakover(databaseRepos = DatabaseRepos(objectRepoMock, mock<StoppbehandlingRepo>()))
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/stopp-utbetalinger") {}.apply {
                 response.status() shouldBe OK

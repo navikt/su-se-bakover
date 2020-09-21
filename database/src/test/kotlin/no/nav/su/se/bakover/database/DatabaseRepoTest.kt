@@ -23,12 +23,10 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
@@ -550,40 +548,9 @@ internal class DatabaseRepoTest {
         }
     }
 
-    @Test
-    fun `opprett og hent Stoppbehandling`() {
-        withMigratedDb {
-            val behandlingId = UUID.randomUUID()
-            val sak = insertSak(FNR)
-            val utbetaling = Utbetaling(
-                opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                utbetalingslinjer = emptyList()
-            )
-            repo.opprettUtbetaling(
-                oppdragId = sak.oppdrag.id,
-                utbetaling = utbetaling
-            )
-
-            val nyBehandling = Stoppbehandling.Simulert(
-                id = behandlingId,
-                opprettet = Instant.EPOCH,
-                sakId = sak.id,
-                utbetaling = utbetaling,
-                stoppÅrsak = "stoppÅrsak",
-                saksbehandler = Saksbehandler(id = "saksbehandler")
-            )
-            repo.nyStoppbehandling(
-                nyBehandling
-            )
-            repo.hentPågåendeStoppbehandling(sak.id) shouldBe nyBehandling
-        }
-    }
-
     private fun sakPersistenceObserver() = object : SakPersistenceObserver {
         override fun nySøknad(sakId: UUID, søknad: Søknad) = throw NotImplementedError()
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = throw NotImplementedError()
-        override fun nyStoppbehandling(nyBehandling: Stoppbehandling.Simulert) = throw NotImplementedError()
-        override fun hentPågåendeStoppbehandling(sakId: UUID) = throw NotImplementedError()
     }
 
     private fun voidObserver() = object : VoidObserver {}

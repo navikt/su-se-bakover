@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingRepo
 import javax.sql.DataSource
 
 object DatabaseBuilder {
-    fun build(): ObjectRepo {
+    fun build(): DatabaseRepos {
         val databaseName = Config.databaseName
-        val datasource = Postgres(
+        val abstractDatasource = Postgres(
             jdbcUrl = Config.jdbcUrl,
             vaultMountPath = Config.vaultMountPath,
             databaseName = databaseName,
@@ -14,13 +16,27 @@ object DatabaseBuilder {
             password = "pwd"
         ).build()
 
-        Flyway(datasource.getDatasource(Postgres.Role.Admin), databaseName).migrate()
+        Flyway(abstractDatasource.getDatasource(Postgres.Role.Admin), databaseName).migrate()
 
-        return DatabaseRepo(datasource.getDatasource(Postgres.Role.User))
+        val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
+        val objectRepo = DatabaseRepo(userDatastore)
+        return DatabaseRepos(
+            objectRepo = objectRepo,
+            stoppbehandlingRepo = StoppbehandlingJdbcRepo(userDatastore, objectRepo)
+        )
     }
 
-    fun build(embeddedDatasource: DataSource): ObjectRepo {
+    fun build(embeddedDatasource: DataSource): DatabaseRepos {
         Flyway(embeddedDatasource, "postgres").migrate()
-        return DatabaseRepo(embeddedDatasource)
+        val objectRepo = DatabaseRepo(embeddedDatasource)
+        return DatabaseRepos(
+            objectRepo = objectRepo,
+            stoppbehandlingRepo = StoppbehandlingJdbcRepo(embeddedDatasource, objectRepo)
+        )
     }
 }
+
+data class DatabaseRepos(
+    val objectRepo: ObjectRepo,
+    val stoppbehandlingRepo: StoppbehandlingRepo
+)

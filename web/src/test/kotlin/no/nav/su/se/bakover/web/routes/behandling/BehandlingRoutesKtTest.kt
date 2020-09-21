@@ -44,7 +44,7 @@ import java.util.UUID
 
 internal class BehandlingRoutesKtTest {
 
-    private val repo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repo = DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
 
     @Test
     fun `henter en behandling`() {

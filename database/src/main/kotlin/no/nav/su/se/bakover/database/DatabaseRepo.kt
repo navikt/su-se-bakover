@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -15,10 +14,8 @@ import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
@@ -48,8 +45,7 @@ internal class DatabaseRepo(
     BehandlingPersistenceObserver,
     OppdragPersistenceObserver,
     UtbetalingPersistenceObserver,
-    HendelsesloggPersistenceObserver,
-    Stoppbehandling.StoppbehandlingPersistenceObserver {
+    HendelsesloggPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
@@ -304,8 +300,6 @@ internal class DatabaseRepo(
                 row.toBehandling(session)
             }
 
-    private fun Row.uuid(name: String) = UUID.fromString(string(name))
-    private fun Row.uuid30(name: String) = UUID30.fromString(string(name))
     private fun Row.toBehandling(session: Session): Behandling {
         val behandlingId = uuid("id")
         return Behandling(
@@ -326,23 +320,9 @@ internal class DatabaseRepo(
 
     private fun String.oppdatering(params: Map<String, Any?>) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) {
-            it.run(
-                queryOf(
-                    this,
-                    params
-                ).asUpdate
-            )
+            this.oppdatering(params, it)
         }
     }
-
-    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): T? =
-        session.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle)
-
-    private fun <T> String.hentListe(
-        params: Map<String, Any> = emptyMap(),
-        session: Session,
-        rowMapping: (Row) -> T
-    ): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 
     override fun hentBeregning(behandlingId: UUID): Beregning? =
         using(sessionOf(dataSource)) { hentBeregningInternal(behandlingId, it) }
@@ -621,83 +601,6 @@ internal class DatabaseRepo(
             hendelser = stringOrNull("hendelser")?.let { HendelseListReader.readValue(it) } ?: mutableListOf()
         ).also {
             it.addObserver(this@DatabaseRepo)
-        }
-    }
-
-    override fun nyStoppbehandling(nyBehandling: Stoppbehandling.Simulert) =
-        "insert into stoppbehandling (id, opprettet, sakId, status, utbetaling, stoppÅrsak, saksbehandler) values (:id, :opprettet, :sakId, :status, :utbetaling, :stoppArsak, :saksbehandler)".oppdatering(
-            params = mapOf(
-                "id" to nyBehandling.id,
-                "opprettet" to nyBehandling.opprettet,
-                "sakId" to nyBehandling.sakId,
-                "status" to nyBehandling.status,
-                "utbetaling" to nyBehandling.utbetaling.id.toString(),
-                "stoppArsak" to nyBehandling.stoppÅrsak,
-                "saksbehandler" to nyBehandling.saksbehandler.id,
-            )
-        ).let {
-            nyBehandling.addObserver(this)
-            nyBehandling
-        }
-
-    override fun hentPågåendeStoppbehandling(sakId: UUID): Stoppbehandling? {
-        return using(sessionOf(dataSource)) { session ->
-            val behandlinger =
-                "select * from stoppbehandling where sakId=:sakId and status != '${Stoppbehandling.Iverksatt.STATUS}'".hentListe(
-                    params = mapOf(
-                        "sakId" to sakId
-                    ),
-                    session = session
-                ) {
-                    it.toStoppbehandling()
-                }
-            when (behandlinger.size) {
-                0 -> null
-                1 -> behandlinger[0]
-                // TODO jah: Alert
-                else -> throw IllegalStateException("Databasen inneholder mer enn en pågående stoppbehandling.")
-            }
-        }
-    }
-
-    private fun Row.toStoppbehandling() = this.string("status").let { status ->
-
-        val id = uuid("id")
-        val opprettet = instant("opprettet")
-        val sakId = uuid("sakId")
-        val utbetaling = hentUtbetaling(uuid30("utbetaling"))!!
-        val stoppÅrsak = string("stoppÅrsak")
-        val saksbehandler = Saksbehandler(string("saksbehandler"))
-
-        when (status) {
-            Stoppbehandling.Simulert.STATUS -> Stoppbehandling.Simulert(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-            )
-            Stoppbehandling.TilAttestering.STATUS -> Stoppbehandling.TilAttestering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-            )
-            Stoppbehandling.Iverksatt.STATUS -> Stoppbehandling.Iverksatt(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-                attestant = Attestant(string("attestant"))
-            )
-            else -> throw IllegalStateException("Ukjent Stoppbehandlingsstatus=$status")
-        }.apply {
-            addObserver(this@DatabaseRepo)
         }
     }
 }

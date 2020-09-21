@@ -40,10 +40,10 @@ import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingFactory
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -85,7 +85,7 @@ private val jmsContext: JMSContext by lazy {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
-    databaseRepo: ObjectRepo = DatabaseBuilder.build(),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
@@ -96,14 +96,18 @@ internal fun Application.susebakover(
             }
         }
     },
-    stoppbehandlingFactory: StoppbehandlingFactory = StoppbehandlingFactory(clients.simuleringClient, Clock.systemUTC())
+    stoppbehandlingFactory: StoppbehandlingService = StoppbehandlingService(
+        simuleringClient = clients.simuleringClient,
+        clock = Clock.systemUTC(),
+        stoppbehandlingRepo = databaseRepos.stoppbehandlingRepo
+    )
 
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
 
     val søknadRoutesMediator = SøknadRouteMediator(
-        repo = databaseRepo,
+        repo = databaseRepos.objectRepo,
         pdfGenerator = clients.pdfGenerator,
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
@@ -195,10 +199,10 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(stoppbehandlingFactory, databaseRepo)
+            sakRoutes(stoppbehandlingFactory, databaseRepos.objectRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
-                repo = databaseRepo,
+                repo = databaseRepos.objectRepo,
                 brevService = BrevService(
                     pdfGenerator = clients.pdfGenerator,
                     personOppslag = clients.personOppslag,
@@ -210,7 +214,7 @@ internal fun Application.susebakover(
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
-            avstemmingRoutes(databaseRepo, clients.avstemmingPublisher)
+            avstemmingRoutes(databaseRepos.objectRepo, clients.avstemmingPublisher)
         }
     }
     if (!Config.isLocalOrRunningTests) {
@@ -218,7 +222,7 @@ internal fun Application.susebakover(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                repo = databaseRepo
+                repo = databaseRepos.objectRepo
             )
         )
         AvstemmingKvitteringIbmMqConsumer(
