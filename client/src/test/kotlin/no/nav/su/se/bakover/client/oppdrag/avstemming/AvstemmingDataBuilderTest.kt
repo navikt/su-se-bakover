@@ -61,19 +61,19 @@ internal class AvstemmingDataBuilderTest {
             detalj = listOf(
                 AvstemmingDataRequest.Detaljdata(
                     detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
-                    offnr = "123456789010",
+                    offnr = "12345678910",
                     avleverendeTransaksjonNokkel = okMedVarselId.toString(),
                     tidspunkt = "2020-03-02-00.00.00.000000"
                 ),
                 AvstemmingDataRequest.Detaljdata(
                     detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.AVVIST,
-                    offnr = "123456789010",
+                    offnr = "12345678910",
                     avleverendeTransaksjonNokkel = feildId.toString(),
                     tidspunkt = "2020-03-01-00.00.00.000000"
                 ),
                 AvstemmingDataRequest.Detaljdata(
                     detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
-                    offnr = "123456789010",
+                    offnr = "12345678910",
                     avleverendeTransaksjonNokkel = manglerKvitteringId.toString(),
                     tidspunkt = "2020-03-02-00.00.00.000000"
                 )
@@ -123,9 +123,9 @@ fun lagUtbetaling(
         },
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
-        fnr = Fnr("12345678910")
+        fnr = fnr
     )
-
+val fnr = Fnr("12345678910")
 val ok1Id = UUID30.randomUUID()
 val ok2Id = UUID30.randomUUID()
 val okMedVarselId = UUID30.randomUUID()

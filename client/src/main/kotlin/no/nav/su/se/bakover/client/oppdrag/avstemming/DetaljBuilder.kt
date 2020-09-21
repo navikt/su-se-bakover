@@ -15,7 +15,7 @@ class DetaljBuilder(
         .map {
             Detaljdata(
                 detaljType = mapStatus(it),
-                offnr = "123456789010", // TODO
+                offnr = it.fnr.toString(),
                 avleverendeTransaksjonNokkel = it.id.toString(),
                 tidspunkt = it.opprettet.toOppdragTimestamp()
             )
