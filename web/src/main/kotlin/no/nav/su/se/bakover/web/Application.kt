@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.behandllinger.stopp.stoppbehandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -199,7 +200,7 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(stoppbehandlingService, databaseRepos.objectRepo)
+            sakRoutes(databaseRepos.objectRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepos.objectRepo,
@@ -215,6 +216,7 @@ internal fun Application.susebakover(
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
             avstemmingRoutes(databaseRepos.objectRepo, clients.avstemmingPublisher)
+            stoppbehandlingRoutes(stoppbehandlingService, databaseRepos.objectRepo)
         }
     }
     if (!Config.isLocalOrRunningTests) {
