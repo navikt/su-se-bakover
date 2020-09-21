@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.web.toUUID
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
-    stoppbehandlingFactory: StoppbehandlingService,
+    stoppbehandlingService: StoppbehandlingService,
     sakRepo: ObjectRepo
 ) {
     get(sakPath) {
@@ -72,7 +72,7 @@ internal fun Route.sakRoutes(
         call.withSak(sakRepo) { sak ->
             call.svar(
                 sak.stoppUtbetalinger(
-                    stoppbehandlingFactory = stoppbehandlingFactory,
+                    stoppbehandlingService = stoppbehandlingService,
                     saksbehandler = Saksbehandler(id = "saksbehandler"),
                     stoppÅrsak = "Årsaken til stoppen er ..."
                 ).fold(

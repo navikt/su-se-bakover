@@ -52,11 +52,11 @@ data class Sak(
      * Hvis en pågående finnes returneres den istedet.
      */
     fun stoppUtbetalinger(
-        stoppbehandlingFactory: StoppbehandlingService,
+        stoppbehandlingService: StoppbehandlingService,
         saksbehandler: Saksbehandler,
         stoppÅrsak: String
     ): Either<StoppbehandlingService.KunneIkkeOppretteStoppbehandling, Stoppbehandling> {
-        return stoppbehandlingFactory.stoppUtbetalinger(this, saksbehandler, stoppÅrsak).mapLeft {
+        return stoppbehandlingService.stoppUtbetalinger(this, saksbehandler, stoppÅrsak).mapLeft {
             StoppbehandlingService.KunneIkkeOppretteStoppbehandling
         }
     }

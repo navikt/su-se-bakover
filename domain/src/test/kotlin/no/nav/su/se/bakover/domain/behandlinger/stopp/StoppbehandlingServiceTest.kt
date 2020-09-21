@@ -127,14 +127,14 @@ internal class StoppbehandlingServiceTest {
         val uuidFactoryMock = mock<UUIDFactory> {
             on { newUUID() } doReturn simulertStoppbehandlingId
         }
-        val stoppbehandlingFactory = StoppbehandlingService(
+        val service = StoppbehandlingService(
             simuleringClient = simuleringClientMock,
             clock = clock,
             uuidFactory = uuidFactoryMock,
             stoppbehandlingRepo = stoppbehandlingRepoMock
         )
 
-        stoppbehandlingFactory.stoppUtbetalinger(
+        service.stoppUtbetalinger(
             sak = eksisterendeSak,
             saksbehandler = saksbehandler,
             stoppÅrsak = stoppÅrsak

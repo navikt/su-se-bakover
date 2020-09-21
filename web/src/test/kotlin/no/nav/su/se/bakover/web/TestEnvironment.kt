@@ -48,14 +48,14 @@ internal fun Application.testSusebakover(
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    stoppbehandlingFactory: StoppbehandlingService = mock()
+    stoppbehandlingService: StoppbehandlingService = mock()
 ) {
     return susebakover(
         databaseRepos = databaseRepos,
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        stoppbehandlingFactory = stoppbehandlingFactory
+        stoppbehandlingService = stoppbehandlingService
     )
 }
 

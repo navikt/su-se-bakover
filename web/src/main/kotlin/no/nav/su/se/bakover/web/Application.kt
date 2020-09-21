@@ -96,7 +96,7 @@ internal fun Application.susebakover(
             }
         }
     },
-    stoppbehandlingFactory: StoppbehandlingService = StoppbehandlingService(
+    stoppbehandlingService: StoppbehandlingService = StoppbehandlingService(
         simuleringClient = clients.simuleringClient,
         clock = Clock.systemUTC(),
         stoppbehandlingRepo = databaseRepos.stoppbehandlingRepo
@@ -199,7 +199,7 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(stoppbehandlingFactory, databaseRepos.objectRepo)
+            sakRoutes(stoppbehandlingService, databaseRepos.objectRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepos.objectRepo,
