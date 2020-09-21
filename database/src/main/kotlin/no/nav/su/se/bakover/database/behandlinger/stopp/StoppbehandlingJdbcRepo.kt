@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo.Status.Companion.toStatus
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.uuid
@@ -27,7 +28,7 @@ class StoppbehandlingJdbcRepo(
                     "id" to nyBehandling.id,
                     "opprettet" to nyBehandling.opprettet,
                     "sakId" to nyBehandling.sakId,
-                    "status" to nyBehandling.status,
+                    "status" to nyBehandling.toStatus().value,
                     "utbetaling" to nyBehandling.utbetaling.id.toString(),
                     "stoppArsak" to nyBehandling.stoppÅrsak,
                     "saksbehandler" to nyBehandling.saksbehandler.id,
@@ -58,42 +59,64 @@ class StoppbehandlingJdbcRepo(
         }
     }
 
-    private fun Row.toStoppbehandling() = this.string("status").let { status ->
+    private fun Row.toStoppbehandling() = this.string("status")
+        .let { Status.fromString(it) }
+        .let { status ->
+            val id = uuid("id")
+            val opprettet = instant("opprettet")
+            val sakId = uuid("sakId")
+            val utbetaling = objectRepo.hentUtbetaling(uuid30("utbetaling"))!!
+            val stoppÅrsak = string("stoppÅrsak")
+            val saksbehandler = Saksbehandler(string("saksbehandler"))
 
-        val id = uuid("id")
-        val opprettet = instant("opprettet")
-        val sakId = uuid("sakId")
-        val utbetaling = objectRepo.hentUtbetaling(uuid30("utbetaling"))!!
-        val stoppÅrsak = string("stoppÅrsak")
-        val saksbehandler = Saksbehandler(string("saksbehandler"))
+            when (status) {
+                Status.SIMULERT -> Stoppbehandling.Simulert(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    utbetaling = utbetaling,
+                    stoppÅrsak = stoppÅrsak,
+                    saksbehandler = saksbehandler,
+                )
+                Status.TIL_ATTESTERING -> Stoppbehandling.TilAttestering(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    utbetaling = utbetaling,
+                    stoppÅrsak = stoppÅrsak,
+                    saksbehandler = saksbehandler,
+                )
+                Status.IVERKSATT -> Stoppbehandling.Iverksatt(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    utbetaling = utbetaling,
+                    stoppÅrsak = stoppÅrsak,
+                    saksbehandler = saksbehandler,
+                    attestant = Attestant(string("attestant"))
+                )
+            }
+        }
 
-        when (status) {
-            Stoppbehandling.Simulert.STATUS -> Stoppbehandling.Simulert(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-            )
-            Stoppbehandling.TilAttestering.STATUS -> Stoppbehandling.TilAttestering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-            )
-            Stoppbehandling.Iverksatt.STATUS -> Stoppbehandling.Iverksatt(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                utbetaling = utbetaling,
-                stoppÅrsak = stoppÅrsak,
-                saksbehandler = saksbehandler,
-                attestant = Attestant(string("attestant"))
-            )
-            else -> throw IllegalStateException("Ukjent Stoppbehandlingsstatus=$status")
+    private enum class Status(val value: String) {
+        SIMULERT("SIMULERT"),
+        TIL_ATTESTERING("TIL_ATTESTERING"),
+        IVERKSATT("IVERKSATT");
+
+        override fun toString() = value
+
+        companion object {
+            private val legalValues = values().joinToString { it.value }
+
+            fun fromString(value: String): Status = values().firstOrNull {
+                it.value == value
+            } ?: throw IllegalStateException("Ukjent Stoppbehandlingsstatus $value, gyldige verdier: $legalValues")
+
+            fun Stoppbehandling.toStatus():Status = when(this) {
+                is Stoppbehandling.Simulert -> SIMULERT
+                is Stoppbehandling.TilAttestering -> TIL_ATTESTERING
+                is Stoppbehandling.Iverksatt -> IVERKSATT
+            }
         }
     }
 }
