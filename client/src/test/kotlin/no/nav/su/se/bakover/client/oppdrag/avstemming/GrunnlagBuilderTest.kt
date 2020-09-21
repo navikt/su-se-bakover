@@ -38,9 +38,9 @@ internal class GrunnlagBuilderTest {
         GrunnlagBuilder(
             listOf(
                 lagUtbetaling(
-                    1.mars(2020),
-                    Kvittering.Utbetalingsstatus.OK,
-                    listOf(
+                    opprettet = 1.mars(2020),
+                    status = Kvittering.Utbetalingsstatus.OK,
+                    linjer = listOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
                     )
                 )
@@ -62,16 +62,16 @@ internal class GrunnlagBuilderTest {
         GrunnlagBuilder(
             listOf(
                 lagUtbetaling(
-                    1.mars(2020),
-                    Kvittering.Utbetalingsstatus.OK,
-                    listOf(
+                    opprettet = 1.mars(2020),
+                    status = Kvittering.Utbetalingsstatus.OK,
+                    linjer = listOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
                     )
                 ),
                 lagUtbetaling(
-                    1.mars(2020),
-                    Kvittering.Utbetalingsstatus.FEIL,
-                    listOf(
+                    opprettet = 1.mars(2020),
+                    status = Kvittering.Utbetalingsstatus.FEIL,
+                    linjer = listOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), -1000),
                     )
                 )

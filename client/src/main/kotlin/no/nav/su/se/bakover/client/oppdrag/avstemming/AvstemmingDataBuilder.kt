@@ -29,7 +29,7 @@ class AvstemmingDataBuilder(
                 datoAvstemtTom = avstemming.tom.toAvstemmingsdatoFormat()
             ),
             grunnlag = GrunnlagBuilder(utbetalinger).build(),
-            detalj = listOf()
+            detalj = DetaljBuilder(utbetalinger).build()
         )
     }
 }

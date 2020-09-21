@@ -57,7 +57,26 @@ internal class AvstemmingDataBuilderTest {
                 manglerBelop = BigDecimal(5000),
                 manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
-            detalj = emptyList()
+            detalj = listOf(
+                AvstemmingDataRequest.Detaljdata(
+                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
+                    offnr = "123456789010",
+                    avleverendeTransaksjonNokkel = okMedVarselId.toString(),
+                    tidspunkt = "2020-03-02-00.00.00.000000"
+                ),
+                AvstemmingDataRequest.Detaljdata(
+                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.AVVIST,
+                    offnr = "123456789010",
+                    avleverendeTransaksjonNokkel = feildId.toString(),
+                    tidspunkt = "2020-03-01-00.00.00.000000"
+                ),
+                AvstemmingDataRequest.Detaljdata(
+                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
+                    offnr = "123456789010",
+                    avleverendeTransaksjonNokkel = manglerKvitteringId.toString(),
+                    tidspunkt = "2020-03-02-00.00.00.000000"
+                )
+            )
         )
 
         AvstemmingDataBuilder(
@@ -84,12 +103,14 @@ fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetaling
 )
 
 fun lagUtbetaling(
+    id: UUID30 = UUID30.randomUUID(),
     opprettet: LocalDate,
     status: Kvittering.Utbetalingsstatus?,
-    linjer: List<Utbetalingslinje>
+    linjer: List<Utbetalingslinje>,
+    oppdragsmelding: Oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding")
 ) =
     Utbetaling(
-        id = UUID30.randomUUID(),
+        id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
         simulering = null,
         kvittering = status?.let {
@@ -99,40 +120,49 @@ fun lagUtbetaling(
                 mottattTidspunkt = now()
             )
         },
-        oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding"),
+        oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer
     )
 
+val ok1Id = UUID30.randomUUID()
+val ok2Id = UUID30.randomUUID()
+val okMedVarselId = UUID30.randomUUID()
+val feildId = UUID30.randomUUID()
+val manglerKvitteringId = UUID30.randomUUID()
 fun alleUtbetalinger() = listOf(
     lagUtbetaling(
-        1.mars(2020),
-        Kvittering.Utbetalingsstatus.OK,
-        listOf(
+        id = ok1Id,
+        opprettet = 1.mars(2020),
+        status = Kvittering.Utbetalingsstatus.OK,
+        linjer = listOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
         )
     ),
     lagUtbetaling(
-        1.mars(2020),
-        Kvittering.Utbetalingsstatus.OK,
-        listOf(
+        id = ok2Id,
+        opprettet = 1.mars(2020),
+        status = Kvittering.Utbetalingsstatus.OK,
+        linjer = listOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
         )
     ),
     lagUtbetaling(
-        2.mars(2020),
-        Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-        listOf(
+        id = okMedVarselId,
+        opprettet = 2.mars(2020),
+        status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
+        linjer = listOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
             lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
         )
     ),
     lagUtbetaling(
-        1.mars(2020),
-        Kvittering.Utbetalingsstatus.FEIL,
-        listOf(
+        id = feildId,
+        opprettet = 1.mars(2020),
+        status = Kvittering.Utbetalingsstatus.FEIL,
+        linjer = listOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
             lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
@@ -140,9 +170,10 @@ fun alleUtbetalinger() = listOf(
         )
     ),
     lagUtbetaling(
-        2.mars(2020),
-        null,
-        listOf(
+        id = manglerKvitteringId,
+        opprettet = 2.mars(2020),
+        status = null,
+        linjer = listOf(
             lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000)
         )
     )
