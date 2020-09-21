@@ -79,7 +79,8 @@ internal class PersonRoutesKtTest {
                     },
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
-                    "adressebeskyttelse": null
+                    "adressebeskyttelse": null,
+                    "skjermet": false
                 }
             """.trimIndent()
 

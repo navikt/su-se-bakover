@@ -30,7 +30,8 @@ object PersonOppslagStub :
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
-        adressebeskyttelse = null
+        adressebeskyttelse = null,
+        skjermet = false
     ).right()
 
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
