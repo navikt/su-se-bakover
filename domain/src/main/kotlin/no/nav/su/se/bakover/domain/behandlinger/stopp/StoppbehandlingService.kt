@@ -63,7 +63,6 @@ class StoppbehandlingService(
             NyUtbetaling(
                 oppdrag = sak.oppdrag,
                 utbetaling = utbetalingTilSimulering,
-                oppdragGjelder = sak.fnr,
                 attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
             )
         ).map { simulering ->

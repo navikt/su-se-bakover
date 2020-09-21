@@ -15,6 +15,7 @@
     "OPPGAVE_URL": "http://oppgave.q2.svc.nais.local",
     "DOKDIST_URL": "http://dokdistfordeling.q2.svc.nais.local",
     "SIMULERING_URL": "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding",
-    "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/"
+    "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/",
+    "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local"
   }
 }

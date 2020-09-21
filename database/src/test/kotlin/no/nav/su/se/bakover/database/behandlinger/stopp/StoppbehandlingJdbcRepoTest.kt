@@ -27,7 +27,8 @@ internal class StoppbehandlingJdbcRepoTest {
             val sak = generalRepo.opprettSak(FNR)
             val utbetaling = Utbetaling(
                 opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                utbetalingslinjer = emptyList()
+                utbetalingslinjer = emptyList(),
+                fnr = FNR
             )
             generalRepo.opprettUtbetaling(
                 oppdragId = sak.oppdrag.id,

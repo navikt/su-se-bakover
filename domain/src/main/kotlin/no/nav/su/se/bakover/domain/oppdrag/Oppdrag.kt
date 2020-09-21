@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
@@ -15,6 +16,8 @@ data class Oppdrag(
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
+
+    val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     fun sisteUtbetaling() = utbetalinger.toList()
         .sortedWith(Utbetaling.Opprettet)
@@ -33,7 +36,8 @@ data class Oppdrag(
                 )
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
-            }
+            },
+            fnr = fnr
         )
     }
 
@@ -49,5 +53,6 @@ data class Oppdrag(
     interface OppdragPersistenceObserver : PersistenceObserver {
         fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
         fun slettUtbetaling(utbetaling: Utbetaling)
+        fun hentFnr(sakId: UUID): Fnr
     }
 }

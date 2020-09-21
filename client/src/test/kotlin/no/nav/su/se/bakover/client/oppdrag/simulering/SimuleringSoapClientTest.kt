@@ -39,7 +39,6 @@ internal class SimuleringSoapClientTest {
     private val nyUtbetaling = NyUtbetaling(
         oppdrag = createOppdrag(),
         utbetaling = createUtbetaling(),
-        oppdragGjelder = FNR,
         attestant = Attestant("A123456")
     )
 
@@ -177,7 +176,8 @@ internal class SimuleringSoapClientTest {
                 beløp = 405,
                 forrigeUtbetalingslinjeId = null
             )
-        )
+        ),
+        fnr = Fnr("12345678910")
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

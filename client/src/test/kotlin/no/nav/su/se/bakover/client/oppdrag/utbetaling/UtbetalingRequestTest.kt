@@ -58,7 +58,8 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
-            )
+            ),
+            fnr = FNR
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -128,7 +129,6 @@ internal class UtbetalingRequestTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
-                oppdragGjelder = FNR,
                 attestant = Attestant("A123456")
             )
         )
@@ -155,7 +155,8 @@ internal class UtbetalingRequestTest {
                             beløp = BELØP,
                             forrigeUtbetalingslinjeId = null,
                         )
-                    )
+                    ),
+                    fnr = FNR
                 )
             )
         )
@@ -179,13 +180,13 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )
-            )
+            ),
+            fnr = FNR
         )
         val utbetalingRequest = toUtbetalingRequest(
             nyUtbetaling = NyUtbetaling(
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
-                oppdragGjelder = FNR,
                 attestant = Attestant("A123456")
             )
         )

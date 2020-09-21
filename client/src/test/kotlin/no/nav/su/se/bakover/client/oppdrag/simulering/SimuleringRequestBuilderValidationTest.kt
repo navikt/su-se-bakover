@@ -23,7 +23,8 @@ import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 
 internal class SimuleringRequestBuilderValidationTest {
-    val jaxbContext = JAXBContext.newInstance(no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest::class.java)
+    val jaxbContext =
+        JAXBContext.newInstance(no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest::class.java)
     val marshaller = jaxbContext.createMarshaller().apply {
         setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
     }
@@ -49,9 +50,9 @@ internal class SimuleringRequestBuilderValidationTest {
                             beløp = 10,
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                         )
-                    )
+                    ),
+                    fnr = Fnr("12345678910")
                 ),
-                oppdragGjelder = Fnr("01010198765"),
                 attestant = Attestant("A123456")
             )
         ).build().request
@@ -63,6 +64,9 @@ internal class SimuleringRequestBuilderValidationTest {
 
         val marshaller = marshaller
         marshaller.schema = s
-        marshaller.marshal(JAXBElement(QName("", "request"), SimulerBeregningRequest::class.java, simuleringRequest), DefaultHandler())
+        marshaller.marshal(
+            JAXBElement(QName("", "request"), SimulerBeregningRequest::class.java, simuleringRequest),
+            DefaultHandler()
+        )
     }
 }

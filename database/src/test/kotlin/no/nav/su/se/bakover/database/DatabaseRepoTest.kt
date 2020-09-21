@@ -340,7 +340,8 @@ internal class DatabaseRepoTest {
             )
 
             val nyUtbetaling = Utbetaling(
-                utbetalingslinjer = nyeLinjer
+                utbetalingslinjer = nyeLinjer,
+                fnr = FNR
             )
 
             repo.opprettUtbetaling(
@@ -503,7 +504,8 @@ internal class DatabaseRepoTest {
                 oppdragId = sak.oppdrag.id,
                 utbetaling = Utbetaling(
                     opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    utbetalingslinjer = emptyList()
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
                 )
             )
             repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
@@ -601,6 +603,10 @@ internal class DatabaseRepoTest {
         override fun slettUtbetaling(utbetaling: Utbetaling) {
             throw NotImplementedError()
         }
+
+        override fun hentFnr(sakId: UUID): Fnr {
+            return FNR
+        }
     }
 
     private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
@@ -662,7 +668,8 @@ internal class DatabaseRepoTest {
     private fun insertUtbetaling(oppdragId: UUID30) = repo.opprettUtbetaling(
         oppdragId = oppdragId,
         utbetaling = Utbetaling(
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = FNR
         )
     )
 

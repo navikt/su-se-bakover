@@ -40,6 +40,7 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
+    val fnr = Fnr(sakFnr01)
     private val sakRepo: ObjectRepo by lazy {
         DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
     }
@@ -109,7 +110,8 @@ internal class SakRoutesKtTest {
 
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
-        val nySak = sakRepo.opprettSak(Fnr(sakFnr01))
+
+        val nySak = sakRepo.opprettSak(fnr)
         val nySøknad = nySak.nySøknad(SøknadInnholdTestdataBuilder.build())
 
         withTestApplication({
@@ -140,7 +142,8 @@ internal class SakRoutesKtTest {
                 kvittering = null,
                 oppdragsmelding = null,
                 utbetalingslinjer = listOf(),
-                avstemmingId = null
+                avstemmingId = null,
+                fnr = fnr
             ),
             stoppÅrsak = "stoppÅrsak",
             saksbehandler = Saksbehandler(id = "saksbehandler")

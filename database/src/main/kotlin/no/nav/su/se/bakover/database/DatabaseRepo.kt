@@ -98,13 +98,14 @@ internal class DatabaseRepo(
 
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         """
-            insert into utbetaling (id, opprettet, oppdragId)
-            values (:id, :opprettet, :oppdragId)
+            insert into utbetaling (id, opprettet, oppdragId, fnr)
+            values (:id, :opprettet, :oppdragId, :fnr)
          """.oppdatering(
             mapOf(
                 "id" to utbetaling.id.toString(),
                 "opprettet" to utbetaling.opprettet,
-                "oppdragId" to oppdragId.toString()
+                "oppdragId" to oppdragId.toString(),
+                "fnr" to utbetaling.fnr.toString()
             )
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
@@ -196,7 +197,8 @@ internal class DatabaseRepo(
                 )
             },
             utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
-            avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
+            avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) },
+            fnr = Fnr(string("fnr"))
         ).also {
             it.addObserver(this@DatabaseRepo)
         }

@@ -67,7 +67,8 @@ internal class InntektClientTest : WiremockBase {
             ),
             statsborgerskap = "NOR",
             kjønn = "MANN",
-            adressebeskyttelse = null
+            adressebeskyttelse = null,
+            skjermet = false
 
         ).right()
 

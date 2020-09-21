@@ -53,7 +53,8 @@ internal class StoppbehandlingServiceTest {
             kvittering = null,
             oppdragsmelding = null,
             utbetalingslinjer = listOf(),
-            avstemmingId = null
+            avstemmingId = null,
+            fnr = fnr
         )
         val simulertStoppbehandlingId = UUID.fromString("7b0db8ea-0d77-48e0-a8b5-65dddd44287b")
         val simulertStoppbehandling = Stoppbehandling.Simulert(
@@ -77,6 +78,7 @@ internal class StoppbehandlingServiceTest {
             on { opprettUtbetaling(eq(oppdragId), any()) } doReturn nyUtbetaling.apply {
                 addObserver(utbetalingPersistenceObserverMock)
             }
+            on { hentFnr(sakId) } doReturn fnr
         }
 
         val eksisterendeSak = nySak().copy(
@@ -111,7 +113,8 @@ internal class StoppbehandlingServiceTest {
                                 beløp = 10000
                             )
                         ),
-                        avstemmingId = null
+                        avstemmingId = null,
+                        fnr = fnr
                     )
                 )
             ).apply {

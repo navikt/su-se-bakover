@@ -72,18 +72,18 @@ internal class UtbetalingPublisherTest {
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )
+    private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling(
         opprettet = Instant.EPOCH,
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
-        )
+        ),
+        fnr = fnr
     )
-    private val fnr = Fnr("12345678910")
     private val nyUtbetaling = NyUtbetaling(
         oppdrag = oppdrag,
         utbetaling = utbetaling,
-        oppdragGjelder = fnr,
         attestant = Attestant("A123456")
     )
     private val expected =
