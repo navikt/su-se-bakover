@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats.HØY
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +23,7 @@ internal class OppdragTest {
     private val sakId = UUID.randomUUID()
     private lateinit var oppdrag: Oppdrag
     private lateinit var observer: DummyObserver
-    private val behandlingId = UUID.randomUUID()
+    private val fnr = Fnr("12345678910")
 
     @BeforeEach
     fun beforeEach() {
@@ -80,10 +81,14 @@ internal class OppdragTest {
                             forrigeUtbetalingslinjeId = null,
                             beløp = 5000
                         )
-                    )
+                    ),
+                    fnr = fnr
                 )
             )
-        )
+        ).also {
+            it.addObserver(observer)
+        }
+
         val nyUtbetaling = eksisterendeOppdrag.generererUtbetaling(
             beregningsperioder = listOf(
                 BeregningsPeriode(
@@ -136,7 +141,8 @@ internal class OppdragTest {
                     beløp = 5800,
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id
                 )
-            )
+            ),
+            fnr = fnr
         )
 
         observer.utbetaling shouldBe null
@@ -147,24 +153,28 @@ internal class OppdragTest {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
 
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
 
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
         val fourth = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
 
         val oppdrag = Oppdrag(
@@ -183,6 +193,8 @@ internal class OppdragTest {
 
         override fun slettUtbetaling(utbetaling: Utbetaling) {
         }
+
+        override fun hentFnr(sakId: UUID): Fnr = Fnr("12345678910")
     }
 
     private fun expectedUtbetaling(actual: Utbetaling, oppdragslinjer: List<Utbetalingslinje>): Utbetaling {
@@ -191,6 +203,7 @@ internal class OppdragTest {
             opprettet = actual.opprettet,
             simulering = null,
             utbetalingslinjer = oppdragslinjer,
+            fnr = fnr,
         )
     }
 

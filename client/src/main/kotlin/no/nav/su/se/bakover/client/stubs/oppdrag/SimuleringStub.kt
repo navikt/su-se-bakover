@@ -20,7 +20,7 @@ object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(
         nyUtbetaling: NyUtbetaling
     ): Either<SimuleringFeilet, Simulering> {
-        val (_, utbetaling, simuleringGjelder) = nyUtbetaling
+        val (_, utbetaling) = nyUtbetaling
         val months = 0L until Period.between(utbetaling.utbetalingslinjer.map { it.fom }.minOrNull()!!, utbetaling.utbetalingslinjer.map { it.tom }.maxOrNull()!!.plusDays(1)).toTotalMonths()
         val perioder = months.map {
             val fom = LocalDate.of(2020, Month.of((it + 1L).toInt()), 1)
@@ -33,7 +33,7 @@ object SimuleringStub : SimuleringClient {
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
                         forfall = idag(),
-                        utbetalesTilId = simuleringGjelder,
+                        utbetalesTilId = utbetaling.fnr,
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             createYtelse(fom, tom),
@@ -45,7 +45,7 @@ object SimuleringStub : SimuleringClient {
         }
 
         return Simulering(
-            gjelderId = simuleringGjelder,
+            gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
             nettoBeløp = perioder.sumBy { it.bruttoYtelse() / 2 },

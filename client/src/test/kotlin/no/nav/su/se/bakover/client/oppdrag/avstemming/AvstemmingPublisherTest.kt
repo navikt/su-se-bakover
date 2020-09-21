@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -39,7 +40,8 @@ class AvstemmingPublisherTest {
         tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
         utbetalinger = listOf(
             Utbetaling(
-                utbetalingslinjer = listOf()
+                utbetalingslinjer = listOf(),
+                fnr = Fnr("12345678910")
             )
         )
     )

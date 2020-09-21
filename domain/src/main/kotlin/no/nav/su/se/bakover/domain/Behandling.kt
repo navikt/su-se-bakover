@@ -239,7 +239,6 @@ data class Behandling(
                 NyUtbetaling(
                     oppdrag = oppdrag,
                     utbetaling = utbetalingTilSimulering,
-                    oppdragGjelder = fnr,
                     attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
                 )
             ).map { simulering ->
@@ -301,7 +300,6 @@ data class Behandling(
                     NyUtbetaling(
                         oppdrag = persistenceObserver.hentOppdrag(sakId),
                         utbetaling = utbetaling!!,
-                        oppdragGjelder = fnr,
                         attestant = attestant
                     )
                 ).mapLeft {

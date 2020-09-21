@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -121,7 +122,8 @@ fun lagUtbetaling(
             )
         },
         oppdragsmelding = oppdragsmelding,
-        utbetalingslinjer = linjer
+        utbetalingslinjer = linjer,
+        fnr = Fnr("12345678910")
     )
 
 val ok1Id = UUID30.randomUUID()

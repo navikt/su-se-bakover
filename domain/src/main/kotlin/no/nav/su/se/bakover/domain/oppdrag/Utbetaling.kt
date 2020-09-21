@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -16,7 +17,8 @@ data class Utbetaling(
     private var kvittering: Kvittering? = null,
     private var oppdragsmelding: Oppdragsmelding? = null,
     val utbetalingslinjer: List<Utbetalingslinje>,
-    private var avstemmingId: UUID30? = null
+    private var avstemmingId: UUID30? = null,
+    val fnr: Fnr
 ) : PersistentDomainObject<UtbetalingPersistenceObserver>() {
 
     private val log = LoggerFactory.getLogger(this::class.java)

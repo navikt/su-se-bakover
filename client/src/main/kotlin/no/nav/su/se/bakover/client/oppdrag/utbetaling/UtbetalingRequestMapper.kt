@@ -14,7 +14,7 @@ internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling): UtbetalingRequest 
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
             fagsystemId = nyUtbetaling.oppdrag.id.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
-            oppdragGjelderId = nyUtbetaling.oppdragGjelder.fnr,
+            oppdragGjelderId = nyUtbetaling.utbetaling.fnr.toString(),
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
@@ -35,7 +35,7 @@ internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling): UtbetalingRequest 
                     typeSats = OppdragslinjeDefaults.typeSats,
                     brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
-                    utbetalesTilId = nyUtbetaling.oppdragGjelder.fnr,
+                    utbetalesTilId = nyUtbetaling.utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { nyUtbetaling.oppdrag.id.toString() },
                     attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(nyUtbetaling.attestant.id))

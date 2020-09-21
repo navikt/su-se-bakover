@@ -128,6 +128,7 @@ internal class UtbetalingJsonTest {
                 )
             )
         ),
-        utbetalingslinjer = emptyList()
+        utbetalingslinjer = emptyList(),
+        fnr = FNR
     )
 }

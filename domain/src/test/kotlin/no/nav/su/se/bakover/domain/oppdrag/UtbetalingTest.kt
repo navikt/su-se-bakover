@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -12,23 +13,27 @@ import java.time.ZoneOffset
 internal class UtbetalingTest {
 
     private lateinit var observer: DummyObserver
+    private val fnr = Fnr("12345678910")
 
     @Test
     fun `sorts utbetalinger ascending by opprettet`() {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.APRIL, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-            utbetalingslinjer = emptyList()
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
         )
         val sorted = listOf(first, second, third).sortedWith(Utbetaling.Opprettet)
         sorted shouldContainInOrder listOf(second, first, third)
@@ -44,7 +49,8 @@ internal class UtbetalingTest {
     }
 
     private fun createUtbetaling() = Utbetaling(
-        utbetalingslinjer = emptyList()
+        utbetalingslinjer = emptyList(),
+        fnr = fnr
     ).also {
         observer = DummyObserver()
         it.addObserver(observer)
