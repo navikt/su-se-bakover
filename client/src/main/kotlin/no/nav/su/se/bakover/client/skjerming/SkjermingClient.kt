@@ -19,7 +19,7 @@ internal class SkjermingClient(private val skjermingUrl: String) : Skjerming {
 
         return result.fold(
             {
-                log.info("Hentet skjermingsstatus fra skjermingsregisteret: $it.")
+                log.info("Hentet skjermingsstatus fra skjermingsregisteret")
                 it == "true"
             },
             {
