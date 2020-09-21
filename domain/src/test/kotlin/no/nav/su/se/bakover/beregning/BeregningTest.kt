@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
+import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -176,12 +176,12 @@ internal class BeregningTest {
             fradrag = emptyList()
         )
         b.hentPerioder() shouldBe listOf(
-            BeregningsPeriode(
+            Utbetalingsperiode(
                 fom = 1.januar(2020),
                 tom = 30.april(2020),
                 beløp = 20637,
             ),
-            BeregningsPeriode(
+            Utbetalingsperiode(
                 fom = 1.mai(2020),
                 tom = 31.desember(2020),
                 beløp = 20946,
@@ -199,12 +199,12 @@ internal class BeregningTest {
             fradrag = emptyList()
         )
         b.hentPerioder() shouldBe listOf(
-            BeregningsPeriode(
+            Utbetalingsperiode(
                 fom = 1.januar(2019),
                 tom = 30.april(2019),
                 beløp = 20022,
             ),
-            BeregningsPeriode(
+            Utbetalingsperiode(
                 fom = 1.mai(2019),
                 tom = 31.desember(2019),
                 beløp = 20637,

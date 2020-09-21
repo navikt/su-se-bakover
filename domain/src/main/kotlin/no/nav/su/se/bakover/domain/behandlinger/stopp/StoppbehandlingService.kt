@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService.ValidertStoppbehandling.Companion.validerStoppbehandling
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
+import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -52,7 +52,7 @@ class StoppbehandlingService(
 
         val utbetalingTilSimulering = sak.oppdrag.generererUtbetaling(
             beregningsperioder = listOf(
-                BeregningsPeriode(
+                Utbetalingsperiode(
                     fom = stoppesFraOgMed,
                     tom = stoppesTilOgMed,
                     beløp = 0,

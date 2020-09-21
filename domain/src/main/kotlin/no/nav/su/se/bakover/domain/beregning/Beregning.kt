@@ -45,7 +45,7 @@ data class Beregning(
 
     fun hentPerioder() =
         månedsberegninger.groupBy { it.beløp }.map {
-            BeregningsPeriode(
+            Utbetalingsperiode(
                 fom = it.value.minByOrNull { it.fom }!!.fom,
                 tom = it.value.maxByOrNull { it.tom }!!.tom,
                 beløp = it.key,
@@ -58,9 +58,3 @@ data class Beregning(
         }
     }
 }
-
-data class BeregningsPeriode(
-    val fom: LocalDate,
-    val tom: LocalDate,
-    val beløp: Int,
-)

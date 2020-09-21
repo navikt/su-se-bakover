@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
+import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import java.time.Instant
 import java.util.UUID
@@ -25,7 +25,7 @@ data class Oppdrag(
 
     fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
 
-    fun generererUtbetaling(beregningsperioder: List<BeregningsPeriode>): Utbetaling {
+    fun generererUtbetaling(beregningsperioder: List<Utbetalingsperiode>): Utbetaling {
         return Utbetaling(
             utbetalingslinjer = beregningsperioder.map {
                 Utbetalingslinje(

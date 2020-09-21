@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.BeregningsPeriode
+import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -36,7 +36,7 @@ internal class OppdragTest {
     fun `ingen eksisterende utbetalinger`() {
         val actual = oppdrag.generererUtbetaling(
             beregningsperioder = listOf(
-                BeregningsPeriode(
+                Utbetalingsperiode(
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
                     beløp = 5600,
@@ -89,17 +89,17 @@ internal class OppdragTest {
 
         val nyUtbetaling = eksisterendeOppdrag.generererUtbetaling(
             beregningsperioder = listOf(
-                BeregningsPeriode(
+                Utbetalingsperiode(
                     fom = 1.januar(2020),
                     tom = 31.mai(2020),
                     beløp = 5600,
                 ),
-                BeregningsPeriode(
+                Utbetalingsperiode(
                     fom = 1.juni(2020),
                     tom = 31.august(2020),
                     beløp = 5700,
                 ),
-                BeregningsPeriode(
+                Utbetalingsperiode(
                     fom = 1.september(2020),
                     tom = 31.desember(2020),
                     beløp = 5800,

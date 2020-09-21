@@ -112,7 +112,7 @@ class StoppbehandlingJdbcRepo(
                 it.value == value
             } ?: throw IllegalStateException("Ukjent Stoppbehandlingsstatus $value, gyldige verdier: $legalValues")
 
-            fun Stoppbehandling.toStatus():Status = when(this) {
+            fun Stoppbehandling.toStatus(): Status = when (this) {
                 is Stoppbehandling.Simulert -> SIMULERT
                 is Stoppbehandling.TilAttestering -> TIL_ATTESTERING
                 is Stoppbehandling.Iverksatt -> IVERKSATT
