@@ -66,7 +66,7 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
         }
 
         for (f in fradrag) {
-            if (f.type == Fradragstype.Arbeidsinntekt && arbeidsInntektTotalt > forventetInntekt) {
+            if (f.type == Fradragstype.Arbeidsinntekt && arbeidsInntektTotalt >= forventetInntekt) {
                 newFradrag.add(f)
             } else if (f.type != Fradragstype.Arbeidsinntekt) {
                 newFradrag.add(f)
