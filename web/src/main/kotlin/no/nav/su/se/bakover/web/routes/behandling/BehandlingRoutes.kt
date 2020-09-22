@@ -113,9 +113,9 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    get("$behandlingPath/{behandlingId}/utledetSatsBeløp") {
+    get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
         call.withBehandling(repo) { behandling ->
-           call.respondText { behandling.getUtledetSatsBeløp().toString() }
+            call.svar(OK.utledetSatsJsonBody(behandling))
         }
     }
 
