@@ -27,7 +27,8 @@ internal class BeregningJsonTest {
                 "tom":"2020-08-31",
                 "sats":"HØY",
                 "månedsberegninger": [$expectedMånedsberegningJson],
-                "fradrag": []
+                "fradrag": [],
+                "forventetInntekt": 0
             }
         """
 
@@ -38,7 +39,8 @@ internal class BeregningJsonTest {
             tom = LocalDate.of(2020, Month.AUGUST, 31),
             sats = Sats.HØY,
             månedsberegninger = mutableListOf(månedsberegning),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 0
         )
     }
 

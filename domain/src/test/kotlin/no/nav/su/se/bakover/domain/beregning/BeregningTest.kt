@@ -21,7 +21,8 @@ internal class BeregningTest {
             fom = fom,
             tom = fom.plusMonths(1).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         oneMonth.månedsberegninger shouldHaveSize 1
 
@@ -29,7 +30,8 @@ internal class BeregningTest {
             fom = fom,
             tom = fom.plusMonths(3).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         threeMonths.månedsberegninger shouldHaveSize 3
 
@@ -37,7 +39,8 @@ internal class BeregningTest {
             fom = fom,
             tom = fom.plusMonths(12).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         twelweMonths.månedsberegninger shouldHaveSize 12
     }
@@ -50,7 +53,8 @@ internal class BeregningTest {
                 fom = fom,
                 tom = fom.plusMonths(3),
                 sats = Sats.HØY,
-                fradrag = emptyList()
+                fradrag = emptyList(),
+                forventetInntekt = 500
             )
         }
 
@@ -60,7 +64,8 @@ internal class BeregningTest {
                 fom = fom,
                 tom = LocalDate.of(2020, Month.JANUARY, 24),
                 sats = Sats.HØY,
-                fradrag = emptyList()
+                fradrag = emptyList(),
+                forventetInntekt = 500
             )
         }
 
@@ -70,7 +75,8 @@ internal class BeregningTest {
                 fom = fom,
                 tom = fom.minusMonths(3),
                 sats = Sats.HØY,
-                fradrag = emptyList()
+                fradrag = emptyList(),
+                forventetInntekt = 500
             )
         }
     }
@@ -88,7 +94,8 @@ internal class BeregningTest {
                     fradrag = 0
                 )
             ),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         beregning.månedsberegninger shouldHaveSize 1
     }
@@ -100,21 +107,24 @@ internal class BeregningTest {
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         val second = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toInstant(ZoneOffset.UTC),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         val third = Beregning(
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toInstant(ZoneOffset.UTC),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 500
         )
         val beregninger = listOf(
             first,
@@ -135,7 +145,8 @@ internal class BeregningTest {
             fradrag = listOf(
                 Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
                 Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
-            )
+            ),
+            forventetInntekt = 500
         )
         b.månedsberegninger.forEach { it.fradrag shouldBe 1100 }
     }
@@ -151,7 +162,8 @@ internal class BeregningTest {
                 fradrag = listOf(
                     Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
                     Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)
-                )
+                ),
+                forventetInntekt = 500
             )
         }.also { it.message shouldContain "negativ" }
     }

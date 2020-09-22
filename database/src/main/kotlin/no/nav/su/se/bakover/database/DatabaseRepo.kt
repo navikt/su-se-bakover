@@ -341,7 +341,8 @@ internal class DatabaseRepo(
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
         månedsberegninger = hentMånedsberegninger(uuid("id"), session),
-        fradrag = hentFradrag(uuid("id"), session)
+        fradrag = hentFradrag(uuid("id"), session),
+        forventetInntekt = hentBehandling(uuid("id"))?.behandlingsinformasjon()?.uførhet?.forventetInntekt ?: 0
     )
 
     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
