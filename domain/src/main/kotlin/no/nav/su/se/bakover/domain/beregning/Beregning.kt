@@ -24,7 +24,7 @@ data class Beregning(
         require(tom.dayOfMonth == tom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
         require(fom.isBefore(tom)) { "Startdato ($fom) for beregning må være tidligere enn sluttdato ($tom)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
-        require(forventetInntekt > 0) {"Forventet inntekt kan ikke være negativ"}
+        require(forventetInntekt >= 0) {"Forventet inntekt kan ikke være negativ"}
     }
 
     companion object {
