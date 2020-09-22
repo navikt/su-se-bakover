@@ -65,7 +65,10 @@ data class Behandling(
     fun hendelser() = hendelseslogg?.hendelser()
 
     fun getUtledetSatsBeløp(): Int? {
-        if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET) {
+        if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
+            status == BehandlingsStatus.BEREGNET ||
+            status == BehandlingsStatus.SIMULERT
+        ) {
             return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
         }
         return null
