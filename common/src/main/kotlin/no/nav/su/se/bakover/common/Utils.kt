@@ -18,7 +18,7 @@ fun Int.september(year: Int) = LocalDate.of(year, Month.SEPTEMBER, this)
 fun Int.oktober(year: Int) = LocalDate.of(year, Month.OCTOBER, this)
 fun Int.november(year: Int) = LocalDate.of(year, Month.NOVEMBER, this)
 fun Int.desember(year: Int) = LocalDate.of(year, Month.DECEMBER, this)
-fun idag() = LocalDate.now()
+fun idag(clock: Clock = Clock.systemUTC()) = LocalDate.now(clock)
 
 // TODO brukbart? - truncate for samme format som databasen har?
 fun now(clock: Clock = Clock.systemUTC()): Instant = Instant.now(clock).truncatedTo(ChronoUnit.MILLIS)

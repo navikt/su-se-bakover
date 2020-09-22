@@ -43,26 +43,9 @@ data class Beregning(
         }
     }
 
-    fun hentPerioder() =
-        månedsberegninger.groupBy { it.beløp }.map {
-            BeregningsPeriode(
-                fom = it.value.minByOrNull { it.fom }!!.fom,
-                tom = it.value.maxByOrNull { it.tom }!!.tom,
-                beløp = it.key,
-                sats = it.value.first().sats // TODO: Forventer at denne må skrives om uansett
-            )
-        }
-
     object Opprettet : Comparator<Beregning> {
         override fun compare(o1: Beregning?, o2: Beregning?): Int {
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
     }
 }
-
-data class BeregningsPeriode(
-    val fom: LocalDate,
-    val tom: LocalDate,
-    val beløp: Int,
-    val sats: Sats
-)

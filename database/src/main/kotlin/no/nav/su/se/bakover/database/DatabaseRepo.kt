@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
@@ -97,7 +96,7 @@ internal class DatabaseRepo(
             session
         ) { it.toUtbetaling(session) }
 
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling, behandlingId: UUID): Utbetaling {
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         """
             insert into utbetaling (id, opprettet, oppdragId, fnr)
             values (:id, :opprettet, :oppdragId, :fnr)
@@ -303,8 +302,6 @@ internal class DatabaseRepo(
                 row.toBehandling(session)
             }
 
-    private fun Row.uuid(name: String) = UUID.fromString(string(name))
-    private fun Row.uuid30(name: String) = UUID30.fromString(string(name))
     private fun Row.toBehandling(session: Session): Behandling {
         val behandlingId = uuid("id")
         return Behandling(
@@ -325,23 +322,9 @@ internal class DatabaseRepo(
 
     private fun String.oppdatering(params: Map<String, Any?>) {
         using(sessionOf(dataSource, returnGeneratedKey = true)) {
-            it.run(
-                queryOf(
-                    this,
-                    params
-                ).asUpdate
-            )
+            this.oppdatering(params, it)
         }
     }
-
-    private fun <T> String.hent(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): T? =
-        session.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle)
-
-    private fun <T> String.hentListe(
-        params: Map<String, Any> = emptyMap(),
-        session: Session,
-        rowMapping: (Row) -> T
-    ): List<T> = session.run(queryOf(this, params).map { row -> rowMapping(row) }.asList)
 
     override fun hentBeregning(behandlingId: UUID): Beregning? =
         using(sessionOf(dataSource)) { hentBeregningInternal(behandlingId, it) }

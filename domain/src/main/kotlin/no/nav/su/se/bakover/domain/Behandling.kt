@@ -234,7 +234,7 @@ data class Behandling(
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!.hentPerioder())
+            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!)
             return simuleringClient.simulerUtbetaling(
                 NyUtbetaling(
                     oppdrag = oppdrag,
@@ -243,7 +243,7 @@ data class Behandling(
                 )
             ).map { simulering ->
                 utbetaling?.let { slettEksisterendeUtbetaling(oppdrag, it) }
-                this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering, id).also {
+                this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
                     it.addSimulering(simulering)
                     persistenceObserver.leggTilUtbetaling(id, it.id)
                 }

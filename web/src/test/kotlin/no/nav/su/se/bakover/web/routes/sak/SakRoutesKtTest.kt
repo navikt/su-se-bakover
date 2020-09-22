@@ -9,12 +9,11 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
-
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
-
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -28,7 +27,10 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val sakRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    val fnr = Fnr(sakFnr01)
+    private val sakRepo: ObjectRepo by lazy {
+        DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
+    }
 
     @Test
     fun `henter sak for sak id`() {
@@ -95,7 +97,8 @@ internal class SakRoutesKtTest {
 
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
-        val nySak = sakRepo.opprettSak(Fnr(sakFnr01))
+
+        val nySak = sakRepo.opprettSak(fnr)
         val nySøknad = nySak.nySøknad(SøknadInnholdTestdataBuilder.build())
 
         withTestApplication({

@@ -640,7 +640,7 @@ internal class BehandlingTest {
         override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         }
 
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling, behandlingId: UUID): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
             return utbetaling.also { it.addObserver(this) }
         }
 

@@ -39,7 +39,7 @@ internal class SøknadRoutesKtTest {
     )
 
     private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-    private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
 
     @Test
     fun `lagrer og henter søknad`() {

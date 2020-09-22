@@ -19,7 +19,6 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.slf4j.MDC
 
 internal class InntektClientTest : WiremockBase {
 
@@ -90,7 +89,6 @@ internal class InntektClientTest : WiremockBase {
 
     @BeforeEach
     fun setup() {
-        MDC.put("X-Correlation-ID", "some UUID")
         wireMockServer.stubFor(
             WireMock.post(WireMock.urlPathEqualTo("/inntekt"))
                 .willReturn(WireMock.okJson("""{}"""))

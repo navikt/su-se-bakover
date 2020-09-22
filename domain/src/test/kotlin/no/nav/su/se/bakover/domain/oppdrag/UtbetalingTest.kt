@@ -69,17 +69,17 @@ internal class UtbetalingTest {
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
             it.erKvittert() shouldBe true
-            it.erUtbetalt() shouldBe true
+            it.erKvittertOk() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""))
             it.erKvittert() shouldBe true
-            it.erUtbetalt() shouldBe true
+            it.erKvittertOk() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().also {
             it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""))
             it.erKvittert() shouldBe true
-            it.erUtbetalt() shouldBe false
+            it.erKvittertOk() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
     }
 

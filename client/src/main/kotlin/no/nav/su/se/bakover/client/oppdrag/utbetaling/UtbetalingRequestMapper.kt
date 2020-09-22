@@ -10,7 +10,7 @@ internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling): UtbetalingRequest 
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = if (nyUtbetaling.oppdrag.sisteUtbetaling() != null) UtbetalingRequest.KodeEndring.ENDRING else UtbetalingRequest.KodeEndring.NY,
+            kodeEndring = if (nyUtbetaling.oppdrag.sisteOversendteUtbetaling() != null) UtbetalingRequest.KodeEndring.ENDRING else UtbetalingRequest.KodeEndring.NY,
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
             fagsystemId = nyUtbetaling.oppdrag.id.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,

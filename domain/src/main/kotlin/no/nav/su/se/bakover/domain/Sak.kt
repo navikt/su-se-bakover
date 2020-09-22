@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.behandlinger.stopp.Stoppbehandling
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Instant
 import java.util.UUID
@@ -13,7 +16,9 @@ data class Sak(
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     val oppdrag: Oppdrag,
 ) : PersistentDomainObject<SakPersistenceObserver>() {
+
     private val observers: MutableList<SakObserver> = mutableListOf()
+
     fun addObserver(observer: SakObserver) = observers.add(observer)
 
     fun søknader() = søknader.toList()
@@ -40,6 +45,20 @@ data class Sak(
         val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad, sakId = id))
         behandlinger.add(behandling)
         return behandling
+    }
+
+    /**
+     * Idempotent. Oppretter en ny stopp behandling dersom det ikke finnes en pågående.
+     * Hvis en pågående finnes returneres den istedet.
+     */
+    fun stoppUtbetalinger(
+        stoppbehandlingService: StoppbehandlingService,
+        saksbehandler: Saksbehandler,
+        stoppÅrsak: String
+    ): Either<StoppbehandlingService.KunneIkkeOppretteStoppbehandling, Stoppbehandling> {
+        return stoppbehandlingService.stoppUtbetalinger(this, saksbehandler, stoppÅrsak).mapLeft {
+            StoppbehandlingService.KunneIkkeOppretteStoppbehandling
+        }
     }
 }
 

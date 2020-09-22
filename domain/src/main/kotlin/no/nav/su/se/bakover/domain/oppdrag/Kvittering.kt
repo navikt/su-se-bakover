@@ -19,6 +19,10 @@ data class Kvittering(
         FEIL
     }
 
-    fun erUtbetalt() = setOf(Utbetalingsstatus.OK, Utbetalingsstatus.OK_MED_VARSEL)
+    /**
+     * Hvis denne er true har OS/oppdrag akseptert/registrert oppdraget/utbetalingen/utbetalingslinjene.
+     * Dette betyr ikke at brukeren har fått noen penger på konto eller ikke, men kan ha fått det eller vil sannsynligvis få det en gang i fremtiden.
+     */
+    fun erKvittertOk() = setOf(Utbetalingsstatus.OK, Utbetalingsstatus.OK_MED_VARSEL)
         .contains(utbetalingsstatus)
 }

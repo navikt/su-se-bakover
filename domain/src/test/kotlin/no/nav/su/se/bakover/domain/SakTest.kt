@@ -3,19 +3,20 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.util.UUID
 
 internal class SakTest {
 
-    lateinit var persistenceObserver: PersistenceObserver
-    lateinit var eventObserver: EventObserver
-    lateinit var sak: Sak
+    private val sakId = UUID.randomUUID()
+    private val fnr = Fnr("12345678910")
+
+    private lateinit var persistenceObserver: PersistenceObserver
+    private lateinit var eventObserver: EventObserver
+    private lateinit var sak: Sak
 
     @Test
     fun `should handle nySøknad`() {
@@ -48,47 +49,6 @@ internal class SakTest {
         lateinit var opprettSøknadsbehandlingParams: OpprettSøknadsbehandlingParams
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = behandling.also {
             opprettSøknadsbehandlingParams = OpprettSøknadsbehandlingParams(sakId, behandling)
-            // TODO Possible to avoid?
-            it.addObserver(
-                object : BehandlingPersistenceObserver {
-                    override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-                        throw IllegalStateException()
-                    }
-
-                    override fun deleteBeregninger(behandlingId: UUID) {
-                        throw NotImplementedError()
-                    }
-
-                    override fun oppdaterBehandlingStatus(
-                        behandlingId: UUID,
-                        status: Behandling.BehandlingsStatus
-                    ): Behandling.BehandlingsStatus {
-                        throw NotImplementedError()
-                    }
-
-                    override fun oppdaterBehandlingsinformasjon(
-                        behandlingId: UUID,
-                        behandlingsinformasjon: Behandlingsinformasjon
-                    ): Behandlingsinformasjon {
-                        throw NotImplementedError()
-                    }
-
-                    override fun hentOppdrag(sakId: UUID): Oppdrag {
-                        return Oppdrag(sakId = sakId)
-                    }
-
-                    override fun hentFnr(sakId: UUID): Fnr {
-                        return Fnr("12345678910")
-                    }
-
-                    override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-                        return attestant
-                    }
-
-                    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
-                    }
-                }
-            )
         }
 
         data class NySøknadParams(
@@ -113,10 +73,12 @@ internal class SakTest {
     fun beforeEach() {
         persistenceObserver = PersistenceObserver()
         eventObserver = EventObserver()
-        val sakId = UUID.randomUUID()
-        sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId)).also {
+
+        sak = nySak().also {
             it.addObserver(persistenceObserver)
             it.addObserver(eventObserver)
         }
     }
+
+    private fun nySak() = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
 }

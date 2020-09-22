@@ -1,8 +1,6 @@
-package no.nav.su.se.bakover.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate

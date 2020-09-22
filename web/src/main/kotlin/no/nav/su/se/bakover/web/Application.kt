@@ -8,7 +8,6 @@ import com.ibm.msg.client.wmq.WMQConstants
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.application.log
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -41,11 +40,13 @@ import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
+import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.behandlinger.stopp.stoppbehandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -59,8 +60,11 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitter
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
+import java.time.Clock
 import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
@@ -82,7 +86,7 @@ private val jmsContext: JMSContext by lazy {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
-    databaseRepo: ObjectRepo = DatabaseBuilder.build(),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
@@ -93,9 +97,18 @@ internal fun Application.susebakover(
             }
         }
     },
+    stoppbehandlingService: StoppbehandlingService = StoppbehandlingService(
+        simuleringClient = clients.simuleringClient,
+        clock = Clock.systemUTC(),
+        stoppbehandlingRepo = databaseRepos.stoppbehandlingRepo
+    )
+
 ) {
+    // Application er allerede reservert av Ktor
+    val log: Logger = LoggerFactory.getLogger("su-se-bakover")
+
     val søknadRoutesMediator = SøknadRouteMediator(
-        repo = databaseRepo,
+        repo = databaseRepos.objectRepo,
         pdfGenerator = clients.pdfGenerator,
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
@@ -187,10 +200,10 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(databaseRepo)
+            sakRoutes(databaseRepos.objectRepo)
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
-                repo = databaseRepo,
+                repo = databaseRepos.objectRepo,
                 brevService = BrevService(
                     pdfGenerator = clients.pdfGenerator,
                     personOppslag = clients.personOppslag,
@@ -202,7 +215,8 @@ internal fun Application.susebakover(
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
-            avstemmingRoutes(databaseRepo, clients.avstemmingPublisher)
+            avstemmingRoutes(databaseRepos.objectRepo, clients.avstemmingPublisher)
+            stoppbehandlingRoutes(stoppbehandlingService, databaseRepos.objectRepo)
         }
     }
     if (!Config.isLocalOrRunningTests) {
@@ -210,7 +224,7 @@ internal fun Application.susebakover(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                repo = databaseRepo
+                repo = databaseRepos.objectRepo
             )
         )
         AvstemmingKvitteringIbmMqConsumer(
