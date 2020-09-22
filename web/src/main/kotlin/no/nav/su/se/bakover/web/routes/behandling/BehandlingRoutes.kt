@@ -7,6 +7,7 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.erAttestant
 import no.nav.su.se.bakover.web.lesBehandlerId
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
@@ -161,7 +163,10 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/iverksett") {
-        // TODO authorize attestant
+        if(!call.erAttestant()) {
+            call.svar(Forbidden.message("Du har ikke tillgang."))
+        }
+
         call.withBehandling(repo) { behandling ->
             call.audit("Iverksetter behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
@@ -180,7 +185,10 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/underkjenn") {
-        // TODO authorize attestant
+        if(!call.erAttestant()) {
+            call.svar(Forbidden.message("Du har ikke tillgang."))
+        }
+
         call.withBehandling(repo) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
