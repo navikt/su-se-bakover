@@ -223,7 +223,8 @@ internal class DatabaseRepoTest {
                             type = Fradragstype.AndreYtelser,
                             beløp = 10000
                         )
-                    )
+                    ),
+                    forventetInntekt = 200
                 )
             )
 
@@ -236,7 +237,8 @@ internal class DatabaseRepoTest {
                 fom = 1.januar(2020),
                 tom = 31.desember(2020),
                 sats = Sats.HØY,
-                fradrag = emptyList()
+                fradrag = emptyList(),
+                forventetInntekt = 0
             )
             repo.opprettBeregning(behandling.id, nyBeregning)
 
@@ -690,7 +692,8 @@ internal class DatabaseRepoTest {
             fom = 1.januar(2020),
             tom = 31.desember(2020),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 0
         )
     )
 }

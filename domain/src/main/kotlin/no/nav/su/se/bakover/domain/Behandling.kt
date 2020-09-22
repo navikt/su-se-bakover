@@ -64,9 +64,9 @@ data class Behandling(
 
     fun hendelser() = hendelseslogg?.hendelser()
 
-    fun getUtledetSatsBeløp() : Int? {
-        if(status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET){
-            return this.behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
+    fun getUtledetSatsBeløp(): Int? {
+        if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET) {
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
         }
         return null
     }
@@ -197,13 +197,20 @@ data class Behandling(
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
 
+                val forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
+                    status,
+                    this::opprettBeregning.toString(),
+                    "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
+                )
+
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
                     beregning = Beregning(
                         fom = fom,
                         tom = tom,
                         sats = sats,
-                        fradrag = fradrag
+                        fradrag = fradrag,
+                        forventetInntekt = forventetInntekt
                     )
                 )
                 nyTilstand(Beregnet())
