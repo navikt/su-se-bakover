@@ -202,7 +202,8 @@ internal class OppdragTest {
             tom = 31.desember(2020),
             sats = Sats.HØY,
             opprettet = opprettet,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 0
         )
 
         val actualUtbetaling = oppdrag.generererUtbetaling(b)
