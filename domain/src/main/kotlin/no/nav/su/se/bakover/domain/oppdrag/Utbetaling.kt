@@ -40,6 +40,7 @@ data class Utbetaling(
     fun erOversendtOppdrag() = getOppdragsmelding()?.erSendt() ?: false
     fun erKvittert() = getKvittering() != null
     fun erKvittertOk() = getKvittering()?.erKvittertOk() ?: false
+    fun erKvittertFeil() = getKvittering()?.erKvittertOk() == false
 
     fun addKvittering(kvittering: Kvittering) {
         if (this.kvittering != null) {

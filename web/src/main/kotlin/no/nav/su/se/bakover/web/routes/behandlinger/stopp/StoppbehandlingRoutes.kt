@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.behandllinger.stopp
+package no.nav.su.se.bakover.web.routes.behandlinger.stopp
 
 import arrow.core.Either
 import io.ktor.application.call

@@ -234,7 +234,7 @@ data class Behandling(
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!.hentPerioder())
+            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!)
             return simuleringClient.simulerUtbetaling(
                 NyUtbetaling(
                     oppdrag = oppdrag,

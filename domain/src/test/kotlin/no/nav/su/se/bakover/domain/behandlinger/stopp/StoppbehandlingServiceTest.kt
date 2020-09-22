@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -102,7 +103,7 @@ internal class StoppbehandlingServiceTest {
                             originalKvittering = "<someXml></someXml>",
                             mottattTidspunkt = Instant.EPOCH
                         ),
-                        oppdragsmelding = null,
+                        oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = UUID30.randomUUID(),

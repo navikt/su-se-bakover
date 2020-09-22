@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.behandllinger.stopp
+package no.nav.su.se.bakover.web.routes.behandlinger.stopp
 
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -22,10 +22,12 @@ import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class StoppbehandlingRoutesKtTest {
@@ -36,6 +38,7 @@ internal class StoppbehandlingRoutesKtTest {
     fun `stopp utbetalinger`() {
         val sakId = UUID.randomUUID()
 
+        val stoppÅrsak = "Årsaken til stoppen."
         val stoppbehandling = Stoppbehandling.Simulert(
             id = UUID.randomUUID(),
             opprettet = Instant.EPOCH,
@@ -50,7 +53,7 @@ internal class StoppbehandlingRoutesKtTest {
                 avstemmingId = null,
                 fnr = fnr
             ),
-            stoppÅrsak = "stoppÅrsak",
+            stoppÅrsak = stoppÅrsak,
             saksbehandler = Saksbehandler(id = "saksbehandler")
         )
 
@@ -70,14 +73,21 @@ internal class StoppbehandlingRoutesKtTest {
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stopp") {
-                setBody("""{ "stoppÅrsak": "Årsaken til stoppen." }""")
+                setBody("""{ "stoppÅrsak": "$stoppÅrsak" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 objectMapper.readValue<StoppbehandlingJson>(response.content!!) shouldBe StoppbehandlingJson(
                     id = stoppbehandling.id.toString(),
                     opprettet = stoppbehandling.opprettet,
                     sakId = sakId.toString(),
-                    status = stoppbehandling.status
+                    status = stoppbehandling.status,
+                    utbetaling = UtbetalingJson(
+                        id = stoppbehandling.utbetaling.id.toString(),
+                        opprettet = DateTimeFormatter.ISO_INSTANT.format(stoppbehandling.utbetaling.opprettet),
+                        simulering = null
+                    ),
+                    stoppÅrsak = stoppÅrsak,
+                    saksbehandler = "saksbehandler"
                 )
             }
         }

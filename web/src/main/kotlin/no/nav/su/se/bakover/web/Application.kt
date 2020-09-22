@@ -46,7 +46,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
-import no.nav.su.se.bakover.web.routes.behandllinger.stopp.stoppbehandlingRoutes
+import no.nav.su.se.bakover.web.routes.behandlinger.stopp.stoppbehandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths

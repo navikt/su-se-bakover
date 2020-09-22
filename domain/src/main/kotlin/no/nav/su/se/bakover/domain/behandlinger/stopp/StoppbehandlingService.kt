@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService.ValidertStoppbehandling.Companion.validerStoppbehandling
-import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
@@ -48,10 +48,10 @@ class StoppbehandlingService(
         require(validertStoppbehandling.isValid()) {
             "Kan ikke stoppbehandle: $validertStoppbehandling"
         }
-        val stoppesTilOgMed = sak.oppdrag.sisteUtbetaling()!!.sisteUtbetalingslinje()!!.tom
+        val stoppesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tom
 
         val utbetalingTilSimulering = sak.oppdrag.generererUtbetaling(
-            beregningsperioder = listOf(
+            utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = stoppesFraOgMed,
                     tom = stoppesTilOgMed,
@@ -81,23 +81,19 @@ class StoppbehandlingService(
     }
 
     data class ValidertStoppbehandling(
-        val erKvittertOk: Boolean,
         val harUtbetalingerSomKanStoppes: Boolean,
         val harBeløpOver0: Boolean
     ) {
         companion object {
             fun Oppdrag.validerStoppbehandling(stoppesFraDato: LocalDate) = ValidertStoppbehandling(
-                erKvittertOk = hentUtbetalinger().any { it.erKvittertOk() },
-                harUtbetalingerSomKanStoppes = hentUtbetalinger().flatMap { it.utbetalingslinjer }.any {
-                    it.tom.isEqual(stoppesFraDato) || it.tom.isAfter(stoppesFraDato)
-                },
-                harBeløpOver0 = hentUtbetalinger().flatMap { it.utbetalingslinjer }.any {
+                harUtbetalingerSomKanStoppes = harOversendteUtbetalingerEtter(stoppesFraDato),
+                harBeløpOver0 = sisteOversendteUtbetaling()?.utbetalingslinjer?.any {
                     // TODO jah: I en annen pull-request bør vi utvide en utbetaling til å være en sealed class med de forskjellig typene utbetaling.
                     it.beløp > 0 // Stopputbetalinger vil ha beløp 0. Vi ønsker ikke å stoppe en stopputbetaling.
-                }
+                } ?: true
             )
         }
 
-        fun isValid() = erKvittertOk && harUtbetalingerSomKanStoppes && harBeløpOver0
+        fun isValid() = harUtbetalingerSomKanStoppes && harBeløpOver0
     }
 }

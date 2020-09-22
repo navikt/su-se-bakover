@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -9,11 +10,13 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
 import java.util.UUID
@@ -35,7 +38,7 @@ internal class OppdragTest {
     @Test
     fun `ingen eksisterende utbetalinger`() {
         val actual = oppdrag.generererUtbetaling(
-            beregningsperioder = listOf(
+            utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
                     tom = 31.desember(2020),
@@ -70,6 +73,7 @@ internal class OppdragTest {
             utbetalinger = mutableListOf(
                 Utbetaling(
                     kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+                    oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             id = forrigeUtbetalingslinjeId,
@@ -88,7 +92,7 @@ internal class OppdragTest {
         }
 
         val nyUtbetaling = eksisterendeOppdrag.generererUtbetaling(
-            beregningsperioder = listOf(
+            utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
                     tom = 31.mai(2020),
@@ -147,6 +151,7 @@ internal class OppdragTest {
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr
@@ -154,6 +159,7 @@ internal class OppdragTest {
 
         val second = Utbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr
@@ -161,22 +167,72 @@ internal class OppdragTest {
 
         val third = Utbetaling(
             opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr
         )
         val fourth = Utbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
+            utbetalingslinjer = emptyList(),
+            fnr = fnr
+        )
+        val fifth = Utbetaling(
+            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, ""),
+            kvittering = null,
             utbetalingslinjer = emptyList(),
             fnr = fnr
         )
 
         val oppdrag = Oppdrag(
             sakId = sakId,
-            utbetalinger = mutableListOf(first, second, third, fourth)
+            utbetalinger = mutableListOf(first, second, third, fourth, fifth)
         )
-        oppdrag.sisteUtbetaling() shouldBe third
+        oppdrag.sisteOversendteUtbetaling() shouldBe third
+    }
+
+    @Test
+    fun `konverterer beregning til utbetalingsperioder`() {
+        val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC)
+        val b = Beregning(
+            fom = 1.januar(2020),
+            tom = 31.desember(2020),
+            sats = Sats.HØY,
+            opprettet = opprettet,
+            fradrag = emptyList()
+        )
+
+        val actualUtbetaling = oppdrag.generererUtbetaling(b)
+        actualUtbetaling shouldBe Utbetaling(
+            opprettet = actualUtbetaling.opprettet,
+            kvittering = null,
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[0].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
+                    fom = 1.januar(2020),
+                    tom = 30.april(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20637
+                ),
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[1].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
+                    fom = 1.mai(2020),
+                    tom = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
+                    beløp = 20946
+                )
+            ),
+            fnr = fnr,
+            id = actualUtbetaling.id,
+            simulering = null,
+            oppdragsmelding = null,
+            avstemmingId = null
+        )
     }
 
     private class DummyObserver : Oppdrag.OppdragPersistenceObserver {

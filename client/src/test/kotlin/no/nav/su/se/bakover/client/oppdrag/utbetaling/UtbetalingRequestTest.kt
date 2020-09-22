@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -142,6 +143,7 @@ internal class UtbetalingRequestTest {
             utbetalinger = mutableListOf(
                 Utbetaling(
                     opprettet = Instant.EPOCH,
+                    oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",

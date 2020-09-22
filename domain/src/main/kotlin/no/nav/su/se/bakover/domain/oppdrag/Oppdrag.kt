@@ -5,9 +5,10 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 data class Oppdrag(
@@ -19,19 +20,43 @@ data class Oppdrag(
 
     val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
-    fun sisteUtbetaling() = utbetalinger.toList()
+    // TODO jah: Ved samtidige ikke utbetalte behandlinger vil dette bli et problem.
+    fun sisteOversendteUtbetaling() = utbetalinger.toList()
         .sortedWith(Utbetaling.Opprettet)
-        .lastOrNull { it.erKvittertOk() }
+        // Vi ønsker ikke å filtrere ut de som ikke har kvittering, men vi ønsker å filtrere ut de kvitteringene som har feil i seg.
+        .filter { !it.erKvittertFeil() }
+        .lastOrNull { it.erOversendtOppdrag() }
 
     fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
 
-    fun generererUtbetaling(beregningsperioder: List<Utbetalingsperiode>): Utbetaling {
+    fun harOversendteUtbetalingerEtter(value: LocalDate) = hentUtbetalinger()
+        .filter { !it.erKvittertFeil() }
+        .filter { it.erOversendtOppdrag() }
+        .flatMap { it.utbetalingslinjer }
+        .any {
+            it.tom.isEqual(value) || it.tom.isAfter(value)
+        }
+
+    fun generererUtbetaling(beregning: Beregning): Utbetaling {
+        val utbetalingsperioder = beregning.månedsberegninger
+            .groupBy { it.beløp }
+            .map {
+                Utbetalingsperiode(
+                    fom = it.value.minByOrNull { it.fom }!!.fom,
+                    tom = it.value.maxByOrNull { it.tom }!!.tom,
+                    beløp = it.key,
+                )
+            }
+        return generererUtbetaling(utbetalingsperioder)
+    }
+
+    fun generererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
         return Utbetaling(
-            utbetalingslinjer = beregningsperioder.map {
+            utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(
                     fom = it.fom,
                     tom = it.tom,
-                    forrigeUtbetalingslinjeId = sisteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp
                 )
             }.also {

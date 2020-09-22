@@ -1,20 +1,10 @@
-package no.nav.su.se.bakover.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Utbetalingsperiode
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -164,51 +154,5 @@ internal class BeregningTest {
                 )
             )
         }.also { it.message shouldContain "negativ" }
-    }
-
-    @Test
-    fun `sjekk at beregning av 1 periode fungerer`() {
-        val b = Beregning(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
-            sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
-            fradrag = emptyList()
-        )
-        b.hentPerioder() shouldBe listOf(
-            Utbetalingsperiode(
-                fom = 1.januar(2020),
-                tom = 30.april(2020),
-                beløp = 20637,
-            ),
-            Utbetalingsperiode(
-                fom = 1.mai(2020),
-                tom = 31.desember(2020),
-                beløp = 20946,
-            )
-        )
-    }
-
-    @Test
-    fun `sjekk at beregning av 2 periode fungerer`() {
-        val b = Beregning(
-            fom = 1.januar(2019),
-            tom = 31.desember(2019),
-            sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC),
-            fradrag = emptyList()
-        )
-        b.hentPerioder() shouldBe listOf(
-            Utbetalingsperiode(
-                fom = 1.januar(2019),
-                tom = 30.april(2019),
-                beløp = 20022,
-            ),
-            Utbetalingsperiode(
-                fom = 1.mai(2019),
-                tom = 31.desember(2019),
-                beløp = 20637,
-            )
-        )
     }
 }

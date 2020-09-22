@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning
+package no.nav.su.se.bakover.domain.oppdrag
 
 import java.time.LocalDate
 
