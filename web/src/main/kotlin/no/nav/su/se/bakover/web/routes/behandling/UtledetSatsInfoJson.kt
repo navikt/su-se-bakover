@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.Resultat
 
-
 internal data class UtledetSatsInfoJson(
     val satsBeløp: Int?
 )
