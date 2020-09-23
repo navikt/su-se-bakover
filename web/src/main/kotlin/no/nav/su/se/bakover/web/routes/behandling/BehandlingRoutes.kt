@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -151,7 +152,9 @@ internal fun Route.behandlingRoutes(
                 log.error("Fant ikke aktør-id med gitt fødselsnummer")
                 throw RuntimeException("Kunne ikke finne aktørid")
             }
-            behandling.sendTilAttestering(aktørId, oppgaveClient).fold(
+            val saksBehandler = Saksbehandler(call.lesBehandlerId())
+
+            behandling.sendTilAttestering(aktørId, oppgaveClient, saksBehandler).fold(
                 {
                     call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
                 },

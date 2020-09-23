@@ -7,12 +7,15 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -22,6 +25,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
@@ -33,7 +37,9 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -267,19 +273,20 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("arbitraryId"))
 
             defaultRequest(
                 HttpMethod.Patch,
                 "$sakPath/rubbish/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett"
-            ).apply {
+            handleRequest(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
+                setup()
+            }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
@@ -287,17 +294,35 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
             ).apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+            }
+
+            handleRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
+                setup()
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
+
+            handleRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
+                setup()
+            }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
             }
 
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
-            ).apply {
+            handleRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
+                setup()
+            }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<BehandlingJson>(response.content!!).let {
                     it.attestant shouldBe "enSaksbehandleroid"
                     it.status shouldBe "IVERKSATT_INNVILGET"
+                    it.saksbehandletAv shouldBe "arbitraryId"
                 }
             }
         }
@@ -312,7 +337,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -388,7 +413,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
 
             defaultRequest(
                 HttpMethod.Patch,

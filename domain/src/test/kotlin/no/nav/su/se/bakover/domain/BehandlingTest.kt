@@ -194,7 +194,7 @@ internal class BehandlingTest {
                     it.msg shouldContain "state: OPPRETTET"
                 }
             assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
-            assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
             assertThrows<Behandling.TilstandException> {
                 opprettet.iverksett(
                     Attestant("A123456"),
@@ -251,7 +251,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.iverksett(
                     Attestant("A123456"),
@@ -277,8 +277,11 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne sende til attestering`() {
-            vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub)
+            val saksbehandler = Saksbehandler("S123456")
+            vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
             vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
+
+            vilkårsvurdert.saksbehandletAv() shouldBe saksbehandler
         }
 
         @Test
@@ -361,7 +364,7 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub) }
+            assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
             assertThrows<Behandling.TilstandException> {
                 beregnet.iverksett(
                     Attestant("A123456"),
@@ -390,8 +393,11 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne sende til attestering`() {
-            simulert.sendTilAttestering(aktørId, OppgaveClientStub)
+            val saksbehandler = Saksbehandler("S123456")
+            simulert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+
             simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
+            simulert.saksbehandletAv() shouldBe saksbehandler
         }
 
         @Test
@@ -478,7 +484,8 @@ internal class BehandlingTest {
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             tilAttestering.simuler(SimuleringClientStub)
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -552,7 +559,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(SimuleringClientStub)
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
             }
         }
     }
@@ -567,7 +574,7 @@ internal class BehandlingTest {
             tilAttestering.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -588,7 +595,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(SimuleringClientStub)
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub)
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
             }
         }
     }
@@ -635,6 +642,10 @@ internal class BehandlingTest {
 
         override fun hentFnr(sakId: UUID): Fnr {
             return Fnr("12345678910")
+        }
+
+        override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+            return saksbehandler
         }
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
