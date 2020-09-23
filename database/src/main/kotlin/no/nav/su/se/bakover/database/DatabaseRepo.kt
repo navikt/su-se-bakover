@@ -6,6 +6,7 @@ import kotliquery.Session
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Attestant
@@ -34,12 +35,15 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.time.Clock
 import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 
 internal class DatabaseRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val uuidFactory: UUIDFactory = UUIDFactory(),
+    private val clock: Clock = Clock.systemUTC()
 ) : ObjectRepo,
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
@@ -251,15 +255,16 @@ internal class DatabaseRepo(
     }
 
     override fun opprettSak(fnr: Fnr): Sak {
-        val opprettet = now()
+        val opprettet = now(clock)
         val sakId = UUID.randomUUID()
         val sak = Sak(
             id = sakId,
             fnr = fnr,
             opprettet = opprettet,
             oppdrag = Oppdrag(
-                sakId = sakId,
-                opprettet = opprettet
+                id = uuidFactory.newUUID30(),
+                opprettet = opprettet,
+                sakId = sakId
             )
         )
         """

@@ -146,5 +146,14 @@ internal class StoppbehandlingServiceTest {
         verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(oppdragId), any())
     }
 
-    private fun nySak() = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
+    private fun nySak() = Sak(
+        id = sakId,
+        opprettet = Instant.EPOCH,
+        fnr = fnr,
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = sakId
+        )
+    )
 }

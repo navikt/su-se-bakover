@@ -583,7 +583,11 @@ internal class DatabaseRepoTest {
         }
 
         override fun hentOppdrag(sakId: UUID): Oppdrag {
-            return Oppdrag(sakId = sakId)
+            return Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Instant.EPOCH,
+                sakId = sakId
+            )
         }
 
         override fun hentFnr(sakId: UUID): Fnr {

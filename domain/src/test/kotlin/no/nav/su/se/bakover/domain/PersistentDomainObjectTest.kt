@@ -1,16 +1,26 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import java.time.Instant
 import java.util.UUID
 
 internal class PersistentDomainObjectTest {
     @Test
     fun `throw exception if multiple persistence observers assigned`() {
         val sakId = UUID.randomUUID()
-        val sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId))
+        val sak = Sak(
+            id = sakId,
+            fnr = Fnr("12345678910"),
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Instant.EPOCH,
+                sakId = sakId
+            )
+        )
         assertDoesNotThrow { sak.addObserver(someObserver) }
         assertThrows<PersistenceObserverException> { sak.addObserver(someObserver) }
     }
@@ -18,7 +28,15 @@ internal class PersistentDomainObjectTest {
     @Test
     fun `throw exception if unassigned persistence observer is invoked`() {
         val sakId = UUID.randomUUID()
-        val sak = Sak(id = sakId, fnr = Fnr("12345678910"), oppdrag = Oppdrag(sakId = sakId))
+        val sak = Sak(
+            id = sakId,
+            fnr = Fnr("12345678910"),
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Instant.EPOCH,
+                sakId = sakId
+            )
+        )
         assertThrows<UninitializedPropertyAccessException> { sak.nySøknad(SøknadInnholdTestdataBuilder.build()) }
     }
 
