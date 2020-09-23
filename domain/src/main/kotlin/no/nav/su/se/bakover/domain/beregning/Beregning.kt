@@ -58,10 +58,9 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
 
     val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }
 
-    if(totalArbeidsinntekt > forventetInntekt){
+    if (totalArbeidsinntekt > forventetInntekt) {
         return fradrag
     }
 
     return andreFradrag.plus(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
-
 }
