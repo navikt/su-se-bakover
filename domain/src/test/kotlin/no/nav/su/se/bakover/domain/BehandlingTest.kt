@@ -491,6 +491,16 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `skal ikke kunne attestera sin egen saksbehandling`() {
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+            }
+        }
+
+        @Test
         fun `skal kunne iverksette`() {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe IVERKSATT_INNVILGET
@@ -577,6 +587,16 @@ internal class BehandlingTest {
             tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
             observer.oppdatertStatus shouldBe tilAttestering.status()
+        }
+
+        @Test
+        fun `skal ikke kunne attestera sin egen saksbehandling`() {
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
+            }
+            assertThrows<Behandling.TilstandException> {
+                tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+            }
         }
 
         @Test
