@@ -107,8 +107,8 @@ data class Behandling(
         return tilstand.simuler(simuleringClient)
     }
 
-    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
-        return tilstand.sendTilAttestering(aktørId, oppgave)
+    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
+        return tilstand.sendTilAttestering(aktørId, oppgave, saksbehandler)
     }
 
     fun iverksett(
@@ -144,7 +144,7 @@ data class Behandling(
             throw TilstandException(status, this::simuler.toString())
         }
 
-        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
+        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
@@ -229,13 +229,15 @@ data class Behandling(
 
             override fun sendTilAttestering(
                 aktørId: AktørId,
-                oppgave: OppgaveClient
+                oppgave: OppgaveClient,
+                saksbehandler: Saksbehandler,
             ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
                 OppgaveConfig.Attestering(
                     sakId = sakId.toString(),
                     aktørId = aktørId
                 )
             ).map {
+                this@Behandling.saksbehandletAv = persistenceObserver.saksbehandle(id, saksbehandler)
                 nyTilstand(TilAttestering().Avslag())
                 this@Behandling
             }
@@ -284,13 +286,15 @@ data class Behandling(
 
         override fun sendTilAttestering(
             aktørId: AktørId,
-            oppgave: OppgaveClient
+            oppgave: OppgaveClient,
+            saksbehandler: Saksbehandler
         ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
             OppgaveConfig.Attestering(
                 sakId = sakId.toString(),
                 aktørId = aktørId
             )
         ).map {
+            this@Behandling.saksbehandletAv = persistenceObserver.saksbehandle(id, saksbehandler)
             nyTilstand(TilAttestering().Innvilget())
             this@Behandling
         }
@@ -404,5 +408,6 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
+    fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)
 }

@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VoidObserver
@@ -147,6 +148,20 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.attestant() shouldBe attestant
+        }
+    }
+
+    @Test
+    fun `saksbehandle behandling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            val saksbehandler = repo.saksbehandle(behandling.id, Saksbehandler("Per"))
+            val hentet = repo.hentBehandling(behandling.id)!!
+
+            hentet.saksbehandletAv() shouldBe saksbehandler
         }
     }
 
@@ -723,6 +738,10 @@ internal class DatabaseRepoTest {
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
+        }
+
+        override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+            return saksbehandler
         }
 
         override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {}
