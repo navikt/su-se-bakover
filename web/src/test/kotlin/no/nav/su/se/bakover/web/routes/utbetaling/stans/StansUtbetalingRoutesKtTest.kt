@@ -12,7 +12,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -35,7 +35,16 @@ internal class StansUtbetalingRoutesKtTest {
     val fnr = Fnr("12345678911")
     val sakId = UUID.randomUUID()
     val tidspunkt = Instant.EPOCH
-    val sak = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
+    val sak = Sak(
+        id = sakId,
+        opprettet = Instant.EPOCH,
+        fnr = fnr,
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = sakId
+        )
+    )
     val utbetalingId = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4")
     val nyUtbetaling = Utbetaling(
         id = utbetalingId,
