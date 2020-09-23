@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import SuMetrics
+import ch.qos.logback.classic.util.ContextInitializer
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.ibm.mq.jms.MQConnectionFactory
@@ -69,6 +70,9 @@ import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
+    if (Config.isLocalOrRunningTests) {
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
+    }
     io.ktor.server.netty.EngineMain.main(args)
 }
 
