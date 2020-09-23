@@ -144,6 +144,7 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {
+        // TODO: Short circuit
         call.withBehandling(repo) { behandling ->
             val sak = repo.hentSak(behandling.sakId)!!
             val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
@@ -163,8 +164,8 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/iverksett") {
-        if(!call.erAttestant()) {
-            call.svar(Forbidden.message("Du har ikke tillgang."))
+        if (!call.erAttestant()) {
+            return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
 
         call.withBehandling(repo) { behandling ->
@@ -185,8 +186,8 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/underkjenn") {
-        if(!call.erAttestant()) {
-            call.svar(Forbidden.message("Du har ikke tillgang."))
+        if (!call.erAttestant()) {
+            return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
 
         call.withBehandling(repo) { behandling ->

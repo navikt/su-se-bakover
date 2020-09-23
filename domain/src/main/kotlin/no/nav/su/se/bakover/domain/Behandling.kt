@@ -40,6 +40,7 @@ data class Behandling(
     private var beregning: Beregning? = null,
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
+    private var saksbehandletAv: Saksbehandler? = null,
     private var attestant: Attestant? = null,
     val sakId: UUID,
     private val hendelseslogg: Hendelseslogg? = null,
@@ -48,6 +49,8 @@ data class Behandling(
     private var tilstand: Tilstand = resolve(status)
 
     fun status() = tilstand.status
+
+    fun saksbehandletAv() = saksbehandletAv
 
     fun attestant() = attestant
 
@@ -276,7 +279,7 @@ data class Behandling(
         }
     }
 
-    private inner class Simulert : Behandling.Tilstand {
+    private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
@@ -305,7 +308,7 @@ data class Behandling(
         }
     }
 
-    private open inner class TilAttestering : Behandling.Tilstand {
+    private open inner class TilAttestering : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
         inner class Innvilget : TilAttestering() {
@@ -356,7 +359,7 @@ data class Behandling(
         }
     }
 
-    private open inner class Iverksatt : Behandling.Tilstand {
+    private open inner class Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         inner class Innvilget : Iverksatt()
