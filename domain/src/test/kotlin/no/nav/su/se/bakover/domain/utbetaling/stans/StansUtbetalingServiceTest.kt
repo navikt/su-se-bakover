@@ -83,22 +83,24 @@ internal class StansUtbetalingServiceTest {
             utbetaling = setup.utbetalingUtenSimulering.copy(
                 id = capturedSimuleringArgument.value.utbetaling.id,
                 opprettet = capturedSimuleringArgument.value.utbetaling.opprettet,
-                utbetalingslinjer = listOf(Utbetalingslinje(
-                    id = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].id,
-                    opprettet = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].opprettet,
-                    fom = LocalDate.of(1970, 2, 1),
-                    tom = LocalDate.of(1971, 1, 1),
-                    forrigeUtbetalingslinjeId = setup.existerendeUtbetaling.utbetalingslinjer[0].id,
-                    beløp = 0
-                ))
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        id = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].id,
+                        opprettet = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].opprettet,
+                        fom = LocalDate.of(1970, 2, 1),
+                        tom = LocalDate.of(1971, 1, 1),
+                        forrigeUtbetalingslinjeId = setup.existerendeUtbetaling.utbetalingslinjer[0].id,
+                        beløp = 0
+                    )
+                )
             ),
             Attestant("SU")
         )
         capturedSimuleringArgument.value shouldBe forventetNyUtbetaling
         capturedUtbetalingArgument.value shouldBe forventetNyUtbetaling
 
-        //verify(simuleringClientMock, Times(1)).simulerUtbetaling(NyUtbetaling(oppdrag = setup.eksisterendeOppdrag, utbetaling = setup.utbetaling, Attestant("SU")))
-        //verify(publisherMock, Times(1)).publish(forventetNyUtbetaling)
+        // verify(simuleringClientMock, Times(1)).simulerUtbetaling(NyUtbetaling(oppdrag = setup.eksisterendeOppdrag, utbetaling = setup.utbetaling, Attestant("SU")))
+        // verify(publisherMock, Times(1)).publish(forventetNyUtbetaling)
         verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
     }
 

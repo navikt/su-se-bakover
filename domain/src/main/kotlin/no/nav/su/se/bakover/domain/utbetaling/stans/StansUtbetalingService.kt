@@ -68,7 +68,7 @@ class StansUtbetalingService(
 
         // TODO Her kan vi legge inn transaksjon
 
-        return utbetalingPublisher.publish(nyUtbetaling.copy(utbetaling = utbetaling)).fold(
+        return utbetalingPublisher.publish(nyUtbetaling).fold(
             {
                 log.error("Stansutbetaling feilet ved publisering av utbetaling")
                 utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmeldingstatus.FEIL, it.originalMelding))
