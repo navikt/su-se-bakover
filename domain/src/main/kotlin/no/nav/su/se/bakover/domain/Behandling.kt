@@ -307,18 +307,12 @@ data class Behandling(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                             it.originalMelding,
-                            now() // TODO use same as tidspkt-melding send to OS
+                            it.tidspunkt
                         )
                     )
                     it
                 }.map {
-                    utbetaling!!.addOppdragsmelding(
-                        Oppdragsmelding(
-                            Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                            it,
-                            now() // TODO use same as tidspkt-melding send to OS
-                        )
-                    )
+                    utbetaling!!.addOppdragsmelding(it)
                     nyTilstand(Iverksatt().Innvilget())
                     this@Behandling
                 }

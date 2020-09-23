@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -489,27 +490,28 @@ internal class BehandlingTest {
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 "great success",
-                tilAttestering.utbetaling()!!.getOppdragsmelding()!!.tidspunkt
+                UtbetalingPublisherStub.tidspunkt
             )
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
         fun `oversendelse av av utbetaling feiler`() {
+            val tidspunkt = now()
             tilAttestering.iverksett(
                 Attestant("A123456"),
                 object : UtbetalingPublisher {
                     override fun publish(
                         nyUtbetaling: NyUtbetaling
-                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here").left()
+                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here", tidspunkt).left()
                 }
             )
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                 "some xml here",
-                tilAttestering.utbetaling()!!.getOppdragsmelding()!!.tidspunkt
+                tidspunkt
             )
         }
 
@@ -691,9 +693,14 @@ internal class BehandlingTest {
     }
 
     object UtbetalingPublisherStub : UtbetalingPublisher {
+        val tidspunkt = now()
         override fun publish(
             nyUtbetaling: NyUtbetaling
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> = "great success".right()
+        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
+            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+            originalMelding = "great success",
+            tidspunkt = tidspunkt
+        ).right()
     }
 
     private fun createBehandling(

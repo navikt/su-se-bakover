@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -35,7 +35,8 @@ internal class UtbetalingPublisherTest {
             )
         )
         mqClient.count shouldBe 1
-        res shouldBe UtbetalingPublisher.KunneIkkeSendeUtbetaling(mqClient.messages.first()).left()
+        res.isLeft() shouldBe true
+        res.mapLeft { it.originalMelding shouldBe mqClient.messages.first() }
     }
 
     @Test
@@ -56,7 +57,11 @@ internal class UtbetalingPublisherTest {
             )
         )
         mqClient.count shouldBe 1
-        res shouldBe mqClient.messages.first().right()
+        res.isRight() shouldBe true
+        res.map {
+            it.originalMelding shouldBe mqClient.messages.first()
+            it.status shouldBe Oppdragsmelding.Oppdragsmeldingstatus.SENDT
+        }
     }
 
     class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
