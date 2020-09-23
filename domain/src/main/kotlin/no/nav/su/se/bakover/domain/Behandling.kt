@@ -320,7 +320,7 @@ data class Behandling(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                if(attestant.id == this@Behandling.saksbehandletAv?.id){
+                if (attestant.id == this@Behandling.saksbehandletAv?.id) {
                     throw TilstandException(status, this::iverksett.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
                 }
 
@@ -354,7 +354,7 @@ data class Behandling(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
-                if(attestant.id == this@Behandling.saksbehandletAv?.id){
+                if (attestant.id == this@Behandling.saksbehandletAv?.id) {
                     throw TilstandException(status, this::iverksett.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
                 }
 
@@ -365,7 +365,7 @@ data class Behandling(
         }
 
         override fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
-            if(attestant.id == this@Behandling.saksbehandletAv?.id){
+            if (attestant.id == this@Behandling.saksbehandletAv?.id) {
                 throw TilstandException(status, this::underkjenn.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
             }
 
