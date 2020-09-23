@@ -1,6 +1,12 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneOffset
+import java.util.*
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -14,12 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
-import java.time.ZoneOffset
-import java.util.UUID
 
 internal class OppdragTest {
     private val sakId = UUID.randomUUID()
@@ -37,7 +37,7 @@ internal class OppdragTest {
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
-        val actual = oppdrag.generererUtbetaling(
+        val actual = oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
@@ -91,7 +91,7 @@ internal class OppdragTest {
             it.addObserver(observer)
         }
 
-        val nyUtbetaling = eksisterendeOppdrag.generererUtbetaling(
+        val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
@@ -205,7 +205,7 @@ internal class OppdragTest {
             fradrag = emptyList()
         )
 
-        val actualUtbetaling = oppdrag.generererUtbetaling(b)
+        val actualUtbetaling = oppdrag.genererUtbetaling(b)
         actualUtbetaling shouldBe Utbetaling(
             opprettet = actualUtbetaling.opprettet,
             kvittering = null,

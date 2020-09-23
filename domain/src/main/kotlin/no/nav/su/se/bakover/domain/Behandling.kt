@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.right
+import java.time.Instant
+import java.time.LocalDate
+import java.util.*
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -19,9 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
 
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
@@ -234,7 +234,7 @@ data class Behandling(
 
         override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
             val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.generererUtbetaling(beregning!!)
+            val utbetalingTilSimulering = oppdrag.genererUtbetaling(beregning!!)
             return simuleringClient.simulerUtbetaling(
                 NyUtbetaling(
                     oppdrag = oppdrag,

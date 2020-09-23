@@ -34,6 +34,9 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import java.net.URL
+import java.time.Clock
+import javax.jms.JMSContext
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -43,10 +46,9 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
+import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
-import no.nav.su.se.bakover.web.routes.behandlinger.stopp.stoppbehandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -55,6 +57,7 @@ import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitteringIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
@@ -63,9 +66,6 @@ import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.net.URL
-import java.time.Clock
-import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
@@ -97,10 +97,10 @@ internal fun Application.susebakover(
             }
         }
     },
-    stoppbehandlingService: StoppbehandlingService = StoppbehandlingService(
+    stansUtbetalingService: StansUtbetalingService = StansUtbetalingService(
         simuleringClient = clients.simuleringClient,
         clock = Clock.systemUTC(),
-        stoppbehandlingRepo = databaseRepos.stoppbehandlingRepo
+        utbetalingPublisher = clients.utbetalingPublisher
     )
 
 ) {
@@ -216,7 +216,7 @@ internal fun Application.susebakover(
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
             avstemmingRoutes(databaseRepos.objectRepo, clients.avstemmingPublisher)
-            stoppbehandlingRoutes(stoppbehandlingService, databaseRepos.objectRepo)
+            stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
         }
     }
     if (!Config.isLocalOrRunningTests) {

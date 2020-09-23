@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.common.Config
-import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingRepo
 import javax.sql.DataSource
+import no.nav.su.se.bakover.common.Config
 
 object DatabaseBuilder {
     fun build(): DatabaseRepos {
@@ -21,8 +19,7 @@ object DatabaseBuilder {
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         val objectRepo = DatabaseRepo(userDatastore)
         return DatabaseRepos(
-            objectRepo = objectRepo,
-            stoppbehandlingRepo = StoppbehandlingJdbcRepo(userDatastore, objectRepo)
+            objectRepo = objectRepo
         )
     }
 
@@ -30,13 +27,11 @@ object DatabaseBuilder {
         Flyway(embeddedDatasource, "postgres").migrate()
         val objectRepo = DatabaseRepo(embeddedDatasource)
         return DatabaseRepos(
-            objectRepo = objectRepo,
-            stoppbehandlingRepo = StoppbehandlingJdbcRepo(embeddedDatasource, objectRepo)
+            objectRepo = objectRepo
         )
     }
 }
 
 data class DatabaseRepos(
-    val objectRepo: ObjectRepo,
-    val stoppbehandlingRepo: StoppbehandlingRepo
+    val objectRepo: ObjectRepo
 )

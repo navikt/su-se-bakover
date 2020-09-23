@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import java.time.Instant
+import java.time.LocalDate
+import java.util.*
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
@@ -7,9 +10,6 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
 
 data class Oppdrag(
     val id: UUID30 = UUID30.randomUUID(),
@@ -37,7 +37,7 @@ data class Oppdrag(
             it.tom.isEqual(value) || it.tom.isAfter(value)
         }
 
-    fun generererUtbetaling(beregning: Beregning): Utbetaling {
+    fun genererUtbetaling(beregning: Beregning): Utbetaling {
         val utbetalingsperioder = beregning.månedsberegninger
             .groupBy { it.beløp }
             .map {
@@ -47,10 +47,10 @@ data class Oppdrag(
                     beløp = it.key,
                 )
             }
-        return generererUtbetaling(utbetalingsperioder)
+        return genererUtbetaling(utbetalingsperioder)
     }
 
-    fun generererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
+    fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
         return Utbetaling(
             utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(

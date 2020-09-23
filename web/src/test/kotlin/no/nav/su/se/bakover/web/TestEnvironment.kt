@@ -15,12 +15,12 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
+import java.util.*
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
-import java.util.Base64
+import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -48,14 +48,14 @@ internal fun Application.testSusebakover(
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    stoppbehandlingService: StoppbehandlingService = mock()
+    stansUtbetalingService: StansUtbetalingService = mock()
 ) {
     return susebakover(
         databaseRepos = databaseRepos,
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        stoppbehandlingService = stoppbehandlingService
+        stansUtbetalingService = stansUtbetalingService
     )
 }
 
