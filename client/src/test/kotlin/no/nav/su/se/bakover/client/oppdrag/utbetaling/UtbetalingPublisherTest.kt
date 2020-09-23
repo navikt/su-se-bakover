@@ -6,22 +6,13 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
-import org.hamcrest.MatcherAssert.assertThat
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import org.junit.jupiter.api.Test
-import org.xmlunit.diff.DefaultNodeMatcher
-import org.xmlunit.diff.ElementSelectors
-import org.xmlunit.matchers.CompareMatcher.isSimilarTo
-import java.time.Instant
 import java.util.UUID
 
 internal class UtbetalingPublisherTest {
@@ -31,121 +22,42 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(mqClient)
 
-        assertThat(
-            client.publish(nyUtbetaling),
-            isSimilarTo(KunneIkkeSendeUtbetaling(expected).left()).withNodeMatcher(nodeMatcher)
+        val res = client.publish(
+            nyUtbetaling = NyUtbetaling(
+                oppdrag = Oppdrag(
+                    sakId = UUID.randomUUID()
+                ),
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = Fnr("12345678910")
+                ),
+                attestant = Attestant("id")
+            )
         )
         mqClient.count shouldBe 1
+        res shouldBe UtbetalingPublisher.KunneIkkeSendeUtbetaling(mqClient.messages.first()).left()
     }
 
     @Test
-    fun `verifiser xml request`() {
+    fun `returnerer xml string hvis ok`() {
         val mqClient = MqPublisherMock(Unit.right())
-
         val client = UtbetalingMqPublisher(mqClient)
 
-        assertThat(
-            client.publish(nyUtbetaling),
-            isSimilarTo(expected.right()).withNodeMatcher(nodeMatcher)
+        val res = client.publish(
+            nyUtbetaling = NyUtbetaling(
+                oppdrag = Oppdrag(
+                    sakId = UUID.randomUUID()
+                ),
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = Fnr("12345678910")
+                ),
+                attestant = Attestant("id")
+            )
         )
         mqClient.count shouldBe 1
-        mqClient.messages.first().trimIndent() shouldBe expected
+        res shouldBe mqClient.messages.first().right()
     }
-
-    private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
-
-    private val førsteUtbetalingsLinje = Utbetalingslinje(
-        fom = 1.januar(2020),
-        tom = 31.januar(2020),
-        beløp = 10,
-        forrigeUtbetalingslinjeId = null
-    )
-    private val andreUtbetalingslinje = Utbetalingslinje(
-        fom = 1.februar(2020),
-        tom = 29.februar(2020),
-        beløp = 20,
-        forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
-    )
-    private val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Instant.EPOCH,
-        sakId = UUID.randomUUID(),
-        utbetalinger = mutableListOf()
-    )
-    private val fnr = Fnr("12345678910")
-    private val utbetaling = Utbetaling(
-        opprettet = Instant.EPOCH,
-        utbetalingslinjer = listOf(
-            førsteUtbetalingsLinje,
-            andreUtbetalingslinje
-        ),
-        fnr = fnr
-    )
-    private val nyUtbetaling = NyUtbetaling(
-        oppdrag = oppdrag,
-        utbetaling = utbetaling,
-        attestant = Attestant("A123456")
-    )
-    private val expected =
-        """
-            <?xml version='1.0' encoding='UTF-8'?>
-            <Oppdrag>
-              <oppdrag-110>
-                <kodeAksjon>1</kodeAksjon>
-                <kodeEndring>NY</kodeEndring>
-                <kodeFagomraade>SUUFORE</kodeFagomraade>
-                <fagsystemId>${oppdrag.id}</fagsystemId>
-                <utbetFrekvens>MND</utbetFrekvens>
-                <oppdragGjelderId>${fnr.fnr}</oppdragGjelderId>
-                <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
-                <saksbehId>SU</saksbehId>
-                <avstemming-115>
-                  <kodeKomponent>SU</kodeKomponent>
-                  <nokkelAvstemming>${utbetaling.id}</nokkelAvstemming>
-                  <tidspktMelding>1970-01-01-01.00.00.000000</tidspktMelding>
-                </avstemming-115>
-                <oppdrags-enhet-120>
-                  <typeEnhet>BOS</typeEnhet>
-                  <enhet>8020</enhet>
-                  <datoEnhetFom>1970-01-01</datoEnhetFom>
-                </oppdrags-enhet-120>
-                <oppdrags-linje-150>
-                  <kodeEndringLinje>NY</kodeEndringLinje>
-                  <delytelseId>${førsteUtbetalingsLinje.id}</delytelseId>
-                  <kodeKlassifik>SUUFORE</kodeKlassifik>
-                  <datoVedtakFom>2020-01-01</datoVedtakFom>
-                  <datoVedtakTom>2020-01-31</datoVedtakTom>
-                  <sats>10</sats>
-                  <fradragTillegg>T</fradragTillegg>
-                  <typeSats>MND</typeSats>
-                  <brukKjoreplan>N</brukKjoreplan>
-                  <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
-                  <attestant-180>
-                    <attestantId>A123456</attestantId>
-                  </attestant-180>
-                </oppdrags-linje-150>
-                <oppdrags-linje-150>
-                  <kodeEndringLinje>NY</kodeEndringLinje>
-                  <delytelseId>${andreUtbetalingslinje.id}</delytelseId>
-                  <kodeKlassifik>SUUFORE</kodeKlassifik>
-                  <datoVedtakFom>2020-02-01</datoVedtakFom>
-                  <datoVedtakTom>2020-02-29</datoVedtakTom>
-                  <sats>20</sats>
-                  <fradragTillegg>T</fradragTillegg>
-                  <typeSats>MND</typeSats>
-                  <brukKjoreplan>N</brukKjoreplan>
-                  <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
-                  <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
-                  <refFagsystemId>${oppdrag.id}</refFagsystemId>
-                  <attestant-180>
-                    <attestantId>A123456</attestantId>
-                  </attestant-180>
-                </oppdrags-linje-150>
-              </oppdrag-110>
-            </Oppdrag>
-        """.trimIndent()
 
     class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
         var count = 0

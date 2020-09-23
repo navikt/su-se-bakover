@@ -32,8 +32,8 @@ internal class AvstemmingDataBuilderTest {
                 avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
                 mottakendeKomponentKode = "OS",
                 brukerId = "SU",
-                nokkelFom = "2020-03-01-00.00.00.000000",
-                nokkelTom = "2020-03-02-00.00.00.000000",
+                nokkelFom = "1583017200000000000",
+                nokkelTom = "1583103600000000000",
                 avleverendeAvstemmingId = avstemmingId.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(

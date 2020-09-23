@@ -11,10 +11,12 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -54,7 +56,6 @@ import org.postgresql.util.PSQLException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class DatabaseRepoTest {
@@ -499,31 +500,96 @@ internal class DatabaseRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
+            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toInstant(ZoneOffset.UTC)
+
             val sak = insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(
+            val utbetaling1 = repo.opprettUtbetaling(
                 oppdragId = sak.oppdrag.id,
                 utbetaling = Utbetaling(
-                    opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
                     utbetalingslinjer = emptyList(),
                     fnr = FNR
                 )
             )
-            repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling1.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = oppdragsmeldingTidspunkt
+                )
+            )
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet.minus(1, ChronoUnit.DAYS),
-                tom = utbetaling.opprettet
+            val utbetaling2 = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling2.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                    originalMelding = "",
+                    tidspunkt = oppdragsmeldingTidspunkt
+                )
+            )
+
+            repo.hentUtebetalingerForAvstemming(
+                fom = 10.oktober(2020).startOfDay(),
+                tom = 10.oktober(2020).endOfDay()
             ) shouldBe emptyList()
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet,
-                tom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS)
+            repo.hentUtebetalingerForAvstemming(
+                fom = 11.oktober(2020).startOfDay(),
+                tom = 11.oktober(2020).endOfDay()
             ) shouldHaveSize 1
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS),
-                tom = utbetaling.opprettet.plus(3, ChronoUnit.DAYS)
+            repo.hentUtebetalingerForAvstemming(
+                fom = 12.oktober(2020).startOfDay(),
+                tom = 12.oktober(2020).endOfDay()
             ) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val utbetaling = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = ""
+                )
+            )
+
+            val utbetalingForAvstemming = repo.hentUtbetaling(utbetaling.id)!!
+
+            val avstemming = Avstemming(
+                id = UUID30.randomUUID(),
+                opprettet = now(),
+                fom = now(),
+                tom = now(),
+                utbetalinger = listOf(utbetalingForAvstemming),
+                avstemmingXmlRequest = "some xml"
+            )
+
+            repo.opprettAvstemming(avstemming)
+            val hentetAvstemming = repo.hentSisteAvstemming()
+            hentetAvstemming shouldBe avstemming
+
+            hentetAvstemming!!.updateUtbetalinger()
+
+            val oppdaterUtbetaling = repo.hentUtbetaling(utbetalingForAvstemming.id)
+            oppdaterUtbetaling!!.getAvstemmingId() shouldBe avstemming.id
         }
     }
 

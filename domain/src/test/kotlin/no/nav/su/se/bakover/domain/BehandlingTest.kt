@@ -488,7 +488,8 @@ internal class BehandlingTest {
             tilAttestering.status() shouldBe IVERKSATT_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                "great success"
+                "great success",
+                tilAttestering.utbetaling()!!.getOppdragsmelding()!!.tidspunkt
             )
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -507,7 +508,8 @@ internal class BehandlingTest {
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                "some xml here"
+                "some xml here",
+                tilAttestering.utbetaling()!!.getOppdragsmelding()!!.tidspunkt
             )
         }
 

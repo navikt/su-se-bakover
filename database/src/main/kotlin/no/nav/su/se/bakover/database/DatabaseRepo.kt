@@ -519,12 +519,13 @@ internal class DatabaseRepo(
         return oppdragsmelding
     }
 
-    override fun hentUtbetalingerTilAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
+    override fun hentUtebetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where oppdragsmelding is not null and opprettet >= :fom and opprettet < :tom".hentListe(
+            "select * from utbetaling where oppdragsmelding is not null and oppdragsmelding ->> 'tidspunkt' >= :fom and oppdragsmelding ->> 'tidspunkt' < :tom and oppdragsmelding ->> 'status' = :status".hentListe(
                 mapOf(
                     "fom" to fom,
-                    "tom" to tom
+                    "tom" to tom,
+                    "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
                 ),
                 session
             ) { it.toUtbetaling(session) }

@@ -306,7 +306,8 @@ data class Behandling(
                     utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                            it.originalMelding
+                            it.originalMelding,
+                            now() // TODO use same as tidspkt-melding send to OS
                         )
                     )
                     it
@@ -314,7 +315,8 @@ data class Behandling(
                     utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                            it
+                            it,
+                            now() // TODO use same as tidspkt-melding send to OS
                         )
                     )
                     nyTilstand(Iverksatt().Innvilget())

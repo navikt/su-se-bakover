@@ -43,4 +43,10 @@ internal class UtilsKtTest {
         Instant.now().toString() shouldHaveLength 27
         now().toString() shouldHaveLength 24
     }
+
+    @Test
+    fun `start and end of day`() {
+        1.januar(2020).startOfDay().toString() shouldBe "2020-01-01T00:00:00Z"
+        1.januar(2020).endOfDay().toString() shouldBe "2020-01-01T23:59:59.999999999Z"
+    }
 }

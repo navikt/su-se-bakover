@@ -5,8 +5,10 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import java.time.Instant
 
-internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling): UtbetalingRequest {
+internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling, tidspunkt: Instant = Instant.now()): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
@@ -19,8 +21,8 @@ internal fun toUtbetalingRequest(nyUtbetaling: NyUtbetaling): UtbetalingRequest 
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
-                nokkelAvstemming = nyUtbetaling.utbetaling.id.toString(),
-                tidspktMelding = nyUtbetaling.utbetaling.opprettet.toOppdragTimestamp(),
+                nokkelAvstemming = "${Avstemmingsnøkkel.generer(tidspunkt)}",
+                tidspktMelding = tidspunkt.toOppdragTimestamp(), // TODO prevent timestamp rolling over to next day
                 kodeKomponent = OppdragDefaults.KODE_KOMPONENT
             ),
             oppdragslinjer = nyUtbetaling.utbetaling.utbetalingslinjer.map {
