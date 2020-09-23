@@ -33,7 +33,7 @@ allprojects {
         }
     }
     val junitJupiterVersion = "5.6.2"
-    val arrowVersion = "0.10.5"
+    val arrowVersion = "0.11.0"
     val kotestVersion = "4.1.3"
     val jacksonVersion = "2.11.2"
     val ktlintVersion = "0.38.1"
