@@ -53,26 +53,15 @@ data class Beregning(
     }
 }
 
-private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): MutableList<Fradrag> {
-    val newFradrag: MutableList<Fradrag> = mutableListOf()
+private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
+    val (arbeidsinntektFradrag, andreFradrag) = fradrag.partition { it.type == Fradragstype.Arbeidsinntekt }
 
-    if (fradrag.isEmpty()) {
-        newFradrag.add(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
-    } else {
-        val arbeidsInntektTotalt = fradrag.filter { it.type == Fradragstype.Arbeidsinntekt }.sumBy { it.beløp }
+    val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }
 
-        if (forventetInntekt > arbeidsInntektTotalt) {
-            newFradrag.add(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
-        }
-
-        for (f in fradrag) {
-            if (f.type == Fradragstype.Arbeidsinntekt && arbeidsInntektTotalt >= forventetInntekt) {
-                newFradrag.add(f)
-            } else if (f.type != Fradragstype.Arbeidsinntekt) {
-                newFradrag.add(f)
-            }
-        }
+    if(totalArbeidsinntekt > forventetInntekt){
+        return fradrag
     }
 
-    return newFradrag
+    return andreFradrag.plus(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
+
 }
