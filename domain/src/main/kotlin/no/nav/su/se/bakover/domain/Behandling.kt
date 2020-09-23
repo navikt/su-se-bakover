@@ -42,7 +42,7 @@ data class Behandling(
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var attestant: Attestant? = null,
     val sakId: UUID,
-    private val hendelseslogg: Hendelseslogg? = null
+    private val hendelseslogg: Hendelseslogg? = null,
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
@@ -63,6 +63,16 @@ data class Behandling(
     fun utbetaling() = utbetaling
 
     fun hendelser() = hendelseslogg?.hendelser()
+
+    fun getUtledetSatsBeløp(): Int? {
+        if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
+            status == BehandlingsStatus.BEREGNET ||
+            status == BehandlingsStatus.SIMULERT
+        ) {
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
+        }
+        return null
+    }
 
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
@@ -190,13 +200,20 @@ data class Behandling(
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
 
+                val forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
+                    status,
+                    this::opprettBeregning.toString(),
+                    "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
+                )
+
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
                     beregning = Beregning(
                         fom = fom,
                         tom = tom,
                         sats = sats,
-                        fradrag = fradrag
+                        fradrag = fradrag,
+                        forventetInntekt = forventetInntekt
                     )
                 )
                 nyTilstand(Beregnet())
