@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -260,7 +260,8 @@ data class Behandling(
                 )
             ).map { simulering ->
                 utbetaling?.let { slettEksisterendeUtbetaling(oppdrag, it) }
-                this@Behandling.utbetaling = oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
+                this@Behandling.utbetaling = utbetalingTilSimulering.also {
+                    oppdrag.leggTilUtbetaling(it)
                     it.addSimulering(simulering)
                     persistenceObserver.leggTilUtbetaling(id, it.id)
                 }

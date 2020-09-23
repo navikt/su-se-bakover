@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
+import java.time.Month
+import java.time.ZoneOffset
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.Month
-import java.time.ZoneOffset
 
 internal class UtbetalingTest {
 
@@ -88,9 +88,8 @@ internal class UtbetalingTest {
         lateinit var kvittering: Kvittering
         lateinit var oppdragsmelding: Oppdragsmelding
 
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
             this.simulering = simulering
-            return simulering
         }
 
         override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {

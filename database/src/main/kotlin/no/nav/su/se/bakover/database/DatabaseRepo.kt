@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.time.Clock
+import java.time.Instant
+import java.util.UUID
+import javax.sql.DataSource
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.sessionOf
@@ -35,10 +39,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import java.time.Clock
-import java.time.Instant
-import java.util.UUID
-import javax.sql.DataSource
 
 internal class DatabaseRepo(
     private val dataSource: DataSource,
@@ -100,7 +100,7 @@ internal class DatabaseRepo(
             session
         ) { it.toUtbetaling(session) }
 
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
         """
             insert into utbetaling (id, opprettet, oppdragId, fnr)
             values (:id, :opprettet, :oppdragId, :fnr)
@@ -114,7 +114,6 @@ internal class DatabaseRepo(
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
         utbetaling.addObserver(this)
-        return utbetaling
     }
 
     override fun slettUtbetaling(utbetaling: Utbetaling) {
@@ -495,14 +494,13 @@ internal class DatabaseRepo(
             )
     }
 
-    override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+    override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
         "update utbetaling set simulering = to_json(:simulering::json) where id = :id".oppdatering(
             mapOf(
                 "id" to utbetalingId.toString(),
                 "simulering" to objectMapper.writeValueAsString(simulering)
             )
         )
-        return simulering
     }
 
     override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {

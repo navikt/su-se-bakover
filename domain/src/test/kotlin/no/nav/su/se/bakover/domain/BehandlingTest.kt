@@ -6,6 +6,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import java.time.Instant
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -47,8 +49,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Instant
-import java.util.UUID
 
 internal class BehandlingTest {
 
@@ -640,16 +640,15 @@ internal class BehandlingTest {
         override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         }
 
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
-            return utbetaling.also { it.addObserver(this) }
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
+            utbetaling.addObserver(this)
         }
 
         override fun slettUtbetaling(utbetaling: Utbetaling) {
             slettetUtbetaling = utbetaling
         }
 
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
-            return simulering
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
         }
 
         override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {

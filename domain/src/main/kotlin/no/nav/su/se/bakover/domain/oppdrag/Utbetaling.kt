@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import java.time.Instant
+import java.util.Comparator
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
@@ -7,8 +9,6 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.util.Comparator
 
 data class Utbetaling(
     val id: UUID30 = UUID30.randomUUID(),
@@ -28,7 +28,9 @@ data class Utbetaling(
     fun getSimulering(): Simulering? = simulering
 
     fun addSimulering(simulering: Simulering) {
-        this.simulering = persistenceObserver.addSimulering(id, simulering)
+        this.simulering = simulering.also {
+            persistenceObserver.addSimulering(id, simulering)
+        }
     }
 
     fun getOppdragsmelding() = oppdragsmelding
@@ -73,7 +75,7 @@ data class Utbetaling(
 }
 
 interface UtbetalingPersistenceObserver : PersistenceObserver {
-    fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering
+    fun addSimulering(utbetalingId: UUID30, simulering: Simulering)
     fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
     fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30

@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
-import java.util.*
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -246,9 +246,8 @@ internal class OppdragTest {
 
     private class DummyObserver : Oppdrag.OppdragPersistenceObserver {
         var utbetaling: Utbetaling? = null
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
             this.utbetaling = utbetaling
-            return utbetaling
         }
 
         override fun slettUtbetaling(utbetaling: Utbetaling) {

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.utbetaling.stans
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.capture
+import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
@@ -12,12 +13,11 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.util.*
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
+import org.mockito.stubbing.Answer
 
 internal class StansUtbetalingServiceTest {
 
@@ -40,26 +41,58 @@ internal class StansUtbetalingServiceTest {
         val setup = Setup()
 
         val utbetalingPersistenceObserverMock = mock<UtbetalingPersistenceObserver> {
-            on { addSimulering(setup.utbetalingUtenSimulering.id, setup.nySimulering) } doReturn setup.nySimulering.copy()
-            on { addOppdragsmelding(any(), any()) } doReturn Oppdragsmelding(SENDT, "")
+            on {
+                addOppdragsmelding(
+                    any(), // TODO: utbetalingsid blir generert statisk, så vi har ingen måte å styre den på atm.
+                    eq(setup.oppdragsmeldingSendt)
+                )
+            } doReturn setup.oppdragsmeldingSendt
         }
 
-        val capturedOpprettUtbetalingArgument = ArgumentCaptor.forClass(Utbetaling::class.java)
         val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
-            on { opprettUtbetaling(eq(setup.oppdragId), capture<Utbetaling>(capturedOpprettUtbetalingArgument)) } doReturn setup.utbetalingUtenSimulering.copy().apply {
-                addObserver(utbetalingPersistenceObserverMock)
-            }
+
+            on {
+                opprettUtbetaling(eq(setup.oppdragId), any())
+            } doAnswer (
+                Answer { invocation ->
+                    val actualUtbetaling: Utbetaling = invocation!!.getArgument(1)
+                    actualUtbetaling shouldBe setup.forventetUtbetaling(actualUtbetaling)
+                    actualUtbetaling.apply {
+                        addObserver(utbetalingPersistenceObserverMock)
+                    }
+                }
+                )
+
             on { hentFnr(setup.sakId) } doReturn setup.fnr
         }
 
         val capturedSimuleringArgument = ArgumentCaptor.forClass(NyUtbetaling::class.java)
         val simuleringClientMock = mock<SimuleringClient> {
-            on { simulerUtbetaling(capture<NyUtbetaling>(capturedSimuleringArgument)) } doReturn setup.nySimulering.copy().right()
+            on {
+                simulerUtbetaling(capture<NyUtbetaling>(capturedSimuleringArgument))
+            } doAnswer (
+                Answer { invocation ->
+                    val actualNyUtbetaling: NyUtbetaling = invocation!!.getArgument(0)
+                    actualNyUtbetaling shouldBe setup.forventetNyUtbetaling(actualNyUtbetaling.utbetaling)
+                    setup.nySimulering.right()
+                }
+                )
         }
 
         val capturedUtbetalingArgument = ArgumentCaptor.forClass(NyUtbetaling::class.java)
         val publisherMock = mock<UtbetalingPublisher> {
-            on { publish(capture<NyUtbetaling>(capturedUtbetalingArgument)) } doReturn "".right()
+            on {
+                publish(capture<NyUtbetaling>(capturedUtbetalingArgument))
+            } doAnswer (
+                Answer { invocation ->
+                    val actualNyUtbetaling: NyUtbetaling = invocation!!.getArgument(0)
+                    actualNyUtbetaling shouldBe setup.forventetNyUtbetaling(
+                        actualNyUtbetaling.utbetaling,
+                        setup.nySimulering
+                    )
+                    "".right()
+                }
+                )
         }
 
         val service = StansUtbetalingService(
@@ -72,35 +105,14 @@ internal class StansUtbetalingServiceTest {
             addObserver(oppdragPersistenceObserverMock)
         }
 
-        service.stansUtbetalinger(
-            sak = setup.eksisterendeSak
-        ) shouldBe setup.utbetalingMedSimulering.copy(
-            oppdragsmelding = Oppdragsmelding(status = SENDT, "")
+        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+
+        actualResponse shouldBe setup.forventetUtbetaling(
+            capturedUtbetalingArgument.value.utbetaling,
+            setup.nySimulering,
+            setup.oppdragsmeldingSendt
         ).right()
 
-        val forventetNyUtbetaling = NyUtbetaling(
-            oppdrag = setup.eksisterendeOppdrag,
-            utbetaling = setup.utbetalingUtenSimulering.copy(
-                id = capturedSimuleringArgument.value.utbetaling.id,
-                opprettet = capturedSimuleringArgument.value.utbetaling.opprettet,
-                utbetalingslinjer = listOf(
-                    Utbetalingslinje(
-                        id = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].id,
-                        opprettet = capturedSimuleringArgument.value.utbetaling.utbetalingslinjer[0].opprettet,
-                        fom = LocalDate.of(1970, 2, 1),
-                        tom = LocalDate.of(1971, 1, 1),
-                        forrigeUtbetalingslinjeId = setup.existerendeUtbetaling.utbetalingslinjer[0].id,
-                        beløp = 0
-                    )
-                )
-            ),
-            Attestant("SU")
-        )
-        capturedSimuleringArgument.value shouldBe forventetNyUtbetaling
-        capturedUtbetalingArgument.value shouldBe forventetNyUtbetaling
-
-        // verify(simuleringClientMock, Times(1)).simulerUtbetaling(NyUtbetaling(oppdrag = setup.eksisterendeOppdrag, utbetaling = setup.utbetaling, Attestant("SU")))
-        // verify(publisherMock, Times(1)).publish(forventetNyUtbetaling)
         verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
     }
 
@@ -108,10 +120,10 @@ internal class StansUtbetalingServiceTest {
         val clock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
         val sakId: UUID = UUID.randomUUID(),
         val fnr: Fnr = Fnr("12345678910"),
+        val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val utbetalingId: UUID30 = UUID30.randomUUID(),
-        val saksbehandler: Saksbehandler = Saksbehandler("saksbehandler"),
-        val existerendeUtbetaling: Utbetaling = Utbetaling(
+        val eksisterendeUtbetaling: Utbetaling = Utbetaling(
             id = UUID30.randomUUID(),
             opprettet = Instant.EPOCH,
             simulering = Simulering(
@@ -145,7 +157,7 @@ internal class StansUtbetalingServiceTest {
             opprettet = Instant.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf(
-                existerendeUtbetaling
+                eksisterendeUtbetaling
             )
         ),
         val nySimulering: Simulering = Simulering(
@@ -155,24 +167,48 @@ internal class StansUtbetalingServiceTest {
             nettoBeløp = 0,
             periodeList = listOf()
         ),
-        val utbetalingUtenSimulering: Utbetaling = Utbetaling(
-            id = utbetalingId,
-            opprettet = Instant.EPOCH,
-            simulering = null,
-            kvittering = null,
-            oppdragsmelding = null,
-            utbetalingslinjer = listOf(),
-            avstemmingId = null,
-            fnr = fnr
-        ),
-        val utbetalingMedSimulering: Utbetaling = utbetalingUtenSimulering.copy(
-            simulering = nySimulering
-        ),
         val eksisterendeSak: Sak = Sak(
             id = sakId,
             opprettet = Instant.EPOCH,
             fnr = fnr,
             oppdrag = eksisterendeOppdrag
+        ),
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "")
+    ) {
+
+        fun forventetNyUtbetaling(
+            actualUtbetaling: Utbetaling,
+            simulering: Simulering? = null,
+            oppdragsmelding: Oppdragsmelding? = null
+        ) = NyUtbetaling(
+            oppdrag = eksisterendeOppdrag,
+            utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding),
+            attestant = attestant
         )
-    )
+
+        /**
+         * En liten hack for å omgå at vi mangler kontroll over UUID/Instant
+         */
+        fun forventetUtbetaling(
+            actualUtbetaling: Utbetaling,
+            simulering: Simulering? = null,
+            oppdragsmelding: Oppdragsmelding? = null
+        ) = Utbetaling(
+            id = actualUtbetaling.id,
+            opprettet = actualUtbetaling.opprettet,
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[0].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
+                    fom = LocalDate.of(1970, 2, 1),
+                    tom = LocalDate.of(1971, 1, 1),
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetaling.utbetalingslinjer[0].id,
+                    beløp = 0
+                ),
+            ),
+            fnr = fnr,
+            simulering = simulering,
+            oppdragsmelding = oppdragsmelding,
+        )
+    }
 }

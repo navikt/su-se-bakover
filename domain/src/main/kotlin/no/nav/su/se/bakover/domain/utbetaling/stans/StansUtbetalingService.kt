@@ -39,7 +39,7 @@ class StansUtbetalingService(
         }
         val stansesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tom
 
-        val utbetalingTilSimulering = sak.oppdrag.genererUtbetaling(
+        val utbetaling = sak.oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = stansesFraOgMed,
@@ -50,19 +50,18 @@ class StansUtbetalingService(
         )
         val nyUtbetaling = NyUtbetaling(
             oppdrag = sak.oppdrag,
-            utbetaling = utbetalingTilSimulering,
+            utbetaling = utbetaling,
             attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
         )
-        val utbetaling: Utbetaling = simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
+        simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulering ->
                 if (simulering.nettoBeløp != 0) {
                     log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, men nettobeløp i simulering var ${simulering.nettoBeløp}")
                     return KunneIkkeStanseUtbetalinger.left()
                 }
-                sak.oppdrag.opprettUtbetaling(utbetalingTilSimulering).also {
-                    it.addSimulering(simulering)
-                }
+                sak.oppdrag.leggTilUtbetaling(utbetaling)
+                utbetaling.addSimulering(simulering)
             }
         )
 

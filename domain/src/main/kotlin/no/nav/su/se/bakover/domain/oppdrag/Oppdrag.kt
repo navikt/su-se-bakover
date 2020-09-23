@@ -2,8 +2,9 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
@@ -11,8 +12,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 
 data class Oppdrag(
-    val id: UUID30,
-    val opprettet: Instant,
+    val id: UUID30 = UUID30.randomUUID(), // TODO jah: Align these two with master before merging branch.
+    val opprettet: Instant = now(),
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {
@@ -65,17 +66,17 @@ data class Oppdrag(
         )
     }
 
-    fun opprettUtbetaling(utbetaling: Utbetaling): Utbetaling {
+    fun leggTilUtbetaling(utbetaling: Utbetaling) {
         return persistenceObserver.opprettUtbetaling(id, utbetaling)
             .also {
-                utbetalinger.add(it)
+                utbetalinger.add(utbetaling)
             }
     }
 
     fun slettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.slettUtbetaling(utbetaling)
 
     interface OppdragPersistenceObserver : PersistenceObserver {
-        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
+        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling)
         fun slettUtbetaling(utbetaling: Utbetaling)
         fun hentFnr(sakId: UUID): Fnr
     }
