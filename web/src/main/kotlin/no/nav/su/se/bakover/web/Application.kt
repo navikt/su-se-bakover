@@ -141,7 +141,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
-        oAuth = clients.oauth
+        oAuth = clients.oauth,
     )
 
     install(Locations)
