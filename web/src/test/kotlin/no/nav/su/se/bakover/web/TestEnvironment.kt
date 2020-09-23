@@ -88,3 +88,15 @@ fun TestApplicationEngine.defaultRequest(
     }
 }
 
+fun TestApplicationEngine.authorizedRequest(
+    method: HttpMethod,
+    uri: String,
+    jwtGroups: List<String>,
+    setup: TestApplicationRequest.() -> Unit = {}
+): TestApplicationCall {
+    return handleRequest(method, uri) {
+        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+        addHeader(HttpHeaders.Authorization, Jwt.create(groups = jwtGroups))
+        setup()
+    }
+}
