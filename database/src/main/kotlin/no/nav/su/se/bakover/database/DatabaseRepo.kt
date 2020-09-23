@@ -6,6 +6,7 @@ import kotliquery.Session
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Attestant
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -519,16 +521,28 @@ internal class DatabaseRepo(
         return oppdragsmelding
     }
 
+    /**
+     * Tow-part operation to avoid issues caused by lost precision when converting to/from instant/timestamp
+     * 1. Get rows for extended interval.
+     * 2. Filter in code to utilize precision of instant to get extact rows.
+     */
     override fun hentUtebetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where oppdragsmelding is not null and oppdragsmelding ->> 'tidspunkt' >= :fom and oppdragsmelding ->> 'tidspunkt' < :tom and oppdragsmelding ->> 'status' = :status".hentListe(
-                mapOf(
-                    "fom" to fom,
-                    "tom" to tom,
-                    "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
-                ),
-                session
-            ) { it.toUtbetaling(session) }
+            val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
+            val adjustedTom = tom.plus(1, ChronoUnit.DAYS)
+            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz < :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
+                .hentListe(
+                    mapOf(
+                        "fom" to adjustedFom,
+                        "tom" to adjustedTom,
+                        "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
+                    ),
+                    session
+                ) {
+                    it.toUtbetaling(session)
+                }.filter {
+                    it.getOppdragsmelding()!!.tidspunkt.between(fom, tom)
+                }
         }
 
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {

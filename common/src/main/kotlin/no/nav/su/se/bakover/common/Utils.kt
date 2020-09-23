@@ -26,3 +26,5 @@ fun now(clock: Clock = Clock.systemUTC()): Instant = Instant.now(clock).truncate
 
 fun LocalDate.startOfDay() = this.atStartOfDay().toInstant(ZoneOffset.UTC)
 fun LocalDate.endOfDay() = this.atStartOfDay().plusDays(1).toInstant(ZoneOffset.UTC).minusNanos(1)
+fun Instant.between(start: Instant, end: Instant) =
+    (this == start || this == end) || this.isAfter(start) && this.isBefore(end)

@@ -553,6 +553,68 @@ internal class DatabaseRepoTest {
     }
 
     @Test
+    fun `hent utbetalinger for avstemming tidspunkt test`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val utbetaling1 = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling1.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 11.oktober(2020).startOfDay()
+                )
+            )
+
+            val utbetaling2 = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling2.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 11.oktober(2020).endOfDay()
+                )
+            )
+
+            val utbetaling3 = repo.opprettUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                utbetaling = Utbetaling(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling3.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 12.oktober(2020).startOfDay()
+                )
+            )
+
+            val utbetalinger = repo.hentUtebetalingerForAvstemming(
+                11.oktober(2020).startOfDay(),
+                11.oktober(2020).endOfDay()
+            )
+
+            utbetalinger shouldHaveSize 2
+            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.id, utbetaling2.id)
+        }
+    }
+
+    @Test
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
             val sak = insertSak(FNR)
