@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.web.routes
 
 import io.ktor.application.call
 import io.ktor.http.HttpHeaders.Authorization
-
 import io.ktor.locations.Location
 import io.ktor.locations.get
 import io.ktor.request.header
 import io.ktor.routing.Route
-
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.Resultat

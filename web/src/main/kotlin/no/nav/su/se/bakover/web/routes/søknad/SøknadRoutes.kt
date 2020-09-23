@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import SuMetrics
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.routing.Route
 import io.ktor.routing.post
-
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
