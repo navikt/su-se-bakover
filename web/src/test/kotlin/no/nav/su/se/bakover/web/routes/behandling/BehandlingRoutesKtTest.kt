@@ -7,10 +7,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -37,9 +35,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.authorizedRequest
 import no.nav.su.se.bakover.web.defaultRequest
@@ -284,9 +280,9 @@ internal class BehandlingRoutesKtTest {
             }
 
             authorizedRequest(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
-            .apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
+                .apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -296,24 +292,24 @@ internal class BehandlingRoutesKtTest {
             }
 
             authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
-            .apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
+                .apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
 
             authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
-            .apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-            }
+                .apply {
+                    response.status() shouldBe HttpStatusCode.NotFound
+                }
 
             authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
-            .apply {
-                response.status() shouldBe HttpStatusCode.OK
-                deserialize<BehandlingJson>(response.content!!).let {
-                    it.attestant shouldBe "enSaksbehandleroid"
-                    it.status shouldBe "IVERKSATT_INNVILGET"
-                    it.saksbehandletAv shouldBe "arbitraryId"
+                .apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    deserialize<BehandlingJson>(response.content!!).let {
+                        it.attestant shouldBe "enSaksbehandleroid"
+                        it.status shouldBe "IVERKSATT_INNVILGET"
+                        it.saksbehandletAv shouldBe "arbitraryId"
+                    }
                 }
-            }
         }
     }
 
@@ -369,7 +365,7 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
-                ).apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
