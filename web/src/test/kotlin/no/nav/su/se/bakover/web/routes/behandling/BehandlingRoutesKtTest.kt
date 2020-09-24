@@ -13,7 +13,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -36,8 +35,8 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.RequestSomAttestant
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
-import no.nav.su.se.bakover.web.authorizedRequest
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -279,7 +278,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            authorizedRequest(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
+            RequestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
                 .apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -291,17 +290,23 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
+            RequestSomAttestant(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett")
                 .apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
 
-            authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
+            RequestSomAttestant(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+            )
                 .apply {
                     response.status() shouldBe HttpStatusCode.NotFound
                 }
 
-            authorizedRequest(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett", listOf(Config.azureGroupAttestant, Config.azureRequiredGroup))
+            RequestSomAttestant(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
+            )
                 .apply {
                     response.status() shouldBe HttpStatusCode.OK
                     deserialize<BehandlingJson>(response.content!!).let {
@@ -331,10 +336,9 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
@@ -346,18 +350,16 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
             }
@@ -369,10 +371,9 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
                 setBody(
                     """
@@ -386,10 +387,9 @@ internal class BehandlingRoutesKtTest {
                 response.content shouldContain "Må anngi en begrunnelse"
             }
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
                 setBody(
                     """
@@ -426,10 +426,9 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
 
-            authorizedRequest(
+            RequestSomAttestant(
                 HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett",
-                listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
             }

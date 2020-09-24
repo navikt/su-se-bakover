@@ -16,6 +16,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -88,15 +89,14 @@ fun TestApplicationEngine.defaultRequest(
     }
 }
 
-fun TestApplicationEngine.authorizedRequest(
+fun TestApplicationEngine.RequestSomAttestant(
     method: HttpMethod,
     uri: String,
-    jwtGroups: List<String>,
     setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, Jwt.create(groups = jwtGroups))
+        addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
         setup()
     }
 }
