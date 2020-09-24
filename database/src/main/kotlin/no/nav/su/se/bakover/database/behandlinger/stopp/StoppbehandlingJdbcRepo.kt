@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.behandlinger.stopp
 
 import kotliquery.Row
-import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo.Status.Companion.toStatus
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Attestant

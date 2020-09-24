@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import kotliquery.Session
-import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
@@ -173,14 +171,6 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    private fun hentUtbetalingForBehandlingInternal(behandlingId: UUID, session: Session) =
-        "select * from utbetaling where behandlingId=:behandlingId".hent(
-            mapOf("behandlingId" to behandlingId),
-            session
-        ) {
-            it.toUtbetaling(session)
-        }
-
     internal fun hentUtbetalinger(oppdragId: UUID30, session: Session) =
         "select * from utbetaling where oppdragId=:oppdragId".hentListe(
             mapOf("oppdragId" to oppdragId.toString()),
@@ -328,7 +318,7 @@ internal class DatabaseRepo(
     }
 
     private fun String.oppdatering(params: Map<String, Any?>) {
-        using(sessionOf(dataSource, returnGeneratedKey = true)) {
+        using(sessionOf(dataSource)) {
             this.oppdatering(params, it)
         }
     }

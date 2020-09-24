@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database
 
 import kotliquery.Row
-import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.su.se.bakover.common.UUID30
 import java.util.UUID
