@@ -89,7 +89,7 @@ fun TestApplicationEngine.defaultRequest(
     }
 }
 
-fun TestApplicationEngine.RequestSomAttestant(
+fun TestApplicationEngine.requestSomAttestant(
     method: HttpMethod,
     uri: String,
     setup: TestApplicationRequest.() -> Unit = {}

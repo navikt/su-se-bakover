@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -22,6 +23,8 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
+import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -180,7 +183,12 @@ internal fun Route.behandlingRoutes(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = {
                     behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
-                        { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
+                        {
+                            when (it) {
+                                is AttestantOgSaksbehandlerErLik -> call.svar(Unauthorized.message(it.msg))
+                                is Utbetaling -> call.svar(InternalServerError.message(it.msg))
+                            }
+                        },
                         { call.svar(OK.jsonBody(it)) }
                     )
                 }
@@ -205,8 +213,12 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId()))
-                        call.svar(OK.jsonBody(behandling))
+                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId())).fold(
+                            ifLeft = {
+                                call.svar(Unauthorized.message(it.msg))
+                            },
+                            ifRight = { call.svar(OK.jsonBody(behandling)) }
+                        )
                     } else {
                         call.svar(BadRequest.message("Må anngi en begrunnelse"))
                     }

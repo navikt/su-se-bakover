@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
@@ -114,11 +115,11 @@ data class Behandling(
     fun iverksett(
         attestant: Attestant,
         publisher: UtbetalingPublisher
-    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+    ): Either<IverksettFeil, Behandling> {
         return tilstand.iverksett(attestant, publisher)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+    fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -151,11 +152,11 @@ data class Behandling(
         fun iverksett(
             attestant: Attestant,
             publish: UtbetalingPublisher
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+        ): Either<IverksettFeil, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
 
-        fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -319,9 +320,9 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
-            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            ): Either<IverksettFeil, Behandling> {
                 if (attestant.id == this@Behandling.saksbehandler?.id) {
-                    throw TilstandException(status, this::iverksett.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
 
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
@@ -339,7 +340,7 @@ data class Behandling(
                             it.tidspunkt
                         )
                     )
-                    it
+                    IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
                 }.map {
                     utbetaling!!.addOppdragsmelding(it)
                     nyTilstand(Iverksatt().Innvilget())
@@ -353,9 +354,9 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
-            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            ): Either<IverksettFeil, Behandling> {
                 if (attestant.id == this@Behandling.saksbehandler?.id) {
-                    throw TilstandException(status, this::iverksett.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
 
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
@@ -364,14 +365,14 @@ data class Behandling(
             }
         }
 
-        override fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        override fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
             if (attestant.id == this@Behandling.saksbehandler?.id) {
-                throw TilstandException(status, this::underkjenn.toString(), msg = "Attestant och saksbehandler kan ikke vare samme person.")
+                return KunneIkkeUnderkjenne().left()
             }
 
             hendelseslogg!!.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
             nyTilstand(Simulert())
-            return this@Behandling
+            return this@Behandling.right()
         }
     }
 
@@ -402,6 +403,12 @@ data class Behandling(
         val msg: String = "Illegal operation: $operation for state: $state"
     ) :
         RuntimeException(msg)
+
+    sealed class IverksettFeil {
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class Utbetaling(val msg: String) : IverksettFeil()
+    }
+    data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {

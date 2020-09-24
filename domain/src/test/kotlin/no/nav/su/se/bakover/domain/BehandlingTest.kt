@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -492,12 +493,11 @@ internal class BehandlingTest {
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
-            }
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-            }
+            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub).shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456")).shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+
+            tilAttestering.attestant() shouldBe null
+            tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
 
         @Test
@@ -591,12 +591,11 @@ internal class BehandlingTest {
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
-            }
-            assertThrows<Behandling.TilstandException> {
-                tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-            }
+            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub).shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456")).shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+
+            tilAttestering.attestant() shouldBe null
+            tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
         }
 
         @Test

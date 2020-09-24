@@ -7,12 +7,16 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import io.netty.handler.codec.http.HttpHeaders.addHeader
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -35,7 +39,8 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.RequestSomAttestant
+import no.nav.su.se.bakover.web.Jwt
+import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -269,7 +274,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("arbitraryId"))
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("randomoid"))
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -278,7 +283,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            RequestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
+            requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
                 .apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -290,12 +295,12 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            RequestSomAttestant(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett")
+            requestSomAttestant(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett")
                 .apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
             )
@@ -303,7 +308,22 @@ internal class BehandlingRoutesKtTest {
                     response.status() shouldBe HttpStatusCode.NotFound
                 }
 
-            RequestSomAttestant(
+            handleRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
+            ) {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    Jwt.create(
+                        subject = "random",
+                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                    )
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Unauthorized
+            }
+
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             )
@@ -312,7 +332,7 @@ internal class BehandlingRoutesKtTest {
                     deserialize<BehandlingJson>(response.content!!).let {
                         it.attestant shouldBe "enSaksbehandleroid"
                         it.status shouldBe "IVERKSATT_INNVILGET"
-                        it.saksbehandler shouldBe "arbitraryId"
+                        it.saksbehandler shouldBe "randomoid"
                     }
                 }
         }
@@ -327,7 +347,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456oid"))
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -336,7 +356,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
             ).apply {
@@ -350,14 +370,14 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
             ).apply {
@@ -371,7 +391,7 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
@@ -387,7 +407,29 @@ internal class BehandlingRoutesKtTest {
                 response.content shouldContain "Må anngi en begrunnelse"
             }
 
-            RequestSomAttestant(
+            handleRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+            ) {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    Jwt.create(
+                        subject = "S123456",
+                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                    )
+                )
+                setBody(
+                    """
+                    {
+                        "begrunnelse":"Ser fel ut. Men denna borde bli unauthorized eftersom attestant og saksbehandler er samme."
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Unauthorized
+            }
+
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
@@ -426,7 +468,7 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.simuler(SimuleringStub)
             objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
 
-            RequestSomAttestant(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
