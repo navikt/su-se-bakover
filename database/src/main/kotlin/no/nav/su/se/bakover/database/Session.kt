@@ -34,6 +34,8 @@ import kotliquery.action.UpdateQueryAction
 import kotliquery.param
 import kotliquery.sqlType
 import kotliquery.using
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.math.BigDecimal
@@ -109,6 +111,8 @@ class Session(
                 is BigDecimal -> this.setBigDecimal(idx, v)
                 is java.sql.Array -> this.setArray(idx, v)
                 is URL -> this.setURL(idx, v)
+                is UUID30 -> this.setString(idx, v.toString())
+                is Fnr -> this.setString(idx, v.toString())
                 else -> this.setObject(idx, v)
             }
         }

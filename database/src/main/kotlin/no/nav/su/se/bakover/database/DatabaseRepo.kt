@@ -95,7 +95,7 @@ internal class DatabaseRepo(
     private fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
         "select * from utbetaling where id = :id".hent(
             mapOf(
-                "id" to utbetalingId.toString()
+                "id" to utbetalingId
             ),
             session
         ) { it.toUtbetaling(session) }
@@ -106,10 +106,10 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :oppdragId, :fnr)
          """.oppdatering(
             mapOf(
-                "id" to utbetaling.id.toString(),
+                "id" to utbetaling.id,
                 "opprettet" to utbetaling.opprettet,
-                "oppdragId" to oppdragId.toString(),
-                "fnr" to utbetaling.fnr.toString()
+                "oppdragId" to oppdragId,
+                "fnr" to utbetaling.fnr
             )
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
@@ -121,7 +121,7 @@ internal class DatabaseRepo(
         check(utbetaling.kanSlettes()) { "Utbetaling har kommet for langt i utbetalingsløpet til å kunne slettes" }
         "delete from utbetaling where id=:id".oppdatering(
             mapOf(
-                "id" to utbetaling.id.toString()
+                "id" to utbetaling.id
             )
         )
     }
@@ -132,12 +132,12 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop)
         """.oppdatering(
             mapOf(
-                "id" to utbetalingslinje.id.toString(),
+                "id" to utbetalingslinje.id,
                 "opprettet" to utbetalingslinje.opprettet,
                 "fom" to utbetalingslinje.fom,
                 "tom" to utbetalingslinje.tom,
-                "utbetalingId" to utbetalingId.toString(),
-                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId?.toString(),
+                "utbetalingId" to utbetalingId,
+                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
                 "belop" to utbetalingslinje.beløp,
             )
         )
@@ -265,9 +265,9 @@ internal class DatabaseRepo(
         """.oppdatering(
             mapOf(
                 "sakId" to sak.id,
-                "fnr" to fnr.toString(),
+                "fnr" to fnr,
                 "opprettet" to sak.opprettet,
-                "oppdragId" to sak.oppdrag.id.toString()
+                "oppdragId" to sak.oppdrag.id
             )
         )
         sak.oppdrag.addObserver(this)
@@ -419,7 +419,7 @@ internal class DatabaseRepo(
         """.oppdatering(
             mapOf(
                 "id" to behandlingId,
-                "utbetalingId" to utbetalingId.toString()
+                "utbetalingId" to utbetalingId
             )
         )
     }
@@ -490,7 +490,7 @@ internal class DatabaseRepo(
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
         "update utbetaling set simulering = to_json(:simulering::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "simulering" to objectMapper.writeValueAsString(simulering)
             )
         )
@@ -500,7 +500,7 @@ internal class DatabaseRepo(
     override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
         "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "kvittering" to objectMapper.writeValueAsString(kvittering)
             )
         )
@@ -510,7 +510,7 @@ internal class DatabaseRepo(
     override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
         "update utbetaling set oppdragsmelding = to_json(:oppdragsmelding::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "oppdragsmelding" to objectMapper.writeValueAsString(oppdragsmelding)
             )
         )
@@ -547,7 +547,7 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
         """.oppdatering(
             mapOf(
-                "id" to avstemming.id.toString(),
+                "id" to avstemming.id,
                 "opprettet" to avstemming.opprettet,
                 "fom" to avstemming.fom,
                 "tom" to avstemming.tom,
@@ -584,8 +584,8 @@ internal class DatabaseRepo(
             update utbetaling set avstemmingId = :avstemmingId where id = :id
         """.oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
-                "avstemmingId" to avstemmingId.toString()
+                "id" to utbetalingId,
+                "avstemmingId" to avstemmingId
             )
         )
         return avstemmingId
