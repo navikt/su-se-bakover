@@ -161,7 +161,7 @@ internal class DatabaseRepoTest {
             val saksbehandler = repo.saksbehandle(behandling.id, Saksbehandler("Per"))
             val hentet = repo.hentBehandling(behandling.id)!!
 
-            hentet.saksbehandletAv() shouldBe saksbehandler
+            hentet.saksbehandler() shouldBe saksbehandler
         }
     }
 

@@ -74,7 +74,7 @@ internal class BehandlingJsonTest {
             søknad = søknad,
             beregning = beregning,
             attestant = Attestant("kjella"),
-            saksbehandletAv = Saksbehandler("pro-saksbehandler"),
+            saksbehandler = Saksbehandler("pro-saksbehandler"),
             sakId = sakId
         )
 
@@ -135,7 +135,7 @@ internal class BehandlingJsonTest {
           "status": "OPPRETTET",
           "utbetaling": null,
           "attestant" : "kjella",
-          "saksbehandletAv" : "pro-saksbehandler",
+          "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
           "hendelser": null
         }
@@ -184,7 +184,7 @@ internal class BehandlingJsonTest {
           "utbetaling": null,
           "opprettet": "$opprettetTidspunkt",
           "attestant": null,
-          "saksbehandletAv": null,
+          "saksbehandler": null,
           "sakId": "$sakId",
           "hendelser": null
         }

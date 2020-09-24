@@ -307,7 +307,7 @@ internal class BehandlingRoutesKtTest {
                     deserialize<BehandlingJson>(response.content!!).let {
                         it.attestant shouldBe "enSaksbehandleroid"
                         it.status shouldBe "IVERKSATT_INNVILGET"
-                        it.saksbehandletAv shouldBe "arbitraryId"
+                        it.saksbehandler shouldBe "arbitraryId"
                     }
                 }
         }

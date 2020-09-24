@@ -281,7 +281,7 @@ internal class BehandlingTest {
             vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
             vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
 
-            vilkårsvurdert.saksbehandletAv() shouldBe saksbehandler
+            vilkårsvurdert.saksbehandler() shouldBe saksbehandler
         }
 
         @Test
@@ -397,7 +397,7 @@ internal class BehandlingTest {
             simulert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
 
             simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
-            simulert.saksbehandletAv() shouldBe saksbehandler
+            simulert.saksbehandler() shouldBe saksbehandler
         }
 
         @Test

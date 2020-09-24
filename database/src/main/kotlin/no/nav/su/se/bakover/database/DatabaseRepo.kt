@@ -311,7 +311,7 @@ internal class DatabaseRepo(
             utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
-            saksbehandletAv = stringOrNull("saksbehandletAv")?.let { Saksbehandler(it) },
+            saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
             sakId = uuid("sakId"),
             hendelseslogg = hentHendelseslogg(behandlingId.toString())!!
         ).also {
@@ -416,7 +416,7 @@ internal class DatabaseRepo(
     }
 
     override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
-        "update behandling set saksbehandletAv = :saksbehandler where id=:id".oppdatering(
+        "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
             mapOf(
                 "id" to behandlingId,
                 "saksbehandler" to saksbehandler.id
