@@ -200,11 +200,12 @@ data class Behandling(
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
 
-                val forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
-                    status,
-                    this::opprettBeregning.toString(),
-                    "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
-                )
+                val forventetInntekt =
+                    this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
+                        status,
+                        this::opprettBeregning.toString(),
+                        "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
+                    )
 
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
@@ -323,17 +324,13 @@ data class Behandling(
                     utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                            it.originalMelding
+                            it.originalMelding,
+                            it.tidspunkt
                         )
                     )
                     it
                 }.map {
-                    utbetaling!!.addOppdragsmelding(
-                        Oppdragsmelding(
-                            Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                            it
-                        )
-                    )
+                    utbetaling!!.addOppdragsmelding(it)
                     nyTilstand(Iverksatt().Innvilget())
                     this@Behandling
                 }

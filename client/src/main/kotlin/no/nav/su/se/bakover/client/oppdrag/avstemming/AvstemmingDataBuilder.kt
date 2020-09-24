@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
-import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 
 class AvstemmingDataBuilder(
     val avstemming: Avstemming
@@ -15,8 +15,8 @@ class AvstemmingDataBuilder(
                 aksjonType = Aksjonsdata.AksjonType.DATA,
                 kildeType = Aksjonsdata.KildeType.AVLEVERT,
                 avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
-                nokkelFom = avstemming.fom.toOppdragTimestamp(),
-                nokkelTom = avstemming.tom.toOppdragTimestamp(),
+                nokkelFom = "${Avstemmingsnøkkel.generer(avstemming.fom)}",
+                nokkelTom = "${Avstemmingsnøkkel.generer(avstemming.tom)}",
                 avleverendeAvstemmingId = avstemming.id.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(

@@ -43,4 +43,39 @@ internal class UtilsKtTest {
         Instant.now().toString() shouldHaveLength 27
         now().toString() shouldHaveLength 24
     }
+
+    @Test
+    fun `start and end of day`() {
+        1.januar(2020).startOfDay().toString() shouldBe "2020-01-01T00:00:00Z"
+        1.januar(2020).endOfDay().toString() shouldBe "2020-01-01T23:59:59.999999999Z"
+    }
+
+    @Test
+    fun `instants between others`() {
+        val sept5 = 5.september(2020).startOfDay()
+        sept5.between(
+            start = 5.september(2020).startOfDay(),
+            end = 5.september(2020).endOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 4.september(2020).startOfDay(),
+            end = 5.september(2020).startOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 1.september(2020).startOfDay(),
+            end = 10.september(2020).startOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 1.januar(2020).startOfDay(),
+            end = 10.januar(2020).startOfDay()
+        ) shouldBe false
+
+        sept5.between(
+            start = 1.desember(2020).startOfDay(),
+            end = 10.desember(2020).startOfDay()
+        ) shouldBe false
+    }
 }

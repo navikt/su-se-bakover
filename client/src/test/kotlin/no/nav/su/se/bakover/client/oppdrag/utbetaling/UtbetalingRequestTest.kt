@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -14,10 +15,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -28,7 +27,6 @@ internal class UtbetalingRequestTest {
         const val SAKSBEHANDLER = "SU"
         val FNR = Fnr("12345678911")
         val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
         val oppdragId = UUID30.randomUUID()
         val sakId = UUID.randomUUID()
@@ -43,7 +41,6 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling(
-            opprettet = Instant.EPOCH,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -81,8 +78,8 @@ internal class UtbetalingRequestTest {
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
-                    nokkelAvstemming = nyUtbetaling.id.toString(),
-                    tidspktMelding = "1970-01-01-01.00.00.000000"
+                    nokkelAvstemming = "1577836800000000000",
+                    tidspktMelding = "2020-01-01-01.00.00.000000"
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(
@@ -125,13 +122,13 @@ internal class UtbetalingRequestTest {
 
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
-
         val utbetalingRequest = toUtbetalingRequest(
             nyUtbetaling = NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456")
-            )
+            ),
+            tidspunkt = 1.januar(2020).startOfDay()
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -142,7 +139,6 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling(
-                    opprettet = Instant.EPOCH,
                     oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -166,7 +162,6 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
         val nyUtbetaling = Utbetaling(
-            opprettet = Instant.EPOCH,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
@@ -190,7 +185,8 @@ internal class UtbetalingRequestTest {
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456")
-            )
+            ),
+            tidspunkt = 1.januar(2020).startOfDay()
         )
 
         utbetalingRequest shouldBe UtbetalingRequest(
@@ -211,8 +207,8 @@ internal class UtbetalingRequestTest {
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
-                    nokkelAvstemming = nyUtbetaling.id.toString(),
-                    tidspktMelding = "1970-01-01-01.00.00.000000"
+                    nokkelAvstemming = "1577836800000000000",
+                    tidspktMelding = "2020-01-01-01.00.00.000000"
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(

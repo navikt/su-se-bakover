@@ -19,7 +19,7 @@ interface ObjectRepo {
     fun hentBehandling(behandlingId: UUID): Behandling?
     fun hentBeregning(behandlingId: UUID): Beregning?
     fun hentUtbetaling(utbetalingId: UUID30): Utbetaling?
-    fun hentUtbetalingerTilAvstemming(fom: Instant, tom: Instant): List<Utbetaling>
+    fun hentUtbetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling>
     fun opprettAvstemming(avstemming: Avstemming): Avstemming
     fun hentSisteAvstemming(): Avstemming?
 }
