@@ -158,7 +158,7 @@ internal class DatabaseRepoTest {
             val søknad = insertSøknad(sak.id)
             val behandling = insertBehandling(sak.id, søknad)
 
-            val saksbehandler = repo.saksbehandle(behandling.id, Saksbehandler("Per"))
+            val saksbehandler = repo.settSaksbehandler(behandling.id, Saksbehandler("Per"))
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler
@@ -740,7 +740,7 @@ internal class DatabaseRepoTest {
             return attestant
         }
 
-        override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
             return saksbehandler
         }
 

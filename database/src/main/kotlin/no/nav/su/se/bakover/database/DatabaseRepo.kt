@@ -415,7 +415,7 @@ internal class DatabaseRepo(
         return attestant
     }
 
-    override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
         "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
             mapOf(
                 "id" to behandlingId,

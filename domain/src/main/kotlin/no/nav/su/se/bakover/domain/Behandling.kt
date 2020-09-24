@@ -237,7 +237,7 @@ data class Behandling(
                     aktørId = aktørId
                 )
             ).map {
-                this@Behandling.saksbehandler = persistenceObserver.saksbehandle(id, saksbehandler)
+                this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
                 nyTilstand(TilAttestering().Avslag())
                 this@Behandling
             }
@@ -294,7 +294,7 @@ data class Behandling(
                 aktørId = aktørId
             )
         ).map {
-            this@Behandling.saksbehandler = persistenceObserver.saksbehandle(id, saksbehandler)
+            this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
             nyTilstand(TilAttestering().Innvilget())
             this@Behandling
         }
@@ -420,6 +420,6 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
-    fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler
+    fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)
 }

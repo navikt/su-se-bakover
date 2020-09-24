@@ -664,7 +664,7 @@ internal class BehandlingTest {
             return Fnr("12345678910")
         }
 
-        override fun saksbehandle(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
             return saksbehandler
         }
 
