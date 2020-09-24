@@ -526,7 +526,7 @@ internal class DatabaseRepo(
      * 1. Get rows for extended interval.
      * 2. Filter in code to utilize precision of instant to get extact rows.
      */
-    override fun hentUtebetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
             val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
             val adjustedTom = tom.plus(1, ChronoUnit.DAYS)

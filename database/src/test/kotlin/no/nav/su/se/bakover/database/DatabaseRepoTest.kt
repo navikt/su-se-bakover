@@ -535,17 +535,17 @@ internal class DatabaseRepoTest {
                 )
             )
 
-            repo.hentUtebetalingerForAvstemming(
+            repo.hentUtbetalingerForAvstemming(
                 fom = 10.oktober(2020).startOfDay(),
                 tom = 10.oktober(2020).endOfDay()
             ) shouldBe emptyList()
 
-            repo.hentUtebetalingerForAvstemming(
+            repo.hentUtbetalingerForAvstemming(
                 fom = 11.oktober(2020).startOfDay(),
                 tom = 11.oktober(2020).endOfDay()
             ) shouldHaveSize 1
 
-            repo.hentUtebetalingerForAvstemming(
+            repo.hentUtbetalingerForAvstemming(
                 fom = 12.oktober(2020).startOfDay(),
                 tom = 12.oktober(2020).endOfDay()
             ) shouldBe emptyList()
@@ -604,7 +604,7 @@ internal class DatabaseRepoTest {
                 )
             )
 
-            val utbetalinger = repo.hentUtebetalingerForAvstemming(
+            val utbetalinger = repo.hentUtbetalingerForAvstemming(
                 11.oktober(2020).startOfDay(),
                 11.oktober(2020).endOfDay()
             )

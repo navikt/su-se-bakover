@@ -18,7 +18,7 @@ class AvstemmingBuilder(
 ) {
     fun build(): Avstemming {
         val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming()).build()
-        val utbetalinger = repo.hentUtebetalingerForAvstemming(periode.fom, periode.tom)
+        val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fom, periode.tom)
         return Avstemming(
             opprettet = now(clock),
             fom = periode.fom,
