@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
+import java.time.Instant
 import java.util.UUID
 
 class UtbetalingXmlMappingTest {
@@ -49,6 +50,7 @@ class UtbetalingXmlMappingTest {
     )
     private val oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
+        opprettet = Instant.EPOCH,
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )

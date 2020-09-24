@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.web.routes
 
 import io.ktor.http.HttpMethod.Companion.Get
-
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

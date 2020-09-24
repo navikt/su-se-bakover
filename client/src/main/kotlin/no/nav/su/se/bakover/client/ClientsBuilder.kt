@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.AdGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -29,5 +30,6 @@ data class Clients(
     val simuleringClient: SimuleringClient,
     val utbetalingPublisher: UtbetalingPublisher,
     val dokDistFordeling: DokDistFordeling,
-    val avstemmingPublisher: AvstemmingPublisher
+    val avstemmingPublisher: AvstemmingPublisher,
+    val adGraphApiClient: AdGraphApiClient,
 )

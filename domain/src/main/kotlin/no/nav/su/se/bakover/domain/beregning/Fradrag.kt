@@ -11,6 +11,7 @@ enum class Fradragstype {
     Pensjon,
     Kapitalinntekt,
     UtenlandskInntekt,
+    ForventetInntekt,
     AndreYtelser;
 
     companion object {

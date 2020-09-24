@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -80,5 +81,14 @@ internal class SakTest {
         }
     }
 
-    private fun nySak() = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
+    private fun nySak() = Sak(
+        id = sakId,
+        opprettet = Instant.EPOCH,
+        fnr = fnr,
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = sakId
+        )
+    )
 }

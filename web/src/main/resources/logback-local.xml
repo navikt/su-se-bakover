@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include file="src/main/resources/logbackConfig.xml"/>
+    <include file="logbackConfig.xml"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -8,8 +8,8 @@
         </encoder>
     </appender>
 
-    <logger name="com.zaxxer.hikari" level="ERROR"/>
-    <logger name="org.flywaydb" level="ERROR"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.flywaydb" level="WARN"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

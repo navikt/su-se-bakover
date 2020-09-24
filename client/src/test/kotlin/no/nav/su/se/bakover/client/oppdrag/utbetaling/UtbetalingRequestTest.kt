@@ -33,6 +33,7 @@ internal class UtbetalingRequestTest {
 
         val oppdrag = no.nav.su.se.bakover.domain.oppdrag.Oppdrag(
             id = oppdragId,
+            opprettet = Instant.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf()
         )

@@ -57,7 +57,16 @@ internal class StoppbehandlingRoutesKtTest {
             saksbehandler = Saksbehandler(id = "saksbehandler")
         )
 
-        val sak = Sak(id = sakId, opprettet = Instant.EPOCH, fnr = fnr, oppdrag = Oppdrag(sakId = sakId))
+        val sak = Sak(
+            id = sakId,
+            opprettet = Instant.EPOCH,
+            fnr = fnr,
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Instant.EPOCH,
+                sakId = sakId
+            )
+        )
         val stoppbehandlingServiceMock = mock<StoppbehandlingService> {
             on { stoppUtbetalinger(any(), any(), any()) } doReturn stoppbehandling.right()
         }

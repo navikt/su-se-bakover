@@ -29,7 +29,11 @@ internal class OppdragTest {
 
     @BeforeEach
     fun beforeEach() {
-        oppdrag = Oppdrag(sakId = sakId).also {
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
+            sakId = sakId
+        ).also {
             observer = DummyObserver()
             it.addObserver(observer)
         }
@@ -69,6 +73,8 @@ internal class OppdragTest {
         val forrigeUtbetalingslinjeId = UUID30.randomUUID()
 
         val eksisterendeOppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
             sakId = oppdrag.sakId,
             utbetalinger = mutableListOf(
                 Utbetaling(
@@ -188,6 +194,8 @@ internal class OppdragTest {
         )
 
         val oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Instant.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf(first, second, third, fourth, fifth)
         )
@@ -202,7 +210,8 @@ internal class OppdragTest {
             tom = 31.desember(2020),
             sats = Sats.HØY,
             opprettet = opprettet,
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            forventetInntekt = 0
         )
 
         val actualUtbetaling = oppdrag.generererUtbetaling(b)

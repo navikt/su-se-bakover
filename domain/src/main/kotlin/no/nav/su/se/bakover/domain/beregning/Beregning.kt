@@ -15,7 +15,8 @@ data class Beregning(
     val tom: LocalDate,
     val sats: Sats,
     val fradrag: List<Fradrag>,
-    val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag)
+    val forventetInntekt: Int,
+    val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag, forventetInntekt)
 ) : PersistentDomainObject<VoidObserver>() {
 
     init {
@@ -23,6 +24,7 @@ data class Beregning(
         require(tom.dayOfMonth == tom.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tom" }
         require(fom.isBefore(tom)) { "Startdato ($fom) for beregning må være tidligere enn sluttdato ($tom)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
+        require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
     }
 
     companion object {
@@ -30,14 +32,15 @@ data class Beregning(
             fom: LocalDate,
             tom: LocalDate,
             sats: Sats,
-            fradrag: List<Fradrag>
+            fradrag: List<Fradrag>,
+            forventetInntekt: Int
         ): List<Månedsberegning> {
             val antallMåneder = 0L until Period.between(fom, tom.plusDays(1)).toTotalMonths()
             return antallMåneder.map {
                 Månedsberegning(
                     fom = fom.plusMonths(it),
                     sats = sats,
-                    fradrag = fradrag.sumBy { f -> f.perMåned() }
+                    fradrag = fradragWithForventetInntekt(fradrag, forventetInntekt).sumBy { f -> f.perMåned() }
                 )
             }
         }
@@ -48,4 +51,16 @@ data class Beregning(
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
     }
+}
+
+private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
+    val (arbeidsinntektFradrag, andreFradrag) = fradrag.partition { it.type == Fradragstype.Arbeidsinntekt }
+
+    val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }
+
+    if (totalArbeidsinntekt > forventetInntekt) {
+        return fradrag
+    }
+
+    return andreFradrag.plus(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
 }

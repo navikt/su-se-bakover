@@ -33,10 +33,10 @@ allprojects {
         }
     }
     val junitJupiterVersion = "5.6.2"
-    val arrowVersion = "0.10.5"
+    val arrowVersion = "0.11.0"
     val kotestVersion = "4.1.3"
     val jacksonVersion = "2.11.2"
-    val ktlintVersion = "0.38.1"
+    val ktlintVersion = "0.39.0"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 

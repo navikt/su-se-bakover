@@ -27,7 +27,6 @@ import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
-
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject

@@ -16,6 +16,7 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesBehandlerId
@@ -109,6 +111,12 @@ internal fun Route.behandlingRoutes(
                     }
                 }
             )
+        }
+    }
+
+    get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
+        call.withBehandling(repo) { behandling ->
+            call.svar(Resultat.json(OK, serialize(behandling.toUtledetSatsInfoJson())))
         }
     }
 

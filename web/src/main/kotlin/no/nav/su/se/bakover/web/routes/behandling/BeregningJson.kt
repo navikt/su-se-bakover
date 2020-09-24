@@ -12,7 +12,8 @@ internal data class BeregningJson(
     val tom: String,
     val sats: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
-    val fradrag: List<FradragJson> = emptyList()
+    val fradrag: List<FradragJson> = emptyList(),
+    val forventetInntekt: Int,
 )
 
 internal fun Beregning.toJson() = BeregningJson(
@@ -22,7 +23,8 @@ internal fun Beregning.toJson() = BeregningJson(
     tom = tom.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,
     månedsberegninger = månedsberegninger.map { it.toJson() },
-    fradrag = fradrag.map { FradragJson(it.type.toString(), it.beløp, it.beskrivelse) }
+    fradrag = fradrag.map { FradragJson(it.type.toString(), it.beløp, it.beskrivelse) },
+    forventetInntekt = forventetInntekt
 )
 
 internal data class FradragJson(
