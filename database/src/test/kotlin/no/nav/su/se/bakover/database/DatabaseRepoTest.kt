@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
 import kotliquery.using
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.toMicroInstant
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -52,9 +54,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class DatabaseRepoTest {
@@ -431,7 +431,7 @@ internal class DatabaseRepoTest {
             val kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "someXmlHere",
-                mottattTidspunkt = Instant.EPOCH
+                mottattTidspunkt = MicroInstant.EPOCH
             )
             repo.addKvittering(utbetaling.id, kvittering)
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
@@ -478,16 +478,16 @@ internal class DatabaseRepoTest {
 
             repo.opprettAvstemming(
                 Avstemming(
-                    fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 1.januar(2020).atStartOfDay().toMicroInstant(),
+                    tom = 2.januar(2020).atStartOfDay().toMicroInstant(),
                     utbetalinger = listOf(utbetaling)
                 )
             )
 
             val second = repo.opprettAvstemming(
                 Avstemming(
-                    fom = 3.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 4.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 3.januar(2020).atStartOfDay().toMicroInstant(),
+                    tom = 4.januar(2020).atStartOfDay().toMicroInstant(),
                     utbetalinger = listOf(utbetaling),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
@@ -501,7 +501,7 @@ internal class DatabaseRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
-            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toInstant(ZoneOffset.UTC)
+            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toMicroInstant()
 
             val sak = insertSak(FNR)
             val utbetaling1 = repo.opprettUtbetaling(
@@ -712,7 +712,7 @@ internal class DatabaseRepoTest {
         override fun hentOppdrag(sakId: UUID): Oppdrag {
             return Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = MicroInstant.EPOCH,
                 sakId = sakId
             )
         }

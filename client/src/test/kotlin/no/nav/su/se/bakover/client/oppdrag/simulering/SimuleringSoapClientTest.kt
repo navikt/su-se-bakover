@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
-import java.time.Instant
 import java.util.UUID
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
@@ -162,7 +162,7 @@ internal class SimuleringSoapClientTest {
 
     private fun createOppdrag() = Oppdrag(
         id = UUID30.randomUUID(),
-        opprettet = Instant.EPOCH,
+        opprettet = MicroInstant.EPOCH,
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )

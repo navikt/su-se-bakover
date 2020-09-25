@@ -34,6 +34,7 @@ import kotliquery.action.UpdateQueryAction
 import kotliquery.param
 import kotliquery.sqlType
 import kotliquery.using
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
@@ -89,6 +90,7 @@ class Session(
                 is ZonedDateTime -> this.setTimestamp(idx, Timestamp.from(v.toInstant()))
                 is OffsetDateTime -> this.setTimestamp(idx, Timestamp.from(v.toInstant()))
                 is Instant -> this.setTimestamp(idx, Timestamp.from(v))
+                is MicroInstant -> this.setTimestamp(idx, Timestamp.from(v.instant))
                 is LocalDateTime -> this.setTimestamp(
                     idx,
                     Timestamp(org.joda.time.LocalDateTime.parse(v.toString()).toDate().time)

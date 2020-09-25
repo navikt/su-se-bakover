@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
@@ -7,12 +8,11 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.LoggerFactory
-import java.time.Instant
 import java.util.Comparator
 
 data class Utbetaling(
     val id: UUID30 = UUID30.randomUUID(),
-    val opprettet: Instant = now(),
+    val opprettet: MicroInstant = now(),
     private var simulering: Simulering? = null,
     private var kvittering: Kvittering? = null,
     private var oppdragsmelding: Oppdragsmelding? = null,

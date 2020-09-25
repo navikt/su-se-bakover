@@ -9,15 +9,15 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.toMicroInstant
 import org.junit.jupiter.api.Test
-import java.time.ZoneOffset
 
 internal class AvstemmingsnøkkelTest {
 
-    private val sept15 = Avstemmingsnøkkel.generer(15.september(2020).atStartOfDay().toInstant(ZoneOffset.UTC))
-    private val okt1 = Avstemmingsnøkkel.generer(1.oktober(2020).atStartOfDay().toInstant(ZoneOffset.UTC))
-    private val nov29 = Avstemmingsnøkkel.generer(29.november(2020).atStartOfDay().toInstant(ZoneOffset.UTC))
-    private val jan12200 = Avstemmingsnøkkel.generer(1.januar(2200).atStartOfDay().toInstant(ZoneOffset.UTC))
+    private val sept15 = Avstemmingsnøkkel.generer(15.september(2020).atStartOfDay().toMicroInstant())
+    private val okt1 = Avstemmingsnøkkel.generer(1.oktober(2020).atStartOfDay().toMicroInstant())
+    private val nov29 = Avstemmingsnøkkel.generer(29.november(2020).atStartOfDay().toMicroInstant())
+    private val jan12200 = Avstemmingsnøkkel.generer(1.januar(2200).atStartOfDay().toMicroInstant())
 
     @Test
     fun `sammenligning av nøkler`() {
@@ -39,8 +39,8 @@ internal class AvstemmingsnøkkelTest {
     @Test
     fun `start og end inclusive i periode`() {
         val periode = Avstemmingsnøkkel.periode(1.januar(2020), 31.januar(2020))
-        val start = Avstemmingsnøkkel.generer(1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC))
-        val slutt = Avstemmingsnøkkel.generer(1.februar(2020).atStartOfDay().toInstant(ZoneOffset.UTC).minusNanos(1))
+        val start = Avstemmingsnøkkel.generer(1.januar(2020).atStartOfDay().toMicroInstant())
+        val slutt = Avstemmingsnøkkel.generer(1.februar(2020).atStartOfDay().minusNanos(1).toMicroInstant())
         start shouldBeInRange periode
         slutt shouldBeInRange periode
         start shouldBe periode.first

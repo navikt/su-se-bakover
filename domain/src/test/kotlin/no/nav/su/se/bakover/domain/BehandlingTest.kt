@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -48,7 +49,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Instant
 import java.util.UUID
 
 internal class BehandlingTest {
@@ -61,7 +61,7 @@ internal class BehandlingTest {
     companion object {
         val oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             sakId = UUID.randomUUID(),
             utbetalinger = mutableListOf()
         )

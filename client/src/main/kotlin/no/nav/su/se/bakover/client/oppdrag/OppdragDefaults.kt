@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag
 
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
-import java.time.Instant
+import no.nav.su.se.bakover.common.MicroInstant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -35,8 +35,8 @@ private val zoneId = ZoneId.of("Europe/Oslo")
 fun LocalDate.toOppdragDate() = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     .withZone(zoneId).format(this)
 
-fun Instant.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
+fun MicroInstant.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
     .withZone(zoneId).format(this)
 
-fun Instant.toAvstemmingsdatoFormat() = DateTimeFormatter.ofPattern("yyyyMMddHH")
+fun MicroInstant.toAvstemmingsdatoFormat() = DateTimeFormatter.ofPattern("yyyyMMddHH")
     .withZone(zoneId).format(this)

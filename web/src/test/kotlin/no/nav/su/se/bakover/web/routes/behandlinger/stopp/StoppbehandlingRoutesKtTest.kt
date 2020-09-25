@@ -10,6 +10,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -41,11 +41,11 @@ internal class StoppbehandlingRoutesKtTest {
         val stoppÅrsak = "Årsaken til stoppen."
         val stoppbehandling = Stoppbehandling.Simulert(
             id = UUID.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             sakId = sakId,
             utbetaling = Utbetaling(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = MicroInstant.EPOCH,
                 simulering = null,
                 kvittering = null,
                 oppdragsmelding = null,
@@ -59,11 +59,11 @@ internal class StoppbehandlingRoutesKtTest {
 
         val sak = Sak(
             id = sakId,
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             fnr = fnr,
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = MicroInstant.EPOCH,
                 sakId = sakId
             )
         )

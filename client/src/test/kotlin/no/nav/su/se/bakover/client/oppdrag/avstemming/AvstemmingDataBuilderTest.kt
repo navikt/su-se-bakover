@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.toMicroInstant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -85,8 +86,8 @@ internal class AvstemmingDataBuilderTest {
             Avstemming(
                 id = avstemmingId,
                 opprettet = now(),
-                fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
-                tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                fom = 1.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
+                tom = 2.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
                 utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null
             ),
@@ -98,8 +99,8 @@ internal class AvstemmingDataBuilderTest {
         assertThrows<IllegalStateException> {
             AvstemmingDataBuilder(
                 Avstemming(
-                    fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
-                    tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    fom = 1.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
+                    tom = 2.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
                     utbetalinger = alleUtbetalinger() + listOf(Utbetaling(utbetalingslinjer = emptyList(), fnr = fnr)),
                     avstemmingXmlRequest = null
                 ),
@@ -109,8 +110,8 @@ internal class AvstemmingDataBuilderTest {
         assertThrows<IllegalStateException> {
             AvstemmingDataBuilder(
                 Avstemming(
-                    fom = 1.mars(2020).atStartOfDay(zoneId).toInstant(),
-                    tom = 2.mars(2020).atStartOfDay(zoneId).toInstant(),
+                    fom = 1.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
+                    tom = 2.mars(2020).atStartOfDay(zoneId).toMicroInstant(),
                     utbetalinger = alleUtbetalinger() + listOf(
                         Utbetaling(
                             utbetalingslinjer = emptyList(),
@@ -128,7 +129,7 @@ internal class AvstemmingDataBuilderTest {
 private val zoneId = ZoneId.of("Europe/Oslo")
 fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
     id = UUID30.randomUUID(),
-    opprettet = fom.atStartOfDay(zoneId).toInstant(),
+    opprettet = fom.atStartOfDay(zoneId).toMicroInstant(),
     fom = fom,
     tom = tom,
     forrigeUtbetalingslinjeId = null,
@@ -144,7 +145,7 @@ fun lagUtbetaling(
 ) =
     Utbetaling(
         id = id,
-        opprettet = opprettet.atStartOfDay(zoneId).toInstant(),
+        opprettet = opprettet.atStartOfDay(zoneId).toMicroInstant(),
         simulering = null,
         kvittering = status?.let {
             Kvittering(

@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.util.UUID
 
 internal class UtbetalingPublisherTest {
@@ -28,7 +28,7 @@ internal class UtbetalingPublisherTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = Oppdrag(
                     id = UUID30.randomUUID(),
-                    opprettet = Instant.EPOCH,
+                    opprettet = MicroInstant.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
                 utbetaling = Utbetaling(
@@ -52,7 +52,7 @@ internal class UtbetalingPublisherTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = Oppdrag(
                     id = UUID30.randomUUID(),
-                    opprettet = Instant.EPOCH,
+                    opprettet = MicroInstant.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
                 utbetaling = Utbetaling(

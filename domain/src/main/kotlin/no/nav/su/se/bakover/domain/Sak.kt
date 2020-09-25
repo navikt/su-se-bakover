@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import java.time.Instant
 import java.util.UUID
 
 data class Sak(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Instant = now(),
+    val opprettet: MicroInstant = now(),
     val fnr: Fnr,
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),

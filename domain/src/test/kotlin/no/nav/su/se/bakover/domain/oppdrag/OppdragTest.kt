@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -9,16 +10,15 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.toMicroInstant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class OppdragTest {
@@ -31,7 +31,7 @@ internal class OppdragTest {
     fun beforeEach() {
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             sakId = sakId
         ).also {
             observer = DummyObserver()
@@ -74,7 +74,7 @@ internal class OppdragTest {
 
         val eksisterendeOppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             sakId = oppdrag.sakId,
             utbetalinger = mutableListOf(
                 Utbetaling(
@@ -83,7 +83,7 @@ internal class OppdragTest {
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             id = forrigeUtbetalingslinjeId,
-                            opprettet = Instant.MIN,
+                            opprettet = MicroInstant.MIN,
                             fom = 1.januar(2018),
                             tom = 1.desember(2018),
                             forrigeUtbetalingslinjeId = null,
@@ -156,7 +156,7 @@ internal class OppdragTest {
     @Test
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling(
-            opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toMicroInstant(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
@@ -164,7 +164,7 @@ internal class OppdragTest {
         )
 
         val second = Utbetaling(
-            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toMicroInstant(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
@@ -172,21 +172,21 @@ internal class OppdragTest {
         )
 
         val third = Utbetaling(
-            opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toMicroInstant(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr
         )
         val fourth = Utbetaling(
-            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toMicroInstant(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr
         )
         val fifth = Utbetaling(
-            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toMicroInstant(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, ""),
             kvittering = null,
             utbetalingslinjer = emptyList(),
@@ -195,7 +195,7 @@ internal class OppdragTest {
 
         val oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = MicroInstant.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf(first, second, third, fourth, fifth)
         )
@@ -204,7 +204,7 @@ internal class OppdragTest {
 
     @Test
     fun `konverterer beregning til utbetalingsperioder`() {
-        val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toInstant(ZoneOffset.UTC)
+        val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toMicroInstant()
         val b = Beregning(
             fom = 1.januar(2020),
             tom = 31.desember(2020),
@@ -269,7 +269,7 @@ internal class OppdragTest {
 
     private fun expectedUtbetalingslinje(
         utbetalingslinjeId: UUID30,
-        opprettet: Instant,
+        opprettet: MicroInstant,
         fom: LocalDate,
         tom: LocalDate,
         beløp: Int,

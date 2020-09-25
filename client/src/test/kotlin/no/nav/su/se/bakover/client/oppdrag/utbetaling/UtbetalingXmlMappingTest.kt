@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
+import no.nav.su.se.bakover.common.MicroInstant
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
-import java.time.Instant
 import java.util.UUID
 
 class UtbetalingXmlMappingTest {
@@ -50,7 +50,7 @@ class UtbetalingXmlMappingTest {
     )
     private val oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
-        opprettet = Instant.EPOCH,
+        opprettet = MicroInstant.EPOCH,
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )
