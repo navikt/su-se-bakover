@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
+import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.behandlinger.stopp.stoppbehandlingRoutes
@@ -186,6 +187,10 @@ internal fun Application.susebakover(
     }
 
     install(XForwardedHeaderSupport)
+
+    install(SuUserFeature) {
+        this.clients = clients
+    }
 
     routing {
         authenticate("jwt") {
