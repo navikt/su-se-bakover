@@ -24,12 +24,16 @@ data class AdGraphResponse(
     val jobTitle: String
 )
 
+interface AdGraphApiOppslag {
+    fun hent(userToken: String): Either<String, AdGraphResponse>
+}
+
 class AdGraphApiClient(
     private val exchange: OAuth
-) {
+) : AdGraphApiOppslag {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun hent(userToken: String): Either<String, AdGraphResponse> {
+    override fun hent(userToken: String): Either<String, AdGraphResponse> {
         val onBehalfOfToken = exchange.onBehalfOFToken(userToken, "https://graph.microsoft.com")
         val query =
             "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
