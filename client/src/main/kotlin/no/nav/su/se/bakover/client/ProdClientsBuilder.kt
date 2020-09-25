@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
-import no.nav.su.se.bakover.client.person.AdGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
@@ -74,7 +74,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
                     )
                 }
             ),
-            adGraphApiClient = AdGraphApiClient(oAuth),
+            microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
         )
     }
 }
