@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
@@ -228,6 +229,7 @@ internal fun Application.susebakover(
             )
             avstemmingRoutes(services.avstemmingService)
             stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
+            meRoutes()
         }
     }
     if (!Config.isLocalOrRunningTests) {
