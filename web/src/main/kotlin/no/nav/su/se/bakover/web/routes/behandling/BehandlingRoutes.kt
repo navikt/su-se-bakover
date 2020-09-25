@@ -11,7 +11,6 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -185,7 +184,7 @@ internal fun Route.behandlingRoutes(
                     behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
                         {
                             when (it) {
-                                is AttestantOgSaksbehandlerErLik -> call.svar(Unauthorized.message(it.msg))
+                                is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
                                 is Utbetaling -> call.svar(InternalServerError.message(it.msg))
                             }
                         },
@@ -215,7 +214,7 @@ internal fun Route.behandlingRoutes(
                     if (body.valid()) {
                         behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId())).fold(
                             ifLeft = {
-                                call.svar(Unauthorized.message(it.msg))
+                                call.svar(Forbidden.message(it.msg))
                             },
                             ifRight = { call.svar(OK.jsonBody(behandling)) }
                         )

@@ -319,7 +319,7 @@ internal class BehandlingRoutesKtTest {
                     )
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
 
             requestSomAttestant(
@@ -420,12 +420,12 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "begrunnelse":"Ser fel ut. Men denna borde bli unauthorized eftersom attestant og saksbehandler er samme."
+                        "begrunnelse":"Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
                     }
                     """.trimIndent()
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Unauthorized
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
 
             requestSomAttestant(
