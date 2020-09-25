@@ -19,6 +19,9 @@ object Config {
     val azureClientId = env["AZURE_CLIENT_ID"] ?: "24ea4acb-547e-45de-a6d3-474bd8bed46e"
     val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "http://localhost:8080/callback"
     val azureRequiredGroup = env["AZURE_REQUIRED_GROUP"] ?: "requiredgroup"
+    val azureGroupAttestant = if (isLocalOrRunningTests) "d75164fa-39e6-4149-956e-8404bc9080b6" else "b64af061-f7c4-4d05-907f-b457e23da339"
+    val azureGroupSaksbehandler = if (isLocalOrRunningTests) "0ba009c4-d148-4a51-b501-4b1cf906889d" else "654d28c0-b02b-4c50-86a0-896cf64e79f0"
+    val azureGroupVeileder = if (isLocalOrRunningTests) "062d4814-8538-4f3a-bcb9-32821af7909a" else "4b1ccffd-b1e1-41a7-9f3a-d4acb6d53b05"
     val suInntektAzureClientId = env["SU_INNTEKT_AZURE_CLIENT_ID"] ?: "9cd61904-33ad-40e8-9cc8-19e4dab588c5"
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"

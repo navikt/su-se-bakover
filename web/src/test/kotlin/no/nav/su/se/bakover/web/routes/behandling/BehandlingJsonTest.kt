@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
@@ -73,6 +74,7 @@ internal class BehandlingJsonTest {
             søknad = søknad,
             beregning = beregning,
             attestant = Attestant("kjella"),
+            saksbehandler = Saksbehandler("pro-saksbehandler"),
             sakId = sakId
         )
 
@@ -133,6 +135,7 @@ internal class BehandlingJsonTest {
           "status": "OPPRETTET",
           "utbetaling": null,
           "attestant" : "kjella",
+          "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
           "hendelser": null
         }
@@ -181,6 +184,7 @@ internal class BehandlingJsonTest {
           "utbetaling": null,
           "opprettet": "$opprettetTidspunkt",
           "attestant": null,
+          "saksbehandler": null,
           "sakId": "$sakId",
           "hendelser": null
         }
