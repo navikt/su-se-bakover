@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.unsafeCatch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-data class AdGraphResponse(
+data class MicrosoftGraphResponse(
     val onPremisesSamAccountName: String?,
     val displayName: String,
     val givenName: String,
@@ -24,16 +24,16 @@ data class AdGraphResponse(
     val jobTitle: String
 )
 
-interface AdGraphApiOppslag {
-    fun hent(userToken: String): Either<String, AdGraphResponse>
+interface MicrosoftGraphApiOppslag {
+    fun hent(userToken: String): Either<String, MicrosoftGraphResponse>
 }
 
-class AdGraphApiClient(
+class MicrosoftGraphApiClient(
     private val exchange: OAuth
-) : AdGraphApiOppslag {
+) : MicrosoftGraphApiOppslag {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun hent(userToken: String): Either<String, AdGraphResponse> {
+    override fun hent(userToken: String): Either<String, MicrosoftGraphResponse> {
         val onBehalfOfToken = exchange.onBehalfOFToken(userToken, "https://graph.microsoft.com")
         val query =
             "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
@@ -58,7 +58,7 @@ class AdGraphApiClient(
             }
             .flatMap { res ->
                 Either.unsafeCatch {
-                    objectMapper.readValue<AdGraphResponse>(res)
+                    objectMapper.readValue<MicrosoftGraphResponse>(res)
                 }
                     .mapLeft {
                         log.info("Deserialisering av respons fra Microsoft Graph API feilet")

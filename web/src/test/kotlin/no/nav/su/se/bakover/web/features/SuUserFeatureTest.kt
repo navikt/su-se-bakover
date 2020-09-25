@@ -4,8 +4,8 @@ import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.person.AdGraphApiOppslag
-import no.nav.su.se.bakover.client.person.AdGraphResponse
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -17,7 +17,7 @@ internal class SuUserFeatureTest {
     @Test
     fun `should`() {
         val response = Either.right(
-            AdGraphResponse(
+            MicrosoftGraphResponse(
                 onPremisesSamAccountName = "heisann",
                 displayName = "dp",
                 givenName = "gn",
@@ -33,8 +33,8 @@ internal class SuUserFeatureTest {
         withTestApplication({
             testSusebakover(
                 clients = testClients.copy(
-                    adGraphApiClient = object : AdGraphApiOppslag {
-                        override fun hent(userToken: String): Either<String, AdGraphResponse> = response
+                    microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
+                        override fun hent(userToken: String): Either<String, MicrosoftGraphResponse> = response
                     }
                 )
             )

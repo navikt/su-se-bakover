@@ -10,7 +10,7 @@ import io.ktor.request.header
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.client.person.AdGraphResponse
+import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 
 class SuUserFeature(configuration: Configuration) {
     val clients = configuration.clients
@@ -28,7 +28,7 @@ class SuUserFeature(configuration: Configuration) {
 
         val authHeader = context.call.request.header(HttpHeaders.Authorization) ?: return
 
-        val u = clients.adGraphApiClient.hent(authHeader)
+        val u = clients.microsoftGraphApiClient.hent(authHeader)
         suUserContext.user = u
     }
 
@@ -50,7 +50,7 @@ class SuUserFeature(configuration: Configuration) {
 }
 
 class SuUserContext(val call: ApplicationCall) {
-    var user: Either<String, AdGraphResponse>? = null
+    var user: Either<String, MicrosoftGraphResponse>? = null
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
