@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
+import no.nav.su.se.bakover.service.Services
 import java.util.Base64
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
@@ -49,14 +50,16 @@ internal fun Application.testSusebakover(
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    stoppbehandlingService: StoppbehandlingService = mock()
+    stoppbehandlingService: StoppbehandlingService = mock(),
+    services: Services = Services(avstemmingService = mock())
 ) {
     return susebakover(
         databaseRepos = databaseRepos,
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        stoppbehandlingService = stoppbehandlingService
+        stoppbehandlingService = stoppbehandlingService,
+        services = services
     )
 }
 
@@ -96,7 +99,10 @@ fun TestApplicationEngine.requestSomAttestant(
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)))
+        addHeader(
+            HttpHeaders.Authorization,
+            Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant))
+        )
         setup()
     }
 }

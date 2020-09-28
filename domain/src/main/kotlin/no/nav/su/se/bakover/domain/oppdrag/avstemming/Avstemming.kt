@@ -12,6 +12,4 @@ data class Avstemming(
     val tom: Tidspunkt,
     val utbetalinger: List<Utbetaling>,
     val avstemmingXmlRequest: String? = null
-) {
-    fun updateUtbetalinger() = utbetalinger.forEach { it.addAvstemmingId(id) }
-}
+)

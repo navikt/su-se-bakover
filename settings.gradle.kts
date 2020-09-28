@@ -11,5 +11,6 @@ rootProject.name = "su-se-bakover"
 include("domain")
 include("web")
 include("common")
+include("service")
 include("database")
 include("client")

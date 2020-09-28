@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.avstemming
+package no.nav.su.se.bakover.service.avstemming
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.endOfDay
@@ -10,21 +10,21 @@ import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
 
-internal class AvstemmingBuilderTest {
+internal class AvstemmingPeriodeBuilderTest {
 
     // now() yields 10 januar 2020
     private val fixedClock = Clock.fixed(1.januar(2020).plusDays(9).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `periode for første avstemming`() {
-        val periode = AvstemmingBuilder.AvstemmingPeriodeBuilder(null, fixedClock).build()
+        val periode = AvstemmingPeriodeBuilder(null, fixedClock).build()
         periode.fom shouldBe 1.januar(2020).startOfDay()
         periode.tom shouldBe 9.januar(2020).endOfDay()
     }
 
     @Test
     fun `periode for påfølgende avstemming`() {
-        val periode = AvstemmingBuilder.AvstemmingPeriodeBuilder(
+        val periode = AvstemmingPeriodeBuilder(
             Avstemming(
                 opprettet = now(fixedClock),
                 fom = 1.januar(2020).startOfDay(),
