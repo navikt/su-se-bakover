@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
+import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo
 import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingRepo
 import javax.sql.DataSource
@@ -22,7 +24,8 @@ object DatabaseBuilder {
         val objectRepo = DatabaseRepo(userDatastore)
         return DatabaseRepos(
             objectRepo = objectRepo,
-            stoppbehandlingRepo = StoppbehandlingJdbcRepo(userDatastore, objectRepo)
+            stoppbehandlingRepo = StoppbehandlingJdbcRepo(userDatastore, objectRepo),
+            avstemmingRepo = AvstemmingPostgresRepo(userDatastore)
         )
     }
 
@@ -31,12 +34,14 @@ object DatabaseBuilder {
         val objectRepo = DatabaseRepo(embeddedDatasource)
         return DatabaseRepos(
             objectRepo = objectRepo,
-            stoppbehandlingRepo = StoppbehandlingJdbcRepo(embeddedDatasource, objectRepo)
+            stoppbehandlingRepo = StoppbehandlingJdbcRepo(embeddedDatasource, objectRepo),
+            avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource)
         )
     }
 }
 
 data class DatabaseRepos(
     val objectRepo: ObjectRepo,
-    val stoppbehandlingRepo: StoppbehandlingRepo
+    val stoppbehandlingRepo: StoppbehandlingRepo,
+    val avstemmingRepo: AvstemmingRepo
 )

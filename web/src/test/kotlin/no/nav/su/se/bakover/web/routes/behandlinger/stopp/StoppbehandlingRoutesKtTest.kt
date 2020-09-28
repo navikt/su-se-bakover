@@ -77,7 +77,7 @@ internal class StoppbehandlingRoutesKtTest {
         withTestApplication({
 
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
+                databaseRepos = DatabaseRepos(objectRepoMock, mock(), mock()),
                 stoppbehandlingService = stoppbehandlingServiceMock
             )
         }) {

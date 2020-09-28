@@ -5,23 +5,18 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 
 private const val AVSTEMMING_PATH = "/avstem"
 
 // TODO automatic job or something probably
 internal fun Route.avstemmingRoutes(
-    repo: ObjectRepo,
-    publisher: AvstemmingPublisher
+    service: AvstemmingService
 ) {
     post(AVSTEMMING_PATH) {
-        publisher.publish(AvstemmingBuilder(repo).build()).fold(
+        service.avstemming().fold(
             { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-            {
-                repo.opprettAvstemming(it).also { it.updateUtbetalinger() }
-                call.respond("Avstemt ok")
-            }
+            { call.respond("Avstemt ok") }
         )
     }
 }

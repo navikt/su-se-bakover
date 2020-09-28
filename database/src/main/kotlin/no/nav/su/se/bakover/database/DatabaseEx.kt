@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.su.se.bakover.common.UUID30
+import java.sql.Array
 import java.util.UUID
 
 internal fun String.oppdatering(params: Map<String, Any?>, session: Session) =
@@ -24,3 +25,6 @@ internal fun <T> String.hentListe(
 
 internal fun Row.uuid(name: String) = UUID.fromString(string(name))
 internal fun Row.uuid30(name: String) = UUID30.fromString(string(name))
+
+internal fun Session.inClauseWith(values: List<String>): Array =
+    this.connection.underlying.createArrayOf("text", values.toTypedArray())

@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import java.time.Instant
 import java.util.UUID
 
 interface ObjectRepo {
@@ -19,7 +17,4 @@ interface ObjectRepo {
     fun hentBehandling(behandlingId: UUID): Behandling?
     fun hentBeregning(behandlingId: UUID): Beregning?
     fun hentUtbetaling(utbetalingId: UUID30): Utbetaling?
-    fun hentUtbetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling>
-    fun opprettAvstemming(avstemming: Avstemming): Avstemming
-    fun hentSisteAvstemming(): Avstemming?
 }
