@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import org.junit.jupiter.api.Test
-import java.time.ZoneOffset
 
 internal class AvstemmingPostgresRepoTest {
 
@@ -36,16 +36,16 @@ internal class AvstemmingPostgresRepoTest {
 
             repo.opprettAvstemming(
                 Avstemming(
-                    fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 1.januar(2020).startOfDay(),
+                    tom = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetaling)
                 )
             )
 
             val second = repo.opprettAvstemming(
                 Avstemming(
-                    fom = 3.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 4.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 3.januar(2020).startOfDay(),
+                    tom = 4.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetaling),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
@@ -59,7 +59,7 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
-            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toInstant(ZoneOffset.UTC)
+            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toTidspunkt()
 
             val sak = testDataHelper.insertSak(FnrGenerator.random())
             val utbetaling1 = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling())

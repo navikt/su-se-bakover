@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.avstemming
 
 import kotliquery.using
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.objectMapper
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
@@ -69,7 +69,7 @@ internal class AvstemmingPostgresRepo(
      * 1. Get rows for extended interval.
      * 2. Filter in code to utilize precision of instant to get extact rows.
      */
-    override fun hentUtbetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
             val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
             val adjustedTom = tom.plus(1, ChronoUnit.DAYS)

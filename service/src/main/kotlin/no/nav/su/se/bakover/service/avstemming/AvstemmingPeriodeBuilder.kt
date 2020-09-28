@@ -20,7 +20,7 @@ internal class AvstemmingPeriodeBuilder(
             tom = LocalDate.now(clock).minusDays(1).endOfDay()
         )
         else -> {
-            val start = LocalDate.ofInstant(sisteAvstemming.tom.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
+            val start = LocalDate.ofInstant(sisteAvstemming.tom.instant.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
             val end = LocalDate.now(clock).minusDays(1)
             AvstemmingsPeriode(
                 fom = start.startOfDay(),

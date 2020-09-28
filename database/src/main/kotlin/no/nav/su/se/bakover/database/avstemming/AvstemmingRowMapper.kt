@@ -4,15 +4,16 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.toTidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 
 internal fun Row.toAvstemming(session: Session) = Avstemming(
     id = uuid30("id"),
-    opprettet = instant("opprettet"),
-    fom = instant("fom"),
-    tom = instant("tom"),
+    opprettet = toTidspunkt("opprettet"),
+    fom = toTidspunkt("fom"),
+    tom = toTidspunkt("tom"),
     utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
             hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.avstemming
 
-import java.time.Instant
+import no.nav.su.se.bakover.common.Tidspunkt
 
 data class AvstemmingsPeriode(
-    val fom: Instant,
-    val tom: Instant
+    val fom: Tidspunkt,
+    val tom: Tidspunkt
 )
