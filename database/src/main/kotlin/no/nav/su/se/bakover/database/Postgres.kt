@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import javax.sql.DataSource
 import no.nav.su.se.bakover.database.Postgres.Role
 import no.nav.su.se.bakover.database.Postgres.Role.User
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
+import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
 internal class Postgres(

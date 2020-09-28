@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringSoapClient
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
@@ -22,8 +23,10 @@ import javax.jms.JMSContext
 data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuilder {
 
     override fun build(): Clients {
+        val consumerId = "srvsupstonad"
+
         val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
-        val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad")
+        val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
         val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
         val personOppslag = PersonClient(kodeverk, SkjermingClient(Config.skjermingUrl), Config.pdlUrl, tokenOppslag)
 
@@ -70,7 +73,8 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
                         jmsContext = jmsContext
                     )
                 }
-            )
+            ),
+            microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
         )
     }
 }

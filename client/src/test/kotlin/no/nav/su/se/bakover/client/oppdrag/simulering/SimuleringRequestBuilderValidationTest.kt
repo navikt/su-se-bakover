@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Attestant
@@ -12,7 +13,6 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
-import java.time.Instant
 import java.util.UUID
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXBContext
@@ -37,7 +37,7 @@ internal class SimuleringRequestBuilderValidationTest {
             NyUtbetaling(
                 oppdrag = Oppdrag(
                     id = oppdragId,
-                    opprettet = Instant.EPOCH,
+                    opprettet = Tidspunkt.EPOCH,
                     sakId = UUID.randomUUID(),
                     utbetalinger = mutableListOf()
 

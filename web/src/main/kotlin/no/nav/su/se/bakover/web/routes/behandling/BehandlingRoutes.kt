@@ -7,6 +7,7 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -21,6 +22,9 @@ import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
+import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -28,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.erAttestant
 import no.nav.su.se.bakover.web.lesBehandlerId
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
@@ -142,13 +147,16 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {
+        // TODO: Short circuit
         call.withBehandling(repo) { behandling ->
             val sak = repo.hentSak(behandling.sakId)!!
             val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
                 log.error("Fant ikke aktør-id med gitt fødselsnummer")
                 throw RuntimeException("Kunne ikke finne aktørid")
             }
-            behandling.sendTilAttestering(aktørId, oppgaveClient).fold(
+            val saksBehandler = Saksbehandler(call.lesBehandlerId())
+
+            behandling.sendTilAttestering(aktørId, oppgaveClient, saksBehandler).fold(
                 {
                     call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
                 },
@@ -161,7 +169,10 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/iverksett") {
-        // TODO authorize attestant
+        if (!call.erAttestant()) {
+            return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
+        }
+
         call.withBehandling(repo) { behandling ->
             call.audit("Iverksetter behandling med id: ${behandling.id}")
             val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
@@ -171,7 +182,12 @@ internal fun Route.behandlingRoutes(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = {
                     behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
-                        { call.svar(InternalServerError.message("Feil ved oversendelse av utbetaling til oppdrag!")) },
+                        {
+                            when (it) {
+                                is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
+                                is Utbetaling -> call.svar(InternalServerError.message(it.msg))
+                            }
+                        },
                         { call.svar(OK.jsonBody(it)) }
                     )
                 }
@@ -180,7 +196,10 @@ internal fun Route.behandlingRoutes(
     }
 
     patch("$behandlingPath/{behandlingId}/underkjenn") {
-        // TODO authorize attestant
+        if (!call.erAttestant()) {
+            return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
+        }
+
         call.withBehandling(repo) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
@@ -193,8 +212,12 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId()))
-                        call.svar(OK.jsonBody(behandling))
+                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId())).fold(
+                            ifLeft = {
+                                call.svar(Forbidden.message(it.msg))
+                            },
+                            ifRight = { call.svar(OK.jsonBody(behandling)) }
+                        )
                     } else {
                         call.svar(BadRequest.message("Må anngi en begrunnelse"))
                     }

@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -22,10 +21,12 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import java.time.LocalDate
+import java.util.UUID
 
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Instant = now(),
+    val opprettet: Tidspunkt = now(),
     private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = null,
         flyktning = null,
@@ -40,6 +41,7 @@ data class Behandling(
     private var beregning: Beregning? = null,
     private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
+    private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,
     val sakId: UUID,
     private val hendelseslogg: Hendelseslogg? = null,
@@ -48,6 +50,8 @@ data class Behandling(
     private var tilstand: Tilstand = resolve(status)
 
     fun status() = tilstand.status
+
+    fun saksbehandler() = saksbehandler
 
     fun attestant() = attestant
 
@@ -104,18 +108,18 @@ data class Behandling(
         return tilstand.simuler(simuleringClient)
     }
 
-    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
-        return tilstand.sendTilAttestering(aktørId, oppgave)
+    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
+        return tilstand.sendTilAttestering(aktørId, oppgave, saksbehandler)
     }
 
     fun iverksett(
         attestant: Attestant,
         publisher: UtbetalingPublisher
-    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+    ): Either<IverksettFeil, Behandling> {
         return tilstand.iverksett(attestant, publisher)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+    fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -141,18 +145,18 @@ data class Behandling(
             throw TilstandException(status, this::simuler.toString())
         }
 
-        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient): Either<KunneIkkeOppretteOppgave, Behandling> {
+        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
         fun iverksett(
             attestant: Attestant,
             publish: UtbetalingPublisher
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+        ): Either<IverksettFeil, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
 
-        fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -200,11 +204,12 @@ data class Behandling(
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
 
-                val forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
-                    status,
-                    this::opprettBeregning.toString(),
-                    "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
-                )
+                val forventetInntekt =
+                    this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
+                        status,
+                        this::opprettBeregning.toString(),
+                        "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
+                    )
 
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
@@ -225,13 +230,15 @@ data class Behandling(
 
             override fun sendTilAttestering(
                 aktørId: AktørId,
-                oppgave: OppgaveClient
+                oppgave: OppgaveClient,
+                saksbehandler: Saksbehandler,
             ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
                 OppgaveConfig.Attestering(
                     sakId = sakId.toString(),
                     aktørId = aktørId
                 )
             ).map {
+                this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
                 nyTilstand(TilAttestering().Avslag())
                 this@Behandling
             }
@@ -276,18 +283,20 @@ data class Behandling(
         }
     }
 
-    private inner class Simulert : Behandling.Tilstand {
+    private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
             aktørId: AktørId,
-            oppgave: OppgaveClient
+            oppgave: OppgaveClient,
+            saksbehandler: Saksbehandler
         ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
             OppgaveConfig.Attestering(
                 sakId = sakId.toString(),
                 aktørId = aktørId
             )
         ).map {
+            this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
             nyTilstand(TilAttestering().Innvilget())
             this@Behandling
         }
@@ -305,14 +314,18 @@ data class Behandling(
         }
     }
 
-    private open inner class TilAttestering : Behandling.Tilstand {
+    private open inner class TilAttestering : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
         inner class Innvilget : TilAttestering() {
             override fun iverksett(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
-            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            ): Either<IverksettFeil, Behandling> {
+                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                }
+
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
                 return publish.publish(
                     NyUtbetaling(
@@ -324,17 +337,13 @@ data class Behandling(
                     utbetaling!!.addOppdragsmelding(
                         Oppdragsmelding(
                             Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                            it.originalMelding
+                            it.originalMelding,
+                            it.tidspunkt
                         )
                     )
-                    it
+                    IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
                 }.map {
-                    utbetaling!!.addOppdragsmelding(
-                        Oppdragsmelding(
-                            Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                            it
-                        )
-                    )
+                    utbetaling!!.addOppdragsmelding(it)
                     nyTilstand(Iverksatt().Innvilget())
                     this@Behandling
                 }
@@ -346,21 +355,29 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant,
                 publish: UtbetalingPublisher
-            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Behandling> {
+            ): Either<IverksettFeil, Behandling> {
+                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                }
+
                 this@Behandling.attestant = persistenceObserver.attester(id, attestant)
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
         }
 
-        override fun underkjenn(begrunnelse: String, attestant: Attestant): Behandling {
+        override fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+            if (attestant.id == this@Behandling.saksbehandler?.id) {
+                return KunneIkkeUnderkjenne().left()
+            }
+
             hendelseslogg!!.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
             nyTilstand(Simulert())
-            return this@Behandling
+            return this@Behandling.right()
         }
     }
 
-    private open inner class Iverksatt : Behandling.Tilstand {
+    private open inner class Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         inner class Innvilget : Iverksatt()
@@ -387,6 +404,12 @@ data class Behandling(
         val msg: String = "Illegal operation: $operation for state: $state"
     ) :
         RuntimeException(msg)
+
+    sealed class IverksettFeil {
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class Utbetaling(val msg: String) : IverksettFeil()
+    }
+    data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
@@ -405,5 +428,6 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
+    fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)
 }

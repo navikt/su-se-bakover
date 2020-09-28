@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.time.Clock
-import java.time.Instant
-import java.util.UUID
-import javax.sql.DataSource
 import kotliquery.Row
-import kotliquery.Session
-import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Attestant
@@ -19,6 +15,7 @@ import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -39,6 +36,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.time.Clock
+import java.time.temporal.ChronoUnit
+import java.util.UUID
+import javax.sql.DataSource
 
 internal class DatabaseRepo(
     private val dataSource: DataSource,
@@ -95,7 +96,7 @@ internal class DatabaseRepo(
     private fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
         "select * from utbetaling where id = :id".hent(
             mapOf(
-                "id" to utbetalingId.toString()
+                "id" to utbetalingId
             ),
             session
         ) { it.toUtbetaling(session) }
@@ -106,10 +107,10 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :oppdragId, :fnr)
          """.oppdatering(
             mapOf(
-                "id" to utbetaling.id.toString(),
+                "id" to utbetaling.id,
                 "opprettet" to utbetaling.opprettet,
-                "oppdragId" to oppdragId.toString(),
-                "fnr" to utbetaling.fnr.toString()
+                "oppdragId" to oppdragId,
+                "fnr" to utbetaling.fnr
             )
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
@@ -120,7 +121,7 @@ internal class DatabaseRepo(
         check(utbetaling.kanSlettes()) { "Utbetaling har kommet for langt i utbetalingsløpet til å kunne slettes" }
         "delete from utbetaling where id=:id".oppdatering(
             mapOf(
-                "id" to utbetaling.id.toString()
+                "id" to utbetaling.id
             )
         )
     }
@@ -131,12 +132,12 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop)
         """.oppdatering(
             mapOf(
-                "id" to utbetalingslinje.id.toString(),
+                "id" to utbetalingslinje.id,
                 "opprettet" to utbetalingslinje.opprettet,
                 "fom" to utbetalingslinje.fom,
                 "tom" to utbetalingslinje.tom,
-                "utbetalingId" to utbetalingId.toString(),
-                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId?.toString(),
+                "utbetalingId" to utbetalingId,
+                "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
                 "belop" to utbetalingslinje.beløp,
             )
         )
@@ -148,7 +149,7 @@ internal class DatabaseRepo(
         return Sak(
             id = sakId,
             fnr = Fnr(string("fnr")),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             søknader = hentSøknaderInternal(sakId, session),
             behandlinger = hentBehandlingerForSak(sakId, session),
             oppdrag = hentOppdragForSak(sakId, session)
@@ -164,19 +165,11 @@ internal class DatabaseRepo(
         val oppdragId = uuid30("id")
         return Oppdrag(
             id = oppdragId,
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             sakId = uuid("sakId"),
             utbetalinger = hentUtbetalinger(oppdragId, session)
         ).also { it.addObserver(this@DatabaseRepo) }
     }
-
-    private fun hentUtbetalingForBehandlingInternal(behandlingId: UUID, session: Session) =
-        "select * from utbetaling where behandlingId=:behandlingId".hent(
-            mapOf("behandlingId" to behandlingId),
-            session
-        ) {
-            it.toUtbetaling(session)
-        }
 
     internal fun hentUtbetalinger(oppdragId: UUID30, session: Session) =
         "select * from utbetaling where oppdragId=:oppdragId".hentListe(
@@ -190,7 +183,7 @@ internal class DatabaseRepo(
         val utbetalingId = uuid30("id")
         return Utbetaling(
             id = utbetalingId,
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
             oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
@@ -220,7 +213,7 @@ internal class DatabaseRepo(
             id = uuid30("id"),
             fom = localDate("fom"),
             tom = localDate("tom"),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
             beløp = int("beløp")
         )
@@ -272,9 +265,9 @@ internal class DatabaseRepo(
         """.oppdatering(
             mapOf(
                 "sakId" to sak.id,
-                "fnr" to fnr.toString(),
+                "fnr" to fnr,
                 "opprettet" to sak.opprettet,
-                "oppdragId" to sak.oppdrag.id.toString()
+                "oppdragId" to sak.oppdrag.id
             )
         )
         sak.oppdrag.addObserver(this)
@@ -293,7 +286,7 @@ internal class DatabaseRepo(
         return Søknad(
             id = uuid("id"),
             søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-            opprettet = instant("opprettet")
+            opprettet = toTidspunkt("opprettet")
         )
     }
 
@@ -311,12 +304,13 @@ internal class DatabaseRepo(
         return Behandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
             utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
+            saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
             sakId = uuid("sakId"),
             hendelseslogg = hentHendelseslogg(behandlingId.toString())!!
         ).also {
@@ -325,7 +319,7 @@ internal class DatabaseRepo(
     }
 
     private fun String.oppdatering(params: Map<String, Any?>) {
-        using(sessionOf(dataSource, returnGeneratedKey = true)) {
+        using(sessionOf(dataSource)) {
             this.oppdatering(params, it)
         }
     }
@@ -340,7 +334,7 @@ internal class DatabaseRepo(
 
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
-        opprettet = instant("opprettet"),
+        opprettet = toTidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
@@ -420,13 +414,23 @@ internal class DatabaseRepo(
         return attestant
     }
 
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+        "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "saksbehandler" to saksbehandler.id
+            )
+        )
+        return saksbehandler
+    }
+
     override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         """
             update behandling set utbetalingId=:utbetalingId where id=:id
         """.oppdatering(
             mapOf(
                 "id" to behandlingId,
-                "utbetalingId" to utbetalingId.toString()
+                "utbetalingId" to utbetalingId
             )
         )
     }
@@ -438,7 +442,7 @@ internal class DatabaseRepo(
 
     private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
-        opprettet = instant("opprettet"),
+        opprettet = toTidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
@@ -497,7 +501,7 @@ internal class DatabaseRepo(
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
         "update utbetaling set simulering = to_json(:simulering::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "simulering" to objectMapper.writeValueAsString(simulering)
             )
         )
@@ -506,7 +510,7 @@ internal class DatabaseRepo(
     override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
         "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "kvittering" to objectMapper.writeValueAsString(kvittering)
             )
         )
@@ -516,22 +520,35 @@ internal class DatabaseRepo(
     override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
         "update utbetaling set oppdragsmelding = to_json(:oppdragsmelding::json) where id = :id".oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
+                "id" to utbetalingId,
                 "oppdragsmelding" to objectMapper.writeValueAsString(oppdragsmelding)
             )
         )
         return oppdragsmelding
     }
 
-    override fun hentUtbetalingerTilAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
+    /**
+     * Tow-part operation to avoid issues caused by lost precision when converting to/from instant/timestamp
+     * 1. Get rows for extended interval.
+     * 2. Filter in code to utilize precision of instant to get extact rows.
+     */
+    override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            "select * from utbetaling where oppdragsmelding is not null and opprettet >= :fom and opprettet < :tom".hentListe(
-                mapOf(
-                    "fom" to fom,
-                    "tom" to tom
-                ),
-                session
-            ) { it.toUtbetaling(session) }
+            val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
+            val adjustedTom = tom.plus(1, ChronoUnit.DAYS)
+            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz < :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
+                .hentListe(
+                    mapOf(
+                        "fom" to adjustedFom,
+                        "tom" to adjustedTom,
+                        "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
+                    ),
+                    session
+                ) {
+                    it.toUtbetaling(session)
+                }.filter {
+                    it.getOppdragsmelding()!!.tidspunkt.between(fom, tom)
+                }
         }
 
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
@@ -540,7 +557,7 @@ internal class DatabaseRepo(
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
         """.oppdatering(
             mapOf(
-                "id" to avstemming.id.toString(),
+                "id" to avstemming.id,
                 "opprettet" to avstemming.opprettet,
                 "fom" to avstemming.fom,
                 "tom" to avstemming.tom,
@@ -561,9 +578,9 @@ internal class DatabaseRepo(
 
     private fun Row.toAvstemming(session: Session) = Avstemming(
         id = uuid30("id"),
-        opprettet = instant("opprettet"),
-        fom = instant("fom"),
-        tom = instant("tom"),
+        opprettet = toTidspunkt("opprettet"),
+        fom = toTidspunkt("fom"),
+        tom = toTidspunkt("tom"),
         utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
             objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
                 hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
@@ -577,8 +594,8 @@ internal class DatabaseRepo(
             update utbetaling set avstemmingId = :avstemmingId where id = :id
         """.oppdatering(
             mapOf(
-                "id" to utbetalingId.toString(),
-                "avstemmingId" to avstemmingId.toString()
+                "id" to utbetalingId,
+                "avstemmingId" to avstemmingId
             )
         )
         return avstemmingId

@@ -5,21 +5,19 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
-import java.util.UUID
 import kotliquery.queryOf
-import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -28,6 +26,7 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VoidObserver
@@ -56,6 +55,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
+import java.time.LocalDate
+import java.util.UUID
 
 internal class DatabaseRepoTest {
 
@@ -147,6 +148,20 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.attestant() shouldBe attestant
+        }
+    }
+
+    @Test
+    fun `saksbehandle behandling`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val søknad = insertSøknad(sak.id)
+            val behandling = insertBehandling(sak.id, søknad)
+
+            val saksbehandler = repo.settSaksbehandler(behandling.id, Saksbehandler("Per"))
+            val hentet = repo.hentBehandling(behandling.id)!!
+
+            hentet.saksbehandler() shouldBe saksbehandler
         }
     }
 
@@ -433,7 +448,7 @@ internal class DatabaseRepoTest {
             val kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "someXmlHere",
-                mottattTidspunkt = Instant.EPOCH
+                mottattTidspunkt = Tidspunkt.EPOCH
             )
             repo.addKvittering(utbetaling.id, kvittering)
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
@@ -480,16 +495,16 @@ internal class DatabaseRepoTest {
 
             repo.opprettAvstemming(
                 Avstemming(
-                    fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 1.januar(2020).atStartOfDay().toTidspunkt(),
+                    tom = 2.januar(2020).atStartOfDay().toTidspunkt(),
                     utbetalinger = listOf(utbetaling)
                 )
             )
 
             val second = repo.opprettAvstemming(
                 Avstemming(
-                    fom = 3.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-                    tom = 4.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+                    fom = 3.januar(2020).atStartOfDay().toTidspunkt(),
+                    tom = 4.januar(2020).atStartOfDay().toTidspunkt(),
                     utbetalinger = listOf(utbetaling),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
@@ -500,12 +515,66 @@ internal class DatabaseRepoTest {
         }
     }
 
+    // @Test
+    // fun `hent utbetalinger for avstemming`() {
+    //     withMigratedDb {
+    //         val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toTidspunkt()
+    //
+    //         val sak = insertSak(FNR)
+    //         val utbetaling1 = Utbetaling(
+    //             utbetalingslinjer = emptyList(),
+    //             fnr = FNR
+    //         )
+    //         repo.addOppdragsmelding(
+    //             utbetalingId = utbetaling1.id,
+    //             oppdragsmelding = Oppdragsmelding(
+    //                 status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+    //                 originalMelding = "",
+    //                 tidspunkt = oppdragsmeldingTidspunkt
+    //             )
+    //         )
+    //
+    //         val utbetaling2 = Utbetaling(
+    //             utbetalingslinjer = listOf(),
+    //             fnr = FNR
+    //         ).also {
+    //             repo.opprettUtbetaling(
+    //                 oppdragId = sak.oppdrag.id,
+    //                 utbetaling = it
+    //             )
+    //         }
+    //
+    //         repo.addOppdragsmelding(
+    //             utbetalingId = utbetaling2.id,
+    //             oppdragsmelding = Oppdragsmelding(
+    //                 status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+    //                 originalMelding = "",
+    //                 tidspunkt = oppdragsmeldingTidspunkt
+    //             )
+    //         )
+    //
+    //         repo.hentUtbetalingerForAvstemming(
+    //             fom = 10.oktober(2020).startOfDay(),
+    //             tom = 10.oktober(2020).endOfDay()
+    //         ) shouldBe emptyList()
+    //
+    //         repo.hentUtbetalingerForAvstemming(
+    //             fom = 11.oktober(2020).startOfDay(),
+    //             tom = 11.oktober(2020).endOfDay()
+    //         ) shouldHaveSize 1
+    //
+    //         repo.hentUtbetalingerForAvstemming(
+    //             fom = 12.oktober(2020).startOfDay(),
+    //             tom = 12.oktober(2020).endOfDay()
+    //         ) shouldBe emptyList()
+    //     }
+    // }
+
     @Test
-    fun `hent utbetalinger for avstemming`() {
+    fun `hent utbetalinger for avstemming tidspunkt test`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = Utbetaling(
-                opprettet = 1.juli(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+            val utbetaling1 = Utbetaling(
                 utbetalingslinjer = emptyList(),
                 fnr = FNR
             ).also {
@@ -514,22 +583,101 @@ internal class DatabaseRepoTest {
                     utbetaling = it
                 )
             }
-            repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling1.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 11.oktober(2020).startOfDay()
+                )
+            )
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet.minus(1, ChronoUnit.DAYS),
-                tom = utbetaling.opprettet
-            ) shouldBe emptyList()
+            val utbetaling2 = Utbetaling(
+                utbetalingslinjer = emptyList(),
+                fnr = FNR
+            ).also {
+                repo.opprettUtbetaling(
+                    oppdragId = sak.oppdrag.id,
+                    utbetaling = it
+                )
+            }
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling2.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 11.oktober(2020).endOfDay()
+                )
+            )
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet,
-                tom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS)
-            ) shouldHaveSize 1
+            val utbetaling3 = Utbetaling(
+                utbetalingslinjer = emptyList(),
+                fnr = FNR
+            ).also {
+                repo.opprettUtbetaling(
+                    oppdragId = sak.oppdrag.id,
+                    utbetaling = it
+                )
+            }
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling3.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    tidspunkt = 12.oktober(2020).startOfDay()
+                )
+            )
 
-            repo.hentUtbetalingerTilAvstemming(
-                fom = utbetaling.opprettet.plus(1, ChronoUnit.DAYS),
-                tom = utbetaling.opprettet.plus(3, ChronoUnit.DAYS)
-            ) shouldBe emptyList()
+            val utbetalinger = repo.hentUtbetalingerForAvstemming(
+                11.oktober(2020).startOfDay(),
+                11.oktober(2020).endOfDay()
+            )
+
+            utbetalinger shouldHaveSize 2
+            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.id, utbetaling2.id)
+        }
+    }
+
+    @Test
+    fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
+        withMigratedDb {
+            val sak = insertSak(FNR)
+            val utbetaling = Utbetaling(
+                utbetalingslinjer = emptyList(),
+                fnr = FNR
+            ).also {
+                repo.opprettUtbetaling(
+                    oppdragId = sak.oppdrag.id,
+                    utbetaling = it
+                )
+            }
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = ""
+                )
+            )
+
+            val utbetalingForAvstemming = repo.hentUtbetaling(utbetaling.id)!!
+
+            val avstemming = Avstemming(
+                id = UUID30.randomUUID(),
+                opprettet = now(),
+                fom = now(),
+                tom = now(),
+                utbetalinger = listOf(utbetalingForAvstemming),
+                avstemmingXmlRequest = "some xml"
+            )
+
+            repo.opprettAvstemming(avstemming)
+            val hentetAvstemming = repo.hentSisteAvstemming()
+            hentetAvstemming shouldBe avstemming
+
+            hentetAvstemming!!.updateUtbetalinger()
+
+            val oppdaterUtbetaling = repo.hentUtbetaling(utbetalingForAvstemming.id)
+            oppdaterUtbetaling!!.getAvstemmingId() shouldBe avstemming.id
         }
     }
 
@@ -589,7 +737,7 @@ internal class DatabaseRepoTest {
         override fun hentOppdrag(sakId: UUID): Oppdrag {
             return Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         }
@@ -600,6 +748,10 @@ internal class DatabaseRepoTest {
 
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
+        }
+
+        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+            return saksbehandler
         }
 
         override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {}

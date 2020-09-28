@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -31,8 +32,9 @@ object StubClientsBuilder : ClientsBuilder {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun build(): Clients {
+        val azureClient = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
         return Clients(
-            oauth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl),
+            oauth = azureClient,
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             inntektOppslag = InntektOppslagStub.also { log.warn("********** Using stub for ${InntektOppslag::class.java} **********") },
             tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
@@ -47,7 +49,8 @@ object StubClientsBuilder : ClientsBuilder {
             simuleringClient = SimuleringStub.also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
-            avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") }
+            avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
+            microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
         )
     }
 }

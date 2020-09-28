@@ -1,15 +1,11 @@
 package no.nav.su.se.bakover.common
 
-import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldHaveLength
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.DateTimeException
-import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
-import java.time.temporal.ChronoUnit
 
 internal class UtilsKtTest {
 
@@ -34,13 +30,37 @@ internal class UtilsKtTest {
     }
 
     @Test
-    fun `truncate instant to same format as repo, precision in millis`() {
-        val instant = Instant.now()
-        val truncated = instant.truncatedTo(ChronoUnit.MILLIS)
-        instant.toEpochMilli() - truncated.toEpochMilli() shouldBe 0
-        instant.nano - truncated.nano shouldBeGreaterThan 0
+    fun `start and end of day`() {
+        1.januar(2020).startOfDay().toString() shouldBe "2020-01-01T00:00:00Z"
+        1.januar(2020).endOfDay().toString() shouldBe "2020-01-01T23:59:59.999999Z"
+    }
 
-        Instant.now().toString() shouldHaveLength 27
-        now().toString() shouldHaveLength 24
+    @Test
+    fun `instants between others`() {
+        val sept5 = 5.september(2020).startOfDay()
+        sept5.between(
+            start = 5.september(2020).startOfDay(),
+            end = 5.september(2020).endOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 4.september(2020).startOfDay(),
+            end = 5.september(2020).startOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 1.september(2020).startOfDay(),
+            end = 10.september(2020).startOfDay()
+        ) shouldBe true
+
+        sept5.between(
+            start = 1.januar(2020).startOfDay(),
+            end = 10.januar(2020).startOfDay()
+        ) shouldBe false
+
+        sept5.between(
+            start = 1.desember(2020).startOfDay(),
+            end = 10.desember(2020).startOfDay()
+        ) shouldBe false
     }
 }

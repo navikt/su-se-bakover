@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.web.routes.behandling.MånedsberegningJsonTest.Companion.expectedMånedsberegningJson
@@ -10,7 +11,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class BeregningJsonTest {
@@ -34,7 +34,7 @@ internal class BeregningJsonTest {
 
         internal val beregning = Beregning(
             id = uuid,
-            opprettet = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toInstant(ZoneOffset.UTC),
+            opprettet = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(),
             fom = LocalDate.of(2020, Month.AUGUST, 1),
             tom = LocalDate.of(2020, Month.AUGUST, 31),
             sats = Sats.HØY,

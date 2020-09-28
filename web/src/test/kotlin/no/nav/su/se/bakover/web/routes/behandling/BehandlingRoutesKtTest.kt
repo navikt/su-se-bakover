@@ -7,12 +7,15 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -22,19 +25,23 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -266,39 +273,67 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("randomoid"))
 
             defaultRequest(
                 HttpMethod.Patch,
                 "$sakPath/rubbish/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
+            requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
+                .apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
 
             defaultRequest(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
             ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
 
-            defaultRequest(
+            requestSomAttestant(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett")
+                .apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
+
+            requestSomAttestant(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+            )
+                .apply {
+                    response.status() shouldBe HttpStatusCode.NotFound
+                }
+
+            handleRequest(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.OK
-                deserialize<BehandlingJson>(response.content!!).let {
-                    it.attestant shouldBe "enSaksbehandleroid"
-                    it.status shouldBe "IVERKSATT_INNVILGET"
-                }
+            ) {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    Jwt.create(
+                        subject = "random",
+                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                    )
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
             }
+
+            requestSomAttestant(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
+            )
+                .apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    deserialize<BehandlingJson>(response.content!!).let {
+                        it.attestant shouldBe "enSaksbehandleroid"
+                        it.status shouldBe "IVERKSATT_INNVILGET"
+                        it.saksbehandler shouldBe "randomoid"
+                    }
+                }
         }
     }
 
@@ -311,9 +346,16 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456oid"))
 
             defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
+            ).apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+            }
+
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
             ).apply {
@@ -322,12 +364,19 @@ internal class BehandlingRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
+            ).apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+            }
+
+            requestSomAttestant(
+                HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
 
-            defaultRequest(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
             ).apply {
@@ -335,6 +384,13 @@ internal class BehandlingRoutesKtTest {
             }
 
             defaultRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
+            ).apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+            }
+
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
@@ -350,7 +406,29 @@ internal class BehandlingRoutesKtTest {
                 response.content shouldContain "Må anngi en begrunnelse"
             }
 
-            defaultRequest(
+            handleRequest(
+                HttpMethod.Patch,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+            ) {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    Jwt.create(
+                        subject = "S123456",
+                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                    )
+                )
+                setBody(
+                    """
+                    {
+                        "begrunnelse":"Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+            }
+
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
             ) {
@@ -377,7 +455,7 @@ internal class BehandlingRoutesKtTest {
                     utbetalingPublisher = object : UtbetalingPublisher {
                         override fun publish(
                             nyUtbetaling: NyUtbetaling
-                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, String> =
+                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                             UtbetalingPublisher.KunneIkkeSendeUtbetaling("").left()
                     }
                 )
@@ -387,9 +465,9 @@ internal class BehandlingRoutesKtTest {
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
             objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
             objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub)
+            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
 
-            defaultRequest(
+            requestSomAttestant(
                 HttpMethod.Patch,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
             ).apply {

@@ -11,6 +11,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
@@ -107,7 +109,7 @@ internal class StansUtbetalingServiceTest {
                         actualNyUtbetaling.utbetaling,
                         setup.nySimulering
                     )
-                    "".right()
+                    setup.oppdragsmeldingSendt.right()
                 }
                 )
         }
@@ -259,7 +261,7 @@ internal class StansUtbetalingServiceTest {
         val utbetalingId: UUID30 = UUID30.randomUUID(),
         val eksisterendeUtbetaling: Utbetaling = Utbetaling(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "",
@@ -270,13 +272,13 @@ internal class StansUtbetalingServiceTest {
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "<someXml></someXml>",
-                mottattTidspunkt = Instant.EPOCH
+                mottattTidspunkt = Tidspunkt.EPOCH
             ),
             oppdragsmelding = Oppdragsmelding(SENDT, ""),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = UUID30.randomUUID(),
-                    opprettet = Instant.EPOCH,
+                    opprettet = Tidspunkt.EPOCH,
                     fom = LocalDate.EPOCH,
                     tom = LocalDate.EPOCH.plusMonths(12),
                     forrigeUtbetalingslinjeId = null,
@@ -288,7 +290,7 @@ internal class StansUtbetalingServiceTest {
         ),
         val eksisterendeOppdrag: Oppdrag = Oppdrag(
             id = oppdragId,
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf(
                 eksisterendeUtbetaling
@@ -303,11 +305,12 @@ internal class StansUtbetalingServiceTest {
         ),
         val eksisterendeSak: Sak = Sak(
             id = sakId,
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             fnr = fnr,
             oppdrag = eksisterendeOppdrag
         ),
-        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "")
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, ""),
+        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "")
     ) {
 
         fun forventetNyUtbetaling(

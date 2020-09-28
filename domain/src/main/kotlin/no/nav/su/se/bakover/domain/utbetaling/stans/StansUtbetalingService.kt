@@ -74,7 +74,7 @@ class StansUtbetalingService(
                 KunneIkkeStanseUtbetalinger.left()
             },
             {
-                utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmeldingstatus.SENDT, it))
+                utbetaling.addOppdragsmelding(it)
                 utbetaling.right()
             }
         )

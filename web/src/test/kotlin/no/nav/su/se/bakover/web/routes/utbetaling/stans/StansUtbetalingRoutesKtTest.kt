@@ -11,8 +11,7 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
-import java.time.Instant
-import java.util.UUID
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -29,6 +28,8 @@ import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJso
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import java.time.Instant
+import java.util.UUID
 
 internal class StansUtbetalingRoutesKtTest {
 
@@ -37,18 +38,18 @@ internal class StansUtbetalingRoutesKtTest {
     val tidspunkt = Instant.EPOCH
     val sak = Sak(
         id = sakId,
-        opprettet = Instant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId
         )
     )
     val utbetalingId = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4")
     val nyUtbetaling = Utbetaling(
         id = utbetalingId,
-        opprettet = Instant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         simulering = null,
         kvittering = null,
         oppdragsmelding = null,

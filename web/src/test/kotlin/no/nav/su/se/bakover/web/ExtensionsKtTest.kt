@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import org.junit.jupiter.api.Test
-
 import java.util.UUID
 
 internal class ExtensionsKtTest {

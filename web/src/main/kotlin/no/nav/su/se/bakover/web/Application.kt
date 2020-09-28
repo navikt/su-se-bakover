@@ -35,9 +35,6 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import java.net.URL
-import java.time.Clock
-import javax.jms.JMSContext
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -48,6 +45,7 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
+import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -67,6 +65,9 @@ import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.net.URL
+import java.time.Clock
+import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
@@ -158,7 +159,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
-        oAuth = clients.oauth
+        oAuth = clients.oauth,
     )
 
     install(Locations)
@@ -186,6 +187,10 @@ internal fun Application.susebakover(
     }
 
     install(XForwardedHeaderSupport)
+
+    install(SuUserFeature) {
+        this.clients = clients
+    }
 
     routing {
         authenticate("jwt") {

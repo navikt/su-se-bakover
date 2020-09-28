@@ -1,18 +1,18 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
+import java.time.LocalDate
+import java.util.UUID
 
 data class Oppdrag(
     val id: UUID30,
-    val opprettet: Instant,
+    val opprettet: Tidspunkt,
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {

@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
-import java.time.Instant
 
 data class Kvittering(
     val utbetalingsstatus: Utbetalingsstatus,
     val originalKvittering: String,
-    val mottattTidspunkt: Instant = now(),
+    val mottattTidspunkt: Tidspunkt = now(),
 
 ) {
     enum class Utbetalingsstatus {

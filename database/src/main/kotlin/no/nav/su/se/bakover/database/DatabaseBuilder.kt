@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database
 
-import javax.sql.DataSource
 import no.nav.su.se.bakover.common.Config
+import javax.sql.DataSource
 
 object DatabaseBuilder {
     fun build(): DatabaseRepos {
