@@ -140,7 +140,7 @@ internal class DatabaseRepo(
         return Sak(
             id = sakId,
             fnr = Fnr(string("fnr")),
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             søknader = hentSøknaderInternal(sakId, session),
             behandlinger = hentBehandlingerForSak(sakId, session),
             oppdrag = hentOppdragForSak(sakId, session)
@@ -156,7 +156,7 @@ internal class DatabaseRepo(
         val oppdragId = uuid30("id")
         return Oppdrag(
             id = oppdragId,
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             sakId = uuid("sakId"),
             utbetalinger = hentUtbetalinger(oppdragId, session).also { utbetalinger -> utbetalinger.forEach { it.addObserver(this@DatabaseRepo) } }
         ).also { it.addObserver(this@DatabaseRepo) }
@@ -229,7 +229,7 @@ internal class DatabaseRepo(
         return Søknad(
             id = uuid("id"),
             søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-            opprettet = toTidspunkt("opprettet")
+            opprettet = tidspunkt("opprettet")
         )
     }
 
@@ -247,7 +247,7 @@ internal class DatabaseRepo(
         return Behandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
             utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!!.apply { addObserver(this@DatabaseRepo) } },
@@ -277,7 +277,7 @@ internal class DatabaseRepo(
 
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
-        opprettet = toTidspunkt("opprettet"),
+        opprettet = tidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
@@ -385,7 +385,7 @@ internal class DatabaseRepo(
 
     private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
-        opprettet = toTidspunkt("opprettet"),
+        opprettet = tidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
