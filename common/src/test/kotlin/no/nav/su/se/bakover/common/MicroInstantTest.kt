@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -81,6 +82,13 @@ internal class MicroInstantTest {
         objSerialized shouldBe """{"microInstant":"2020-10-01T23:59:59.999999Z","other":"other values"}"""
         val objDeserialized = objectMapper.readValue(objSerialized, NestedSerialization::class.java)
         objDeserialized shouldBe NestedSerialization(start, "other values")
+    }
+
+    @Test
+    fun `now`() {
+        val fixed = Clock.fixed(1.januar(2020).endOfDay().instant, ZoneOffset.UTC)
+        val now = MicroInstant.now(fixed)
+        now.toString() shouldBe "2020-01-01T23:59:59.999999Z"
     }
 
     data class NestedSerialization(

@@ -33,7 +33,7 @@ class MicroInstant @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
         val unit: ChronoUnit = ChronoUnit.MICROS
         val EPOCH: MicroInstant get() = Instant.EPOCH.toMicroInstant()
         val MIN: MicroInstant get() = Instant.MIN.toMicroInstant()
-        fun now(clock: Clock = Clock.systemUTC()) = MicroInstant(Instant.now(clock).truncatedTo(unit))
+        fun now(clock: Clock = Clock.systemUTC()) = MicroInstant(Instant.now(clock))
     }
 
     /**
