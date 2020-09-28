@@ -22,6 +22,7 @@ internal data class BehandlingJson(
     val utbetaling: UtbetalingJson?,
     val opprettet: String,
     val attestant: String?,
+    val saksbehandler: String?,
     val sakId: UUID,
     val hendelser: List<HendelseJson>?
 )
@@ -35,6 +36,7 @@ internal fun Behandling.toJson() = BehandlingJson(
     utbetaling = utbetaling()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     attestant = attestant()?.id,
+    saksbehandler = saksbehandler()?.id,
     sakId = sakId,
     hendelser = hendelser()?.toJson()
 )

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -310,6 +311,7 @@ internal class DatabaseRepo(
             utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
+            saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
             sakId = uuid("sakId"),
             hendelseslogg = hentHendelseslogg(behandlingId.toString())!!
         ).also {
@@ -411,6 +413,16 @@ internal class DatabaseRepo(
             )
         )
         return attestant
+    }
+
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
+        "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "saksbehandler" to saksbehandler.id
+            )
+        )
+        return saksbehandler
     }
 
     override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.AdGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -50,7 +50,7 @@ object StubClientsBuilder : ClientsBuilder {
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
-            adGraphApiClient = AdGraphApiClient(azureClient),
+            microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
         )
     }
 }
