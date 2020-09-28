@@ -13,8 +13,7 @@ import java.time.ZoneOffset
 internal class AvstemmingPeriodeBuilderTest {
 
     // now() yields 10 januar 2020
-    private val fixedClock =
-        Clock.fixed(1.januar(2020).plusDays(9).startOfDay(), ZoneOffset.UTC)
+    private val fixedClock = Clock.fixed(1.januar(2020).plusDays(9).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `periode for første avstemming`() {

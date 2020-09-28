@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.behandlinger.stopp.StoppbehandlingJdbcRepo.
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
+import no.nav.su.se.bakover.database.toTidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Attestant
@@ -63,7 +64,7 @@ class StoppbehandlingJdbcRepo(
         .let { Status.fromString(it) }
         .let { status ->
             val id = uuid("id")
-            val opprettet = instant("opprettet")
+            val opprettet = toTidspunkt("opprettet")
             val sakId = uuid("sakId")
             val utbetaling = objectRepo.hentUtbetaling(uuid30("utbetaling"))!!
             val stoppÅrsak = string("stoppÅrsak")

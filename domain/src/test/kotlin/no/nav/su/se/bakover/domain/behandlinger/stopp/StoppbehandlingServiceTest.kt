@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
@@ -23,14 +24,13 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
 
 internal class StoppbehandlingServiceTest {
 
-    private val clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
+    private val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
     private val sakId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
 
@@ -49,7 +49,7 @@ internal class StoppbehandlingServiceTest {
         )
         val nyUtbetaling = Utbetaling(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             simulering = nySimulering,
             kvittering = null,
             oppdragsmelding = null,
@@ -60,7 +60,7 @@ internal class StoppbehandlingServiceTest {
         val simulertStoppbehandlingId = UUID.fromString("7b0db8ea-0d77-48e0-a8b5-65dddd44287b")
         val simulertStoppbehandling = Stoppbehandling.Simulert(
             id = simulertStoppbehandlingId,
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             utbetaling = nyUtbetaling,
             stoppÅrsak = stoppÅrsak,
@@ -85,12 +85,12 @@ internal class StoppbehandlingServiceTest {
         val eksisterendeSak = nySak().copy(
             oppdrag = Oppdrag(
                 id = oppdragId,
-                opprettet = Instant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
                 utbetalinger = mutableListOf(
                     Utbetaling(
                         id = UUID30.randomUUID(),
-                        opprettet = Instant.EPOCH,
+                        opprettet = Tidspunkt.EPOCH,
                         simulering = Simulering(
                             gjelderId = fnr,
                             gjelderNavn = "",
@@ -101,13 +101,13 @@ internal class StoppbehandlingServiceTest {
                         kvittering = Kvittering(
                             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                             originalKvittering = "<someXml></someXml>",
-                            mottattTidspunkt = Instant.EPOCH
+                            mottattTidspunkt = Tidspunkt.EPOCH
                         ),
                         oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = UUID30.randomUUID(),
-                                opprettet = Instant.EPOCH,
+                                opprettet = Tidspunkt.EPOCH,
                                 fom = LocalDate.EPOCH,
                                 tom = LocalDate.EPOCH.plusMonths(12),
                                 forrigeUtbetalingslinjeId = null,
@@ -148,11 +148,11 @@ internal class StoppbehandlingServiceTest {
 
     private fun nySak() = Sak(
         id = sakId,
-        opprettet = Instant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Instant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId
         )
     )

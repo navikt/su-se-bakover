@@ -6,13 +6,13 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import org.junit.jupiter.api.Test
-import java.time.ZoneOffset
 
 class AvstemmingPublisherTest {
 
@@ -37,8 +37,8 @@ class AvstemmingPublisherTest {
     }
 
     private val avstemming = Avstemming(
-        fom = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
-        tom = 2.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC),
+        fom = 1.januar(2020).atStartOfDay().toTidspunkt(),
+        tom = 2.januar(2020).atStartOfDay().toTidspunkt(),
         utbetalinger = listOf(
             Utbetaling(
                 utbetalingslinjer = listOf(),

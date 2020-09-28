@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
 import kotliquery.using
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -49,7 +50,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -439,7 +439,7 @@ internal class DatabaseRepoTest {
             val kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "someXmlHere",
-                mottattTidspunkt = Instant.EPOCH
+                mottattTidspunkt = Tidspunkt.EPOCH
             )
             repo.addKvittering(utbetaling.id, kvittering)
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
@@ -531,7 +531,7 @@ internal class DatabaseRepoTest {
         override fun hentOppdrag(sakId: UUID): Oppdrag {
             return Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         }

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import java.time.Instant
 import java.util.UUID
 
 internal class PersistentDomainObjectTest {
@@ -17,7 +17,7 @@ internal class PersistentDomainObjectTest {
             fnr = Fnr("12345678910"),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         )
@@ -33,7 +33,7 @@ internal class PersistentDomainObjectTest {
             fnr = Fnr("12345678910"),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = Instant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         )
