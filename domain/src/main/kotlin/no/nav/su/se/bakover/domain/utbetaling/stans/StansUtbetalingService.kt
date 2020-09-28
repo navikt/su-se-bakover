@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.domain.utbetaling.stans
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import java.time.Clock
-import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
@@ -19,6 +16,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService.ValidertStansUtbetaling.Companion.validerStansUtbetaling
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 class StansUtbetalingService(
     private val simuleringClient: SimuleringClient,
@@ -87,7 +87,7 @@ class StansUtbetalingService(
         companion object {
             fun Oppdrag.validerStansUtbetaling(stansesFraDato: LocalDate) = ValidertStansUtbetaling(
                 harUtbetalingerSomKanStanses = harOversendteUtbetalingerEtter(stansesFraDato),
-                harBeløpOver0 = sisteOversendteUtbetaling()?.utbetalingslinjer?.any {
+                harBeløpOver0 = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.let {
                     // TODO jah: I en annen pull-request bør vi utvide en utbetaling til å være en sealed class med de forskjellig typene utbetaling.
                     it.beløp > 0 // Stopputbetalinger vil ha beløp 0. Vi ønsker ikke å stoppe en stopputbetaling.
                 } ?: true
