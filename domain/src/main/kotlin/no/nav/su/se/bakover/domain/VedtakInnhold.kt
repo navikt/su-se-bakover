@@ -45,5 +45,5 @@ enum class AvslagsgrunnBeskrivelseFlagg {
     UFØRHET_FLYKTNING,
     FORMUE,
     HØY_INNTEKT,
-    UTLAND_OG_OPPHOLD_I_NORGE,
+    UTLAND_OG_OPPHOLD,
 }

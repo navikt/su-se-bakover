@@ -158,7 +158,9 @@ fun flaggForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelseFl
         Avslagsgrunn.UFØRHET -> AvslagsgrunnBeskrivelseFlagg.UFØRHET_FLYKTNING
         Avslagsgrunn.FLYKTNING -> AvslagsgrunnBeskrivelseFlagg.UFØRHET_FLYKTNING
         Avslagsgrunn.FORMUE -> AvslagsgrunnBeskrivelseFlagg.FORMUE
-        Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> AvslagsgrunnBeskrivelseFlagg.UTLAND_OG_OPPHOLD_I_NORGE
+        Avslagsgrunn.FOR_HØY_INNTEKT -> AvslagsgrunnBeskrivelseFlagg.HØY_INNTEKT
+        Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> AvslagsgrunnBeskrivelseFlagg.UTLAND_OG_OPPHOLD
+        Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER -> AvslagsgrunnBeskrivelseFlagg.UTLAND_OG_OPPHOLD
         else -> null
     }
 
