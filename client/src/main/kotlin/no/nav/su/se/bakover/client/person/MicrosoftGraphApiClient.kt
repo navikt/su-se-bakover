@@ -25,7 +25,7 @@ data class MicrosoftGraphResponse(
 )
 
 interface MicrosoftGraphApiOppslag {
-    fun hent(userToken: String): Either<String, MicrosoftGraphResponse>
+    fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse>
 }
 
 class MicrosoftGraphApiClient(
@@ -33,8 +33,15 @@ class MicrosoftGraphApiClient(
 ) : MicrosoftGraphApiOppslag {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun hent(userToken: String): Either<String, MicrosoftGraphResponse> {
-        val onBehalfOfToken = exchange.onBehalfOFToken(userToken, "https://graph.microsoft.com")
+    override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> {
+        val onBehalfOfToken = Either.unsafeCatch {
+            exchange.onBehalfOFToken(userToken, "https://graph.microsoft.com")
+        }.let {
+            when (it) {
+                is Either.Left -> return Either.left(it.a.message ?: "Feil ved henting av onBehalfOfToken")
+                is Either.Right -> it.b
+            }
+        }
         val query =
             "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
         val graphUrl = "https://graph.microsoft.com/v1.0/me"
@@ -61,8 +68,9 @@ class MicrosoftGraphApiClient(
                     objectMapper.readValue<MicrosoftGraphResponse>(res)
                 }
                     .mapLeft {
-                        log.info("Deserialisering av respons fra Microsoft Graph API feilet")
-                        "Deserialisering av respons fra Microsoft Graph API feilet"
+                        "Deserialisering av respons fra Microsoft Graph API feilet".also {
+                            log.info(it)
+                        }
                     }
             }
     }

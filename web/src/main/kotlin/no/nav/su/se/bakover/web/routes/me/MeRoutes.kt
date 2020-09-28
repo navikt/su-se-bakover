@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.getGroupsFromJWT
+import org.slf4j.LoggerFactory
 
 enum class Rolle(val type: String) {
     Attestant("ATTESTANT"),
@@ -20,12 +21,15 @@ enum class Rolle(val type: String) {
 }
 
 data class UserData(
+    val navn: String,
     val navIdent: String,
     val roller: List<Rolle>
 )
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Route.meRoutes() {
+    val logger = LoggerFactory.getLogger(this::class.java)
+
     get("/me") {
         val user = call.suUserContext.user!!
         val prince = call.authentication.principal
@@ -40,13 +44,15 @@ internal fun Route.meRoutes() {
 
         user.fold(
             ifLeft = {
-                call.respond(HttpStatusCode.InternalServerError, "FEIL I HENTING AV BRUKER ELLERNO")
+                logger.info("Feil ved henting av bruker: $it")
+                call.respond(HttpStatusCode.InternalServerError, "Feil under henting av bruker")
             },
             ifRight = {
                 call.respond(
                     HttpStatusCode.OK,
                     serialize(
                         UserData(
+                            navn = it.displayName,
                             navIdent = it.onPremisesSamAccountName!!,
                             roller = roller
                         )

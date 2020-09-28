@@ -38,7 +38,7 @@ internal class MeRoutesKtTest {
             testSusebakover(
                 clients = TestClientsBuilder.testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hent(userToken: String): Either<String, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
+                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
                     }
                 )
             )
