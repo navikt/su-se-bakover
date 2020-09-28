@@ -91,7 +91,7 @@ internal class DatabaseRepo(
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
         using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session)?.apply { addObserver(this@DatabaseRepo) } }
 
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
         """
             insert into utbetaling (id, opprettet, oppdragId, fnr)
             values (:id, :opprettet, :oppdragId, :fnr)
@@ -105,7 +105,6 @@ internal class DatabaseRepo(
         )
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
         utbetaling.addObserver(this)
-        return utbetaling
     }
 
     override fun slettUtbetaling(utbetaling: Utbetaling) {
@@ -441,14 +440,13 @@ internal class DatabaseRepo(
             )
     }
 
-    override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+    override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
         "update utbetaling set simulering = to_json(:simulering::json) where id = :id".oppdatering(
             mapOf(
                 "id" to utbetalingId,
                 "simulering" to objectMapper.writeValueAsString(simulering)
             )
         )
-        return simulering
     }
 
     override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {

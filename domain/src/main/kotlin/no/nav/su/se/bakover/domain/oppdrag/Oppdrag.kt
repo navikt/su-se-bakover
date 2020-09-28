@@ -36,7 +36,7 @@ data class Oppdrag(
             it.tom.isEqual(value) || it.tom.isAfter(value)
         }
 
-    fun generererUtbetaling(beregning: Beregning): Utbetaling {
+    fun genererUtbetaling(beregning: Beregning): Utbetaling {
         val utbetalingsperioder = beregning.månedsberegninger
             .groupBy { it.beløp }
             .map {
@@ -46,10 +46,10 @@ data class Oppdrag(
                     beløp = it.key,
                 )
             }
-        return generererUtbetaling(utbetalingsperioder)
+        return genererUtbetaling(utbetalingsperioder)
     }
 
-    fun generererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
+    fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
         return Utbetaling(
             utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(
@@ -65,17 +65,17 @@ data class Oppdrag(
         )
     }
 
-    fun opprettUtbetaling(utbetaling: Utbetaling): Utbetaling {
+    fun leggTilUtbetaling(utbetaling: Utbetaling) {
         return persistenceObserver.opprettUtbetaling(id, utbetaling)
             .also {
-                utbetalinger.add(it)
+                utbetalinger.add(utbetaling)
             }
     }
 
     fun slettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.slettUtbetaling(utbetaling)
 
     interface OppdragPersistenceObserver : PersistenceObserver {
-        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
+        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling)
         fun slettUtbetaling(utbetaling: Utbetaling)
         fun hentFnr(sakId: UUID): Fnr
     }

@@ -386,46 +386,48 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = insertSak(FNR)
             val utbetaling = insertUtbetaling(sak.oppdrag.id)
-            val simulering = repo.addSimulering(
-                utbetaling.id,
-                Simulering(
-                    gjelderId = Fnr("12345678910"),
-                    gjelderNavn = "gjelderNavn",
-                    datoBeregnet = LocalDate.now(),
-                    nettoBeløp = 1,
-                    periodeList = listOf(
-                        SimulertPeriode(
-                            fom = LocalDate.now(),
-                            tom = LocalDate.now(),
-                            utbetaling = listOf(
-                                SimulertUtbetaling(
-                                    fagSystemId = "fagSystemId",
-                                    utbetalesTilId = Fnr("12345678910"),
-                                    utbetalesTilNavn = "utbetalesTilNavn",
-                                    forfall = LocalDate.now(),
-                                    feilkonto = false,
-                                    detaljer = listOf(
-                                        SimulertDetaljer(
-                                            faktiskFom = LocalDate.now(),
-                                            faktiskTom = LocalDate.now(),
-                                            konto = "konto",
-                                            belop = 1,
-                                            tilbakeforing = true,
-                                            sats = 1,
-                                            typeSats = "",
-                                            antallSats = 1,
-                                            uforegrad = 2,
-                                            klassekode = "klassekode",
-                                            klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                            klasseType = KlasseType.YTEL
-                                        )
+            val simulering = Simulering(
+                gjelderId = Fnr("12345678910"),
+                gjelderNavn = "gjelderNavn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 1,
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now(),
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = "fagSystemId",
+                                utbetalesTilId = Fnr("12345678910"),
+                                utbetalesTilNavn = "utbetalesTilNavn",
+                                forfall = LocalDate.now(),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    SimulertDetaljer(
+                                        faktiskFom = LocalDate.now(),
+                                        faktiskTom = LocalDate.now(),
+                                        konto = "konto",
+                                        belop = 1,
+                                        tilbakeforing = true,
+                                        sats = 1,
+                                        typeSats = "",
+                                        antallSats = 1,
+                                        uforegrad = 2,
+                                        klassekode = "klassekode",
+                                        klassekodeBeskrivelse = "klassekodeBeskrivelse",
+                                        klasseType = KlasseType.YTEL
                                     )
                                 )
                             )
                         )
                     )
                 )
-            )
+            ).also {
+                repo.addSimulering(
+                    utbetalingId = utbetaling.id,
+                    simulering = it
+                )
+            }
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.getSimulering()!!
             simulering shouldBe hentet
         }
@@ -552,13 +554,9 @@ internal class DatabaseRepoTest {
     }
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
-            throw NotImplementedError()
-        }
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) = throw NotImplementedError()
 
-        override fun slettUtbetaling(utbetaling: Utbetaling) {
-            throw NotImplementedError()
-        }
+        override fun slettUtbetaling(utbetaling: Utbetaling) = throw NotImplementedError()
 
         override fun hentFnr(sakId: UUID): Fnr {
             return FNR
@@ -566,7 +564,7 @@ internal class DatabaseRepoTest {
     }
 
     private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
             throw NotImplementedError()
         }
 
@@ -617,13 +615,15 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetaling(oppdragId: UUID30) = repo.opprettUtbetaling(
-        oppdragId = oppdragId,
-        utbetaling = Utbetaling(
-            utbetalingslinjer = emptyList(),
-            fnr = FNR
+    private fun insertUtbetaling(oppdragId: UUID30): Utbetaling = Utbetaling(
+        utbetalingslinjer = emptyList(),
+        fnr = FNR
+    ).also {
+        repo.opprettUtbetaling(
+            oppdragId = oppdragId,
+            utbetaling = it
         )
-    )
+    }
 
     private fun insertUtbetalingslinje(utbetalingId: UUID30, forrigeUtbetalingslinjeId: UUID30?) =
         repo.opprettUtbetalingslinje(

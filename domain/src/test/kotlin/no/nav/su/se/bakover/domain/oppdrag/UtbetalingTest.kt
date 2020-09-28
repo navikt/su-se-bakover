@@ -88,9 +88,8 @@ internal class UtbetalingTest {
         lateinit var kvittering: Kvittering
         lateinit var oppdragsmelding: Oppdragsmelding
 
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering {
+        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
             this.simulering = simulering
-            return simulering
         }
 
         override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {

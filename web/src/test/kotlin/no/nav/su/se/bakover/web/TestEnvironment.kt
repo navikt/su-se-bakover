@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
+import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.Services
 import java.util.Base64
 
@@ -50,7 +50,7 @@ internal fun Application.testSusebakover(
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    stoppbehandlingService: StoppbehandlingService = mock(),
+    stansUtbetalingService: StansUtbetalingService = mock(),
     services: Services = Services(avstemmingService = mock())
 ) {
     return susebakover(
@@ -58,7 +58,7 @@ internal fun Application.testSusebakover(
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        stoppbehandlingService = stoppbehandlingService,
+        stansUtbetalingService = stansUtbetalingService,
         services = services
     )
 }

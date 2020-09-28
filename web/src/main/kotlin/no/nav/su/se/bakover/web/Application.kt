@@ -44,13 +44,12 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.behandlinger.stopp.StoppbehandlingService
+import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
-import no.nav.su.se.bakover.web.routes.behandlinger.stopp.stoppbehandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -59,6 +58,7 @@ import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitteringIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
@@ -104,10 +104,10 @@ internal fun Application.susebakover(
             }
         }
     },
-    stoppbehandlingService: StoppbehandlingService = StoppbehandlingService(
+    stansUtbetalingService: StansUtbetalingService = StansUtbetalingService(
         simuleringClient = clients.simuleringClient,
         clock = Clock.systemUTC(),
-        stoppbehandlingRepo = databaseRepos.stoppbehandlingRepo
+        utbetalingPublisher = clients.utbetalingPublisher
     ),
     services: Services = ServiceBuilder(databaseRepos, clients).build()
 ) {
@@ -227,7 +227,7 @@ internal fun Application.susebakover(
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
             avstemmingRoutes(services.avstemmingService)
-            stoppbehandlingRoutes(stoppbehandlingService, databaseRepos.objectRepo)
+            stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
         }
     }
     if (!Config.isLocalOrRunningTests) {

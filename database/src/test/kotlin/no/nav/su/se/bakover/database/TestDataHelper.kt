@@ -12,7 +12,7 @@ internal class TestDataHelper(
     private val repo = DatabaseRepo(dataSource)
 
     fun insertSak(fnr: Fnr) = repo.opprettSak(fnr)
-    fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) = repo.opprettUtbetaling(oppdragId, utbetaling)
+    fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling = utbetaling.also { repo.opprettUtbetaling(oppdragId, utbetaling) }
     fun insertOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding) =
         repo.addOppdragsmelding(utbetalingId, oppdragsmelding)
 

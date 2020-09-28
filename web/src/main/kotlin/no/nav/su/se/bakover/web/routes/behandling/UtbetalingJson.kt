@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.SimulertPeriodeJson.Companion.toJson
 import java.time.LocalDate
@@ -20,6 +23,9 @@ data class UtbetalingJson(
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 simulering = getSimulering()?.toJson(),
             )
+
+        internal fun HttpStatusCode.jsonBody(utbetaling: Utbetaling) =
+            Resultat.json(this, serialize(utbetaling.toJson()))
     }
 
     data class SimuleringJson(

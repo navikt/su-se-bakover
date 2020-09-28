@@ -28,7 +28,9 @@ data class Utbetaling(
     fun getSimulering(): Simulering? = simulering
 
     fun addSimulering(simulering: Simulering) {
-        this.simulering = persistenceObserver.addSimulering(id, simulering)
+        this.simulering = simulering.also {
+            persistenceObserver.addSimulering(id, simulering)
+        }
     }
 
     fun getOppdragsmelding() = oppdragsmelding
@@ -68,7 +70,7 @@ data class Utbetaling(
 }
 
 interface UtbetalingPersistenceObserver : PersistenceObserver {
-    fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Simulering
+    fun addSimulering(utbetalingId: UUID30, simulering: Simulering)
     fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
 }

@@ -41,7 +41,7 @@ internal class OppdragTest {
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
-        val actual = oppdrag.generererUtbetaling(
+        val actual = oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
@@ -97,7 +97,7 @@ internal class OppdragTest {
             it.addObserver(observer)
         }
 
-        val nyUtbetaling = eksisterendeOppdrag.generererUtbetaling(
+        val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
                     fom = 1.januar(2020),
@@ -214,7 +214,7 @@ internal class OppdragTest {
             forventetInntekt = 0
         )
 
-        val actualUtbetaling = oppdrag.generererUtbetaling(b)
+        val actualUtbetaling = oppdrag.genererUtbetaling(b)
         actualUtbetaling shouldBe Utbetaling(
             opprettet = actualUtbetaling.opprettet,
             kvittering = null,
@@ -246,9 +246,8 @@ internal class OppdragTest {
 
     private class DummyObserver : Oppdrag.OppdragPersistenceObserver {
         var utbetaling: Utbetaling? = null
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
+        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
             this.utbetaling = utbetaling
-            return utbetaling
         }
 
         override fun slettUtbetaling(utbetaling: Utbetaling) {
