@@ -68,8 +68,8 @@ internal class StansUtbetalingRoutesKtTest {
         }
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock),
-                stansUtbetalingService = stansutbetalingServiceMock
+                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
+                stansUtbetalingService = stansutbetalingServiceMock,
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
@@ -92,7 +92,7 @@ internal class StansUtbetalingRoutesKtTest {
 
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock),
+                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
                 stansUtbetalingService = stansUtbetalingServiceMock
             )
         }) {

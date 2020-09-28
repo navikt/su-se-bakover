@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.database
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.using
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -34,10 +34,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.Clock
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -91,15 +89,7 @@ internal class DatabaseRepo(
     }
 
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
-        using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session) }
-
-    private fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
-        "select * from utbetaling where id = :id".hent(
-            mapOf(
-                "id" to utbetalingId
-            ),
-            session
-        ) { it.toUtbetaling(session) }
+        using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session)?.apply { addObserver(this@DatabaseRepo) } }
 
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
         """
@@ -149,7 +139,7 @@ internal class DatabaseRepo(
         return Sak(
             id = sakId,
             fnr = Fnr(string("fnr")),
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             søknader = hentSøknaderInternal(sakId, session),
             behandlinger = hentBehandlingerForSak(sakId, session),
             oppdrag = hentOppdragForSak(sakId, session)
@@ -165,58 +155,10 @@ internal class DatabaseRepo(
         val oppdragId = uuid30("id")
         return Oppdrag(
             id = oppdragId,
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             sakId = uuid("sakId"),
-            utbetalinger = hentUtbetalinger(oppdragId, session)
+            utbetalinger = hentUtbetalinger(oppdragId, session).also { utbetalinger -> utbetalinger.forEach { it.addObserver(this@DatabaseRepo) } }
         ).also { it.addObserver(this@DatabaseRepo) }
-    }
-
-    internal fun hentUtbetalinger(oppdragId: UUID30, session: Session) =
-        "select * from utbetaling where oppdragId=:oppdragId".hentListe(
-            mapOf("oppdragId" to oppdragId.toString()),
-            session
-        ) {
-            it.toUtbetaling(session)
-        }.toMutableList()
-
-    private fun Row.toUtbetaling(session: Session): Utbetaling {
-        val utbetalingId = uuid30("id")
-        return Utbetaling(
-            id = utbetalingId,
-            opprettet = toTidspunkt("opprettet"),
-            simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
-            kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
-            oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
-                objectMapper.readValue(
-                    it,
-                    Oppdragsmelding::class.java
-                )
-            },
-            utbetalingslinjer = hentUtbetalingslinjer(utbetalingId, session),
-            avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) },
-            fnr = Fnr(string("fnr"))
-        ).also {
-            it.addObserver(this@DatabaseRepo)
-        }
-    }
-
-    internal fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
-        "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
-            mapOf("utbetalingId" to utbetalingId.toString()),
-            session
-        ) {
-            it.toUtbetalingslinje()
-        }
-
-    private fun Row.toUtbetalingslinje(): Utbetalingslinje {
-        return Utbetalingslinje(
-            id = uuid30("id"),
-            fom = localDate("fom"),
-            tom = localDate("tom"),
-            opprettet = toTidspunkt("opprettet"),
-            forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
-            beløp = int("beløp")
-        )
     }
 
     private fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
@@ -286,7 +228,7 @@ internal class DatabaseRepo(
         return Søknad(
             id = uuid("id"),
             søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-            opprettet = toTidspunkt("opprettet")
+            opprettet = tidspunkt("opprettet")
         )
     }
 
@@ -304,10 +246,10 @@ internal class DatabaseRepo(
         return Behandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
-            opprettet = toTidspunkt("opprettet"),
+            opprettet = tidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
-            utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
+            utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!!.apply { addObserver(this@DatabaseRepo) } },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
@@ -334,7 +276,7 @@ internal class DatabaseRepo(
 
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
-        opprettet = toTidspunkt("opprettet"),
+        opprettet = tidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
@@ -442,7 +384,7 @@ internal class DatabaseRepo(
 
     private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
-        opprettet = toTidspunkt("opprettet"),
+        opprettet = tidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
@@ -525,80 +467,6 @@ internal class DatabaseRepo(
             )
         )
         return oppdragsmelding
-    }
-
-    /**
-     * Tow-part operation to avoid issues caused by lost precision when converting to/from instant/timestamp
-     * 1. Get rows for extended interval.
-     * 2. Filter in code to utilize precision of instant to get extact rows.
-     */
-    override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
-        using(sessionOf(dataSource)) { session ->
-            val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
-            val adjustedTom = tom.plus(1, ChronoUnit.DAYS)
-            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz < :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
-                .hentListe(
-                    mapOf(
-                        "fom" to adjustedFom,
-                        "tom" to adjustedTom,
-                        "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
-                    ),
-                    session
-                ) {
-                    it.toUtbetaling(session)
-                }.filter {
-                    it.getOppdragsmelding()!!.tidspunkt.between(fom, tom)
-                }
-        }
-
-    override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
-        """
-            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
-            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-        """.oppdatering(
-            mapOf(
-                "id" to avstemming.id,
-                "opprettet" to avstemming.opprettet,
-                "fom" to avstemming.fom,
-                "tom" to avstemming.tom,
-                "utbetalinger" to objectMapper.writeValueAsString(avstemming.utbetalinger.map { it.id.toString() }),
-                "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest
-            )
-        )
-        return avstemming
-    }
-
-    override fun hentSisteAvstemming() = using(sessionOf(dataSource)) { session ->
-        """
-            select * from avstemming order by tom desc limit 1
-        """.hent(emptyMap(), session) {
-            it.toAvstemming(session)
-        }
-    }
-
-    private fun Row.toAvstemming(session: Session) = Avstemming(
-        id = uuid30("id"),
-        opprettet = toTidspunkt("opprettet"),
-        fom = toTidspunkt("fom"),
-        tom = toTidspunkt("tom"),
-        utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
-            objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
-                hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
-            }
-        }!!,
-        avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
-    )
-
-    override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30 {
-        """
-            update utbetaling set avstemmingId = :avstemmingId where id = :id
-        """.oppdatering(
-            mapOf(
-                "id" to utbetalingId,
-                "avstemmingId" to avstemmingId
-            )
-        )
-        return avstemmingId
     }
 
     override fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg): Hendelseslogg {

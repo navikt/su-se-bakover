@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
+import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import javax.sql.DataSource
 
 object DatabaseBuilder {
@@ -19,7 +21,8 @@ object DatabaseBuilder {
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         val objectRepo = DatabaseRepo(userDatastore)
         return DatabaseRepos(
-            objectRepo = objectRepo
+            objectRepo = objectRepo,
+            avstemmingRepo = AvstemmingPostgresRepo(userDatastore)
         )
     }
 
@@ -27,11 +30,13 @@ object DatabaseBuilder {
         Flyway(embeddedDatasource, "postgres").migrate()
         val objectRepo = DatabaseRepo(embeddedDatasource)
         return DatabaseRepos(
-            objectRepo = objectRepo
+            objectRepo = objectRepo,
+            avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource)
         )
     }
 }
 
 data class DatabaseRepos(
-    val objectRepo: ObjectRepo
+    val objectRepo: ObjectRepo,
+    val avstemmingRepo: AvstemmingRepo
 )

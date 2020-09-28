@@ -9,6 +9,7 @@ val micrometerRegistryPrometheusVersion = "1.5.4"
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
     testImplementation(project(":database", "testArchives"))

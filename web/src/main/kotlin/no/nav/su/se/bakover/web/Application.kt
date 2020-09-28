@@ -45,6 +45,8 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
+import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
@@ -106,8 +108,8 @@ internal fun Application.susebakover(
         simuleringClient = clients.simuleringClient,
         clock = Clock.systemUTC(),
         utbetalingPublisher = clients.utbetalingPublisher
-    )
-
+    ),
+    services: Services = ServiceBuilder(databaseRepos, clients).build()
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
@@ -224,7 +226,7 @@ internal fun Application.susebakover(
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
             )
-            avstemmingRoutes(databaseRepos.objectRepo, clients.avstemmingPublisher)
+            avstemmingRoutes(services.avstemmingService)
             stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
         }
     }

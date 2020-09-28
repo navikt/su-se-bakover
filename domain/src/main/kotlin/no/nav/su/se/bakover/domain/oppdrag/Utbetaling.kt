@@ -52,11 +52,6 @@ data class Utbetaling(
         }
     }
 
-    fun addAvstemmingId(avstemmingId: UUID30): UUID30 {
-        this.avstemmingId = persistenceObserver.addAvstemmingId(id, avstemmingId)
-        return this.avstemmingId!!
-    }
-
     fun addOppdragsmelding(oppdragsmelding: Oppdragsmelding) {
         this.oppdragsmelding = persistenceObserver.addOppdragsmelding(id, oppdragsmelding)
         when (this.oppdragsmelding!!.erSendt()) {
@@ -78,5 +73,4 @@ interface UtbetalingPersistenceObserver : PersistenceObserver {
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering)
     fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
-    fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30
 }

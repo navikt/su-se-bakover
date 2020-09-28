@@ -693,10 +693,6 @@ internal class BehandlingTest {
             this.oppdragsmelding = oppdragsmelding
             return this.oppdragsmelding
         }
-
-        override fun addAvstemmingId(utbetalingId: UUID30, avstemmingId: UUID30): UUID30 {
-            return avstemmingId
-        }
     }
 
     object OppgaveClientStub : OppgaveClient {
