@@ -18,7 +18,6 @@ fun Int.november(year: Int) = LocalDate.of(year, Month.NOVEMBER, this)
 fun Int.desember(year: Int) = LocalDate.of(year, Month.DECEMBER, this)
 fun idag(clock: Clock = Clock.systemUTC()) = LocalDate.now(clock)
 
-// TODO brukbart? - truncate for samme format som databasen har?
 fun now(clock: Clock = Clock.systemUTC()): Tidspunkt = Tidspunkt.now(clock)
 
 fun LocalDate.startOfDay() = this.atStartOfDay().toTidspunkt()

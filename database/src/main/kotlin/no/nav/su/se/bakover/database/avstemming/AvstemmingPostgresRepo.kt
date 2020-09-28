@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.avstemming
 import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -14,7 +13,6 @@ import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 
 internal class AvstemmingPostgresRepo(
@@ -64,27 +62,18 @@ internal class AvstemmingPostgresRepo(
         }
     }
 
-    /**
-     * Tow-part operation to avoid issues caused by lost precision when converting to/from instant/timestamp
-     * 1. Get rows for extended interval.
-     * 2. Filter in code to utilize precision of instant to get extact rows.
-     */
     override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
-            val adjustedTom = tom.plus(1, ChronoUnit.DAYS)
-            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz < :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
+            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
                 .hentListe(
                     mapOf(
-                        "fom" to adjustedFom,
-                        "tom" to adjustedTom,
+                        "fom" to fom,
+                        "tom" to tom,
                         "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
                     ),
                     session
                 ) {
                     it.toUtbetaling(session)
-                }.filter {
-                    it.getOppdragsmelding()!!.tidspunkt.between(fom, tom)
                 }
         }
 
