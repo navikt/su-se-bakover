@@ -42,7 +42,7 @@ internal class SimuleringSoapClient(
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 mapResponseToResultat(it)
-            } ?: SimuleringFeilet.FUNKSJONELL_FEIL.left().also{
+            } ?: SimuleringFeilet.FUNKSJONELL_FEIL.left().also {
                 log.error("SimuleringClient. Response fra simulerBeregning var tom")
             }
         } catch (e: SimulerBeregningFeilUnderBehandling) {
