@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.hendelseslogg.hendelse
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
-import java.time.Instant
 
 private val HendelseListType =
     objectMapper.typeFactory.constructCollectionLikeType(List::class.java, Hendelse::class.java)
@@ -28,7 +28,7 @@ val HendelseListReader = objectMapper.readerFor(HendelseListType)
 interface Hendelse {
     val overskrift: String
     val underoverskrift: String
-    val tidspunkt: Instant
+    val tidspunkt: Tidspunkt
     val melding: String
 }
 

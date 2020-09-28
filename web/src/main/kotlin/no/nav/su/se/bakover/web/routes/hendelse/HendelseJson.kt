@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.hendelse
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
-import java.time.Instant
 
 internal fun Hendelse.toJson() = HendelseJson(
     overskrift = overskrift,
@@ -13,7 +13,7 @@ internal fun Hendelse.toJson() = HendelseJson(
 internal data class HendelseJson(
     val overskrift: String,
     val underoverskrift: String,
-    val tidspunkt: Instant,
+    val tidspunkt: Tidspunkt,
     val melding: String
 )
 

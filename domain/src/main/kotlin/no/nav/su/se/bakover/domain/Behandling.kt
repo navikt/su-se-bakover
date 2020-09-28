@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -20,13 +21,12 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Instant = now(),
+    val opprettet: Tidspunkt = now(),
     private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = null,
         flyktning = null,

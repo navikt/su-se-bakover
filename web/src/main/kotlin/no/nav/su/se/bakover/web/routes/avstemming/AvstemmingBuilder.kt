@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
@@ -7,7 +8,6 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -38,7 +38,7 @@ class AvstemmingBuilder(
                 tom = LocalDate.now(clock).minusDays(1).endOfDay()
             )
             else -> {
-                val start = LocalDate.ofInstant(sisteAvstemming.tom.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
+                val start = LocalDate.ofInstant(sisteAvstemming.tom.instant.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
                 val end = LocalDate.now(clock).minusDays(1)
                 AvstemmingsPeriode(
                     fom = start.startOfDay(),
@@ -50,6 +50,6 @@ class AvstemmingBuilder(
 }
 
 data class AvstemmingsPeriode(
-    val fom: Instant,
-    val tom: Instant
+    val fom: Tidspunkt,
+    val tom: Tidspunkt
 )

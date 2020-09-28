@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.using
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.between
@@ -36,7 +37,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.Clock
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.sql.DataSource
@@ -150,7 +150,7 @@ internal class DatabaseRepo(
         return Sak(
             id = sakId,
             fnr = Fnr(string("fnr")),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             søknader = hentSøknaderInternal(sakId, session),
             behandlinger = hentBehandlingerForSak(sakId, session),
             oppdrag = hentOppdragForSak(sakId, session)
@@ -166,7 +166,7 @@ internal class DatabaseRepo(
         val oppdragId = uuid30("id")
         return Oppdrag(
             id = oppdragId,
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             sakId = uuid("sakId"),
             utbetalinger = hentUtbetalinger(oppdragId, session)
         ).also { it.addObserver(this@DatabaseRepo) }
@@ -184,7 +184,7 @@ internal class DatabaseRepo(
         val utbetalingId = uuid30("id")
         return Utbetaling(
             id = utbetalingId,
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
             oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
@@ -214,7 +214,7 @@ internal class DatabaseRepo(
             id = uuid30("id"),
             fom = localDate("fom"),
             tom = localDate("tom"),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
             beløp = int("beløp")
         )
@@ -287,7 +287,7 @@ internal class DatabaseRepo(
         return Søknad(
             id = uuid("id"),
             søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-            opprettet = instant("opprettet")
+            opprettet = toTidspunkt("opprettet")
         )
     }
 
@@ -305,7 +305,7 @@ internal class DatabaseRepo(
         return Behandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
-            opprettet = instant("opprettet"),
+            opprettet = toTidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
             utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!! },
@@ -335,7 +335,7 @@ internal class DatabaseRepo(
 
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
-        opprettet = instant("opprettet"),
+        opprettet = toTidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
@@ -443,7 +443,7 @@ internal class DatabaseRepo(
 
     private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
-        opprettet = instant("opprettet"),
+        opprettet = toTidspunkt("opprettet"),
         fom = localDate("fom"),
         tom = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
@@ -534,7 +534,7 @@ internal class DatabaseRepo(
      * 1. Get rows for extended interval.
      * 2. Filter in code to utilize precision of instant to get extact rows.
      */
-    override fun hentUtbetalingerForAvstemming(fom: Instant, tom: Instant): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
             val adjustedFom = fom.minus(1, ChronoUnit.DAYS)
             val adjustedTom = tom.plus(1, ChronoUnit.DAYS)
@@ -580,9 +580,9 @@ internal class DatabaseRepo(
 
     private fun Row.toAvstemming(session: Session) = Avstemming(
         id = uuid30("id"),
-        opprettet = instant("opprettet"),
-        fom = instant("fom"),
-        tom = instant("tom"),
+        opprettet = toTidspunkt("opprettet"),
+        fom = toTidspunkt("fom"),
+        tom = toTidspunkt("tom"),
         utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
             objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
                 hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
