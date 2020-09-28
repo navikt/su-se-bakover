@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -25,7 +25,7 @@ import java.util.UUID
 
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: MicroInstant = now(),
+    val opprettet: Tidspunkt = now(),
     private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = null,
         flyktning = null,

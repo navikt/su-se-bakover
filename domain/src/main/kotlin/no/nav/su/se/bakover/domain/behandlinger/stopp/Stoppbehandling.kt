@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.behandlinger.stopp
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Saksbehandler
@@ -19,7 +19,7 @@ import java.util.UUID
  */
 sealed class Stoppbehandling {
     abstract val id: UUID
-    abstract val opprettet: MicroInstant
+    abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
     abstract val status: String
     abstract val utbetaling: Utbetaling
@@ -28,7 +28,7 @@ sealed class Stoppbehandling {
 
     data class Simulert(
         override val id: UUID,
-        override val opprettet: MicroInstant,
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val utbetaling: Utbetaling,
         override val stoppÅrsak: String,
@@ -55,7 +55,7 @@ sealed class Stoppbehandling {
 
     data class TilAttestering(
         override val id: UUID,
-        override val opprettet: MicroInstant,
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val utbetaling: Utbetaling,
         override val stoppÅrsak: String,
@@ -77,7 +77,7 @@ sealed class Stoppbehandling {
 
     data class Iverksatt(
         override val id: UUID,
-        override val opprettet: MicroInstant,
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val utbetaling: Utbetaling,
         override val stoppÅrsak: String,

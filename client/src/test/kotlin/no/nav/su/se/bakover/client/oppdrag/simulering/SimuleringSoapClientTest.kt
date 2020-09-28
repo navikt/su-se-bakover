@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -162,7 +162,7 @@ internal class SimuleringSoapClientTest {
 
     private fun createOppdrag() = Oppdrag(
         id = UUID30.randomUUID(),
-        opprettet = MicroInstant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )

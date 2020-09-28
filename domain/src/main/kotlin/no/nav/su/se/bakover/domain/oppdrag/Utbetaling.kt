@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
@@ -12,7 +12,7 @@ import java.util.Comparator
 
 data class Utbetaling(
     val id: UUID30 = UUID30.randomUUID(),
-    val opprettet: MicroInstant = now(),
+    val opprettet: Tidspunkt = now(),
     private var simulering: Simulering? = null,
     private var kvittering: Kvittering? = null,
     private var oppdragsmelding: Oppdragsmelding? = null,

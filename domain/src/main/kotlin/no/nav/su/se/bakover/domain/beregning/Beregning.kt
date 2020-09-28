@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
@@ -10,7 +10,7 @@ import java.util.UUID
 
 data class Beregning(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: MicroInstant = now(),
+    val opprettet: Tidspunkt = now(),
     val fom: LocalDate,
     val tom: LocalDate,
     val sats: Sats,

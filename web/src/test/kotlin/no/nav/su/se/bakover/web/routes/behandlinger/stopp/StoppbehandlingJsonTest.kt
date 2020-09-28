@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandlinger.stopp
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
@@ -19,7 +19,7 @@ internal class StoppbehandlingJsonTest {
     inner class OpprettetStoppbehandlingTest {
         val jsonObject = StoppbehandlingJson(
             id = stoppbehandlingId,
-            opprettet = MicroInstant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             status = "OPPRETTET",
             utbetaling = UtbetalingJson(

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.hendelse
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
 
 internal fun Hendelse.toJson() = HendelseJson(
@@ -13,7 +13,7 @@ internal fun Hendelse.toJson() = HendelseJson(
 internal data class HendelseJson(
     val overskrift: String,
     val underoverskrift: String,
-    val tidspunkt: MicroInstant,
+    val tidspunkt: Tidspunkt,
     val melding: String
 )
 

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.hendelseslogg.hendelse
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 
@@ -28,7 +28,7 @@ val HendelseListReader = objectMapper.readerFor(HendelseListType)
 interface Hendelse {
     val overskrift: String
     val underoverskrift: String
-    val tidspunkt: MicroInstant
+    val tidspunkt: Tidspunkt
     val melding: String
 }
 

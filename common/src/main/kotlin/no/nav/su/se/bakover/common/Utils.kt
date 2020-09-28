@@ -19,9 +19,9 @@ fun Int.desember(year: Int) = LocalDate.of(year, Month.DECEMBER, this)
 fun idag(clock: Clock = Clock.systemUTC()) = LocalDate.now(clock)
 
 // TODO brukbart? - truncate for samme format som databasen har?
-fun now(clock: Clock = Clock.systemUTC()): MicroInstant = MicroInstant.now(clock)
+fun now(clock: Clock = Clock.systemUTC()): Tidspunkt = Tidspunkt.now(clock)
 
-fun LocalDate.startOfDay() = this.atStartOfDay().toMicroInstant()
-fun LocalDate.endOfDay() = this.atStartOfDay().plusDays(1).minusNanos(1).toMicroInstant()
-fun MicroInstant.between(start: MicroInstant, end: MicroInstant) =
+fun LocalDate.startOfDay() = this.atStartOfDay().toTidspunkt()
+fun LocalDate.endOfDay() = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt()
+fun Tidspunkt.between(start: Tidspunkt, end: Tidspunkt) =
     (this == start || this == end) || this.instant.isAfter(start.instant) && this.instant.isBefore(end.instant)

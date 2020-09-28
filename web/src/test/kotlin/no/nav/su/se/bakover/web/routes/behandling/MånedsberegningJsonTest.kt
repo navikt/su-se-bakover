@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.toMicroInstant
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
@@ -30,7 +30,7 @@ internal class MånedsberegningJsonTest {
 
         internal val månedsberegning = Månedsberegning(
             id = uuid,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 0, 0).toMicroInstant(),
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 0, 0).toTidspunkt(),
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,

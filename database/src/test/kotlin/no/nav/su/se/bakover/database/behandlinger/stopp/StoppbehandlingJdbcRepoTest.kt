@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.behandlinger.stopp
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.toMicroInstant
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.DatabaseRepo
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
@@ -26,7 +26,7 @@ internal class StoppbehandlingJdbcRepoTest {
             val behandlingId = UUID.randomUUID()
             val sak = generalRepo.opprettSak(FNR)
             val utbetaling = Utbetaling(
-                opprettet = 1.juli(2020).atStartOfDay().toMicroInstant(),
+                opprettet = 1.juli(2020).atStartOfDay().toTidspunkt(),
                 utbetalingslinjer = emptyList(),
                 fnr = FNR
             )
@@ -37,7 +37,7 @@ internal class StoppbehandlingJdbcRepoTest {
 
             val nyBehandling = Stoppbehandling.Simulert(
                 id = behandlingId,
-                opprettet = MicroInstant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sak.id,
                 utbetaling = utbetaling,
                 stoppÅrsak = "stoppÅrsak",

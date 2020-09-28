@@ -1,14 +1,14 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.toMicroInstant
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -35,7 +35,7 @@ internal class UtbetalingRequestTest {
 
         val oppdrag = no.nav.su.se.bakover.domain.oppdrag.Oppdrag(
             id = oppdragId,
-            opprettet = MicroInstant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf()
         )
@@ -145,7 +145,7 @@ internal class UtbetalingRequestTest {
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",
-                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10).toMicroInstant()
+                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10).toTidspunkt()
                     ),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(

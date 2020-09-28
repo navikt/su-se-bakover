@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
@@ -20,7 +20,7 @@ internal class SakJsonTest {
         fnr = Fnr("12345678910"),
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = MicroInstant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId
         )
     )

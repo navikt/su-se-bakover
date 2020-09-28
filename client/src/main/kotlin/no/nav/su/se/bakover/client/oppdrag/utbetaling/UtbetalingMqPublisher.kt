@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.oppdrag.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -18,7 +18,7 @@ class UtbetalingMqPublisher(
     override fun publish(
         nyUtbetaling: NyUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Oppdragsmelding> {
-        val tidspunkt = MicroInstant.now(clock)
+        val tidspunkt = Tidspunkt.now(clock)
         val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(nyUtbetaling, tidspunkt))
         return mqPublisher.publish(xml)
             .mapLeft { KunneIkkeSendeUtbetaling(xml, tidspunkt) }

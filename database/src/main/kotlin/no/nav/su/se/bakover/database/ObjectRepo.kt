@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
@@ -19,7 +19,7 @@ interface ObjectRepo {
     fun hentBehandling(behandlingId: UUID): Behandling?
     fun hentBeregning(behandlingId: UUID): Beregning?
     fun hentUtbetaling(utbetalingId: UUID30): Utbetaling?
-    fun hentUtbetalingerForAvstemming(fom: MicroInstant, tom: MicroInstant): List<Utbetaling>
+    fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling>
     fun opprettAvstemming(avstemming: Avstemming): Avstemming
     fun hentSisteAvstemming(): Avstemming?
 }

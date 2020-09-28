@@ -5,7 +5,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.ObjectRepo
@@ -39,7 +39,7 @@ internal class UtbetalingKvitteringConsumerTest {
     fun `should add kvittering`() {
         val utbetalingId = UUID30.randomUUID()
         val xmlMessage = kvitteringXml(utbetalingId.toString())
-        val clock = Clock.fixed(MicroInstant.EPOCH.instant, ZoneOffset.UTC)
+        val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
             originalKvittering = xmlMessage,

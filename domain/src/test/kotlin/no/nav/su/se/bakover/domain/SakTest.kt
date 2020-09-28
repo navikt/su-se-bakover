@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.BeforeEach
@@ -83,11 +83,11 @@ internal class SakTest {
 
     private fun nySak() = Sak(
         id = sakId,
-        opprettet = MicroInstant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = MicroInstant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId
         )
     )

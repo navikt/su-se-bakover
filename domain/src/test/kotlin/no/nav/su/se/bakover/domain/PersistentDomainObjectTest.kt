@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ internal class PersistentDomainObjectTest {
             fnr = Fnr("12345678910"),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = MicroInstant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         )
@@ -33,7 +33,7 @@ internal class PersistentDomainObjectTest {
             fnr = Fnr("12345678910"),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
-                opprettet = MicroInstant.EPOCH,
+                opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
             )
         )

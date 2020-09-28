@@ -25,15 +25,22 @@ abstract class TruncatedInstant(
     override fun toString() = instant.toString()
 }
 
-class MicroInstant @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+/**
+ * Wraps Instants and truncates them to microsecond-precision (postgres precision).
+ * Purpose is to unify the level of precision such that comparison of time behaves as expected on all levels (code/db).
+ * Scenarios to avoid includes cases where timestamps of db-queries wraps around to the next day at different times
+ * based on the precision at hand - which may lead to rows not being picked up as expected. This case is especially
+ * relevant i.e when combining timestamp-db-fields (truncated by db) with Instants stored as json (not truncated by db).
+ */
+class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
     instant: Instant
 ) : TruncatedInstant(instant.truncatedTo(unit)) {
 
     companion object {
         val unit: ChronoUnit = ChronoUnit.MICROS
-        val EPOCH: MicroInstant get() = Instant.EPOCH.toMicroInstant()
-        val MIN: MicroInstant get() = Instant.MIN.toMicroInstant()
-        fun now(clock: Clock = Clock.systemUTC()) = MicroInstant(Instant.now(clock))
+        val EPOCH: Tidspunkt get() = Instant.EPOCH.toTidspunkt()
+        val MIN: Tidspunkt get() = Instant.MIN.toTidspunkt()
+        fun now(clock: Clock = Clock.systemUTC()) = Tidspunkt(Instant.now(clock))
     }
 
     /**
@@ -41,15 +48,15 @@ class MicroInstant @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
      * Equality check for "someInstant equals this" must be performed by using the wrapped value.
      */
     override fun equals(other: Any?) = when (other) {
-        is MicroInstant -> instant == other.instant
+        is Tidspunkt -> instant == other.instant
         is Instant -> instant == other.truncatedTo(unit)
         else -> false
     }
 
     override fun hashCode() = instant.hashCode()
-    fun plusSeconds(secondsToAdd: Long) = instant.plusSeconds(secondsToAdd).toMicroInstant()
+    fun plusSeconds(secondsToAdd: Long) = instant.plusSeconds(secondsToAdd).toTidspunkt()
 }
 
-fun Instant.toMicroInstant() = MicroInstant(this)
-fun LocalDateTime.toMicroInstant(zoneOffset: ZoneOffset = ZoneOffset.UTC) = this.toInstant(zoneOffset).toMicroInstant()
-fun ZonedDateTime.toMicroInstant() = this.toInstant().toMicroInstant()
+fun Instant.toTidspunkt() = Tidspunkt(this)
+fun LocalDateTime.toTidspunkt(zoneOffset: ZoneOffset = ZoneOffset.UTC) = this.toInstant(zoneOffset).toTidspunkt()
+fun ZonedDateTime.toTidspunkt() = this.toInstant().toTidspunkt()

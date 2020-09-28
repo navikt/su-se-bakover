@@ -4,13 +4,13 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 
 internal fun toUtbetalingRequest(
     nyUtbetaling: NyUtbetaling,
-    tidspunkt: MicroInstant = MicroInstant.now()
+    tidspunkt: Tidspunkt = Tidspunkt.now()
 ): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(

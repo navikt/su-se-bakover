@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -50,7 +50,7 @@ class UtbetalingXmlMappingTest {
     )
     private val oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
-        opprettet = MicroInstant.EPOCH,
+        opprettet = Tidspunkt.EPOCH,
         sakId = UUID.randomUUID(),
         utbetalinger = mutableListOf()
     )

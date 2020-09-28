@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Søknad
@@ -15,7 +15,7 @@ internal class SøknadJsonTest {
     companion object {
         val søknadId = UUID.randomUUID()
         val søknad = Søknad(
-            opprettet = MicroInstant.EPOCH,
+            opprettet = Tidspunkt.EPOCH,
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )

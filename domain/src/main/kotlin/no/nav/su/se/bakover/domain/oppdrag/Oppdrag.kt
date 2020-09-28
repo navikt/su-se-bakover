@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
@@ -12,7 +12,7 @@ import java.util.UUID
 
 data class Oppdrag(
     val id: UUID30,
-    val opprettet: MicroInstant,
+    val opprettet: Tidspunkt,
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
 ) : PersistentDomainObject<OppdragPersistenceObserver>() {

@@ -5,7 +5,7 @@ import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.toMicroInstant
+import no.nav.su.se.bakover.common.toTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -106,7 +106,7 @@ internal class BeregningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toMicroInstant(),
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = emptyList(),
             forventetInntekt = 500
         )
@@ -114,7 +114,7 @@ internal class BeregningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toMicroInstant(),
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toTidspunkt(),
             fradrag = emptyList(),
             forventetInntekt = 500
         )
@@ -122,7 +122,7 @@ internal class BeregningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toMicroInstant(),
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toTidspunkt(),
             fradrag = emptyList(),
             forventetInntekt = 500
         )
@@ -141,7 +141,7 @@ internal class BeregningTest {
             fom = LocalDate.of(2020, Month.JANUARY, 1),
             tom = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toMicroInstant(),
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
                 Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
                 Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
@@ -158,7 +158,7 @@ internal class BeregningTest {
                 fom = LocalDate.of(2020, Month.JANUARY, 1),
                 tom = LocalDate.of(2020, Month.DECEMBER, 31),
                 sats = Sats.HØY,
-                opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toMicroInstant(),
+                opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
                 fradrag = listOf(
                     Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
                     Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)

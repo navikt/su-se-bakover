@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
-import no.nav.su.se.bakover.common.MicroInstant
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
@@ -50,6 +50,6 @@ class AvstemmingBuilder(
 }
 
 data class AvstemmingsPeriode(
-    val fom: MicroInstant,
-    val tom: MicroInstant
+    val fom: Tidspunkt,
+    val tom: Tidspunkt
 )
