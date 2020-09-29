@@ -254,8 +254,8 @@ internal class BehandlingTest {
         @Test
         fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
             vilkårsvurdert.opprettBeregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 600000))
             )
 
@@ -265,12 +265,15 @@ internal class BehandlingTest {
         @Test
         fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
             var vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
-            vilkårsvurdertInnvilget.uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
-            vilkårsvurdert.oppdaterBehandlingsinformasjon(vilkårsvurdertInnvilget)
+            val behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
+            )
+            val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(updatedUførhet)
 
             vilkårsvurdert.opprettBeregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
             )
 
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
@@ -281,8 +284,8 @@ internal class BehandlingTest {
             val maxUtbetaling2020 = 250116
 
             vilkårsvurdert.opprettBeregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.99).toInt()))
             )
 
@@ -294,8 +297,8 @@ internal class BehandlingTest {
             val maxUtbetaling2020 = 250116
 
             vilkårsvurdert.opprettBeregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.98).toInt()))
             )
 
