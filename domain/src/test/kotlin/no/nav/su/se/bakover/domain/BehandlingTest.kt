@@ -523,7 +523,13 @@ internal class BehandlingTest {
                     override fun publish(
                         nyUtbetaling: NyUtbetaling
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(Oppdragsmelding(FEIL, "some xml here", tidspunkt)).left()
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                            Oppdragsmelding(
+                                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                                "some xml here",
+                                tidspunkt
+                            )
+                        ).left()
                 }
             )
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET

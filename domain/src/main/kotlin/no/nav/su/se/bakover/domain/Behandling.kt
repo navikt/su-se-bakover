@@ -333,9 +333,7 @@ data class Behandling(
                         attestant = attestant
                     )
                 ).mapLeft {
-                    utbetaling!!.addOppdragsmelding(
-                        it.oppdragsmelding
-                    )
+                    utbetaling!!.addOppdragsmelding(it.oppdragsmelding)
                     IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
                 }.map {
                     utbetaling!!.addOppdragsmelding(it)

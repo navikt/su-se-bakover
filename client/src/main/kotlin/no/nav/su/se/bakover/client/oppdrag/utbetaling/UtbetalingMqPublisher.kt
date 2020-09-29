@@ -21,7 +21,15 @@ class UtbetalingMqPublisher(
         val tidspunkt = Tidspunkt.now(clock)
         val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(nyUtbetaling, tidspunkt))
         return mqPublisher.publish(xml)
-            .mapLeft { KunneIkkeSendeUtbetaling(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, xml, tidspunkt)) }
+            .mapLeft {
+                KunneIkkeSendeUtbetaling(
+                    Oppdragsmelding(
+                        Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                        xml,
+                        tidspunkt
+                    )
+                )
+            }
             .map {
                 Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
