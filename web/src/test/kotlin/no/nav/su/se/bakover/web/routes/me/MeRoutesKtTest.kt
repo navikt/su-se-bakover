@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.testSusebakover
@@ -58,7 +59,7 @@ internal class MeRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.OK
                 deserialize<UserData>(response.content!!).let {
                     it.navIdent shouldBe microsoftGraphResponse.onPremisesSamAccountName
-                    it.roller.shouldContainExactly(Rolle.Attestant)
+                    it.roller.shouldContainExactly(Brukerrolle.Attestant)
                 }
             }
         }
