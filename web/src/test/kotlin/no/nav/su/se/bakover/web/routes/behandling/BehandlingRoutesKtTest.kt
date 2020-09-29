@@ -124,8 +124,8 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            val fom = LocalDate.of(2020, Month.JANUARY, 1)
-            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
@@ -134,8 +134,10 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fom":"$fom",
-                        "tom":"$tom",
+                        "fom":"$fraOgMed",
+                        "fraOgMed":"$fraOgMed",
+                        "tom":"$tilOgMed",
+                        "tilOgMed":"$tilOgMed",
                         "sats":"${sats.name}",
                         "fradrag":[]
                     }
@@ -144,8 +146,8 @@ internal class BehandlingRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fom shouldBe fom.toString()
-                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning!!.fraOgMed shouldBe fraOgMed.toString()
+                behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
             }
@@ -181,7 +183,9 @@ internal class BehandlingRoutesKtTest {
                     """
                     {
                         "fom":"${LocalDate.of(2020, Month.JANUARY, 16)}",
+                        "fraOgMed":"${LocalDate.of(2020, Month.JANUARY, 16)}",
                         "tom":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
+                        "tilOgMed":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
                         "sats":"LAV",
                         "fradrag":[]
                     }
@@ -249,7 +253,9 @@ internal class BehandlingRoutesKtTest {
                     """
                     {
                         "fom":"${1.januar(2020)}",
+                        "fraOgMed":"${1.januar(2020)}",
                         "tom":"${31.desember(2020)}",
+                        "tilOgMed":"${31.desember(2020)}",
                         "sats":"${Sats.HØY}",
                         "fradrag":[]
                     }

@@ -33,7 +33,7 @@ data class Oppdrag(
         .filter { it.erOversendtOppdrag() }
         .flatMap { it.utbetalingslinjer }
         .any {
-            it.tom.isEqual(value) || it.tom.isAfter(value)
+            it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
     fun genererUtbetaling(beregning: Beregning): Utbetaling {
@@ -41,8 +41,8 @@ data class Oppdrag(
             .groupBy { it.beløp }
             .map {
                 Utbetalingsperiode(
-                    fom = it.value.minByOrNull { it.fom }!!.fom,
-                    tom = it.value.maxByOrNull { it.tom }!!.tom,
+                    fraOgMed = it.value.minByOrNull { it.fraOgMed }!!.fraOgMed,
+                    tilOgMed = it.value.maxByOrNull { it.tilOgMed }!!.tilOgMed,
                     beløp = it.key,
                 )
             }
@@ -53,8 +53,8 @@ data class Oppdrag(
         return Utbetaling(
             utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(
-                    fom = it.fom,
-                    tom = it.tom,
+                    fraOgMed = it.fraOgMed,
+                    tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp
                 )

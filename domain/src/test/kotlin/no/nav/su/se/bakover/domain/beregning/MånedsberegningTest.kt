@@ -10,13 +10,13 @@ internal class MånedsberegningTest {
     @Test
     fun `calculation 1`() {
         val månedsberegning = Månedsberegning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             sats = Sats.HØY,
             fradrag = 0
         )
 
-        månedsberegning.fom shouldBe LocalDate.of(2020, Month.JANUARY, 1)
-        månedsberegning.tom shouldBe LocalDate.of(2020, Month.JANUARY, 31)
+        månedsberegning.fraOgMed shouldBe LocalDate.of(2020, Month.JANUARY, 1)
+        månedsberegning.tilOgMed shouldBe LocalDate.of(2020, Month.JANUARY, 31)
         månedsberegning.grunnbeløp shouldBe 99858
         månedsberegning.sats shouldBe Sats.HØY
         månedsberegning.beløp shouldBe 20637
@@ -25,13 +25,13 @@ internal class MånedsberegningTest {
     @Test
     fun `calculation 2`() {
         val månedsberegning = Månedsberegning(
-            fom = LocalDate.of(2018, Month.MARCH, 1),
+            fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 0
         )
 
-        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
         månedsberegning.sats shouldBe Sats.LAV
         månedsberegning.beløp shouldBe 17790
@@ -40,13 +40,13 @@ internal class MånedsberegningTest {
     @Test
     fun `trekker fra fradrag`() {
         val månedsberegning = Månedsberegning(
-            fom = LocalDate.of(2018, Month.MARCH, 1),
+            fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 100
         )
 
-        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
         månedsberegning.sats shouldBe Sats.LAV
         månedsberegning.beløp shouldBe 17690
@@ -55,13 +55,13 @@ internal class MånedsberegningTest {
     @Test
     fun `beløp kan ikke bli negativt pga fradrag`() {
         val månedsberegning = Månedsberegning(
-            fom = LocalDate.of(2018, Month.MARCH, 1),
+            fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = Int.MAX_VALUE
         )
 
-        månedsberegning.fom shouldBe LocalDate.of(2018, Month.MARCH, 1)
-        månedsberegning.tom shouldBe LocalDate.of(2018, Month.MARCH, 31)
+        månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
+        månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
         månedsberegning.sats shouldBe Sats.LAV
         månedsberegning.beløp shouldBe 0
@@ -70,7 +70,7 @@ internal class MånedsberegningTest {
     @Test
     fun `uses grunnbeløp based on date`() {
         val old = Månedsberegning(
-            fom = LocalDate.of(2018, Month.MARCH, 1),
+            fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
             sats = Sats.LAV,
             fradrag = 0
         )
@@ -79,7 +79,7 @@ internal class MånedsberegningTest {
         old.beløp shouldBe 17790
 
         val new = Månedsberegning(
-            fom = LocalDate.of(2018, Month.SEPTEMBER, 1),
+            fraOgMed = LocalDate.of(2018, Month.SEPTEMBER, 1),
             sats = Sats.LAV,
             fradrag = 0
         )
@@ -91,20 +91,20 @@ internal class MånedsberegningTest {
     @Test
     fun `throws if illegal values`() {
         assertThrows<IllegalArgumentException> {
-            val fom = LocalDate.of(2020, Month.JANUARY, 14)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 14)
             Månedsberegning(
-                fom = fom,
-                tom = fom.plusMonths(3),
+                fraOgMed = fraOgMed,
+                tilOgMed = fraOgMed.plusMonths(3),
                 sats = Sats.HØY,
                 fradrag = 0
             )
         }
 
         assertThrows<IllegalArgumentException> {
-            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             Månedsberegning(
-                fom = fom,
-                tom = LocalDate.of(2020, Month.JANUARY, 24),
+                fraOgMed = fraOgMed,
+                tilOgMed = LocalDate.of(2020, Month.JANUARY, 24),
                 sats = Sats.HØY,
                 fradrag = 0
             )

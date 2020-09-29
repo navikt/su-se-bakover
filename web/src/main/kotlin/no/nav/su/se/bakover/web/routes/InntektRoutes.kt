@@ -19,8 +19,8 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
         val resultat = oppslag.inntekt(
             ident = Fnr(inntektPath.ident),
             innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
-            fomDato = inntektPath.fomDato,
-            tomDato = inntektPath.tomDato
+            fraOgMedDato = inntektPath.fomDato,
+            tilOgMedDato = inntektPath.tomDato
         )
         call.svar(Resultat.from(resultat))
     }

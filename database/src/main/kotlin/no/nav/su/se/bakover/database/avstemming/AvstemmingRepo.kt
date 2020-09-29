@@ -10,5 +10,5 @@ interface AvstemmingRepo {
     fun hentAvstemming(id: UUID30): Avstemming?
     fun oppdaterAvstemteUtbetalinger(avstemming: Avstemming)
     fun hentSisteAvstemming(): Avstemming?
-    fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling>
+    fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling>
 }

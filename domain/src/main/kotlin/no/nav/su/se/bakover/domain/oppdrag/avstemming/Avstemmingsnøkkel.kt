@@ -8,6 +8,8 @@ import kotlin.math.pow
 
 object Avstemmingsnøkkel {
     // Avoid Utils.now() because of truncation to millis.
-    fun generer(tidspunkt: Tidspunkt = Tidspunkt.now()) = tidspunkt.instant.epochSecond * 10.0.pow(9).toLong() + tidspunkt.nano
-    fun periode(fom: LocalDate, tom: LocalDate) = generer(fom.startOfDay())..generer(tom.endOfDay())
+    fun generer(tidspunkt: Tidspunkt = Tidspunkt.now()) =
+        tidspunkt.instant.epochSecond * 10.0.pow(9).toLong() + tidspunkt.nano
+
+    fun periode(fraOgMed: LocalDate, tilOgMed: LocalDate) = generer(fraOgMed.startOfDay())..generer(tilOgMed.endOfDay())
 }

@@ -15,8 +15,8 @@ class AvstemmingDataBuilder(
                 aksjonType = Aksjonsdata.AksjonType.DATA,
                 kildeType = Aksjonsdata.KildeType.AVLEVERT,
                 avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
-                nokkelFom = "${Avstemmingsnøkkel.generer(avstemming.fom)}",
-                nokkelTom = "${Avstemmingsnøkkel.generer(avstemming.tom)}",
+                nokkelFom = "${Avstemmingsnøkkel.generer(avstemming.fraOgMed)}",
+                nokkelTom = "${Avstemmingsnøkkel.generer(avstemming.tilOgMed)}",
                 avleverendeAvstemmingId = avstemming.id.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(
@@ -25,8 +25,8 @@ class AvstemmingDataBuilder(
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(
-                datoAvstemtFom = avstemming.fom.toAvstemmingsdatoFormat(),
-                datoAvstemtTom = avstemming.tom.toAvstemmingsdatoFormat()
+                datoAvstemtFom = avstemming.fraOgMed.toAvstemmingsdatoFormat(),
+                datoAvstemtTom = avstemming.tilOgMed.toAvstemmingsdatoFormat()
             ),
             grunnlag = GrunnlagBuilder(utbetalinger).build(),
             detalj = DetaljBuilder(utbetalinger).build()
