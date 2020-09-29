@@ -8,6 +8,8 @@ import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
 
+const val TO_PROSENT = 0.02 // https://lovdata.no/dokument/NL/lov/2005-04-29-21 - § 9
+
 data class Beregning(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
@@ -50,6 +52,13 @@ data class Beregning(
         override fun compare(o1: Beregning?, o2: Beregning?): Int {
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
+    }
+
+    fun erUnderMinstebeløp(): Boolean {
+        val minstebeløp = (månedsberegninger.map { Sats.HØY.fraDato(it.fom) / 12 }.sum()) * TO_PROSENT
+        val gjennomsnittPerMåned = månedsberegninger.sumBy { it.beløp }
+
+        return gjennomsnittPerMåned < minstebeløp
     }
 }
 
