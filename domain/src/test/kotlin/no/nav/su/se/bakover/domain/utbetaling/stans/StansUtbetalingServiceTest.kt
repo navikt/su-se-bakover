@@ -59,7 +59,7 @@ internal class StansUtbetalingServiceTest {
                     any(),
                     any()
                 )
-            } doAnswer(
+            } doAnswer (
                 Answer { invocation ->
                     // TODO: Se om vi kan snoke ut utbetalingId og teste den...
                     val actualSimulering: Simulering = invocation!!.getArgument(1)
@@ -223,7 +223,7 @@ internal class StansUtbetalingServiceTest {
                 publish(any())
             } doAnswer (
                 Answer {
-                    KunneIkkeSendeUtbetaling("").left()
+                    KunneIkkeSendeUtbetaling(Oppdragsmelding(FEIL, "")).left()
                 }
                 )
         }

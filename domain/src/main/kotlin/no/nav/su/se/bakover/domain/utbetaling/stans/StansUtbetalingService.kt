@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -70,7 +68,7 @@ class StansUtbetalingService(
         return utbetalingPublisher.publish(nyUtbetaling).fold(
             {
                 log.error("Stansutbetaling feilet ved publisering av utbetaling")
-                utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmeldingstatus.FEIL, it.originalMelding))
+                utbetaling.addOppdragsmelding(it.oppdragsmelding)
                 KunneIkkeStanseUtbetalinger.left()
             },
             {

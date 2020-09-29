@@ -34,6 +34,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -505,7 +507,7 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe IVERKSATT_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                SENDT,
                 "great success",
                 UtbetalingPublisherStub.tidspunkt
             )
@@ -521,12 +523,12 @@ internal class BehandlingTest {
                     override fun publish(
                         nyUtbetaling: NyUtbetaling
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here", tidspunkt).left()
+                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(Oppdragsmelding(FEIL, "some xml here", tidspunkt)).left()
                 }
             )
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                FEIL,
                 "some xml here",
                 tidspunkt
             )
@@ -722,7 +724,7 @@ internal class BehandlingTest {
         override fun publish(
             nyUtbetaling: NyUtbetaling
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+            status = SENDT,
             originalMelding = "great success",
             tidspunkt = tidspunkt
         ).right()

@@ -6,8 +6,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -67,7 +65,7 @@ class UtbetalingService(
         return utbetalingPublisher.publish(nyUtbetaling).fold(
             {
                 log.error("Startutbetaling feilet ved publisering av utbetaling")
-                utbetaling.addOppdragsmelding(Oppdragsmelding(FEIL, it.originalMelding))
+                utbetaling.addOppdragsmelding(it.oppdragsmelding)
                 SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
