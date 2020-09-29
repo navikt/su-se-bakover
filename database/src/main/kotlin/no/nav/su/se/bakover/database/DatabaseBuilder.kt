@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import javax.sql.DataSource
 
 object DatabaseBuilder {
@@ -22,7 +24,8 @@ object DatabaseBuilder {
         val objectRepo = DatabaseRepo(userDatastore)
         return DatabaseRepos(
             objectRepo = objectRepo,
-            avstemmingRepo = AvstemmingPostgresRepo(userDatastore)
+            avstemmingRepo = AvstemmingPostgresRepo(userDatastore),
+            utbetalingRepo = UtbetalingPostgresRepo(userDatastore)
         )
     }
 
@@ -31,12 +34,14 @@ object DatabaseBuilder {
         val objectRepo = DatabaseRepo(embeddedDatasource)
         return DatabaseRepos(
             objectRepo = objectRepo,
-            avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource)
+            avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource),
+            utbetalingRepo = UtbetalingPostgresRepo(embeddedDatasource)
         )
     }
 }
 
 data class DatabaseRepos(
     val objectRepo: ObjectRepo,
-    val avstemmingRepo: AvstemmingRepo
+    val avstemmingRepo: AvstemmingRepo,
+    val utbetalingRepo: UtbetalingRepo
 )

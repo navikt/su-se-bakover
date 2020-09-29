@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
 class ServiceBuilder(
     private val databaseRepos: DatabaseRepos,
@@ -13,10 +15,14 @@ class ServiceBuilder(
         avstemmingService = AvstemmingServiceImpl(
             repo = databaseRepos.avstemmingRepo,
             publisher = clients.avstemmingPublisher
+        ),
+        utbetalingService = UtbetalingServiceImpl(
+            repo = databaseRepos.utbetalingRepo,
         )
     )
 }
 
 data class Services(
-    val avstemmingService: AvstemmingService
+    val avstemmingService: AvstemmingService,
+    val utbetalingService: UtbetalingService
 )

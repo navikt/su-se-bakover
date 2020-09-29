@@ -68,7 +68,7 @@ internal class StansUtbetalingRoutesKtTest {
         }
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
+                databaseRepos = DatabaseRepos(objectRepoMock, mock(), mock()),
                 stansUtbetalingService = stansutbetalingServiceMock,
             )
         }) {
@@ -92,7 +92,7 @@ internal class StansUtbetalingRoutesKtTest {
 
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
+                databaseRepos = DatabaseRepos(objectRepoMock, mock(), mock()),
                 stansUtbetalingService = stansUtbetalingServiceMock
             )
         }) {

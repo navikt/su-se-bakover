@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingslinjer
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
@@ -56,6 +57,7 @@ import java.util.UUID
 internal class DatabaseRepoTest {
 
     private val repo = DatabaseRepo(EmbeddedDatabase.instance())
+    private val utbetalingRepo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
     private val FNR = FnrGenerator.random()
 
     @Test
@@ -302,20 +304,6 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent utbetaling`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
-            val hentetUtbetalinger = repo.hentUtbetaling(utbetaling.id)
-            utbetaling shouldBe hentetUtbetalinger
-            listOf(hentetUtbetalinger!!, utbetaling).forEach {
-                assertPersistenceObserverAssigned(it, utbetalingPersistenceObserver())
-            }
-        }
-    }
-
-    @Test
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = insertSak(FNR)
@@ -337,7 +325,7 @@ internal class DatabaseRepoTest {
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
 
-            val hentet = repo.hentUtbetaling(utbetaling.id)
+            val hentet = utbetalingRepo.hentUtbetaling(utbetaling.id)
             hentet!!.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
 
             val nyeLinjer = listOf(
@@ -358,7 +346,7 @@ internal class DatabaseRepoTest {
                 oppdragId = sak.oppdrag.id,
                 utbetaling = nyUtbetaling
             )
-            val nyHenting = repo.hentUtbetaling(nyUtbetaling.id)
+            val nyHenting = utbetalingRepo.hentUtbetaling(nyUtbetaling.id)
             nyHenting!!.utbetalingslinjer shouldBe nyeLinjer
         }
     }
@@ -375,7 +363,7 @@ internal class DatabaseRepoTest {
 
             assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
 
-            val skulleIkkeSlettes = repo.hentUtbetaling(utbetaling.id)
+            val skulleIkkeSlettes = utbetalingRepo.hentUtbetaling(utbetaling.id)
             skulleIkkeSlettes!!.id shouldBe utbetaling.id
             skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
         }
@@ -428,7 +416,7 @@ internal class DatabaseRepoTest {
                     simulering = it
                 )
             }
-            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getSimulering()!!
+            val hentet = utbetalingRepo.hentUtbetaling(utbetaling.id)!!.getSimulering()!!
             simulering shouldBe hentet
         }
     }
@@ -444,7 +432,7 @@ internal class DatabaseRepoTest {
                 mottattTidspunkt = Tidspunkt.EPOCH
             )
             repo.addKvittering(utbetaling.id, kvittering)
-            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
+            val hentet = utbetalingRepo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
             kvittering shouldBe hentet
         }
     }
@@ -457,7 +445,7 @@ internal class DatabaseRepoTest {
             val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
 
-            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
+            val hentet = utbetalingRepo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
             hentet shouldBe oppdragsmelding
         }
     }

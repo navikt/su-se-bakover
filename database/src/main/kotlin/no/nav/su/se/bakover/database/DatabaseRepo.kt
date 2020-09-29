@@ -88,9 +88,6 @@ internal class DatabaseRepo(
         }
     }
 
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
-        using(sessionOf(dataSource)) { session -> hentUtbetalingInternal(utbetalingId, session)?.apply { addObserver(this@DatabaseRepo) } }
-
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
         """
             insert into utbetaling (id, opprettet, oppdragId, fnr)
@@ -157,7 +154,10 @@ internal class DatabaseRepo(
             id = oppdragId,
             opprettet = tidspunkt("opprettet"),
             sakId = uuid("sakId"),
-            utbetalinger = hentUtbetalinger(oppdragId, session).also { utbetalinger -> utbetalinger.forEach { it.addObserver(this@DatabaseRepo) } }
+            utbetalinger = hentUtbetalinger(
+                oppdragId,
+                session
+            ).also { utbetalinger -> utbetalinger.forEach { it.addObserver(this@DatabaseRepo) } }
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
@@ -249,7 +249,12 @@ internal class DatabaseRepo(
             opprettet = tidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
             beregning = hentBeregningInternal(behandlingId, session),
-            utbetaling = stringOrNull("utbetalingId")?.let { hentUtbetalingInternal(UUID30.fromString(it), session)!!.apply { addObserver(this@DatabaseRepo) } },
+            utbetaling = stringOrNull("utbetalingId")?.let {
+                hentUtbetalingInternal(
+                    UUID30.fromString(it),
+                    session
+                )!!.apply { addObserver(this@DatabaseRepo) }
+            },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },

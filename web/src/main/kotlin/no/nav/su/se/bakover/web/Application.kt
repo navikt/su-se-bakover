@@ -235,7 +235,7 @@ internal fun Application.susebakover(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                repo = databaseRepos.objectRepo
+                utbetalingService = services.utbetalingService
             )
         )
         AvstemmingKvitteringIbmMqConsumer(
