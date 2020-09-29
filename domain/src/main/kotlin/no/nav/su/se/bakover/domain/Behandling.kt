@@ -218,16 +218,16 @@ data class Behandling(
                     fradrag = fradrag,
                     forventetInntekt = forventetInntekt
                 )
-
-                if (beregning.erUnderMinstebeløp()) {
-                    nyTilstand(Vilkårsvurdert().Avslag())
-                    return
-                }
-
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
                     beregning = beregning
                 )
+
+                if (beregning.beløpErNull() || beregning.beløpErOverNullMenUnderMinstebeløp()) {
+                    nyTilstand(Vilkårsvurdert().Avslag())
+                    return
+                }
+
                 nyTilstand(Beregnet())
             }
         }
