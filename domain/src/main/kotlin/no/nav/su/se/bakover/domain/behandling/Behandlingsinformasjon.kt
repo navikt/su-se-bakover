@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class Behandlingsinformasjon(
-    var uførhet: Uførhet? = null,
+    val uførhet: Uførhet? = null,
     val flyktning: Flyktning? = null,
     val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
