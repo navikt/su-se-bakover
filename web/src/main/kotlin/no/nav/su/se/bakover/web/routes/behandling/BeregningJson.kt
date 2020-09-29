@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.DelerAvPeriode
+import no.nav.su.se.bakover.domain.beregning.FraUtlandInntekt
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import java.time.format.DateTimeFormatter
@@ -27,14 +29,27 @@ internal fun Beregning.toJson() = BeregningJson(
     tilOgMed = tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,
     månedsberegninger = månedsberegninger.map { it.toJson() },
-    fradrag = fradrag.map { FradragJson(it.type.toString(), it.beløp, it.beskrivelse) },
+    fradrag = fradrag.map {
+        FradragJson(
+            type = it.type.toString(),
+            beløp = it.beløp,
+            fraUtlandInntekt = it.fraUtlandInntekt,
+            delerAvPeriode = it.delerAvPeriode
+        )
+    },
     forventetInntekt = forventetInntekt
 )
 
 internal data class FradragJson(
     val type: String,
     val beløp: Int,
-    val beskrivelse: String?
+    val fraUtlandInntekt: FraUtlandInntekt?,
+    val delerAvPeriode: DelerAvPeriode?
 ) {
-    fun toFradrag(): Fradrag = Fradrag(type = Fradragstype.valueOf(type), beløp = beløp, beskrivelse = beskrivelse)
+    fun toFradrag(): Fradrag = Fradrag(
+        type = Fradragstype.valueOf(type),
+        beløp = beløp,
+        fraUtlandInntekt = fraUtlandInntekt,
+        delerAvPeriode = delerAvPeriode,
+    )
 }

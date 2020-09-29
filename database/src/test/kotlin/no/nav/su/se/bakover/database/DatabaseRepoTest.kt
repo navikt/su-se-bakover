@@ -231,7 +231,9 @@ internal class DatabaseRepoTest {
                     fradrag = listOf(
                         Fradrag(
                             type = Fradragstype.AndreYtelser,
-                            beløp = 10000
+                            beløp = 10000,
+                            fraUtlandInntekt = null,
+                            delerAvPeriode = null
                         )
                     ),
                     forventetInntekt = 200

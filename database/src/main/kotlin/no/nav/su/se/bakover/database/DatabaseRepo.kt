@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.DelerAvPeriode
+import no.nav.su.se.bakover.domain.beregning.FraUtlandInntekt
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -420,14 +422,15 @@ internal class DatabaseRepo(
     private fun Row.toFradrag() = Fradrag(
         id = uuid("id"),
         beløp = int("beløp"),
-        beskrivelse = stringOrNull("beskrivelse"),
-        type = Fradragstype.valueOf(string("fradragstype"))
+        type = Fradragstype.valueOf(string("fradragstype")),
+        fraUtlandInntekt = objectMapper.readValue(string("fraUtlandInntekt")) as FraUtlandInntekt?,
+        delerAvPeriode = objectMapper.readValue(string("delerAvPeriode")) as DelerAvPeriode?,
     )
 
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
-            insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
-            values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
+            insert into fradrag (id, beregningId, fradragstype, beløp, fraUtlandInntekt, delerAvPeriode)
+            values (:id, :beregningId, :fradragstype, :belop, to_json(:fraUtlandInntekt::json), to_json(:delerAvPeriode::json))
         """
             .oppdatering(
                 mapOf(
@@ -435,7 +438,8 @@ internal class DatabaseRepo(
                     "beregningId" to beregningId,
                     "fradragstype" to fradrag.type.toString(),
                     "belop" to fradrag.beløp,
-                    "beskrivelse" to fradrag.beskrivelse
+                    "fraUtlandInntekt" to objectMapper.writeValueAsString(fradrag.fraUtlandInntekt),
+                    "delerAvPeriode" to objectMapper.writeValueAsString(fradrag.delerAvPeriode)
                 )
             )
     }
