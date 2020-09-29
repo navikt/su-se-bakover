@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -145,7 +143,7 @@ internal class UtbetalingRequestTest {
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",
-                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10).toTidspunkt()
+                        mottattTidspunkt = Tidspunkt.EPOCH.plusSeconds(10)
                     ),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(

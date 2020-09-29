@@ -28,28 +28,27 @@ import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJso
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.util.UUID
 
 internal class StansUtbetalingRoutesKtTest {
 
     val fnr = Fnr("12345678911")
     val sakId = UUID.randomUUID()
-    val tidspunkt = Instant.EPOCH
+    val tidspunkt = Tidspunkt.EPOCH
     val sak = Sak(
         id = sakId,
-        opprettet = Tidspunkt.EPOCH,
+        opprettet = tidspunkt,
         fnr = fnr,
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
+            opprettet = tidspunkt,
             sakId = sakId
         )
     )
     val utbetalingId = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4")
     val nyUtbetaling = Utbetaling(
         id = utbetalingId,
-        opprettet = Tidspunkt.EPOCH,
+        opprettet = tidspunkt,
         simulering = null,
         kvittering = null,
         oppdragsmelding = null,
