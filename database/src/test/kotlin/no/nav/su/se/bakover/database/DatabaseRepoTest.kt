@@ -29,9 +29,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -184,79 +181,6 @@ internal class DatabaseRepoTest {
             oppdatert shouldBe hentet!!.behandlingsinformasjon()
         }
     }
-
-    @Test
-    fun `opprett og slett beregning`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-
-            insertBeregning(behandling.id)
-            repo.deleteBeregninger(behandling.id)
-
-            val hentet = repo.hentBehandling(behandling.id)
-            hentet!!.beregning() shouldBe null
-        }
-    }
-
-    @Test
-    fun `sletter eksisterende beregninger når nye opprettes`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-            val gammelBeregning = repo.opprettBeregning(
-                behandling.id,
-                Beregning(
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
-                    sats = Sats.HØY,
-                    fradrag = listOf(
-                        Fradrag(
-                            type = Fradragstype.AndreYtelser,
-                            beløp = 10000
-                        )
-                    ),
-                    forventetInntekt = 200
-                )
-            )
-
-            selectCount(from = "beregning", where = "behandlingId", id = behandling.id.toString()) shouldBe 1
-            selectCount(from = "beregning", where = "id", id = gammelBeregning.id.toString()) shouldBe 1
-            selectCount(from = "månedsberegning", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 12
-            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 1
-
-            val nyBeregning = Beregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
-                sats = Sats.HØY,
-                fradrag = emptyList(),
-                forventetInntekt = 0
-            )
-            repo.opprettBeregning(behandling.id, nyBeregning)
-
-            selectCount(from = "beregning", where = "behandlingId", id = behandling.id.toString()) shouldBe 1
-
-            selectCount(from = "beregning", where = "id", id = nyBeregning.id.toString()) shouldBe 1
-            selectCount(from = "månedsberegning", where = "beregningId", id = nyBeregning.id.toString()) shouldBe 12
-            selectCount(from = "fradrag", where = "beregningId", id = nyBeregning.id.toString()) shouldBe 0
-
-            selectCount(from = "beregning", where = "id", id = gammelBeregning.id.toString()) shouldBe 0
-            selectCount(from = "månedsberegning", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 0
-            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 0
-        }
-    }
-
-    private fun selectCount(from: String, where: String, id: String) =
-        using(sessionOf(EmbeddedDatabase.instance())) { session ->
-            session.run(
-                queryOf(
-                    "select count(*) from $from where $where='$id'",
-                    emptyMap()
-                ).map { it.int("count") }.asSingle
-            )
-        }
 
     @Test
     fun `opprett og hent oppdrag`() {
@@ -563,15 +487,4 @@ internal class DatabaseRepoTest {
                 beløp = 25000
             )
         )
-
-    private fun insertBeregning(behandlingId: UUID) = repo.opprettBeregning(
-        behandlingId = behandlingId,
-        beregning = Beregning(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
-            sats = Sats.HØY,
-            fradrag = emptyList(),
-            forventetInntekt = 0
-        )
-    )
 }

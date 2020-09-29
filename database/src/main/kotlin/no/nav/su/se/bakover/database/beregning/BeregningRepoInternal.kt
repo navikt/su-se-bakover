@@ -6,11 +6,6 @@ import no.nav.su.se.bakover.database.hentListe
 import java.util.UUID
 
 internal object BeregningRepoInternal {
-    fun hentBeregning(beregningId: UUID, session: Session) =
-        "select * from beregning where id=:id".hent(mapOf("id" to beregningId), session) {
-            it.toBeregning(session)
-        }
-
     fun hentBeregningForBehandling(behandlingId: UUID, session: Session) =
         "select * from beregning where behandlingId=:id".hent(mapOf("id" to behandlingId), session) {
             it.toBeregning(session)
