@@ -16,15 +16,15 @@ internal class AvstemmingPeriodeBuilder(
 
     fun build() = when (sisteAvstemming) {
         null -> AvstemmingsPeriode(
-            fom = 1.januar(2020).startOfDay(),
-            tom = LocalDate.now(clock).minusDays(1).endOfDay()
+            fraOgMed = 1.januar(2020).startOfDay(),
+            tilOgMed = LocalDate.now(clock).minusDays(1).endOfDay()
         )
         else -> {
-            val start = LocalDate.ofInstant(sisteAvstemming.tom.instant.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
+            val start = LocalDate.ofInstant(sisteAvstemming.tilOgMed.instant.plus(1, ChronoUnit.DAYS), ZoneOffset.UTC)
             val end = LocalDate.now(clock).minusDays(1)
             AvstemmingsPeriode(
-                fom = start.startOfDay(),
-                tom = end.endOfDay()
+                fraOgMed = start.startOfDay(),
+                tilOgMed = end.endOfDay()
             )
         }
     }

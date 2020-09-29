@@ -15,8 +15,8 @@ data class Simulering(
 }
 
 data class SimulertPeriode(
-    val fom: LocalDate,
-    val tom: LocalDate,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
     val utbetaling: List<SimulertUtbetaling>
 ) {
     fun bruttoYtelse() = utbetaling
@@ -37,8 +37,8 @@ data class SimulertUtbetaling(
 }
 
 data class SimulertDetaljer(
-    val faktiskFom: LocalDate,
-    val faktiskTom: LocalDate,
+    val faktiskFraOgMed: LocalDate,
+    val faktiskTilOgMed: LocalDate,
     val konto: String,
     val belop: Int,
     val tilbakeforing: Boolean,

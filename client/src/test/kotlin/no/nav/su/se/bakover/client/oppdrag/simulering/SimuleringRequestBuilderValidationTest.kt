@@ -45,8 +45,8 @@ internal class SimuleringRequestBuilderValidationTest {
                 utbetaling = Utbetaling(
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
-                            fom = 1.januar(2020),
-                            tom = 14.januar(2020),
+                            fraOgMed = 1.januar(2020),
+                            tilOgMed = 14.januar(2020),
                             beløp = 10,
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                         )

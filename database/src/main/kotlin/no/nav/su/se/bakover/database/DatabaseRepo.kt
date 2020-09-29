@@ -124,8 +124,8 @@ internal class DatabaseRepo(
             mapOf(
                 "id" to utbetalingslinje.id,
                 "opprettet" to utbetalingslinje.opprettet,
-                "fom" to utbetalingslinje.fom,
-                "tom" to utbetalingslinje.tom,
+                "fom" to utbetalingslinje.fraOgMed,
+                "tom" to utbetalingslinje.tilOgMed,
                 "utbetalingId" to utbetalingId,
                 "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
                 "belop" to utbetalingslinje.beløp,
@@ -277,8 +277,8 @@ internal class DatabaseRepo(
     private fun Row.toBeregning(session: Session) = Beregning(
         id = uuid("id"),
         opprettet = tidspunkt("opprettet"),
-        fom = localDate("fom"),
-        tom = localDate("tom"),
+        fraOgMed = localDate("fom"),
+        tilOgMed = localDate("tom"),
         sats = Sats.valueOf(string("sats")),
         månedsberegninger = hentMånedsberegninger(uuid("id"), session),
         fradrag = hentFradrag(uuid("id"), session),
@@ -291,8 +291,8 @@ internal class DatabaseRepo(
             mapOf(
                 "id" to beregning.id,
                 "opprettet" to beregning.opprettet,
-                "fom" to beregning.fom,
-                "tom" to beregning.tom,
+                "fom" to beregning.fraOgMed,
+                "tom" to beregning.tilOgMed,
                 "behandlingId" to behandlingId,
                 "sats" to beregning.sats.name
             )
@@ -385,8 +385,8 @@ internal class DatabaseRepo(
     private fun Row.toMånedsberegning() = Månedsberegning(
         id = uuid("id"),
         opprettet = tidspunkt("opprettet"),
-        fom = localDate("fom"),
-        tom = localDate("tom"),
+        fraOgMed = localDate("fom"),
+        tilOgMed = localDate("tom"),
         grunnbeløp = int("grunnbeløp"),
         sats = Sats.valueOf(string("sats")),
         beløp = int("beløp"),
@@ -401,8 +401,8 @@ internal class DatabaseRepo(
             mapOf(
                 "id" to månedsberegning.id,
                 "opprettet" to månedsberegning.opprettet,
-                "fom" to månedsberegning.fom,
-                "tom" to månedsberegning.tom,
+                "fom" to månedsberegning.fraOgMed,
+                "tom" to månedsberegning.tilOgMed,
                 "grunnbelop" to månedsberegning.grunnbeløp,
                 "beregningId" to beregningId,
                 "sats" to månedsberegning.sats.name,

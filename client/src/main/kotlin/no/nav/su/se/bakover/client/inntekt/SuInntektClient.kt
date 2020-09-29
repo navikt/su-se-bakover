@@ -26,29 +26,29 @@ internal class SuInntektClient(
     override fun inntekt(
         ident: Fnr,
         innloggetSaksbehandlerToken: String,
-        fomDato: String,
-        tomDato: String
+        fraOgMedDato: String,
+        tilOgMedDato: String
     ): ClientResponse {
         val oppslag = personOppslag.person(ident)
         return oppslag.fold(
             // TODO Hvorfor kan vi ikke returnere either med clientError
             { ClientResponse(httpCodeFor(it), it.message) },
-            { finnInntekt(ident, innloggetSaksbehandlerToken, fomDato, tomDato) }
+            { finnInntekt(ident, innloggetSaksbehandlerToken, fraOgMedDato, tilOgMedDato) }
         )
     }
 
     private fun finnInntekt(
         ident: Fnr,
         innloggetSaksbehandlerToken: String,
-        fomDato: String,
-        tomDato: String
+        fraOgMedDato: String,
+        tilOgMedDato: String
     ): ClientResponse {
         val onBehalfOfToken = exchange.onBehalfOFToken(innloggetSaksbehandlerToken, suInntektClientId)
         val (_, response, result) = inntektResource.httpPost(
             listOf(
                 suInntektIdentLabel to ident.toString(),
-                "fom" to fomDato.yearMonthSubstring(),
-                "tom" to tomDato.yearMonthSubstring()
+                "fom" to fraOgMedDato.yearMonthSubstring(),
+                "tom" to tilOgMedDato.yearMonthSubstring()
             )
         )
             .header("Authorization", "Bearer $onBehalfOfToken")

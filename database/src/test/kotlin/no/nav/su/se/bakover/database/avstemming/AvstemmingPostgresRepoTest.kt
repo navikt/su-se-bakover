@@ -36,16 +36,16 @@ internal class AvstemmingPostgresRepoTest {
 
             repo.opprettAvstemming(
                 Avstemming(
-                    fom = 1.januar(2020).startOfDay(),
-                    tom = 2.januar(2020).startOfDay(),
+                    fraOgMed = 1.januar(2020).startOfDay(),
+                    tilOgMed = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetaling)
                 )
             )
 
             val second = repo.opprettAvstemming(
                 Avstemming(
-                    fom = 3.januar(2020).startOfDay(),
-                    tom = 4.januar(2020).startOfDay(),
+                    fraOgMed = 3.januar(2020).startOfDay(),
+                    tilOgMed = 4.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetaling),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
@@ -84,18 +84,18 @@ internal class AvstemmingPostgresRepoTest {
             )
 
             repo.hentUtbetalingerForAvstemming(
-                fom = 10.oktober(2020).startOfDay(),
-                tom = 10.oktober(2020).endOfDay()
+                fraOgMed = 10.oktober(2020).startOfDay(),
+                tilOgMed = 10.oktober(2020).endOfDay()
             ) shouldBe emptyList()
 
             repo.hentUtbetalingerForAvstemming(
-                fom = 11.oktober(2020).startOfDay(),
-                tom = 11.oktober(2020).endOfDay()
+                fraOgMed = 11.oktober(2020).startOfDay(),
+                tilOgMed = 11.oktober(2020).endOfDay()
             ) shouldHaveSize 1
 
             repo.hentUtbetalingerForAvstemming(
-                fom = 12.oktober(2020).startOfDay(),
-                tom = 12.oktober(2020).endOfDay()
+                fraOgMed = 12.oktober(2020).startOfDay(),
+                tilOgMed = 12.oktober(2020).endOfDay()
             ) shouldBe emptyList()
         }
     }
@@ -161,8 +161,8 @@ internal class AvstemmingPostgresRepoTest {
             val avstemming = Avstemming(
                 id = UUID30.randomUUID(),
                 opprettet = now(),
-                fom = now(),
-                tom = now(),
+                fraOgMed = now(),
+                tilOgMed = now(),
                 utbetalinger = listOf(utbetaling),
                 avstemmingXmlRequest = "some xml"
             )
