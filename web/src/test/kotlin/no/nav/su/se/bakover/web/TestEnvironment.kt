@@ -51,7 +51,7 @@ internal fun Application.testSusebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
     stansUtbetalingService: StansUtbetalingService = mock(),
-    services: Services = Services(avstemmingService = mock(), utbetalingService = mock())
+    services: Services = Services(avstemmingService = mock(), utbetalingService = mock(), oppdragService = mock())
 ) {
     return susebakover(
         databaseRepos = databaseRepos,

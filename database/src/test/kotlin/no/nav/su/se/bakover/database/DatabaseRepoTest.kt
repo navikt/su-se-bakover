@@ -291,18 +291,6 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent oppdrag for sak`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val hentetSak = repo.hentSak(sak.id)
-
-            listOf(hentetSak).forEach {
-                assertPersistenceObserverAssigned(it!!, sakPersistenceObserver())
-            }
-        }
-    }
-
-    @Test
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = insertSak(FNR)
