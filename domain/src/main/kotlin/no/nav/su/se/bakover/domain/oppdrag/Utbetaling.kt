@@ -44,14 +44,6 @@ data class Utbetaling(
     fun erKvittertOk() = getKvittering()?.erKvittertOk() ?: false
     fun erKvittertFeil() = getKvittering()?.erKvittertOk() == false
 
-    fun addKvittering(kvittering: Kvittering) {
-        if (this.kvittering != null) {
-            log.info("Kvittering allerede lagret.")
-        } else {
-            this.kvittering = persistenceObserver.addKvittering(id, kvittering)
-        }
-    }
-
     fun addOppdragsmelding(oppdragsmelding: Oppdragsmelding) {
         this.oppdragsmelding = persistenceObserver.addOppdragsmelding(id, oppdragsmelding)
         when (this.oppdragsmelding!!.erSendt()) {
@@ -71,6 +63,5 @@ data class Utbetaling(
 
 interface UtbetalingPersistenceObserver : PersistenceObserver {
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering)
-    fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding
 }

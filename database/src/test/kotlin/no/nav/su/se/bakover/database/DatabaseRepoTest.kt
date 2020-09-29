@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -307,7 +306,7 @@ internal class DatabaseRepoTest {
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, null)
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
             using(sessionOf(EmbeddedDatabase.instance())) {
@@ -321,7 +320,7 @@ internal class DatabaseRepoTest {
     fun `sletter eksisterende utbetalinger og utbetalingslinjer dersom det lages nye for samme behandling`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, null)
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
 
@@ -355,11 +354,10 @@ internal class DatabaseRepoTest {
     fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
             utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
-            utbetaling.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
 
             assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
 
@@ -373,7 +371,7 @@ internal class DatabaseRepoTest {
     fun `legg til og hent simulering`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, null)
             val simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "gjelderNavn",
@@ -422,26 +420,10 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `legg til og hent kvittering`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere",
-                mottattTidspunkt = Tidspunkt.EPOCH
-            )
-            repo.addKvittering(utbetaling.id, kvittering)
-            val hentet = utbetalingRepo.hentUtbetaling(utbetaling.id)!!.getKvittering()!!
-            kvittering shouldBe hentet
-        }
-    }
-
-    @Test
     fun `legg til og hent oppdragsmelding`() {
         withMigratedDb {
             val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id, null)
             val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
 
@@ -551,20 +533,6 @@ internal class DatabaseRepoTest {
         }
     }
 
-    private fun utbetalingPersistenceObserver() = object : UtbetalingPersistenceObserver {
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
-            throw NotImplementedError()
-        }
-
-        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
-            throw NotImplementedError()
-        }
-
-        override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
-            throw NotImplementedError()
-        }
-    }
-
     private fun <T : PersistenceObserver> assertPersistenceObserverAssigned(
         target: PersistentDomainObject<T>,
         observer: T
@@ -603,9 +571,10 @@ internal class DatabaseRepoTest {
         )
     )
 
-    private fun insertUtbetaling(oppdragId: UUID30): Utbetaling = Utbetaling(
+    private fun insertUtbetaling(oppdragId: UUID30, kvittering: Kvittering?): Utbetaling = Utbetaling(
         utbetalingslinjer = emptyList(),
-        fnr = FNR
+        fnr = FNR,
+        kvittering = kvittering
     ).also {
         repo.opprettUtbetaling(
             oppdragId = oppdragId,

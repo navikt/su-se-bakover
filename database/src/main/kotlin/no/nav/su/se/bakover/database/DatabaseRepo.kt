@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -452,16 +451,6 @@ internal class DatabaseRepo(
                 "simulering" to objectMapper.writeValueAsString(simulering)
             )
         )
-    }
-
-    override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
-        "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
-            mapOf(
-                "id" to utbetalingId,
-                "kvittering" to objectMapper.writeValueAsString(kvittering)
-            )
-        )
-        return kvittering
     }
 
     override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {

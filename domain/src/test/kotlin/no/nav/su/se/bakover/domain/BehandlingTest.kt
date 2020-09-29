@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -340,15 +339,6 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `tillater ikke sletting av oversendte eller kvitterte utbetalinger`() {
-            beregnet.simuler(SimuleringClientStub)
-            beregnet.utbetaling()!!.apply {
-                addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
-            }
-            assertThrows<IllegalStateException> { beregnet.simuler(SimuleringClientStub) }
-        }
-
-        @Test
         fun `skal kunne beregne på nytt`() {
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET
@@ -533,34 +523,6 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `legger til kvittering for utbetaling`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            val utbetaling = tilAttestering.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-        }
-
-        @Test
-        fun `ignorer kvittering for utbetaling hvis den finnes fra før`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            val utbetaling = tilAttestering.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-            utbetaling.addKvittering(kvittering.copy(mottattTidspunkt = kvittering.mottattTidspunkt.plusSeconds(1)))
-            utbetaling.getKvittering() shouldBe kvittering
-        }
-
-        @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
@@ -683,10 +645,6 @@ internal class BehandlingTest {
         }
 
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
-        }
-
-        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
-            return kvittering
         }
 
         override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {

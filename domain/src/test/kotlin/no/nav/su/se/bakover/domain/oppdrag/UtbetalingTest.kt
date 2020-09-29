@@ -48,9 +48,10 @@ internal class UtbetalingTest {
         observer.oppdragsmelding shouldBe oppdragsmelding
     }
 
-    private fun createUtbetaling() = Utbetaling(
+    private fun createUtbetaling(kvittering: Kvittering? = null) = Utbetaling(
         utbetalingslinjer = emptyList(),
-        fnr = fnr
+        fnr = fnr,
+        kvittering = kvittering
     ).also {
         observer = DummyObserver()
         it.addObserver(observer)
@@ -66,18 +67,15 @@ internal class UtbetalingTest {
             it.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, "some xml"))
             it.erOversendtOppdrag() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling().also {
-            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+        createUtbetaling(Kvittering(Kvittering.Utbetalingsstatus.OK, "")).also {
             it.erKvittert() shouldBe true
             it.erKvittertOk() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling().also {
-            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""))
+        createUtbetaling(Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "")).also {
             it.erKvittert() shouldBe true
             it.erKvittertOk() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling().also {
-            it.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""))
+        createUtbetaling(Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")).also {
             it.erKvittert() shouldBe true
             it.erKvittertOk() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
@@ -85,16 +83,10 @@ internal class UtbetalingTest {
 
     private class DummyObserver : UtbetalingPersistenceObserver {
         lateinit var simulering: Simulering
-        lateinit var kvittering: Kvittering
         lateinit var oppdragsmelding: Oppdragsmelding
 
         override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
             this.simulering = simulering
-        }
-
-        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
-            this.kvittering = kvittering
-            return kvittering
         }
 
         override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
