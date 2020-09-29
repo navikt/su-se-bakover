@@ -29,6 +29,8 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
@@ -247,6 +249,61 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
+            vilkårsvurdert.opprettBeregning(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 600000))
+            )
+
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.beregning() shouldBe null
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
+            var vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            vilkårsvurdertInnvilget.uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(vilkårsvurdertInnvilget)
+
+            vilkårsvurdert.opprettBeregning(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+            )
+
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.beregning() shouldBe null
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er under minstebeløp`() {
+            val maxUtbetaling2020 = 250116
+
+            vilkårsvurdert.opprettBeregning(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.99).toInt()))
+            )
+
+            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.beregning() shouldBe null
+        }
+
+        @Test
+        fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
+            val maxUtbetaling2020 = 250116
+
+            vilkårsvurdert.opprettBeregning(
+                fom = 1.januar(2020),
+                tom = 31.desember(2020),
+                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.98).toInt()))
+            )
+
+            vilkårsvurdert.status() shouldBe BEREGNET
+            vilkårsvurdert.beregning() shouldNotBe null
         }
 
         @Test

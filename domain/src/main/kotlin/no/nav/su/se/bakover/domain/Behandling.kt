@@ -211,15 +211,22 @@ data class Behandling(
                         "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
                     )
 
+                val beregning = Beregning(
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
+                    sats = sats,
+                    fradrag = fradrag,
+                    forventetInntekt = forventetInntekt
+                )
+
+                if (beregning.erUnderMinstebeløp()) {
+                    nyTilstand(Vilkårsvurdert().Avslag())
+                    return
+                }
+
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
-                    beregning = Beregning(
-                        fraOgMed = fraOgMed,
-                        tilOgMed = tilOgMed,
-                        sats = sats,
-                        fradrag = fradrag,
-                        forventetInntekt = forventetInntekt
-                    )
+                    beregning = beregning
                 )
                 nyTilstand(Beregnet())
             }
