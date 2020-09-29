@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.Date
 
-const val secureEndpoint = "/authenticated"
+const val secureEndpoint = "/me"
 
 internal class AuthenticationTest {
 
