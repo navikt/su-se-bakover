@@ -55,7 +55,7 @@ data class Beregning(
     }
 
     fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
-        val minstebeløp = (månedsberegninger.map { Sats.HØY.fraDato(it.fom) / 12 }.sum()) * TO_PROSENT
+        val minstebeløp = (månedsberegninger.map { Sats.HØY.fraDato(it.fraOgMed) / 12 }.sum()) * TO_PROSENT
         val gjennomsnittPerMåned = månedsberegninger.sumBy { it.beløp }
 
         return gjennomsnittPerMåned < minstebeløp
