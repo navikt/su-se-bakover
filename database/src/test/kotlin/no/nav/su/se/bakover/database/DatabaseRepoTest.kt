@@ -186,23 +186,6 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent beregning`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-            val beregning = insertBeregning(behandling.id)
-
-            val hentet = repo.hentBeregning(behandling.id)
-
-            beregning shouldBe hentet
-            listOf(hentet, beregning).forEach {
-                assertNoPersistenceObserverAssigned(it!!, voidObserver())
-            }
-        }
-    }
-
-    @Test
     fun `opprett og slett beregning`() {
         withMigratedDb {
             val sak = insertSak(FNR)

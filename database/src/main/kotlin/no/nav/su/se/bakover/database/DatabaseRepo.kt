@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Attestant
@@ -20,9 +21,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
@@ -247,7 +246,7 @@ internal class DatabaseRepo(
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
             søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
-            beregning = hentBeregningInternal(behandlingId, session),
+            beregning = hentBeregningForBehandling(behandlingId, session),
             utbetaling = stringOrNull("utbetalingId")?.let {
                 hentUtbetalingInternal(
                     UUID30.fromString(it),
@@ -269,25 +268,6 @@ internal class DatabaseRepo(
             this.oppdatering(params, it)
         }
     }
-
-    override fun hentBeregning(behandlingId: UUID): Beregning? =
-        using(sessionOf(dataSource)) { hentBeregningInternal(behandlingId, it) }
-
-    private fun hentBeregningInternal(behandlingId: UUID, session: Session) =
-        "select * from beregning where behandlingId = :id".hent(mapOf("id" to behandlingId), session) {
-            it.toBeregning(session)
-        }
-
-    private fun Row.toBeregning(session: Session) = Beregning(
-        id = uuid("id"),
-        opprettet = tidspunkt("opprettet"),
-        fom = localDate("fom"),
-        tom = localDate("tom"),
-        sats = Sats.valueOf(string("sats")),
-        månedsberegninger = hentMånedsberegninger(uuid("id"), session),
-        fradrag = hentFradrag(uuid("id"), session),
-        forventetInntekt = int("forventetInntekt")
-    )
 
     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
         deleteBeregninger(behandlingId)
@@ -382,22 +362,6 @@ internal class DatabaseRepo(
         )
     }
 
-    private fun hentMånedsberegninger(beregningId: UUID, session: Session) =
-        "select * from månedsberegning where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
-            it.toMånedsberegning()
-        }.toMutableList()
-
-    private fun Row.toMånedsberegning() = Månedsberegning(
-        id = uuid("id"),
-        opprettet = tidspunkt("opprettet"),
-        fom = localDate("fom"),
-        tom = localDate("tom"),
-        grunnbeløp = int("grunnbeløp"),
-        sats = Sats.valueOf(string("sats")),
-        beløp = int("beløp"),
-        fradrag = int("fradrag")
-    )
-
     private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
         """
             insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
@@ -416,18 +380,6 @@ internal class DatabaseRepo(
             )
         )
     }
-
-    private fun hentFradrag(beregningId: UUID, session: Session) =
-        "select * from fradrag where beregningId = :id".hentListe(mapOf("id" to beregningId), session) {
-            it.toFradrag()
-        }.toMutableList()
-
-    private fun Row.toFradrag() = Fradrag(
-        id = uuid("id"),
-        beløp = int("beløp"),
-        beskrivelse = stringOrNull("beskrivelse"),
-        type = Fradragstype.valueOf(string("fradragstype"))
-    )
 
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
