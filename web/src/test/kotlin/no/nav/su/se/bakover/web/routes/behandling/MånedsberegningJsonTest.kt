@@ -21,7 +21,9 @@ internal class MånedsberegningJsonTest {
             {
                 "id":"$uuid",
                 "fom":"2020-01-01",
+                "fraOgMed":"2020-01-01",
                 "tom":"2020-12-31",
+                "tilOgMed":"2020-12-31",
                 "sats":"HØY",
                 "grunnbeløp":15000,
                 "beløp":25000
@@ -31,8 +33,8 @@ internal class MånedsberegningJsonTest {
         internal val månedsberegning = Månedsberegning(
             id = uuid,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 0, 0).toTidspunkt(),
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             grunnbeløp = 15000,
             beløp = 25000,

@@ -27,8 +27,8 @@ internal class SimuleringTest {
         nettoBeløp = 20638,
         periodeList = listOf(
             SimulertPeriode(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 utbetaling = listOf(
                     SimulertUtbetaling(
                         fagSystemId = UUID30.randomUUID().toString(),
@@ -38,8 +38,8 @@ internal class SimuleringTest {
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             SimulertDetaljer(
-                                faktiskFom = 1.januar(2020),
-                                faktiskTom = 31.januar(2020),
+                                faktiskFraOgMed = 1.januar(2020),
+                                faktiskTilOgMed = 31.januar(2020),
                                 konto = "4952000",
                                 belop = 20637,
                                 tilbakeforing = false,
@@ -52,8 +52,8 @@ internal class SimuleringTest {
                                 klasseType = KlasseType.YTEL
                             ),
                             SimulertDetaljer(
-                                faktiskFom = 1.januar(2020),
-                                faktiskTom = 31.januar(2020),
+                                faktiskFraOgMed = 1.januar(2020),
+                                faktiskTilOgMed = 31.januar(2020),
                                 konto = "0510000",
                                 belop = -10318,
                                 tilbakeforing = false,
@@ -70,8 +70,8 @@ internal class SimuleringTest {
                 )
             ),
             SimulertPeriode(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 utbetaling = listOf(
                     SimulertUtbetaling(
                         fagSystemId = UUID30.randomUUID().toString(),
@@ -81,8 +81,8 @@ internal class SimuleringTest {
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
                             SimulertDetaljer(
-                                faktiskFom = 1.februar(2020),
-                                faktiskTom = 28.februar(2020),
+                                faktiskFraOgMed = 1.februar(2020),
+                                faktiskTilOgMed = 28.februar(2020),
                                 konto = "4952000",
                                 belop = 20637,
                                 tilbakeforing = false,
@@ -95,8 +95,8 @@ internal class SimuleringTest {
                                 klasseType = KlasseType.YTEL
                             ),
                             SimulertDetaljer(
-                                faktiskFom = 1.februar(2020),
-                                faktiskTom = 28.februar(2020),
+                                faktiskFraOgMed = 1.februar(2020),
+                                faktiskTilOgMed = 28.februar(2020),
                                 konto = "0510000",
                                 belop = -10318,
                                 tilbakeforing = false,

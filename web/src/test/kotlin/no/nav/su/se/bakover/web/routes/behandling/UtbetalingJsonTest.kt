@@ -46,12 +46,16 @@ internal class UtbetalingJsonTest {
             "perioder" : [
                 {
                   "fom" : "2020-01-01",
+                  "fraOgMed" : "2020-01-01",
                   "tom" : "2020-01-31",
+                  "tilOgMed" : "2020-01-31",
                   "bruttoYtelse" : 20637
                 },
                 {
                   "fom" : "2020-02-01",
+                  "fraOgMed" : "2020-02-01",
                   "tom" : "2020-02-28",
+                  "tilOgMed" : "2020-02-28",
                   "bruttoYtelse": 20637
                 }
             ]
@@ -69,8 +73,8 @@ internal class UtbetalingJsonTest {
             nettoBeløp = 123828,
             periodeList = listOf(
                 SimulertPeriode(
-                    fom = 1.januar(2020),
-                    tom = 31.januar(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
                     utbetaling = listOf(
                         SimulertUtbetaling(
                             fagSystemId = UUID30.randomUUID().toString(),
@@ -80,8 +84,8 @@ internal class UtbetalingJsonTest {
                             utbetalesTilNavn = "gjelder",
                             detaljer = listOf(
                                 SimulertDetaljer(
-                                    faktiskFom = 1.januar(2020),
-                                    faktiskTom = 31.januar(2020),
+                                    faktiskFraOgMed = 1.januar(2020),
+                                    faktiskTilOgMed = 31.januar(2020),
                                     konto = "4952000",
                                     belop = 20637,
                                     tilbakeforing = false,
@@ -98,8 +102,8 @@ internal class UtbetalingJsonTest {
                     )
                 ),
                 SimulertPeriode(
-                    fom = 1.februar(2020),
-                    tom = 28.februar(2020),
+                    fraOgMed = 1.februar(2020),
+                    tilOgMed = 28.februar(2020),
                     utbetaling = listOf(
                         SimulertUtbetaling(
                             fagSystemId = UUID30.randomUUID().toString(),
@@ -109,8 +113,8 @@ internal class UtbetalingJsonTest {
                             utbetalesTilNavn = "gjelder",
                             detaljer = listOf(
                                 SimulertDetaljer(
-                                    faktiskFom = 1.februar(2020),
-                                    faktiskTom = 28.februar(2020),
+                                    faktiskFraOgMed = 1.februar(2020),
+                                    faktiskTilOgMed = 28.februar(2020),
                                     konto = "4952000",
                                     belop = 20637,
                                     tilbakeforing = false,

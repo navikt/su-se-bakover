@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 internal fun Row.toAvstemming(session: Session) = Avstemming(
     id = uuid30("id"),
     opprettet = tidspunkt("opprettet"),
-    fom = tidspunkt("fom"),
-    tom = tidspunkt("tom"),
+    fraOgMed = tidspunkt("fom"),
+    tilOgMed = tidspunkt("tom"),
     utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
             hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!

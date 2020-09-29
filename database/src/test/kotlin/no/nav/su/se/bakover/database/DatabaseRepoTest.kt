@@ -225,8 +225,8 @@ internal class DatabaseRepoTest {
             val gammelBeregning = repo.opprettBeregning(
                 behandling.id,
                 Beregning(
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
                     sats = Sats.HØY,
                     fradrag = listOf(
                         Fradrag(
@@ -244,8 +244,8 @@ internal class DatabaseRepoTest {
             selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 1
 
             val nyBeregning = Beregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 forventetInntekt = 0
@@ -342,8 +342,8 @@ internal class DatabaseRepoTest {
 
             val nyeLinjer = listOf(
                 Utbetalingslinje(
-                    fom = 1.mai(2020),
-                    tom = 30.april(2020),
+                    fraOgMed = 1.mai(2020),
+                    tilOgMed = 30.april(2020),
                     beløp = 5000,
                     forrigeUtbetalingslinjeId = null
                 )
@@ -393,8 +393,8 @@ internal class DatabaseRepoTest {
                 nettoBeløp = 1,
                 periodeList = listOf(
                     SimulertPeriode(
-                        fom = LocalDate.now(),
-                        tom = LocalDate.now(),
+                        fraOgMed = LocalDate.now(),
+                        tilOgMed = LocalDate.now(),
                         utbetaling = listOf(
                             SimulertUtbetaling(
                                 fagSystemId = "fagSystemId",
@@ -404,8 +404,8 @@ internal class DatabaseRepoTest {
                                 feilkonto = false,
                                 detaljer = listOf(
                                     SimulertDetaljer(
-                                        faktiskFom = LocalDate.now(),
-                                        faktiskTom = LocalDate.now(),
+                                        faktiskFraOgMed = LocalDate.now(),
+                                        faktiskTilOgMed = LocalDate.now(),
                                         konto = "konto",
                                         belop = 1,
                                         tilbakeforing = true,
@@ -629,8 +629,8 @@ internal class DatabaseRepoTest {
         repo.opprettUtbetalingslinje(
             utbetalingId = utbetalingId,
             utbetalingslinje = Utbetalingslinje(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
                 beløp = 25000
             )
@@ -639,8 +639,8 @@ internal class DatabaseRepoTest {
     private fun insertBeregning(behandlingId: UUID) = repo.opprettBeregning(
         behandlingId = behandlingId,
         beregning = Beregning(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.desember(2020),
             sats = Sats.HØY,
             fradrag = emptyList(),
             forventetInntekt = 0

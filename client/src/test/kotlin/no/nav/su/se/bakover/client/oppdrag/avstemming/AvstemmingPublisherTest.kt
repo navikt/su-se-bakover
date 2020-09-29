@@ -37,8 +37,8 @@ class AvstemmingPublisherTest {
     }
 
     private val avstemming = Avstemming(
-        fom = 1.januar(2020).atStartOfDay().toTidspunkt(),
-        tom = 2.januar(2020).atStartOfDay().toTidspunkt(),
+        fraOgMed = 1.januar(2020).atStartOfDay().toTidspunkt(),
+        tilOgMed = 2.januar(2020).atStartOfDay().toTidspunkt(),
         utbetalinger = listOf(
             Utbetaling(
                 utbetalingslinjer = listOf(),

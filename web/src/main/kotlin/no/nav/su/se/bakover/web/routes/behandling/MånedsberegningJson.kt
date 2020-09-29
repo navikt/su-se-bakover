@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter
 internal data class MånedsberegningJson(
     val id: String,
     val fom: String,
+    val fraOgMed: String,
     val tom: String,
+    val tilOgMed: String,
     val sats: String,
     val grunnbeløp: Int,
     val beløp: Int
@@ -14,8 +16,10 @@ internal data class MånedsberegningJson(
 
 internal fun Månedsberegning.toJson() = MånedsberegningJson(
     id = id.toString(),
-    fom = fom.format(DateTimeFormatter.ISO_DATE),
-    tom = tom.format(DateTimeFormatter.ISO_DATE),
+    fom = fraOgMed.format(DateTimeFormatter.ISO_DATE),
+    fraOgMed = fraOgMed.format(DateTimeFormatter.ISO_DATE),
+    tom = tilOgMed.format(DateTimeFormatter.ISO_DATE),
+    tilOgMed = tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,
     grunnbeløp = grunnbeløp,
     beløp = beløp

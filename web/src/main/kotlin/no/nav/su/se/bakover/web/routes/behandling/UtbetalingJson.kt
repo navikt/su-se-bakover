@@ -41,14 +41,18 @@ data class UtbetalingJson(
 
         data class SimulertPeriodeJson(
             val fom: LocalDate,
+            val fraOgMed: LocalDate,
             val tom: LocalDate,
+            val tilOgMed: LocalDate,
             val bruttoYtelse: Int
         ) {
             companion object {
                 fun List<SimulertPeriode>.toJson() = this.map {
                     SimulertPeriodeJson(
-                        fom = it.fom,
-                        tom = it.tom,
+                        fom = it.fraOgMed,
+                        fraOgMed = it.fraOgMed,
+                        tom = it.tilOgMed,
+                        tilOgMed = it.tilOgMed,
                         bruttoYtelse = it.bruttoYtelse()
                     )
                 }

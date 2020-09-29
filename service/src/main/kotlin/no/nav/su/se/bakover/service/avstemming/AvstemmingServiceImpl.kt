@@ -14,12 +14,12 @@ internal class AvstemmingServiceImpl(
 ) : AvstemmingService {
     override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
         val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming()).build()
-        val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fom, periode.tom)
+        val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
 
         val avstemming = Avstemming(
             opprettet = now(),
-            fom = periode.fom,
-            tom = periode.tom,
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
             utbetalinger = utbetalinger
         )
 
