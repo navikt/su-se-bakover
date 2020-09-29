@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.brev
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
@@ -73,9 +74,8 @@ class BrevService(
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
         val loggtema = "Journalføring og sending av vedtaksbrev"
 
-        val person = hentPersonFraFnr(sak.fnr).fold({ return it.left() }, { it })
-
-        val brevInnhold = lagUtkastTilBrev(behandling, person).fold({ return it.left() }, { it })
+        val person = hentPersonFraFnr(sak.fnr).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
+        val brevInnhold = lagBrevPdf(behandling, person).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
 
         val journalPostId = dokArkiv.opprettJournalpost(
             Journalpost.Vedtakspost(
@@ -108,41 +108,41 @@ class BrevService(
 
     fun lagUtkastTilBrev(
         behandling: Behandling
-    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
+    ): Either<ClientError, ByteArray> {
         val fnr = behandling.fnr
-        val person = hentPersonFraFnr(fnr).fold({ return it.left() }, { it })
-        return lagUtkastTilBrev(behandling, person)
+        val person = hentPersonFraFnr(fnr).fold({ return ClientError(httpStatus = it.httpCode, message = it.message).left() }, { it })
+        return lagBrevPdf(behandling, person)
     }
 
-    private fun lagUtkastTilBrev(
+    private fun lagBrevPdf(
         behandling: Behandling,
         person: Person
-    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
+    ): Either<ClientError, ByteArray> {
         val vedtakinnhold = lagVedtakInnhold(person, behandling)
         val innvilget = listOf(
             Behandling.BehandlingsStatus.SIMULERT,
             Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
         )
-        val template = if (innvilget.contains(vedtakinnhold.status)
-        ) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+        val template = if (innvilget.contains(vedtakinnhold.status)) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+
         return pdfGenerator.genererPdf(vedtakinnhold, template)
             .mapLeft {
-                log.error("Journalføring og sending av vedtaksbrev: Kunne ikke generere brevinnhold")
-                KunneIkkeOppretteJournalpostOgSendeBrev
+                log.error("Kunne ikke generere brevinnhold")
+                it
             }
             .map {
-                log.error("Journalføring og sending av vedtaksbrev: Generert brevinnhold OK")
+                log.info("Generert brevinnhold OK")
                 it
             }
     }
 
     private fun hentPersonFraFnr(fnr: Fnr) = personOppslag.person(fnr)
         .mapLeft {
-            log.error("Journalføring og sending av vedtaksbrev: Fant ikke person i ekstern system basert på sakens fødselsnummer.")
-            KunneIkkeOppretteJournalpostOgSendeBrev
+            log.error("Fant ikke person i eksternt system basert på sakens fødselsnummer.")
+            it
         }.map {
-            log.info("Journalføring og sending av vedtaksbrev: Hentet person fra eksternt system OK")
+            log.info("Hentet person fra eksternt system OK")
             it
         }
 
