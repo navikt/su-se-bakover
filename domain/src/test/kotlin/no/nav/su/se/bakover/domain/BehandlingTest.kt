@@ -260,7 +260,6 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            vilkårsvurdert.beregning() shouldBe null
         }
 
         @Test
@@ -275,7 +274,6 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            vilkårsvurdert.beregning() shouldBe null
         }
 
         @Test
@@ -289,7 +287,6 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            vilkårsvurdert.beregning() shouldBe null
         }
 
         @Test

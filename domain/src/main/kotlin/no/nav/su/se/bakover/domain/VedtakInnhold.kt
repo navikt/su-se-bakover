@@ -24,7 +24,7 @@ data class VedtakInnhold(
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,
     val avslagsgrunn: Avslagsgrunn?,
-    val avslagsgrunnBeskrivelse: AvslagsgrunnBeskrivelseFlagg?,
+    val avslagsgrunnBeskrivelse: AvslagsgrunnBeskrivelse?,
     val halvGrunnbeløp: Int?,
 )
 
@@ -41,9 +41,10 @@ enum class Avslagsgrunn {
     INNLAGT_PÅ_INSTITUSJON
 }
 
-enum class AvslagsgrunnBeskrivelseFlagg {
+enum class AvslagsgrunnBeskrivelse {
     UFØRHET_FLYKTNING,
     FORMUE,
     HØY_INNTEKT,
     UTLAND_OG_OPPHOLD,
+    UNDER_MINSTEGRENSE
 }
