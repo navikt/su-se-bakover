@@ -286,19 +286,20 @@ internal class DatabaseRepo(
         sats = Sats.valueOf(string("sats")),
         månedsberegninger = hentMånedsberegninger(uuid("id"), session),
         fradrag = hentFradrag(uuid("id"), session),
-        forventetInntekt = hentBehandling(uuid("id"))?.behandlingsinformasjon()?.uførhet?.forventetInntekt ?: 0
+        forventetInntekt = int("forventetInntekt")
     )
 
     override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
         deleteBeregninger(behandlingId)
-        "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
+        "insert into beregning (id, opprettet, fom, tom, behandlingId, sats, forventetInntekt) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats, :forventetInntekt)".oppdatering(
             mapOf(
                 "id" to beregning.id,
                 "opprettet" to beregning.opprettet,
                 "fom" to beregning.fom,
                 "tom" to beregning.tom,
                 "behandlingId" to behandlingId,
-                "sats" to beregning.sats.name
+                "sats" to beregning.sats.name,
+                "forventetInntekt" to beregning.forventetInntekt
             )
         )
         beregning.månedsberegninger.forEach { opprettMånedsberegning(beregning.id, it) }
