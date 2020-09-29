@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
  */
 
+@KtorExperimentalAPI
 class SuUserFeature(configuration: Configuration) {
     val clients = configuration.clients
 
@@ -33,7 +34,6 @@ class SuUserFeature(configuration: Configuration) {
         lateinit var clients: Clients
     }
 
-    @KtorExperimentalAPI
     fun interceptPipeline(pipeline: ApplicationCallPipeline) {
         pipeline.insertPhaseAfter(ApplicationCallPipeline.Features, Authentication.ChallengePhase)
         pipeline.insertPhaseAfter(Authentication.ChallengePhase, SuUserContextPhase)
@@ -59,7 +59,6 @@ class SuUserFeature(configuration: Configuration) {
         override val key = AttributeKey<SuUserFeature>("SuUserFeature")
         val SuUserContextPhase = PipelinePhase("Foo")
 
-        @KtorExperimentalAPI
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): SuUserFeature {
             val config = Configuration().apply(configure)
 

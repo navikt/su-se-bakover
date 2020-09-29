@@ -91,8 +91,7 @@ private val jmsContext: JMSContext by lazy {
     }.createContext(Config.serviceUser.username, Config.serviceUser.password)
 }
 
-@KtorExperimentalAPI
-@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
+@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
