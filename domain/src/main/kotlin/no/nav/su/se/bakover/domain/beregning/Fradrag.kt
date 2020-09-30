@@ -4,7 +4,6 @@ import arrow.core.Either
 import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
 import java.util.UUID
 
 enum class Fradragstype {
@@ -43,6 +42,6 @@ data class FraUtlandInntekt(
 )
 
 data class DelerAvPeriode(
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate?
+    val fraOgMed: String,
+    val tilOgMed: String
 )

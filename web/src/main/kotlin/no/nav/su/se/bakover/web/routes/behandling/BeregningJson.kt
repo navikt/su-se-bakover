@@ -34,11 +34,21 @@ internal fun Beregning.toJson() = BeregningJson(
             type = it.type.toString(),
             beløp = it.beløp,
             fraUtlandInntekt = it.fraUtlandInntekt,
-            delerAvPeriode = it.delerAvPeriode
+            delerAvPeriode = delerAvPeriodeToIso(it.delerAvPeriode)
         )
     },
     forventetInntekt = forventetInntekt
 )
+
+internal fun delerAvPeriodeToIso(delerAvPeriode: DelerAvPeriode?): DelerAvPeriode? {
+    if (delerAvPeriode == null) {
+        return null
+    }
+    return DelerAvPeriode(
+        fraOgMed = delerAvPeriode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
+        tilOgMed = delerAvPeriode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
+    )
+}
 
 internal data class FradragJson(
     val type: String,
