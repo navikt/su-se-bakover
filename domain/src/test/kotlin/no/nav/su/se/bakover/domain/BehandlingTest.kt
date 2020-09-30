@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
@@ -259,7 +260,7 @@ internal class BehandlingTest {
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 600000))
             )
 
-            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
         }
 
         @Test
@@ -276,7 +277,7 @@ internal class BehandlingTest {
                 tilOgMed = 31.desember(2020),
             )
 
-            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
         }
 
         @Test
@@ -289,7 +290,7 @@ internal class BehandlingTest {
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.99).toInt()))
             )
 
-            vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
         }
 
         @Test
@@ -428,6 +429,52 @@ internal class BehandlingTest {
                     Attestant("A123456"),
                     UtbetalingPublisherStub
                 )
+            }
+        }
+
+        @Nested
+        inner class BeregningAvslag {
+            @BeforeEach
+            fun beforeEach() {
+                beregnet = createBehandling(id1, OPPRETTET)
+                beregnet.oppdaterBehandlingsinformasjon(
+                    extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
+                )
+                beregnet.opprettBeregning(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 1000000))
+                )
+
+                beregnet.status() shouldBe BEREGNET_AVSLAG
+                observer.oppdatertStatus shouldBe beregnet.status()
+            }
+
+            @Test
+            fun `skal kunne beregne på nytt`() {
+                beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+                beregnet.status() shouldBe BEREGNET
+            }
+
+            @Test
+            fun `skal kunne vilkårsvudere på nytt og skal slette eksisterende beregning`() {
+                beregnet.oppdaterBehandlingsinformasjon(
+                    extractBehandlingsinformasjon(beregnet)
+                )
+                beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
+                beregnet.beregning() shouldBe null
+            }
+
+            @Test
+            fun `illegal operations`() {
+                assertThrows<Behandling.TilstandException> { beregnet.simuler(SimuleringClientStub) }
+                assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
+                assertThrows<Behandling.TilstandException> {
+                    beregnet.iverksett(
+                        Attestant("A123456"),
+                        UtbetalingPublisherStub
+                    )
+                }
             }
         }
     }

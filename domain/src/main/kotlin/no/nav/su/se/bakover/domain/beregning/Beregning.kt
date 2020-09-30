@@ -56,13 +56,13 @@ data class Beregning(
 
     fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
         val minstebeløp = (månedsberegninger.map { Sats.HØY.fraDato(it.fraOgMed) / 12 }.sum()) * TO_PROSENT
-        val gjennomsnittPerMåned = månedsberegninger.sumBy { it.beløp }
+        val beregnetBeløp = månedsberegninger.sumBy { it.beløp }
 
-        return gjennomsnittPerMåned < minstebeløp
+        return beregnetBeløp > 0 && beregnetBeløp < minstebeløp
     }
 
     fun beløpErNull() =
-        månedsberegninger.sumBy { it.beløp } == 0
+        månedsberegninger.sumBy { it.beløp } <= 0
 }
 
 private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {

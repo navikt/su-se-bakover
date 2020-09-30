@@ -83,6 +83,7 @@ data class Behandling(
         BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
         BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Vilkårsvurdert().Avslag()
         BehandlingsStatus.BEREGNET -> Beregnet()
+        BehandlingsStatus.BEREGNET_AVSLAG -> Beregnet().Avslag()
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
@@ -224,7 +225,7 @@ data class Behandling(
                 )
 
                 if (beregning.beløpErNull() || beregning.beløpErOverNullMenUnderMinstebeløp()) {
-                    nyTilstand(Vilkårsvurdert().Avslag())
+                    nyTilstand(Beregnet().Avslag())
                     return
                 }
 
@@ -252,7 +253,7 @@ data class Behandling(
         }
     }
 
-    private inner class Beregnet : Tilstand {
+    private open inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
@@ -287,6 +288,13 @@ data class Behandling(
         private fun slettEksisterendeUtbetaling(oppdrag: Oppdrag, utbetaling: Utbetaling) {
             check(utbetaling.kanSlettes()) { "Utbetalingen har kommet for langt i utbetalingsløpet til å kunne slettes" }
             oppdrag.slettUtbetaling(utbetaling)
+        }
+
+        inner class Avslag : Beregnet() {
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
+            override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+                throw TilstandException(status, this::simuler.toString())
+            }
         }
     }
 
@@ -398,6 +406,7 @@ data class Behandling(
         VILKÅRSVURDERT_INNVILGET,
         VILKÅRSVURDERT_AVSLAG,
         BEREGNET,
+        BEREGNET_AVSLAG,
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
