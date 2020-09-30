@@ -44,7 +44,7 @@ data class Behandling(
     private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,
     val sakId: UUID,
-    private val hendelseslogg: Hendelseslogg? = null,
+    val hendelseslogg: Hendelseslogg? = null,
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)

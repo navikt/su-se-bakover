@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
+import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal.hentHendelseslogg
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Attestant
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
@@ -257,9 +257,10 @@ internal class DatabaseRepo(
             attestant = stringOrNull("attestant")?.let { Attestant(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
             sakId = uuid("sakId"),
-            hendelseslogg = hentHendelseslogg(behandlingId.toString())!!
+            hendelseslogg = hentHendelseslogg(behandlingId.toString(), session)!!
         ).also {
             it.addObserver(this@DatabaseRepo)
+            it.hendelseslogg?.addObserver(this@DatabaseRepo) // Temporarily public to add observer
         }
     }
 
@@ -424,21 +425,5 @@ internal class DatabaseRepo(
             )
         )
         return hendelseslogg
-    }
-
-    internal fun hentHendelseslogg(id: String) = using(sessionOf(dataSource)) { session ->
-        "select * from hendelseslogg where id=:id".hent(
-            mapOf("id" to id),
-            session
-        ) { it.toHendelseslogg() }
-    }
-
-    fun Row.toHendelseslogg(): Hendelseslogg {
-        return Hendelseslogg(
-            id = string(columnLabel = "id"),
-            hendelser = stringOrNull("hendelser")?.let { HendelseListReader.readValue(it) } ?: mutableListOf()
-        ).also {
-            it.addObserver(this@DatabaseRepo)
-        }
     }
 }

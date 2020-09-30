@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database
 
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
@@ -12,7 +11,6 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingslinjer
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Attestant
@@ -29,8 +27,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VoidObserver
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
@@ -339,29 +335,6 @@ internal class DatabaseRepoTest {
             }.also {
                 it.message shouldContain "duplicate key value violates unique constraint"
             }
-        }
-    }
-
-    @Test
-    fun `opprett og hent hendelseslogg`() {
-        withMigratedDb {
-            val tidspunkt = now()
-            val underkjentAttestering = UnderkjentAttestering(
-                attestant = "attestant",
-                begrunnelse = "Dette er feil begrunnelse",
-                tidspunkt = tidspunkt
-            )
-
-            val opprettet = repo.oppdaterHendelseslogg(Hendelseslogg("id"))
-            val hentet = repo.hentHendelseslogg("id")!!
-            hentet shouldBe opprettet
-
-            repo.oppdaterHendelseslogg(Hendelseslogg("id", mutableListOf(underkjentAttestering)))
-            repo.oppdaterHendelseslogg(Hendelseslogg("id", mutableListOf(underkjentAttestering)))
-
-            val medHendelse = repo.hentHendelseslogg("id")!!
-            medHendelse.id shouldBe "id"
-            medHendelse.hendelser() shouldContainAll listOf(underkjentAttestering)
         }
     }
 
