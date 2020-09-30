@@ -3,6 +3,10 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
+import no.nav.su.se.bakover.database.behandling.BehandlingRepo
+import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragPostgresRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -31,7 +35,9 @@ object DatabaseBuilder {
             avstemmingRepo = AvstemmingPostgresRepo(userDatastore),
             utbetalingRepo = UtbetalingPostgresRepo(userDatastore),
             oppdragRepo = OppdragPostgresRepo(userDatastore),
-            søknadRepo = SøknadPostgresRepo(userDatastore)
+            søknadRepo = SøknadPostgresRepo(userDatastore),
+            behandlingRepo = BehandlingPostgresRepo(userDatastore),
+            hendelsesloggRepo = HendelsesloggPostgresRepo(userDatastore)
         )
     }
 
@@ -43,7 +49,9 @@ object DatabaseBuilder {
             avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource),
             utbetalingRepo = UtbetalingPostgresRepo(embeddedDatasource),
             oppdragRepo = OppdragPostgresRepo(embeddedDatasource),
-            søknadRepo = SøknadPostgresRepo(embeddedDatasource)
+            søknadRepo = SøknadPostgresRepo(embeddedDatasource),
+            behandlingRepo = BehandlingPostgresRepo(embeddedDatasource),
+            hendelsesloggRepo = HendelsesloggPostgresRepo(embeddedDatasource)
         )
     }
 }
@@ -53,5 +61,7 @@ data class DatabaseRepos(
     val avstemmingRepo: AvstemmingRepo,
     val utbetalingRepo: UtbetalingRepo,
     val oppdragRepo: OppdragRepo,
-    val søknadRepo: SøknadRepo
+    val søknadRepo: SøknadRepo,
+    val behandlingRepo: BehandlingRepo,
+    val hendelsesloggRepo: HendelsesloggRepo
 )

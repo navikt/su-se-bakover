@@ -22,9 +22,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
-import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -44,8 +41,7 @@ internal class DatabaseRepo(
     SakPersistenceObserver,
     BehandlingPersistenceObserver,
     OppdragPersistenceObserver,
-    UtbetalingPersistenceObserver,
-    HendelsesloggPersistenceObserver {
+    UtbetalingPersistenceObserver {
 
     override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
 
@@ -75,7 +71,6 @@ internal class DatabaseRepo(
                 "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
             )
         )
-        oppdaterHendelseslogg(Hendelseslogg(behandling.id.toString()))
         return hentBehandling(behandling.id)!!
     }
 
@@ -208,7 +203,6 @@ internal class DatabaseRepo(
         using(sessionOf(dataSource)) { session ->
             hentBehandling(behandlingId, session).also {
                 it?.addObserver(this@DatabaseRepo)
-                it?.hendelseslogg?.addObserver(this@DatabaseRepo)
                 it?.utbetaling?.addObserver(this@DatabaseRepo)
             }
         }
@@ -364,15 +358,5 @@ internal class DatabaseRepo(
             )
         )
         return oppdragsmelding
-    }
-
-    override fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg): Hendelseslogg {
-        "insert into hendelseslogg (id, hendelser) values (:id, to_json(:hendelser::json)) on conflict(id) do update set hendelser=to_json(:hendelser::json)".oppdatering(
-            mapOf(
-                "id" to hendelseslogg.id,
-                "hendelser" to HendelseListWriter.writeValueAsString(hendelseslogg.hendelser())
-            )
-        )
-        return hendelseslogg
     }
 }

@@ -226,6 +226,7 @@ internal fun Application.susebakover(
                 personOppslag = clients.personOppslag,
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
+                behandlingService = services.behandlingService
             )
             avstemmingRoutes(services.avstemmingService)
             stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)

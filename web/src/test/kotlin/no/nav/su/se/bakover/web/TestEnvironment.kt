@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import java.util.Base64
 
@@ -51,7 +52,10 @@ internal fun Application.testSusebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
     stansUtbetalingService: StansUtbetalingService = mock(),
-    services: Services = Services(avstemmingService = mock(), utbetalingService = mock(), oppdragService = mock())
+    services: Services = ServiceBuilder( // build actual clients
+        databaseRepos = databaseRepos,
+        clients = clients
+    ).build()
 ) {
     return susebakover(
         databaseRepos = databaseRepos,

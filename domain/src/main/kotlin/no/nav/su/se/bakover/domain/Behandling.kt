@@ -44,7 +44,7 @@ data class Behandling(
     private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,
     val sakId: UUID,
-    val hendelseslogg: Hendelseslogg? = null,
+    val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service
 ) : PersistentDomainObject<BehandlingPersistenceObserver>() {
 
     private var tilstand: Tilstand = resolve(status)
@@ -66,7 +66,7 @@ data class Behandling(
 
     fun utbetaling() = utbetaling
 
-    fun hendelser() = hendelseslogg?.hendelser()
+    fun hendelser() = hendelseslogg.hendelser()
 
     fun getUtledetSatsBeløp(): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
@@ -108,7 +108,11 @@ data class Behandling(
         return tilstand.simuler(simuleringClient)
     }
 
-    fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
+    fun sendTilAttestering(
+        aktørId: AktørId,
+        oppgave: OppgaveClient,
+        saksbehandler: Saksbehandler
+    ): Either<KunneIkkeOppretteOppgave, Behandling> {
         return tilstand.sendTilAttestering(aktørId, oppgave, saksbehandler)
     }
 
@@ -145,7 +149,11 @@ data class Behandling(
             throw TilstandException(status, this::simuler.toString())
         }
 
-        fun sendTilAttestering(aktørId: AktørId, oppgave: OppgaveClient, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling> {
+        fun sendTilAttestering(
+            aktørId: AktørId,
+            oppgave: OppgaveClient,
+            saksbehandler: Saksbehandler
+        ): Either<KunneIkkeOppretteOppgave, Behandling> {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
@@ -371,7 +379,7 @@ data class Behandling(
                 return KunneIkkeUnderkjenne().left()
             }
 
-            hendelseslogg!!.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
+            hendelseslogg.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
             nyTilstand(Simulert())
             return this@Behandling.right()
         }
@@ -406,9 +414,12 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
+            IverksettFeil()
+
         class Utbetaling(val msg: String) : IverksettFeil()
     }
+
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
 }
 

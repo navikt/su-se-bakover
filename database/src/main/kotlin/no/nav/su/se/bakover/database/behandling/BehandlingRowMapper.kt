@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal
+import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal.hentHendelseslogg
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 
 internal fun Row.toBehandling(session: Session): Behandling {
     val behandlingId = uuid("id")
@@ -33,6 +34,6 @@ internal fun Row.toBehandling(session: Session): Behandling {
         attestant = stringOrNull("attestant")?.let { Attestant(it) },
         saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
         sakId = uuid("sakId"),
-        hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)!!
+        hendelseslogg = hentHendelseslogg(behandlingId.toString(), session) ?: Hendelseslogg(behandlingId.toString())
     )
 }

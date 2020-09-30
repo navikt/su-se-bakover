@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.hendelseslogg
 
-import no.nav.su.se.bakover.domain.PersistenceObserver
-import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
 
 /**
@@ -11,14 +9,10 @@ import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
 data class Hendelseslogg(
     val id: String,
     private var hendelser: MutableList<Hendelse> = mutableListOf()
-) : PersistentDomainObject<HendelsesloggPersistenceObserver>() {
+) {
     fun hendelser() = hendelser.toList()
     fun hendelse(hendelse: Hendelse): Hendelseslogg {
         hendelser.add(hendelse)
-        return persistenceObserver.oppdaterHendelseslogg(this)
+        return this
     }
-}
-
-interface HendelsesloggPersistenceObserver : PersistenceObserver {
-    fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg): Hendelseslogg
 }

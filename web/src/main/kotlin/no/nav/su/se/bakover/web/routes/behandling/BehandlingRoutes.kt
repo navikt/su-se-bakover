@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -51,6 +52,7 @@ internal fun Route.behandlingRoutes(
     personOppslag: PersonOppslag,
     oppgaveClient: OppgaveClient,
     utbetalingPublisher: UtbetalingPublisher,
+    behandlingService: BehandlingService,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -212,7 +214,11 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId())).fold(
+                        behandlingService.underkjenn(
+                            begrunnelse = body.begrunnelse,
+                            attestant = Attestant(call.lesBehandlerId()),
+                            behandling = behandling
+                        ).fold(
                             ifLeft = {
                                 call.svar(Forbidden.message(it.msg))
                             },
