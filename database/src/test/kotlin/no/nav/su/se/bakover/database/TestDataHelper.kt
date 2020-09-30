@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Behandling
@@ -23,6 +24,7 @@ internal class TestDataHelper(
     private val repo = DatabaseRepo(dataSource)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
+    private val beregningRepo = BeregningPostgresRepo(dataSource)
 
     fun insertSak(fnr: Fnr) = repo.opprettSak(fnr)
     fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling =
@@ -48,7 +50,7 @@ internal class TestDataHelper(
         )
     )
 
-    fun insertBeregning(behandlingId: UUID) = repo.opprettBeregning(
+    fun insertBeregning(behandlingId: UUID) = beregningRepo.opprettBeregningForBehandling(
         behandlingId = behandlingId,
         beregning = Beregning(
             fom = 1.januar(2020),

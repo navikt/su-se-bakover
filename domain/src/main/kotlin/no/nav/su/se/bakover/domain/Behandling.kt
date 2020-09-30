@@ -217,17 +217,15 @@ data class Behandling(
                         "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
                     )
 
-                this@Behandling.beregning = persistenceObserver.opprettBeregning(
-                    behandlingId = id,
-                    beregning = Beregning(
-                        fom = fom,
-                        tom = tom,
-                        sats = sats,
-                        fradrag = fradrag,
-                        forventetInntekt = forventetInntekt
-                    )
+                beregning = Beregning(
+                    fom = fom,
+                    tom = tom,
+                    sats = sats,
+                    fradrag = fradrag,
+                    forventetInntekt = forventetInntekt
                 )
-                nyTilstand(Beregnet())
+                tilstand = Beregnet()
+                this@Behandling.status = tilstand.status
             }
         }
 
@@ -422,8 +420,6 @@ data class Behandling(
 }
 
 interface BehandlingPersistenceObserver : PersistenceObserver {
-    fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning
-    fun deleteBeregninger(behandlingId: UUID)
     fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus

@@ -220,9 +220,7 @@ internal class BehandlingTest {
                 fom = fom,
                 tom = tom
             )
-            observer.opprettetBeregning.first shouldBe id1
-            observer.opprettetBeregning.second shouldNotBe null
-            val beregning = observer.opprettetBeregning.second
+            val beregning = vilkårsvurdert.beregning()!!
             beregning.fom shouldBe fom
             beregning.tom shouldBe tom
             beregning.sats shouldBe Sats.HØY
@@ -306,7 +304,6 @@ internal class BehandlingTest {
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET
-            observer.oppdatertStatus shouldBe beregnet.status()
         }
 
         @Test
@@ -577,15 +574,6 @@ internal class BehandlingTest {
         lateinit var oppdragsmelding: Oppdragsmelding
         lateinit var oppdatertBehandlingsinformasjon: Behandlingsinformasjon
         lateinit var slettetUtbetaling: Utbetaling
-
-        override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-            opprettetBeregning = behandlingId to beregning
-            return opprettetBeregning.second
-        }
-
-        override fun deleteBeregninger(behandlingId: UUID) {
-            slettetBeregningBehandlingId = behandlingId
-        }
 
         override fun oppdaterBehandlingStatus(
             behandlingId: UUID,

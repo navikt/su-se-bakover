@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Fradrag
+import java.time.LocalDate
 import java.util.UUID
 
 internal class BehandlingServiceImpl(
@@ -41,8 +43,21 @@ internal class BehandlingServiceImpl(
             beforeUpdate.behandlingsinformasjon().patch(behandlingsinformasjon)
         )
         // TODO fix weirdness for internal state
-        val newstatus = updated.oppdaterBehandlingsinformasjon(behandlingsinformasjon).status()
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, newstatus)
+        val status = updated.oppdaterBehandlingsinformasjon(behandlingsinformasjon).status()
+        behandlingRepo.oppdaterBehandlingStatus(behandlingId, status)
+        return objectRepo.hentBehandling(behandlingId)!! // TODO just to add observers for tests and stuff until they are all gone
+    }
+
+    override fun opprettBeregning(
+        behandlingId: UUID,
+        fom: LocalDate,
+        tom: LocalDate,
+        fradrag: List<Fradrag>
+    ): Behandling {
+        beregningRepo.slettBeregningForBehandling(behandlingId)
+        val beregnet = behandlingRepo.hentBehandling(behandlingId)!!.opprettBeregning(fom, tom, fradrag)
+        beregningRepo.opprettBeregningForBehandling(behandlingId, beregnet.beregning()!!)
+        behandlingRepo.oppdaterBehandlingStatus(behandlingId, beregnet.status())
         return objectRepo.hentBehandling(behandlingId)!! // TODO just to add observers for tests and stuff until they are all gone
     }
 }

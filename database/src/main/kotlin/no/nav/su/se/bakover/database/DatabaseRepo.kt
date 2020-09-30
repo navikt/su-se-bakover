@@ -18,9 +18,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -212,28 +209,6 @@ internal class DatabaseRepo(
         }
     }
 
-    override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-        deleteBeregninger(behandlingId)
-        "insert into beregning (id, opprettet, fom, tom, behandlingId, sats, forventetInntekt) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats, :forventetInntekt)".oppdatering(
-            mapOf(
-                "id" to beregning.id,
-                "opprettet" to beregning.opprettet,
-                "fom" to beregning.fom,
-                "tom" to beregning.tom,
-                "behandlingId" to behandlingId,
-                "sats" to beregning.sats.name,
-                "forventetInntekt" to beregning.forventetInntekt
-            )
-        )
-        beregning.månedsberegninger.forEach { opprettMånedsberegning(beregning.id, it) }
-        beregning.fradrag.forEach { opprettFradrag(beregning.id, it) }
-        return beregning
-    }
-
-    override fun deleteBeregninger(behandlingId: UUID) {
-        "delete from beregning where behandlingId=:id".oppdatering(mapOf("id" to behandlingId))
-    }
-
     override fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
@@ -290,41 +265,6 @@ internal class DatabaseRepo(
                 "utbetalingId" to utbetalingId
             )
         )
-    }
-
-    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
-        """
-            insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
-            values (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop, :fradrag)
-        """.oppdatering(
-            mapOf(
-                "id" to månedsberegning.id,
-                "opprettet" to månedsberegning.opprettet,
-                "fom" to månedsberegning.fom,
-                "tom" to månedsberegning.tom,
-                "grunnbelop" to månedsberegning.grunnbeløp,
-                "beregningId" to beregningId,
-                "sats" to månedsberegning.sats.name,
-                "belop" to månedsberegning.beløp,
-                "fradrag" to månedsberegning.fradrag
-            )
-        )
-    }
-
-    private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
-        """
-            insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
-            values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
-        """
-            .oppdatering(
-                mapOf(
-                    "id" to fradrag.id,
-                    "beregningId" to beregningId,
-                    "fradragstype" to fradrag.type.toString(),
-                    "belop" to fradrag.beløp,
-                    "beskrivelse" to fradrag.beskrivelse
-                )
-            )
     }
 
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {

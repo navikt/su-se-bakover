@@ -110,12 +110,13 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.opprettBeregning(
+                        val oppdatert = behandlingService.opprettBeregning(
+                            behandlingId = behandling.id,
                             fom = body.fom,
                             tom = body.tom,
                             fradrag = body.fradrag.map { it.toFradrag() }
                         )
-                        call.svar(Created.jsonBody(behandling))
+                        call.svar(Created.jsonBody(oppdatert))
                     } else {
                         call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
                     }
