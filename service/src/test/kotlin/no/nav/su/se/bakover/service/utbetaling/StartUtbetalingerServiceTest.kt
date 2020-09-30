@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
@@ -55,7 +54,9 @@ internal class StartUtbetalingerServiceTest {
 
             on {
                 addSimulering(
-                    any(),
+                    argThat {
+                        it shouldBe actualUtbetalingsId
+                    },
                     argThat {
                         it shouldBe setup.simulerStartutbetaling
                     }
@@ -66,7 +67,9 @@ internal class StartUtbetalingerServiceTest {
         val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
             on {
                 opprettUtbetaling(
-                    any(),
+                    argThat {
+                        it shouldBe setup.oppdragId
+                    },
                     argThat {
                         it shouldBe setup.forventetUtbetaling(
                             actualUtbetaling = it,
@@ -122,21 +125,13 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(repoMock, simuleringClientMock, publisherMock)
-        val startetUtbet = service.startUtbetalinger(setup.sakId)
+        val startetUtbetaling = service.startUtbetalinger(setup.sakId)
 
-        val expected = Utbetaling(
-            id = sak.oppdrag.hentUtbetalinger().last().id,
-            opprettet = sak.oppdrag.hentUtbetalinger().last().opprettet,
+        startetUtbetaling shouldBe setup.forventetUtbetaling(
+            startetUtbetaling.orNull()!!,
             simulering = setup.simulerStartutbetaling,
-            kvittering = null,
             oppdragsmelding = setup.oppdragsMeldingSendt,
-            utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3),
-            avstemmingId = null,
-            fnr = setup.fnr
-        )
-        startetUtbet shouldBe expected.copy(
-            simulering = setup.simulerStartutbetaling,
-            oppdragsmelding = setup.oppdragsMeldingSendt
+            utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
         ).right()
     }
 
