@@ -9,13 +9,13 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.withSakId
 
 internal fun Route.startutbetalingRoutes(
-    service: UtbetalingService
+    service: StartUtbetalingerService
 ) {
     post("$sakPath/{sakId}/utbetalinger/start") {
         call.withSakId { sakId ->

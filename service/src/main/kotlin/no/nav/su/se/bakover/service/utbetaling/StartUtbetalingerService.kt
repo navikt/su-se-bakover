@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.SisteUtbeta
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class UtbetalingService(
+class StartUtbetalingerService(
     private val repo: ObjectRepo,
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher

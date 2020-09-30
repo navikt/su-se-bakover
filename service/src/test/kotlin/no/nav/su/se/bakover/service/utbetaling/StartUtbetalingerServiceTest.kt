@@ -28,12 +28,13 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
 import org.junit.jupiter.api.Test
 import org.mockito.stubbing.Answer
 import java.time.LocalDate
 import java.util.UUID
 
-internal class UtbetalingServiceTest {
+internal class StartUtbetalingerServiceTest {
 
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
@@ -133,7 +134,7 @@ internal class UtbetalingServiceTest {
             } doReturn sak
         }
 
-        val service = UtbetalingService(repoMock, simuleringClientMock, publisherMock)
+        val service = StartUtbetalingerService(repoMock, simuleringClientMock, publisherMock)
         val startetUtbet = service.startUtbetalinger(setup.sakId)
 
         // startetUtbet shouldBe StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()

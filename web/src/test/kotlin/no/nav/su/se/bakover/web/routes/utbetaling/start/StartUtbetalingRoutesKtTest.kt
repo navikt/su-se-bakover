@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
@@ -32,7 +32,7 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Fant ikke sak returnerer not found`() {
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.FantIkkeSak.left()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
@@ -46,7 +46,7 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Har ingen oversendte utbetalinger returnerer bad request`() {
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
@@ -60,7 +60,7 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Siste utbetaling er ikke en stansbetaling returnerer bad request`() {
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
@@ -74,7 +74,7 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Simulering av start utbetaling returnerer internal server error`() {
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
@@ -88,7 +88,7 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Sending av utbetaling til oppdrag returnerer internal server error`() {
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
@@ -113,7 +113,7 @@ internal class StartUtbetalingRoutesKtTest {
             avstemmingId = null,
             fnr = Fnr("12345678911")
         )
-        val utbetalingServiceMock = mock<UtbetalingService> {
+        val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn utbetaling.right()
         }
         withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
