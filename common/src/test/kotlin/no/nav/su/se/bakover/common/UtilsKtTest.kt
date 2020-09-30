@@ -39,28 +39,28 @@ internal class UtilsKtTest {
     fun `instants between others`() {
         val sept5 = 5.september(2020).startOfDay()
         sept5.between(
-            start = 5.september(2020).startOfDay(),
-            end = 5.september(2020).endOfDay()
+            fraOgMed = 5.september(2020).startOfDay(),
+            tilOgMed = 5.september(2020).endOfDay()
         ) shouldBe true
 
         sept5.between(
-            start = 4.september(2020).startOfDay(),
-            end = 5.september(2020).startOfDay()
+            fraOgMed = 4.september(2020).startOfDay(),
+            tilOgMed = 5.september(2020).startOfDay()
         ) shouldBe true
 
         sept5.between(
-            start = 1.september(2020).startOfDay(),
-            end = 10.september(2020).startOfDay()
+            fraOgMed = 1.september(2020).startOfDay(),
+            tilOgMed = 10.september(2020).startOfDay()
         ) shouldBe true
 
         sept5.between(
-            start = 1.januar(2020).startOfDay(),
-            end = 10.januar(2020).startOfDay()
+            fraOgMed = 1.januar(2020).startOfDay(),
+            tilOgMed = 10.januar(2020).startOfDay()
         ) shouldBe false
 
         sept5.between(
-            start = 1.desember(2020).startOfDay(),
-            end = 10.desember(2020).startOfDay()
+            fraOgMed = 1.desember(2020).startOfDay(),
+            tilOgMed = 10.desember(2020).startOfDay()
         ) shouldBe false
     }
 }

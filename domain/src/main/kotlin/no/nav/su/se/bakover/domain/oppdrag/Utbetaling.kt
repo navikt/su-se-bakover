@@ -39,7 +39,10 @@ data class Utbetaling(
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
-    fun erOversendtOppdrag() = getOppdragsmelding()?.erSendt() ?: false
+    /**
+     * Er oversendt OK til det eksterne oppdragssystemet (utbetalinger o.l.)
+     */
+    fun erOversendt() = getOppdragsmelding()?.erSendt() ?: false
     fun erKvittert() = getKvittering() != null
     fun erKvittertOk() = getKvittering()?.erKvittertOk() ?: false
     fun erKvittertFeil() = getKvittering()?.erKvittertOk() == false

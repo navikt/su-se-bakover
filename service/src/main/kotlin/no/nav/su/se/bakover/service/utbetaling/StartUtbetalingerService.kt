@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.FantIkkeSak
@@ -25,22 +27,45 @@ class StartUtbetalingerService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Utbetaling> {
+
         val sak = repo.hentSak(sakId) ?: return FantIkkeSak.left()
-        val sistSendteUtbetaling =
-            sak.oppdrag.sisteOversendteUtbetaling() ?: return HarIngenOversendteUtbetalinger.left()
-        if (!sistSendteUtbetaling.erStansutbetaling()) return SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        val stansetFraOgMed = sistSendteUtbetaling.sisteUtbetalingslinje()!!.fom
-        // val stansetTilOgMed = sistSendteUtbetaling.sisteUtbetalingslinje()!!.tom
+        val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
+            ?: return HarIngenOversendteUtbetalinger.left()
 
-        val utbetalingslinjer = sak.oppdrag.hentUtbetalinger()
+        if (!sisteOversendteUtbetaling.erStansutbetaling()) return SisteUtbetalingErIkkeEnStansutbetaling.left()
+
+        val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fom
+        val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tom
+        check(stansetFraOgMed <= stansetTilOgMed) {
+            "Feil ved start av utbetalinger. Stopputbetalingens fraOgMed er etter tilOgMed"
+        }
+
+        val stansetEllerDelvisStansetUtbetalingslinjer = sak.oppdrag.oversendteUtbetalinger()
             .filterNot { it.erStansutbetaling() }
             .flatMap {
                 it.utbetalingslinjer
-            }.filter { it.tom >= stansetFraOgMed }
+            }.filter {
+                // Merk: En utbetalingslinje kan være delvis stanset.
+                it.fom.between(stansetFraOgMed, stansetTilOgMed) ||
+                    it.tom.between(stansetFraOgMed, stansetTilOgMed)
+            }
+        check(stansetEllerDelvisStansetUtbetalingslinjer.last().tom == stansetTilOgMed) {
+            "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tom}"
+        }
 
         val utbetaling = Utbetaling(
-            utbetalingslinjer = utbetalingslinjer,
+            utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
+                (
+                    acc + Utbetalingslinje(
+                        fom = maxOf(stansetFraOgMed, utbetalingslinje.fom),
+                        tom = utbetalingslinje.tom,
+                        forrigeUtbetalingslinjeId = acc.lastOrNull()?.id
+                            ?: sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.id,
+                        beløp = utbetalingslinje.beløp
+                    )
+                    )
+            },
             fnr = sak.fnr
         )
 

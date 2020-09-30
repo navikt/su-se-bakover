@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argShouldBe
 import no.nav.su.se.bakover.service.argThat
@@ -81,12 +80,7 @@ internal class StartUtbetalingerServiceTest {
                     },
                     argThat {
                         it shouldBe setup.forventetUtbetaling(
-                            actualUtbetaling = it,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
+                            actualUtbetaling = it
                         )
                         it.addObserver(utbetalingPersistenceObserverMock)
                     }
@@ -100,14 +94,7 @@ internal class StartUtbetalingerServiceTest {
             on {
                 simulerUtbetaling(
                     argThat {
-                        it shouldBe setup.forventetNyUtbetaling(
-                            actualUtbetaling = it.utbetaling,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
-                        )
+                        it shouldBe setup.forventetNyUtbetaling(actualUtbetaling = it.utbetaling)
                         actualUtbetalingsId = it.utbetaling.id
                     }
                 )
@@ -120,22 +107,14 @@ internal class StartUtbetalingerServiceTest {
                     argThat {
                         it shouldBe setup.forventetNyUtbetaling(
                             actualUtbetaling = it.utbetaling,
-                            simulering = setup.simulerStartutbetaling,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
+                            simulering = setup.simulerStartutbetaling
                         )
-                            .copy(
-                                oppdrag = setup.eksisterendeOppdrag.copy(utbetalinger = (setup.eksisterendeOppdrag.hentUtbetalinger() + it.utbetaling).toMutableList())
-                            )
                     }
                 )
             } doReturn setup.oppdragsmeldingSendt.right()
         }
 
-        val sak = setup.sak.copy().also {
+        val sak = setup.eksisterendeSak.copy().also {
             it.oppdrag.addObserver(oppdragPersistenceObserverMock)
             it.oppdrag.hentUtbetalinger().forEach { utbetaling ->
                 utbetaling.addObserver(utbetalingPersistenceObserverMock)
@@ -151,8 +130,7 @@ internal class StartUtbetalingerServiceTest {
         startetUtbetaling shouldBe setup.forventetUtbetaling(
             startetUtbetaling.orNull()!!,
             simulering = setup.simulerStartutbetaling,
-            oppdragsmelding = setup.oppdragsmeldingSendt,
-            utbetalingslinjer = listOf(setup.utbetalingslinje1, setup.utbetalingslinje2, setup.utbetalingslinje3)
+            oppdragsmelding = setup.oppdragsmeldingSendt
         ).right()
 
         inOrder(
@@ -196,9 +174,9 @@ internal class StartUtbetalingerServiceTest {
     fun `Har ingen oversendte utbetalinger`() {
         val setup = Setup()
 
-        val sak = setup.sak.copy(
-            oppdrag = setup.sak.oppdrag.copy(
-                utbetalinger = setup.sak.oppdrag.hentUtbetalinger()
+        val sak = setup.eksisterendeSak.copy(
+            oppdrag = setup.eksisterendeSak.oppdrag.copy(
+                utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger()
                     .map { it.copy(oppdragsmelding = null) }
                     .toMutableList()
             )
@@ -224,9 +202,9 @@ internal class StartUtbetalingerServiceTest {
     fun `Siste utbetaling er ikke en stansutbetaling`() {
         val setup = Setup()
 
-        val sak = setup.sak.copy(
-            oppdrag = setup.sak.oppdrag.copy(
-                utbetalinger = setup.sak.oppdrag.hentUtbetalinger().toMutableList().also {
+        val sak = setup.eksisterendeSak.copy(
+            oppdrag = setup.eksisterendeSak.oppdrag.copy(
+                utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger().toMutableList().also {
                     it.removeLast()
                 }
             )
@@ -263,7 +241,7 @@ internal class StartUtbetalingerServiceTest {
             } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
-        val sak = setup.sak.copy()
+        val sak = setup.eksisterendeSak.copy()
         val repoMock = mock<ObjectRepo> {
             on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak
         }
@@ -321,12 +299,7 @@ internal class StartUtbetalingerServiceTest {
                     },
                     argThat {
                         it shouldBe setup.forventetUtbetaling(
-                            actualUtbetaling = it,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
+                            actualUtbetaling = it
                         )
                         it.addObserver(utbetalingPersistenceObserverMock)
                     }
@@ -341,12 +314,7 @@ internal class StartUtbetalingerServiceTest {
                 simulerUtbetaling(
                     argThat {
                         it shouldBe setup.forventetNyUtbetaling(
-                            actualUtbetaling = it.utbetaling,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
+                            actualUtbetaling = it.utbetaling
                         )
                         actualUtbetalingsId = it.utbetaling.id
                     }
@@ -360,22 +328,14 @@ internal class StartUtbetalingerServiceTest {
                     argThat {
                         it shouldBe setup.forventetNyUtbetaling(
                             actualUtbetaling = it.utbetaling,
-                            simulering = setup.simulerStartutbetaling,
-                            utbetalingslinjer = listOf(
-                                setup.utbetalingslinje1,
-                                setup.utbetalingslinje2,
-                                setup.utbetalingslinje3
-                            )
+                            simulering = setup.simulerStartutbetaling
                         )
-                            .copy(
-                                oppdrag = setup.eksisterendeOppdrag.copy(utbetalinger = (setup.eksisterendeOppdrag.hentUtbetalinger() + it.utbetaling).toMutableList())
-                            )
                     }
                 )
             } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(setup.oppdragsmeldingFeil).left()
         }
 
-        val sak = setup.sak.copy().also {
+        val sak = setup.eksisterendeSak.copy().also {
             it.oppdrag.addObserver(oppdragPersistenceObserverMock)
             it.oppdrag.hentUtbetalinger().forEach { utbetaling ->
                 utbetaling.addObserver(utbetalingPersistenceObserverMock)
@@ -413,108 +373,96 @@ internal class StartUtbetalingerServiceTest {
         val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, ""),
         val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
-        val utbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
+        val eksisterendeUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
             fom = 1.januar(1970),
             tom = 31.januar(1970),
             beløp = 100,
             forrigeUtbetalingslinjeId = null
         ),
-        val utbetalingslinje2: Utbetalingslinje = Utbetalingslinje(
+        val eksisterendeUtbetalingslinje2: Utbetalingslinje = Utbetalingslinje(
             fom = 1.februar(1970),
             tom = 31.mars(1970),
             beløp = 200,
-            forrigeUtbetalingslinjeId = utbetalingslinje1.id
+            forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje1.id
         ),
-        val utbetalingslinje3: Utbetalingslinje = Utbetalingslinje(
+        val eksisterendeUtbetalingslinje3: Utbetalingslinje = Utbetalingslinje(
             fom = 1.april(1970),
             tom = 31.juli(1970),
             beløp = 300,
-            forrigeUtbetalingslinjeId = utbetalingslinje2.id
+            forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje2.id
         ),
-        val utbetaling1: Utbetaling = Utbetaling(
-            utbetalingslinjer = listOf(
-                utbetalingslinje1
-            ),
+        val eksisterendeStansUtbetalingslinje: Utbetalingslinje = Utbetalingslinje(
+            fom = 1.januar(1970),
+            tom = 31.juli(1970),
+            beløp = 0,
+            forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje3.id
+        ),
+        // val expectedUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
+        //     fom = eksisterendeUtbetalingslinje1.fom,
+        //     tom = eksisterendeUtbetalingslinje1.tom,
+        //     beløp = eksisterendeUtbetalingslinje1.beløp,
+        //     forrigeUtbetalingslinjeId = eksisterendeStansUtbetalingslinje.id
+        // ),
+        // val expectedUtbetalingslinje2: Utbetalingslinje = Utbetalingslinje(
+        //     fom = eksisterendeUtbetalingslinje2.fom,
+        //     tom = 31.mars(1970),
+        //     beløp = 200,
+        //     forrigeUtbetalingslinjeId = expectedUtbetalingslinje1.id
+        // ),
+        // val expectedUtbetalingslinje3: Utbetalingslinje = Utbetalingslinje(
+        //     fom = 1.april(1970),
+        //     tom = 31.juli(1970),
+        //     beløp = 300,
+        //     forrigeUtbetalingslinjeId = expectedUtbetalingslinje2.id
+        // ),
+        val eksisterendeUtbetaling1: Utbetaling = Utbetaling(
+            utbetalingslinjer = listOf(eksisterendeUtbetalingslinje1),
             oppdragsmelding = Oppdragsmelding(SENDT, ""),
             fnr = fnr
         ),
-        val utbet2Id: UUID30 = UUID30.randomUUID(),
-        val utbetaling2: Utbetaling = Utbetaling(
-            utbetalingslinjer = listOf(
-                utbetalingslinje2,
-                utbetalingslinje3
-            ),
+        val eksisterendeUtbetaling2: Utbetaling = Utbetaling(
+            utbetalingslinjer = listOf(eksisterendeUtbetalingslinje2, eksisterendeUtbetalingslinje3),
             oppdragsmelding = Oppdragsmelding(SENDT, ""),
             fnr = fnr
         ),
-        val stansutbetaling: Utbetaling = Utbetaling(
-            utbetalingslinjer = listOf(
-                Utbetalingslinje(
-                    fom = 1.januar(1970),
-                    tom = 31.juli(1970),
-                    beløp = 0,
-                    forrigeUtbetalingslinjeId = utbetaling2.sisteUtbetalingslinje()!!.id
-                )
-            ),
+        val eksisterendeStansutbetaling: Utbetaling = Utbetaling(
+            utbetalingslinjer = listOf(eksisterendeStansUtbetalingslinje),
             oppdragsmelding = Oppdragsmelding(SENDT, ""),
             fnr = fnr
         ),
+        // Denne inneholder bare dummy-data inntil "avstemming" av simuleringen er på plass
         val simulerStartutbetaling: Simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "",
             datoBeregnet = LocalDate.EPOCH,
             nettoBeløp = 0,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fom = 1.januar(1970),
-                    tom = 31.januar(1970),
-                    utbetaling = listOf()
-                ),
-                SimulertPeriode(
-                    fom = 1.februar(1970),
-                    tom = 31.mars(1970),
-                    utbetaling = listOf()
-                ),
-                SimulertPeriode(
-                    fom = 1.januar(1970),
-                    tom = 31.januar(1970),
-                    utbetaling = listOf()
-                )
-            )
-        ),
-        val sak: Sak = Sak(
-            id = sakId,
-            opprettet = Tidspunkt.EPOCH,
-            fnr = fnr,
-            søknader = mutableListOf(),
-            oppdrag = Oppdrag(
-                id = oppdragId,
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                utbetalinger = mutableListOf(
-                    utbetaling1,
-                    utbetaling2,
-                    stansutbetaling
-                )
-            )
+            periodeList = emptyList()
         ),
         val eksisterendeOppdrag: Oppdrag = Oppdrag(
             id = oppdragId,
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             utbetalinger = mutableListOf(
-                utbetaling1, utbetaling2, stansutbetaling
+                eksisterendeUtbetaling1,
+                eksisterendeUtbetaling2,
+                eksisterendeStansutbetaling
             )
+        ),
+        val eksisterendeSak: Sak = Sak(
+            id = sakId,
+            opprettet = Tidspunkt.EPOCH,
+            fnr = fnr,
+            søknader = mutableListOf(),
+            oppdrag = eksisterendeOppdrag
         )
     ) {
         fun forventetNyUtbetaling(
             actualUtbetaling: Utbetaling,
             simulering: Simulering? = null,
-            oppdragsmelding: Oppdragsmelding? = null,
-            utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje1, utbetalingslinje2, utbetalingslinje3)
+            oppdragsmelding: Oppdragsmelding? = null
         ) = NyUtbetaling(
             oppdrag = eksisterendeOppdrag,
-            utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding, utbetalingslinjer),
+            utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding),
             attestant = attestant
         )
 
@@ -522,7 +470,25 @@ internal class StartUtbetalingerServiceTest {
             actualUtbetaling: Utbetaling,
             simulering: Simulering? = null,
             oppdragsmelding: Oppdragsmelding? = null,
-            utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje1, utbetalingslinje2, utbetalingslinje3)
+            utbetalingslinjer: List<Utbetalingslinje> = listOf(
+                eksisterendeUtbetalingslinje1.copy(
+                    id = actualUtbetaling.utbetalingslinjer[0].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
+                    forrigeUtbetalingslinjeId = eksisterendeStansUtbetalingslinje.id
+                ),
+                eksisterendeUtbetalingslinje2.copy(
+                    id = actualUtbetaling.utbetalingslinjer[1].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
+                    forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id
+                ),
+                eksisterendeUtbetalingslinje3.copy(
+                    id = actualUtbetaling.utbetalingslinjer[2].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[2].opprettet,
+                    forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[1].id
+                )
+            ).also {
+                check(actualUtbetaling.utbetalingslinjer.size == it.size)
+            }
         ) = Utbetaling(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
