@@ -80,22 +80,6 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `opprett og hent behandling`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-
-            val hentet = repo.hentBehandling(behandling.id)
-
-            behandling shouldBe hentet
-            listOf(behandling, hentet).forEach {
-                assertPersistenceObserverAssigned(it!!, behandlingPersistenceObserver())
-            }
-        }
-    }
-
-    @Test
     fun `oppdater behandlingstatus`() {
         withMigratedDb {
             val sak = insertSak(FNR)

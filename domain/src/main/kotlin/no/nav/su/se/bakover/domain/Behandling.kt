@@ -39,7 +39,7 @@ data class Behandling(
     ),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
-    private var utbetaling: Utbetaling? = null,
+    var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,

@@ -1,17 +1,14 @@
 package no.nav.su.se.bakover.database
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal.hentHendelseslogg
-import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
+import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
+import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandlingerForSak
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknaderInternal
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
@@ -161,11 +158,6 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    private fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
-        .hentListe(mapOf("sakId" to sakId), session) {
-            it.toBehandling(session)
-        }.toMutableList()
-
     override fun hentSak(sakId: UUID): Sak? = using(sessionOf(dataSource)) { hentSakInternal(sakId, it) }
 
     private fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
@@ -213,38 +205,13 @@ internal class DatabaseRepo(
     }
 
     override fun hentBehandling(behandlingId: UUID): Behandling? =
-        using(sessionOf(dataSource)) { hentBehandling(behandlingId, it) }
-
-    private fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
-        "select * from behandling where id=:id"
-            .hent(mapOf("id" to behandlingId), session) { row ->
-                row.toBehandling(session)
+        using(sessionOf(dataSource)) { session ->
+            hentBehandling(behandlingId, session).also {
+                it?.addObserver(this@DatabaseRepo)
+                it?.hendelseslogg?.addObserver(this@DatabaseRepo)
+                it?.utbetaling?.addObserver(this@DatabaseRepo)
             }
-
-    private fun Row.toBehandling(session: Session): Behandling {
-        val behandlingId = uuid("id")
-        return Behandling(
-            id = behandlingId,
-            behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
-            opprettet = tidspunkt("opprettet"),
-            søknad = hentSøknadInternal(uuid("søknadId"), session)!!,
-            beregning = hentBeregningForBehandling(behandlingId, session),
-            utbetaling = stringOrNull("utbetalingId")?.let {
-                hentUtbetalingInternal(
-                    UUID30.fromString(it),
-                    session
-                )!!.apply { addObserver(this@DatabaseRepo) }
-            },
-            status = Behandling.BehandlingsStatus.valueOf(string("status")),
-            attestant = stringOrNull("attestant")?.let { Attestant(it) },
-            saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
-            sakId = uuid("sakId"),
-            hendelseslogg = hentHendelseslogg(behandlingId.toString(), session)!!
-        ).also {
-            it.addObserver(this@DatabaseRepo)
-            it.hendelseslogg?.addObserver(this@DatabaseRepo) // Temporarily public to add observer
         }
-    }
 
     private fun String.oppdatering(params: Map<String, Any?>) {
         using(sessionOf(dataSource)) {
