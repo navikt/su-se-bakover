@@ -70,7 +70,7 @@ data class Behandling(
 
     fun getUtledetSatsBeløp(): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
-            status == BehandlingsStatus.BEREGNET ||
+            status == BehandlingsStatus.BEREGNET_INVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
             return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
@@ -82,7 +82,7 @@ data class Behandling(
         BehandlingsStatus.OPPRETTET -> Opprettet()
         BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
         BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Vilkårsvurdert().Avslag()
-        BehandlingsStatus.BEREGNET -> Beregnet()
+        BehandlingsStatus.BEREGNET_INVILGET -> Beregnet()
         BehandlingsStatus.BEREGNET_AVSLAG -> Beregnet().Avslag()
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
@@ -254,7 +254,7 @@ data class Behandling(
     }
 
     private open inner class Beregnet : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INVILGET
 
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
@@ -420,7 +420,7 @@ data class Behandling(
         OPPRETTET,
         VILKÅRSVURDERT_INNVILGET,
         VILKÅRSVURDERT_AVSLAG,
-        BEREGNET,
+        BEREGNET_INVILGET,
         BEREGNET_AVSLAG,
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
