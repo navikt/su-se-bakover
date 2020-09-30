@@ -466,9 +466,17 @@ internal class BehandlingTest {
             }
 
             @Test
+            fun `skal kunne sende til attestering`() {
+                val saksbehandler = Saksbehandler("S123456")
+                beregnet.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+
+                beregnet.status() shouldBe TIL_ATTESTERING_AVSLAG
+                beregnet.saksbehandler() shouldBe saksbehandler
+            }
+
+            @Test
             fun `illegal operations`() {
                 assertThrows<Behandling.TilstandException> { beregnet.simuler(SimuleringClientStub) }
-                assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
                 assertThrows<Behandling.TilstandException> {
                     beregnet.iverksett(
                         Attestant("A123456"),

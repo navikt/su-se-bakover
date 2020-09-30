@@ -295,6 +295,21 @@ data class Behandling(
             override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
                 throw TilstandException(status, this::simuler.toString())
             }
+
+            override fun sendTilAttestering(
+                aktørId: AktørId,
+                oppgave: OppgaveClient,
+                saksbehandler: Saksbehandler,
+            ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
+                OppgaveConfig.Attestering(
+                    sakId = sakId.toString(),
+                    aktørId = aktørId
+                )
+            ).map {
+                this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
+                nyTilstand(TilAttestering().Avslag())
+                this@Behandling
+            }
         }
     }
 
