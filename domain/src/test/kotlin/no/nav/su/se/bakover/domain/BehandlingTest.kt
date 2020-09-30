@@ -295,13 +295,12 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            // val maxUtbetaling2020 = 250116
-            val _maxUtbetaling2020 = 245114
+            val inntektSomGerMinstebeløp = 245114
 
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, _maxUtbetaling2020))
+                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, inntektSomGerMinstebeløp))
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET
