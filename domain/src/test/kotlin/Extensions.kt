@@ -1,6 +1,5 @@
 import com.nhaarman.mockitokotlin2.argThat
 import io.kotest.matchers.shouldBe
-import org.mockito.Mockito
 import org.mockito.internal.stubbing.answers.DoesNothing.doesNothing
 import org.mockito.stubbing.OngoingStubbing
 

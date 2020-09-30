@@ -66,7 +66,8 @@ internal class StansUtbetalingServiceTest {
                     argThat {
                         it shouldBe setup.forventetUtbetaling(it)
                         it.addObserver(utbetalingPersistenceObserverMock)
-                    })
+                    }
+                )
             }.doNothing()
 
             on { hentFnr(argShouldBe(setup.sakId)) } doReturn setup.fnr
