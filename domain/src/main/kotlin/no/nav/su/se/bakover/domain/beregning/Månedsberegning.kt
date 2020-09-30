@@ -28,7 +28,7 @@ data class Månedsberegning(
     companion object {
         // TODO AI: Se på möjligheterna för att ha fradrag som BigDecimal för att komma undan off-by-one fel.
         fun kalkulerBeløp(sats: Sats, fraOgMed: LocalDate, fradrag: Int) =
-            BigDecimal(sats.fraDato(fraOgMed)).divide(BigDecimal(12), 0, RoundingMode.HALF_UP) // 20637,32 --> 20637
+            BigDecimal(sats.fraDato(fraOgMed)).divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
                 .minus(BigDecimal(fradrag)) // Her runder vi av begge sider av regnestykket, kan potentiellt leda till fel.
                 .max(BigDecimal.ZERO)
                 .toInt()
