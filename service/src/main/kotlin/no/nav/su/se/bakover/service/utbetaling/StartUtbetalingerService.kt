@@ -41,8 +41,13 @@ class StartUtbetalingerService(
             "Feil ved start av utbetalinger. Stopputbetalingens fraOgMed er etter tilOgMed"
         }
 
+        // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
+        val startIndeks = sak.oppdrag.oversendteUtbetalinger().dropLast(1).indexOfLast {
+            it.erStansutbetaling()
+        }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
+
         val stansetEllerDelvisStansetUtbetalingslinjer = sak.oppdrag.oversendteUtbetalinger()
-            .filterNot { it.erStansutbetaling() }
+            .subList(startIndeks, sak.oppdrag.oversendteUtbetalinger().size - 1) // Ekskluderer den siste stopp-utbetalingen
             .flatMap {
                 it.utbetalingslinjer
             }.filter {
