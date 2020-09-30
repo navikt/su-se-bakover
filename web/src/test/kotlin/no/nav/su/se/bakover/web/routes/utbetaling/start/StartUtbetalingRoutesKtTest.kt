@@ -101,7 +101,7 @@ internal class StartUtbetalingRoutesKtTest {
     }
 
     @Test
-    fun `Stanser utbetalinger OK`() {
+    fun `Starter utbetalinger OK`() {
         val sakId = UUID.randomUUID()
         val utbetaling = Utbetaling(
             id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),

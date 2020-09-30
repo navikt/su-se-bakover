@@ -53,10 +53,6 @@ class StartUtbetalingerService(
         simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
             { return SimuleringAvStartutbetalingFeilet.left() },
             { simulering ->
-                if (simulering.periodeList.size != utbetalingslinjer.size) {
-                    log.error("Simulering av startutbetaling har ${simulering.periodeList.size} linjer, mens vi sendte ${utbetalingslinjer.size}")
-                    return SimuleringAvStartutbetalingFeilet.left()
-                }
                 sak.oppdrag.leggTilUtbetaling(utbetaling)
                 utbetaling.addSimulering(simulering)
             }
