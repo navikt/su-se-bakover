@@ -187,27 +187,6 @@ internal class BeregningTest {
     }
 
     @Test
-    fun `beregnet beløp er akkurat på minstebeløp`() {
-        // 98% av full supplerende stønad (Høy sats) for
-        // 2019 - Jan, Feb, Mars, Apr
-        // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
-        val høyInntekt = 245114
-
-        val b = Beregning(
-            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
-            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
-            sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
-            fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
-            ),
-            forventetInntekt = 0
-        )
-
-        b.beløpErOverNullMenUnderMinstebeløp() shouldBe false
-    }
-
-    @Test
     fun `beregnet beløp er rett under minstebeløp`() {
         // 98% av full supplerende stønad (Høy sats) for
         // 2019 - Jan, Feb, Mars, Apr
@@ -229,7 +208,7 @@ internal class BeregningTest {
     }
 
     @Test
-    fun `minstebeløp er to prosent av høy sats`() {
+    fun `beregnet beløp er akkurat på minstebeløp`() {
         // 98% av full supplerende stønad (Høy sats) for
         // 2019 - Jan, Feb, Mars, Apr
         // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
