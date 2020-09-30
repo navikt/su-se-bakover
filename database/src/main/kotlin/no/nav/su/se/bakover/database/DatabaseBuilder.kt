@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragPostgresRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
+import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
+import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import javax.sql.DataSource
@@ -28,7 +30,8 @@ object DatabaseBuilder {
             objectRepo = objectRepo,
             avstemmingRepo = AvstemmingPostgresRepo(userDatastore),
             utbetalingRepo = UtbetalingPostgresRepo(userDatastore),
-            oppdragRepo = OppdragPostgresRepo(userDatastore)
+            oppdragRepo = OppdragPostgresRepo(userDatastore),
+            søknadRepo = SøknadPostgresRepo(userDatastore)
         )
     }
 
@@ -39,7 +42,8 @@ object DatabaseBuilder {
             objectRepo = objectRepo,
             avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource),
             utbetalingRepo = UtbetalingPostgresRepo(embeddedDatasource),
-            oppdragRepo = OppdragPostgresRepo(embeddedDatasource)
+            oppdragRepo = OppdragPostgresRepo(embeddedDatasource),
+            søknadRepo = SøknadPostgresRepo(embeddedDatasource)
         )
     }
 }
@@ -48,5 +52,6 @@ data class DatabaseRepos(
     val objectRepo: ObjectRepo,
     val avstemmingRepo: AvstemmingRepo,
     val utbetalingRepo: UtbetalingRepo,
-    val oppdragRepo: OppdragRepo
+    val oppdragRepo: OppdragRepo,
+    val søknadRepo: SøknadRepo
 )

@@ -58,7 +58,6 @@ internal class DatabaseRepoTest {
             assertNull(repo.hentSak(FnrGenerator.random()))
             assertNull(repo.hentSak(UUID.randomUUID()))
             assertNull(repo.hentBehandling(UUID.randomUUID()))
-            assertNull(repo.hentSøknad(UUID.randomUUID()))
         }
     }
 
@@ -76,20 +75,6 @@ internal class DatabaseRepoTest {
 
             listOf(opprettet, hentetId, hentetFnr).forEach {
                 assertPersistenceObserverAssigned(it!!, sakPersistenceObserver())
-            }
-        }
-    }
-
-    @Test
-    fun `opprett og hent søknad`() {
-        withMigratedDb {
-            using(sessionOf(EmbeddedDatabase.instance())) {
-                val sak = insertSak(FNR)
-                val søknad = insertSøknad(sak.id)
-                val hentetId = repo.hentSøknad(søknad.id)
-
-                søknad shouldBe hentetId
-                assertNoPersistenceObserverAssigned(søknad, voidObserver())
             }
         }
     }

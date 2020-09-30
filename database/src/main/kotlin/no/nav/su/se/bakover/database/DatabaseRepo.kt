@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal.hentHendelseslogg
+import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
+import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknaderInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Attestant
@@ -159,11 +161,6 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    private fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
-        .hentListe(mapOf("sakId" to sakId), session) {
-            it.toSøknad()
-        }.toMutableList()
-
     private fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toBehandling(session)
@@ -213,21 +210,6 @@ internal class DatabaseRepo(
         sak.oppdrag.addObserver(this)
         sak.addObserver(this)
         return sak
-    }
-
-    override fun hentSøknad(søknadId: UUID): Søknad? = using(sessionOf(dataSource)) { hentSøknadInternal(søknadId, it) }
-
-    private fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
-        .hent(mapOf("id" to søknadId), session) {
-            it.toSøknad()
-        }
-
-    private fun Row.toSøknad(): Søknad {
-        return Søknad(
-            id = uuid("id"),
-            søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-            opprettet = tidspunkt("opprettet")
-        )
     }
 
     override fun hentBehandling(behandlingId: UUID): Behandling? =

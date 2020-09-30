@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakEventObserver
@@ -20,7 +21,8 @@ internal class SøknadRouteMediator(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
     private val oppgaveClient: OppgaveClient,
-    private val personOppslag: PersonOppslag
+    private val personOppslag: PersonOppslag,
+    private val søknadRepo: SøknadRepo
 ) : SakEventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -74,5 +76,5 @@ internal class SøknadRouteMediator(
         )
     }
 
-    fun hentSøknad(id: UUID) = repo.hentSøknad(id)
+    fun hentSøknad(id: UUID) = søknadRepo.hentSøknad(id)
 }

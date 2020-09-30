@@ -119,7 +119,8 @@ internal fun Application.susebakover(
         pdfGenerator = clients.pdfGenerator,
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
-        personOppslag = clients.personOppslag
+        personOppslag = clients.personOppslag,
+        søknadRepo = databaseRepos.søknadRepo
     )
 
     install(CORS) {
