@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.domain.utbetaling.stans
 
 import argShouldBe
+import argThat
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
@@ -59,8 +61,13 @@ internal class StansUtbetalingServiceTest {
         val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
 
             on {
-                opprettUtbetaling(argShouldBe(setup.oppdragId), argShouldBe { setup.forventetUtbetaling(this) })
-            } doAnswer { _: UUID30, arg2: Utbetaling -> arg2.addObserver(utbetalingPersistenceObserverMock) } // Ideelt skulle vi gjort doNothing(), men vi må legge på en observer
+                opprettUtbetaling(
+                    argShouldBe(setup.oppdragId),
+                    argThat {
+                        it shouldBe setup.forventetUtbetaling(it)
+                        it.addObserver(utbetalingPersistenceObserverMock)
+                    })
+            }.doNothing()
 
             on { hentFnr(argShouldBe(setup.sakId)) } doReturn setup.fnr
         }
@@ -102,15 +109,26 @@ internal class StansUtbetalingServiceTest {
             setup.oppdragsmeldingSendt
         ).right()
 
-        // We can't do assertions at this point, because the sak/oppdrag/utbetaling-objects are mutated to its latest state at this point.
-        verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
-        verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
-        verify(publisherMock, Times(1)).publish(any())
-
-        verifyNoMoreInteractions(utbetalingPersistenceObserverMock, oppdragPersistenceObserverMock, simuleringClientMock, publisherMock)
+        // We can't do object-assertions at this point, because the sak/oppdrag/utbetaling-objects are mutated to its latest state at this point.
+        inOrder(
+            oppdragPersistenceObserverMock,
+            simuleringClientMock,
+            utbetalingPersistenceObserverMock,
+            publisherMock
+        ) {
+            verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
+            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(any(), any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
+            verify(publisherMock, Times(1)).publish(any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
+        }
+        verifyNoMoreInteractions(
+            utbetalingPersistenceObserverMock,
+            oppdragPersistenceObserverMock,
+            simuleringClientMock,
+            publisherMock
+        )
     }
 
     @Test
@@ -201,14 +219,25 @@ internal class StansUtbetalingServiceTest {
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
-        verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
-        verify(publisherMock, Times(1)).publish(any())
-
-        verifyNoMoreInteractions(utbetalingPersistenceObserverMock, oppdragPersistenceObserverMock, simuleringClientMock, publisherMock)
+        inOrder(
+            oppdragPersistenceObserverMock,
+            simuleringClientMock,
+            utbetalingPersistenceObserverMock,
+            publisherMock
+        ) {
+            verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
+            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(any(), any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
+            verify(publisherMock, Times(1)).publish(any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
+        }
+        verifyNoMoreInteractions(
+            utbetalingPersistenceObserverMock,
+            oppdragPersistenceObserverMock,
+            simuleringClientMock,
+            publisherMock
+        )
     }
 
     private data class Setup(

@@ -1,5 +1,6 @@
 import com.nhaarman.mockitokotlin2.argThat
 import io.kotest.matchers.shouldBe
+import org.mockito.Mockito
 import org.mockito.internal.stubbing.answers.DoesNothing.doesNothing
 import org.mockito.stubbing.OngoingStubbing
 
@@ -13,6 +14,12 @@ inline fun <reified T : Any> argShouldBe(expected: T): T {
     }
 }
 
+inline fun <reified T : Any> argThat(noinline predicate: (T) -> Unit): T {
+    return argThat {
+        predicate(this)
+        true
+    }
+}
 /**
  * Using T.() instead of T (this instead of it), to be able to overload.
  */
