@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import doAnswer
 import doNothing
@@ -137,11 +136,13 @@ internal class StansUtbetalingServiceTest {
         val setup = Setup()
 
         val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
-            on { hentFnr(setup.sakId) } doReturn setup.fnr
+            on { hentFnr(argShouldBe(setup.sakId)) } doReturn setup.fnr
         }
 
         val simuleringClientMock = mock<SimuleringClient> {
-            on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on {
+                simulerUtbetaling(argShouldBe { setup.forventetNyUtbetaling(this.utbetaling) })
+            } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         val service = StansUtbetalingService(
@@ -156,8 +157,10 @@ internal class StansUtbetalingServiceTest {
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        inOrder(oppdragPersistenceObserverMock, simuleringClientMock) {
+            verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
+            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        }
 
         verifyNoMoreInteractions(oppdragPersistenceObserverMock, simuleringClientMock)
     }

@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.service.utbetaling
 
+import arrow.core.left
 import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -24,12 +28,14 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argShouldBe
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
 import org.junit.jupiter.api.Test
+import org.mockito.internal.verification.Times
 import java.time.LocalDate
 import java.util.UUID
 
@@ -133,6 +139,56 @@ internal class StartUtbetalingerServiceTest {
             oppdragsmelding = setup.oppdragsMeldingSendt,
             utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
         ).right()
+
+        inOrder(
+            repoMock,
+            publisherMock,
+            oppdragPersistenceObserverMock,
+            simuleringClientMock,
+            utbetalingPersistenceObserverMock
+        ) {
+            verify(repoMock, Times(1)).hentSak(any<UUID>())
+            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(any(), any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
+            verify(publisherMock, Times(1)).publish(any())
+            verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
+        }
+    }
+
+    @Test
+    fun `Simulering feilet`() {
+        val setup = Setup()
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on {
+                simulerUtbetaling(
+                    argThat {
+                        it shouldBe setup.forventetNyUtbetaling(it.utbetaling)
+                    }
+                )
+            } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+        }
+
+        val sak = setup.sak.copy()
+        val repoMock = mock<ObjectRepo> {
+            on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak
+        }
+
+        val service = StartUtbetalingerService(
+            repo = repoMock,
+            simuleringClient = simuleringClientMock,
+            utbetalingPublisher = mock()
+        )
+        val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
+
+        actualResponse shouldBe StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left()
+
+        inOrder(repoMock, simuleringClientMock) {
+            verify(repoMock, Times(1)).hentSak(any<UUID>())
+            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        }
+        verifyNoMoreInteractions(repoMock, simuleringClientMock)
     }
 
     data class Setup(
@@ -211,6 +267,8 @@ internal class StartUtbetalingerServiceTest {
             )
         ),
         val sak: Sak = Sak(
+            id = sakId,
+            opprettet = Tidspunkt.EPOCH,
             fnr = fnr,
             søknader = mutableListOf(),
             oppdrag = Oppdrag(
@@ -237,7 +295,7 @@ internal class StartUtbetalingerServiceTest {
             actualUtbetaling: Utbetaling,
             simulering: Simulering? = null,
             oppdragsmelding: Oppdragsmelding? = null,
-            utbetalingslinjer: List<Utbetalingslinje> = emptyList()
+            utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetLinje1, utbetLinje2, utbetLinje3)
         ) = NyUtbetaling(
             oppdrag = eksisterendeOppdrag,
             utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding, utbetalingslinjer),
@@ -248,7 +306,7 @@ internal class StartUtbetalingerServiceTest {
             actualUtbetaling: Utbetaling,
             simulering: Simulering? = null,
             oppdragsmelding: Oppdragsmelding? = null,
-            utbetalingslinjer: List<Utbetalingslinje> = emptyList()
+            utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetLinje1, utbetLinje2, utbetLinje3)
         ) = Utbetaling(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
