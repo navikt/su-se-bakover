@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -246,19 +245,6 @@ internal class DatabaseRepo(
             )
         )
         return status
-    }
-
-    override fun oppdaterBehandlingsinformasjon(
-        behandlingId: UUID,
-        behandlingsinformasjon: Behandlingsinformasjon
-    ): Behandlingsinformasjon {
-        "update behandling set behandlingsinformasjon = to_json(:behandlingsinformasjon::json) where id = :id".oppdatering(
-            mapOf(
-                "id" to behandlingId,
-                "behandlingsinformasjon" to objectMapper.writeValueAsString(behandlingsinformasjon)
-            )
-        )
-        return behandlingsinformasjon
     }
 
     override fun hentOppdrag(sakId: UUID): Oppdrag {

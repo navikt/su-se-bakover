@@ -28,7 +28,9 @@ class ServiceBuilder(
         ),
         behandlingService = BehandlingServiceImpl(
             behandlingRepo = databaseRepos.behandlingRepo,
-            hendelsesloggRepo = databaseRepos.hendelsesloggRepo
+            hendelsesloggRepo = databaseRepos.hendelsesloggRepo,
+            beregningRepo = databaseRepos.beregningRepo,
+            objectRepo = databaseRepos.objectRepo
         )
     )
 }

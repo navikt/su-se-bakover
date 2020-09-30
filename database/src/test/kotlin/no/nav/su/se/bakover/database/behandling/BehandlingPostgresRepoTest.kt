@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.database.behandling
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import org.junit.jupiter.api.Test
 
 internal class BehandlingPostgresRepoTest {
@@ -23,6 +25,31 @@ internal class BehandlingPostgresRepoTest {
             val hentet = repo.hentBehandling(behandling.id)
 
             behandling shouldBe hentet
+        }
+    }
+
+    @Test
+    fun `oppdater behandlingsinformasjon`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = testDataHelper.insertSøknad(sak.id)
+            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+
+            val oppdatert = repo.oppdaterBehandlingsinformasjon(
+                behandling.id,
+                Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        uføregrad = 40,
+                        forventetInntekt = 200
+                    )
+                )
+            )
+
+            val hentet = repo.hentBehandling(behandling.id)!!
+
+            oppdatert.behandlingsinformasjon() shouldBe hentet.behandlingsinformasjon()
+            behandling.behandlingsinformasjon() shouldNotBe hentet.behandlingsinformasjon()
         }
     }
 }

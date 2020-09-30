@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
 import kotliquery.using
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbet
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
@@ -24,11 +22,7 @@ import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.VoidObserver
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -120,30 +114,6 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler
-        }
-    }
-
-    @Test
-    fun `oppdater behandlingsinformasjon`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-
-            val oppdatert = repo.oppdaterBehandlingsinformasjon(
-                behandling.id,
-                Behandlingsinformasjon(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                        uføregrad = 40,
-                        forventetInntekt = 200
-                    )
-                )
-            )
-
-            val hentet = repo.hentBehandling(behandling.id)
-
-            oppdatert shouldBe hentet!!.behandlingsinformasjon()
         }
     }
 
@@ -310,54 +280,6 @@ internal class DatabaseRepoTest {
     private fun sakPersistenceObserver() = object : SakPersistenceObserver {
         override fun nySøknad(sakId: UUID, søknad: Søknad) = throw NotImplementedError()
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = throw NotImplementedError()
-    }
-
-    private fun voidObserver() = object : VoidObserver {}
-
-    private fun behandlingPersistenceObserver() = object : BehandlingPersistenceObserver {
-        override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-            throw NotImplementedError()
-        }
-
-        override fun deleteBeregninger(behandlingId: UUID) {
-            throw NotImplementedError()
-        }
-
-        override fun oppdaterBehandlingStatus(
-            behandlingId: UUID,
-            status: Behandling.BehandlingsStatus
-        ): Behandling.BehandlingsStatus {
-            throw NotImplementedError()
-        }
-
-        override fun oppdaterBehandlingsinformasjon(
-            behandlingId: UUID,
-            behandlingsinformasjon: Behandlingsinformasjon
-        ): Behandlingsinformasjon {
-            throw NotImplementedError()
-        }
-
-        override fun hentOppdrag(sakId: UUID): Oppdrag {
-            return Oppdrag(
-                id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId
-            )
-        }
-
-        override fun hentFnr(sakId: UUID): Fnr {
-            return Fnr("sakId")
-        }
-
-        override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-            return attestant
-        }
-
-        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
-            return saksbehandler
-        }
-
-        override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {}
     }
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {

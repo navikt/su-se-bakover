@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
+import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepo
+import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragPostgresRepo
@@ -37,7 +39,8 @@ object DatabaseBuilder {
             oppdragRepo = OppdragPostgresRepo(userDatastore),
             søknadRepo = SøknadPostgresRepo(userDatastore),
             behandlingRepo = BehandlingPostgresRepo(userDatastore),
-            hendelsesloggRepo = HendelsesloggPostgresRepo(userDatastore)
+            hendelsesloggRepo = HendelsesloggPostgresRepo(userDatastore),
+            beregningRepo = BeregningPostgresRepo(userDatastore)
         )
     }
 
@@ -51,7 +54,8 @@ object DatabaseBuilder {
             oppdragRepo = OppdragPostgresRepo(embeddedDatasource),
             søknadRepo = SøknadPostgresRepo(embeddedDatasource),
             behandlingRepo = BehandlingPostgresRepo(embeddedDatasource),
-            hendelsesloggRepo = HendelsesloggPostgresRepo(embeddedDatasource)
+            hendelsesloggRepo = HendelsesloggPostgresRepo(embeddedDatasource),
+            beregningRepo = BeregningPostgresRepo(embeddedDatasource)
         )
     }
 }
@@ -63,5 +67,6 @@ data class DatabaseRepos(
     val oppdragRepo: OppdragRepo,
     val søknadRepo: SøknadRepo,
     val behandlingRepo: BehandlingRepo,
-    val hendelsesloggRepo: HendelsesloggRepo
+    val hendelsesloggRepo: HendelsesloggRepo,
+    val beregningRepo: BeregningRepo
 )

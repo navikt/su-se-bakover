@@ -129,7 +129,7 @@ internal class BehandlingTest {
         fun `should update behandlingsinformasjon`() {
             val expected = extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
             opprettet.oppdaterBehandlingsinformasjon(expected)
-            observer.oppdatertBehandlingsinformasjon shouldBe expected
+            opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -151,32 +151,21 @@ internal class BehandlingTest {
                 )
             )
 
-            opprettet.oppdaterBehandlingsinformasjon(expected)
+            val oppdatert = opprettet.oppdaterBehandlingsinformasjon(expected)
 
-            observer.oppdatertBehandlingsinformasjon shouldBe expected
-            observer.oppdatertBehandlingsinformasjon.let {
-                it.fastOppholdINorge shouldNotBe null
-                it.flyktning shouldNotBe null
-                it.formue shouldNotBe null
-                it.lovligOpphold shouldNotBe null
-                it.oppholdIUtlandet shouldNotBe null
-                it.bosituasjon shouldNotBe null
-                it.uførhet shouldNotBe null
-            }
+            oppdatert.behandlingsinformasjon() shouldBe expected
         }
 
         @Test
         fun `transition to Vilkårsvurdert`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
-            observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
         fun `transition to Avslått`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
             opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
@@ -215,7 +204,6 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
-            observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
         @Test
@@ -272,7 +260,6 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withVilkårAvslått()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
         @Test
@@ -443,7 +430,6 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(avslått).withVilkårAvslått()
             )
             avslått.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe avslått.status()
         }
 
         @Test
@@ -607,14 +593,6 @@ internal class BehandlingTest {
         ): BehandlingsStatus {
             oppdatertStatus = status
             return status
-        }
-
-        override fun oppdaterBehandlingsinformasjon(
-            behandlingId: UUID,
-            behandlingsinformasjon: Behandlingsinformasjon
-        ): Behandlingsinformasjon {
-            oppdatertBehandlingsinformasjon = behandlingsinformasjon
-            return behandlingsinformasjon
         }
 
         override fun hentOppdrag(sakId: UUID): Oppdrag {

@@ -180,18 +180,16 @@ data class Behandling(
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
             if (this@Behandling.beregning != null) {
-                persistenceObserver.deleteBeregninger(this@Behandling.id)
-                this@Behandling.beregning = null
+                this@Behandling.beregning = null // TODO service will handle
             }
 
-            behandlingsinformasjon = persistenceObserver.oppdaterBehandlingsinformasjon(
-                this@Behandling.id,
-                behandlingsinformasjon.patch(oppdatert)
-            )
+            behandlingsinformasjon = behandlingsinformasjon.patch(oppdatert) // TODO service will handle
             if (behandlingsinformasjon.isInnvilget()) {
-                nyTilstand(Vilkårsvurdert().Innvilget())
+                tilstand = resolve(Vilkårsvurdert().Innvilget().status)
+                this@Behandling.status = tilstand.status
             } else if (behandlingsinformasjon.isAvslag()) {
-                nyTilstand(Vilkårsvurdert().Avslag())
+                tilstand = resolve(Vilkårsvurdert().Avslag().status)
+                this@Behandling.status = tilstand.status
             }
         }
     }
@@ -430,11 +428,6 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
     ): Behandling.BehandlingsStatus
-
-    fun oppdaterBehandlingsinformasjon(
-        behandlingId: UUID,
-        behandlingsinformasjon: Behandlingsinformasjon
-    ): Behandlingsinformasjon
 
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
