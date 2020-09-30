@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
@@ -55,10 +57,15 @@ data class Beregning(
     }
 
     fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
-        val minstebeløp = (månedsberegninger.map { Sats.HØY.fraDato(it.fraOgMed) / 12 }.sum()) * TO_PROSENT
+        val minstebeløp = månedsberegninger.map {
+            BigDecimal(Sats.HØY.fraDato(it.fraOgMed))
+                .multiply(BigDecimal(TO_PROSENT))
+                .divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
+                .toInt()
+        }.sum()
         val beregnetBeløp = månedsberegninger.sumBy { it.beløp }
 
-        return beregnetBeløp > 0 && beregnetBeløp < minstebeløp
+        return beregnetBeløp in 1 until minstebeløp
     }
 
     fun beløpErNull() =

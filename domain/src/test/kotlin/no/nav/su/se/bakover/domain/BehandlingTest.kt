@@ -265,7 +265,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
-            var vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             val behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
             )
@@ -295,12 +295,13 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            val maxUtbetaling2020 = 250116
+            // val maxUtbetaling2020 = 250116
+            val _maxUtbetaling2020 = 245114
 
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.98).toInt()))
+                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, _maxUtbetaling2020))
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET
