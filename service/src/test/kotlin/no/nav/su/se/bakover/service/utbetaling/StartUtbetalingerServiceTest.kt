@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
@@ -28,9 +27,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
+import no.nav.su.se.bakover.service.argShouldBe
+import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.doNothing
 import org.junit.jupiter.api.Test
-import org.mockito.stubbing.Answer
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,100 +44,85 @@ internal class StartUtbetalingerServiceTest {
         val utbetalingPersistenceObserverMock = mock<UtbetalingPersistenceObserver> {
             on {
                 addOppdragsmelding(
-                    any(),
-                    any()
+                    argThat {
+                        it shouldBe actualUtbetalingsId
+                    },
+                    argThat {
+                        it shouldBe setup.oppdragsMeldingSendt
+                    }
                 )
-            } doAnswer (
-                Answer { invocation ->
-                    val actualOppdragsmelding: Oppdragsmelding = invocation!!.getArgument(1)
-                    val utbetalingsId: UUID30 = invocation.getArgument(0)
-                    utbetalingsId shouldBe actualUtbetalingsId
-                    actualOppdragsmelding shouldBe setup.oppdragsMeldingSendt
-                    setup.oppdragsMeldingSendt
-                }
-                )
+            } doReturn setup.oppdragsMeldingSendt
 
             on {
                 addSimulering(
                     any(),
-                    any()
+                    argThat {
+                        it shouldBe setup.simulerStartutbetaling
+                    }
                 )
-            } doAnswer (
-                Answer { invocation ->
-                    val actualSimulering: Simulering = invocation!!.getArgument(1)
-                    actualSimulering shouldBe setup.simulerStartutbetaling
-                }
-                )
+            }.doNothing()
         }
 
         val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
             on {
-                opprettUtbetaling(any(), any())
-            } doAnswer (
-                Answer { invocation ->
-                    val actualUtbetaling: Utbetaling = invocation!!.getArgument(1)
-                    actualUtbetaling shouldBe setup.forventetUtbetaling(
-                        actualUtbetaling = actualUtbetaling,
-                        utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
-                    )
-
-                    actualUtbetaling.apply {
-                        addObserver(utbetalingPersistenceObserverMock)
+                opprettUtbetaling(
+                    any(),
+                    argThat {
+                        it shouldBe setup.forventetUtbetaling(
+                            actualUtbetaling = it,
+                            utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
+                        )
+                        it.addObserver(utbetalingPersistenceObserverMock)
                     }
-                }
                 )
+            }.doNothing()
 
-            on { hentFnr(setup.sakId) } doReturn setup.fnr
+            on { hentFnr(argShouldBe(setup.sakId)) } doReturn setup.fnr
         }
 
         val simuleringClientMock = mock<SimuleringClient> {
             on {
-                simulerUtbetaling(any())
-            } doAnswer (
-                Answer { invocation ->
-                    val actualNyUtbetaling: NyUtbetaling = invocation!!.getArgument(0)
-                    actualUtbetalingsId = actualNyUtbetaling.utbetaling.id
-                    actualNyUtbetaling shouldBe setup.forventetNyUtbetaling(
-                        actualUtbetaling = actualNyUtbetaling.utbetaling,
-                        utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
-                    )
-                    setup.simulerStartutbetaling.right()
-                }
+                simulerUtbetaling(
+                    argThat {
+                        it shouldBe setup.forventetNyUtbetaling(
+                            actualUtbetaling = it.utbetaling,
+                            utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
+                        )
+                        actualUtbetalingsId = it.utbetaling.id
+                    }
                 )
+            } doReturn setup.simulerStartutbetaling.right()
         }
 
         val publisherMock = mock<UtbetalingPublisher> {
             on {
-                publish(any())
-            } doAnswer (
-                Answer { invocation ->
-                    val actualNyUtbetaling: NyUtbetaling = invocation!!.getArgument(0)
-                    actualNyUtbetaling shouldBe setup.forventetNyUtbetaling(
-                        actualUtbetaling = actualNyUtbetaling.utbetaling,
-                        simulering = setup.simulerStartutbetaling,
-                        utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
-                    ).copy(oppdrag = setup.eksisterendeOppdrag.copy(utbetalinger = (setup.eksisterendeOppdrag.hentUtbetalinger() + actualNyUtbetaling.utbetaling).toMutableList()))
-                    setup.oppdragsMeldingSendt.right()
-                }
+                publish(
+                    argThat {
+                        it shouldBe setup.forventetNyUtbetaling(
+                            actualUtbetaling = it.utbetaling,
+                            simulering = setup.simulerStartutbetaling,
+                            utbetalingslinjer = listOf(setup.utbetLinje1, setup.utbetLinje2, setup.utbetLinje3)
+                        )
+                            .copy(
+                                oppdrag = setup.eksisterendeOppdrag.copy(utbetalinger = (setup.eksisterendeOppdrag.hentUtbetalinger() + it.utbetaling).toMutableList())
+                            )
+                    }
                 )
+            } doReturn setup.oppdragsMeldingSendt.right()
         }
 
         val sak = setup.sak.copy().also {
             it.oppdrag.addObserver(oppdragPersistenceObserverMock)
-            it.oppdrag.hentUtbetalinger().forEach {
-                it.addObserver(utbetalingPersistenceObserverMock)
+            it.oppdrag.hentUtbetalinger().forEach { utbetaling ->
+                utbetaling.addObserver(utbetalingPersistenceObserverMock)
             }
         }
         val repoMock = mock<ObjectRepo> {
-            on {
-                hentSak(setup.sakId)
-            } doReturn sak
+            on { hentSak(argShouldBe(setup.sakId)) } doReturn sak
         }
 
         val service = StartUtbetalingerService(repoMock, simuleringClientMock, publisherMock)
         val startetUtbet = service.startUtbetalinger(setup.sakId)
-
-        // startetUtbet shouldBe StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
 
         val expected = Utbetaling(
             id = sak.oppdrag.hentUtbetalinger().last().id,
