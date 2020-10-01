@@ -137,9 +137,7 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fom":"$fraOgMed",
                         "fraOgMed":"$fraOgMed",
-                        "tom":"$tilOgMed",
                         "tilOgMed":"$tilOgMed",
                         "sats":"${sats.name}",
                         "fradrag":[]

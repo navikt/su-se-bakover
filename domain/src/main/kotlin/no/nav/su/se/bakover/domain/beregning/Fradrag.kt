@@ -42,7 +42,7 @@ data class UtenlandskInntekt(
     val kurs: Double
 ) {
     fun isValid(): Boolean {
-        return beløpIUtenlandskValuta >= 0 && valuta.isNotEmpty() && kurs >= 0
+        return beløpIUtenlandskValuta >= 0 && valuta.isNotBlank() && kurs >= 0
     }
 }
 
