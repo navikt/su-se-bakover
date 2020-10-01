@@ -87,7 +87,11 @@ internal fun Route.behandlingRoutes(
     ) {
         fun valid() = fraOgMed.dayOfMonth == 1 &&
             tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
-            fradrag.all { Fradragstype.isValid(it.type) }
+            fradrag.all {
+                Fradragstype.isValid(it.type) &&
+                    it.utenlandskInntekt?.isValid() ?: true &&
+                    it.inntektDelerAvPeriode?.isValid() ?: true
+            }
     }
 
     data class UnderkjennBody(

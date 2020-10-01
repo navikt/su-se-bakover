@@ -21,8 +21,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggPersistenceObserver
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
@@ -420,14 +422,15 @@ internal class DatabaseRepo(
     private fun Row.toFradrag() = Fradrag(
         id = uuid("id"),
         beløp = int("beløp"),
-        beskrivelse = stringOrNull("beskrivelse"),
-        type = Fradragstype.valueOf(string("fradragstype"))
+        type = Fradragstype.valueOf(string("fradragstype")),
+        utenlandskInntekt = objectMapper.readValue(string("utenlandskInntekt")) as UtenlandskInntekt?,
+        inntektDelerAvPeriode = objectMapper.readValue(string("inntektDelerAvPeriode")) as InntektDelerAvPeriode?,
     )
 
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
-            insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
-            values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
+            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt, inntektDelerAvPeriode)
+            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json), to_json(:inntektDelerAvPeriode::json))
         """
             .oppdatering(
                 mapOf(
@@ -435,7 +438,8 @@ internal class DatabaseRepo(
                     "beregningId" to beregningId,
                     "fradragstype" to fradrag.type.toString(),
                     "belop" to fradrag.beløp,
-                    "beskrivelse" to fradrag.beskrivelse
+                    "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt),
+                    "inntektDelerAvPeriode" to objectMapper.writeValueAsString(fradrag.inntektDelerAvPeriode)
                 )
             )
     }

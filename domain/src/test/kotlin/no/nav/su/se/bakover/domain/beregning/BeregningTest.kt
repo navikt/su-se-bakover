@@ -143,8 +143,18 @@ internal class BeregningTest {
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
-                Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = 12000,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                ),
+                Fradrag(
+                    type = Fradragstype.Barnetillegg,
+                    beløp = 1200,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                )
             ),
             forventetInntekt = 500
         )
@@ -160,8 +170,18 @@ internal class BeregningTest {
                 sats = Sats.HØY,
                 opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
                 fradrag = listOf(
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = -100,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    ),
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 200,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    )
                 ),
                 forventetInntekt = 500
             )
@@ -178,7 +198,12 @@ internal class BeregningTest {
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
             ),
             forventetInntekt = 0
         )
@@ -199,7 +224,12 @@ internal class BeregningTest {
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
             ),
             forventetInntekt = 0
         )
@@ -220,7 +250,12 @@ internal class BeregningTest {
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
             ),
             forventetInntekt = 0
         )

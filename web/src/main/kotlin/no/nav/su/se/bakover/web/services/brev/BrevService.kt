@@ -206,4 +206,12 @@ fun LocalDate.formatMonthYear(): String =
 
 // TODO jah: Unngå utregninger i BrevService
 fun List<Fradrag>.toFradragPerMåned(): List<Fradrag> =
-    this.map { Fradrag(it.id, it.type, it.beløp / 12, it.beskrivelse) }
+    this.map {
+        Fradrag(
+            id = it.id,
+            type = it.type,
+            beløp = it.beløp / 12,
+            utenlandskInntekt = it.utenlandskInntekt,
+            inntektDelerAvPeriode = it.inntektDelerAvPeriode,
+        )
+    }

@@ -30,7 +30,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
@@ -135,9 +137,7 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fom":"$fraOgMed",
                         "fraOgMed":"$fraOgMed",
-                        "tom":"$tilOgMed",
                         "tilOgMed":"$tilOgMed",
                         "sats":"${sats.name}",
                         "fradrag":[]
@@ -151,6 +151,105 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+            }
+        }
+    }
+
+    @Test
+    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode oppretter beregning`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                       "fraOgMed":"$fom",
+                       "tilOgMed":"$tom",
+                       "sats":"${sats.name}",
+                       "fradrag":[{
+                             "type":"Arbeidsinntekt",
+                             "beløp":200,
+                             "utenlandskInntekt":{
+                                "beløpIUtenlandskValuta":200,
+                                "valuta":"euro",
+                                "kurs":0.5
+                             },
+                             "inntektDelerAvPeriode":{
+                                "fraOgMed":"$fom",
+                                "tilOgMed":"$tom"
+                             }
+                          }]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.beregning!!.fom shouldBe fom.toString()
+                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag.all {
+                    it.utenlandskInntekt == UtenlandskInntekt(
+                        beløpIUtenlandskValuta = 200,
+                        valuta = "euro",
+                        kurs = 0.5
+                    ) && it.inntektDelerAvPeriode == InntektDelerAvPeriode(fraOgMed = fom, tilOgMed = tom)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode er null oppretter beregning`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                        "fraOgMed":"$fom",
+                        "tilOgMed":"$tom",
+                        "sats":"${sats.name}",
+                        "fradrag": [
+                                {
+                                "type": "Arbeidsinntekt",
+                                "beløp": 200,
+                                "utenlandskInntekt": null,
+                                "inntektDelerAvPeriode": null
+                            }
+                        ]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.beregning!!.fom shouldBe fom.toString()
+                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag.all {
+                    it.utenlandskInntekt == null && it.inntektDelerAvPeriode == null
+                }
             }
         }
     }
@@ -195,6 +294,36 @@ internal class BehandlingRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldige input-parametere"
+            }
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """{
+                           "fraOgMed":"$fom",
+                           "tilOgMed":"$tom",
+                           "sats":"${sats.name}",
+                           "fradrag":[
+                            {
+                                 "type":"Arbeidsinntekt",
+                                 "beløp":200,
+                                 "utenlandskInntekt":{
+                                    "beløpIUtenlandskValuta":-200,
+                                    "valuta":"euro",
+                                    "kurs":0.5
+                                 },
+                                 "inntektDelerAvPeriode":null
+                              }
+                            ]
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
             }
         }
     }

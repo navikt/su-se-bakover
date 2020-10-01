@@ -81,5 +81,12 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
         return fradrag
     }
 
-    return andreFradrag.plus(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
+    return andreFradrag.plus(
+        Fradrag(
+            type = Fradragstype.ForventetInntekt,
+            beløp = forventetInntekt,
+            utenlandskInntekt = null,
+            inntektDelerAvPeriode = null,
+        )
+    )
 }

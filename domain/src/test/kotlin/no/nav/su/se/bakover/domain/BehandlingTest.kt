@@ -259,7 +259,15 @@ internal class BehandlingTest {
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 600000))
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 600000,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
@@ -289,7 +297,15 @@ internal class BehandlingTest {
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, (maxUtbetaling2020 * 0.99).toInt()))
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = (maxUtbetaling2020 * 0.99).toInt(),
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
@@ -302,7 +318,15 @@ internal class BehandlingTest {
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, inntektSomGerMinstebeløp))
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = inntektSomGerMinstebeløp,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
@@ -445,7 +469,15 @@ internal class BehandlingTest {
                 beregnet.opprettBeregning(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
-                    fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, 1000000))
+                    fradrag = listOf(
+                        Fradrag(
+                            id = UUID.randomUUID(),
+                            type = Fradragstype.Arbeidsinntekt,
+                            beløp = 1000000,
+                            utenlandskInntekt = null,
+                            inntektDelerAvPeriode = null
+                        )
+                    )
                 )
 
                 beregnet.status() shouldBe BEREGNET_AVSLAG
