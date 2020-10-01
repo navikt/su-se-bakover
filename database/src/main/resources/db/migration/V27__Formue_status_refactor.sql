@@ -1,1 +1,1 @@
-update behandling set behandlingsinformasjon = jsonb_set(behandlingsinformasjon, '{formue}', '"VilkårOppfylt"')
+update behandling set behandlingsinformasjon = jsonb_set(behandlingsinformasjon, '{formue,status}', '"VilkårOppfylt"')
