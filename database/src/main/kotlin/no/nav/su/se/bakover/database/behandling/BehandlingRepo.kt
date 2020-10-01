@@ -14,4 +14,5 @@ interface BehandlingRepo {
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30): Behandling
     fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Behandling
     fun attester(behandlingId: UUID, attestant: Attestant): Behandling
+    fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling): Behandling
 }

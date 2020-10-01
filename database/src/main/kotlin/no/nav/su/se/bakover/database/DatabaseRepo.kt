@@ -7,12 +7,10 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
-import no.nav.su.se.bakover.database.sak.SakRepoInternal.hentSakInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -29,35 +27,8 @@ internal class DatabaseRepo(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock = Clock.systemUTC()
 ) : ObjectRepo,
-    SakPersistenceObserver,
     OppdragPersistenceObserver,
     UtbetalingPersistenceObserver {
-
-    override fun hentSak(fnr: Fnr): Sak? =
-        using(sessionOf(dataSource)) { hentSakInternal(fnr, it)?.apply { addObserver(this@DatabaseRepo) } }
-
-    override fun opprettSøknadsbehandling(
-        sakId: UUID,
-        behandling: Behandling
-    ): Behandling {
-        """
-            insert into behandling
-                (id, sakId, søknadId, opprettet, status, behandlingsinformasjon)
-            values
-                (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
-        """.trimIndent().oppdatering(
-            mapOf(
-                "id" to behandling.id,
-                "sakId" to sakId,
-                "soknadId" to behandling.søknad.id,
-                "opprettet" to behandling.opprettet,
-                "status" to behandling.status().name,
-                "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
-            )
-        )
-        return hentBehandling(behandling.id)!!
-    }
-
     internal fun hentOppdrag(oppdragId: UUID30) = using(sessionOf(dataSource)) { session ->
         "select * from oppdrag where id=:id".hent(mapOf("id" to oppdragId.toString()), session) {
             it.toOppdrag(session)
@@ -116,9 +87,6 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    override fun hentSak(sakId: UUID): Sak? =
-        using(sessionOf(dataSource)) { hentSakInternal(sakId, it)?.apply { addObserver(this@DatabaseRepo) } }
-
     override fun opprettSak(fnr: Fnr): Sak {
         val opprettet = now(clock)
         val sakId = UUID.randomUUID()
@@ -144,7 +112,6 @@ internal class DatabaseRepo(
             )
         )
         sak.oppdrag.addObserver(this)
-        sak.addObserver(this)
         return sak
     }
 

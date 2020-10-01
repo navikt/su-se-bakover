@@ -548,7 +548,7 @@ internal class BehandlingRoutesKtTest {
         val sak = repo.opprettSak(FnrGenerator.random())
         val søknad = repos.søknadRepo.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         sak.nySøknad(søknad) // TODO temporary
-        val behandling = sak.opprettSøknadsbehandling(søknad.id)
+        val behandling = repos.behandlingRepo.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }
 }

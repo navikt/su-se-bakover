@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import java.time.LocalDate
 import java.util.UUID
 
@@ -19,4 +20,5 @@ interface BehandlingService {
     fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling>
     fun sendTilAttestering(behandlingId: UUID, aktørId: AktørId, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling>
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
+    fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling>
 }

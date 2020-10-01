@@ -82,4 +82,26 @@ internal class BehandlingPostgresRepo(
         )
         return hentBehandling(behandlingId)!!
     }
+
+    override fun opprettSøknadsbehandling(
+        sakId: UUID,
+        behandling: Behandling
+    ): Behandling {
+        """
+            insert into behandling
+                (id, sakId, søknadId, opprettet, status, behandlingsinformasjon)
+            values
+                (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
+        """.trimIndent().oppdatering(
+            mapOf(
+                "id" to behandling.id,
+                "sakId" to sakId,
+                "soknadId" to behandling.søknad.id,
+                "opprettet" to behandling.opprettet,
+                "status" to behandling.status().name,
+                "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
+            )
+        )
+        return hentBehandling(behandling.id)!!
+    }
 }

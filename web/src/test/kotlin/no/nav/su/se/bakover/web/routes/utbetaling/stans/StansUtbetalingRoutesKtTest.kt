@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -60,7 +60,7 @@ internal class StansUtbetalingRoutesKtTest {
 
     @Test
     fun `stans utbetaling feiler`() {
-        val objectRepoMock = mock<ObjectRepo> {
+        val sakRepoMock = mock<SakRepo> {
             on { hentSak(sakId) } doReturn sak
         }
         val stansutbetalingServiceMock = mock<StansUtbetalingService> {
@@ -68,7 +68,17 @@ internal class StansUtbetalingRoutesKtTest {
         }
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock()),
+                databaseRepos = DatabaseRepos(
+                    objectRepo = mock(),
+                    avstemmingRepo = mock(),
+                    utbetalingRepo = mock(),
+                    oppdragRepo = mock(),
+                    søknadRepo = mock(),
+                    behandlingRepo = mock(),
+                    hendelsesloggRepo = mock(),
+                    beregningRepo = mock(),
+                    sakRepo = sakRepoMock
+                ),
                 stansUtbetalingService = stansutbetalingServiceMock,
             )
         }) {
@@ -82,7 +92,7 @@ internal class StansUtbetalingRoutesKtTest {
 
     @Test
     fun `stans utbetalinger`() {
-        val objectRepoMock = mock<ObjectRepo> {
+        val sakRepoMock = mock<SakRepo> {
             on { hentSak(sakId) } doReturn sak
         }
 
@@ -92,7 +102,17 @@ internal class StansUtbetalingRoutesKtTest {
 
         withTestApplication({
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock(), mock(), mock(), mock(), mock(), mock(), mock(), mock()),
+                databaseRepos = DatabaseRepos(
+                    objectRepo = mock(),
+                    avstemmingRepo = mock(),
+                    utbetalingRepo = mock(),
+                    oppdragRepo = mock(),
+                    søknadRepo = mock(),
+                    behandlingRepo = mock(),
+                    hendelsesloggRepo = mock(),
+                    beregningRepo = mock(),
+                    sakRepo = sakRepoMock
+                ),
                 stansUtbetalingService = stansUtbetalingServiceMock
             )
         }) {

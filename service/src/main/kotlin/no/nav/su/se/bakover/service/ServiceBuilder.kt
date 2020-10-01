@@ -23,6 +23,9 @@ class ServiceBuilder(
         val utbetalingService = UtbetalingServiceImpl(
             repo = databaseRepos.utbetalingRepo,
         )
+        val søknadService = SøknadServiceImpl(
+            søknadRepo = databaseRepos.søknadRepo
+        )
         return Services(
             avstemmingService = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemmingRepo,
@@ -41,14 +44,13 @@ class ServiceBuilder(
                 simuleringClient = clients.simuleringClient,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,
-                utbetalingPublisher = clients.utbetalingPublisher
+                utbetalingPublisher = clients.utbetalingPublisher,
+                søknadService = søknadService
             ),
             sakService = SakServiceImpl(
                 sakRepo = databaseRepos.sakRepo
             ),
-            søknadService = SøknadServiceImpl(
-                søknadRepo = databaseRepos.søknadRepo
-            )
+            søknadService = søknadService
         )
     }
 }

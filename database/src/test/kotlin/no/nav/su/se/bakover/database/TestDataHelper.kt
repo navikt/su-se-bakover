@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -22,18 +23,19 @@ import javax.sql.DataSource
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance()
 ) {
-    private val repo = DatabaseRepo(dataSource)
+    private val objectRepo = DatabaseRepo(dataSource)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val beregningRepo = BeregningPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
+    private val behandlingRepo = BehandlingPostgresRepo(dataSource)
 
-    fun insertSak(fnr: Fnr) = repo.opprettSak(fnr)
+    fun insertSak(fnr: Fnr) = objectRepo.opprettSak(fnr)
     fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling =
-        utbetaling.also { repo.opprettUtbetaling(oppdragId, utbetaling) }
+        utbetaling.also { utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling) }
 
     fun insertOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding) =
-        repo.addOppdragsmelding(utbetalingId, oppdragsmelding)
+        utbetalingRepo.addOppdragsmelding(utbetalingId, oppdragsmelding)
 
     fun insertSøknad(sakId: UUID) = søknadRepo.opprettSøknad(
         sakId,
@@ -43,7 +45,7 @@ internal class TestDataHelper(
         )
     )
 
-    fun insertBehandling(sakId: UUID, søknad: Søknad) = repo.opprettSøknadsbehandling(
+    fun insertBehandling(sakId: UUID, søknad: Søknad) = behandlingRepo.opprettSøknadsbehandling(
         sakId = sakId,
         behandling = Behandling(
             søknad = søknad,

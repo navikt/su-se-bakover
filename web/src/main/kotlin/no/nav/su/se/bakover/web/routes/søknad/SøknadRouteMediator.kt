@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
 
@@ -22,17 +23,21 @@ internal class SøknadRouteMediator(
     private val dokArkiv: DokArkiv,
     private val oppgaveClient: OppgaveClient,
     private val personOppslag: PersonOppslag,
-    private val søknadService: SøknadService
+    private val søknadService: SøknadService,
+    private val sakService: SakService
 ) : SakEventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
         // TODO shift this to service
-        val sak = repo.hentSak(søknadInnhold.personopplysninger.fnr)
-            ?: repo.opprettSak(søknadInnhold.personopplysninger.fnr)
+        val sak = sakService.hentSak(søknadInnhold.personopplysninger.fnr)
+            .fold(
+                { repo.opprettSak(søknadInnhold.personopplysninger.fnr) },
+                { it }
+            )
         sak.addObserver(this)
         søknadService.opprettSøknad(sak.id, Søknad(søknadInnhold = søknadInnhold))
-        return repo.hentSak(søknadInnhold.personopplysninger.fnr)!!
+        return sakService.hentSak(søknadInnhold.personopplysninger.fnr).getOrElse { throw RuntimeException("Kunne ikke hente sak") }
     }
 
     override fun nySøknadEvent(nySøknadEvent: SakEventObserver.NySøknadEvent) {

@@ -12,7 +12,7 @@ data class Sak(
     private val søknader: MutableList<Søknad> = mutableListOf(),
     private val behandlinger: MutableList<Behandling> = mutableListOf(),
     val oppdrag: Oppdrag,
-) : PersistentDomainObject<SakPersistenceObserver>() {
+) {
 
     private val observers: MutableList<SakObserver> = mutableListOf()
 
@@ -36,23 +36,9 @@ data class Sak(
         }
         return søknad
     }
-
-    fun opprettSøknadsbehandling(søknadId: UUID): Behandling {
-        val søknad = søknader.single { it.id == søknadId }
-        val behandling = persistenceObserver.opprettSøknadsbehandling(id, Behandling(søknad = søknad, sakId = id))
-        behandlinger.add(behandling)
-        return behandling
-    }
 }
 
 interface SakObserver
-
-interface SakPersistenceObserver : PersistenceObserver {
-    fun opprettSøknadsbehandling(
-        sakId: UUID,
-        behandling: Behandling
-    ): Behandling
-}
 
 interface SakEventObserver : SakObserver {
     fun nySøknadEvent(nySøknadEvent: NySøknadEvent) {}

@@ -16,7 +16,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -39,7 +38,8 @@ internal class SøknadRoutesKtTest {
     )
 
     private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-    private val objectRepo: ObjectRepo = DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val sakRepo = repos.sakRepo
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -58,7 +58,7 @@ internal class SøknadRoutesKtTest {
 
             shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(createResponse.content!!) }
 
-            val sakFraDb = objectRepo.hentSak(fnr)
+            val sakFraDb = sakRepo.hentSak(fnr)
             sakFraDb shouldNotBe null
             sakFraDb!!.søknader() shouldHaveAtLeastSize 1
         }

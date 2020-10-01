@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
+import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.LocalDate
 import java.util.UUID
@@ -34,7 +36,8 @@ internal class BehandlingServiceImpl(
     private val simuleringClient: SimuleringClient,
     private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
     private val oppgaveClient: OppgaveClient,
-    private val utbetalingPublisher: UtbetalingPublisher
+    private val utbetalingPublisher: UtbetalingPublisher,
+    private val søknadService: SøknadService
 ) : BehandlingService {
 
     override fun underkjenn(
@@ -151,5 +154,19 @@ internal class BehandlingServiceImpl(
                     objectRepo.hentBehandling(behandlingId)!!
                 }
         }
+    }
+
+    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling> {
+        return søknadService.hentSøknad(søknadId)
+            .mapLeft { it }
+            .map {
+                behandlingRepo.opprettSøknadsbehandling(
+                    sakId,
+                    Behandling(
+                        sakId = sakId,
+                        søknad = it
+                    )
+                )
+            }
     }
 }

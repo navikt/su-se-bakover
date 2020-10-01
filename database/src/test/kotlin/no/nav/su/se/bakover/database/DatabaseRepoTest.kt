@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
@@ -26,15 +25,6 @@ internal class DatabaseRepoTest {
     private val repo = DatabaseRepo(EmbeddedDatabase.instance())
     private val utbetalingRepo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
     private val FNR = FnrGenerator.random()
-
-    @Test
-    fun `unknown entities`() {
-        withMigratedDb {
-            assertNull(repo.hentSak(FnrGenerator.random()))
-            assertNull(repo.hentSak(UUID.randomUUID()))
-            assertNull(repo.hentBehandling(UUID.randomUUID()))
-        }
-    }
 
     @Test
     fun `opprett og hent oppdrag`() {

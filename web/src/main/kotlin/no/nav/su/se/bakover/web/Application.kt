@@ -120,7 +120,8 @@ internal fun Application.susebakover(
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
         personOppslag = clients.personOppslag,
-        søknadService = services.søknadService
+        søknadService = services.søknadService,
+        sakService = services.sakService
     )
 
     install(CORS) {
@@ -212,7 +213,10 @@ internal fun Application.susebakover(
             }
             personRoutes(clients.personOppslag)
             inntektRoutes(clients.inntektOppslag)
-            sakRoutes(databaseRepos.objectRepo)
+            sakRoutes(
+                behandlingService = services.behandlingService,
+                sakService = services.sakService
+            )
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
                 repo = databaseRepos.objectRepo,
@@ -224,10 +228,15 @@ internal fun Application.susebakover(
                     sakService = services.sakService
                 ),
                 personOppslag = clients.personOppslag,
-                behandlingService = services.behandlingService
+                behandlingService = services.behandlingService,
+                sakService = services.sakService
             )
             avstemmingRoutes(services.avstemmingService)
-            stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
+            stansutbetalingRoutes(
+                stansUtbetalingService = stansUtbetalingService,
+                // sakRepo = databaseRepos.objectRepo,
+                sakService = services.sakService
+            )
         }
     }
     if (!Config.isLocalOrRunningTests) {
