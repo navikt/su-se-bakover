@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 internal class UtbetalingPostgresRepoTest {
@@ -125,22 +127,36 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
-    // @Test //TODO add when migrated
-    // fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
-    //     withMigratedDb {
-    //         val sak = insertSak(FNR)
-    //         val utbetaling = insertUtbetaling(sak.oppdrag.id, Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
-    //         val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
-    //         val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
-    //         utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
-    //
-    //         assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
-    //
-    //         val skulleIkkeSlettes = utbetalingRepo.hentUtbetaling(utbetaling.id)
-    //         skulleIkkeSlettes!!.id shouldBe utbetaling.id
-    //         skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
-    //     }
-    // }
+    @Test
+    fun `legg til og hent oppdragsmelding`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultUtbetaling())
+            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
+            repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
+
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
+            hentet shouldBe oppdragsmelding
+        }
+    }
+
+    @Test
+    fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultUtbetaling())
+            val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
+            val utbetalingslinje2 =
+                repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
+            repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+
+            assertThrows<IllegalStateException> { repo.slettUtbetaling(repo.hentUtbetaling(utbetaling.id)!!) }
+
+            val skulleIkkeSlettes = repo.hentUtbetaling(utbetaling.id)
+            skulleIkkeSlettes!!.id shouldBe utbetaling.id
+            skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
+        }
+    }
 
     private fun defaultUtbetaling() = Utbetaling(
         id = UUID30.randomUUID(),

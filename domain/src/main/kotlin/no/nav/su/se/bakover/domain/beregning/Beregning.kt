@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.VoidObserver
 import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
@@ -17,7 +15,7 @@ data class Beregning(
     val fradrag: List<Fradrag>,
     val forventetInntekt: Int,
     val månedsberegninger: List<Månedsberegning> = beregn(fom, tom, sats, fradrag, forventetInntekt)
-) : PersistentDomainObject<VoidObserver>() {
+) {
 
     init {
         require(fom.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fom" }

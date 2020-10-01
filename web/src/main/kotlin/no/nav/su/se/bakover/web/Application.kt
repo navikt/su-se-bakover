@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
@@ -68,7 +67,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
-import java.time.Clock
 import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
@@ -104,11 +102,6 @@ internal fun Application.susebakover(
             }
         }
     },
-    stansUtbetalingService: StansUtbetalingService = StansUtbetalingService(
-        simuleringClient = clients.simuleringClient,
-        clock = Clock.systemUTC(),
-        utbetalingPublisher = clients.utbetalingPublisher
-    ),
     services: Services = ServiceBuilder(databaseRepos, clients).build()
 ) {
     // Application er allerede reservert av Ktor
@@ -219,7 +212,6 @@ internal fun Application.susebakover(
             )
             søknadRoutes(søknadRoutesMediator)
             behandlingRoutes(
-                repo = databaseRepos.objectRepo,
                 brevService = BrevService(
                     pdfGenerator = clients.pdfGenerator,
                     personOppslag = clients.personOppslag,
@@ -233,7 +225,7 @@ internal fun Application.susebakover(
             )
             avstemmingRoutes(services.avstemmingService)
             stansutbetalingRoutes(
-                stansUtbetalingService = stansUtbetalingService,
+                stansUtbetalingService = services.stansUtbetalingService,
                 // sakRepo = databaseRepos.objectRepo,
                 sakService = services.sakService
             )

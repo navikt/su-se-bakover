@@ -14,7 +14,7 @@ internal class OppdragPostgresRepoTest {
     private val repo = OppdragPostgresRepo(EmbeddedDatabase.instance())
 
     @Test
-    fun `hent oppdrag for sak`() {
+    fun `opprett og hent oppdrag`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val oppdrag = repo.hentOppdrag(sak.id)

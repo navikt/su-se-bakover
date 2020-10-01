@@ -23,10 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -53,7 +50,6 @@ internal class BehandlingTest {
     }
 
     private lateinit var behandling: Behandling
-    private lateinit var observer: DummyObserver
 
     @BeforeEach
     fun beforeEach() {
@@ -524,28 +520,6 @@ internal class BehandlingTest {
         }
     }
 
-    private class DummyObserver :
-        Oppdrag.OppdragPersistenceObserver,
-        UtbetalingPersistenceObserver {
-        lateinit var oppdragsmelding: Oppdragsmelding
-
-        override fun hentFnr(sakId: UUID): Fnr {
-            return Fnr("12345678910")
-        }
-
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
-            utbetaling.addObserver(this)
-        }
-
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
-        }
-
-        override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
-            this.oppdragsmelding = oppdragsmelding
-            return this.oppdragsmelding
-        }
-    }
-
     private fun createBehandling(
         id: UUID,
         status: BehandlingsStatus
@@ -554,9 +528,7 @@ internal class BehandlingTest {
         søknad = søknad,
         status = status,
         sakId = id1
-    ).also {
-        observer = DummyObserver()
-    }
+    )
 
     private fun defaultUtbetaling() = Utbetaling(fnr = Fnr("12345678910"), utbetalingslinjer = emptyList())
 }

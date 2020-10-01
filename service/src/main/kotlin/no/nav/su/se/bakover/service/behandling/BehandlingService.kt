@@ -14,6 +14,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface BehandlingService {
+    fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(begrunnelse: String, attestant: Attestant, behandling: Behandling): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
     fun opprettBeregning(behandlingId: UUID, fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>): Behandling
@@ -22,3 +23,5 @@ interface BehandlingService {
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
     fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling>
 }
+
+object FantIkkeBehandling

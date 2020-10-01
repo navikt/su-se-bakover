@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -31,14 +32,17 @@ internal class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
-    private val objectRepo: ObjectRepo, // TODO dont use
     private val oppdragRepo: OppdragRepo,
     private val simuleringClient: SimuleringClient,
     private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
     private val oppgaveClient: OppgaveClient,
     private val utbetalingPublisher: UtbetalingPublisher,
-    private val søknadService: SøknadService
+    private val søknadService: SøknadService,
+    private val sakService: SakService
 ) : BehandlingService {
+    override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
+        return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
+    }
 
     override fun underkjenn(
         begrunnelse: String,
@@ -66,7 +70,7 @@ internal class BehandlingServiceImpl(
         // TODO fix weirdness for internal state
         val status = updated.oppdaterBehandlingsinformasjon(behandlingsinformasjon).status()
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, status)
-        return objectRepo.hentBehandling(behandlingId)!! // TODO just to add observers for tests and stuff until they are all gone
+        return behandlingRepo.hentBehandling(behandlingId)!!
     }
 
     override fun opprettBeregning(
@@ -79,13 +83,17 @@ internal class BehandlingServiceImpl(
         val beregnet = behandlingRepo.hentBehandling(behandlingId)!!.opprettBeregning(fom, tom, fradrag)
         beregningRepo.opprettBeregningForBehandling(behandlingId, beregnet.beregning()!!)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, beregnet.status())
-        return objectRepo.hentBehandling(behandlingId)!! // TODO just to add observers for tests and stuff until they are all gone
+        return behandlingRepo.hentBehandling(behandlingId)!!
     }
 
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val oppdrag = objectRepo.hentOppdrag(behandling.sakId) // TODO must use to get fnr lazy - remove when time
-        val utbetaling = oppdrag.genererUtbetaling(behandling.beregning()!!)
+        val sak = sakService.hentSak(behandling.sakId).fold(
+            { throw RuntimeException("Kunne ikke finne sak") },
+            { it }
+        )
+        val oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!
+        val utbetaling = oppdrag.genererUtbetaling(behandling.beregning()!!, sak.fnr)
         val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .mapLeft { it }
@@ -97,7 +105,7 @@ internal class BehandlingServiceImpl(
                 val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
                 oppdatert.simuler(utbetaling) // TODO just to push to correct state
                 behandlingRepo.oppdaterBehandlingStatus(behandling.id, oppdatert.status())
-                return objectRepo.hentBehandling(behandlingId)!!.right() // TODO dont use
+                return behandlingRepo.hentBehandling(behandlingId)!!.right()
             }
     }
 
@@ -117,7 +125,7 @@ internal class BehandlingServiceImpl(
             val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
             oppdatert.sendTilAttestering(aktørId, saksbehandler)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
-            objectRepo.hentBehandling(behandlingId)!! // TODO dont use
+            behandlingRepo.hentBehandling(behandlingId)!!
         }
     }
 
@@ -151,7 +159,7 @@ internal class BehandlingServiceImpl(
                 .map {
                     behandlingRepo.attester(behandlingId, attestant)
                     behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
-                    objectRepo.hentBehandling(behandlingId)!!
+                    behandlingRepo.hentBehandling(behandlingId)!!
                 }
         }
     }

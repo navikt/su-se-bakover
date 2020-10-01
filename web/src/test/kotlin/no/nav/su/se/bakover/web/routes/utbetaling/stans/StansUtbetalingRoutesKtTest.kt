@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService.KunneIkkeStanseUtbetalinger
+import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
@@ -64,10 +64,10 @@ internal class StansUtbetalingRoutesKtTest {
             on { hentSak(sakId) } doReturn sak
         }
         val stansutbetalingServiceMock = mock<StansUtbetalingService> {
-            on { stansUtbetalinger(any()) } doReturn KunneIkkeStanseUtbetalinger.left()
+            on { stansUtbetalinger(any()) } doReturn StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
         }
         withTestApplication({
-            testSusebakover(
+            val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
                     objectRepo = mock(),
                     avstemmingRepo = mock(),
@@ -77,9 +77,14 @@ internal class StansUtbetalingRoutesKtTest {
                     behandlingRepo = mock(),
                     hendelsesloggRepo = mock(),
                     beregningRepo = mock(),
-                    sakRepo = sakRepoMock
+                    sakRepo = sakRepoMock,
                 ),
-                stansUtbetalingService = stansutbetalingServiceMock,
+                clients = TestClientsBuilder.build()
+            ).build()
+            testSusebakover(
+                services = services.copy(
+                    stansUtbetalingService = stansutbetalingServiceMock
+                )
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
@@ -101,7 +106,7 @@ internal class StansUtbetalingRoutesKtTest {
         }
 
         withTestApplication({
-            testSusebakover(
+            val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
                     objectRepo = mock(),
                     avstemmingRepo = mock(),
@@ -111,9 +116,14 @@ internal class StansUtbetalingRoutesKtTest {
                     behandlingRepo = mock(),
                     hendelsesloggRepo = mock(),
                     beregningRepo = mock(),
-                    sakRepo = sakRepoMock
+                    sakRepo = sakRepoMock,
                 ),
-                stansUtbetalingService = stansUtbetalingServiceMock
+                clients = TestClientsBuilder.build()
+            ).build()
+            testSusebakover(
+                services = services.copy(
+                    stansUtbetalingService = stansUtbetalingServiceMock
+                )
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {

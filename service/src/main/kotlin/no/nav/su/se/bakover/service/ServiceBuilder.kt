@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
+import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
@@ -26,6 +27,9 @@ class ServiceBuilder(
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknadRepo
         )
+        val sakService = SakServiceImpl(
+            sakRepo = databaseRepos.sakRepo
+        )
         return Services(
             avstemmingService = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemmingRepo,
@@ -39,18 +43,21 @@ class ServiceBuilder(
                 behandlingRepo = databaseRepos.behandlingRepo,
                 hendelsesloggRepo = databaseRepos.hendelsesloggRepo,
                 beregningRepo = databaseRepos.beregningRepo,
-                objectRepo = databaseRepos.objectRepo,
                 oppdragRepo = databaseRepos.oppdragRepo,
                 simuleringClient = clients.simuleringClient,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
-                søknadService = søknadService
+                søknadService = søknadService,
+                sakService = sakService
             ),
-            sakService = SakServiceImpl(
-                sakRepo = databaseRepos.sakRepo
-            ),
-            søknadService = søknadService
+            sakService = sakService,
+            søknadService = søknadService,
+            stansUtbetalingService = StansUtbetalingService(
+                simuleringClient = clients.simuleringClient,
+                utbetalingPublisher = clients.utbetalingPublisher,
+                utbetalingService = utbetalingService
+            )
         )
     }
 }
@@ -61,5 +68,6 @@ data class Services(
     val oppdragService: OppdragService,
     val behandlingService: BehandlingService,
     val sakService: SakService,
-    val søknadService: SøknadService
+    val søknadService: SøknadService,
+    val stansUtbetalingService: StansUtbetalingService
 )

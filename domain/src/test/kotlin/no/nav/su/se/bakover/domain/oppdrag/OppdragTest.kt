@@ -24,7 +24,6 @@ import java.util.UUID
 internal class OppdragTest {
     private val sakId = UUID.randomUUID()
     private lateinit var oppdrag: Oppdrag
-    private lateinit var observer: DummyObserver
     private val fnr = Fnr("12345678910")
 
     @BeforeEach
@@ -33,10 +32,7 @@ internal class OppdragTest {
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId
-        ).also {
-            observer = DummyObserver()
-            it.addObserver(observer)
-        }
+        )
     }
 
     @Test
@@ -48,9 +44,9 @@ internal class OppdragTest {
                     tom = 31.desember(2020),
                     beløp = 5600,
                 )
-            )
+            ),
+            fnr
         )
-        observer.utbetaling shouldBe null
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(
@@ -93,9 +89,7 @@ internal class OppdragTest {
                     fnr = fnr
                 )
             )
-        ).also {
-            it.addObserver(observer)
-        }
+        )
 
         val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
@@ -114,7 +108,8 @@ internal class OppdragTest {
                     tom = 31.desember(2020),
                     beløp = 5800,
                 )
-            )
+            ),
+            fnr
         )
 
         nyUtbetaling shouldBe Utbetaling(
@@ -149,8 +144,6 @@ internal class OppdragTest {
             ),
             fnr = fnr
         )
-
-        observer.utbetaling shouldBe null
     }
 
     @Test
@@ -214,7 +207,7 @@ internal class OppdragTest {
             forventetInntekt = 0
         )
 
-        val actualUtbetaling = oppdrag.genererUtbetaling(b)
+        val actualUtbetaling = oppdrag.genererUtbetaling(b, fnr)
         actualUtbetaling shouldBe Utbetaling(
             opprettet = actualUtbetaling.opprettet,
             kvittering = null,
@@ -242,15 +235,6 @@ internal class OppdragTest {
             oppdragsmelding = null,
             avstemmingId = null
         )
-    }
-
-    private class DummyObserver : Oppdrag.OppdragPersistenceObserver {
-        var utbetaling: Utbetaling? = null
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
-            this.utbetaling = utbetaling
-        }
-
-        override fun hentFnr(sakId: UUID): Fnr = Fnr("12345678910")
     }
 
     private fun expectedUtbetaling(actual: Utbetaling, oppdragslinjer: List<Utbetalingslinje>): Utbetaling {

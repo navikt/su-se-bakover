@@ -1,11 +1,10 @@
-package no.nav.su.se.bakover.domain.utbetaling.stans
+package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.capture
 import com.nhaarman.mockitokotlin2.doAnswer
-import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -23,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -45,46 +43,6 @@ internal class StansUtbetalingServiceTest {
     @Test
     fun `stans utbetalinger`() {
         val setup = Setup()
-
-        val utbetalingPersistenceObserverMock = mock<UtbetalingPersistenceObserver> {
-            on {
-                addOppdragsmelding(
-                    any(), // TODO: utbetalingsid blir generert statisk, så vi har ingen måte å styre den på atm.
-                    eq(setup.oppdragsmeldingSendt)
-                )
-            } doReturn setup.oppdragsmeldingSendt
-
-            on {
-                addSimulering(
-                    any(),
-                    any()
-                )
-            } doAnswer(
-                Answer { invocation ->
-                    // TODO: Se om vi kan snoke ut utbetalingId og teste den...
-                    val actualSimulering: Simulering = invocation!!.getArgument(1)
-                    actualSimulering shouldBe setup.nySimulering
-                }
-                )
-        }
-
-        val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
-
-            on {
-                opprettUtbetaling(eq(setup.oppdragId), any())
-            } doAnswer (
-                Answer { invocation ->
-                    val actualUtbetaling: Utbetaling = invocation!!.getArgument(1)
-                    actualUtbetaling shouldBe setup.forventetUtbetaling(actualUtbetaling)
-                    actualUtbetaling.apply {
-                        addObserver(utbetalingPersistenceObserverMock)
-                    }
-                }
-                )
-
-            on { hentFnr(setup.sakId) } doReturn setup.fnr
-        }
-
         val capturedSimuleringArgument = ArgumentCaptor.forClass(NyUtbetaling::class.java)
         val simuleringClientMock = mock<SimuleringClient> {
             on {
@@ -96,6 +54,30 @@ internal class StansUtbetalingServiceTest {
                     setup.nySimulering.right()
                 }
                 )
+        }
+
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
+        val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+            } doAnswer { capturedOpprettUtbetaling.value }
+            on {
+                addSimulering(any(), capture<Simulering>(capturedAddSimulering))
+            } doAnswer {
+                capturedOpprettUtbetaling.value.copy(
+                    simulering = capturedAddSimulering.value
+                )
+            }
+            on {
+                addOppdragsmelding(any(), capture<Oppdragsmelding>(capturedAddOppdragsmelding))
+            } doAnswer {
+                capturedOpprettUtbetaling.value.copy(
+                    simulering = capturedAddSimulering.value,
+                    oppdragsmelding = capturedAddOppdragsmelding.value
+                )
+            }
         }
 
         val capturedUtbetalingArgument = ArgumentCaptor.forClass(NyUtbetaling::class.java)
@@ -117,12 +99,9 @@ internal class StansUtbetalingServiceTest {
         val service = StansUtbetalingService(
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
-            utbetalingPublisher = publisherMock
+            utbetalingPublisher = publisherMock,
+            utbetalingService = utbetalingServiceMock
         )
-
-        setup.eksisterendeSak.oppdrag.apply {
-            addObserver(oppdragPersistenceObserverMock)
-        }
 
         val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
 
@@ -132,27 +111,18 @@ internal class StansUtbetalingServiceTest {
             setup.oppdragsmeldingSendt
         ).right()
 
-        verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
-        verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
         verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
         verify(publisherMock, Times(1)).publish(any())
+        verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
+        verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
+        verify(utbetalingServiceMock, Times(1)).addOppdragsmelding(any(), any())
 
-        verifyNoMoreInteractions(utbetalingPersistenceObserverMock, oppdragPersistenceObserverMock, simuleringClientMock, publisherMock)
+        verifyNoMoreInteractions(simuleringClientMock, publisherMock, utbetalingServiceMock)
     }
 
     @Test
     fun `Sjekk at vi svarer furnuftig når simulering feiler`() {
         val setup = Setup()
-
-        val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
-            on { hentFnr(setup.sakId) } doReturn setup.fnr
-        }.also {
-            setup.eksisterendeSak.oppdrag.apply {
-                addObserver(it)
-            }
-        }
 
         val simuleringClientMock = mock<SimuleringClient> {
             on {
@@ -164,50 +134,27 @@ internal class StansUtbetalingServiceTest {
                 )
         }
 
+        val utbetalingServiceMock: UtbetalingService = mock()
+
         val service = StansUtbetalingService(
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
-            utbetalingPublisher = mock()
+            utbetalingPublisher = mock(),
+            utbetalingService = utbetalingServiceMock
         )
 
         val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
         verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
 
-        verifyNoMoreInteractions(oppdragPersistenceObserverMock, simuleringClientMock)
+        verifyNoMoreInteractions(simuleringClientMock, utbetalingServiceMock)
     }
 
     @Test
     fun `Sjekk at vi svarer furnuftig når publisering feiler`() {
         val setup = Setup()
-
-        val utbetalingPersistenceObserverMock = mock<UtbetalingPersistenceObserver> {
-            on {
-                addOppdragsmelding(
-                    any(),
-                    any()
-                )
-            } doReturn setup.oppdragsmeldingSendt
-        }
-
-        val oppdragPersistenceObserverMock = mock<Oppdrag.OppdragPersistenceObserver> {
-            on { hentFnr(setup.sakId) } doReturn setup.fnr
-
-            on {
-                opprettUtbetaling(eq(setup.oppdragId), any())
-            } doAnswer (
-                Answer { invocation ->
-                    val actualUtbetaling: Utbetaling = invocation!!.getArgument(1)
-                    actualUtbetaling.apply {
-                        addObserver(utbetalingPersistenceObserverMock)
-                    }
-                }
-                )
-        }
-
         val simuleringClientMock = mock<SimuleringClient> {
             on {
                 simulerUtbetaling(any())
@@ -216,6 +163,21 @@ internal class StansUtbetalingServiceTest {
                     setup.nySimulering.right()
                 }
                 )
+        }
+
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+            } doAnswer { capturedOpprettUtbetaling.value }
+            on {
+                addSimulering(any(), capture<Simulering>(capturedAddSimulering))
+            } doAnswer {
+                capturedOpprettUtbetaling.value.copy(
+                    simulering = capturedAddSimulering.value
+                )
+            }
         }
 
         val publisherMock = mock<UtbetalingPublisher> {
@@ -231,25 +193,21 @@ internal class StansUtbetalingServiceTest {
         val service = StansUtbetalingService(
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
-            utbetalingPublisher = publisherMock
+            utbetalingPublisher = publisherMock,
+            utbetalingService = utbetalingServiceMock
         )
-
-        setup.eksisterendeSak.oppdrag.apply {
-            addObserver(oppdragPersistenceObserverMock)
-        }
 
         val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(utbetalingPersistenceObserverMock, Times(1)).addOppdragsmelding(any(), any())
-        verify(utbetalingPersistenceObserverMock, Times(1)).addSimulering(any(), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
-        verify(oppdragPersistenceObserverMock, Times(1)).hentFnr(any())
         verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
         verify(publisherMock, Times(1)).publish(any())
+        verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
+        verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
+        verify(utbetalingServiceMock, Times(1)).addOppdragsmelding(any(), any())
 
-        verifyNoMoreInteractions(utbetalingPersistenceObserverMock, oppdragPersistenceObserverMock, simuleringClientMock, publisherMock)
+        verifyNoMoreInteractions(simuleringClientMock, publisherMock, utbetalingServiceMock)
     }
 
     private data class Setup(

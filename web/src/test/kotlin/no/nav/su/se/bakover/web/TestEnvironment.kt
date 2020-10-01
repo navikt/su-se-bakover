@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
-import com.nhaarman.mockitokotlin2.mock
 import io.ktor.application.Application
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import java.util.Base64
@@ -51,7 +49,6 @@ internal fun Application.testSusebakover(
     jwkProvider: JwkProvider = JwkProviderStub,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
     authenticationHttpClient: HttpClient = authenticationHttpClient(),
-    stansUtbetalingService: StansUtbetalingService = mock(),
     services: Services = ServiceBuilder( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients
@@ -62,7 +59,6 @@ internal fun Application.testSusebakover(
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        stansUtbetalingService = stansUtbetalingService,
         services = services
     )
 }

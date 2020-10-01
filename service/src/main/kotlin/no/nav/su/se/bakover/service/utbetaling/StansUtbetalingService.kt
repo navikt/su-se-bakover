@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.utbetaling.stans
+package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService.ValidertStansUtbetaling.Companion.validerStansUtbetaling
+import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService.ValidertStansUtbetaling.Companion.validerStansUtbetaling
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -23,7 +23,8 @@ import java.time.temporal.TemporalAdjusters
 class StansUtbetalingService(
     private val simuleringClient: SimuleringClient,
     private val clock: Clock = Clock.systemUTC(),
-    private val utbetalingPublisher: UtbetalingPublisher
+    private val utbetalingPublisher: UtbetalingPublisher,
+    private val utbetalingService: UtbetalingService
 ) {
     object KunneIkkeStanseUtbetalinger
 
@@ -46,36 +47,42 @@ class StansUtbetalingService(
                     tom = stansesTilOgMed,
                     beløp = 0,
                 )
-            )
+            ),
+            fnr = sak.fnr
         )
-        val nyUtbetaling = NyUtbetaling(
+        val utbetalingForSimulering = NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
             attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
         )
-        simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
+        val simulertUtbetaling = simuleringClient.simulerUtbetaling(utbetalingForSimulering).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulering ->
                 if (simulering.nettoBeløp != 0) {
                     log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, men nettobeløp i simulering var ${simulering.nettoBeløp}")
                     return KunneIkkeStanseUtbetalinger.left()
                 }
-                sak.oppdrag.leggTilUtbetaling(utbetaling)
-                utbetaling.addSimulering(simulering)
+                utbetalingService.opprettUtbetaling(sak.oppdrag.id, utbetaling)
+                utbetalingService.addSimulering(utbetaling.id, simulering)
             }
         )
 
         // TODO Her kan vi legge inn transaksjon
-
-        return utbetalingPublisher.publish(nyUtbetaling).fold(
+        return utbetalingPublisher.publish(
+            utbetalingForSimulering.copy(
+                utbetaling = simulertUtbetaling
+            )
+        ).fold(
             {
                 log.error("Stansutbetaling feilet ved publisering av utbetaling")
-                utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmeldingstatus.FEIL, it.originalMelding))
+                utbetalingService.addOppdragsmelding(
+                    utbetaling.id,
+                    Oppdragsmelding(Oppdragsmeldingstatus.FEIL, it.originalMelding)
+                )
                 KunneIkkeStanseUtbetalinger.left()
             },
             {
-                utbetaling.addOppdragsmelding(it)
-                utbetaling.right()
+                utbetalingService.addOppdragsmelding(utbetaling.id, it).right()
             }
         )
     }
