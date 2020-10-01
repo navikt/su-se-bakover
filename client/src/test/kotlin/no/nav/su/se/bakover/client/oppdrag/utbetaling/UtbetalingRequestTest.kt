@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -126,9 +127,9 @@ internal class UtbetalingRequestTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456")
+                attestant = Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
             ),
-            tidspunkt = 1.januar(2020).startOfDay()
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -184,9 +185,9 @@ internal class UtbetalingRequestTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456")
+                attestant = Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
             ),
-            tidspunkt = 1.januar(2020).startOfDay()
         )
 
         utbetalingRequest shouldBe UtbetalingRequest(

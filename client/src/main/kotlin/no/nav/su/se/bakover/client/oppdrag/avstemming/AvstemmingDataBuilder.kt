@@ -15,8 +15,8 @@ class AvstemmingDataBuilder(
                 aksjonType = Aksjonsdata.AksjonType.DATA,
                 kildeType = Aksjonsdata.KildeType.AVLEVERT,
                 avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
-                nokkelFom = "${Avstemmingsnøkkel.generer(avstemming.fraOgMed)}",
-                nokkelTom = "${Avstemmingsnøkkel.generer(avstemming.tilOgMed)}",
+                nokkelFom = "${Avstemmingsnøkkel(avstemming.fraOgMed).nøkkel}",
+                nokkelTom = "${Avstemmingsnøkkel(avstemming.tilOgMed).nøkkel}",
                 avleverendeAvstemmingId = avstemming.id.toString()
             ),
             total = AvstemmingDataRequest.Totaldata(

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -28,8 +29,7 @@ class UtbetalingXmlMappingTest {
         assertThat(
             XmlMapper.writeValueAsString(
                 toUtbetalingRequest(
-                    nyUtbetaling = nyUtbetaling,
-                    tidspunkt = 1.januar(2020).startOfDay()
+                    nyUtbetaling = nyUtbetaling
                 )
             ),
             isSimilarTo(expected).withNodeMatcher(nodeMatcher)
@@ -65,7 +65,8 @@ class UtbetalingXmlMappingTest {
     private val nyUtbetaling = NyUtbetaling(
         oppdrag = oppdrag,
         utbetaling = utbetaling,
-        attestant = Attestant("A123456")
+        attestant = Attestant("A123456"),
+        avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
     )
 
     private val expected =

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -312,7 +313,8 @@ internal class StansUtbetalingServiceTest {
         ) = NyUtbetaling(
             oppdrag = eksisterendeOppdrag,
             utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding),
-            attestant = attestant
+            attestant = attestant,
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
         /**

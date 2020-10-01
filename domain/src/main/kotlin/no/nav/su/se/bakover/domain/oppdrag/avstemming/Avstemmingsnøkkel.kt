@@ -6,10 +6,19 @@ import no.nav.su.se.bakover.common.startOfDay
 import java.time.LocalDate
 import kotlin.math.pow
 
-object Avstemmingsnøkkel {
-    // Avoid Utils.now() because of truncation to millis.
-    fun generer(tidspunkt: Tidspunkt = Tidspunkt.now()) =
-        tidspunkt.instant.epochSecond * 10.0.pow(9).toLong() + tidspunkt.nano
+data class Avstemmingsnøkkel(
+    val tidspunkt: Tidspunkt = Tidspunkt.now()
+) {
+    val nøkkel = generer(tidspunkt)
 
-    fun periode(fraOgMed: LocalDate, tilOgMed: LocalDate) = generer(fraOgMed.startOfDay())..generer(tilOgMed.endOfDay())
+    companion object {
+
+        private fun generer(tidspunkt: Tidspunkt = Tidspunkt.now()) =
+            tidspunkt.instant.epochSecond * 10.0.pow(9).toLong() + tidspunkt.nano
+
+        fun periode(fraOgMed: LocalDate, tilOgMed: LocalDate) =
+            generer(fraOgMed.startOfDay())..generer(tilOgMed.endOfDay())
+    }
+
+    override fun toString() = nøkkel.toString()
 }
