@@ -7,13 +7,18 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.LocalDate
 import java.util.UUID
@@ -25,7 +30,8 @@ internal class BehandlingServiceImpl(
     private val objectRepo: ObjectRepo, // TODO dont use
     private val oppdragRepo: OppdragRepo,
     private val simuleringClient: SimuleringClient,
-    private val utbetalingService: UtbetalingService // TODO use services or repos? probably services
+    private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
+    private val oppgaveClient: OppgaveClient
 ) : BehandlingService {
 
     override fun underkjenn(
@@ -87,5 +93,25 @@ internal class BehandlingServiceImpl(
                 behandlingRepo.oppdaterBehandlingStatus(behandling.id, oppdatert.status())
                 return objectRepo.hentBehandling(behandlingId)!!.right() // TODO dont use
             }
+    }
+
+    override fun sendTilAttestering(
+        behandlingId: UUID,
+        aktørId: AktørId,
+        saksbehandler: Saksbehandler
+    ): Either<KunneIkkeOppretteOppgave, Behandling> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)!!
+        return oppgaveClient.opprettOppgave(
+            OppgaveConfig.Attestering(
+                behandling.sakId.toString(),
+                aktørId = aktørId
+            )
+        ).map {
+            behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
+            val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
+            oppdatert.sendTilAttestering(aktørId, saksbehandler)
+            behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
+            objectRepo.hentBehandling(behandlingId)!! // TODO dont use
+        }
     }
 }

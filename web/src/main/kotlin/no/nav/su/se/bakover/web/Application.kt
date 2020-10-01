@@ -223,7 +223,6 @@ internal fun Application.susebakover(
                     dokDistFordeling = clients.dokDistFordeling
                 ),
                 personOppslag = clients.personOppslag,
-                oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 behandlingService = services.behandlingService
             )

@@ -13,7 +13,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -315,7 +314,7 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandlingService.simuler(objects.behandling.id).fold(
                 { it },
-                { it.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("randomoid")) }
+                { services.behandlingService.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("randomoid")) }
             )
 
             defaultRequest(
@@ -398,7 +397,7 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandlingService.simuler(objects.behandling.id).fold(
                 { it },
-                { it.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456oid")) }
+                { services.behandlingService.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456oid")) }
             )
 
             defaultRequest(
@@ -527,7 +526,7 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandlingService.simuler(objects.behandling.id).fold(
                 { it },
-                { it.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456")) }
+                { services.behandlingService.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456")) }
             )
 
             requestSomAttestant(

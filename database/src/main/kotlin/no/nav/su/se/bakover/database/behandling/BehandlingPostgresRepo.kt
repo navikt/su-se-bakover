@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehan
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import java.util.UUID
 import javax.sql.DataSource
@@ -56,6 +57,16 @@ internal class BehandlingPostgresRepo(
             mapOf(
                 "id" to behandlingId,
                 "utbetalingId" to utbetalingId
+            )
+        )
+        return hentBehandling(behandlingId)!!
+    }
+
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Behandling {
+        "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "saksbehandler" to saksbehandler.id
             )
         )
         return hentBehandling(behandlingId)!!

@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -48,7 +47,6 @@ internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
     brevService: BrevService,
     personOppslag: PersonOppslag,
-    oppgaveClient: OppgaveClient,
     utbetalingPublisher: UtbetalingPublisher,
     behandlingService: BehandlingService,
 ) {
@@ -160,7 +158,7 @@ internal fun Route.behandlingRoutes(
             }
             val saksBehandler = Saksbehandler(call.lesBehandlerId())
 
-            behandling.sendTilAttestering(aktørId, oppgaveClient, saksBehandler).fold(
+            behandlingService.sendTilAttestering(behandling.id, aktørId, saksBehandler).fold(
                 {
                     call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
                 },

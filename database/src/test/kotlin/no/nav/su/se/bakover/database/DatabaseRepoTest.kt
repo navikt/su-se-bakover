@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -90,20 +89,6 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.attestant() shouldBe attestant
-        }
-    }
-
-    @Test
-    fun `saksbehandle behandling`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-
-            val saksbehandler = repo.settSaksbehandler(behandling.id, Saksbehandler("Per"))
-            val hentet = repo.hentBehandling(behandling.id)!!
-
-            hentet.saksbehandler() shouldBe saksbehandler
         }
     }
 

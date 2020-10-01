@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -17,9 +16,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import java.time.LocalDate
 import java.util.UUID
 
@@ -109,10 +105,9 @@ data class Behandling(
 
     fun sendTilAttestering(
         aktørId: AktørId,
-        oppgave: OppgaveClient,
         saksbehandler: Saksbehandler
-    ): Either<KunneIkkeOppretteOppgave, Behandling> {
-        return tilstand.sendTilAttestering(aktørId, oppgave, saksbehandler)
+    ): Behandling {
+        return tilstand.sendTilAttestering(aktørId, saksbehandler)
     }
 
     fun iverksett(
@@ -150,9 +145,8 @@ data class Behandling(
 
         fun sendTilAttestering(
             aktørId: AktørId,
-            oppgave: OppgaveClient,
             saksbehandler: Saksbehandler
-        ): Either<KunneIkkeOppretteOppgave, Behandling> {
+        ): Behandling {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
@@ -233,22 +227,17 @@ data class Behandling(
 
             override fun sendTilAttestering(
                 aktørId: AktørId,
-                oppgave: OppgaveClient,
                 saksbehandler: Saksbehandler,
-            ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
-                OppgaveConfig.Attestering(
-                    sakId = sakId.toString(),
-                    aktørId = aktørId
-                )
-            ).map {
-                this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
-                nyTilstand(TilAttestering().Avslag())
-                this@Behandling
+            ): Behandling {
+                this@Behandling.saksbehandler = saksbehandler
+                tilstand = TilAttestering().Avslag()
+                this@Behandling.status = tilstand.status
+                return this@Behandling
             }
         }
     }
 
-    private inner class Beregnet : Tilstand {
+    private inner class Beregnet : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
@@ -273,17 +262,12 @@ data class Behandling(
 
         override fun sendTilAttestering(
             aktørId: AktørId,
-            oppgave: OppgaveClient,
             saksbehandler: Saksbehandler
-        ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
-            OppgaveConfig.Attestering(
-                sakId = sakId.toString(),
-                aktørId = aktørId
-            )
-        ).map {
-            this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
-            nyTilstand(TilAttestering().Innvilget())
-            this@Behandling
+        ): Behandling {
+            this@Behandling.saksbehandler = saksbehandler
+            tilstand = TilAttestering().Innvilget()
+            this@Behandling.status = tilstand.status
+            return this@Behandling
         }
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
@@ -409,6 +393,4 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
     fun attester(behandlingId: UUID, attestant: Attestant): Attestant
-    fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler
-    fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)
 }

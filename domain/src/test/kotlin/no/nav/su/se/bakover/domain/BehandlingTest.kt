@@ -32,9 +32,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -179,7 +176,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 opprettet.sendTilAttestering(
                     aktørId,
-                    OppgaveClientStub,
                     Saksbehandler("S123456")
                 )
             }
@@ -239,7 +235,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.sendTilAttestering(
                     aktørId,
-                    OppgaveClientStub,
                     Saksbehandler("S123456")
                 )
             }
@@ -268,7 +263,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+            vilkårsvurdert.sendTilAttestering(aktørId, saksbehandler)
             vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
 
             vilkårsvurdert.saksbehandler() shouldBe saksbehandler
@@ -337,7 +332,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 beregnet.sendTilAttestering(
                     aktørId,
-                    OppgaveClientStub,
                     Saksbehandler("S123456")
                 )
             }
@@ -369,7 +363,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            simulert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+            simulert.sendTilAttestering(aktørId, saksbehandler)
 
             simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
             simulert.saksbehandler() shouldBe saksbehandler
@@ -458,10 +452,9 @@ internal class BehandlingTest {
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             tilAttestering.simuler(defaultUtbetaling())
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
 
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
@@ -516,7 +509,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             }
         }
     }
@@ -531,9 +524,8 @@ internal class BehandlingTest {
             tilAttestering.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
@@ -551,7 +543,6 @@ internal class BehandlingTest {
         fun `skal kunne iverksette`() {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe IVERKSATT_AVSLAG
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
@@ -563,7 +554,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             }
         }
     }
@@ -574,7 +565,6 @@ internal class BehandlingTest {
         UtbetalingPersistenceObserver {
         lateinit var oppdatertStatus: BehandlingsStatus
         lateinit var oppdragsmelding: Oppdragsmelding
-        lateinit var slettetUtbetaling: Utbetaling
 
         override fun oppdaterBehandlingStatus(
             behandlingId: UUID,
@@ -592,15 +582,8 @@ internal class BehandlingTest {
             return Fnr("12345678910")
         }
 
-        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
-            return saksbehandler
-        }
-
         override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
             return attestant
-        }
-
-        override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         }
 
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
@@ -613,12 +596,6 @@ internal class BehandlingTest {
         override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
             this.oppdragsmelding = oppdragsmelding
             return this.oppdragsmelding
-        }
-    }
-
-    object OppgaveClientStub : OppgaveClient {
-        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
-            return Either.right(1L)
         }
     }
 

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
@@ -235,27 +234,6 @@ internal class DatabaseRepo(
             )
         )
         return attestant
-    }
-
-    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
-        "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
-            mapOf(
-                "id" to behandlingId,
-                "saksbehandler" to saksbehandler.id
-            )
-        )
-        return saksbehandler
-    }
-
-    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
-        """
-            update behandling set utbetalingId=:utbetalingId where id=:id
-        """.oppdatering(
-            mapOf(
-                "id" to behandlingId,
-                "utbetalingId" to utbetalingId
-            )
-        )
     }
 
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
