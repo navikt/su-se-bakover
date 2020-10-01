@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_INVILGET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
@@ -227,7 +227,7 @@ internal class BehandlingTest {
         @Test
         fun `legal operations`() {
             vilkårsvurdert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            vilkårsvurdert.status() shouldBe BEREGNET_INVILGET
+            vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
@@ -305,7 +305,7 @@ internal class BehandlingTest {
                 fradrag = listOf(Fradrag(UUID.randomUUID(), Fradragstype.Arbeidsinntekt, inntektSomGerMinstebeløp))
             )
 
-            vilkårsvurdert.status() shouldBe BEREGNET_INVILGET
+            vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
             vilkårsvurdert.beregning() shouldNotBe null
         }
 
@@ -379,7 +379,7 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe BEREGNET_INVILGET
+            beregnet.status() shouldBe BEREGNET_INNVILGET
             observer.oppdatertStatus shouldBe beregnet.status()
         }
 
@@ -411,7 +411,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne beregne på nytt`() {
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe BEREGNET_INVILGET
+            beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
@@ -455,7 +455,7 @@ internal class BehandlingTest {
             @Test
             fun `skal kunne beregne på nytt`() {
                 beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-                beregnet.status() shouldBe BEREGNET_INVILGET
+                beregnet.status() shouldBe BEREGNET_INNVILGET
             }
 
             @Test
@@ -518,7 +518,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne beregne på nytt`() {
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.status() shouldBe BEREGNET_INVILGET
+            simulert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
