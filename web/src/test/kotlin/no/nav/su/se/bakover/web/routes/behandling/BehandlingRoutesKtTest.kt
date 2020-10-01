@@ -52,7 +52,6 @@ import java.util.UUID
 internal class BehandlingRoutesKtTest {
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val repo = repos.objectRepo
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build()
@@ -545,7 +544,7 @@ internal class BehandlingRoutesKtTest {
     )
 
     private fun setup(): Objects {
-        val sak = repo.opprettSak(FnrGenerator.random())
+        val sak = repos.sakRepo.opprettSak(FnrGenerator.random())
         val søknad = repos.søknadRepo.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         sak.nySøknad(søknad) // TODO temporary
         val behandling = repos.behandlingRepo.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))

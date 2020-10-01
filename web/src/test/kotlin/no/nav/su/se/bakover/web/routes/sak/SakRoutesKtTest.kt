@@ -13,7 +13,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -30,7 +29,6 @@ internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
     val fnr = Fnr(sakFnr01)
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val repo: ObjectRepo = repos.objectRepo
     private val søknadRepo = repos.søknadRepo
 
     @Test
@@ -42,7 +40,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId = repo.opprettSak(Fnr(sakFnr01)).id
+            val opprettetSakId = repos.sakRepo.opprettSak(Fnr(sakFnr01)).id
 
             defaultRequest(Get, "$sakPath/$opprettetSakId").apply {
                 assertEquals(OK, response.status())
@@ -60,7 +58,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            repo.opprettSak(Fnr(sakFnr01))
+            repos.sakRepo.opprettSak(Fnr(sakFnr01))
 
             defaultRequest(Get, "$sakPath/?fnr=$sakFnr01").apply {
                 assertEquals(OK, response.status())
@@ -99,7 +97,7 @@ internal class SakRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
 
-        val nySak = repo.opprettSak(fnr)
+        val nySak = repos.sakRepo.opprettSak(fnr)
         val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
         søknadRepo.opprettSøknad(nySak.id, søknad)
         val nySøknad = nySak.nySøknad(søknad)

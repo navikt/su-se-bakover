@@ -18,4 +18,8 @@ internal class SakServiceImpl(
     override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
     }
+
+    override fun opprettSak(fnr: Fnr): Sak {
+        return sakRepo.opprettSak(fnr)
+    }
 }

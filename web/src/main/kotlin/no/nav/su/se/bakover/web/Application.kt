@@ -108,7 +108,6 @@ internal fun Application.susebakover(
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
 
     val søknadRoutesMediator = SøknadRouteMediator(
-        repo = databaseRepos.objectRepo,
         pdfGenerator = clients.pdfGenerator,
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,

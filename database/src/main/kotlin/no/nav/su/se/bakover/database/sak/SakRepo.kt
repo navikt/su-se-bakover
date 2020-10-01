@@ -7,4 +7,5 @@ import java.util.UUID
 interface SakRepo {
     fun hentSak(sakId: UUID): Sak?
     fun hentSak(fnr: Fnr): Sak?
+    fun opprettSak(fnr: Fnr): Sak
 }

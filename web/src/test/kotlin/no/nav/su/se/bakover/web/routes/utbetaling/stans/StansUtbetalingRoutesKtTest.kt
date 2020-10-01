@@ -69,7 +69,6 @@ internal class StansUtbetalingRoutesKtTest {
         withTestApplication({
             val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
-                    objectRepo = mock(),
                     avstemmingRepo = mock(),
                     utbetalingRepo = mock(),
                     oppdragRepo = mock(),
@@ -108,7 +107,6 @@ internal class StansUtbetalingRoutesKtTest {
         withTestApplication({
             val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
-                    objectRepo = mock(),
                     avstemmingRepo = mock(),
                     utbetalingRepo = mock(),
                     oppdragRepo = mock(),

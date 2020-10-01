@@ -33,9 +33,7 @@ object DatabaseBuilder {
         Flyway(abstractDatasource.getDatasource(Postgres.Role.Admin), databaseName).migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        val objectRepo = DatabaseRepo(userDatastore)
         return DatabaseRepos(
-            objectRepo = objectRepo,
             avstemmingRepo = AvstemmingPostgresRepo(userDatastore),
             utbetalingRepo = UtbetalingPostgresRepo(userDatastore),
             oppdragRepo = OppdragPostgresRepo(userDatastore),
@@ -49,9 +47,7 @@ object DatabaseBuilder {
 
     fun build(embeddedDatasource: DataSource): DatabaseRepos {
         Flyway(embeddedDatasource, "postgres").migrate()
-        val objectRepo = DatabaseRepo(embeddedDatasource)
         return DatabaseRepos(
-            objectRepo = objectRepo,
             avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource),
             utbetalingRepo = UtbetalingPostgresRepo(embeddedDatasource),
             oppdragRepo = OppdragPostgresRepo(embeddedDatasource),
@@ -65,7 +61,6 @@ object DatabaseBuilder {
 }
 
 data class DatabaseRepos(
-    val objectRepo: ObjectRepo,
     val avstemmingRepo: AvstemmingRepo,
     val utbetalingRepo: UtbetalingRepo,
     val oppdragRepo: OppdragRepo,

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Behandling
@@ -23,14 +24,14 @@ import javax.sql.DataSource
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance()
 ) {
-    private val objectRepo = DatabaseRepo(dataSource)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val beregningRepo = BeregningPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
     private val behandlingRepo = BehandlingPostgresRepo(dataSource)
+    private val sakRepo = SakPostgresRepo(dataSource)
 
-    fun insertSak(fnr: Fnr) = objectRepo.opprettSak(fnr)
+    fun insertSak(fnr: Fnr) = sakRepo.opprettSak(fnr)
     fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling =
         utbetaling.also { utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling) }
 
