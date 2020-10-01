@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehan
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -47,7 +46,6 @@ internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
     brevService: BrevService,
     personOppslag: PersonOppslag,
-    utbetalingPublisher: UtbetalingPublisher,
     behandlingService: BehandlingService,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
@@ -183,7 +181,7 @@ internal fun Route.behandlingRoutes(
             brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                 ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                 ifRight = {
-                    behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
+                    behandlingService.iverksett(behandlingId = behandling.id, attestant = Attestant(id = call.lesBehandlerId())).fold(
                         {
                             when (it) {
                                 is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))

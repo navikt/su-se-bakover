@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import org.junit.jupiter.api.Test
@@ -65,6 +66,20 @@ internal class BehandlingPostgresRepoTest {
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler.saksbehandler()
+        }
+    }
+
+    @Test
+    fun `attesterer behandling`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = testDataHelper.insertSøknad(sak.id)
+            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+
+            val attestant = repo.attester(behandling.id, Attestant("kjella"))
+            val hentet = repo.hentBehandling(behandling.id)!!
+
+            hentet.attestant() shouldBe attestant.attestant()
         }
     }
 }

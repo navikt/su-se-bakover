@@ -18,4 +18,5 @@ interface BehandlingService {
     fun opprettBeregning(behandlingId: UUID, fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>): Behandling
     fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling>
     fun sendTilAttestering(behandlingId: UUID, aktørId: AktørId, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling>
+    fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
 }

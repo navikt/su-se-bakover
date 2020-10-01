@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -67,6 +68,16 @@ internal class BehandlingPostgresRepo(
             mapOf(
                 "id" to behandlingId,
                 "saksbehandler" to saksbehandler.id
+            )
+        )
+        return hentBehandling(behandlingId)!!
+    }
+
+    override fun attester(behandlingId: UUID, attestant: Attestant): Behandling {
+        "update behandling set attestant = :attestant where id=:id".oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "attestant" to attestant.id
             )
         )
         return hentBehandling(behandlingId)!!

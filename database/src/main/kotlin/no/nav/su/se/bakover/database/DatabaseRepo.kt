@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehan
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandlingerForSak
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknaderInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
@@ -224,16 +223,6 @@ internal class DatabaseRepo(
                 Fnr(it.string("fnr"))
             }!!
         }
-    }
-
-    override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-        "update behandling set attestant = :attestant where id=:id".oppdatering(
-            mapOf(
-                "id" to behandlingId,
-                "attestant" to attestant.id
-            )
-        )
-        return attestant
     }
 
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {

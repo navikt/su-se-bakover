@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
@@ -75,20 +74,6 @@ internal class DatabaseRepoTest {
             val hentet = repo.hentBehandling(behandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus
-        }
-    }
-
-    @Test
-    fun `attesterer behandling`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val søknad = insertSøknad(sak.id)
-            val behandling = insertBehandling(sak.id, søknad)
-
-            val attestant = repo.attester(behandling.id, Attestant("kjella"))
-            val hentet = repo.hentBehandling(behandling.id)!!
-
-            hentet.attestant() shouldBe attestant
         }
     }
 

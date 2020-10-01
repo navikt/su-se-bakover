@@ -14,8 +14,10 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -31,7 +33,8 @@ internal class BehandlingServiceImpl(
     private val oppdragRepo: OppdragRepo,
     private val simuleringClient: SimuleringClient,
     private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
-    private val oppgaveClient: OppgaveClient
+    private val oppgaveClient: OppgaveClient,
+    private val utbetalingPublisher: UtbetalingPublisher
 ) : BehandlingService {
 
     override fun underkjenn(
@@ -112,6 +115,41 @@ internal class BehandlingServiceImpl(
             oppdatert.sendTilAttestering(aktørId, saksbehandler)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
             objectRepo.hentBehandling(behandlingId)!! // TODO dont use
+        }
+    }
+
+    override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)!!
+        val utbetaling = behandling.utbetaling()!!
+        return utbetalingPublisher.publish(
+            NyUtbetaling(
+                oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
+                utbetaling = utbetaling,
+                attestant = attestant
+            )
+        ).mapLeft {
+            utbetalingService.addOppdragsmelding(
+                utbetaling.id,
+                Oppdragsmelding(
+                    Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                    it.originalMelding,
+                    it.tidspunkt
+                )
+            )
+            Behandling.IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
+        }.map { oppdragsmelding ->
+            utbetalingService.addOppdragsmelding(
+                utbetaling.id,
+                oppdragsmelding
+            )
+            val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
+            return oppdatert.iverksett(attestant)
+                .mapLeft { it }
+                .map {
+                    behandlingRepo.attester(behandlingId, attestant)
+                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
+                    objectRepo.hentBehandling(behandlingId)!!
+                }
         }
     }
 }

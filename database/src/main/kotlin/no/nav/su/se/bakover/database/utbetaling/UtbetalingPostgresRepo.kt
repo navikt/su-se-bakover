@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -57,6 +58,16 @@ internal class UtbetalingPostgresRepo(
             mapOf(
                 "id" to utbetalingId,
                 "simulering" to objectMapper.writeValueAsString(simulering)
+            )
+        )
+        return hentUtbetaling(utbetalingId)!!
+    }
+
+    override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling {
+        "update utbetaling set oppdragsmelding = to_json(:oppdragsmelding::json) where id = :id".oppdatering(
+            mapOf(
+                "id" to utbetalingId,
+                "oppdragsmelding" to objectMapper.writeValueAsString(oppdragsmelding)
             )
         )
         return hentUtbetaling(utbetalingId)!!

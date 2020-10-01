@@ -36,7 +36,8 @@ class ServiceBuilder(
                 oppdragRepo = databaseRepos.oppdragRepo,
                 simuleringClient = clients.simuleringClient,
                 utbetalingService = utbetalingService,
-                oppgaveClient = clients.oppgaveClient
+                oppgaveClient = clients.oppgaveClient,
+                utbetalingPublisher = clients.utbetalingPublisher
             )
         )
     }

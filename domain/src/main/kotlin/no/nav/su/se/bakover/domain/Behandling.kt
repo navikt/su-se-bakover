@@ -10,12 +10,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import java.time.LocalDate
 import java.util.UUID
 
@@ -111,10 +108,9 @@ data class Behandling(
     }
 
     fun iverksett(
-        attestant: Attestant,
-        publisher: UtbetalingPublisher
+        attestant: Attestant
     ): Either<IverksettFeil, Behandling> {
-        return tilstand.iverksett(attestant, publisher)
+        return tilstand.iverksett(attestant)
     }
 
     fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
@@ -151,8 +147,7 @@ data class Behandling(
         }
 
         fun iverksett(
-            attestant: Attestant,
-            publish: UtbetalingPublisher
+            attestant: Attestant
         ): Either<IverksettFeil, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
@@ -288,49 +283,29 @@ data class Behandling(
 
         inner class Innvilget : TilAttestering() {
             override fun iverksett(
-                attestant: Attestant,
-                publish: UtbetalingPublisher
+                attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.id == this@Behandling.saksbehandler?.id) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
-
-                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                return publish.publish(
-                    NyUtbetaling(
-                        oppdrag = persistenceObserver.hentOppdrag(sakId),
-                        utbetaling = utbetaling!!,
-                        attestant = attestant
-                    )
-                ).mapLeft {
-                    utbetaling!!.addOppdragsmelding(
-                        Oppdragsmelding(
-                            Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                            it.originalMelding,
-                            it.tidspunkt
-                        )
-                    )
-                    IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
-                }.map {
-                    utbetaling!!.addOppdragsmelding(it)
-                    nyTilstand(Iverksatt().Innvilget())
-                    this@Behandling
-                }
+                this@Behandling.attestant = attestant
+                tilstand = Iverksatt().Innvilget()
+                this@Behandling.status = tilstand.status
+                return this@Behandling.right()
             }
         }
 
         inner class Avslag : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             override fun iverksett(
-                attestant: Attestant,
-                publish: UtbetalingPublisher
+                attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.id == this@Behandling.saksbehandler?.id) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
-
-                this@Behandling.attestant = persistenceObserver.attester(id, attestant)
-                nyTilstand(Iverksatt().Avslag())
+                this@Behandling.attestant = attestant
+                tilstand = Iverksatt().Avslag()
+                this@Behandling.status = tilstand.status
                 return this@Behandling.right()
             }
         }
@@ -341,12 +316,13 @@ data class Behandling(
             }
 
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
-            nyTilstand(Simulert())
+            tilstand = Simulert()
+            this@Behandling.status = tilstand.status
             return this@Behandling.right()
         }
     }
 
-    private open inner class Iverksatt : Tilstand {
+    private open inner class Iverksatt : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         inner class Innvilget : Iverksatt()
@@ -392,5 +368,4 @@ interface BehandlingPersistenceObserver : PersistenceObserver {
 
     fun hentOppdrag(sakId: UUID): Oppdrag
     fun hentFnr(sakId: UUID): Fnr
-    fun attester(behandlingId: UUID, attestant: Attestant): Attestant
 }

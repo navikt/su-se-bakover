@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.LoggerFactory
@@ -42,5 +43,9 @@ internal class UtbetalingServiceImpl(
 
     override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Utbetaling {
         return repo.addSimulering(utbetalingId, simulering)
+    }
+
+    override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling {
+        return repo.addOppdragsmelding(utbetalingId, oppdragsmelding)
     }
 }

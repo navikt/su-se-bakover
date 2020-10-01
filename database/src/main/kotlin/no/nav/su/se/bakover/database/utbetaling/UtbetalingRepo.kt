@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
@@ -11,4 +12,5 @@ interface UtbetalingRepo {
     fun slettUtbetaling(utbetaling: Utbetaling)
     fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Utbetaling
+    fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling
 }

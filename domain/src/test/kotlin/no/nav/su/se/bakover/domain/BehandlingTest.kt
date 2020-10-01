@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain
 
-import arrow.core.Either
-import arrow.core.right
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -9,7 +7,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -25,13 +22,11 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -181,8 +176,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 opprettet.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -240,8 +234,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -287,7 +280,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(defaultUtbetaling()) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+                vilkårsvurdert.iverksett(Attestant("A123456"))
             }
         }
     }
@@ -337,8 +330,7 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 beregnet.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -403,8 +395,7 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
                 simulert.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -459,7 +450,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
+            tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
@@ -468,37 +459,11 @@ internal class BehandlingTest {
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
 
-        // @Test //TODO Ignore for now
-        // fun `skal kunne iverksette`() {
-        //     tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-        //     tilAttestering.status() shouldBe IVERKSATT_INNVILGET
-        //     tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-        //         Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-        //         "great success",
-        //         UtbetalingPublisherStub.tidspunkt
-        //     )
-        //     observer.oppdatertStatus shouldBe tilAttestering.status()
-        // }
-        //
-        // @Test
-        // fun `oversendelse av av utbetaling feiler`() {
-        //     val tidspunkt = now()
-        //     tilAttestering.iverksett(
-        //         Attestant("A123456"),
-        //         object : UtbetalingPublisher {
-        //             override fun publish(
-        //                 nyUtbetaling: NyUtbetaling
-        //             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-        //                 UtbetalingPublisher.KunneIkkeSendeUtbetaling("some xml here", tidspunkt).left()
-        //         }
-        //     )
-        //     tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
-        //     tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-        //         Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-        //         "some xml here",
-        //         tidspunkt
-        //     )
-        // }
+        @Test
+        fun `skal kunne iverksette`() {
+            tilAttestering.iverksett(Attestant("A123456"))
+            tilAttestering.status() shouldBe BehandlingsStatus.IVERKSATT_INNVILGET
+        }
 
         @Test
         fun `illegal operations`() {
@@ -530,7 +495,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub)
+            tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
@@ -541,7 +506,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne iverksette`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            tilAttestering.iverksett(Attestant("A123456"))
             tilAttestering.status() shouldBe IVERKSATT_AVSLAG
         }
 
@@ -582,10 +547,6 @@ internal class BehandlingTest {
             return Fnr("12345678910")
         }
 
-        override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-            return attestant
-        }
-
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
             utbetaling.addObserver(this)
         }
@@ -597,17 +558,6 @@ internal class BehandlingTest {
             this.oppdragsmelding = oppdragsmelding
             return this.oppdragsmelding
         }
-    }
-
-    object UtbetalingPublisherStub : UtbetalingPublisher {
-        val tidspunkt = now()
-        override fun publish(
-            nyUtbetaling: NyUtbetaling
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "great success",
-            tidspunkt = tidspunkt
-        ).right()
     }
 
     private fun createBehandling(
