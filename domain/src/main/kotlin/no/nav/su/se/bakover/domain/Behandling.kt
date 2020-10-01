@@ -95,11 +95,11 @@ data class Behandling(
     }
 
     fun opprettBeregning(
-        fom: LocalDate,
-        tom: LocalDate,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
         fradrag: List<Fradrag> = emptyList()
     ): Behandling {
-        tilstand.opprettBeregning(fom, tom, fradrag)
+        tilstand.opprettBeregning(fraOgMed, tilOgMed, fradrag)
         return this
     }
 
@@ -133,8 +133,8 @@ data class Behandling(
         }
 
         fun opprettBeregning(
-            fom: LocalDate,
-            tom: LocalDate,
+            fraOgMed: LocalDate,
+            tilOgMed: LocalDate,
             fradrag: List<Fradrag>
         ) {
             throw TilstandException(status, this::opprettBeregning.toString())
@@ -195,7 +195,7 @@ data class Behandling(
         }
 
         inner class Innvilget : Vilkårsvurdert() {
-            override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
+            override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
                     ?: throw TilstandException(
                         status,
@@ -213,8 +213,8 @@ data class Behandling(
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
                     beregning = Beregning(
-                        fom = fom,
-                        tom = tom,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
                         sats = sats,
                         fradrag = fradrag,
                         forventetInntekt = forventetInntekt
@@ -247,8 +247,8 @@ data class Behandling(
     private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, fradrag)
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -300,8 +300,8 @@ data class Behandling(
             this@Behandling
         }
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, fradrag)
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {

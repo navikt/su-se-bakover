@@ -35,8 +35,8 @@ class StartUtbetalingerService(
 
         if (!sisteOversendteUtbetaling.erStansutbetaling()) return SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fom
-        val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tom
+        val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fraOgMed
+        val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tilOgMed
         check(stansetFraOgMed <= stansetTilOgMed) {
             "Feil ved start av utbetalinger. Stopputbetalingens fraOgMed er etter tilOgMed"
         }
@@ -52,19 +52,19 @@ class StartUtbetalingerService(
                 it.utbetalingslinjer
             }.filter {
                 // Merk: En utbetalingslinje kan være delvis stanset.
-                it.fom.between(stansetFraOgMed, stansetTilOgMed) ||
-                    it.tom.between(stansetFraOgMed, stansetTilOgMed)
+                it.fraOgMed.between(stansetFraOgMed, stansetTilOgMed) ||
+                    it.fraOgMed.between(stansetFraOgMed, stansetTilOgMed)
             }
-        check(stansetEllerDelvisStansetUtbetalingslinjer.last().tom == stansetTilOgMed) {
-            "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tom}"
+        check(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
+            "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
         }
 
         val utbetaling = Utbetaling(
             utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
                 (
                     acc + Utbetalingslinje(
-                        fom = maxOf(stansetFraOgMed, utbetalingslinje.fom),
-                        tom = utbetalingslinje.tom,
+                        fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
+                        tilOgMed = utbetalingslinje.tilOgMed,
                         forrigeUtbetalingslinjeId = acc.lastOrNull()?.id
                             ?: sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.id,
                         beløp = utbetalingslinje.beløp

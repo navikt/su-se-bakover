@@ -374,47 +374,29 @@ internal class StartUtbetalingerServiceTest {
         val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val eksisterendeUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
-            fom = 1.januar(1970),
-            tom = 31.januar(1970),
+            fraOgMed = 1.januar(1970),
+            tilOgMed = 31.januar(1970),
             beløp = 100,
             forrigeUtbetalingslinjeId = null
         ),
         val eksisterendeUtbetalingslinje2: Utbetalingslinje = Utbetalingslinje(
-            fom = 1.februar(1970),
-            tom = 31.mars(1970),
+            fraOgMed = 1.februar(1970),
+            tilOgMed = 31.mars(1970),
             beløp = 200,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje1.id
         ),
         val eksisterendeUtbetalingslinje3: Utbetalingslinje = Utbetalingslinje(
-            fom = 1.april(1970),
-            tom = 31.juli(1970),
+            fraOgMed = 1.april(1970),
+            tilOgMed = 31.juli(1970),
             beløp = 300,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje2.id
         ),
         val eksisterendeStansUtbetalingslinje: Utbetalingslinje = Utbetalingslinje(
-            fom = 1.januar(1970),
-            tom = 31.juli(1970),
+            fraOgMed = 1.januar(1970),
+            tilOgMed = 31.juli(1970),
             beløp = 0,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje3.id
         ),
-        // val expectedUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
-        //     fom = eksisterendeUtbetalingslinje1.fom,
-        //     tom = eksisterendeUtbetalingslinje1.tom,
-        //     beløp = eksisterendeUtbetalingslinje1.beløp,
-        //     forrigeUtbetalingslinjeId = eksisterendeStansUtbetalingslinje.id
-        // ),
-        // val expectedUtbetalingslinje2: Utbetalingslinje = Utbetalingslinje(
-        //     fom = eksisterendeUtbetalingslinje2.fom,
-        //     tom = 31.mars(1970),
-        //     beløp = 200,
-        //     forrigeUtbetalingslinjeId = expectedUtbetalingslinje1.id
-        // ),
-        // val expectedUtbetalingslinje3: Utbetalingslinje = Utbetalingslinje(
-        //     fom = 1.april(1970),
-        //     tom = 31.juli(1970),
-        //     beløp = 300,
-        //     forrigeUtbetalingslinjeId = expectedUtbetalingslinje2.id
-        // ),
         val eksisterendeUtbetaling1: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje1),
             oppdragsmelding = Oppdragsmelding(SENDT, ""),

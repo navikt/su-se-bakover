@@ -10,8 +10,6 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
-import io.ktor.auth.authentication
-import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.features.CORS
@@ -33,8 +31,8 @@ import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
-import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -48,10 +46,12 @@ import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
+import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
@@ -92,7 +92,7 @@ private val jmsContext: JMSContext by lazy {
     }.createContext(Config.serviceUser.username, Config.serviceUser.password)
 }
 
-@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
+@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
@@ -197,39 +197,29 @@ internal fun Application.susebakover(
 
     routing {
         authenticate("jwt") {
-            get(path = "/authenticated") {
-                val principal = (call.authentication.principal as JWTPrincipal).payload
-                call.respond(
-                    """
-                    {
-                        "data": "Congrats ${
-                    principal.getClaim("name")
-                        .asString()
-                    }, you are successfully authenticated with a JWT token"
-                    }
-                    """.trimIndent()
-                )
-            }
-            personRoutes(clients.personOppslag)
-            inntektRoutes(clients.inntektOppslag)
-            sakRoutes(databaseRepos.objectRepo)
-            søknadRoutes(søknadRoutesMediator)
-            behandlingRoutes(
-                repo = databaseRepos.objectRepo,
-                brevService = BrevService(
-                    pdfGenerator = clients.pdfGenerator,
+            withUser {
+                personRoutes(clients.personOppslag)
+                inntektRoutes(clients.inntektOppslag)
+                sakRoutes(databaseRepos.objectRepo)
+                søknadRoutes(søknadRoutesMediator)
+                behandlingRoutes(
+                    repo = databaseRepos.objectRepo,
+                    brevService = BrevService(
+                        pdfGenerator = clients.pdfGenerator,
+                        personOppslag = clients.personOppslag,
+                        dokArkiv = clients.dokArkiv,
+                        dokDistFordeling = clients.dokDistFordeling
+                    ),
+                    simuleringClient = clients.simuleringClient,
                     personOppslag = clients.personOppslag,
-                    dokArkiv = clients.dokArkiv,
-                    dokDistFordeling = clients.dokDistFordeling
-                ),
-                simuleringClient = clients.simuleringClient,
-                personOppslag = clients.personOppslag,
-                oppgaveClient = clients.oppgaveClient,
-                utbetalingPublisher = clients.utbetalingPublisher,
-            )
-            avstemmingRoutes(services.avstemmingService)
-            stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
-            startutbetalingRoutes(services.utbetalingService)
+                    oppgaveClient = clients.oppgaveClient,
+                    utbetalingPublisher = clients.utbetalingPublisher,
+                )
+                avstemmingRoutes(services.avstemmingService)
+                stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
+                startutbetalingRoutes(services.utbetalingService)
+                meRoutes()
+            }
         }
     }
     if (!Config.isLocalOrRunningTests) {

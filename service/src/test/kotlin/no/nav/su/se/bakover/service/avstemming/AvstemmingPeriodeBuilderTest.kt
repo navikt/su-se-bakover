@@ -18,8 +18,8 @@ internal class AvstemmingPeriodeBuilderTest {
     @Test
     fun `periode for første avstemming`() {
         val periode = AvstemmingPeriodeBuilder(null, fixedClock).build()
-        periode.fom shouldBe 1.januar(2020).startOfDay()
-        periode.tom shouldBe 9.januar(2020).endOfDay()
+        periode.fraOgMed shouldBe 1.januar(2020).startOfDay()
+        periode.tilOgMed shouldBe 9.januar(2020).endOfDay()
     }
 
     @Test
@@ -27,13 +27,13 @@ internal class AvstemmingPeriodeBuilderTest {
         val periode = AvstemmingPeriodeBuilder(
             Avstemming(
                 opprettet = now(fixedClock),
-                fom = 1.januar(2020).startOfDay(),
-                tom = 4.januar(2020).endOfDay(),
+                fraOgMed = 1.januar(2020).startOfDay(),
+                tilOgMed = 4.januar(2020).endOfDay(),
                 utbetalinger = emptyList()
             ),
             fixedClock
         ).build()
-        periode.fom shouldBe 5.januar(2020).startOfDay()
-        periode.tom shouldBe 9.januar(2020).endOfDay()
+        periode.fraOgMed shouldBe 5.januar(2020).startOfDay()
+        periode.tilOgMed shouldBe 9.januar(2020).endOfDay()
     }
 }

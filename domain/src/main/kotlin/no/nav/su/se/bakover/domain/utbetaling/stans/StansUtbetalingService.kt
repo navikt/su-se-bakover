@@ -35,13 +35,13 @@ class StansUtbetalingService(
         require(validertStansUtbetaling.isValid()) {
             "Kan ikke stanse utbetaling: $validertStansUtbetaling"
         }
-        val stansesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tom
+        val stansesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tilOgMed
 
         val utbetaling = sak.oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
-                    fom = stansesFraOgMed,
-                    tom = stansesTilOgMed,
+                    fraOgMed = stansesFraOgMed,
+                    tilOgMed = stansesTilOgMed,
                     beløp = 0,
                 )
             )

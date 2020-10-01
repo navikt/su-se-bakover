@@ -271,8 +271,8 @@ internal class StansUtbetalingServiceTest {
                 Utbetalingslinje(
                     id = UUID30.randomUUID(),
                     opprettet = Tidspunkt.EPOCH,
-                    fom = LocalDate.EPOCH,
-                    tom = LocalDate.EPOCH.plusMonths(12),
+                    fraOgMed = LocalDate.EPOCH,
+                    tilOgMed = LocalDate.EPOCH.plusMonths(12),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 10000
                 )
@@ -329,8 +329,8 @@ internal class StansUtbetalingServiceTest {
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
-                    fom = LocalDate.of(1970, 2, 1),
-                    tom = LocalDate.of(1971, 1, 1),
+                    fraOgMed = LocalDate.of(1970, 2, 1),
+                    tilOgMed = LocalDate.of(1971, 1, 1),
                     forrigeUtbetalingslinjeId = eksisterendeUtbetaling.utbetalingslinjer[0].id,
                     beløp = 0
                 ),

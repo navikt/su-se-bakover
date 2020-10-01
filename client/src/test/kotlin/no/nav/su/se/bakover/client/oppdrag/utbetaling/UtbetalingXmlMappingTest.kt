@@ -37,14 +37,14 @@ class UtbetalingXmlMappingTest {
     }
 
     private val førsteUtbetalingsLinje = Utbetalingslinje(
-        fom = 1.januar(2020),
-        tom = 31.januar(2020),
+        fraOgMed = 1.januar(2020),
+        tilOgMed = 31.januar(2020),
         beløp = 10,
         forrigeUtbetalingslinjeId = null
     )
     private val andreUtbetalingslinje = Utbetalingslinje(
-        fom = 1.februar(2020),
-        tom = 29.februar(2020),
+        fraOgMed = 1.februar(2020),
+        tilOgMed = 29.februar(2020),
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
     )

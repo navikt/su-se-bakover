@@ -44,8 +44,8 @@ internal class OppdragTest {
         val actual = oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = 5600,
                 )
             )
@@ -59,8 +59,8 @@ internal class OppdragTest {
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = first.id,
                     opprettet = first.opprettet,
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = 5600,
                     forrigeUtbetalingslinjeId = null
                 )
@@ -84,8 +84,8 @@ internal class OppdragTest {
                         Utbetalingslinje(
                             id = forrigeUtbetalingslinjeId,
                             opprettet = Tidspunkt.MIN,
-                            fom = 1.januar(2018),
-                            tom = 1.desember(2018),
+                            fraOgMed = 1.januar(2018),
+                            tilOgMed = 1.desember(2018),
                             forrigeUtbetalingslinjeId = null,
                             beløp = 5000
                         )
@@ -100,18 +100,18 @@ internal class OppdragTest {
         val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
-                    fom = 1.januar(2020),
-                    tom = 31.mai(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.mai(2020),
                     beløp = 5600,
                 ),
                 Utbetalingsperiode(
-                    fom = 1.juni(2020),
-                    tom = 31.august(2020),
+                    fraOgMed = 1.juni(2020),
+                    tilOgMed = 31.august(2020),
                     beløp = 5700,
                 ),
                 Utbetalingsperiode(
-                    fom = 1.september(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.september(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = 5800,
                 )
             )
@@ -125,24 +125,24 @@ internal class OppdragTest {
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
                     opprettet = nyUtbetaling.utbetalingslinjer[0].opprettet,
-                    fom = 1.januar(2020),
-                    tom = 31.mai(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.mai(2020),
                     beløp = 5600,
                     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
                 ),
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id,
                     opprettet = nyUtbetaling.utbetalingslinjer[1].opprettet,
-                    fom = 1.juni(2020),
-                    tom = 31.august(2020),
+                    fraOgMed = 1.juni(2020),
+                    tilOgMed = 31.august(2020),
                     beløp = 5700,
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id
                 ),
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[2].id,
                     opprettet = nyUtbetaling.utbetalingslinjer[2].opprettet,
-                    fom = 1.september(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.september(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = 5800,
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id
                 )
@@ -206,8 +206,8 @@ internal class OppdragTest {
     fun `konverterer beregning til utbetalingsperioder`() {
         val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt()
         val b = Beregning(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.desember(2020),
             sats = Sats.HØY,
             opprettet = opprettet,
             fradrag = emptyList(),
@@ -222,16 +222,16 @@ internal class OppdragTest {
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
-                    fom = 1.januar(2020),
-                    tom = 30.april(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 30.april(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20637
                 ),
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
-                    fom = 1.mai(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.mai(2020),
+                    tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
                     beløp = 20946
                 )
@@ -269,16 +269,16 @@ internal class OppdragTest {
     private fun expectedUtbetalingslinje(
         utbetalingslinjeId: UUID30,
         opprettet: Tidspunkt,
-        fom: LocalDate,
-        tom: LocalDate,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
         beløp: Int,
         forrigeUtbetalingslinjeId: UUID30?
     ): Utbetalingslinje {
         return Utbetalingslinje(
             id = utbetalingslinjeId,
             opprettet = opprettet,
-            fom = fom,
-            tom = tom,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
             forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
             beløp = beløp
         )

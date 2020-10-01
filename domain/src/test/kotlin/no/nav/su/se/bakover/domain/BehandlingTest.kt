@@ -229,17 +229,17 @@ internal class BehandlingTest {
 
         @Test
         fun `should create beregning`() {
-            val fom = 1.januar(2020)
-            val tom = 31.desember(2020)
+            val fraOgMed = 1.januar(2020)
+            val tilOgMed = 31.desember(2020)
             vilkårsvurdert.opprettBeregning(
-                fom = fom,
-                tom = tom
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed
             )
             observer.opprettetBeregning.first shouldBe id1
             observer.opprettetBeregning.second shouldNotBe null
             val beregning = observer.opprettetBeregning.second
-            beregning.fom shouldBe fom
-            beregning.tom shouldBe tom
+            beregning.fraOgMed shouldBe fraOgMed
+            beregning.tilOgMed shouldBe tilOgMed
             beregning.sats shouldBe Sats.HØY
         }
 
