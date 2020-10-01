@@ -120,7 +120,7 @@ internal fun Application.susebakover(
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
         personOppslag = clients.personOppslag,
-        søknadRepo = databaseRepos.søknadRepo
+        søknadService = services.søknadService
     )
 
     install(CORS) {

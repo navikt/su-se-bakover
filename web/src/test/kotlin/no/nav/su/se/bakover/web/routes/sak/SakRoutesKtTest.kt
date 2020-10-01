@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
@@ -28,9 +29,9 @@ internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
     val fnr = Fnr(sakFnr01)
-    private val sakRepo: ObjectRepo by lazy {
-        DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
-    }
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repo: ObjectRepo = repos.objectRepo
+    private val søknadRepo = repos.søknadRepo
 
     @Test
     fun `henter sak for sak id`() {
@@ -41,7 +42,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId = sakRepo.opprettSak(Fnr(sakFnr01)).id
+            val opprettetSakId = repo.opprettSak(Fnr(sakFnr01)).id
 
             defaultRequest(Get, "$sakPath/$opprettetSakId").apply {
                 assertEquals(OK, response.status())
@@ -59,7 +60,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            sakRepo.opprettSak(Fnr(sakFnr01))
+            repo.opprettSak(Fnr(sakFnr01))
 
             defaultRequest(Get, "$sakPath/?fnr=$sakFnr01").apply {
                 assertEquals(OK, response.status())
@@ -98,8 +99,10 @@ internal class SakRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
 
-        val nySak = sakRepo.opprettSak(fnr)
-        val nySøknad = nySak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        val nySak = repo.opprettSak(fnr)
+        val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
+        søknadRepo.opprettSøknad(nySak.id, søknad)
+        val nySøknad = nySak.nySøknad(søknad)
 
         withTestApplication({
             testSusebakover()

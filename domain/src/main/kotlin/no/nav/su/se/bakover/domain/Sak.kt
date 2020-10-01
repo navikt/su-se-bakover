@@ -22,8 +22,8 @@ data class Sak(
 
     fun behandlinger() = behandlinger.toList()
 
-    fun nySøknad(søknadInnhold: SøknadInnhold): Søknad {
-        val søknad = persistenceObserver.nySøknad(id, søknad = Søknad(søknadInnhold = søknadInnhold))
+    // TODO get rid of observer - fix in service
+    fun nySøknad(søknad: Søknad): Søknad {
         søknader.add(søknad)
         observers.filterIsInstance(SakEventObserver::class.java).forEach {
             it.nySøknadEvent(
@@ -48,7 +48,6 @@ data class Sak(
 interface SakObserver
 
 interface SakPersistenceObserver : PersistenceObserver {
-    fun nySøknad(sakId: UUID, søknad: Søknad): Søknad
     fun opprettSøknadsbehandling(
         sakId: UUID,
         behandling: Behandling

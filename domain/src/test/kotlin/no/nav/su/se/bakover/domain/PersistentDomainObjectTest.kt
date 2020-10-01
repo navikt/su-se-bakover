@@ -35,14 +35,19 @@ internal class PersistentDomainObjectTest {
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId
-            )
+            ),
+            søknader = listOf(
+                Søknad(
+                    id = UUID.randomUUID(),
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build()
+                )
+            ).toMutableList()
         )
-        assertThrows<UninitializedPropertyAccessException> { sak.nySøknad(SøknadInnholdTestdataBuilder.build()) }
+        assertThrows<UninitializedPropertyAccessException> { sak.opprettSøknadsbehandling(sak.søknader().first().id) }
     }
 
     private val someObserver = object : SakPersistenceObserver {
         private val testSøknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
-        override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad = søknad
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) =
             Behandling(søknad = testSøknad, sakId = sakId)
     }

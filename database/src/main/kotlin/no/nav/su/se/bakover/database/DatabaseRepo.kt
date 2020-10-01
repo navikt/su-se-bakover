@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -36,10 +35,6 @@ internal class DatabaseRepo(
 
     override fun hentSak(fnr: Fnr): Sak? =
         using(sessionOf(dataSource)) { hentSakInternal(fnr, it)?.apply { addObserver(this@DatabaseRepo) } }
-
-    override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad {
-        return opprettSøknad(sakId = sakId, søknad = søknad)
-    }
 
     override fun opprettSøknadsbehandling(
         sakId: UUID,
@@ -123,18 +118,6 @@ internal class DatabaseRepo(
 
     override fun hentSak(sakId: UUID): Sak? =
         using(sessionOf(dataSource)) { hentSakInternal(sakId, it)?.apply { addObserver(this@DatabaseRepo) } }
-
-    internal fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
-        "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
-            mapOf(
-                "id" to søknad.id,
-                "sakId" to sakId,
-                "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
-                "opprettet" to søknad.opprettet
-            )
-        )
-        return søknad
-    }
 
     override fun opprettSak(fnr: Fnr): Sak {
         val opprettet = now(clock)

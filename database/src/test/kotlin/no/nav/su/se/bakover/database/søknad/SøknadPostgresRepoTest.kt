@@ -7,7 +7,10 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class SøknadPostgresRepoTest {
 
@@ -20,7 +23,13 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb {
             using(sessionOf(EmbeddedDatabase.instance())) {
                 val sak = testDataHelper.insertSak(FNR)
-                val søknad = testDataHelper.insertSøknad(sak.id)
+                val søknad = repo.opprettSøknad(
+                    sakId = sak.id,
+                    søknad = Søknad(
+                        id = UUID.randomUUID(),
+                        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+                    )
+                )
                 val hentet = repo.hentSøknad(søknad.id)
 
                 søknad shouldBe hentet

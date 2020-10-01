@@ -21,10 +21,7 @@ internal class SakTest {
 
     @Test
     fun `should handle nySøknad`() {
-        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-
-        persistenceObserver.nySøknadParams.søknad shouldBeSameInstanceAs søknad
-        persistenceObserver.nySøknadParams.sakId shouldBe sak.id
+        sak.nySøknad(Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         eventObserver.events shouldHaveSize 1
         sak.behandlinger() shouldHaveSize 0
         sak.søknader() shouldHaveSize 1
@@ -32,7 +29,7 @@ internal class SakTest {
 
     @Test
     fun `should handle opprettSøknadsbehandling`() {
-        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
+        val søknad = sak.nySøknad(Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         val behandling = sak.opprettSøknadsbehandling(søknad.id)
 
         persistenceObserver.opprettSøknadsbehandlingParams.behandling shouldBeSameInstanceAs behandling
@@ -42,20 +39,10 @@ internal class SakTest {
     }
 
     class PersistenceObserver : SakPersistenceObserver {
-        lateinit var nySøknadParams: NySøknadParams
-        override fun nySøknad(sakId: UUID, søknad: Søknad) = søknad.also {
-            nySøknadParams = NySøknadParams(sakId, søknad)
-        }
-
         lateinit var opprettSøknadsbehandlingParams: OpprettSøknadsbehandlingParams
         override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = behandling.also {
             opprettSøknadsbehandlingParams = OpprettSøknadsbehandlingParams(sakId, behandling)
         }
-
-        data class NySøknadParams(
-            val sakId: UUID,
-            val søknad: Søknad
-        )
 
         data class OpprettSøknadsbehandlingParams(
             val sakId: UUID,

@@ -6,15 +6,15 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.ObjectRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakEventObserver
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 internal class SøknadRouteMediator(
     private val repo: ObjectRepo,
@@ -22,16 +22,16 @@ internal class SøknadRouteMediator(
     private val dokArkiv: DokArkiv,
     private val oppgaveClient: OppgaveClient,
     private val personOppslag: PersonOppslag,
-    private val søknadRepo: SøknadRepo
+    private val søknadService: SøknadService
 ) : SakEventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
+        // TODO shift this to service
         val sak = repo.hentSak(søknadInnhold.personopplysninger.fnr)
             ?: repo.opprettSak(søknadInnhold.personopplysninger.fnr)
         sak.addObserver(this)
-        sak.nySøknad(søknadInnhold)
-
+        søknadService.opprettSøknad(sak.id, Søknad(søknadInnhold = søknadInnhold))
         return repo.hentSak(søknadInnhold.personopplysninger.fnr)!!
     }
 
@@ -75,6 +75,4 @@ internal class SøknadRouteMediator(
             }
         )
     }
-
-    fun hentSøknad(id: UUID) = søknadRepo.hentSøknad(id)
 }

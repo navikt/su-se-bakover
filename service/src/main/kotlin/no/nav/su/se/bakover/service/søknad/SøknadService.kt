@@ -1,9 +1,8 @@
-package no.nav.su.se.bakover.database.søknad
+package no.nav.su.se.bakover.service.søknad
 
 import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
-interface SøknadRepo {
-    fun hentSøknad(søknadId: UUID): Søknad?
+interface SøknadService {
     fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad
 }

@@ -6,22 +6,15 @@ import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
 import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.PersistenceObserver
 import no.nav.su.se.bakover.domain.PersistenceObserverException
 import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.SakPersistenceObserver
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -86,11 +79,6 @@ internal class DatabaseRepoTest {
         }
     }
 
-    private fun sakPersistenceObserver() = object : SakPersistenceObserver {
-        override fun nySøknad(sakId: UUID, søknad: Søknad) = throw NotImplementedError()
-        override fun opprettSøknadsbehandling(sakId: UUID, behandling: Behandling) = throw NotImplementedError()
-    }
-
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) = throw NotImplementedError()
 
@@ -111,22 +99,6 @@ internal class DatabaseRepoTest {
     }
 
     private fun insertSak(fnr: Fnr = FNR) = repo.opprettSak(fnr)
-    private fun insertSøknad(sakId: UUID) = repo.opprettSøknad(
-        sakId,
-        Søknad(
-            id = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
-        )
-    )
-
-    private fun insertBehandling(sakId: UUID, søknad: Søknad) = repo.opprettSøknadsbehandling(
-        sakId = sakId,
-        behandling = Behandling(
-            søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
-            sakId = sakId
-        )
-    )
 
     private fun insertUtbetaling(oppdragId: UUID30, kvittering: Kvittering?): Utbetaling = Utbetaling(
         utbetalingslinjer = emptyList(),
@@ -138,15 +110,4 @@ internal class DatabaseRepoTest {
             utbetaling = it
         )
     }
-
-    private fun insertUtbetalingslinje(utbetalingId: UUID30, forrigeUtbetalingslinjeId: UUID30?) =
-        repo.opprettUtbetalingslinje(
-            utbetalingId = utbetalingId,
-            utbetalingslinje = Utbetalingslinje(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
-                forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-                beløp = 25000
-            )
-        )
 }
