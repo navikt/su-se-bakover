@@ -70,7 +70,7 @@ data class Behandling(
 
     fun getUtledetSatsBeløp(): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
-            status == BehandlingsStatus.BEREGNET ||
+            status == BehandlingsStatus.BEREGNET_INVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
             return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
@@ -82,7 +82,8 @@ data class Behandling(
         BehandlingsStatus.OPPRETTET -> Opprettet()
         BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
         BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Vilkårsvurdert().Avslag()
-        BehandlingsStatus.BEREGNET -> Beregnet()
+        BehandlingsStatus.BEREGNET_INVILGET -> Beregnet()
+        BehandlingsStatus.BEREGNET_AVSLAG -> Beregnet().Avslag()
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
@@ -211,16 +212,23 @@ data class Behandling(
                         "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
                     )
 
+                val beregning = Beregning(
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
+                    sats = sats,
+                    fradrag = fradrag,
+                    forventetInntekt = forventetInntekt
+                )
                 this@Behandling.beregning = persistenceObserver.opprettBeregning(
                     behandlingId = id,
-                    beregning = Beregning(
-                        fraOgMed = fraOgMed,
-                        tilOgMed = tilOgMed,
-                        sats = sats,
-                        fradrag = fradrag,
-                        forventetInntekt = forventetInntekt
-                    )
+                    beregning = beregning
                 )
+
+                if (beregning.beløpErNull() || beregning.beløpErOverNullMenUnderMinstebeløp()) {
+                    nyTilstand(Beregnet().Avslag())
+                    return
+                }
+
                 nyTilstand(Beregnet())
             }
         }
@@ -245,8 +253,8 @@ data class Behandling(
         }
     }
 
-    private inner class Beregnet : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+    private open inner class Beregnet : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INVILGET
 
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
@@ -280,6 +288,28 @@ data class Behandling(
         private fun slettEksisterendeUtbetaling(oppdrag: Oppdrag, utbetaling: Utbetaling) {
             check(utbetaling.kanSlettes()) { "Utbetalingen har kommet for langt i utbetalingsløpet til å kunne slettes" }
             oppdrag.slettUtbetaling(utbetaling)
+        }
+
+        inner class Avslag : Beregnet() {
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
+            override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+                throw TilstandException(status, this::simuler.toString())
+            }
+
+            override fun sendTilAttestering(
+                aktørId: AktørId,
+                oppgave: OppgaveClient,
+                saksbehandler: Saksbehandler,
+            ): Either<KunneIkkeOppretteOppgave, Behandling> = oppgave.opprettOppgave(
+                OppgaveConfig.Attestering(
+                    sakId = sakId.toString(),
+                    aktørId = aktørId
+                )
+            ).map {
+                this@Behandling.saksbehandler = persistenceObserver.settSaksbehandler(id, saksbehandler)
+                nyTilstand(TilAttestering().Avslag())
+                this@Behandling
+            }
         }
     }
 
@@ -390,7 +420,8 @@ data class Behandling(
         OPPRETTET,
         VILKÅRSVURDERT_INNVILGET,
         VILKÅRSVURDERT_AVSLAG,
-        BEREGNET,
+        BEREGNET_INVILGET,
+        BEREGNET_AVSLAG,
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,

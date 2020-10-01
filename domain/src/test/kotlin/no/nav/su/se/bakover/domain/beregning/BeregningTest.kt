@@ -167,4 +167,64 @@ internal class BeregningTest {
             )
         }.also { it.message shouldContain "negativ" }
     }
+
+    @Test
+    fun `beregnet beløp er over null men under minstebeløp, for en måned`() {
+        val høyInntekt = 242695 // 98% av full supplerende stønad (Høy sats) for 2019
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.JANUARY, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
+    }
+
+    @Test
+    fun `beregnet beløp er rett under minstebeløp`() {
+        // 98% av full supplerende stønad (Høy sats) for
+        // 2019 - Jan, Feb, Mars, Apr
+        // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
+        val høyInntekt = 245114 + 8 // pågrundav avrundning så må vi legge på 8
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
+    }
+
+    @Test
+    fun `beregnet beløp er akkurat på minstebeløp`() {
+        // 98% av full supplerende stønad (Høy sats) for
+        // 2019 - Jan, Feb, Mars, Apr
+        // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
+        val høyInntekt = 245114
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe false
+    }
 }

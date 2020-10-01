@@ -4,9 +4,13 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.VoidObserver
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
+
+const val TO_PROSENT = 0.02 // https://lovdata.no/dokument/NL/lov/2005-04-29-21 - § 9
 
 data class Beregning(
     val id: UUID = UUID.randomUUID(),
@@ -51,6 +55,21 @@ data class Beregning(
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
     }
+
+    fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
+        val minstebeløp = månedsberegninger.map {
+            BigDecimal(Sats.HØY.fraDato(it.fraOgMed))
+                .multiply(BigDecimal(TO_PROSENT))
+                .divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
+                .toInt()
+        }.sum()
+        val beregnetBeløp = månedsberegninger.sumBy { it.beløp }
+
+        return beregnetBeløp in 1 until minstebeløp
+    }
+
+    fun beløpErNull() =
+        månedsberegninger.sumBy { it.beløp } <= 0
 }
 
 private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
