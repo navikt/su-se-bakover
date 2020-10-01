@@ -140,7 +140,11 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling(
-                    oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
+                    oppdragsmelding = Oppdragsmelding(
+                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                        originalMelding = "",
+                        avstemmingsnøkkel = Avstemmingsnøkkel()
+                    ),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",

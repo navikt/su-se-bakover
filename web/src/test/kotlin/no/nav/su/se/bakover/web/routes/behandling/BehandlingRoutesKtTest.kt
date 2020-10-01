@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -464,7 +465,7 @@ internal class BehandlingRoutesKtTest {
                             nyUtbetaling: NyUtbetaling
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                             UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                Oppdragsmelding(FEIL, "")
+                                Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
                             ).left()
                     }
                 )

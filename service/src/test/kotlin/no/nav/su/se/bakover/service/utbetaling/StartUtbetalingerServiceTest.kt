@@ -378,8 +378,8 @@ internal class StartUtbetalingerServiceTest {
         val clock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
         val fnr: Fnr = Fnr("20128127969"),
         val sakId: UUID = UUID.fromString("3ae00766-f055-4f8f-b816-42f4b7f8bc96"),
-        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, ""),
-        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, ""),
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
+        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "", Avstemmingsnøkkel()),
         val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val eksisterendeUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
@@ -408,17 +408,17 @@ internal class StartUtbetalingerServiceTest {
         ),
         val eksisterendeUtbetaling1: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje1),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         val eksisterendeUtbetaling2: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje2, eksisterendeUtbetalingslinje3),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         val eksisterendeStansutbetaling: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeStansUtbetalingslinje),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         // Denne inneholder bare dummy-data inntil "avstemming" av simuleringen er på plass

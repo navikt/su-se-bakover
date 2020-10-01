@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -619,9 +620,9 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
             tilAttestering.status() shouldBe IVERKSATT_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                SENDT,
-                "great success",
-                UtbetalingPublisherStub.tidspunkt
+                status = SENDT,
+                originalMelding = "great success",
+                avstemmingsnøkkel = Avstemmingsnøkkel(UtbetalingPublisherStub.tidspunkt)
             )
             observer.oppdatertStatus shouldBe tilAttestering.status()
         }
@@ -637,18 +638,18 @@ internal class BehandlingTest {
                     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                         UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                             Oppdragsmelding(
-                                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                                FEIL,
                                 "some xml here",
-                                tidspunkt
+                                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
                             )
                         ).left()
                 }
             )
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
             tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                FEIL,
-                "some xml here",
-                tidspunkt
+                status = FEIL,
+                originalMelding = "some xml here",
+                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
             )
         }
 
@@ -844,7 +845,7 @@ internal class BehandlingTest {
         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
             status = SENDT,
             originalMelding = "great success",
-            tidspunkt = tidspunkt
+            avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
         ).right()
     }
 

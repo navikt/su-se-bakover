@@ -64,7 +64,10 @@ internal class AvstemmingPostgresRepo(
 
     override fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
-            """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
+            // Bakoverkompatibel med gammel json-modell
+            val fraOgMedCondition = """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'tidspunkt')::timestamptz >= :fom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom)"""
+            val tilOgMedCondition = """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'tidspunkt')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :tom)"""
+            """select * from utbetaling where oppdragsmelding is not null and $fraOgMedCondition and $tilOgMedCondition and oppdragsmelding ->> 'status' = :status""".trimMargin()
                 .hentListe(
                     mapOf(
                         "fom" to fraOgMed,

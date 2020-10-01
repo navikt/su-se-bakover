@@ -267,7 +267,7 @@ internal class StansUtbetalingServiceTest {
                 originalKvittering = "<someXml></someXml>",
                 mottattTidspunkt = Tidspunkt.EPOCH
             ),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = UUID30.randomUUID(),
@@ -302,8 +302,8 @@ internal class StansUtbetalingServiceTest {
             fnr = fnr,
             oppdrag = eksisterendeOppdrag
         ),
-        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, ""),
-        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "")
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
+        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
     ) {
 
         fun forventetNyUtbetaling(

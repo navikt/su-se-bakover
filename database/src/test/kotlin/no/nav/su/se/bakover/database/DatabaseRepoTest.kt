@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalingslinjer
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
@@ -40,6 +42,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
@@ -370,7 +373,13 @@ internal class DatabaseRepoTest {
             val utbetaling = insertUtbetaling(sak.oppdrag.id)
             val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
             val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
-            utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+            utbetaling.addOppdragsmelding(
+                Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                )
+            )
             utbetaling.addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
 
             assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
@@ -454,11 +463,38 @@ internal class DatabaseRepoTest {
         withMigratedDb {
             val sak = insertSak(FNR)
             val utbetaling = insertUtbetaling(sak.oppdrag.id)
-            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
+            val oppdragsmelding = Oppdragsmelding(
+                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                originalMelding = "some xml",
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            )
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
 
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
             hentet shouldBe oppdragsmelding
+        }
+    }
+
+    @Test
+    fun `Støtter gammelt oppdragsmelding json-format`() {
+        withMigratedDb {
+            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toTidspunkt()
+
+            val sak = insertSak(FNR)
+            val utbetaling = insertUtbetaling(sak.oppdrag.id)
+            using(sessionOf(EmbeddedDatabase.instance())) {
+                //language=JSON
+                val oppdragsmeldingJson = """{"status":"SENDT","originalMelding":"some xml","tidspunkt":"$oppdragsmeldingTidspunkt"}"""
+                "update utbetaling set oppdragsmelding = to_json('$oppdragsmeldingJson'::json) where id = '${utbetaling.id}'".oppdatering(
+                    emptyMap(), it
+                )
+            }
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
+            hentet shouldBe Oppdragsmelding(
+                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                originalMelding = "some xml",
+                avstemmingsnøkkel = Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
+            )
         }
     }
 
