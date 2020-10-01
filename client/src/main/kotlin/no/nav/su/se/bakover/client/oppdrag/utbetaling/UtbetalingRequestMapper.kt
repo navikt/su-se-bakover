@@ -40,7 +40,7 @@ internal fun toUtbetalingRequest(
                     utbetalesTilId = nyUtbetaling.utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { nyUtbetaling.oppdrag.id.toString() },
-                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(nyUtbetaling.attestant.id))
+                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(nyUtbetaling.attestant.navIdent))
                 )
             }
         )

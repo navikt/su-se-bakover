@@ -21,7 +21,7 @@ internal fun ApplicationCall.audit(msg: String) {
     sikkerLogg.info("${lesBehandlerId()} $msg")
 }
 
-internal fun ApplicationCall.lesBehandlerId() =
+private fun ApplicationCall.lesBehandlerId() =
     (this.authentication.principal as JWTPrincipal).payload.getClaim("oid").asString()
 
 internal fun ApplicationCall.erAttestant(): Boolean =

@@ -294,7 +294,7 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
-                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
@@ -308,7 +308,7 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
-                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
@@ -318,11 +318,11 @@ data class Behandling(
         }
 
         override fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
-            if (attestant.id == this@Behandling.saksbehandler?.id) {
+            if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return KunneIkkeUnderkjenne().left()
             }
 
-            hendelseslogg.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
+            hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
             nyTilstand(Simulert())
             return this@Behandling.right()
         }

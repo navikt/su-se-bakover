@@ -35,8 +35,8 @@ internal fun Behandling.toJson() = BehandlingJson(
     status = status().toString(),
     utbetaling = utbetaling()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    attestant = attestant()?.id,
-    saksbehandler = saksbehandler()?.id,
+    attestant = attestant()?.navIdent,
+    saksbehandler = saksbehandler()?.navIdent,
     sakId = sakId,
     hendelser = hendelser().toJson()
 )

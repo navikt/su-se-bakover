@@ -10,9 +10,12 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -48,6 +51,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
@@ -438,264 +442,327 @@ internal class BehandlingRoutesKtTest {
         }
     }
 
-    @Test
-    fun `iverksetter behandling`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            val objects = setup()
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.behandling.id,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
-            )
-            services.behandling.opprettBeregning(
-                objects.behandling.id,
-                1.januar(2020),
-                31.desember(2020),
-                emptyList()
-            )
-            services.behandling.simuler(objects.behandling.id).fold(
-                { it },
+    @Nested
+    inner class `Iverksetting av behandling` {
+        fun <R> withFerdigbehandletSakForBruker(
+            brukersNavIdent: String,
+            test: TestApplicationEngine.(objects: Objects) -> R
+        ) =
+            withSetupForBruker(
+                brukersNavIdent,
                 {
-                    services.behandling.sendTilAttestering(
-                        objects.behandling.id,
-                        AktørId("aktørId"),
-                        Saksbehandler("randomoid")
+                    services.behandling.oppdaterBehandlingsinformasjon(
+                        behandling.id,
+                        extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
-                }
-            )
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/iverksett"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-
-            requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
-                .apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                }
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-
-            requestSomAttestant(HttpMethod.Patch, "$sakPath/${objects.sak.id}/behandlinger/rubbish/iverksett")
-                .apply {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
-            )
-                .apply {
-                    response.status() shouldBe HttpStatusCode.NotFound
-                }
-
-            handleRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
-            ) {
-                addHeader(
-                    HttpHeaders.Authorization,
-                    Jwt.create(
-                        subject = "random",
-                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                    services.behandling.opprettBeregning(
+                        behandling.id,
+                        1.januar(2020),
+                        31.desember(2020),
+                        emptyList()
                     )
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
+                    services.behandling.simuler(behandling.id)
+                        .map {
+                            services.behandling.sendTilAttestering(
+                                behandling.id,
+                                AktørId("aktørId"),
+                                Saksbehandler(navIdentSaksbehandler)
+                            )
+                        }
+                }
+            ) { test(it) }
 
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
-            )
-                .apply {
-                    response.status() shouldBe HttpStatusCode.OK
-                    deserialize<BehandlingJson>(response.content!!).let {
-                        it.attestant shouldBe "enSaksbehandleroid"
-                        it.status shouldBe "IVERKSATT_INNVILGET"
-                        it.saksbehandler shouldBe "randomoid"
+        @Test
+        fun `Forbidden når bruker ikke er attestant`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${it.behandling.id}/iverksett"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
+
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
+            }
+        }
+
+        @Test
+        fun `BadRequest når sakId eller behandlingId er ugyldig`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+                requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
+                    .apply {
+                        response.status() shouldBe HttpStatusCode.BadRequest
                     }
+
+                requestSomAttestant(HttpMethod.Patch, "$sakPath/${it.sak.id}/behandlinger/rubbish/iverksett")
+                    .apply {
+                        response.status() shouldBe HttpStatusCode.BadRequest
+                    }
+            }
+        }
+
+        @Test
+        fun `NotFound når behandling ikke eksisterer`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+                )
+                    .apply {
+                        response.status() shouldBe HttpStatusCode.NotFound
+                    }
+            }
+        }
+
+        @Test
+        fun `Forbidden når den som behandlet saken prøver å attestere seg selv`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+                handleRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${it.sak.id}/behandlinger/${it.behandling.id}/iverksett"
+                ) {
+                    addHeader(
+                        HttpHeaders.Authorization,
+                        Jwt.create(
+                            subject = "random",
+                            groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                        )
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
                 }
+            }
+        }
+
+        @Test
+        fun `OK når bruker er attestant, og sak ble behandlet av en annen person`() {
+            withFerdigbehandletSakForBruker(navIdentAttestant) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${it.sak.id}/behandlinger/${it.behandling.id}/iverksett"
+                )
+                    .apply {
+                        response.status() shouldBe HttpStatusCode.OK
+                        deserialize<BehandlingJson>(response.content!!).let {
+                            it.attestant shouldBe navIdentAttestant
+                            it.status shouldBe "IVERKSATT_INNVILGET"
+                            it.saksbehandler shouldBe navIdentSaksbehandler
+                        }
+                    }
+            }
         }
     }
 
-    @Test
-    fun `underkjenn`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            val objects = setup()
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.behandling.id,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
-            )
-            services.behandling.opprettBeregning(
-                objects.behandling.id,
-                1.januar(2020),
-                31.desember(2020),
-                emptyList()
-            )
-            services.behandling.simuler(objects.behandling.id).fold(
-                { it },
+    @Nested
+    inner class `Underkjenning av behandling` {
+        fun <R> withFerdigbehandletSakForBruker(
+            brukersNavIdent: String,
+            test: TestApplicationEngine.(objects: Objects) -> R
+        ) =
+            withSetupForBruker(
+                brukersNavIdent,
                 {
-                    services.behandling.sendTilAttestering(
-                        objects.behandling.id,
-                        AktørId("aktørId"),
-                        Saksbehandler("S123456oid")
+                    services.behandling.oppdaterBehandlingsinformasjon(
+                        behandling.id,
+                        extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
+                    services.behandling.opprettBeregning(
+                        behandling.id,
+                        1.januar(2020),
+                        31.desember(2020),
+                        emptyList()
+                    )
+                    services.behandling.simuler(behandling.id)
+                        .map {
+                            services.behandling.sendTilAttestering(
+                                behandling.id,
+                                AktørId("aktørId"),
+                                Saksbehandler(navIdentSaksbehandler)
+                            )
+                        }
                 }
-            )
+            ) { test(it) }
 
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
+        @Test
+        fun `Forbidden når bruker ikke er attestant`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
 
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
 
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-            }
-
-            defaultRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
-            ).apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
-            ) {
-                setBody(
-                    """
-                    {
-                        "begrunnelse":""
-                    }
-                    """.trimIndent()
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Må anngi en begrunnelse"
-            }
-
-            handleRequest(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
-            ) {
-                addHeader(
-                    HttpHeaders.Authorization,
-                    Jwt.create(
-                        subject = "S123456",
-                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
-                    )
-                )
-                setBody(
-                    """
-                    {
-                        "begrunnelse":"Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
-                    }
-                    """.trimIndent()
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
-            ) {
-                setBody(
-                    """
-                    {
-                        "begrunnelse":"begrunnelse"
-                    }
-                    """.trimIndent()
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.OK
-                deserialize<BehandlingJson>(response.content!!).let {
-                    println(it.hendelser)
-                    it.status shouldBe "SIMULERT"
-                    it.hendelser?.last()?.melding shouldBe "begrunnelse"
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
-        withTestApplication({
-            testSusebakover(
-                testClients.copy(
-                    utbetalingPublisher = object : UtbetalingPublisher {
-                        override fun publish(
-                            nyUtbetaling: NyUtbetaling
-                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-                            UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
-                            ).left()
+        @Test
+        fun `BadRequest når sakId eller behandlingId er ugyldig`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
+
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
+            }
+        }
+
+        @Test
+        fun `NotFound når behandling ikke finnes`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.NotFound
+                }
+            }
+        }
+
+        @Test
+        fun `BadRequest når begrunnelse ikke er oppgitt`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+                ) {
+                    setBody(
+                        """
+                    {
+                        "begrunnelse":""
+                    }
+                        """.trimIndent()
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Må anngi en begrunnelse"
+                }
+            }
+        }
+
+        @Test
+        fun `Forbidden når saksbehandler og attestant er samme person`() {
+            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+                handleRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+                ) {
+                    addHeader(
+                        HttpHeaders.Authorization,
+                        Jwt.create(
+                            subject = "S123456",
+                            groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                        )
+                    )
+                    setBody(
+                        """
+                    {
+                        "begrunnelse": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
+                    }
+                        """.trimIndent()
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
+            }
+        }
+
+        @Test
+        fun `OK når alt er som det skal være`() {
+            withFerdigbehandletSakForBruker(navIdentAttestant) { objects ->
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn"
+                ) {
+                    setBody(
+                        """
+                    {
+                        "begrunnelse":"begrunnelse"
+                    }
+                        """.trimIndent()
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.OK
+                    deserialize<BehandlingJson>(response.content!!).let {
+                        println(it.hendelser)
+                        it.status shouldBe "SIMULERT"
+                        it.hendelser?.last()?.melding shouldBe "begrunnelse"
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `Feiler dersom man ikke får sendt til utbetaling`() {
+            withTestApplication({
+                testSusebakover(
+                    testClients.copy(
+                        utbetalingPublisher = object : UtbetalingPublisher {
+                            override fun publish(
+                                nyUtbetaling: NyUtbetaling
+                            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
+                                UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                                    Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
+                                ).left()
+                        },
+                        microsoftGraphApiClient = graphApiClientForNavIdent(navIdentAttestant)
+                    )
+                )
+            }) {
+                val objects = setup()
+                services.behandling.oppdaterBehandlingsinformasjon(
+                    objects.behandling.id,
+                    extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+                )
+                services.behandling.opprettBeregning(
+                    objects.behandling.id,
+                    1.januar(2020),
+                    31.desember(2020),
+                    emptyList()
+                )
+                services.behandling.simuler(objects.behandling.id).fold(
+                    { it },
+                    {
+                        services.behandling.sendTilAttestering(
+                            objects.behandling.id,
+                            AktørId("aktørId"),
+                            Saksbehandler("S123456")
+                        )
                     }
                 )
-            )
-        }) {
-            val objects = setup()
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.behandling.id,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
-            )
-            services.behandling.opprettBeregning(
-                objects.behandling.id,
-                1.januar(2020),
-                31.desember(2020),
-                emptyList()
-            )
-            services.behandling.simuler(objects.behandling.id).fold(
-                { it },
-                {
-                    services.behandling.sendTilAttestering(
-                        objects.behandling.id,
-                        AktørId("aktørId"),
-                        Saksbehandler("S123456")
-                    )
-                }
-            )
 
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
-            ).apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/iverksett"
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.InternalServerError
+                }
             }
         }
     }
@@ -713,4 +780,42 @@ internal class BehandlingRoutesKtTest {
         val behandling = repos.behandling.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }
+
+    val navIdentSaksbehandler = "random-saksbehandler-id"
+    val navIdentAttestant = "random-attestant-id"
+
+    fun graphApiClientForNavIdent(navIdent: String) =
+        object : MicrosoftGraphApiOppslag {
+            override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> =
+                Either.right(
+                    MicrosoftGraphResponse(
+                        onPremisesSamAccountName = navIdent,
+                        displayName = "displayName",
+                        givenName = "givenName",
+                        mail = "mail",
+                        officeLocation = "officeLocation",
+                        surname = "surname",
+                        userPrincipalName = "userPrincipalName",
+                        id = "id",
+                        jobTitle = "jobTitle",
+                    )
+                )
+        }
+
+    fun <R> withSetupForBruker(
+        brukersNavIdent: String,
+        s: Objects.() -> Unit,
+        test: TestApplicationEngine.(objects: Objects) -> R
+    ) =
+        withTestApplication({
+            testSusebakover(
+                clients = testClients.copy(
+                    microsoftGraphApiClient = graphApiClientForNavIdent(brukersNavIdent)
+                )
+            )
+        }) {
+            val objects = setup()
+            s(objects)
+            test(objects)
+        }
 }
