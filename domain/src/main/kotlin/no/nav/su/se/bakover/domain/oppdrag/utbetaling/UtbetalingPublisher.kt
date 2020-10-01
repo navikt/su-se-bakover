@@ -12,7 +12,11 @@ interface UtbetalingPublisher {
     ): Either<KunneIkkeSendeUtbetaling, Oppdragsmelding>
 
     data class KunneIkkeSendeUtbetaling(
-        val originalMelding: String,
-        val tidspunkt: Tidspunkt = now()
-    )
+        val oppdragsmelding: Oppdragsmelding
+    ) {
+        constructor(
+            originalMelding: String,
+            tidspunkt: Tidspunkt = now()
+        ) : this(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.FEIL, originalMelding, tidspunkt))
+    }
 }

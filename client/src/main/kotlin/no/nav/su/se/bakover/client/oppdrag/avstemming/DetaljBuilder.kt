@@ -35,7 +35,7 @@ class DetaljBuilder(
     private fun shouldCreate(utbetaling: Utbetaling) =
         utbetaling.oversendtUtenKvittering() || utbetaling.kvittertMedFeilEllerVarsel()
 
-    private fun Utbetaling.oversendtUtenKvittering() = erOversendtOppdrag() && !erKvittert()
+    private fun Utbetaling.oversendtUtenKvittering() = erOversendt() && !erKvittert()
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
         erKvittert() && listOf(OK_MED_VARSEL, FEIL).contains(getKvittering()!!.utbetalingsstatus)
 }

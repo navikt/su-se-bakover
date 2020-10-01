@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -462,7 +463,9 @@ internal class BehandlingRoutesKtTest {
                         override fun publish(
                             nyUtbetaling: NyUtbetaling
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-                            UtbetalingPublisher.KunneIkkeSendeUtbetaling("").left()
+                            UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                                Oppdragsmelding(FEIL, "")
+                            ).left()
                     }
                 )
             )

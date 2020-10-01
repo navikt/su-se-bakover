@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -364,13 +363,7 @@ data class Behandling(
                         attestant = attestant
                     )
                 ).mapLeft {
-                    utbetaling!!.addOppdragsmelding(
-                        Oppdragsmelding(
-                            Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                            it.originalMelding,
-                            it.tidspunkt
-                        )
-                    )
+                    utbetaling!!.addOppdragsmelding(it.oppdragsmelding)
                     IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
                 }.map {
                     utbetaling!!.addOppdragsmelding(it)
@@ -440,6 +433,7 @@ data class Behandling(
         class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
         class Utbetaling(val msg: String) : IverksettFeil()
     }
+
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
 }
 

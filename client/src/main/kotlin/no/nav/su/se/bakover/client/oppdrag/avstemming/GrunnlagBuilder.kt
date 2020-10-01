@@ -14,7 +14,7 @@ class GrunnlagBuilder(
         val kvittertMedVarsel = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.OK_MED_VARSEL)
         val kvittertFeil = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.FEIL)
         val oversendtOppdragUtenKvittering = utbetalinger.filter { !it.erKvittert() }
-            .filter { it.erOversendtOppdrag() }
+            .filter { it.erOversendt() }
         val kvitteringMangler = oversendtOppdragUtenKvittering.sum()
 
         return AvstemmingDataRequest.Grunnlagdata(

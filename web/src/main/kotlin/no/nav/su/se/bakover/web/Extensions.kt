@@ -6,6 +6,7 @@ import io.ktor.auth.Principal
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.receiveStream
 import kotlinx.coroutines.runBlocking
@@ -57,3 +58,10 @@ internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T =
     deserialize(call.receiveTextUTF8())
 
 suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
+
+suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("sakId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifRight = { ifRight(it) }
+    )
+}

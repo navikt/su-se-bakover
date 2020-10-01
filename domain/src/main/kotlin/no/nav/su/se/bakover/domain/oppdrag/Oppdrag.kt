@@ -19,18 +19,28 @@ data class Oppdrag(
 
     val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
-    // TODO jah: Ved samtidige ikke utbetalte behandlinger vil dette bli et problem.
-    fun sisteOversendteUtbetaling() = utbetalinger.toList()
-        .sortedWith(Utbetaling.Opprettet)
-        // Vi ønsker ikke å filtrere ut de som ikke har kvittering, men vi ønsker å filtrere ut de kvitteringene som har feil i seg.
-        .filter { !it.erKvittertFeil() }
-        .lastOrNull { it.erOversendtOppdrag() }
+    fun sisteOversendteUtbetaling(): Utbetaling? = oversendteUtbetalinger().lastOrNull()
 
-    fun hentUtbetalinger(): List<Utbetaling> = utbetalinger.toList()
+    /**
+     * Returnerer alle utbetalinger som tilhører oppdraget i den rekkefølgen de er opprettet.
+     *
+     * Uavhengig om de er oversendt/prøvd oversendt/kvitter ok eller kvittert feil.
+     */
+    fun hentUtbetalinger(): List<Utbetaling> = utbetalinger
+        .sortedBy { it.opprettet.instant }
 
-    fun harOversendteUtbetalingerEtter(value: LocalDate) = hentUtbetalinger()
-        .filter { !it.erKvittertFeil() }
-        .filter { it.erOversendtOppdrag() }
+    /**
+     * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
+     * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
+     */
+    fun oversendteUtbetalinger(): List<Utbetaling> = utbetalinger.filter {
+        // Vi ønsker ikke å filtrere bort de som ikke har kvittering, men vi ønsker å filtrere bort de kvitteringene som har feil i seg.
+        it.erOversendt() && !it.erKvittertFeil()
+    }.sortedBy {
+        it.getOppdragsmelding()!!.tidspunkt.instant
+    }
+
+    fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()
         .flatMap { it.utbetalingslinjer }
         .any {
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
