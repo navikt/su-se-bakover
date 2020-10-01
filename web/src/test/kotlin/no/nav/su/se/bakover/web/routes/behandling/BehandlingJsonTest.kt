@@ -49,7 +49,7 @@ internal class BehandlingJsonTest {
                     begrunnelse = null
                 ),
                 formue = Behandlingsinformasjon.Formue(
-                    status = Behandlingsinformasjon.Formue.Status.Ok,
+                    status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdiIkkePrimærbolig = 0,
                     verdiKjøretøy = 0,
                     innskudd = 0,
