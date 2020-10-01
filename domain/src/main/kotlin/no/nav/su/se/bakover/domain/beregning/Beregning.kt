@@ -27,18 +27,7 @@ data class Beregning(
         require(fraOgMed.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fraOgMed" }
         require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tilOgMed" }
         require(fraOgMed.isBefore(tilOgMed)) { "Startdato ($fraOgMed) for beregning må være tidligere enn sluttdato ($tilOgMed)." }
-        fradrag.forEach {
-            require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" }
-            if (it.utenlandskInntekt != null) {
-                require(it.utenlandskInntekt.beløpIUtenlandskValuta >= 0) { "Beløp utenlandsk valuta kan ikke være negativ" }
-                require(it.utenlandskInntekt.valuta.length >= 0) { "Valuta kan ikke være tom" }
-                require(it.utenlandskInntekt.kurs >= 0) { "kurs kan ikke være negativ" }
-            }
-            if (it.inntektDelerAvPeriode != null) {
-                require(it.inntektDelerAvPeriode.fraOgMed.dayOfMonth == 1) { "Fra og med dato må være den første i måneden. Dato var=${it.inntektDelerAvPeriode.fraOgMed}" }
-                require(it.inntektDelerAvPeriode.tilOgMed.dayOfMonth == it.inntektDelerAvPeriode.tilOgMed.lengthOfMonth()) { "Til og med dato må være den første i måneden. Dato var=${it.inntektDelerAvPeriode.tilOgMed}" }
-            }
-        }
+        fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
         require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
     }
 

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
-import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import java.time.format.DateTimeFormatter
 
 internal data class BeregningJson(

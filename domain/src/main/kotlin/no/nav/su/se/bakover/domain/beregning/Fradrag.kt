@@ -39,10 +39,18 @@ data class Fradrag(
 data class UtenlandskInntekt(
     val beløpIUtenlandskValuta: Int,
     val valuta: String,
-    val kurs: Int
-)
+    val kurs: Double
+) {
+    fun isValid(): Boolean {
+        return beløpIUtenlandskValuta >= 0 && valuta.isNotEmpty() && kurs >= 0
+    }
+}
 
 data class InntektDelerAvPeriode(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate
-)
+) {
+    fun isValid(): Boolean {
+        return fraOgMed.dayOfMonth == 1 && tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()
+    }
+}
