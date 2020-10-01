@@ -107,7 +107,7 @@ internal class BehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "formue": {
-                    "status": "Ok",
+                    "status": "VilkårOppfylt",
                     "verdiIkkePrimærbolig": 0,
                     "verdiKjøretøy": 0,
                     "innskudd": 0,

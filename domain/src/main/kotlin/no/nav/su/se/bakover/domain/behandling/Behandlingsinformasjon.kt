@@ -169,13 +169,14 @@ data class Behandlingsinformasjon(
         override fun isValid(): Boolean =
             when (status) {
                 Status.MåInnhenteMerInformasjon -> true
-                else -> verdiIkkePrimærbolig !== null &&
-                    verdiKjøretøy !== null &&
-                    innskudd !== null &&
-                    verdipapir !== null &&
-                    pengerSkyldt !== null &&
-                    kontanter !== null &&
-                    depositumskonto !== null
+                else ->
+                    verdiIkkePrimærbolig !== null &&
+                        verdiKjøretøy !== null &&
+                        innskudd !== null &&
+                        verdipapir !== null &&
+                        pengerSkyldt !== null &&
+                        kontanter !== null &&
+                        depositumskonto !== null
             }
 
         override fun isComplete(): Boolean = status != Status.MåInnhenteMerInformasjon
