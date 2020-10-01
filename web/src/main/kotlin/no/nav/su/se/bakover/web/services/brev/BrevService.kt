@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -27,7 +28,8 @@ class BrevService(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
     private val dokArkiv: DokArkiv,
-    private val dokDistFordeling: DokDistFordeling
+    private val dokDistFordeling: DokDistFordeling,
+    private val sakService: SakService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -109,9 +111,12 @@ class BrevService(
     fun lagUtkastTilBrev(
         behandling: Behandling
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, ByteArray> {
-        val fnr = behandling.fnr
-        val person = hentPersonFraFnr(fnr).fold({ return it.left() }, { it })
-        return lagUtkastTilBrev(behandling, person)
+        return sakService.hentSak(behandling.sakId)
+            .mapLeft { KunneIkkeOppretteJournalpostOgSendeBrev }
+            .map { sak ->
+                val person = hentPersonFraFnr(sak.fnr).fold({ return it.left() }, { it })
+                return lagUtkastTilBrev(behandling, person)
+            }
     }
 
     private fun lagUtkastTilBrev(

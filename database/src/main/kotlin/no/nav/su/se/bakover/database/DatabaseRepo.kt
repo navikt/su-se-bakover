@@ -7,11 +7,9 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
-import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandlingerForSak
-import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknaderInternal
+import no.nav.su.se.bakover.database.sak.SakRepoInternal.hentSakInternal
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo.hentUtbetalinger
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.BehandlingPersistenceObserver
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakPersistenceObserver
@@ -33,14 +31,11 @@ internal class DatabaseRepo(
     private val clock: Clock = Clock.systemUTC()
 ) : ObjectRepo,
     SakPersistenceObserver,
-    BehandlingPersistenceObserver,
     OppdragPersistenceObserver,
     UtbetalingPersistenceObserver {
 
-    override fun hentSak(fnr: Fnr): Sak? = using(sessionOf(dataSource)) { hentSakInternal(fnr, it) }
-
-    private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
-        .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(session) }
+    override fun hentSak(fnr: Fnr): Sak? =
+        using(sessionOf(dataSource)) { hentSakInternal(fnr, it)?.apply { addObserver(this@DatabaseRepo) } }
 
     override fun nySøknad(sakId: UUID, søknad: Søknad): Søknad {
         return opprettSøknad(sakId = sakId, søknad = søknad)
@@ -108,18 +103,6 @@ internal class DatabaseRepo(
         return utbetalingslinje
     }
 
-    private fun Row.toSak(session: Session): Sak {
-        val sakId = UUID.fromString(string("id"))
-        return Sak(
-            id = sakId,
-            fnr = Fnr(string("fnr")),
-            opprettet = tidspunkt("opprettet"),
-            søknader = hentSøknaderInternal(sakId, session),
-            behandlinger = hentBehandlingerForSak(sakId, session),
-            oppdrag = hentOppdragForSak(sakId, session)
-        ).also { it.addObserver(this@DatabaseRepo) }
-    }
-
     private fun hentOppdragForSak(sakId: UUID, session: Session) =
         "select * from oppdrag where sakId=:sakId".hent(mapOf("sakId" to sakId), session) {
             it.toOppdrag(session)
@@ -138,10 +121,8 @@ internal class DatabaseRepo(
         ).also { it.addObserver(this@DatabaseRepo) }
     }
 
-    override fun hentSak(sakId: UUID): Sak? = using(sessionOf(dataSource)) { hentSakInternal(sakId, it) }
-
-    private fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
-        .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
+    override fun hentSak(sakId: UUID): Sak? =
+        using(sessionOf(dataSource)) { hentSakInternal(sakId, it)?.apply { addObserver(this@DatabaseRepo) } }
 
     internal fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
         "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
@@ -187,7 +168,6 @@ internal class DatabaseRepo(
     override fun hentBehandling(behandlingId: UUID): Behandling? =
         using(sessionOf(dataSource)) { session ->
             hentBehandling(behandlingId, session).also {
-                it?.addObserver(this@DatabaseRepo)
                 it?.utbetaling?.addObserver(this@DatabaseRepo)
             }
         }
@@ -196,19 +176,6 @@ internal class DatabaseRepo(
         using(sessionOf(dataSource)) {
             this.oppdatering(params, it)
         }
-    }
-
-    override fun oppdaterBehandlingStatus(
-        behandlingId: UUID,
-        status: Behandling.BehandlingsStatus
-    ): Behandling.BehandlingsStatus {
-        "update behandling set status = :status where id = :id".oppdatering(
-            mapOf(
-                "id" to behandlingId,
-                "status" to status.name
-            )
-        )
-        return status
     }
 
     override fun hentOppdrag(sakId: UUID): Oppdrag {

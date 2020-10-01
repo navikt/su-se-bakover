@@ -220,7 +220,8 @@ internal fun Application.susebakover(
                     pdfGenerator = clients.pdfGenerator,
                     personOppslag = clients.personOppslag,
                     dokArkiv = clients.dokArkiv,
-                    dokDistFordeling = clients.dokDistFordeling
+                    dokDistFordeling = clients.dokDistFordeling,
+                    sakService = services.sakService
                 ),
                 personOppslag = clients.personOppslag,
                 behandlingService = services.behandlingService

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
@@ -37,7 +36,7 @@ data class Behandling(
     private var attestant: Attestant? = null,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service
-) : PersistentDomainObject<BehandlingPersistenceObserver>() {
+) {
 
     private var tilstand: Tilstand = resolve(status)
 
@@ -50,11 +49,6 @@ data class Behandling(
     fun beregning() = beregning
 
     fun behandlingsinformasjon() = behandlingsinformasjon
-
-    /**
-     * Henter fødselsnummer fra sak via persisteringslaget (lazy)
-     */
-    val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
 
     fun utbetaling() = utbetaling
 
@@ -158,7 +152,7 @@ data class Behandling(
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
-        status = persistenceObserver.oppdaterBehandlingStatus(id, target.status)
+        status = target.status
         tilstand = resolve(status)
         return tilstand
     }
@@ -173,11 +167,9 @@ data class Behandling(
 
             behandlingsinformasjon = behandlingsinformasjon.patch(oppdatert) // TODO service will handle
             if (behandlingsinformasjon.isInnvilget()) {
-                tilstand = resolve(Vilkårsvurdert().Innvilget().status)
-                this@Behandling.status = tilstand.status
+                nyTilstand(Vilkårsvurdert().Innvilget())
             } else if (behandlingsinformasjon.isAvslag()) {
-                tilstand = resolve(Vilkårsvurdert().Avslag().status)
-                this@Behandling.status = tilstand.status
+                nyTilstand(Vilkårsvurdert().Avslag())
             }
         }
     }
@@ -212,8 +204,7 @@ data class Behandling(
                     fradrag = fradrag,
                     forventetInntekt = forventetInntekt
                 )
-                tilstand = Beregnet()
-                this@Behandling.status = tilstand.status
+                nyTilstand(Beregnet())
             }
         }
 
@@ -225,14 +216,13 @@ data class Behandling(
                 saksbehandler: Saksbehandler,
             ): Behandling {
                 this@Behandling.saksbehandler = saksbehandler
-                tilstand = TilAttestering().Avslag()
-                this@Behandling.status = tilstand.status
+                nyTilstand(TilAttestering().Avslag())
                 return this@Behandling
             }
         }
     }
 
-    private inner class Beregnet : Behandling.Tilstand {
+    private inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
 
         override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
@@ -246,8 +236,7 @@ data class Behandling(
         override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
             // TODO just passing the utbetaling for now for backwards compatability
             this@Behandling.utbetaling = utbetaling
-            tilstand = Simulert()
-            this@Behandling.status = tilstand.status
+            nyTilstand(Simulert())
             return this@Behandling.right()
         }
     }
@@ -260,8 +249,7 @@ data class Behandling(
             saksbehandler: Saksbehandler
         ): Behandling {
             this@Behandling.saksbehandler = saksbehandler
-            tilstand = TilAttestering().Innvilget()
-            this@Behandling.status = tilstand.status
+            nyTilstand(TilAttestering().Innvilget())
             return this@Behandling
         }
 
@@ -289,8 +277,7 @@ data class Behandling(
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
-                tilstand = Iverksatt().Innvilget()
-                this@Behandling.status = tilstand.status
+                nyTilstand(Iverksatt().Innvilget())
                 return this@Behandling.right()
             }
         }
@@ -304,8 +291,7 @@ data class Behandling(
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
-                tilstand = Iverksatt().Avslag()
-                this@Behandling.status = tilstand.status
+                nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
         }
@@ -316,13 +302,12 @@ data class Behandling(
             }
 
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
-            tilstand = Simulert()
-            this@Behandling.status = tilstand.status
+            nyTilstand(Simulert())
             return this@Behandling.right()
         }
     }
 
-    private open inner class Iverksatt : Behandling.Tilstand {
+    private open inner class Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         inner class Innvilget : Iverksatt()
@@ -358,14 +343,4 @@ data class Behandling(
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
-}
-
-interface BehandlingPersistenceObserver : PersistenceObserver {
-    fun oppdaterBehandlingStatus(
-        behandlingId: UUID,
-        status: Behandling.BehandlingsStatus
-    ): Behandling.BehandlingsStatus
-
-    fun hentOppdrag(sakId: UUID): Oppdrag
-    fun hentFnr(sakId: UUID): Fnr
 }

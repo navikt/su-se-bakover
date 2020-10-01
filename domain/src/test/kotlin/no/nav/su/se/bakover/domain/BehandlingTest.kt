@@ -525,23 +525,9 @@ internal class BehandlingTest {
     }
 
     private class DummyObserver :
-        BehandlingPersistenceObserver,
         Oppdrag.OppdragPersistenceObserver,
         UtbetalingPersistenceObserver {
-        lateinit var oppdatertStatus: BehandlingsStatus
         lateinit var oppdragsmelding: Oppdragsmelding
-
-        override fun oppdaterBehandlingStatus(
-            behandlingId: UUID,
-            status: BehandlingsStatus
-        ): BehandlingsStatus {
-            oppdatertStatus = status
-            return status
-        }
-
-        override fun hentOppdrag(sakId: UUID): Oppdrag {
-            return oppdrag.copy(sakId = sakId).also { it.addObserver(this) }
-        }
 
         override fun hentFnr(sakId: UUID): Fnr {
             return Fnr("12345678910")
@@ -570,7 +556,6 @@ internal class BehandlingTest {
         sakId = id1
     ).also {
         observer = DummyObserver()
-        it.addObserver(observer)
     }
 
     private fun defaultUtbetaling() = Utbetaling(fnr = Fnr("12345678910"), utbetalingslinjer = emptyList())
