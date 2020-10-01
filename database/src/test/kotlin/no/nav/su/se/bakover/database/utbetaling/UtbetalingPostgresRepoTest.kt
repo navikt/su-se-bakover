@@ -125,6 +125,23 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
+    // @Test //TODO add when migrated
+    // fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
+    //     withMigratedDb {
+    //         val sak = insertSak(FNR)
+    //         val utbetaling = insertUtbetaling(sak.oppdrag.id, Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
+    //         val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
+    //         val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
+    //         utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+    //
+    //         assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
+    //
+    //         val skulleIkkeSlettes = utbetalingRepo.hentUtbetaling(utbetaling.id)
+    //         skulleIkkeSlettes!!.id shouldBe utbetaling.id
+    //         skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
+    //     }
+    // }
+
     private fun defaultUtbetaling() = Utbetaling(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),

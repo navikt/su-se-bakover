@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
@@ -104,8 +103,8 @@ data class Behandling(
         return this
     }
 
-    fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
-        return tilstand.simuler(simuleringClient)
+    fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        return tilstand.simuler(utbetaling)
     }
 
     fun sendTilAttestering(
@@ -145,7 +144,7 @@ data class Behandling(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
+        fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
             throw TilstandException(status, this::simuler.toString())
         }
 
@@ -260,30 +259,12 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
-            val oppdrag = persistenceObserver.hentOppdrag(sakId)
-            val utbetalingTilSimulering = oppdrag.genererUtbetaling(beregning!!)
-            return simuleringClient.simulerUtbetaling(
-                NyUtbetaling(
-                    oppdrag = oppdrag,
-                    utbetaling = utbetalingTilSimulering,
-                    attestant = Attestant("SU") // TODO: Vi har ikke noe konsept om saksbehandlerid enda.
-                )
-            ).map { simulering ->
-                utbetaling?.let { slettEksisterendeUtbetaling(oppdrag, it) }
-                this@Behandling.utbetaling = utbetalingTilSimulering.also {
-                    oppdrag.leggTilUtbetaling(it)
-                    it.addSimulering(simulering)
-                    persistenceObserver.leggTilUtbetaling(id, it.id)
-                }
-                nyTilstand(Simulert())
-                this@Behandling
-            }
-        }
-
-        private fun slettEksisterendeUtbetaling(oppdrag: Oppdrag, utbetaling: Utbetaling) {
-            check(utbetaling.kanSlettes()) { "Utbetalingen har kommet for langt i utbetalingsløpet til å kunne slettes" }
-            oppdrag.slettUtbetaling(utbetaling)
+        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+            // TODO just passing the utbetaling for now for backwards compatability
+            this@Behandling.utbetaling = utbetaling
+            tilstand = Simulert()
+            this@Behandling.status = tilstand.status
+            return this@Behandling.right()
         }
     }
 
@@ -313,8 +294,8 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(simuleringClient: SimuleringClient): Either<SimuleringFeilet, Behandling> {
-            return nyTilstand(Beregnet()).simuler(simuleringClient)
+        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+            return nyTilstand(Beregnet()).simuler(utbetaling)
         }
     }
 

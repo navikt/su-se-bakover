@@ -123,23 +123,6 @@ internal class DatabaseRepoTest {
     }
 
     @Test
-    fun `beskytter mot sletting av utbetalinger som ikke skal slettes`() {
-        withMigratedDb {
-            val sak = insertSak(FNR)
-            val utbetaling = insertUtbetaling(sak.oppdrag.id, Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
-            val utbetalingslinje1 = insertUtbetalingslinje(utbetaling.id, null)
-            val utbetalingslinje2 = insertUtbetalingslinje(utbetaling.id, utbetalingslinje1.forrigeUtbetalingslinjeId)
-            utbetaling.addOppdragsmelding(Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
-
-            assertThrows<IllegalStateException> { repo.slettUtbetaling(utbetaling) }
-
-            val skulleIkkeSlettes = utbetalingRepo.hentUtbetaling(utbetaling.id)
-            skulleIkkeSlettes!!.id shouldBe utbetaling.id
-            skulleIkkeSlettes.utbetalingslinjer shouldBe listOf(utbetalingslinje1, utbetalingslinje2)
-        }
-    }
-
-    @Test
     fun `legg til og hent oppdragsmelding`() {
         withMigratedDb {
             val sak = insertSak(FNR)
@@ -174,8 +157,6 @@ internal class DatabaseRepoTest {
 
     private fun oppdragPersistenceObserver() = object : OppdragPersistenceObserver {
         override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) = throw NotImplementedError()
-
-        override fun slettUtbetaling(utbetaling: Utbetaling) = throw NotImplementedError()
 
         override fun hentFnr(sakId: UUID): Fnr {
             return FNR

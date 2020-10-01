@@ -15,24 +15,30 @@ class ServiceBuilder(
     private val databaseRepos: DatabaseRepos,
     private val clients: Clients
 ) {
-    fun build() = Services(
-        avstemmingService = AvstemmingServiceImpl(
-            repo = databaseRepos.avstemmingRepo,
-            publisher = clients.avstemmingPublisher
-        ),
-        utbetalingService = UtbetalingServiceImpl(
+    fun build(): Services {
+        val utbetalingService = UtbetalingServiceImpl(
             repo = databaseRepos.utbetalingRepo,
-        ),
-        oppdragService = OppdragServiceImpl(
-            repo = databaseRepos.oppdragRepo
-        ),
-        behandlingService = BehandlingServiceImpl(
-            behandlingRepo = databaseRepos.behandlingRepo,
-            hendelsesloggRepo = databaseRepos.hendelsesloggRepo,
-            beregningRepo = databaseRepos.beregningRepo,
-            objectRepo = databaseRepos.objectRepo
         )
-    )
+        return Services(
+            avstemmingService = AvstemmingServiceImpl(
+                repo = databaseRepos.avstemmingRepo,
+                publisher = clients.avstemmingPublisher
+            ),
+            utbetalingService = utbetalingService,
+            oppdragService = OppdragServiceImpl(
+                repo = databaseRepos.oppdragRepo
+            ),
+            behandlingService = BehandlingServiceImpl(
+                behandlingRepo = databaseRepos.behandlingRepo,
+                hendelsesloggRepo = databaseRepos.hendelsesloggRepo,
+                beregningRepo = databaseRepos.beregningRepo,
+                objectRepo = databaseRepos.objectRepo,
+                oppdragRepo = databaseRepos.oppdragRepo,
+                simuleringClient = clients.simuleringClient,
+                utbetalingService = utbetalingService
+            )
+        )
+    }
 }
 
 data class Services(

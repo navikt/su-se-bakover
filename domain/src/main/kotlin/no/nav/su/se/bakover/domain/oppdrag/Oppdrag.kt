@@ -72,11 +72,8 @@ data class Oppdrag(
             }
     }
 
-    fun slettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.slettUtbetaling(utbetaling)
-
     interface OppdragPersistenceObserver : PersistenceObserver {
         fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling)
-        fun slettUtbetaling(utbetaling: Utbetaling)
         fun hentFnr(sakId: UUID): Fnr
     }
 }

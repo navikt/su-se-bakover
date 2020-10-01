@@ -92,15 +92,6 @@ internal class DatabaseRepo(
         utbetaling.addObserver(this)
     }
 
-    override fun slettUtbetaling(utbetaling: Utbetaling) {
-        check(utbetaling.kanSlettes()) { "Utbetaling har kommet for langt i utbetalingsløpet til å kunne slettes" }
-        "delete from utbetaling where id=:id".oppdatering(
-            mapOf(
-                "id" to utbetaling.id
-            )
-        )
-    }
-
     internal fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje): Utbetalingslinje {
         """
             insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp)

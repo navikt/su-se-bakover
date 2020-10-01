@@ -250,9 +250,6 @@ internal class OppdragTest {
             this.utbetaling = utbetaling
         }
 
-        override fun slettUtbetaling(utbetaling: Utbetaling) {
-        }
-
         override fun hentFnr(sakId: UUID): Fnr = Fnr("12345678910")
     }
 

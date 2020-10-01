@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehan
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -48,7 +47,6 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 internal fun Route.behandlingRoutes(
     repo: ObjectRepo,
     brevService: BrevService,
-    simuleringClient: SimuleringClient,
     personOppslag: PersonOppslag,
     oppgaveClient: OppgaveClient,
     utbetalingPublisher: UtbetalingPublisher,
@@ -142,7 +140,7 @@ internal fun Route.behandlingRoutes(
 
     post("$behandlingPath/{behandlingId}/simuler") {
         call.withBehandling(repo) { behandling ->
-            behandling.simuler(simuleringClient).fold(
+            behandlingService.simuler(behandling.id).fold(
                 {
                     log.info("Feil ved simulering: ", it)
                     call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))

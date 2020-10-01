@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.behandling
 
 import kotliquery.using
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
 import no.nav.su.se.bakover.database.oppdatering
@@ -43,6 +44,18 @@ internal class BehandlingPostgresRepo(
             mapOf(
                 "id" to behandlingId,
                 "status" to status.name
+            )
+        )
+        return hentBehandling(behandlingId)!!
+    }
+
+    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30): Behandling {
+        """
+            update behandling set utbetalingId=:utbetalingId where id=:id
+        """.oppdatering(
+            mapOf(
+                "id" to behandlingId,
+                "utbetalingId" to utbetalingId
             )
         )
         return hentBehandling(behandlingId)!!
