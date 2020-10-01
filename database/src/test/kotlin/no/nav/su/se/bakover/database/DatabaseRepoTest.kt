@@ -233,7 +233,7 @@ internal class DatabaseRepoTest {
                             type = Fradragstype.AndreYtelser,
                             beløp = 10000,
                             utenlandskInntekt = null,
-                            delerAvPeriode = null
+                            inntektDelerAvPeriode = null
                         )
                     ),
                     forventetInntekt = 200

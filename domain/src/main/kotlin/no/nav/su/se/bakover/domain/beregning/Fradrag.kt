@@ -31,7 +31,7 @@ data class Fradrag(
     val type: Fradragstype,
     val beløp: Int,
     val utenlandskInntekt: UtenlandskInntekt?,
-    val delerAvPeriode: DelerAvPeriode?
+    val inntektDelerAvPeriode: InntektDelerAvPeriode?
 ) {
     fun perMåned(): Int = BigDecimal(beløp).divide(BigDecimal(12), 0, RoundingMode.HALF_UP).toInt()
 }
@@ -42,7 +42,7 @@ data class UtenlandskInntekt(
     val kurs: Int
 )
 
-data class DelerAvPeriode(
+data class InntektDelerAvPeriode(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate
 )

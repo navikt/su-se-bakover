@@ -212,6 +212,6 @@ fun List<Fradrag>.toFradragPerMåned(): List<Fradrag> =
             type = it.type,
             beløp = it.beløp / 12,
             utenlandskInntekt = it.utenlandskInntekt,
-            delerAvPeriode = it.delerAvPeriode,
+            inntektDelerAvPeriode = it.inntektDelerAvPeriode,
         )
     }

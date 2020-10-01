@@ -5,7 +5,7 @@ alter table fradrag
 
 alter table fradrag
     add column if not exists
-        delerAvPeriode jsonb
+        inntektDelerAvPeriode jsonb
             default null;
 
 alter table fradrag

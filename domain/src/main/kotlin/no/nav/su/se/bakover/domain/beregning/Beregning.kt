@@ -34,9 +34,9 @@ data class Beregning(
                 require(it.utenlandskInntekt.valuta.length >= 0) { "Valuta kan ikke være tom" }
                 require(it.utenlandskInntekt.kurs >= 0) { "kurs kan ikke være negativ" }
             }
-            if (it.delerAvPeriode != null) {
-                require(it.delerAvPeriode.fraOgMed.dayOfMonth == 1) { "Fra og med dato må være den første i måneden. Dato var=${it.delerAvPeriode.fraOgMed}" }
-                require(it.delerAvPeriode.tilOgMed.dayOfMonth == it.delerAvPeriode.tilOgMed.lengthOfMonth()) { "Til og med dato må være den første i måneden. Dato var=${it.delerAvPeriode.tilOgMed}" }
+            if (it.inntektDelerAvPeriode != null) {
+                require(it.inntektDelerAvPeriode.fraOgMed.dayOfMonth == 1) { "Fra og med dato må være den første i måneden. Dato var=${it.inntektDelerAvPeriode.fraOgMed}" }
+                require(it.inntektDelerAvPeriode.tilOgMed.dayOfMonth == it.inntektDelerAvPeriode.tilOgMed.lengthOfMonth()) { "Til og med dato må være den første i måneden. Dato var=${it.inntektDelerAvPeriode.tilOgMed}" }
             }
         }
         require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
@@ -97,7 +97,7 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
             type = Fradragstype.ForventetInntekt,
             beløp = forventetInntekt,
             utenlandskInntekt = null,
-            delerAvPeriode = null,
+            inntektDelerAvPeriode = null,
         )
     )
 }
