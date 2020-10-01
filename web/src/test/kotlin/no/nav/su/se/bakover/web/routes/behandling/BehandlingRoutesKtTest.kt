@@ -173,8 +173,8 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                       "fom":"$fom",
-                       "tom":"$tom",
+                       "fraOgMed":"$fom",
+                       "tilOgMed":"$tom",
                        "sats":"${sats.name}",
                        "fradrag":[{
                              "type":"Arbeidsinntekt",
@@ -227,8 +227,8 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fom":"$fom",
-                        "tom":"$tom",
+                        "fraOgMed":"$fom",
+                        "tilOgMed":"$tom",
                         "sats":"${sats.name}",
                         "fradrag": [
                                 {
@@ -306,8 +306,8 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
                     """{
-                           "fom":"$fom",
-                           "tom":"$tom",
+                           "fraOgMed":"$fom",
+                           "tilOgMed":"$tom",
                            "sats":"${sats.name}",
                            "fradrag":[
                             {
