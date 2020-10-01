@@ -146,13 +146,13 @@ internal class BeregningTest {
                 Fradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 12000,
-                    fraUtlandInntekt = null,
+                    utenlandskInntekt = null,
                     delerAvPeriode = null,
                 ),
                 Fradrag(
                     type = Fradragstype.Barnetillegg,
                     beløp = 1200,
-                    fraUtlandInntekt = null,
+                    utenlandskInntekt = null,
                     delerAvPeriode = null,
                 )
             ),
@@ -173,13 +173,13 @@ internal class BeregningTest {
                     Fradrag(
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = -100,
-                        fraUtlandInntekt = null,
+                        utenlandskInntekt = null,
                         delerAvPeriode = null,
                     ),
                     Fradrag(
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = 200,
-                        fraUtlandInntekt = null,
+                        utenlandskInntekt = null,
                         delerAvPeriode = null,
                     )
                 ),

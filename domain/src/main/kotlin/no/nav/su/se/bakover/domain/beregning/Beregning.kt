@@ -29,10 +29,10 @@ data class Beregning(
         require(fraOgMed.isBefore(tilOgMed)) { "Startdato ($fraOgMed) for beregning må være tidligere enn sluttdato ($tilOgMed)." }
         fradrag.forEach {
             require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" }
-            if (it.fraUtlandInntekt != null) {
-                require(it.fraUtlandInntekt.beløpUtenlandskValuta >= 0) { "Beløp utenlandsk valuta kan ikke være negativ" }
-                require(it.fraUtlandInntekt.valuta.length >= 0) { "Valuta kan ikke være tom" }
-                require(it.fraUtlandInntekt.kurs >= 0) { "kurs kan ikke være negativ" }
+            if (it.utenlandskInntekt != null) {
+                require(it.utenlandskInntekt.beløpIUtenlandskValuta >= 0) { "Beløp utenlandsk valuta kan ikke være negativ" }
+                require(it.utenlandskInntekt.valuta.length >= 0) { "Valuta kan ikke være tom" }
+                require(it.utenlandskInntekt.kurs >= 0) { "kurs kan ikke være negativ" }
             }
             if (it.delerAvPeriode != null) {
                 require(it.delerAvPeriode.fraOgMed.dayOfMonth == 1) { "Fra og med dato må være den første i måneden. Dato var=${it.delerAvPeriode.fraOgMed}" }
@@ -96,7 +96,7 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
         Fradrag(
             type = Fradragstype.ForventetInntekt,
             beløp = forventetInntekt,
-            fraUtlandInntekt = null,
+            utenlandskInntekt = null,
             delerAvPeriode = null,
         )
     )

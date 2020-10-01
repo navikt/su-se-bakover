@@ -232,7 +232,7 @@ internal class DatabaseRepoTest {
                         Fradrag(
                             type = Fradragstype.AndreYtelser,
                             beløp = 10000,
-                            fraUtlandInntekt = null,
+                            utenlandskInntekt = null,
                             delerAvPeriode = null
                         )
                     ),

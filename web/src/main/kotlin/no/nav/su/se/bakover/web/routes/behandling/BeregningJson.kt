@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.DelerAvPeriode
-import no.nav.su.se.bakover.domain.beregning.FraUtlandInntekt
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import java.time.format.DateTimeFormatter
@@ -33,7 +33,7 @@ internal fun Beregning.toJson() = BeregningJson(
         FradragJson(
             type = it.type.toString(),
             beløp = it.beløp,
-            fraUtlandInntekt = it.fraUtlandInntekt,
+            utenlandskInntekt = it.utenlandskInntekt,
             delerAvPeriode = it.delerAvPeriode
         )
     },
@@ -43,13 +43,13 @@ internal fun Beregning.toJson() = BeregningJson(
 internal data class FradragJson(
     val type: String,
     val beløp: Int,
-    val fraUtlandInntekt: FraUtlandInntekt?,
+    val utenlandskInntekt: UtenlandskInntekt?,
     val delerAvPeriode: DelerAvPeriode?
 ) {
     fun toFradrag(): Fradrag = Fradrag(
         type = Fradragstype.valueOf(type),
         beløp = beløp,
-        fraUtlandInntekt = fraUtlandInntekt,
+        utenlandskInntekt = utenlandskInntekt,
         delerAvPeriode = delerAvPeriode,
     )
 }

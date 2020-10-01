@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.DelerAvPeriode
-import no.nav.su.se.bakover.domain.beregning.FraUtlandInntekt
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -423,14 +423,14 @@ internal class DatabaseRepo(
         id = uuid("id"),
         beløp = int("beløp"),
         type = Fradragstype.valueOf(string("fradragstype")),
-        fraUtlandInntekt = objectMapper.readValue(string("fraUtlandInntekt")) as FraUtlandInntekt?,
+        utenlandskInntekt = objectMapper.readValue(string("utenlandskInntekt")) as UtenlandskInntekt?,
         delerAvPeriode = objectMapper.readValue(string("delerAvPeriode")) as DelerAvPeriode?,
     )
 
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
-            insert into fradrag (id, beregningId, fradragstype, beløp, fraUtlandInntekt, delerAvPeriode)
-            values (:id, :beregningId, :fradragstype, :belop, to_json(:fraUtlandInntekt::json), to_json(:delerAvPeriode::json))
+            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt, delerAvPeriode)
+            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json), to_json(:delerAvPeriode::json))
         """
             .oppdatering(
                 mapOf(
@@ -438,7 +438,7 @@ internal class DatabaseRepo(
                     "beregningId" to beregningId,
                     "fradragstype" to fradrag.type.toString(),
                     "belop" to fradrag.beløp,
-                    "fraUtlandInntekt" to objectMapper.writeValueAsString(fradrag.fraUtlandInntekt),
+                    "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt),
                     "delerAvPeriode" to objectMapper.writeValueAsString(fradrag.delerAvPeriode)
                 )
             )

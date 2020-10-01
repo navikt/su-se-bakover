@@ -1,6 +1,6 @@
 alter table fradrag
     add column if not exists
-        fraUtlandInntekt jsonb
+        utenlandskInntekt jsonb
             default null;
 
 alter table fradrag

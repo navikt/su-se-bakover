@@ -30,14 +30,14 @@ data class Fradrag(
     val id: UUID = UUID.randomUUID(),
     val type: Fradragstype,
     val beløp: Int,
-    val fraUtlandInntekt: FraUtlandInntekt?,
+    val utenlandskInntekt: UtenlandskInntekt?,
     val delerAvPeriode: DelerAvPeriode?
 ) {
     fun perMåned(): Int = BigDecimal(beløp).divide(BigDecimal(12), 0, RoundingMode.HALF_UP).toInt()
 }
 
-data class FraUtlandInntekt(
-    val beløpUtenlandskValuta: Int,
+data class UtenlandskInntekt(
+    val beløpIUtenlandskValuta: Int,
     val valuta: String,
     val kurs: Int
 )
