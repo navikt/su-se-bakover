@@ -1,8 +1,13 @@
 package no.nav.su.se.bakover.database.søknad
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import kotliquery.Row
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
@@ -16,4 +21,12 @@ internal object SøknadRepoInternal {
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toSøknad()
         }.toMutableList()
+}
+
+internal fun Row.toSøknad(): Søknad {
+    return Søknad(
+        id = uuid("id"),
+        søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
+        opprettet = tidspunkt("opprettet")
+    )
 }

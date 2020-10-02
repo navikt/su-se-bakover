@@ -1,15 +1,20 @@
 package no.nav.su.se.bakover.database.avstemming
 
+import kotliquery.Row
 import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.inClauseWith
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
+import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
+import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -83,3 +88,16 @@ internal class AvstemmingPostgresRepo(
         }
     }
 }
+
+private fun Row.toAvstemming(session: Session) = Avstemming(
+    id = uuid30("id"),
+    opprettet = tidspunkt("opprettet"),
+    fraOgMed = tidspunkt("fom"),
+    tilOgMed = tidspunkt("tom"),
+    utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
+        objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
+            UtbetalingInternalRepo.hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
+        }
+    }!!,
+    avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+)
