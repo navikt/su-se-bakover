@@ -46,7 +46,7 @@ data class Behandlingsinformasjon(
                 lovligOpphold?.status == LovligOpphold.Status.VilkårOppfylt,
                 fastOppholdINorge?.status == FastOppholdINorge.Status.VilkårOppfylt,
                 oppholdIUtlandet?.status == OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                formue?.status == Formue.Status.Ok,
+                formue?.status == Formue.Status.VilkårOppfylt,
                 personligOppmøte?.status.let {
                     it == PersonligOppmøte.Status.FullmektigMedLegeattest ||
                         it == PersonligOppmøte.Status.MøttPersonlig ||
@@ -59,6 +59,7 @@ data class Behandlingsinformasjon(
             uførhet?.status == Uførhet.Status.VilkårIkkeOppfylt,
             flyktning?.status == Flyktning.Status.VilkårIkkeOppfylt,
             lovligOpphold?.status == LovligOpphold.Status.VilkårIkkeOppfylt,
+            formue?.status == Formue.Status.VilkårIkkeOppfylt,
             fastOppholdINorge?.status == FastOppholdINorge.Status.VilkårIkkeOppfylt,
             oppholdIUtlandet?.status == OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
             personligOppmøte?.status.let {
@@ -89,6 +90,7 @@ data class Behandlingsinformasjon(
                 Status.VilkårIkkeOppfylt -> uføregrad == null && forventetInntekt == null
                 Status.HarUføresakTilBehandling -> uføregrad != null && uføregrad > 0 && forventetInntekt != null && forventetInntekt > 0
             }
+
         override fun isComplete(): Boolean = isValid()
     }
 
@@ -159,22 +161,24 @@ data class Behandlingsinformasjon(
         val begrunnelse: String?
     ) : Base() {
         enum class Status {
-            Ok,
+            VilkårOppfylt,
+            VilkårIkkeOppfylt,
             MåInnhenteMerInformasjon
         }
 
         override fun isValid(): Boolean =
             when (status) {
-                Status.Ok ->
-                    verdiIkkePrimærbolig != null &&
+                Status.MåInnhenteMerInformasjon -> true
+                else ->
+                    verdiIkkePrimærbolig !== null &&
                         verdiKjøretøy !== null &&
                         innskudd !== null &&
                         verdipapir !== null &&
                         pengerSkyldt !== null &&
                         kontanter !== null &&
                         depositumskonto !== null
-                Status.MåInnhenteMerInformasjon -> true
             }
+
         override fun isComplete(): Boolean = status != Status.MåInnhenteMerInformasjon
     }
 
@@ -235,6 +239,7 @@ data class Behandlingsinformasjon(
             } else {
                 true
             }
+
         override fun isComplete(): Boolean = true
     }
 }
