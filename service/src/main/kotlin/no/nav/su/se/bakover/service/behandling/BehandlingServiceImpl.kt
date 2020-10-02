@@ -50,6 +50,7 @@ internal class BehandlingServiceImpl(
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
             .map {
+                behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                 hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
                 behandlingRepo.hentBehandling(it.id)!!
             }
