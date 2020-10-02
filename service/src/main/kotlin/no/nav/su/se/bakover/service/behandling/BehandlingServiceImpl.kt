@@ -49,7 +49,6 @@ internal class BehandlingServiceImpl(
         behandling: Behandling
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
-            .mapLeft { it }
             .map {
                 hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
                 behandlingRepo.hentBehandling(it.id)!!
@@ -95,7 +94,6 @@ internal class BehandlingServiceImpl(
         val utbetaling = oppdrag.genererUtbetaling(behandling.beregning()!!, sak.fnr)
         val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
-            .mapLeft { it }
             .map {
                 behandling.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
                 utbetalingService.opprettUtbetaling(oppdrag.id, utbetaling)
@@ -150,7 +148,6 @@ internal class BehandlingServiceImpl(
             )
             val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
             return oppdatert.iverksett(attestant)
-                .mapLeft { it }
                 .map {
                     behandlingRepo.attester(behandlingId, attestant)
                     behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
@@ -161,7 +158,6 @@ internal class BehandlingServiceImpl(
 
     override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling> {
         return søknadService.hentSøknad(søknadId)
-            .mapLeft { it }
             .map {
                 behandlingRepo.opprettSøknadsbehandling(
                     sakId,
