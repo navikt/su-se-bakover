@@ -22,7 +22,7 @@ class DetaljBuilder(
         }
 
     private fun mapStatus(utbetaling: Utbetaling): Detaljdata.Detaljtype = when (utbetaling.kvittertMedFeilEllerVarsel()) {
-        true -> mapUtbetalingsstatus(utbetaling.getKvittering()!!.utbetalingsstatus)
+        true -> mapUtbetalingsstatus(utbetaling.kvittering!!.utbetalingsstatus)
         false -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
     }
 
@@ -37,5 +37,5 @@ class DetaljBuilder(
 
     private fun Utbetaling.oversendtUtenKvittering() = erOversendt() && !erKvittert()
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
-        erKvittert() && listOf(OK_MED_VARSEL, FEIL).contains(getKvittering()!!.utbetalingsstatus)
+        erKvittert() && listOf(OK_MED_VARSEL, FEIL).contains(kvittering!!.utbetalingsstatus)
 }

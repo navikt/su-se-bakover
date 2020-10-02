@@ -121,7 +121,7 @@ internal class UtbetalingPostgresRepoTest {
                     simulering = it
                 )
             }
-            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getSimulering()!!
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.simulering!!
             simulering shouldBe hentet
         }
     }
@@ -134,7 +134,7 @@ internal class UtbetalingPostgresRepoTest {
             val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
 
-            val hentet = repo.hentUtbetaling(utbetaling.id)!!.getOppdragsmelding()!!
+            val hentet = repo.hentUtbetaling(utbetaling.id)!!.oppdragsmelding!!
             hentet shouldBe oppdragsmelding
         }
     }

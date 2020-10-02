@@ -31,7 +31,7 @@ data class Oppdrag(
         // Vi ønsker ikke å filtrere bort de som ikke har kvittering, men vi ønsker å filtrere bort de kvitteringene som har feil i seg.
         it.erOversendt() && !it.erKvittertFeil()
     }.sortedBy {
-        it.getOppdragsmelding()!!.tidspunkt.instant
+        it.oppdragsmelding!!.tidspunkt.instant
     }
 
     fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()

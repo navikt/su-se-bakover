@@ -8,8 +8,8 @@ class GrunnlagBuilder(
     private val utbetalinger: List<Utbetaling>
 ) {
     fun build(): AvstemmingDataRequest.Grunnlagdata {
-        val gruppertMedKvittering = utbetalinger.filter { it.getKvittering() != null }
-            .groupBy { it.getKvittering()!!.utbetalingsstatus }
+        val gruppertMedKvittering = utbetalinger.filter { it.kvittering != null }
+            .groupBy { it.kvittering!!.utbetalingsstatus }
         val kvittertOk = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.OK)
         val kvittertMedVarsel = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.OK_MED_VARSEL)
         val kvittertFeil = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.FEIL)
