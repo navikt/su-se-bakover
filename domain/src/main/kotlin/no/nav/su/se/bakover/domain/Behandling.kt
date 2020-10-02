@@ -30,12 +30,12 @@ data class Behandling(
     ),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
-    var utbetaling: Utbetaling? = null,
+    private var utbetaling: Utbetaling? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,
     val sakId: UUID,
-    val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service
+    val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
 ) {
 
     private var tilstand: Tilstand = resolve(status)
