@@ -73,12 +73,12 @@ internal class BehandlingServiceImpl(
 
     override fun opprettBeregning(
         behandlingId: UUID,
-        fom: LocalDate,
-        tom: LocalDate,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
         fradrag: List<Fradrag>
     ): Behandling {
         beregningRepo.slettBeregningForBehandling(behandlingId)
-        val beregnet = behandlingRepo.hentBehandling(behandlingId)!!.opprettBeregning(fom, tom, fradrag)
+        val beregnet = behandlingRepo.hentBehandling(behandlingId)!!.opprettBeregning(fraOgMed, tilOgMed, fradrag)
         beregningRepo.opprettBeregningForBehandling(behandlingId, beregnet.beregning()!!)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, beregnet.status())
         return behandlingRepo.hentBehandling(behandlingId)!!

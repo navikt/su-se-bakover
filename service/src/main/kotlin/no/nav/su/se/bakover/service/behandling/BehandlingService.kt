@@ -17,7 +17,7 @@ interface BehandlingService {
     fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(begrunnelse: String, attestant: Attestant, behandling: Behandling): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
-    fun opprettBeregning(behandlingId: UUID, fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>): Behandling
+    fun opprettBeregning(behandlingId: UUID, fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>): Behandling
     fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling>
     fun sendTilAttestering(behandlingId: UUID, aktørId: AktørId, saksbehandler: Saksbehandler): Either<KunneIkkeOppretteOppgave, Behandling>
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>

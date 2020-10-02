@@ -110,8 +110,8 @@ internal fun Route.behandlingRoutes(
                     if (body.valid()) {
                         val oppdatert = behandlingService.opprettBeregning(
                             behandlingId = behandling.id,
-                            fom = body.fraOgMed,
-                            tom = body.tilOgMed,
+                            fraOgMed = body.fraOgMed,
+                            tilOgMed = body.tilOgMed,
                             fradrag = body.fradrag.map { it.toFradrag() }
                         )
                         call.svar(Created.jsonBody(oppdatert))
