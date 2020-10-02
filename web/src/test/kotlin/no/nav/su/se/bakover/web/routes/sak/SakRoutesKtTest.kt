@@ -98,9 +98,7 @@ internal class SakRoutesKtTest {
     fun `kan opprette behandling på en sak og søknad`() {
 
         val nySak = repos.sakRepo.opprettSak(fnr)
-        val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
-        søknadRepo.opprettSøknad(nySak.id, søknad)
-        val nySøknad = nySak.nySøknad(søknad)
+        val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
 
         withTestApplication({
             testSusebakover()
