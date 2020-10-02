@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import io.kotest.matchers.shouldBe
-import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -9,8 +8,8 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -68,7 +67,7 @@ internal class UtbetalingPostgresRepoTest {
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
                 repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
-            using(sessionOf(EmbeddedDatabase.instance())) {
+            EmbeddedDatabase.instance().withSession {
                 val hentet = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.id, it)
                 listOf(utbetalingslinje1, utbetalingslinje2) shouldBe hentet
             }

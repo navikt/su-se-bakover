@@ -4,13 +4,12 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
-import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.sessionOf
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PSQLException
 
@@ -39,7 +38,7 @@ internal class SakPostgresRepoTest {
         withMigratedDb {
             val sak = repo.opprettSak(FNR)
             shouldThrowExactly<PSQLException> {
-                using(sessionOf(EmbeddedDatabase.instance())) {
+                EmbeddedDatabase.instance().withSession {
                     val oppdragId = UUID30.randomUUID()
                     it.run(queryOf("insert into oppdrag (id, opprettet, sakId) values ('$oppdragId', now(), '${sak.id}')").asUpdate)
                 }
