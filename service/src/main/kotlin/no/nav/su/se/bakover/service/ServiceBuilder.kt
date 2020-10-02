@@ -23,28 +23,28 @@ class ServiceBuilder(
 ) {
     fun build(): Services {
         val utbetalingService = UtbetalingServiceImpl(
-            repo = databaseRepos.utbetalingRepo,
+            repo = databaseRepos.utbetaling,
         )
         val søknadService = SøknadServiceImpl(
-            søknadRepo = databaseRepos.søknadRepo
+            søknadRepo = databaseRepos.søknad
         )
         val sakService = SakServiceImpl(
-            sakRepo = databaseRepos.sakRepo
+            sakRepo = databaseRepos.sak
         )
         return Services(
             avstemmingService = AvstemmingServiceImpl(
-                repo = databaseRepos.avstemmingRepo,
+                repo = databaseRepos.avstemming,
                 publisher = clients.avstemmingPublisher
             ),
             utbetalingService = utbetalingService,
             oppdragService = OppdragServiceImpl(
-                repo = databaseRepos.oppdragRepo
+                repo = databaseRepos.oppdrag
             ),
             behandlingService = BehandlingServiceImpl(
-                behandlingRepo = databaseRepos.behandlingRepo,
-                hendelsesloggRepo = databaseRepos.hendelsesloggRepo,
-                beregningRepo = databaseRepos.beregningRepo,
-                oppdragRepo = databaseRepos.oppdragRepo,
+                behandlingRepo = databaseRepos.behandling,
+                hendelsesloggRepo = databaseRepos.hendelseslogg,
+                beregningRepo = databaseRepos.beregning,
+                oppdragRepo = databaseRepos.oppdrag,
                 simuleringClient = clients.simuleringClient,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,

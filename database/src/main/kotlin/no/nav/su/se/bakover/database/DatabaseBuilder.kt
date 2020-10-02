@@ -34,39 +34,39 @@ object DatabaseBuilder {
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         return DatabaseRepos(
-            avstemmingRepo = AvstemmingPostgresRepo(userDatastore),
-            utbetalingRepo = UtbetalingPostgresRepo(userDatastore),
-            oppdragRepo = OppdragPostgresRepo(userDatastore),
-            søknadRepo = SøknadPostgresRepo(userDatastore),
-            behandlingRepo = BehandlingPostgresRepo(userDatastore),
-            hendelsesloggRepo = HendelsesloggPostgresRepo(userDatastore),
-            beregningRepo = BeregningPostgresRepo(userDatastore),
-            sakRepo = SakPostgresRepo(userDatastore)
+            avstemming = AvstemmingPostgresRepo(userDatastore),
+            utbetaling = UtbetalingPostgresRepo(userDatastore),
+            oppdrag = OppdragPostgresRepo(userDatastore),
+            søknad = SøknadPostgresRepo(userDatastore),
+            behandling = BehandlingPostgresRepo(userDatastore),
+            hendelseslogg = HendelsesloggPostgresRepo(userDatastore),
+            beregning = BeregningPostgresRepo(userDatastore),
+            sak = SakPostgresRepo(userDatastore)
         )
     }
 
     fun build(embeddedDatasource: DataSource): DatabaseRepos {
         Flyway(embeddedDatasource, "postgres").migrate()
         return DatabaseRepos(
-            avstemmingRepo = AvstemmingPostgresRepo(embeddedDatasource),
-            utbetalingRepo = UtbetalingPostgresRepo(embeddedDatasource),
-            oppdragRepo = OppdragPostgresRepo(embeddedDatasource),
-            søknadRepo = SøknadPostgresRepo(embeddedDatasource),
-            behandlingRepo = BehandlingPostgresRepo(embeddedDatasource),
-            hendelsesloggRepo = HendelsesloggPostgresRepo(embeddedDatasource),
-            beregningRepo = BeregningPostgresRepo(embeddedDatasource),
-            sakRepo = SakPostgresRepo(embeddedDatasource)
+            avstemming = AvstemmingPostgresRepo(embeddedDatasource),
+            utbetaling = UtbetalingPostgresRepo(embeddedDatasource),
+            oppdrag = OppdragPostgresRepo(embeddedDatasource),
+            søknad = SøknadPostgresRepo(embeddedDatasource),
+            behandling = BehandlingPostgresRepo(embeddedDatasource),
+            hendelseslogg = HendelsesloggPostgresRepo(embeddedDatasource),
+            beregning = BeregningPostgresRepo(embeddedDatasource),
+            sak = SakPostgresRepo(embeddedDatasource)
         )
     }
 }
 
 data class DatabaseRepos(
-    val avstemmingRepo: AvstemmingRepo,
-    val utbetalingRepo: UtbetalingRepo,
-    val oppdragRepo: OppdragRepo,
-    val søknadRepo: SøknadRepo,
-    val behandlingRepo: BehandlingRepo,
-    val hendelsesloggRepo: HendelsesloggRepo,
-    val beregningRepo: BeregningRepo,
-    val sakRepo: SakRepo
+    val avstemming: AvstemmingRepo,
+    val utbetaling: UtbetalingRepo,
+    val oppdrag: OppdragRepo,
+    val søknad: SøknadRepo,
+    val behandling: BehandlingRepo,
+    val hendelseslogg: HendelsesloggRepo,
+    val beregning: BeregningRepo,
+    val sak: SakRepo
 )

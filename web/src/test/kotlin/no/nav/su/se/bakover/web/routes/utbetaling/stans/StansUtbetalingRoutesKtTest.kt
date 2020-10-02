@@ -68,14 +68,14 @@ internal class StansUtbetalingRoutesKtTest {
         withTestApplication({
             val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
-                    avstemmingRepo = mock(),
-                    utbetalingRepo = mock(),
-                    oppdragRepo = mock(),
-                    søknadRepo = mock(),
-                    behandlingRepo = mock(),
-                    hendelsesloggRepo = mock(),
-                    beregningRepo = mock(),
-                    sakRepo = sakRepoMock,
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    søknad = mock(),
+                    behandling = mock(),
+                    hendelseslogg = mock(),
+                    beregning = mock(),
+                    sak = sakRepoMock,
                 ),
                 clients = TestClientsBuilder.build()
             ).build()
@@ -106,14 +106,14 @@ internal class StansUtbetalingRoutesKtTest {
         withTestApplication({
             val services = no.nav.su.se.bakover.service.ServiceBuilder(
                 databaseRepos = DatabaseRepos(
-                    avstemmingRepo = mock(),
-                    utbetalingRepo = mock(),
-                    oppdragRepo = mock(),
-                    søknadRepo = mock(),
-                    behandlingRepo = mock(),
-                    hendelsesloggRepo = mock(),
-                    beregningRepo = mock(),
-                    sakRepo = sakRepoMock,
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    søknad = mock(),
+                    behandling = mock(),
+                    hendelseslogg = mock(),
+                    beregning = mock(),
+                    sak = sakRepoMock,
                 ),
                 clients = TestClientsBuilder.build()
             ).build()

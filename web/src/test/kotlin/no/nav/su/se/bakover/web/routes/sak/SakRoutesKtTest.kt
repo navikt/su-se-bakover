@@ -29,7 +29,7 @@ internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
     val fnr = Fnr(sakFnr01)
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val søknadRepo = repos.søknadRepo
+    private val søknadRepo = repos.søknad
 
     @Test
     fun `henter sak for sak id`() {
@@ -40,7 +40,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId = repos.sakRepo.opprettSak(Fnr(sakFnr01)).id
+            val opprettetSakId = repos.sak.opprettSak(Fnr(sakFnr01)).id
 
             defaultRequest(Get, "$sakPath/$opprettetSakId").apply {
                 assertEquals(OK, response.status())
@@ -58,7 +58,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            repos.sakRepo.opprettSak(Fnr(sakFnr01))
+            repos.sak.opprettSak(Fnr(sakFnr01))
 
             defaultRequest(Get, "$sakPath/?fnr=$sakFnr01").apply {
                 assertEquals(OK, response.status())
@@ -97,7 +97,7 @@ internal class SakRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
 
-        val nySak = repos.sakRepo.opprettSak(fnr)
+        val nySak = repos.sak.opprettSak(fnr)
         val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
 
         withTestApplication({
