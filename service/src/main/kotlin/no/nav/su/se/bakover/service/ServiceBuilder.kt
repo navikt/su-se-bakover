@@ -32,15 +32,15 @@ class ServiceBuilder(
             sakRepo = databaseRepos.sak
         )
         return Services(
-            avstemmingService = AvstemmingServiceImpl(
+            avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
                 publisher = clients.avstemmingPublisher
             ),
-            utbetalingService = utbetalingService,
-            oppdragService = OppdragServiceImpl(
+            utbetaling = utbetalingService,
+            oppdrag = OppdragServiceImpl(
                 repo = databaseRepos.oppdrag
             ),
-            behandlingService = BehandlingServiceImpl(
+            behandling = BehandlingServiceImpl(
                 behandlingRepo = databaseRepos.behandling,
                 hendelsesloggRepo = databaseRepos.hendelseslogg,
                 beregningRepo = databaseRepos.beregning,
@@ -52,14 +52,14 @@ class ServiceBuilder(
                 søknadService = søknadService,
                 sakService = sakService
             ),
-            sakService = sakService,
-            søknadService = søknadService,
-            stansUtbetalingService = StansUtbetalingService(
+            sak = sakService,
+            søknad = søknadService,
+            stansUtbetaling = StansUtbetalingService(
                 simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService
             ),
-            startUtbetalingerService = StartUtbetalingerService(
+            startUtbetalinger = StartUtbetalingerService(
                 simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
@@ -70,12 +70,12 @@ class ServiceBuilder(
 }
 
 data class Services(
-    val avstemmingService: AvstemmingService,
-    val utbetalingService: UtbetalingService,
-    val oppdragService: OppdragService,
-    val behandlingService: BehandlingService,
-    val sakService: SakService,
-    val søknadService: SøknadService,
-    val stansUtbetalingService: StansUtbetalingService,
-    val startUtbetalingerService: StartUtbetalingerService
+    val avstemming: AvstemmingService,
+    val utbetaling: UtbetalingService,
+    val oppdrag: OppdragService,
+    val behandling: BehandlingService,
+    val sak: SakService,
+    val søknad: SøknadService,
+    val stansUtbetaling: StansUtbetalingService,
+    val startUtbetalinger: StartUtbetalingerService
 )

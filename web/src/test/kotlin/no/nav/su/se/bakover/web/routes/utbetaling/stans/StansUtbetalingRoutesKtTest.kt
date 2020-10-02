@@ -81,7 +81,7 @@ internal class StansUtbetalingRoutesKtTest {
             ).build()
             testSusebakover(
                 services = services.copy(
-                    stansUtbetalingService = stansutbetalingServiceMock
+                    stansUtbetaling = stansutbetalingServiceMock
                 )
             )
         }) {
@@ -119,7 +119,7 @@ internal class StansUtbetalingRoutesKtTest {
             ).build()
             testSusebakover(
                 services = services.copy(
-                    stansUtbetalingService = stansUtbetalingServiceMock
+                    stansUtbetaling = stansUtbetalingServiceMock
                 )
             )
         }) {

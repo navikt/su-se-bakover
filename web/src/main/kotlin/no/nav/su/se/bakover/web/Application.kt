@@ -113,8 +113,8 @@ internal fun Application.susebakover(
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
         personOppslag = clients.personOppslag,
-        søknadService = services.søknadService,
-        sakService = services.sakService
+        søknadService = services.søknad,
+        sakService = services.sak
     )
 
     install(CORS) {
@@ -195,8 +195,8 @@ internal fun Application.susebakover(
                 personRoutes(clients.personOppslag)
                 inntektRoutes(clients.inntektOppslag)
                 sakRoutes(
-                    behandlingService = services.behandlingService,
-                    sakService = services.sakService
+                    behandlingService = services.behandling,
+                    sakService = services.sak
                 )
                 søknadRoutes(søknadRoutesMediator)
                 behandlingRoutes(
@@ -205,18 +205,18 @@ internal fun Application.susebakover(
                         personOppslag = clients.personOppslag,
                         dokArkiv = clients.dokArkiv,
                         dokDistFordeling = clients.dokDistFordeling,
-                        sakService = services.sakService
+                        sakService = services.sak
                     ),
                     personOppslag = clients.personOppslag,
-                    behandlingService = services.behandlingService,
-                    sakService = services.sakService
+                    behandlingService = services.behandling,
+                    sakService = services.sak
                 )
-                avstemmingRoutes(services.avstemmingService)
+                avstemmingRoutes(services.avstemming)
                 stansutbetalingRoutes(
-                    stansUtbetalingService = services.stansUtbetalingService,
-                    sakService = services.sakService
+                    stansUtbetalingService = services.stansUtbetaling,
+                    sakService = services.sak
                 )
-                startutbetalingRoutes(services.startUtbetalingerService)
+                startutbetalingRoutes(services.startUtbetalinger)
                 meRoutes()
             }
         }
@@ -226,7 +226,7 @@ internal fun Application.susebakover(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                utbetalingService = services.utbetalingService
+                utbetalingService = services.utbetaling
             )
         )
         AvstemmingKvitteringIbmMqConsumer(

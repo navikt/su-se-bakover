@@ -30,14 +30,14 @@ internal class StartUtbetalingRoutesKtTest {
 
     val sakId = UUID.randomUUID()
     val services = Services(
-        avstemmingService = mock(),
-        utbetalingService = mock(),
-        oppdragService = mock(),
-        behandlingService = mock(),
-        sakService = mock(),
-        søknadService = mock(),
-        stansUtbetalingService = mock(),
-        startUtbetalingerService = mock()
+        avstemming = mock(),
+        utbetaling = mock(),
+        oppdrag = mock(),
+        behandling = mock(),
+        sak = mock(),
+        søknad = mock(),
+        stansUtbetaling = mock(),
+        startUtbetalinger = mock()
     )
 
     @Test
@@ -48,7 +48,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
@@ -68,7 +68,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
@@ -88,7 +88,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
@@ -108,7 +108,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
@@ -128,7 +128,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
@@ -159,7 +159,7 @@ internal class StartUtbetalingRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalingerService = utbetalingServiceMock
+                    startUtbetalinger = utbetalingServiceMock
                 )
             )
         }) {
