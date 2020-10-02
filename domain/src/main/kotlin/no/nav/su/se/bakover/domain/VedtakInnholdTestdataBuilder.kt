@@ -28,7 +28,7 @@ object VedtakInnholdTestdataBuilder {
             fradragSum = 0,
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             avslagsgrunn = Avslagsgrunn.FLYKTNING,
-            avslagsgrunnBeskrivelse = AvslagsgrunnBeskrivelseFlagg.FORMUE,
+            avslagsgrunnBeskrivelse = AvslagsgrunnBeskrivelse.FORMUE,
             halvGrunnbeløp = 50
         )
     }

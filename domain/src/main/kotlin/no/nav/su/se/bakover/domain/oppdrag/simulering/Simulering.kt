@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.domain.Fnr
 import java.time.LocalDate
 
@@ -15,10 +16,13 @@ data class Simulering(
 }
 
 data class SimulertPeriode(
-    val fom: LocalDate,
-    val tom: LocalDate,
+    @JsonAlias("fraOgMed", "fom")
+    val fraOgMed: LocalDate,
+    @JsonAlias("tilOgMed", "tom")
+    val tilOgMed: LocalDate,
     val utbetaling: List<SimulertUtbetaling>
 ) {
+
     fun bruttoYtelse() = utbetaling
         .sumBy { it.bruttoYtelse() }
 }
@@ -37,8 +41,10 @@ data class SimulertUtbetaling(
 }
 
 data class SimulertDetaljer(
-    val faktiskFom: LocalDate,
-    val faktiskTom: LocalDate,
+    @JsonAlias("faktiskFraOgMed", "faktiskFom")
+    val faktiskFraOgMed: LocalDate,
+    @JsonAlias("faktiskTilOgMed", "faktiskTom")
+    val faktiskTilOgMed: LocalDate,
     val konto: String,
     val belop: Int,
     val tilbakeforing: Boolean,

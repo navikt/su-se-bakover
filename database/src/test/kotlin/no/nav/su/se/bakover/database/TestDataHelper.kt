@@ -58,8 +58,8 @@ internal class TestDataHelper(
     fun insertBeregning(behandlingId: UUID) = beregningRepo.opprettBeregningForBehandling(
         behandlingId = behandlingId,
         beregning = Beregning(
-            fom = 1.januar(2020),
-            tom = 31.desember(2020),
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.desember(2020),
             sats = Sats.HØY,
             fradrag = emptyList(),
             forventetInntekt = 0

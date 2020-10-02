@@ -16,10 +16,10 @@ internal class BeregningTest {
 
     @Test
     fun `should handle variable period length`() {
-        val fom = LocalDate.of(2020, Month.JANUARY, 1)
+        val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
         val oneMonth = Beregning(
-            fom = fom,
-            tom = fom.plusMonths(1).minusDays(1),
+            fraOgMed = fraOgMed,
+            tilOgMed = fraOgMed.plusMonths(1).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList(),
             forventetInntekt = 500
@@ -27,8 +27,8 @@ internal class BeregningTest {
         oneMonth.månedsberegninger shouldHaveSize 1
 
         val threeMonths = Beregning(
-            fom = fom,
-            tom = fom.plusMonths(3).minusDays(1),
+            fraOgMed = fraOgMed,
+            tilOgMed = fraOgMed.plusMonths(3).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList(),
             forventetInntekt = 500
@@ -36,8 +36,8 @@ internal class BeregningTest {
         threeMonths.månedsberegninger shouldHaveSize 3
 
         val twelweMonths = Beregning(
-            fom = fom,
-            tom = fom.plusMonths(12).minusDays(1),
+            fraOgMed = fraOgMed,
+            tilOgMed = fraOgMed.plusMonths(12).minusDays(1),
             sats = Sats.HØY,
             fradrag = emptyList(),
             forventetInntekt = 500
@@ -48,10 +48,10 @@ internal class BeregningTest {
     @Test
     fun `throws if illegal arguments`() {
         assertThrows<IllegalArgumentException> {
-            val fom = LocalDate.of(2020, Month.JANUARY, 14)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 14)
             Beregning(
-                fom = fom,
-                tom = fom.plusMonths(3),
+                fraOgMed = fraOgMed,
+                tilOgMed = fraOgMed.plusMonths(3),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 forventetInntekt = 500
@@ -59,10 +59,10 @@ internal class BeregningTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             Beregning(
-                fom = fom,
-                tom = LocalDate.of(2020, Month.JANUARY, 24),
+                fraOgMed = fraOgMed,
+                tilOgMed = LocalDate.of(2020, Month.JANUARY, 24),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 forventetInntekt = 500
@@ -70,10 +70,10 @@ internal class BeregningTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             Beregning(
-                fom = fom,
-                tom = fom.minusMonths(3),
+                fraOgMed = fraOgMed,
+                tilOgMed = fraOgMed.minusMonths(3),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 forventetInntekt = 500
@@ -84,12 +84,12 @@ internal class BeregningTest {
     @Test
     fun `should not calculate months if already calculated`() {
         val beregning = Beregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             månedsberegninger = mutableListOf(
                 Månedsberegning(
-                    fom = LocalDate.of(2020, Month.JANUARY, 1),
+                    fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
                     sats = Sats.HØY,
                     fradrag = 0
                 )
@@ -103,24 +103,24 @@ internal class BeregningTest {
     @Test
     fun `sort by opprettet`() {
         val first = Beregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = emptyList(),
             forventetInntekt = 500
         )
         val second = Beregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toTidspunkt(),
             fradrag = emptyList(),
             forventetInntekt = 500
         )
         val third = Beregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toTidspunkt(),
             fradrag = emptyList(),
@@ -138,13 +138,23 @@ internal class BeregningTest {
     @Test
     fun `bruker riktig fradrag per måned`() {
         val b = Beregning(
-            fom = LocalDate.of(2020, Month.JANUARY, 1),
-            tom = LocalDate.of(2020, Month.DECEMBER, 31),
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
-                Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = 12000,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                ),
+                Fradrag(
+                    type = Fradragstype.Barnetillegg,
+                    beløp = 1200,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                )
             ),
             forventetInntekt = 500
         )
@@ -155,16 +165,101 @@ internal class BeregningTest {
     fun `støtter ikke negative fradrag`() {
         shouldThrow<java.lang.IllegalArgumentException> {
             Beregning(
-                fom = LocalDate.of(2020, Month.JANUARY, 1),
-                tom = LocalDate.of(2020, Month.DECEMBER, 31),
+                fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+                tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
                 sats = Sats.HØY,
                 opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
                 fradrag = listOf(
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = -100,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    ),
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 200,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    )
                 ),
                 forventetInntekt = 500
             )
         }.also { it.message shouldContain "negativ" }
+    }
+
+    @Test
+    fun `beregnet beløp er over null men under minstebeløp, for en måned`() {
+        val høyInntekt = 242695 // 98% av full supplerende stønad (Høy sats) for 2019
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.JANUARY, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
+    }
+
+    @Test
+    fun `beregnet beløp er rett under minstebeløp`() {
+        // 98% av full supplerende stønad (Høy sats) for
+        // 2019 - Jan, Feb, Mars, Apr
+        // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
+        val høyInntekt = 245114 + 8 // pågrundav avrundning så må vi legge på 8
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
+    }
+
+    @Test
+    fun `beregnet beløp er akkurat på minstebeløp`() {
+        // 98% av full supplerende stønad (Høy sats) for
+        // 2019 - Jan, Feb, Mars, Apr
+        // 2020 - Maj, Juni, Juli, Aug, Sep, Okt, Nov, Dec
+        val høyInntekt = 245114
+
+        val b = Beregning(
+            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
+            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
+            sats = Sats.HØY,
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
+            fradrag = listOf(
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            ),
+            forventetInntekt = 0
+        )
+
+        b.beløpErOverNullMenUnderMinstebeløp() shouldBe false
     }
 }

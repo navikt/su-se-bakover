@@ -63,13 +63,15 @@ internal class BeregningPostgresRepoTest {
             val gammelBeregning = repo.opprettBeregningForBehandling(
                 behandling.id,
                 Beregning(
-                    fom = 1.januar(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
                     sats = Sats.HØY,
                     fradrag = listOf(
                         Fradrag(
                             type = Fradragstype.AndreYtelser,
-                            beløp = 10000
+                            beløp = 10000,
+                            utenlandskInntekt = null,
+                            inntektDelerAvPeriode = null
                         )
                     ),
                     forventetInntekt = 200
@@ -82,8 +84,8 @@ internal class BeregningPostgresRepoTest {
             selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 1
 
             val nyBeregning = Beregning(
-                fom = 1.januar(2020),
-                tom = 31.desember(2020),
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 forventetInntekt = 0

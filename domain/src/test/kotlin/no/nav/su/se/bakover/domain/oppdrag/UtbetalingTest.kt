@@ -50,7 +50,7 @@ internal class UtbetalingTest {
                 "some xml"
             )
         ).also {
-            it.erOversendtOppdrag() shouldBe true
+            it.erOversendt() shouldBe true
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling().copy(
             oppdragsmelding = Oppdragsmelding(
@@ -58,7 +58,7 @@ internal class UtbetalingTest {
                 "some xml"
             )
         ).also {
-            it.erOversendtOppdrag() shouldBe false
+            it.erOversendt() shouldBe false
         }.let { it.kanSlettes() shouldBe false }
         createUtbetaling(Kvittering(Kvittering.Utbetalingsstatus.OK, "")).also {
             it.erKvittert() shouldBe true

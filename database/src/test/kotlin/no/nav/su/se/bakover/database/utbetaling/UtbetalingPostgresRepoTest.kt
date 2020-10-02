@@ -87,8 +87,8 @@ internal class UtbetalingPostgresRepoTest {
                 nettoBeløp = 1,
                 periodeList = listOf(
                     SimulertPeriode(
-                        fom = LocalDate.now(),
-                        tom = LocalDate.now(),
+                        fraOgMed = LocalDate.now(),
+                        tilOgMed = LocalDate.now(),
                         utbetaling = listOf(
                             SimulertUtbetaling(
                                 fagSystemId = "fagSystemId",
@@ -98,8 +98,8 @@ internal class UtbetalingPostgresRepoTest {
                                 feilkonto = false,
                                 detaljer = listOf(
                                     SimulertDetaljer(
-                                        faktiskFom = LocalDate.now(),
-                                        faktiskTom = LocalDate.now(),
+                                        faktiskFraOgMed = LocalDate.now(),
+                                        faktiskTilOgMed = LocalDate.now(),
                                         konto = "konto",
                                         belop = 1,
                                         tilbakeforing = true,
@@ -165,8 +165,8 @@ internal class UtbetalingPostgresRepoTest {
     )
 
     private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(
-        fom = 1.januar(2020),
-        tom = 31.desember(2020),
+        fraOgMed = 1.januar(2020),
+        tilOgMed = 31.desember(2020),
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         beløp = 25000
     )

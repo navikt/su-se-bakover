@@ -2,13 +2,15 @@ package no.nav.su.se.bakover.domain
 
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
+import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
@@ -21,6 +23,8 @@ import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
+import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -194,20 +198,20 @@ internal class BehandlingTest {
         @Test
         fun `legal operations`() {
             vilkårsvurdert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            vilkårsvurdert.status() shouldBe BEREGNET
+            vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
         fun `should create beregning`() {
-            val fom = 1.januar(2020)
-            val tom = 31.desember(2020)
+            val fraOgMed = 1.januar(2020)
+            val tilOgMed = 31.desember(2020)
             vilkårsvurdert.opprettBeregning(
-                fom = fom,
-                tom = tom
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed
             )
             val beregning = vilkårsvurdert.beregning()!!
-            beregning.fom shouldBe fom
-            beregning.tom shouldBe tom
+            beregning.fraOgMed shouldBe fraOgMed
+            beregning.tilOgMed shouldBe tilOgMed
             beregning.sats shouldBe Sats.HØY
         }
 
@@ -217,6 +221,85 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
+            vilkårsvurdert.opprettBeregning(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 600000,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
+            )
+
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
+            val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            val behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
+            )
+            val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(updatedUførhet)
+
+            vilkårsvurdert.opprettBeregning(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
+            )
+
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
+        }
+
+        @Test
+        fun `skal avslå hvis utbetaling er under minstebeløp`() {
+            val maxUtbetaling2020 = 250116
+
+            vilkårsvurdert.opprettBeregning(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = (maxUtbetaling2020 * 0.99).toInt(),
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
+            )
+
+            vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
+        }
+
+        @Test
+        fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
+            val inntektSomGerMinstebeløp = 245114
+
+            vilkårsvurdert.opprettBeregning(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020),
+                fradrag = listOf(
+                    Fradrag(
+                        id = UUID.randomUUID(),
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = inntektSomGerMinstebeløp,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null
+                    )
+                )
+            )
+
+            vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
+            vilkårsvurdert.beregning() shouldNotBe null
         }
 
         @Test
@@ -292,7 +375,7 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe BEREGNET
+            beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
@@ -304,7 +387,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne beregne på nytt`() {
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
-            beregnet.status() shouldBe BEREGNET
+            beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
@@ -328,6 +411,66 @@ internal class BehandlingTest {
                 beregnet.iverksett(
                     Attestant("A123456")
                 )
+            }
+        }
+
+        @Nested
+        inner class BeregningAvslag {
+            @BeforeEach
+            fun beforeEach() {
+                beregnet = createBehandling(id1, OPPRETTET)
+                beregnet.oppdaterBehandlingsinformasjon(
+                    extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
+                )
+                beregnet.opprettBeregning(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    fradrag = listOf(
+                        Fradrag(
+                            id = UUID.randomUUID(),
+                            type = Fradragstype.Arbeidsinntekt,
+                            beløp = 1000000,
+                            utenlandskInntekt = null,
+                            inntektDelerAvPeriode = null
+                        )
+                    )
+                )
+
+                beregnet.status() shouldBe BEREGNET_AVSLAG
+            }
+
+            @Test
+            fun `skal kunne beregne på nytt`() {
+                beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+                beregnet.status() shouldBe BEREGNET_INNVILGET
+            }
+
+            @Test
+            fun `skal kunne vilkårsvudere på nytt og skal slette eksisterende beregning`() {
+                beregnet.oppdaterBehandlingsinformasjon(
+                    extractBehandlingsinformasjon(beregnet)
+                )
+                beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
+                beregnet.beregning() shouldBe null
+            }
+
+            @Test
+            fun `skal kunne sende til attestering`() {
+                val saksbehandler = Saksbehandler("S123456")
+                beregnet.sendTilAttestering(aktørId, saksbehandler)
+
+                beregnet.status() shouldBe TIL_ATTESTERING_AVSLAG
+                beregnet.saksbehandler() shouldBe saksbehandler
+            }
+
+            @Test
+            fun `illegal operations`() {
+                assertThrows<Behandling.TilstandException> { beregnet.simuler(defaultUtbetaling()) }
+                assertThrows<Behandling.TilstandException> {
+                    beregnet.iverksett(
+                        Attestant("A123456")
+                    )
+                }
             }
         }
     }
@@ -360,7 +503,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne beregne på nytt`() {
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.status() shouldBe BEREGNET
+            simulert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test

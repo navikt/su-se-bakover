@@ -5,13 +5,14 @@ import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.domain.Fnr
 
 object InntektOppslagStub : InntektOppslag {
-    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String) = ClientResponse(
-        200, //language=json
-        """
+    override fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fraOgMedDato: String, tilOgMedDato: String) =
+        ClientResponse(
+            200, //language=json
+            """
             {
                 "arbeidsInntektMaaned": [
                 {
-                    "aarMaaned": "$fomDato",
+                    "aarMaaned": "$fraOgMedDato",
                     "arbeidsInntektInformasjon": {
                     "inntektListe": [
                     {
@@ -21,8 +22,8 @@ object InntektOppslagStub : InntektOppslag {
                         "inntektskilde": "A-ordningen",
                         "inntektsperiodetype": "Maaned",
                         "inntektsstatus": "LoependeInnrapportert",
-                        "leveringstidspunkt": "$fomDato",
-                        "utbetaltIMaaned": "$fomDato",
+                        "leveringstidspunkt": "$fraOgMedDato",
+                        "utbetaltIMaaned": "$fraOgMedDato",
                         "opplysningspliktig": {
                         "identifikator": "873152362",
                         "aktoerType": "ORGANISASJON"
@@ -47,8 +48,8 @@ object InntektOppslagStub : InntektOppslag {
                         "inntektskilde": "A-ordningen",
                         "inntektsperiodetype": "Maaned",
                         "inntektsstatus": "LoependeInnrapportert",
-                        "leveringstidspunkt": "$fomDato",
-                        "utbetaltIMaaned": "$fomDato",
+                        "leveringstidspunkt": "$fraOgMedDato",
+                        "utbetaltIMaaned": "$fraOgMedDato",
                         "opplysningspliktig": {
                         "identifikator": "873152362",
                         "aktoerType": "ORGANISASJON"
@@ -73,8 +74,8 @@ object InntektOppslagStub : InntektOppslag {
                         "inntektskilde": "A-ordningen",
                         "inntektsperiodetype": "Maaned",
                         "inntektsstatus": "LoependeInnrapportert",
-                        "leveringstidspunkt": "$fomDato",
-                        "utbetaltIMaaned": "$fomDato",
+                        "leveringstidspunkt": "$fraOgMedDato",
+                        "utbetaltIMaaned": "$fraOgMedDato",
                         "opplysningspliktig": {
                         "identifikator": "873152362",
                         "aktoerType": "ORGANISASJON"
@@ -102,5 +103,5 @@ object InntektOppslagStub : InntektOppslag {
             }
             }
             """
-    )
+        )
 }

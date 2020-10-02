@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsperiode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -38,13 +36,13 @@ class StansUtbetalingService(
         require(validertStansUtbetaling.isValid()) {
             "Kan ikke stanse utbetaling: $validertStansUtbetaling"
         }
-        val stansesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tom
+        val stansesTilOgMed = sak.oppdrag.sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tilOgMed
 
         val utbetaling = sak.oppdrag.genererUtbetaling(
             utbetalingsperioder = listOf(
                 Utbetalingsperiode(
-                    fom = stansesFraOgMed,
-                    tom = stansesTilOgMed,
+                    fraOgMed = stansesFraOgMed,
+                    tilOgMed = stansesTilOgMed,
                     beløp = 0,
                 )
             ),
@@ -77,7 +75,7 @@ class StansUtbetalingService(
                 log.error("Stansutbetaling feilet ved publisering av utbetaling")
                 utbetalingService.addOppdragsmelding(
                     utbetaling.id,
-                    Oppdragsmelding(Oppdragsmeldingstatus.FEIL, it.originalMelding)
+                    it.oppdragsmelding
                 )
                 KunneIkkeStanseUtbetalinger.left()
             },

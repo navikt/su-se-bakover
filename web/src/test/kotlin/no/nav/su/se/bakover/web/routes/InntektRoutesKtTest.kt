@@ -58,8 +58,8 @@ internal class InntektRoutesKtTest {
                         override fun inntekt(
                             ident: Fnr,
                             innloggetSaksbehandlerToken: String,
-                            fomDato: String,
-                            tomDato: String
+                            fraOgMedDato: String,
+                            tilOgMedDato: String
                         ) = ClientResponse(500, errorMessage)
                     }
                 )

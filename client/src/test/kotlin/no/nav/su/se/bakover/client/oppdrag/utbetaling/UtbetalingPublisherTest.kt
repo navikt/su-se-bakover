@@ -40,7 +40,7 @@ internal class UtbetalingPublisherTest {
         )
         mqClient.count shouldBe 1
         res.isLeft() shouldBe true
-        res.mapLeft { it.originalMelding shouldBe mqClient.messages.first() }
+        res.mapLeft { it.oppdragsmelding.originalMelding shouldBe mqClient.messages.first() }
     }
 
     @Test

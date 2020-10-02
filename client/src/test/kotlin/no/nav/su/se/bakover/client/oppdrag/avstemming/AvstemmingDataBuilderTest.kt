@@ -86,8 +86,8 @@ internal class AvstemmingDataBuilderTest {
             Avstemming(
                 id = avstemmingId,
                 opprettet = now(),
-                fom = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                tom = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null
             ),
@@ -99,8 +99,8 @@ internal class AvstemmingDataBuilderTest {
         assertThrows<IllegalStateException> {
             AvstemmingDataBuilder(
                 Avstemming(
-                    fom = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    tom = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                    fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                    tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     utbetalinger = alleUtbetalinger() + listOf(Utbetaling(utbetalingslinjer = emptyList(), fnr = fnr)),
                     avstemmingXmlRequest = null
                 ),
@@ -110,8 +110,8 @@ internal class AvstemmingDataBuilderTest {
         assertThrows<IllegalStateException> {
             AvstemmingDataBuilder(
                 Avstemming(
-                    fom = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    tom = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                    fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                    tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     utbetalinger = alleUtbetalinger() + listOf(
                         Utbetaling(
                             utbetalingslinjer = emptyList(),
@@ -127,11 +127,11 @@ internal class AvstemmingDataBuilderTest {
 }
 
 private val zoneId = ZoneId.of("Europe/Oslo")
-fun lagUtbetalingLinje(fom: LocalDate, tom: LocalDate, beløp: Int) = Utbetalingslinje(
+fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
     id = UUID30.randomUUID(),
-    opprettet = fom.atStartOfDay(zoneId).toTidspunkt(),
-    fom = fom,
-    tom = tom,
+    opprettet = fraOgMed.atStartOfDay(zoneId).toTidspunkt(),
+    fraOgMed = fraOgMed,
+    tilOgMed = tilOgMed,
     forrigeUtbetalingslinjeId = null,
     beløp = beløp
 )

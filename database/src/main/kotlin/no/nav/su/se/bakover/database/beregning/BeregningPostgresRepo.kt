@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.beregning
 
 import kotliquery.using
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sessionOf
@@ -20,8 +21,8 @@ internal class BeregningPostgresRepo(
             mapOf(
                 "id" to beregning.id,
                 "opprettet" to beregning.opprettet,
-                "fom" to beregning.fom,
-                "tom" to beregning.tom,
+                "fom" to beregning.fraOgMed,
+                "tom" to beregning.tilOgMed,
                 "behandlingId" to behandlingId,
                 "sats" to beregning.sats.name,
                 "forventetInntekt" to beregning.forventetInntekt
@@ -47,8 +48,8 @@ internal class BeregningPostgresRepo(
             mapOf(
                 "id" to månedsberegning.id,
                 "opprettet" to månedsberegning.opprettet,
-                "fom" to månedsberegning.fom,
-                "tom" to månedsberegning.tom,
+                "fom" to månedsberegning.fraOgMed,
+                "tom" to månedsberegning.tilOgMed,
                 "grunnbelop" to månedsberegning.grunnbeløp,
                 "beregningId" to beregningId,
                 "sats" to månedsberegning.sats.name,
@@ -60,8 +61,8 @@ internal class BeregningPostgresRepo(
 
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         """
-            insert into fradrag (id, beregningId, fradragstype, beløp, beskrivelse)
-            values (:id, :beregningId, :fradragstype, :belop, :beskrivelse)
+            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt, inntektDelerAvPeriode)
+            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json), to_json(:inntektDelerAvPeriode::json))
         """
             .oppdatering(
                 mapOf(
@@ -69,7 +70,8 @@ internal class BeregningPostgresRepo(
                     "beregningId" to beregningId,
                     "fradragstype" to fradrag.type.toString(),
                     "belop" to fradrag.beløp,
-                    "beskrivelse" to fradrag.beskrivelse
+                    "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt),
+                    "inntektDelerAvPeriode" to objectMapper.writeValueAsString(fradrag.inntektDelerAvPeriode)
                 )
             )
     }

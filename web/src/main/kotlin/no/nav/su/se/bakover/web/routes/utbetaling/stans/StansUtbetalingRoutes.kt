@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.web.svar
 
 internal fun Route.stansutbetalingRoutes(
     stansUtbetalingService: StansUtbetalingService,
-    // sakRepo: ObjectRepo,
     sakService: SakService
 ) {
     post("$sakPath/{sakId}/utbetalinger/stans") {

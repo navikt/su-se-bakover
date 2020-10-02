@@ -31,11 +31,17 @@ data class Utbetaling(
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
-    fun erOversendtOppdrag() = getOppdragsmelding()?.erSendt() ?: false
+    /**
+     * Er oversendt OK til det eksterne oppdragssystemet (utbetalinger o.l.)
+     */
+    fun erOversendt() = getOppdragsmelding()?.erSendt() ?: false
     fun erKvittert() = getKvittering() != null
     fun erKvittertOk() = getKvittering()?.erKvittertOk() ?: false
     fun erKvittertFeil() = getKvittering()?.erKvittertOk() == false
-
+    fun erStansutbetaling() = sisteUtbetalingslinje()?.let {
+        // TODO jah: I en annen pull-request bør vi utvide en utbetaling til å være en sealed class med de forskjellig typene utbetaling.
+        it.beløp == 0 // Stopputbetalinger vil ha beløp 0. Vi ønsker ikke å stoppe en stopputbetaling.
+    } ?: false
     fun kanSlettes() = oppdragsmelding == null && kvittering == null
 
     object Opprettet : Comparator<Utbetaling> {

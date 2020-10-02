@@ -34,7 +34,7 @@ internal class SuUserFeatureTest {
             testSusebakover(
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hent(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
                     }
                 )
             )

@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
+import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
@@ -33,7 +33,7 @@ object TestClientsBuilder : ClientsBuilder {
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
-        microsoftGraphApiClient = MicrosoftGraphApiClient(OauthStub()),
+        microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
     )
 
     override fun build(): Clients = testClients

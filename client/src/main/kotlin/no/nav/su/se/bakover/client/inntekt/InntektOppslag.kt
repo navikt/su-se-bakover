@@ -4,5 +4,10 @@ import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.domain.Fnr
 
 interface InntektOppslag {
-    fun inntekt(ident: Fnr, innloggetSaksbehandlerToken: String, fomDato: String, tomDato: String): ClientResponse
+    fun inntekt(
+        ident: Fnr,
+        innloggetSaksbehandlerToken: String,
+        fraOgMedDato: String,
+        tilOgMedDato: String
+    ): ClientResponse
 }

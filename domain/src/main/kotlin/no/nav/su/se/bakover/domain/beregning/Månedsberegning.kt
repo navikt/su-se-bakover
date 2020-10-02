@@ -11,24 +11,25 @@ import java.util.UUID
 data class Månedsberegning(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
-    val fom: LocalDate,
-    val tom: LocalDate = fom.plusMonths(1).minusDays(1),
-    val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fom).toInt(),
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate = fraOgMed.plusMonths(1).minusDays(1),
+    val grunnbeløp: Int = Grunnbeløp.`1G`.fraDato(fraOgMed).toInt(),
     val sats: Sats,
     val fradrag: Int,
-    val beløp: Int = kalkulerBeløp(sats, fom, fradrag)
+    val beløp: Int = kalkulerBeløp(sats, fraOgMed, fradrag)
 ) {
-    val satsBeløp: Int = sats.fraDatoAsInt(fom) / 12
+    val satsBeløp: Int = sats.fraDatoAsInt(fraOgMed) / 12
 
     init {
-        require(fom.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fom" }
-        require(tom.dayOfMonth == fom.lengthOfMonth()) { "Månedsberegninger avsluttes den siste i måneded. Dato var=$tom" }
+        require(fraOgMed.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fraOgMed" }
+        require(tilOgMed.dayOfMonth == fraOgMed.lengthOfMonth()) { "Månedsberegninger avsluttes den siste i måneded. Dato var=$tilOgMed" }
     }
 
     companion object {
-        fun kalkulerBeløp(sats: Sats, fom: LocalDate, fradrag: Int) =
-            BigDecimal(sats.fraDato(fom)).divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
-                .minus(BigDecimal(fradrag))
+        // TODO AI: Se på möjligheterna för att ha fradrag som BigDecimal för att komma undan off-by-one fel.
+        fun kalkulerBeløp(sats: Sats, fraOgMed: LocalDate, fradrag: Int) =
+            BigDecimal(sats.fraDato(fraOgMed)).divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
+                .minus(BigDecimal(fradrag)) // Her runder vi av begge sider av regnestykket, kan potentiellt leda till fel.
                 .max(BigDecimal.ZERO)
                 .toInt()
     }

@@ -8,8 +8,8 @@ import java.time.LocalDate
 data class Utbetalingslinje(
     val id: UUID30 = UUID30.randomUUID(), // delytelseId,
     val opprettet: Tidspunkt = now(),
-    val fom: LocalDate,
-    val tom: LocalDate,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
     var forrigeUtbetalingslinjeId: UUID30?,
     val beløp: Int
 

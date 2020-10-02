@@ -81,8 +81,8 @@ internal class UtbetalingPostgresRepo(
             mapOf(
                 "id" to utbetalingslinje.id,
                 "opprettet" to utbetalingslinje.opprettet,
-                "fom" to utbetalingslinje.fom,
-                "tom" to utbetalingslinje.tom,
+                "fom" to utbetalingslinje.fraOgMed,
+                "tom" to utbetalingslinje.tilOgMed,
                 "utbetalingId" to utbetalingId,
                 "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
                 "belop" to utbetalingslinje.beløp,

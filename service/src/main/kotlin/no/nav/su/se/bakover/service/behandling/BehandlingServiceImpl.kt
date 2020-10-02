@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -141,11 +140,7 @@ internal class BehandlingServiceImpl(
         ).mapLeft {
             utbetalingService.addOppdragsmelding(
                 utbetaling.id,
-                Oppdragsmelding(
-                    Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                    it.originalMelding,
-                    it.tidspunkt
-                )
+                it.oppdragsmelding
             )
             Behandling.IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
         }.map { oppdragsmelding ->

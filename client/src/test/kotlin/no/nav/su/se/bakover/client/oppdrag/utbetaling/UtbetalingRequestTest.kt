@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -46,15 +44,15 @@ internal class UtbetalingRequestTest {
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
-                    fom = 1.januar(2020),
-                    tom = 30.april(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = null,
                 ),
                 Utbetalingslinje(
                     id = nyOppdragslinjeId2,
-                    fom = 1.mai(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.mai(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
@@ -145,13 +143,13 @@ internal class UtbetalingRequestTest {
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",
-                        mottattTidspunkt = Instant.EPOCH.plusSeconds(10).toTidspunkt()
+                        mottattTidspunkt = Tidspunkt.EPOCH.plusSeconds(10)
                     ),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             id = eksisterendeOppdragslinjeId,
-                            fom = 1.januar(2019),
-                            tom = 31.desember(2019),
+                            fraOgMed = 1.januar(2019),
+                            tilOgMed = 31.desember(2019),
                             beløp = BELØP,
                             forrigeUtbetalingslinjeId = null,
                         )
@@ -167,15 +165,15 @@ internal class UtbetalingRequestTest {
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
-                    fom = 1.januar(2020),
-                    tom = 30.april(2020),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
                 ),
                 Utbetalingslinje(
                     id = nyOppdragslinjeid2,
-                    fom = 1.mai(2020),
-                    tom = 31.desember(2020),
+                    fraOgMed = 1.mai(2020),
+                    tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )

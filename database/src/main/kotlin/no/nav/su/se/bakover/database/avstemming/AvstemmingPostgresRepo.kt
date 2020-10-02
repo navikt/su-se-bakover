@@ -26,8 +26,8 @@ internal class AvstemmingPostgresRepo(
             mapOf(
                 "id" to avstemming.id,
                 "opprettet" to avstemming.opprettet,
-                "fom" to avstemming.fom,
-                "tom" to avstemming.tom,
+                "fom" to avstemming.fraOgMed,
+                "tom" to avstemming.tilOgMed,
                 "utbetalinger" to objectMapper.writeValueAsString(avstemming.utbetalinger.map { it.id.toString() }),
                 "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest
             )
@@ -62,13 +62,13 @@ internal class AvstemmingPostgresRepo(
         }
     }
 
-    override fun hentUtbetalingerForAvstemming(fom: Tidspunkt, tom: Tidspunkt): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling> =
         using(sessionOf(dataSource)) { session ->
             """select * from utbetaling where oppdragsmelding is not null and (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom and (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom and oppdragsmelding ->> 'status' = :status""".trimMargin()
                 .hentListe(
                     mapOf(
-                        "fom" to fom,
-                        "tom" to tom,
+                        "fom" to fraOgMed,
+                        "tom" to tilOgMed,
                         "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
                     ),
                     session

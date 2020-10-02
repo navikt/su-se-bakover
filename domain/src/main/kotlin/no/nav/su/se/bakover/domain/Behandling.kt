@@ -56,7 +56,7 @@ data class Behandling(
 
     fun getUtledetSatsBeløp(): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
-            status == BehandlingsStatus.BEREGNET ||
+            status == BehandlingsStatus.BEREGNET_INNVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
             return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
@@ -68,7 +68,8 @@ data class Behandling(
         BehandlingsStatus.OPPRETTET -> Opprettet()
         BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
         BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Vilkårsvurdert().Avslag()
-        BehandlingsStatus.BEREGNET -> Beregnet()
+        BehandlingsStatus.BEREGNET_INNVILGET -> Beregnet()
+        BehandlingsStatus.BEREGNET_AVSLAG -> Beregnet().Avslag()
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
@@ -82,11 +83,11 @@ data class Behandling(
     }
 
     fun opprettBeregning(
-        fom: LocalDate,
-        tom: LocalDate,
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
         fradrag: List<Fradrag> = emptyList()
     ): Behandling {
-        tilstand.opprettBeregning(fom, tom, fradrag)
+        tilstand.opprettBeregning(fraOgMed, tilOgMed, fradrag)
         return this
     }
 
@@ -122,8 +123,8 @@ data class Behandling(
         }
 
         fun opprettBeregning(
-            fom: LocalDate,
-            tom: LocalDate,
+            fraOgMed: LocalDate,
+            tilOgMed: LocalDate,
             fradrag: List<Fradrag>
         ) {
             throw TilstandException(status, this::opprettBeregning.toString())
@@ -182,7 +183,7 @@ data class Behandling(
         }
 
         inner class Innvilget : Vilkårsvurdert() {
-            override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
+            override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
                     ?: throw TilstandException(
                         status,
@@ -198,12 +199,18 @@ data class Behandling(
                     )
 
                 beregning = Beregning(
-                    fom = fom,
-                    tom = tom,
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                     sats = sats,
                     fradrag = fradrag,
                     forventetInntekt = forventetInntekt
                 )
+
+                if (beregning!!.beløpErNull() || beregning!!.beløpErOverNullMenUnderMinstebeløp()) {
+                    nyTilstand(Beregnet().Avslag())
+                    return
+                }
+
                 nyTilstand(Beregnet())
             }
         }
@@ -222,11 +229,11 @@ data class Behandling(
         }
     }
 
-    private inner class Beregnet : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET
+    private open inner class Beregnet : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert()).opprettBeregning(fom, tom, fradrag)
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -238,6 +245,22 @@ data class Behandling(
             this@Behandling.utbetaling = utbetaling
             nyTilstand(Simulert())
             return this@Behandling.right()
+        }
+
+        inner class Avslag : Beregnet() {
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
+            override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+                throw TilstandException(status, this::simuler.toString())
+            }
+
+            override fun sendTilAttestering(
+                aktørId: AktørId,
+                saksbehandler: Saksbehandler,
+            ): Behandling {
+                this@Behandling.saksbehandler = saksbehandler
+                nyTilstand(TilAttestering().Avslag())
+                return this@Behandling
+            }
         }
     }
 
@@ -253,8 +276,8 @@ data class Behandling(
             return this@Behandling
         }
 
-        override fun opprettBeregning(fom: LocalDate, tom: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fom, tom, fradrag)
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
+            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -320,7 +343,8 @@ data class Behandling(
         OPPRETTET,
         VILKÅRSVURDERT_INNVILGET,
         VILKÅRSVURDERT_AVSLAG,
-        BEREGNET,
+        BEREGNET_INNVILGET,
+        BEREGNET_AVSLAG,
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
@@ -336,9 +360,7 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
-            IverksettFeil()
-
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
         class Utbetaling(val msg: String) : IverksettFeil()
     }
 

@@ -93,7 +93,7 @@ internal class BehandlingPostgresRepoTest {
 
             behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
-            val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET)
+            val oppdatertStatus = repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET_INNVILGET)
             val hentet = repo.hentBehandling(behandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus.status()

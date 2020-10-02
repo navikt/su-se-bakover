@@ -80,13 +80,17 @@ internal fun Route.behandlingRoutes(
     }
 
     data class OpprettBeregningBody(
-        val fom: LocalDate,
-        val tom: LocalDate,
+        val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
         val fradrag: List<FradragJson>
     ) {
-        fun valid() = fom.dayOfMonth == 1 &&
-            tom.dayOfMonth == tom.lengthOfMonth() &&
-            fradrag.all { Fradragstype.isValid(it.type) }
+        fun valid() = fraOgMed.dayOfMonth == 1 &&
+            tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
+            fradrag.all {
+                Fradragstype.isValid(it.type) &&
+                    it.utenlandskInntekt?.isValid() ?: true &&
+                    it.inntektDelerAvPeriode?.isValid() ?: true
+            }
     }
 
     data class UnderkjennBody(
@@ -106,8 +110,8 @@ internal fun Route.behandlingRoutes(
                     if (body.valid()) {
                         val oppdatert = behandlingService.opprettBeregning(
                             behandlingId = behandling.id,
-                            fom = body.fom,
-                            tom = body.tom,
+                            fom = body.fraOgMed,
+                            tom = body.tilOgMed,
                             fradrag = body.fradrag.map { it.toFradrag() }
                         )
                         call.svar(Created.jsonBody(oppdatert))

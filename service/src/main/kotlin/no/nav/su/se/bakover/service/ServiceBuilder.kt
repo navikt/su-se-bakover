@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
+import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
@@ -57,6 +58,12 @@ class ServiceBuilder(
                 simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService
+            ),
+            startUtbetalingerService = StartUtbetalingerService(
+                simuleringClient = clients.simuleringClient,
+                utbetalingPublisher = clients.utbetalingPublisher,
+                utbetalingService = utbetalingService,
+                sakService = sakService
             )
         )
     }
@@ -69,5 +76,6 @@ data class Services(
     val behandlingService: BehandlingService,
     val sakService: SakService,
     val søknadService: SøknadService,
-    val stansUtbetalingService: StansUtbetalingService
+    val stansUtbetalingService: StansUtbetalingService,
+    val startUtbetalingerService: StartUtbetalingerService
 )

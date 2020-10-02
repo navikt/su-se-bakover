@@ -94,8 +94,8 @@ internal class SimuleringSoapClient(
 
     private fun mapBeregningsPeriode(periode: BeregningsPeriode) =
         SimulertPeriode(
-            fom = LocalDate.parse(periode.periodeFom),
-            tom = LocalDate.parse(periode.periodeTom),
+            fraOgMed = LocalDate.parse(periode.periodeFom),
+            tilOgMed = LocalDate.parse(periode.periodeTom),
             utbetaling = periode.beregningStoppnivaa.map { mapBeregningStoppNivaa(it) }
         )
 
@@ -111,8 +111,8 @@ internal class SimuleringSoapClient(
 
     private fun mapDetaljer(detaljer: BeregningStoppnivaaDetaljer) =
         SimulertDetaljer(
-            faktiskFom = LocalDate.parse(detaljer.faktiskFom),
-            faktiskTom = LocalDate.parse(detaljer.faktiskTom),
+            faktiskFraOgMed = LocalDate.parse(detaljer.faktiskFom),
+            faktiskTilOgMed = LocalDate.parse(detaljer.faktiskTom),
             konto = detaljer.kontoStreng.trim(),
             belop = detaljer.belop.intValueExact(),
             tilbakeforing = detaljer.isTilbakeforing,

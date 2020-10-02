@@ -22,5 +22,8 @@ fun now(clock: Clock = Clock.systemUTC()): Tidspunkt = Tidspunkt.now(clock)
 
 fun LocalDate.startOfDay() = this.atStartOfDay().toTidspunkt()
 fun LocalDate.endOfDay() = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt()
-fun Tidspunkt.between(start: Tidspunkt, end: Tidspunkt) =
-    (this == start || this == end) || this.instant.isAfter(start.instant) && this.instant.isBefore(end.instant)
+fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
+    (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
+
+fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
+    (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
