@@ -101,7 +101,7 @@ internal class BehandlingPostgresRepo(
                 (id, sakId, søknadId, opprettet, status, behandlingsinformasjon)
             values
                 (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
-            """.trimIndent().oppdatering(
+            """.oppdatering(
                 mapOf(
                     "id" to behandling.id,
                     "sakId" to sakId,
