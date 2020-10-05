@@ -31,7 +31,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             begrunnelse = oppholdIUtlandet?.begrunnelse
         ),
         formue = Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.Ok,
+            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdiIkkePrimærbolig = formue?.verdiIkkePrimærbolig ?: 0,
             verdiKjøretøy = formue?.verdiKjøretøy ?: 0,
             innskudd = formue?.innskudd ?: 0,

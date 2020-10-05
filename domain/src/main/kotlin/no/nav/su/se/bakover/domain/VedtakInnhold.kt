@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.Fradragstype
 
 data class VedtakInnhold(
     val dato: String,
@@ -17,14 +17,13 @@ data class VedtakInnhold(
     val tildato: String?,
     val sats: String?,
     val satsbeløp: Int?,
-    val satsGrunn: String,
+    val satsGrunn: Satsgrunn?,
     val redusertStønadStatus: Boolean,
     val redusertStønadGrunn: String?,
-    val fradrag: List<Fradrag>,
+    val fradrag: List<FradragPerMåned>,
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,
     val avslagsgrunn: Avslagsgrunn?,
-    val avslagsgrunnBeskrivelse: AvslagsgrunnBeskrivelse?,
     val halvGrunnbeløp: Int?,
 )
 
@@ -41,10 +40,11 @@ enum class Avslagsgrunn {
     INNLAGT_PÅ_INSTITUSJON
 }
 
-enum class AvslagsgrunnBeskrivelse {
-    UFØRHET_FLYKTNING,
-    FORMUE,
-    HØY_INNTEKT,
-    UTLAND_OG_OPPHOLD,
-    UNDER_MINSTEGRENSE
+enum class Satsgrunn {
+    DELER_BOLIG_MED_VOKSNE_BARN,
+    DELER_BOLIG_MED_ANNEN_VOKSEN,
+    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67,
+    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 }
+
+data class FradragPerMåned(val type: Fradragstype, val beløp: Int)

@@ -11,10 +11,8 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import java.util.UUID
 
 internal object BeregningRepoInternal {
@@ -60,6 +58,6 @@ internal fun Row.toFradrag() = Fradrag(
     id = uuid("id"),
     beløp = int("beløp"),
     type = Fradragstype.valueOf(string("fradragstype")),
-    utenlandskInntekt = objectMapper.readValue(string("utenlandskInntekt")) as UtenlandskInntekt?,
-    inntektDelerAvPeriode = objectMapper.readValue(string("inntektDelerAvPeriode")) as InntektDelerAvPeriode?,
+    utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { objectMapper.readValue(it) },
+    inntektDelerAvPeriode = stringOrNull("inntektDelerAvPeriode")?.let { objectMapper.readValue(it) }
 )

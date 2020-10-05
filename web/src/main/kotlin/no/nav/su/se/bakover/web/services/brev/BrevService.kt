@@ -10,13 +10,16 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
-import no.nav.su.se.bakover.domain.AvslagsgrunnBeskrivelse
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.FradragPerMåned
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Satsgrunn
 import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
@@ -43,7 +46,7 @@ class BrevService(
         fun lagVedtakInnhold(person: Person, behandling: Behandling): VedtakInnhold {
             val fnr = behandling.søknad.søknadInnhold.personopplysninger.fnr
             val avslagsgrunn = avslagsgrunnForBehandling(behandling)
-            val avslagsgrunnBeskrivelse = beskrivelseForAvslagsgrunn(avslagsgrunn)
+            val satsgrunn = satsgrunnForBehandling(behandling)
             val førsteMånedsberegning = behandling.beregning()?.månedsberegninger?.firstOrNull()
 
             return VedtakInnhold(
@@ -58,12 +61,11 @@ class BrevService(
                 poststed = person.adresse?.poststed?.poststed,
                 status = behandling.status(),
                 avslagsgrunn = avslagsgrunn,
-                avslagsgrunnBeskrivelse = avslagsgrunnBeskrivelse,
                 fradato = behandling.beregning()?.fraOgMed?.formatMonthYear(),
                 tildato = behandling.beregning()?.tilOgMed?.formatMonthYear(),
                 sats = behandling.beregning()?.sats.toString().toLowerCase(),
                 satsbeløp = førsteMånedsberegning?.satsBeløp,
-                satsGrunn = "HVOR SKAL DENNE GRUNNEN HENTES FRA",
+                satsGrunn = satsgrunn,
                 redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
                 redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
                 månedsbeløp = førsteMånedsberegning?.beløp,
@@ -182,6 +184,7 @@ fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
             it.lovligOpphold?.status == LovligOpphold.Status.VilkårIkkeOppfylt -> Avslagsgrunn.OPPHOLDSTILLATELSE
             it.fastOppholdINorge?.status == FastOppholdINorge.Status.VilkårIkkeOppfylt -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
             it.oppholdIUtlandet?.status == OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+            it.formue?.status == Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FORMUE
             it.personligOppmøte?.status.let { s ->
                 s == PersonligOppmøte.Status.IkkeMøttOpp ||
                     s == PersonligOppmøte.Status.FullmektigUtenLegeattest
@@ -191,31 +194,26 @@ fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
     }
 }
 
-fun beskrivelseForAvslagsgrunn(avslagsgrunn: Avslagsgrunn?): AvslagsgrunnBeskrivelse? =
-    when (avslagsgrunn) {
-        Avslagsgrunn.UFØRHET -> AvslagsgrunnBeskrivelse.UFØRHET_FLYKTNING
-        Avslagsgrunn.FLYKTNING -> AvslagsgrunnBeskrivelse.UFØRHET_FLYKTNING
-        Avslagsgrunn.FORMUE -> AvslagsgrunnBeskrivelse.FORMUE
-        Avslagsgrunn.FOR_HØY_INNTEKT -> AvslagsgrunnBeskrivelse.HØY_INNTEKT
-        Avslagsgrunn.SU_UNDER_MINSTEGRENSE -> AvslagsgrunnBeskrivelse.UNDER_MINSTEGRENSE
-        Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> AvslagsgrunnBeskrivelse.UTLAND_OG_OPPHOLD
-        Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER -> AvslagsgrunnBeskrivelse.UTLAND_OG_OPPHOLD
-        Avslagsgrunn.OPPHOLDSTILLATELSE -> AvslagsgrunnBeskrivelse.UTLAND_OG_OPPHOLD
-        else -> null
+fun satsgrunnForBehandling(behandling: Behandling): Satsgrunn? {
+    return behandling.behandlingsinformasjon().bosituasjon?.let {
+        when {
+            !it.delerBolig -> null
+            it.delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN
+            it.delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN -> Satsgrunn.DELER_BOLIG_MED_ANNEN_VOKSEN
+            it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
+                && it.ektemakeEllerSamboerUnder67År == false -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+            it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
+                && it.ektemakeEllerSamboerUførFlyktning == true -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+            else -> null
+        }
     }
+}
 
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
 
-// TODO jah: Unngå utregninger i BrevService
-fun List<Fradrag>.toFradragPerMåned(): List<Fradrag> =
+internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
     this.map {
-        Fradrag(
-            id = it.id,
-            type = it.type,
-            beløp = it.beløp / 12,
-            utenlandskInntekt = it.utenlandskInntekt,
-            inntektDelerAvPeriode = it.inntektDelerAvPeriode,
-        )
+        FradragPerMåned(it.type, it.perMåned())
     }

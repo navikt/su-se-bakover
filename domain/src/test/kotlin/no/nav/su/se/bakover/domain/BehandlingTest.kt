@@ -123,7 +123,7 @@ internal class BehandlingTest {
             val expected = original.patch(
                 Behandlingsinformasjon(
                     formue = Behandlingsinformasjon.Formue(
-                        status = Behandlingsinformasjon.Formue.Status.Ok,
+                        status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                         verdiIkkePrimærbolig = 52889,
                         verdiKjøretøy = 8823,
                         innskudd = 3291,
