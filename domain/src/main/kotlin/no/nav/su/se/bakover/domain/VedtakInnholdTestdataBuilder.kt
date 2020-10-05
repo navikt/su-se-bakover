@@ -21,14 +21,13 @@ object VedtakInnholdTestdataBuilder {
             tildato = "01.01.2020",
             sats = "100",
             satsbeløp = 100,
-            satsGrunn = "en sats grunn",
+            satsGrunn = Satsgrunn.DELER_BOLIG_MED_ANNEN_VOKSEN,
             redusertStønadStatus = true,
             redusertStønadGrunn = "en redusert stønadsgrunn",
             fradrag = emptyList(),
             fradragSum = 0,
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             avslagsgrunn = Avslagsgrunn.FLYKTNING,
-            avslagsgrunnBeskrivelse = AvslagsgrunnBeskrivelse.FORMUE,
             halvGrunnbeløp = 50
         )
     }

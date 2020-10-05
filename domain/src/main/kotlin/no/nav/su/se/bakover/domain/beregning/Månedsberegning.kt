@@ -18,7 +18,7 @@ data class Månedsberegning(
     val fradrag: Int,
     val beløp: Int = kalkulerBeløp(sats, fraOgMed, fradrag)
 ) {
-    val satsBeløp: Int = sats.fraDatoAsInt(fraOgMed) / 12
+    val satsBeløp: Int = kalkulerBeløp(sats, fraOgMed)
 
     init {
         require(fraOgMed.dayOfMonth == 1) { "Månedsberegninger gjøres fra den første i måneden. Dato var=$fraOgMed" }
@@ -27,7 +27,7 @@ data class Månedsberegning(
 
     companion object {
         // TODO AI: Se på möjligheterna för att ha fradrag som BigDecimal för att komma undan off-by-one fel.
-        fun kalkulerBeløp(sats: Sats, fraOgMed: LocalDate, fradrag: Int) =
+        fun kalkulerBeløp(sats: Sats, fraOgMed: LocalDate, fradrag: Int = 0) =
             BigDecimal(sats.fraDato(fraOgMed)).divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
                 .minus(BigDecimal(fradrag)) // Her runder vi av begge sider av regnestykket, kan potentiellt leda till fel.
                 .max(BigDecimal.ZERO)
