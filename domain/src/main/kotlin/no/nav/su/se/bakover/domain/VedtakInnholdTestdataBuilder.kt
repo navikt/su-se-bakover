@@ -21,7 +21,7 @@ object VedtakInnholdTestdataBuilder {
             tildato = "01.01.2020",
             sats = "100",
             satsbeløp = 100,
-            satsGrunn = Satsgrunn.DELER_BOLIG_MED_ANNEN_VOKSEN,
+            satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
             redusertStønadStatus = true,
             harEktefelle = true,
             fradrag = emptyList(),
