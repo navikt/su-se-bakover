@@ -19,7 +19,7 @@ data class VedtakInnhold(
     val satsbeløp: Int?,
     val satsGrunn: Satsgrunn?,
     val redusertStønadStatus: Boolean,
-    val redusertStønadGrunn: String?,
+    val harEktefelle: Boolean?,
     val fradrag: List<FradragPerMåned>,
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,

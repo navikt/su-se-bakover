@@ -20,7 +20,7 @@ data class Beregning(
     val sats: Sats,
     val fradrag: List<Fradrag>,
     val forventetInntekt: Int,
-    val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag, forventetInntekt)
+    val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag)
 ) : PersistentDomainObject<VoidObserver>() {
 
     init {
@@ -36,15 +36,14 @@ data class Beregning(
             fraOgMed: LocalDate,
             tilOgMed: LocalDate,
             sats: Sats,
-            fradrag: List<Fradrag>,
-            forventetInntekt: Int
+            fradrag: List<Fradrag>
         ): List<Månedsberegning> {
             val antallMåneder = 0L until Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths()
             return antallMåneder.map {
                 Månedsberegning(
                     fraOgMed = fraOgMed.plusMonths(it),
                     sats = sats,
-                    fradrag = fradragWithForventetInntekt(fradrag, forventetInntekt).sumBy { f -> f.perMåned() }
+                    fradrag = fradrag.sumBy { f -> f.perMåned() }
                 )
             }
         }
@@ -72,7 +71,7 @@ data class Beregning(
         månedsberegninger.sumBy { it.beløp } <= 0
 }
 
-private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
+fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
     val (arbeidsinntektFradrag, andreFradrag) = fradrag.partition { it.type == Fradragstype.Arbeidsinntekt }
 
     val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }

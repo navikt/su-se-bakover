@@ -23,7 +23,7 @@ object VedtakInnholdTestdataBuilder {
             satsbeløp = 100,
             satsGrunn = Satsgrunn.DELER_BOLIG_MED_ANNEN_VOKSEN,
             redusertStønadStatus = true,
-            redusertStønadGrunn = "en redusert stønadsgrunn",
+            harEktefelle = true,
             fradrag = emptyList(),
             fradragSum = 0,
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,

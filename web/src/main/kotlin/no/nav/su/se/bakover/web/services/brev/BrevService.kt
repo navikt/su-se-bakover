@@ -65,7 +65,7 @@ class BrevService(
                 satsbeløp = førsteMånedsberegning?.satsBeløp,
                 satsGrunn = satsgrunn,
                 redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
-                redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
+                harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                 månedsbeløp = førsteMånedsberegning?.beløp,
                 fradrag = behandling.beregning()?.fradrag?.toFradragPerMåned() ?: emptyList(),
                 fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
