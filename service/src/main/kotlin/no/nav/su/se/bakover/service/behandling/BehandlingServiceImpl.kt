@@ -56,35 +56,39 @@ internal class BehandlingServiceImpl(
             }
     }
 
+    // TODO need to define responsibilities for domain and services.
     override fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
         behandlingsinformasjon: Behandlingsinformasjon
     ): Behandling {
-        val beforeUpdate = behandlingRepo.hentBehandling(behandlingId)!!
-        beregningRepo.slettBeregningForBehandling(behandlingId)
-        val updated = behandlingRepo.oppdaterBehandlingsinformasjon(
-            behandlingId,
-            beforeUpdate.behandlingsinformasjon().patch(behandlingsinformasjon)
-        )
-        // TODO fix weirdness for internal state
-        val status = updated.oppdaterBehandlingsinformasjon(behandlingsinformasjon).status()
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, status)
         return behandlingRepo.hentBehandling(behandlingId)!!
+            .oppdaterBehandlingsinformasjon(behandlingsinformasjon) // invoke first to perform state-check
+            .let {
+                beregningRepo.slettBeregningForBehandling(behandlingId)
+                behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it.behandlingsinformasjon())
+                behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
+                it
+            }
     }
 
+    // TODO need to define responsibilities for domain and services.
     override fun opprettBeregning(
         behandlingId: UUID,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         fradrag: List<Fradrag>
     ): Behandling {
-        beregningRepo.slettBeregningForBehandling(behandlingId)
-        val beregnet = behandlingRepo.hentBehandling(behandlingId)!!.opprettBeregning(fraOgMed, tilOgMed, fradrag)
-        beregningRepo.opprettBeregningForBehandling(behandlingId, beregnet.beregning()!!)
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, beregnet.status())
         return behandlingRepo.hentBehandling(behandlingId)!!
+            .opprettBeregning(fraOgMed, tilOgMed, fradrag) // invoke first to perform state-check
+            .let {
+                beregningRepo.slettBeregningForBehandling(behandlingId)
+                beregningRepo.opprettBeregningForBehandling(behandlingId, it.beregning()!!)
+                behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
+                it
+            }
     }
 
+    // TODO need to define responsibilities for domain and services.
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
         val sak = sakService.hentSak(behandling.sakId).fold(
@@ -96,67 +100,70 @@ internal class BehandlingServiceImpl(
         val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .map {
-                behandling.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
-                utbetalingService.opprettUtbetaling(oppdrag.id, utbetaling)
-                utbetalingService.addSimulering(utbetaling.id, it)
-                behandlingRepo.leggTilUtbetaling(behandlingId, utbetaling.id)
-                val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
-                oppdatert.simuler(utbetaling) // TODO just to push to correct state
-                behandlingRepo.oppdaterBehandlingStatus(behandling.id, oppdatert.status())
-                return behandlingRepo.hentBehandling(behandlingId)!!.right()
+                val beforeUpdate = behandling.copy() // need ref to existing utbetaling to delete
+                return behandling.simuler(utbetaling).map { behandling -> // invoke first to perform state-check
+                    beforeUpdate.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
+                    utbetalingService.opprettUtbetaling(oppdrag.id, utbetaling)
+                    utbetalingService.addSimulering(utbetaling.id, it)
+                    behandlingRepo.leggTilUtbetaling(behandlingId, utbetaling.id)
+                    behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
+                    behandlingRepo.hentBehandling(behandlingId)!!
+                }
             }
     }
 
+    // TODO need to define responsibilities for domain and services.
     override fun sendTilAttestering(
         behandlingId: UUID,
         aktørId: AktørId,
         saksbehandler: Saksbehandler
     ): Either<KunneIkkeOppretteOppgave, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        return oppgaveClient.opprettOppgave(
-            OppgaveConfig.Attestering(
-                behandling.sakId.toString(),
-                aktørId = aktørId
-            )
-        ).map {
-            behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
-            val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
-            oppdatert.sendTilAttestering(aktørId, saksbehandler)
-            behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
-            behandlingRepo.hentBehandling(behandlingId)!!
-        }
-    }
-
-    override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val utbetaling = behandling.utbetaling()!!
-        return utbetalingPublisher.publish(
-            NyUtbetaling(
-                oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
-                utbetaling = utbetaling,
-                attestant = attestant
-            )
-        ).mapLeft {
-            utbetalingService.addOppdragsmelding(
-                utbetaling.id,
-                it.oppdragsmelding
-            )
-            Behandling.IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
-        }.map { oppdragsmelding ->
-            utbetalingService.addOppdragsmelding(
-                utbetaling.id,
-                oppdragsmelding
-            )
-            val oppdatert = behandlingRepo.hentBehandling(behandlingId)!!
-            return oppdatert.iverksett(attestant)
-                .map {
-                    behandlingRepo.attester(behandlingId, attestant)
-                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, oppdatert.status())
-                    behandlingRepo.hentBehandling(behandlingId)!!
+        return behandlingRepo.hentBehandling(behandlingId)!!
+            .sendTilAttestering(aktørId, saksbehandler) // invoke first to perform state-check
+            .let { behandling ->
+                oppgaveClient.opprettOppgave(
+                    OppgaveConfig.Attestering(
+                        behandling.sakId.toString(),
+                        aktørId = aktørId
+                    )
+                ).map {
+                    behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
+                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                    behandling
                 }
-        }
+            }
     }
 
+    // TODO need to define responsibilities for domain and services.
+    override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
+        return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
+            .map { behandling ->
+                val utbetaling = behandling.utbetaling()!!
+                return utbetalingPublisher.publish(
+                    NyUtbetaling(
+                        oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
+                        utbetaling = utbetaling,
+                        attestant = attestant
+                    )
+                ).mapLeft {
+                    utbetalingService.addOppdragsmelding(
+                        utbetaling.id,
+                        it.oppdragsmelding
+                    )
+                    Behandling.IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
+                }.map { oppdragsmelding ->
+                    utbetalingService.addOppdragsmelding(
+                        utbetaling.id,
+                        oppdragsmelding
+                    )
+                    behandlingRepo.attester(behandlingId, attestant)
+                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                    behandling
+                }
+            }
+    }
+
+    // TODO need to define responsibilities for domain and services.
     override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling> {
         return søknadService.hentSøknad(søknadId)
             .map {
