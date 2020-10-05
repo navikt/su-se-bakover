@@ -66,11 +66,14 @@ internal fun Route.behandlingRoutes(
                 ifRight = { body ->
                     call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
                     if (body.isValid()) {
-                        val oppdatert = behandlingService.oppdaterBehandlingsinformasjon(
-                            behandlingId = behandling.id,
-                            behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                        call.svar(
+                            OK.jsonBody(
+                                behandlingService.oppdaterBehandlingsinformasjon(
+                                    behandlingId = behandling.id,
+                                    behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                                )
+                            )
                         )
-                        call.svar(OK.jsonBody(oppdatert))
                     } else {
                         call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
                     }
@@ -108,13 +111,16 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        val oppdatert = behandlingService.opprettBeregning(
-                            behandlingId = behandling.id,
-                            fraOgMed = body.fraOgMed,
-                            tilOgMed = body.tilOgMed,
-                            fradrag = body.fradrag.map { it.toFradrag() }
+                        call.svar(
+                            Created.jsonBody(
+                                behandlingService.opprettBeregning(
+                                    behandlingId = behandling.id,
+                                    fraOgMed = body.fraOgMed,
+                                    tilOgMed = body.tilOgMed,
+                                    fradrag = body.fradrag.map { it.toFradrag() }
+                                )
+                            )
                         )
-                        call.svar(Created.jsonBody(oppdatert))
                     } else {
                         call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
                     }
@@ -145,7 +151,7 @@ internal fun Route.behandlingRoutes(
                     log.info("Feil ved simulering: ", it)
                     call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
                 },
-                { call.svar(OK.jsonBody(behandling)) }
+                { call.svar(OK.jsonBody(it)) }
             )
         }
     }
@@ -155,8 +161,8 @@ internal fun Route.behandlingRoutes(
         call.withBehandling(behandlingService) { behandling ->
             sakService.hentSak(behandling.sakId)
                 .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-                .map {
-                    val aktørId: AktørId = personOppslag.aktørId(it.fnr).getOrElse {
+                .map { sak ->
+                    val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
                         log.error("Fant ikke aktør-id med gitt fødselsnummer")
                         throw RuntimeException("Kunne ikke finne aktørid")
                     }
@@ -184,10 +190,10 @@ internal fun Route.behandlingRoutes(
             call.audit("Iverksetter behandling med id: ${behandling.id}")
             sakService.hentSak(behandling.sakId)
                 .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-                .map {
+                .map { sak ->
                     // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
                     // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
-                    brevService.journalførVedtakOgSendBrev(it, behandling).fold(
+                    brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                         ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                         ifRight = {
                             behandlingService.iverksett(
@@ -233,7 +239,7 @@ internal fun Route.behandlingRoutes(
                             ifLeft = {
                                 call.svar(Forbidden.message(it.msg))
                             },
-                            ifRight = { call.svar(OK.jsonBody(behandling)) }
+                            ifRight = { call.svar(OK.jsonBody(it)) }
                         )
                     } else {
                         call.svar(BadRequest.message("Må anngi en begrunnelse"))
