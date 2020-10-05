@@ -19,7 +19,7 @@ data class VedtakInnhold(
     val satsbeløp: Int?,
     val satsGrunn: Satsgrunn?,
     val redusertStønadStatus: Boolean,
-    val redusertStønadGrunn: String?,
+    val harEktefelle: Boolean?,
     val fradrag: List<FradragPerMåned>,
     val fradragSum: Int,
     val status: Behandling.BehandlingsStatus,
@@ -41,8 +41,9 @@ enum class Avslagsgrunn {
 }
 
 enum class Satsgrunn {
-    DELER_BOLIG_MED_VOKSNE_BARN,
-    DELER_BOLIG_MED_ANNEN_VOKSEN,
+    ENSLIG,
+    DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
+    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67,
     DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67,
     DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 }
