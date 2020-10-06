@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
@@ -69,7 +68,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
-import java.time.Clock
 import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
@@ -105,22 +103,18 @@ internal fun Application.susebakover(
             }
         }
     },
-    stansUtbetalingService: StansUtbetalingService = StansUtbetalingService(
-        simuleringClient = clients.simuleringClient,
-        clock = Clock.systemUTC(),
-        utbetalingPublisher = clients.utbetalingPublisher
-    ),
     services: Services = ServiceBuilder(databaseRepos, clients).build()
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
 
     val søknadRoutesMediator = SøknadRouteMediator(
-        repo = databaseRepos.objectRepo,
         pdfGenerator = clients.pdfGenerator,
         dokArkiv = clients.dokArkiv,
         oppgaveClient = clients.oppgaveClient,
-        personOppslag = clients.personOppslag
+        personOppslag = clients.personOppslag,
+        søknadService = services.søknad,
+        sakService = services.sak
     )
 
     install(CORS) {
@@ -200,24 +194,29 @@ internal fun Application.susebakover(
             withUser {
                 personRoutes(clients.personOppslag)
                 inntektRoutes(clients.inntektOppslag)
-                sakRoutes(databaseRepos.objectRepo)
+                sakRoutes(
+                    behandlingService = services.behandling,
+                    sakService = services.sak
+                )
                 søknadRoutes(søknadRoutesMediator)
                 behandlingRoutes(
-                    repo = databaseRepos.objectRepo,
                     brevService = BrevService(
                         pdfGenerator = clients.pdfGenerator,
                         personOppslag = clients.personOppslag,
                         dokArkiv = clients.dokArkiv,
-                        dokDistFordeling = clients.dokDistFordeling
+                        dokDistFordeling = clients.dokDistFordeling,
+                        sakService = services.sak
                     ),
-                    simuleringClient = clients.simuleringClient,
                     personOppslag = clients.personOppslag,
-                    oppgaveClient = clients.oppgaveClient,
-                    utbetalingPublisher = clients.utbetalingPublisher,
+                    behandlingService = services.behandling,
+                    sakService = services.sak
                 )
-                avstemmingRoutes(services.avstemmingService)
-                stansutbetalingRoutes(stansUtbetalingService, databaseRepos.objectRepo)
-                startutbetalingRoutes(services.utbetalingService)
+                avstemmingRoutes(services.avstemming)
+                stansutbetalingRoutes(
+                    stansUtbetalingService = services.stansUtbetaling,
+                    sakService = services.sak
+                )
+                startutbetalingRoutes(services.startUtbetalinger)
                 meRoutes()
             }
         }
@@ -227,7 +226,7 @@ internal fun Application.susebakover(
             kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                repo = databaseRepos.objectRepo
+                utbetalingService = services.utbetaling
             )
         )
         AvstemmingKvitteringIbmMqConsumer(

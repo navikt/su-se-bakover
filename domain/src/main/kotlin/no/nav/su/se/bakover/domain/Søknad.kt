@@ -8,4 +8,4 @@ data class Søknad(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
     val søknadInnhold: SøknadInnhold
-) : PersistentDomainObject<VoidObserver>()
+)

@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.VoidObserver
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -19,16 +17,14 @@ data class Beregning(
     val tilOgMed: LocalDate,
     val sats: Sats,
     val fradrag: List<Fradrag>,
-    val forventetInntekt: Int,
-    val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag, forventetInntekt)
-) : PersistentDomainObject<VoidObserver>() {
+    val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag)
+) {
 
     init {
         require(fraOgMed.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fraOgMed" }
         require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tilOgMed" }
         require(fraOgMed.isBefore(tilOgMed)) { "Startdato ($fraOgMed) for beregning må være tidligere enn sluttdato ($tilOgMed)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
-        require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
     }
 
     companion object {
@@ -36,15 +32,14 @@ data class Beregning(
             fraOgMed: LocalDate,
             tilOgMed: LocalDate,
             sats: Sats,
-            fradrag: List<Fradrag>,
-            forventetInntekt: Int
+            fradrag: List<Fradrag>
         ): List<Månedsberegning> {
             val antallMåneder = 0L until Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths()
             return antallMåneder.map {
                 Månedsberegning(
                     fraOgMed = fraOgMed.plusMonths(it),
                     sats = sats,
-                    fradrag = fradragWithForventetInntekt(fradrag, forventetInntekt).sumBy { f -> f.perMåned() }
+                    fradrag = fradrag.sumBy { f -> f.perMåned() }
                 )
             }
         }
@@ -72,7 +67,7 @@ data class Beregning(
         månedsberegninger.sumBy { it.beløp } <= 0
 }
 
-private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
+fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): List<Fradrag> {
     val (arbeidsinntektFradrag, andreFradrag) = fradrag.partition { it.type == Fradragstype.Arbeidsinntekt }
 
     val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }
@@ -81,5 +76,12 @@ private fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt
         return fradrag
     }
 
-    return andreFradrag.plus(Fradrag(type = Fradragstype.ForventetInntekt, beløp = forventetInntekt))
+    return andreFradrag.plus(
+        Fradrag(
+            type = Fradragstype.ForventetInntekt,
+            beløp = forventetInntekt,
+            utenlandskInntekt = null,
+            inntektDelerAvPeriode = null,
+        )
+    )
 }

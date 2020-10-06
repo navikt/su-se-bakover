@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import java.time.format.DateTimeFormatter
 
 internal data class BeregningJson(
@@ -14,8 +16,7 @@ internal data class BeregningJson(
     val tilOgMed: String,
     val sats: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
-    val fradrag: List<FradragJson> = emptyList(),
-    val forventetInntekt: Int,
+    val fradrag: List<FradragJson> = emptyList()
 )
 
 internal fun Beregning.toJson() = BeregningJson(
@@ -27,14 +28,26 @@ internal fun Beregning.toJson() = BeregningJson(
     tilOgMed = tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,
     månedsberegninger = månedsberegninger.map { it.toJson() },
-    fradrag = fradrag.map { FradragJson(it.type.toString(), it.beløp, it.beskrivelse) },
-    forventetInntekt = forventetInntekt
+    fradrag = fradrag.map {
+        FradragJson(
+            type = it.type.toString(),
+            beløp = it.beløp,
+            utenlandskInntekt = it.utenlandskInntekt,
+            inntektDelerAvPeriode = it.inntektDelerAvPeriode
+        )
+    }
 )
 
 internal data class FradragJson(
     val type: String,
     val beløp: Int,
-    val beskrivelse: String?
+    val utenlandskInntekt: UtenlandskInntekt?,
+    val inntektDelerAvPeriode: InntektDelerAvPeriode?
 ) {
-    fun toFradrag(): Fradrag = Fradrag(type = Fradragstype.valueOf(type), beløp = beløp, beskrivelse = beskrivelse)
+    fun toFradrag(): Fradrag = Fradrag(
+        type = Fradragstype.valueOf(type),
+        beløp = beløp,
+        utenlandskInntekt = utenlandskInntekt,
+        inntektDelerAvPeriode = inntektDelerAvPeriode,
+    )
 }

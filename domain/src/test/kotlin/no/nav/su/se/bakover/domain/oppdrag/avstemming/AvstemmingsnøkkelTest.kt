@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toTidspunkt
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 internal class AvstemmingsnøkkelTest {
 
@@ -22,5 +24,23 @@ internal class AvstemmingsnøkkelTest {
         sept15 shouldBeLessThan okt1
         okt1 shouldBeLessThan nov29
         nov29 shouldBeLessThan jan12200
+    }
+
+    @Test
+    fun `Parse nøkkel from specific time`() {
+        print(Tidspunkt.now().instant.epochSecond)
+        val seconds = 1601975988L
+        val nanos = 123456789L
+        val avstemmingsnøkkel = Avstemmingsnøkkel(Instant.ofEpochSecond(seconds, nanos).toTidspunkt())
+        // Forventer at den har trunkert de 3 siste (til micros istedenfor nanos)
+        avstemmingsnøkkel.toString() shouldBe "1601975988123456000"
+        avstemmingsnøkkel shouldBe Avstemmingsnøkkel.fromString(avstemmingsnøkkel.toString())
+    }
+
+    @Test
+    fun `Parse nøkkel from now`() {
+        Avstemmingsnøkkel().also {
+            it shouldBe Avstemmingsnøkkel.fromString(it.toString())
+        }
     }
 }

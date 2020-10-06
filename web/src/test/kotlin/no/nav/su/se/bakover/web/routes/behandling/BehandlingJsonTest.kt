@@ -49,7 +49,7 @@ internal class BehandlingJsonTest {
                     begrunnelse = null
                 ),
                 formue = Behandlingsinformasjon.Formue(
-                    status = Behandlingsinformasjon.Formue.Status.Ok,
+                    status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdiIkkePrimærbolig = 0,
                     verdiKjøretøy = 0,
                     innskudd = 0,
@@ -107,7 +107,7 @@ internal class BehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "formue": {
-                    "status": "Ok",
+                    "status": "VilkårOppfylt",
                     "verdiIkkePrimærbolig": 0,
                     "verdiKjøretøy": 0,
                     "innskudd": 0,
@@ -137,7 +137,7 @@ internal class BehandlingJsonTest {
           "attestant" : "kjella",
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
-          "hendelser": null
+          "hendelser": []
         }
             """.trimIndent()
     }
@@ -186,7 +186,7 @@ internal class BehandlingJsonTest {
           "attestant": null,
           "saksbehandler": null,
           "sakId": "$sakId",
-          "hendelser": null
+          "hendelser": []
         }
         """
 

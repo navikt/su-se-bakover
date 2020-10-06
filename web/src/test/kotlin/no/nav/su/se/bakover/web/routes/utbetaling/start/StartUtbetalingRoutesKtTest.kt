@@ -29,13 +29,29 @@ import java.util.UUID
 internal class StartUtbetalingRoutesKtTest {
 
     val sakId = UUID.randomUUID()
+    val services = Services(
+        avstemming = mock(),
+        utbetaling = mock(),
+        oppdrag = mock(),
+        behandling = mock(),
+        sak = mock(),
+        søknad = mock(),
+        stansUtbetaling = mock(),
+        startUtbetalinger = mock()
+    )
 
     @Test
     fun `Fant ikke sak returnerer not found`() {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.FantIkkeSak.left()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
@@ -49,7 +65,13 @@ internal class StartUtbetalingRoutesKtTest {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -63,7 +85,13 @@ internal class StartUtbetalingRoutesKtTest {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -77,7 +105,13 @@ internal class StartUtbetalingRoutesKtTest {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
@@ -91,7 +125,13 @@ internal class StartUtbetalingRoutesKtTest {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
@@ -116,7 +156,13 @@ internal class StartUtbetalingRoutesKtTest {
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
             on { startUtbetalinger(sakId) } doReturn utbetaling.right()
         }
-        withTestApplication({ testSusebakover(services = Services(mock(), utbetalingServiceMock)) }) {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    startUtbetalinger = utbetalingServiceMock
+                )
+            )
+        }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK

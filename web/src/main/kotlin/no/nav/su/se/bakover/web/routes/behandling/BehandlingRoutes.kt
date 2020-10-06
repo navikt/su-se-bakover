@@ -18,7 +18,6 @@ import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
@@ -26,9 +25,8 @@ import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehan
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -45,23 +43,21 @@ import java.time.LocalDate
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
-    repo: ObjectRepo,
     brevService: BrevService,
-    simuleringClient: SimuleringClient,
     personOppslag: PersonOppslag,
-    oppgaveClient: OppgaveClient,
-    utbetalingPublisher: UtbetalingPublisher,
+    behandlingService: BehandlingService,
+    sakService: SakService,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
     get("$behandlingPath/{behandlingId}") {
-        call.withBehandling(repo) {
+        call.withBehandling(behandlingService) {
             call.svar(OK.jsonBody(it))
         }
     }
 
     patch("$behandlingPath/{behandlingId}/informasjon") {
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
                 ifLeft = {
                     log.info("Ugylding behandlingsinformasjon-body", it)
@@ -70,8 +66,14 @@ internal fun Route.behandlingRoutes(
                 ifRight = { body ->
                     call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
                     if (body.isValid()) {
-                        val oppdatert = behandling.oppdaterBehandlingsinformasjon(behandlingsinformasjonFromJson(body))
-                        call.svar(OK.jsonBody(oppdatert))
+                        call.svar(
+                            OK.jsonBody(
+                                behandlingService.oppdaterBehandlingsinformasjon(
+                                    behandlingId = behandling.id,
+                                    behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                                )
+                            )
+                        )
                     } else {
                         call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
                     }
@@ -87,7 +89,11 @@ internal fun Route.behandlingRoutes(
     ) {
         fun valid() = fraOgMed.dayOfMonth == 1 &&
             tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
-            fradrag.all { Fradragstype.isValid(it.type) }
+            fradrag.all {
+                Fradragstype.isValid(it.type) &&
+                    it.utenlandskInntekt?.isValid() ?: true &&
+                    it.inntektDelerAvPeriode?.isValid() ?: true
+            }
     }
 
     data class UnderkjennBody(
@@ -97,7 +103,7 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/beregn") {
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
                 ifLeft = {
                     log.info("Ugyldig behandling-body: ", it)
@@ -105,12 +111,16 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.opprettBeregning(
-                            fraOgMed = body.fraOgMed,
-                            tilOgMed = body.tilOgMed,
-                            fradrag = body.fradrag.map { it.toFradrag() }
+                        call.svar(
+                            Created.jsonBody(
+                                behandlingService.opprettBeregning(
+                                    behandlingId = behandling.id,
+                                    fraOgMed = body.fraOgMed,
+                                    tilOgMed = body.tilOgMed,
+                                    fradrag = body.fradrag.map { it.toFradrag() }
+                                )
+                            )
                         )
-                        call.svar(Created.jsonBody(behandling))
                     } else {
                         call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
                     }
@@ -120,13 +130,13 @@ internal fun Route.behandlingRoutes(
     }
 
     get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             call.svar(Resultat.json(OK, serialize(behandling.toUtledetSatsInfoJson())))
         }
     }
 
     get("$behandlingPath/{behandlingId}/vedtaksutkast") {
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             brevService.lagUtkastTilBrev(behandling).fold(
                 ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
                 ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
@@ -135,36 +145,39 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/simuler") {
-        call.withBehandling(repo) { behandling ->
-            behandling.simuler(simuleringClient).fold(
+        call.withBehandling(behandlingService) { behandling ->
+            behandlingService.simuler(behandling.id).fold(
                 {
                     log.info("Feil ved simulering: ", it)
                     call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
                 },
-                { call.svar(OK.jsonBody(behandling)) }
+                { call.svar(OK.jsonBody(it)) }
             )
         }
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {
         // TODO: Short circuit
-        call.withBehandling(repo) { behandling ->
-            val sak = repo.hentSak(behandling.sakId)!!
-            val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-                log.error("Fant ikke aktør-id med gitt fødselsnummer")
-                throw RuntimeException("Kunne ikke finne aktørid")
-            }
-            val saksBehandler = Saksbehandler(call.lesBehandlerId())
+        call.withBehandling(behandlingService) { behandling ->
+            sakService.hentSak(behandling.sakId)
+                .mapLeft { throw RuntimeException("Sak id finnes ikke") }
+                .map { sak ->
+                    val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
+                        log.error("Fant ikke aktør-id med gitt fødselsnummer")
+                        throw RuntimeException("Kunne ikke finne aktørid")
+                    }
+                    val saksBehandler = Saksbehandler(call.lesBehandlerId())
 
-            behandling.sendTilAttestering(aktørId, oppgaveClient, saksBehandler).fold(
-                {
-                    call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
-                },
-                {
-                    call.audit("Sender behandling med id: ${it.id} til attestering")
-                    call.svar(OK.jsonBody(it))
+                    behandlingService.sendTilAttestering(behandling.id, aktørId, saksBehandler).fold(
+                        {
+                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+                        },
+                        {
+                            call.audit("Sender behandling med id: ${it.id} til attestering")
+                            call.svar(OK.jsonBody(it))
+                        }
+                    )
                 }
-            )
         }
     }
 
@@ -173,25 +186,31 @@ internal fun Route.behandlingRoutes(
             return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
 
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             call.audit("Iverksetter behandling med id: ${behandling.id}")
-            val sak = repo.hentSak(behandling.sakId) ?: throw RuntimeException("Sak id finnes ikke")
-            // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-            // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
-            brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
-                ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
-                ifRight = {
-                    behandling.iverksett(attestant = Attestant(id = call.lesBehandlerId()), utbetalingPublisher).fold(
-                        {
-                            when (it) {
-                                is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
-                                is Utbetaling -> call.svar(InternalServerError.message(it.msg))
-                            }
-                        },
-                        { call.svar(OK.jsonBody(it)) }
+            sakService.hentSak(behandling.sakId)
+                .mapLeft { throw RuntimeException("Sak id finnes ikke") }
+                .map { sak ->
+                    // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
+                    // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
+                    brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
+                        ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
+                        ifRight = {
+                            behandlingService.iverksett(
+                                behandlingId = behandling.id,
+                                attestant = Attestant(id = call.lesBehandlerId())
+                            ).fold(
+                                {
+                                    when (it) {
+                                        is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
+                                        is Utbetaling -> call.svar(InternalServerError.message(it.msg))
+                                    }
+                                },
+                                { call.svar(OK.jsonBody(it)) }
+                            )
+                        }
                     )
                 }
-            )
         }
     }
 
@@ -200,7 +219,7 @@ internal fun Route.behandlingRoutes(
             return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
 
-        call.withBehandling(repo) { behandling ->
+        call.withBehandling(behandlingService) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
             // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
@@ -212,11 +231,15 @@ internal fun Route.behandlingRoutes(
                 },
                 ifRight = { body ->
                     if (body.valid()) {
-                        behandling.underkjenn(body.begrunnelse, Attestant(call.lesBehandlerId())).fold(
+                        behandlingService.underkjenn(
+                            begrunnelse = body.begrunnelse,
+                            attestant = Attestant(call.lesBehandlerId()),
+                            behandling = behandling
+                        ).fold(
                             ifLeft = {
                                 call.svar(Forbidden.message(it.msg))
                             },
-                            ifRight = { call.svar(OK.jsonBody(behandling)) }
+                            ifRight = { call.svar(OK.jsonBody(it)) }
                         )
                     } else {
                         call.svar(BadRequest.message("Må anngi en begrunnelse"))
@@ -227,7 +250,10 @@ internal fun Route.behandlingRoutes(
     }
 }
 
-suspend fun ApplicationCall.withBehandling(repo: ObjectRepo, ifRight: suspend (Behandling) -> Unit) {
+suspend fun ApplicationCall.withBehandling(
+    behandlingService: BehandlingService,
+    ifRight: suspend (Behandling) -> Unit
+) {
     this.lesUUID("sakId").fold(
         {
             this.svar(BadRequest.message(it))
@@ -238,14 +264,16 @@ suspend fun ApplicationCall.withBehandling(repo: ObjectRepo, ifRight: suspend (B
                     this.svar(BadRequest.message(it))
                 },
                 { behandlingId ->
-                    repo.hentBehandling(behandlingId)?.let { behandling ->
-                        if (behandling.sakId == sakId) {
-                            this.audit("Hentet behandling med id: $behandlingId")
-                            ifRight(behandling)
-                        } else {
-                            this.svar(NotFound.message("Ugyldig kombinasjon av sak og behandling"))
+                    behandlingService.hentBehandling(behandlingId)
+                        .mapLeft { this.svar(NotFound.message("Fant ikke behandling med behandlingId:$behandlingId")) }
+                        .map {
+                            if (it.sakId == sakId) {
+                                this.audit("Hentet behandling med id: $behandlingId")
+                                ifRight(it)
+                            } else {
+                                this.svar(NotFound.message("Ugyldig kombinasjon av sak og behandling"))
+                            }
                         }
-                    } ?: this.svar(NotFound.message("Fant ikke behandling med behandlingId:$behandlingId"))
                 }
             )
         }

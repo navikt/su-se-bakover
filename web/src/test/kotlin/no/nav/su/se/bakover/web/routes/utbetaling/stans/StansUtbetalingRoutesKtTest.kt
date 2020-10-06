@@ -15,13 +15,13 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.database.ObjectRepo
+import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService
-import no.nav.su.se.bakover.domain.utbetaling.stans.StansUtbetalingService.KunneIkkeStanseUtbetalinger
+import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
@@ -59,16 +59,30 @@ internal class StansUtbetalingRoutesKtTest {
 
     @Test
     fun `stans utbetaling feiler`() {
-        val objectRepoMock = mock<ObjectRepo> {
+        val sakRepoMock = mock<SakRepo> {
             on { hentSak(sakId) } doReturn sak
         }
         val stansutbetalingServiceMock = mock<StansUtbetalingService> {
-            on { stansUtbetalinger(any()) } doReturn KunneIkkeStanseUtbetalinger.left()
+            on { stansUtbetalinger(any()) } doReturn StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
         }
         withTestApplication({
+            val services = no.nav.su.se.bakover.service.ServiceBuilder(
+                databaseRepos = DatabaseRepos(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    søknad = mock(),
+                    behandling = mock(),
+                    hendelseslogg = mock(),
+                    beregning = mock(),
+                    sak = sakRepoMock,
+                ),
+                clients = TestClientsBuilder.build()
+            ).build()
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
-                stansUtbetalingService = stansutbetalingServiceMock,
+                services = services.copy(
+                    stansUtbetaling = stansutbetalingServiceMock
+                )
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
@@ -81,7 +95,7 @@ internal class StansUtbetalingRoutesKtTest {
 
     @Test
     fun `stans utbetalinger`() {
-        val objectRepoMock = mock<ObjectRepo> {
+        val sakRepoMock = mock<SakRepo> {
             on { hentSak(sakId) } doReturn sak
         }
 
@@ -90,9 +104,23 @@ internal class StansUtbetalingRoutesKtTest {
         }
 
         withTestApplication({
+            val services = no.nav.su.se.bakover.service.ServiceBuilder(
+                databaseRepos = DatabaseRepos(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    søknad = mock(),
+                    behandling = mock(),
+                    hendelseslogg = mock(),
+                    beregning = mock(),
+                    sak = sakRepoMock,
+                ),
+                clients = TestClientsBuilder.build()
+            ).build()
             testSusebakover(
-                databaseRepos = DatabaseRepos(objectRepoMock, mock()),
-                stansUtbetalingService = stansUtbetalingServiceMock
+                services = services.copy(
+                    stansUtbetaling = stansUtbetalingServiceMock
+                )
             )
         }) {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {

@@ -173,7 +173,7 @@ internal class AvstemmingPostgresRepoTest {
             repo.oppdaterAvstemteUtbetalinger(avstemming)
 
             val oppdatertUtbetaling = testDataHelper.hentUtbetaling(utbetaling.id)
-            oppdatertUtbetaling!!.getAvstemmingId() shouldBe avstemming.id
+            oppdatertUtbetaling!!.avstemmingId shouldBe avstemming.id
         }
     }
 

@@ -13,8 +13,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -30,7 +28,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
@@ -39,8 +39,10 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.Jwt
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.requestSomAttestant
@@ -53,12 +55,16 @@ import java.util.UUID
 
 internal class BehandlingRoutesKtTest {
 
-    private val repo = DatabaseBuilder.build(EmbeddedDatabase.instance()).objectRepo
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val services = ServiceBuilder(
+        databaseRepos = repos,
+        clients = TestClientsBuilder.build()
+    ).build()
 
     @Test
     fun `henter en behandling`() {
         withTestApplication({
-            testSusebakover()
+            testSusebakover(services = services)
         }) {
             val objects = setup()
             defaultRequest(HttpMethod.Get, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}").apply {
@@ -74,12 +80,20 @@ internal class BehandlingRoutesKtTest {
     @Test
     fun `Opprette en oppgave til attestering er OK`() {
         withTestApplication({
-            testSusebakover()
+            testSusebakover(services = services)
         }) {
             val objects = setup()
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
+            services.behandling.simuler(objects.behandling.id)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
@@ -106,9 +120,17 @@ internal class BehandlingRoutesKtTest {
             )
         }) {
             val objects = setup()
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
+            services.behandling.simuler(objects.behandling.id)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
@@ -130,15 +152,16 @@ internal class BehandlingRoutesKtTest {
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
 
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
                     """
                     {
-                        "fom":"$fraOgMed",
                         "fraOgMed":"$fraOgMed",
-                        "tom":"$tilOgMed",
                         "tilOgMed":"$tilOgMed",
                         "sats":"${sats.name}",
                         "fradrag":[]
@@ -152,6 +175,111 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+            }
+        }
+    }
+
+    @Test
+    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode oppretter beregning`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                       "fraOgMed":"$fom",
+                       "tilOgMed":"$tom",
+                       "sats":"${sats.name}",
+                       "fradrag":[{
+                             "type":"Arbeidsinntekt",
+                             "beløp":200,
+                             "utenlandskInntekt":{
+                                "beløpIUtenlandskValuta":200,
+                                "valuta":"euro",
+                                "kurs":0.5
+                             },
+                             "inntektDelerAvPeriode":{
+                                "fraOgMed":"$fom",
+                                "tilOgMed":"$tom"
+                             }
+                          }]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.beregning!!.fom shouldBe fom.toString()
+                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag.all {
+                    it.utenlandskInntekt == UtenlandskInntekt(
+                        beløpIUtenlandskValuta = 200,
+                        valuta = "euro",
+                        kurs = 0.5
+                    ) && it.inntektDelerAvPeriode == InntektDelerAvPeriode(fraOgMed = fom, tilOgMed = tom)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode er null oppretter beregning`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """
+                    {
+                        "fraOgMed":"$fom",
+                        "tilOgMed":"$tom",
+                        "sats":"${sats.name}",
+                        "fradrag": [
+                                {
+                                "type": "Arbeidsinntekt",
+                                "beløp": 200,
+                                "utenlandskInntekt": null,
+                                "inntektDelerAvPeriode": null
+                            }
+                        ]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                behandlingJson.beregning!!.fom shouldBe fom.toString()
+                behandlingJson.beregning.tom shouldBe tom.toString()
+                behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag.all {
+                    it.utenlandskInntekt == null && it.inntektDelerAvPeriode == null
+                }
             }
         }
     }
@@ -197,6 +325,36 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldige input-parametere"
             }
+            val fom = LocalDate.of(2020, Month.JANUARY, 1)
+            val tom = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+
+            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+                setBody(
+                    """{
+                           "fraOgMed":"$fom",
+                           "tilOgMed":"$tom",
+                           "sats":"${sats.name}",
+                           "fradrag":[
+                            {
+                                 "type":"Arbeidsinntekt",
+                                 "beløp":200,
+                                 "utenlandskInntekt":{
+                                    "beløpIUtenlandskValuta":-200,
+                                    "valuta":"euro",
+                                    "kurs":0.5
+                                 },
+                                 "inntektDelerAvPeriode":null
+                              }
+                            ]
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+            }
         }
     }
 
@@ -229,8 +387,16 @@ internal class BehandlingRoutesKtTest {
                 response.content shouldContain "Fant ikke behandling med behandlingId"
             }
 
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
 
             defaultRequest(
                 HttpMethod.Post,
@@ -278,10 +444,26 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("randomoid"))
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
+            services.behandling.simuler(objects.behandling.id).fold(
+                { it },
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("randomoid")
+                    )
+                }
+            )
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -351,10 +533,26 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456oid"))
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
+            services.behandling.simuler(objects.behandling.id).fold(
+                { it },
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("S123456oid")
+                    )
+                }
+            )
 
             defaultRequest(
                 HttpMethod.Patch,
@@ -472,10 +670,26 @@ internal class BehandlingRoutesKtTest {
             )
         }) {
             val objects = setup()
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
-            objects.behandling.opprettBeregning(1.januar(2020), 31.desember(2020))
-            objects.behandling.simuler(SimuleringStub)
-            objects.behandling.sendTilAttestering(AktørId("aktørId"), OppgaveClientStub, Saksbehandler("S123456"))
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+            services.behandling.opprettBeregning(
+                objects.behandling.id,
+                1.januar(2020),
+                31.desember(2020),
+                emptyList()
+            )
+            services.behandling.simuler(objects.behandling.id).fold(
+                { it },
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("S123456")
+                    )
+                }
+            )
 
             requestSomAttestant(
                 HttpMethod.Patch,
@@ -493,9 +707,10 @@ internal class BehandlingRoutesKtTest {
     )
 
     private fun setup(): Objects {
-        val sak = repo.opprettSak(FnrGenerator.random())
-        val søknad = sak.nySøknad(SøknadInnholdTestdataBuilder.build())
-        val behandling = sak.opprettSøknadsbehandling(søknad.id)
+        val sak = repos.sak.opprettSak(FnrGenerator.random())
+        val søknad =
+            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+        val behandling = repos.behandling.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }
 }

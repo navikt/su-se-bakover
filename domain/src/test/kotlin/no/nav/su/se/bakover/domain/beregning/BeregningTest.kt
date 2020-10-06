@@ -21,8 +21,7 @@ internal class BeregningTest {
             fraOgMed = fraOgMed,
             tilOgMed = fraOgMed.plusMonths(1).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         oneMonth.månedsberegninger shouldHaveSize 1
 
@@ -30,8 +29,7 @@ internal class BeregningTest {
             fraOgMed = fraOgMed,
             tilOgMed = fraOgMed.plusMonths(3).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         threeMonths.månedsberegninger shouldHaveSize 3
 
@@ -39,8 +37,7 @@ internal class BeregningTest {
             fraOgMed = fraOgMed,
             tilOgMed = fraOgMed.plusMonths(12).minusDays(1),
             sats = Sats.HØY,
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         twelweMonths.månedsberegninger shouldHaveSize 12
     }
@@ -53,8 +50,7 @@ internal class BeregningTest {
                 fraOgMed = fraOgMed,
                 tilOgMed = fraOgMed.plusMonths(3),
                 sats = Sats.HØY,
-                fradrag = emptyList(),
-                forventetInntekt = 500
+                fradrag = emptyList()
             )
         }
 
@@ -64,8 +60,7 @@ internal class BeregningTest {
                 fraOgMed = fraOgMed,
                 tilOgMed = LocalDate.of(2020, Month.JANUARY, 24),
                 sats = Sats.HØY,
-                fradrag = emptyList(),
-                forventetInntekt = 500
+                fradrag = emptyList()
             )
         }
 
@@ -75,8 +70,7 @@ internal class BeregningTest {
                 fraOgMed = fraOgMed,
                 tilOgMed = fraOgMed.minusMonths(3),
                 sats = Sats.HØY,
-                fradrag = emptyList(),
-                forventetInntekt = 500
+                fradrag = emptyList()
             )
         }
     }
@@ -87,15 +81,14 @@ internal class BeregningTest {
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
+            fradrag = emptyList(),
             månedsberegninger = mutableListOf(
                 Månedsberegning(
                     fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
                     sats = Sats.HØY,
                     fradrag = 0
                 )
-            ),
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            )
         )
         beregning.månedsberegninger shouldHaveSize 1
     }
@@ -103,28 +96,25 @@ internal class BeregningTest {
     @Test
     fun `sort by opprettet`() {
         val first = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         val second = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toTidspunkt(),
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         val third = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toTidspunkt(),
-            fradrag = emptyList(),
-            forventetInntekt = 500
+            fradrag = emptyList()
         )
         val beregninger = listOf(
             first,
@@ -138,15 +128,24 @@ internal class BeregningTest {
     @Test
     fun `bruker riktig fradrag per måned`() {
         val b = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 12000),
-                Fradrag(type = Fradragstype.Barnetillegg, beløp = 1200)
-            ),
-            forventetInntekt = 500
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = 12000,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                ),
+                Fradrag(
+                    type = Fradragstype.Barnetillegg,
+                    beløp = 1200,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null,
+                )
+            )
         )
         b.månedsberegninger.forEach { it.fradrag shouldBe 1100 }
     }
@@ -155,15 +154,24 @@ internal class BeregningTest {
     fun `støtter ikke negative fradrag`() {
         shouldThrow<java.lang.IllegalArgumentException> {
             Beregning(
+                opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
                 fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
                 tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
                 sats = Sats.HØY,
-                opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
                 fradrag = listOf(
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = -100),
-                    Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = 200)
-                ),
-                forventetInntekt = 500
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = -100,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    ),
+                    Fradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 200,
+                        utenlandskInntekt = null,
+                        inntektDelerAvPeriode = null,
+                    )
+                )
             )
         }.also { it.message shouldContain "negativ" }
     }
@@ -173,14 +181,18 @@ internal class BeregningTest {
         val høyInntekt = 242695 // 98% av full supplerende stønad (Høy sats) for 2019
 
         val b = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.JANUARY, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
-            ),
-            forventetInntekt = 0
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            )
         )
 
         b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
@@ -194,14 +206,18 @@ internal class BeregningTest {
         val høyInntekt = 245114 + 8 // pågrundav avrundning så må vi legge på 8
 
         val b = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
-            ),
-            forventetInntekt = 0
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            )
         )
 
         b.beløpErOverNullMenUnderMinstebeløp() shouldBe true
@@ -215,14 +231,18 @@ internal class BeregningTest {
         val høyInntekt = 245114
 
         val b = Beregning(
+            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
             fradrag = listOf(
-                Fradrag(type = Fradragstype.Arbeidsinntekt, beløp = høyInntekt),
-            ),
-            forventetInntekt = 0
+                Fradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = høyInntekt,
+                    utenlandskInntekt = null,
+                    inntektDelerAvPeriode = null
+                ),
+            )
         )
 
         b.beløpErOverNullMenUnderMinstebeløp() shouldBe false
