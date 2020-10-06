@@ -38,9 +38,8 @@ internal fun Row.toBeregning(session: Session) = Beregning(
     fraOgMed = localDate("fom"),
     tilOgMed = localDate("tom"),
     sats = Sats.valueOf(string("sats")),
-    månedsberegninger = BeregningRepoInternal.hentMånedsberegninger(uuid("id"), session),
     fradrag = BeregningRepoInternal.hentFradrag(uuid("id"), session),
-    forventetInntekt = int("forventetInntekt")
+    månedsberegninger = BeregningRepoInternal.hentMånedsberegninger(uuid("id"), session)
 )
 
 internal fun Row.toMånedsberegning() = Månedsberegning(

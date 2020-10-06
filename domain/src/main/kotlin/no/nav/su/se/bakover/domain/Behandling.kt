@@ -191,12 +191,6 @@ data class Behandling(
                         this::opprettBeregning.toString(),
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
-                val forventetInntekt =
-                    this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
-                        status,
-                        this::opprettBeregning.toString(),
-                        "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
-                    )
                 val oppdatertFradrag = fradragWithForventetInntekt(
                     fradrag = fradrag,
                     forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
@@ -206,8 +200,7 @@ data class Behandling(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                     sats = sats,
-                    fradrag = oppdatertFradrag,
-                    forventetInntekt = forventetInntekt
+                    fradrag = oppdatertFradrag
                 )
 
                 if (beregning!!.beløpErNull() || beregning!!.beløpErOverNullMenUnderMinstebeløp()) {

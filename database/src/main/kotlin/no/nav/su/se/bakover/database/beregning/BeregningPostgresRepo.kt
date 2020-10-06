@@ -17,15 +17,14 @@ internal class BeregningPostgresRepo(
     override fun opprettBeregningForBehandling(behandlingId: UUID, beregning: Beregning): Beregning {
         slettBeregningForBehandling(behandlingId)
         dataSource.withSession { session ->
-            "insert into beregning (id, opprettet, fom, tom, behandlingId, sats, forventetInntekt) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats, :forventetInntekt)".oppdatering(
+            "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
                 mapOf(
                     "id" to beregning.id,
                     "opprettet" to beregning.opprettet,
                     "fom" to beregning.fraOgMed,
                     "tom" to beregning.tilOgMed,
                     "behandlingId" to behandlingId,
-                    "sats" to beregning.sats.name,
-                    "forventetInntekt" to beregning.forventetInntekt
+                    "sats" to beregning.sats.name
                 ),
                 session
             )

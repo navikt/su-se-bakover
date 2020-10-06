@@ -199,12 +199,11 @@ internal class OppdragTest {
     fun `konverterer beregning til utbetalingsperioder`() {
         val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt()
         val b = Beregning(
+            opprettet = opprettet,
             fraOgMed = 1.januar(2020),
             tilOgMed = 31.desember(2020),
             sats = Sats.HØY,
-            opprettet = opprettet,
-            fradrag = emptyList(),
-            forventetInntekt = 0
+            fradrag = emptyList()
         )
 
         val actualUtbetaling = oppdrag.genererUtbetaling(b, fnr)

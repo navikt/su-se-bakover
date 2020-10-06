@@ -72,8 +72,7 @@ internal class BeregningPostgresRepoTest {
                             utenlandskInntekt = null,
                             inntektDelerAvPeriode = null
                         )
-                    ),
-                    forventetInntekt = 200
+                    )
                 )
             )
 
@@ -86,8 +85,7 @@ internal class BeregningPostgresRepoTest {
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
                 sats = Sats.HØY,
-                fradrag = emptyList(),
-                forventetInntekt = 0
+                fradrag = emptyList()
             )
             repo.opprettBeregningForBehandling(behandling.id, nyBeregning)
 

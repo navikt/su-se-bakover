@@ -17,7 +17,6 @@ data class Beregning(
     val tilOgMed: LocalDate,
     val sats: Sats,
     val fradrag: List<Fradrag>,
-    val forventetInntekt: Int,
     val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag)
 ) {
 
@@ -26,7 +25,6 @@ data class Beregning(
         require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tilOgMed" }
         require(fraOgMed.isBefore(tilOgMed)) { "Startdato ($fraOgMed) for beregning må være tidligere enn sluttdato ($tilOgMed)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
-        require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
     }
 
     companion object {
