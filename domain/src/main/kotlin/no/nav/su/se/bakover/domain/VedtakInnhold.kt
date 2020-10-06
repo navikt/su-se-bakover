@@ -80,7 +80,6 @@ enum class Satsgrunn {
 
 data class FradragPerMåned(val type: Fradragstype, val beløp: Int)
 
-
 data class SlettBehandlingBody(
     val sakId: UUID,
     val søknadId: UUID,
@@ -104,4 +103,3 @@ enum class AvsluttetBegrunnelse {
             }
     }
 }
-
