@@ -66,7 +66,7 @@ internal class AvstemmingPostgresRepo(
         using(sessionOf(dataSource)) { session ->
             // Bakoverkompatibel med gammel json-modell
             val fraOgMedCondition = """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'tidspunkt')::timestamptz >= :fom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom)"""
-            val tilOgMedCondition = """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'tidspunkt')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :tom)"""
+            val tilOgMedCondition = """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'tidspunkt')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom)"""
             """select * from utbetaling where oppdragsmelding is not null and $fraOgMedCondition and $tilOgMedCondition and oppdragsmelding ->> 'status' = :status""".trimMargin()
                 .hentListe(
                     mapOf(
