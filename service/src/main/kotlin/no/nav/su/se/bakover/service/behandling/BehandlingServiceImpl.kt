@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -202,5 +203,9 @@ internal class BehandlingServiceImpl(
                     )
                 )
             }
+    }
+
+    override fun slettBehandlingForBehandling(søknadId: UUID, avsluttetBegrunnelse: AvsluttetBegrunnelse) {
+        return behandlingRepo.slettBehandlingForBehandling(søknadId, avsluttetBegrunnelse)
     }
 }

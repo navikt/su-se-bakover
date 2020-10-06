@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -35,6 +36,7 @@ interface BehandlingService {
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
     fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling>
+    fun slettBehandlingForBehandling(søknadId: UUID, avsluttetBegrunnelse: AvsluttetBegrunnelse)
 }
 
 object FantIkkeBehandling

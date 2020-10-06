@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehan
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -114,5 +115,17 @@ internal class BehandlingPostgresRepo(
             )
         }
         return hentBehandling(behandling.id)!!
+    }
+
+    override fun slettBehandlingForBehandling(søknadId: UUID, avsluttetBegrunnelse: AvsluttetBegrunnelse) {
+        dataSource.withSession { session ->
+            "update behandling set avsluttetBegrunnelse = :avsluttetBegrunnelse where søknadid=:id".oppdatering(
+                mapOf(
+                    "id" to søknadId,
+                    "avsluttetBegrunnelse" to avsluttetBegrunnelse.toString()
+                ),
+                session
+            )
+        }
     }
 }
