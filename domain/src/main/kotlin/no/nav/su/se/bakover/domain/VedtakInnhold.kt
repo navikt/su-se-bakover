@@ -12,6 +12,8 @@ sealed class VedtakInnhold {
     abstract val bruksenhet: String?
     abstract val postnummer: String?
     abstract val poststed: String
+    abstract val satsbeløp: Int
+    abstract val fradragSum: Int
 
     data class Innvilgelsesvedtak(
         override val dato: String,
@@ -23,16 +25,16 @@ sealed class VedtakInnhold {
         override val bruksenhet: String?,
         override val postnummer: String?,
         override val poststed: String,
+        override val satsbeløp: Int,
+        override val fradragSum: Int,
         val månedsbeløp: Int,
         val fradato: String,
         val tildato: String,
         val sats: String,
-        val satsbeløp: Int,
         val satsGrunn: Satsgrunn,
         val redusertStønadStatus: Boolean,
         val harEktefelle: Boolean,
         val fradrag: List<FradragPerMåned>,
-        val fradragSum: Int,
     ) : VedtakInnhold()
 
     data class Avslagsvedtak(
@@ -45,8 +47,10 @@ sealed class VedtakInnhold {
         override val bruksenhet: String?,
         override val postnummer: String?,
         override val poststed: String,
+        override val satsbeløp: Int,
+        override val fradragSum: Int,
         val avslagsgrunn: Avslagsgrunn,
-        val halvGrunnbeløp: Int
+        val halvGrunnbeløp: Int,
     ) : VedtakInnhold()
 }
 

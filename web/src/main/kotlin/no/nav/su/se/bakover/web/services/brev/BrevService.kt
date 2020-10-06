@@ -48,6 +48,7 @@ class BrevService(
             erInnvilget(behandling) -> lagInnvilgelsesvedtak(person, behandling)
             else -> throw java.lang.RuntimeException("Kan ikke lage vedtaksinnhold for behandling som ikke er avslått/innvilget")
         }
+
     private fun lagAvslagsvedtak(person: Person, behandling: Behandling) =
         VedtakInnhold.Avslagsvedtak(
             dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
@@ -59,9 +60,12 @@ class BrevService(
             husnummer = person.adresse?.husnummer,
             postnummer = person.adresse?.poststed?.postnummer,
             poststed = person.adresse?.poststed?.poststed!!,
+            satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
+            fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0,
             avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
         )
+
     private fun lagInnvilgelsesvedtak(person: Person, behandling: Behandling): VedtakInnhold.Innvilgelsesvedtak {
         val førsteMånedsberegning =
             behandling.beregning()!!.månedsberegninger.firstOrNull()!! // Støtte för variende beløp i framtiden?

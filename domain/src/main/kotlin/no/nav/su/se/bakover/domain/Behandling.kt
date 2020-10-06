@@ -348,7 +348,7 @@ data class Behandling(
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
         IVERKSATT_INNVILGET,
-        IVERKSATT_AVSLAG
+        IVERKSATT_AVSLAG,
     }
 
     class TilstandException(
