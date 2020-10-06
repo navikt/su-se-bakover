@@ -196,7 +196,8 @@ internal fun Application.susebakover(
                 inntektRoutes(clients.inntektOppslag)
                 sakRoutes(
                     behandlingService = services.behandling,
-                    sakService = services.sak
+                    sakService = services.sak,
+                    søknadService = services.søknad
                 )
                 søknadRoutes(søknadRoutesMediator)
                 behandlingRoutes(
