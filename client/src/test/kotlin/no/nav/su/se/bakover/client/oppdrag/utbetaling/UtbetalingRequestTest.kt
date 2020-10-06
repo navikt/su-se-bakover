@@ -128,7 +128,7 @@ internal class UtbetalingRequestTest {
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
+                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
@@ -190,7 +190,7 @@ internal class UtbetalingRequestTest {
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
+                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )
 

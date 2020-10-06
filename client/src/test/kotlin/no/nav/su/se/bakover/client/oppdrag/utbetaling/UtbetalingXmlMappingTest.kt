@@ -66,7 +66,7 @@ class UtbetalingXmlMappingTest {
         oppdrag = oppdrag,
         utbetaling = utbetaling,
         attestant = Attestant("A123456"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt = 1.januar(2020).startOfDay())
+        avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 
     private val expected =

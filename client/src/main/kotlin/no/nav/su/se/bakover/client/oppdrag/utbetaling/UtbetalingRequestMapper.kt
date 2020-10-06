@@ -22,7 +22,7 @@ internal fun toUtbetalingRequest(
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
                 nokkelAvstemming = nyUtbetaling.avstemmingsnøkkel.toString(),
-                tidspktMelding = nyUtbetaling.avstemmingsnøkkel.tidspunkt.toOppdragTimestamp(),
+                tidspktMelding = nyUtbetaling.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.KODE_KOMPONENT
             ),
             oppdragslinjer = nyUtbetaling.utbetaling.utbetalingslinjer.map {

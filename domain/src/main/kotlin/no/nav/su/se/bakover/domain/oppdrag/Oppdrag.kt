@@ -36,9 +36,7 @@ data class Oppdrag(
     fun oversendteUtbetalinger(): List<Utbetaling> = utbetalinger.filter {
         // Vi ønsker ikke å filtrere bort de som ikke har kvittering, men vi ønsker å filtrere bort de kvitteringene som har feil i seg.
         it.erOversendt() && !it.erKvittertFeil()
-    }.sortedBy {
-        it.getOppdragsmelding()!!.avstemmingsnøkkel.tidspunkt.instant
-    }
+    }.sortedBy { it.getOppdragsmelding()!!.avstemmingsnøkkel }
 
     fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()
         .flatMap { it.utbetalingslinjer }
