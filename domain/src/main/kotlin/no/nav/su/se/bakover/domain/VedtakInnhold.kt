@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import java.util.UUID
 
 sealed class VedtakInnhold {
     abstract val dato: String
@@ -76,3 +79,29 @@ enum class Satsgrunn {
 }
 
 data class FradragPerMåned(val type: Fradragstype, val beløp: Int)
+
+
+data class SlettBehandlingBody(
+    val sakId: UUID,
+    val søknadId: UUID,
+    val avsluttetBegrunnelse: AvsluttetBegrunnelse
+) {
+    fun valid() = avsluttetBegrunnelse == AvsluttetBegrunnelse.AvvistSøktForTidlig ||
+        avsluttetBegrunnelse == AvsluttetBegrunnelse.Bortfalt ||
+        avsluttetBegrunnelse == AvsluttetBegrunnelse.Trukket
+}
+
+enum class AvsluttetBegrunnelse {
+    Trukket,
+    Bortfalt,
+    AvvistSøktForTidlig;
+
+    companion object {
+        fun isValid(s: String) =
+            runBlocking {
+                Either.catch { valueOf(s) }
+                    .isRight()
+            }
+    }
+}
+

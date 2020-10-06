@@ -21,12 +21,12 @@ import java.util.UUID
 
 internal object BehandlingRepoInternal {
     fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
-        "select * from behandling where id=:id"
+        "select * from behandling where id=:id and avsluttetBegrunnelse is null"
             .hent(mapOf("id" to behandlingId), session) { row ->
                 row.toBehandling(session)
             }
 
-    fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
+    fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId and avsluttetBegrunnelse is null"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toBehandling(session)
         }.toMutableList()

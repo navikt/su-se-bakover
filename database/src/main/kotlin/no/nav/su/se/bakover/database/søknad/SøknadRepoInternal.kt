@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
 internal object SøknadRepoInternal {
-    fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id"
+    fun hentSøknadInternal(søknadId: UUID, session: Session): Søknad? = "select * from søknad where id=:id and avsluttetBegrunnelse is null"
         .hent(mapOf("id" to søknadId), session) {
             it.toSøknad()
         }
 
-    fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
+    fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId and avsluttetBegrunnelse is null"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toSøknad()
         }.toMutableList()
