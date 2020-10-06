@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.domain
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -11,13 +8,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
@@ -29,25 +23,11 @@ import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingPersistenceObserver
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -74,7 +54,6 @@ internal class BehandlingTest {
     }
 
     private lateinit var behandling: Behandling
-    private lateinit var observer: DummyObserver
 
     @BeforeEach
     fun beforeEach() {
@@ -135,7 +114,7 @@ internal class BehandlingTest {
         fun `should update behandlingsinformasjon`() {
             val expected = extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
             opprettet.oppdaterBehandlingsinformasjon(expected)
-            observer.oppdatertBehandlingsinformasjon shouldBe expected
+            opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
@@ -157,32 +136,21 @@ internal class BehandlingTest {
                 )
             )
 
-            opprettet.oppdaterBehandlingsinformasjon(expected)
+            val oppdatert = opprettet.oppdaterBehandlingsinformasjon(expected)
 
-            observer.oppdatertBehandlingsinformasjon shouldBe expected
-            observer.oppdatertBehandlingsinformasjon.let {
-                it.fastOppholdINorge shouldNotBe null
-                it.flyktning shouldNotBe null
-                it.formue shouldNotBe null
-                it.lovligOpphold shouldNotBe null
-                it.oppholdIUtlandet shouldNotBe null
-                it.bosituasjon shouldNotBe null
-                it.uførhet shouldNotBe null
-            }
+            oppdatert.behandlingsinformasjon() shouldBe expected
         }
 
         @Test
         fun `transition to Vilkårsvurdert`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
-            observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
         fun `transition to Avslått`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
             opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe opprettet.status()
         }
 
         @Test
@@ -199,12 +167,16 @@ internal class BehandlingTest {
                     it.msg shouldContain "opprettBeregning"
                     it.msg shouldContain "state: OPPRETTET"
                 }
-            assertThrows<Behandling.TilstandException> { opprettet.simuler(SimuleringClientStub) }
-            assertThrows<Behandling.TilstandException> { opprettet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
+            assertThrows<Behandling.TilstandException> { opprettet.simuler(defaultUtbetaling()) }
+            assertThrows<Behandling.TilstandException> {
+                opprettet.sendTilAttestering(
+                    aktørId,
+                    Saksbehandler("S123456")
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 opprettet.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -221,7 +193,6 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
-            observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
         @Test
@@ -238,9 +209,7 @@ internal class BehandlingTest {
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed
             )
-            observer.opprettetBeregning.first shouldBe id1
-            observer.opprettetBeregning.second shouldNotBe null
-            val beregning = observer.opprettetBeregning.second
+            val beregning = vilkårsvurdert.beregning()!!
             beregning.fraOgMed shouldBe fraOgMed
             beregning.tilOgMed shouldBe tilOgMed
             beregning.sats shouldBe Sats.HØY
@@ -335,12 +304,16 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(defaultUtbetaling()) }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.sendTilAttestering(
+                    aktørId,
+                    Saksbehandler("S123456")
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -357,13 +330,12 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(vilkårsvurdert).withVilkårAvslått()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe vilkårsvurdert.status()
         }
 
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            vilkårsvurdert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+            vilkårsvurdert.sendTilAttestering(aktørId, saksbehandler)
             vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
 
             vilkårsvurdert.saksbehandler() shouldBe saksbehandler
@@ -385,9 +357,9 @@ internal class BehandlingTest {
                     31.desember(2020)
                 )
             }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(SimuleringClientStub) }
+            assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(defaultUtbetaling()) }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+                vilkårsvurdert.iverksett(Attestant("A123456"))
             }
         }
     }
@@ -404,32 +376,12 @@ internal class BehandlingTest {
             )
             beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET_INNVILGET
-            observer.oppdatertStatus shouldBe beregnet.status()
         }
 
         @Test
         fun `skal kunne simuleres`() {
-            beregnet.simuler(SimuleringClientStub)
+            beregnet.simuler(defaultUtbetaling())
             beregnet.status() shouldBe SIMULERT
-        }
-
-        @Test
-        fun `sletter eksisterende utbetalinger ved ny simulering`() {
-            beregnet.simuler(SimuleringClientStub)
-            val utbetaling = beregnet.utbetaling()
-            beregnet.simuler(SimuleringClientStub)
-            val nyUtbetaling = beregnet.utbetaling()
-            utbetaling shouldNotBe nyUtbetaling
-            observer.slettetUtbetaling shouldBe utbetaling
-        }
-
-        @Test
-        fun `tillater ikke sletting av oversendte eller kvitterte utbetalinger`() {
-            beregnet.simuler(SimuleringClientStub)
-            beregnet.utbetaling()!!.apply {
-                addKvittering(Kvittering(Kvittering.Utbetalingsstatus.OK, ""))
-            }
-            assertThrows<IllegalStateException> { beregnet.simuler(SimuleringClientStub) }
         }
 
         @Test
@@ -449,11 +401,15 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { beregnet.sendTilAttestering(aktørId, OppgaveClientStub, Saksbehandler("S123456")) }
+            assertThrows<Behandling.TilstandException> {
+                beregnet.sendTilAttestering(
+                    aktørId,
+                    Saksbehandler("S123456")
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 beregnet.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -481,7 +437,6 @@ internal class BehandlingTest {
                 )
 
                 beregnet.status() shouldBe BEREGNET_AVSLAG
-                observer.oppdatertStatus shouldBe beregnet.status()
             }
 
             @Test
@@ -502,7 +457,7 @@ internal class BehandlingTest {
             @Test
             fun `skal kunne sende til attestering`() {
                 val saksbehandler = Saksbehandler("S123456")
-                beregnet.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+                beregnet.sendTilAttestering(aktørId, saksbehandler)
 
                 beregnet.status() shouldBe TIL_ATTESTERING_AVSLAG
                 beregnet.saksbehandler() shouldBe saksbehandler
@@ -510,11 +465,10 @@ internal class BehandlingTest {
 
             @Test
             fun `illegal operations`() {
-                assertThrows<Behandling.TilstandException> { beregnet.simuler(SimuleringClientStub) }
+                assertThrows<Behandling.TilstandException> { beregnet.simuler(defaultUtbetaling()) }
                 assertThrows<Behandling.TilstandException> {
                     beregnet.iverksett(
-                        Attestant("A123456"),
-                        UtbetalingPublisherStub
+                        Attestant("A123456")
                     )
                 }
             }
@@ -533,15 +487,14 @@ internal class BehandlingTest {
                     .withAlleVilkårOppfylt()
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.simuler(SimuleringClientStub)
+            simulert.simuler(defaultUtbetaling())
             simulert.status() shouldBe SIMULERT
-            observer.oppdatertStatus shouldBe simulert.status()
         }
 
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            simulert.sendTilAttestering(aktørId, OppgaveClientStub, saksbehandler)
+            simulert.sendTilAttestering(aktørId, saksbehandler)
 
             simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
             simulert.saksbehandler() shouldBe saksbehandler
@@ -573,7 +526,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne simulere på nytt`() {
-            simulert.simuler(SimuleringClientStub)
+            simulert.simuler(defaultUtbetaling())
             simulert.status() shouldBe SIMULERT
         }
 
@@ -581,8 +534,7 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
                 simulert.iverksett(
-                    Attestant("A123456"),
-                    UtbetalingPublisherStub
+                    Attestant("A123456")
                 )
             }
         }
@@ -599,7 +551,6 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(avslått).withVilkårAvslått()
             )
             avslått.status() shouldBe VILKÅRSVURDERT_AVSLAG
-            observer.oppdatertStatus shouldBe avslått.status()
         }
 
         @Test
@@ -614,7 +565,7 @@ internal class BehandlingTest {
                 avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                avslått.simuler(SimuleringClientStub)
+                avslått.simuler(defaultUtbetaling())
             }
         }
     }
@@ -630,17 +581,18 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
-            tilAttestering.simuler(SimuleringClientStub)
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+            tilAttestering.simuler(defaultUtbetaling())
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
 
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub).shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
-            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456")).shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+            tilAttestering.iverksett(Attestant("S123456"))
+                .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
@@ -648,68 +600,8 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne iverksette`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            tilAttestering.status() shouldBe IVERKSATT_INNVILGET
-            tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                SENDT,
-                "great success",
-                UtbetalingPublisherStub.tidspunkt
-            )
-            observer.oppdatertStatus shouldBe tilAttestering.status()
-        }
-
-        @Test
-        fun `oversendelse av av utbetaling feiler`() {
-            val tidspunkt = now()
-            tilAttestering.iverksett(
-                Attestant("A123456"),
-                object : UtbetalingPublisher {
-                    override fun publish(
-                        nyUtbetaling: NyUtbetaling
-                    ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
-                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                            Oppdragsmelding(
-                                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                                "some xml here",
-                                tidspunkt
-                            )
-                        ).left()
-                }
-            )
-            tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
-            tilAttestering.utbetaling()!!.getOppdragsmelding() shouldBe Oppdragsmelding(
-                FEIL,
-                "some xml here",
-                tidspunkt
-            )
-        }
-
-        @Test
-        fun `legger til kvittering for utbetaling`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            val utbetaling = tilAttestering.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-        }
-
-        @Test
-        fun `ignorer kvittering for utbetaling hvis den finnes fra før`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
-            val utbetaling = tilAttestering.utbetaling()!!
-            utbetaling.getKvittering() shouldBe null
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "someXmlHere"
-            )
-            utbetaling.addKvittering(kvittering)
-            utbetaling.getKvittering() shouldBe kvittering
-            utbetaling.addKvittering(kvittering.copy(mottattTidspunkt = kvittering.mottattTidspunkt.plusSeconds(1)))
-            utbetaling.getKvittering() shouldBe kvittering
+            tilAttestering.iverksett(Attestant("A123456"))
+            tilAttestering.status() shouldBe BehandlingsStatus.IVERKSATT_INNVILGET
         }
 
         @Test
@@ -718,10 +610,10 @@ internal class BehandlingTest {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.simuler(SimuleringClientStub)
+                tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             }
         }
     }
@@ -736,15 +628,16 @@ internal class BehandlingTest {
             tilAttestering.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
-            tilAttestering.iverksett(Attestant("S123456"), UtbetalingPublisherStub).shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
-            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456")).shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+            tilAttestering.iverksett(Attestant("S123456"))
+                .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
@@ -752,9 +645,8 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne iverksette`() {
-            tilAttestering.iverksett(Attestant("A123456"), UtbetalingPublisherStub)
+            tilAttestering.iverksett(Attestant("A123456"))
             tilAttestering.status() shouldBe IVERKSATT_AVSLAG
-            observer.oppdatertStatus shouldBe tilAttestering.status()
         }
 
         @Test
@@ -763,121 +655,12 @@ internal class BehandlingTest {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.simuler(SimuleringClientStub)
+                tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), OppgaveClientStub, Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
             }
         }
-    }
-
-    private class DummyObserver :
-        BehandlingPersistenceObserver,
-        Oppdrag.OppdragPersistenceObserver,
-        UtbetalingPersistenceObserver {
-        lateinit var opprettetBeregning: Pair<UUID, Beregning>
-        lateinit var slettetBeregningBehandlingId: UUID
-        lateinit var oppdatertStatus: BehandlingsStatus
-        lateinit var oppdragsmelding: Oppdragsmelding
-        lateinit var oppdatertBehandlingsinformasjon: Behandlingsinformasjon
-        lateinit var slettetUtbetaling: Utbetaling
-
-        override fun opprettBeregning(behandlingId: UUID, beregning: Beregning): Beregning {
-            opprettetBeregning = behandlingId to beregning
-            return opprettetBeregning.second
-        }
-
-        override fun deleteBeregninger(behandlingId: UUID) {
-            slettetBeregningBehandlingId = behandlingId
-        }
-
-        override fun oppdaterBehandlingStatus(
-            behandlingId: UUID,
-            status: BehandlingsStatus
-        ): BehandlingsStatus {
-            oppdatertStatus = status
-            return status
-        }
-
-        override fun oppdaterBehandlingsinformasjon(
-            behandlingId: UUID,
-            behandlingsinformasjon: Behandlingsinformasjon
-        ): Behandlingsinformasjon {
-            oppdatertBehandlingsinformasjon = behandlingsinformasjon
-            return behandlingsinformasjon
-        }
-
-        override fun hentOppdrag(sakId: UUID): Oppdrag {
-            return oppdrag.copy(sakId = sakId).also { it.addObserver(this) }
-        }
-
-        override fun hentFnr(sakId: UUID): Fnr {
-            return Fnr("12345678910")
-        }
-
-        override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Saksbehandler {
-            return saksbehandler
-        }
-
-        override fun attester(behandlingId: UUID, attestant: Attestant): Attestant {
-            return attestant
-        }
-
-        override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
-        }
-
-        override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling) {
-            utbetaling.addObserver(this)
-        }
-
-        override fun slettUtbetaling(utbetaling: Utbetaling) {
-            slettetUtbetaling = utbetaling
-        }
-
-        override fun addSimulering(utbetalingId: UUID30, simulering: Simulering) {
-        }
-
-        override fun addKvittering(utbetalingId: UUID30, kvittering: Kvittering): Kvittering {
-            return kvittering
-        }
-
-        override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Oppdragsmelding {
-            this.oppdragsmelding = oppdragsmelding
-            return this.oppdragsmelding
-        }
-    }
-
-    object OppgaveClientStub : OppgaveClient {
-        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
-            return Either.right(1L)
-        }
-    }
-
-    object SimuleringClientStub : SimuleringClient {
-        override fun simulerUtbetaling(
-            nyUtbetaling: NyUtbetaling
-        ): Either<SimuleringFeilet, Simulering> {
-            return Either.right(
-                Simulering(
-                    gjelderId = Fnr("12345678910"),
-                    gjelderNavn = "gjelderNavn",
-                    datoBeregnet = 1.mai(2020),
-                    nettoBeløp = 15000,
-                    emptyList()
-                )
-            )
-        }
-    }
-
-    object UtbetalingPublisherStub : UtbetalingPublisher {
-        val tidspunkt = now()
-        override fun publish(
-            nyUtbetaling: NyUtbetaling
-        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
-            status = SENDT,
-            originalMelding = "great success",
-            tidspunkt = tidspunkt
-        ).right()
     }
 
     private fun createBehandling(
@@ -888,8 +671,7 @@ internal class BehandlingTest {
         søknad = søknad,
         status = status,
         sakId = id1
-    ).also {
-        observer = DummyObserver()
-        it.addObserver(observer)
-    }
+    )
+
+    private fun defaultUtbetaling() = Utbetaling(fnr = Fnr("12345678910"), utbetalingslinjer = emptyList())
 }

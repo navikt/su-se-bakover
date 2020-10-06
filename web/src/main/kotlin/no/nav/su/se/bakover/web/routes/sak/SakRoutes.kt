@@ -11,8 +11,9 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
@@ -25,55 +26,60 @@ import no.nav.su.se.bakover.web.toUUID
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
-    sakRepo: ObjectRepo
+    behandlingService: BehandlingService,
+    sakService: SakService
 ) {
     get(sakPath) {
         call.lesFnr("fnr").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { fnr ->
-                when (val sak = sakRepo.hentSak(fnr)) {
-                    null -> call.svar(NotFound.message("Fant ikke noen sak for person: $fnr"))
-                    else -> {
+                sakService.hentSak(fnr)
+                    .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
+                    .map {
                         call.audit("Hentet sak for fnr: $fnr")
-                        call.svar(OK.jsonBody(sak))
+                        call.svar(OK.jsonBody(it))
                     }
-                }
             }
         )
     }
 
     get("$sakPath/{sakId}") {
-        call.withSak(sakRepo) { call.svar(OK.jsonBody(it)) }
+        call.withSak(sakService) { call.svar(OK.jsonBody(it)) }
     }
 
     data class OpprettBehandlingBody(val soknadId: String)
 
     post("$sakPath/{sakId}/behandlinger") {
-        call.withSak(sakRepo) { sak ->
+        call.withSak(sakService) { sak ->
             Either.catch { deserialize<OpprettBehandlingBody>(call) }
                 .flatMap { it.soknadId.toUUID() }
                 .fold(
                     ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
                     ifRight = { søknadId ->
                         call.audit("Oppretter behandling på sak: ${sak.id} og søknadId: $søknadId")
-                        val behandling = sak.opprettSøknadsbehandling(søknadId)
-                        call.svar(HttpStatusCode.Created.jsonBody(behandling))
+                        behandlingService.opprettSøknadsbehandling(sak.id, søknadId)
+                            .fold(
+                                { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
+                                { call.svar(HttpStatusCode.Created.jsonBody(it)) }
+                            )
                     }
                 )
         }
     }
 }
 
-suspend fun ApplicationCall.withSak(repo: ObjectRepo, ifRight: suspend (Sak) -> Unit) {
+suspend fun ApplicationCall.withSak(sakService: SakService, ifRight: suspend (Sak) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = {
             this.svar(BadRequest.message(it))
         },
         ifRight = { sakId ->
-            repo.hentSak(sakId)?.let { sak ->
-                this.audit("Hentet sak med id: $sakId")
-                ifRight(sak)
-            } ?: this.svar(NotFound.message("Fant ikke sak med sakId: $sakId"))
+            sakService.hentSak(sakId)
+                .mapLeft { this.svar(NotFound.message("Fant ikke sak med sakId: $sakId")) }
+                .map {
+                    this.audit("Hentet sak med id: $sakId")
+                    ifRight(it)
+                }
         }
     )
 }

@@ -16,8 +16,7 @@ internal data class BeregningJson(
     val tilOgMed: String,
     val sats: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
-    val fradrag: List<FradragJson> = emptyList(),
-    val forventetInntekt: Int,
+    val fradrag: List<FradragJson> = emptyList()
 )
 
 internal fun Beregning.toJson() = BeregningJson(
@@ -36,8 +35,7 @@ internal fun Beregning.toJson() = BeregningJson(
             utenlandskInntekt = it.utenlandskInntekt,
             inntektDelerAvPeriode = it.inntektDelerAvPeriode
         )
-    },
-    forventetInntekt = forventetInntekt
+    }
 )
 
 internal data class FradragJson(

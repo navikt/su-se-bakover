@@ -21,7 +21,7 @@ data class UtbetalingJson(
             UtbetalingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                simulering = getSimulering()?.toJson(),
+                simulering = simulering?.toJson(),
             )
 
         internal fun HttpStatusCode.jsonBody(utbetaling: Utbetaling) =

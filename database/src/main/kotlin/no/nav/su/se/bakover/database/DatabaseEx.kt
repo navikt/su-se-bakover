@@ -2,20 +2,23 @@ package no.nav.su.se.bakover.database
 
 import kotliquery.Row
 import kotliquery.queryOf
+import kotliquery.using
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.toTidspunkt
 import java.sql.Array
 import java.util.UUID
+import javax.sql.DataSource
 
-internal fun String.oppdatering(params: Map<String, Any?>, session: Session) =
-    session.run(
-        queryOf(
-            this,
-            params
-        ).asUpdate
-    )
+internal fun String.oppdatering(
+    params: Map<String, Any?>,
+    session: Session
+) = session.run(queryOf(statement = this, paramMap = params).asUpdate)
 
-internal fun <T> String.hent(params: Map<String, Any> = emptyMap(), session: Session, rowMapping: (Row) -> T): T? =
+internal fun <T> String.hent(
+    params: Map<String, Any> = emptyMap(),
+    session: Session,
+    rowMapping: (Row) -> T
+): T? =
     session.run(queryOf(this, params).map { row -> rowMapping(row) }.asSingle)
 
 internal fun <T> String.hentListe(
@@ -30,3 +33,7 @@ internal fun Row.tidspunkt(name: String) = this.instant(name).toTidspunkt()
 
 internal fun Session.inClauseWith(values: List<String>): Array =
     this.connection.underlying.createArrayOf("text", values.toTypedArray())
+
+internal fun <T> DataSource.withSession(block: (session: Session) -> T): T {
+    return using(sessionOf(this)) { block(it) }
+}

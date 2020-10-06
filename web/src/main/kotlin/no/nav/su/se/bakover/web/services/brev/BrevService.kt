@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtl
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,7 +37,8 @@ class BrevService(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
     private val dokArkiv: DokArkiv,
-    private val dokDistFordeling: DokDistFordeling
+    private val dokDistFordeling: DokDistFordeling,
+    private val sakService: SakService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -117,13 +119,15 @@ class BrevService(
     fun lagUtkastTilBrev(
         behandling: Behandling
     ): Either<ClientError, ByteArray> {
-        val fnr = behandling.fnr
-        val person =
-            hentPersonFraFnr(fnr).fold(
-                { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
-                { it }
-            )
-        return lagBrevPdf(behandling, person)
+        return sakService.hentSak(behandling.sakId)
+            .mapLeft { throw RuntimeException("Fant ikke sak") }
+            .map {
+                val person = hentPersonFraFnr(it.fnr).fold(
+                    { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
+                    { it }
+                )
+                return lagBrevPdf(behandling, person)
+            }
     }
 
     private fun lagBrevPdf(

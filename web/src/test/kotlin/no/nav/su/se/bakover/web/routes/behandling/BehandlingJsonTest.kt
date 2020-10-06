@@ -137,7 +137,7 @@ internal class BehandlingJsonTest {
           "attestant" : "kjella",
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
-          "hendelser": null
+          "hendelser": []
         }
             """.trimIndent()
     }
@@ -186,7 +186,7 @@ internal class BehandlingJsonTest {
           "attestant": null,
           "saksbehandler": null,
           "sakId": "$sakId",
-          "hendelser": null
+          "hendelser": []
         }
         """
 

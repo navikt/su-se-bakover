@@ -4,36 +4,33 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.between
-import no.nav.su.se.bakover.database.ObjectRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.FantIkkeSak
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.HarIngenOversendteUtbetalinger
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class StartUtbetalingerService(
-    private val repo: ObjectRepo,
     private val simuleringClient: SimuleringClient,
-    private val utbetalingPublisher: UtbetalingPublisher
+    private val utbetalingPublisher: UtbetalingPublisher,
+    private val utbetalingService: UtbetalingService,
+    private val sakService: SakService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Utbetaling> {
-
-        val sak = repo.hentSak(sakId) ?: return FantIkkeSak.left()
-
+        val sak = sakService.hentSak(sakId).fold(
+            { return StartUtbetalingFeilet.FantIkkeSak.left() },
+            { it }
+        )
         val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
-            ?: return HarIngenOversendteUtbetalinger.left()
+            ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
 
-        if (!sisteOversendteUtbetaling.erStansutbetaling()) return SisteUtbetalingErIkkeEnStansutbetaling.left()
+        if (!sisteOversendteUtbetaling.erStansutbetaling()) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
         val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fraOgMed
         val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tilOgMed
@@ -47,7 +44,10 @@ class StartUtbetalingerService(
         }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
         val stansetEllerDelvisStansetUtbetalingslinjer = sak.oppdrag.oversendteUtbetalinger()
-            .subList(startIndeks, sak.oppdrag.oversendteUtbetalinger().size - 1) // Ekskluderer den siste stopp-utbetalingen
+            .subList(
+                startIndeks,
+                sak.oppdrag.oversendteUtbetalinger().size - 1
+            ) // Ekskluderer den siste stopp-utbetalingen
             .flatMap {
                 it.utbetalingslinjer
             }.filter {
@@ -80,23 +80,26 @@ class StartUtbetalingerService(
             attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
         )
 
-        simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
-            { return SimuleringAvStartutbetalingFeilet.left() },
+        val simulertUtbetaling = simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
+            { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },
             { simulering ->
-                sak.oppdrag.leggTilUtbetaling(utbetaling)
-                utbetaling.addSimulering(simulering)
+                utbetalingService.opprettUtbetaling(sak.oppdrag.id, utbetaling)
+                utbetalingService.addSimulering(utbetaling.id, simulering)
             }
         )
 
-        return utbetalingPublisher.publish(nyUtbetaling).fold(
+        return utbetalingPublisher.publish(
+            nyUtbetaling.copy(
+                utbetaling = simulertUtbetaling
+            )
+        ).fold(
             {
                 log.error("Startutbetaling feilet ved publisering av utbetaling")
-                utbetaling.addOppdragsmelding(it.oppdragsmelding)
-                SendingAvUtebetalingTilOppdragFeilet.left()
+                utbetalingService.addOppdragsmelding(utbetaling.id, it.oppdragsmelding)
+                StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                utbetaling.addOppdragsmelding(it)
-                utbetaling.right()
+                utbetalingService.addOppdragsmelding(utbetaling.id, it).right()
             }
         )
     }

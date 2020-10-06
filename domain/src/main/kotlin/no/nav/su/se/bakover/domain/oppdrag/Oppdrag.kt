@@ -3,10 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.PersistenceObserver
-import no.nav.su.se.bakover.domain.PersistentDomainObject
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.OppdragPersistenceObserver
 import java.time.LocalDate
 import java.util.UUID
 
@@ -15,10 +12,7 @@ data class Oppdrag(
     val opprettet: Tidspunkt,
     val sakId: UUID,
     private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
-) : PersistentDomainObject<OppdragPersistenceObserver>() {
-
-    val fnr: Fnr by lazy { persistenceObserver.hentFnr(sakId) }
-
+) {
     fun sisteOversendteUtbetaling(): Utbetaling? = oversendteUtbetalinger().lastOrNull()
 
     /**
@@ -37,7 +31,7 @@ data class Oppdrag(
         // Vi ønsker ikke å filtrere bort de som ikke har kvittering, men vi ønsker å filtrere bort de kvitteringene som har feil i seg.
         it.erOversendt() && !it.erKvittertFeil()
     }.sortedBy {
-        it.getOppdragsmelding()!!.tidspunkt.instant
+        it.oppdragsmelding!!.tidspunkt.instant
     }
 
     fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()
@@ -46,7 +40,7 @@ data class Oppdrag(
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
-    fun genererUtbetaling(beregning: Beregning): Utbetaling {
+    fun genererUtbetaling(beregning: Beregning, fnr: Fnr): Utbetaling {
         val utbetalingsperioder = beregning.månedsberegninger
             .groupBy { it.beløp }
             .map {
@@ -56,10 +50,10 @@ data class Oppdrag(
                     beløp = it.key,
                 )
             }
-        return genererUtbetaling(utbetalingsperioder)
+        return genererUtbetaling(utbetalingsperioder, fnr)
     }
 
-    fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>): Utbetaling {
+    fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>, fnr: Fnr): Utbetaling {
         return Utbetaling(
             utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(
@@ -73,20 +67,5 @@ data class Oppdrag(
             },
             fnr = fnr
         )
-    }
-
-    fun leggTilUtbetaling(utbetaling: Utbetaling) {
-        return persistenceObserver.opprettUtbetaling(id, utbetaling)
-            .also {
-                utbetalinger.add(utbetaling)
-            }
-    }
-
-    fun slettUtbetaling(utbetaling: Utbetaling) = persistenceObserver.slettUtbetaling(utbetaling)
-
-    interface OppdragPersistenceObserver : PersistenceObserver {
-        fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling)
-        fun slettUtbetaling(utbetaling: Utbetaling)
-        fun hentFnr(sakId: UUID): Fnr
     }
 }

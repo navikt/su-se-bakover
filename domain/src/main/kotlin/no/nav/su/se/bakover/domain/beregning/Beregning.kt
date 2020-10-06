@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.PersistentDomainObject
-import no.nav.su.se.bakover.domain.VoidObserver
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -19,16 +17,14 @@ data class Beregning(
     val tilOgMed: LocalDate,
     val sats: Sats,
     val fradrag: List<Fradrag>,
-    val forventetInntekt: Int,
     val månedsberegninger: List<Månedsberegning> = beregn(fraOgMed, tilOgMed, sats, fradrag)
-) : PersistentDomainObject<VoidObserver>() {
+) {
 
     init {
         require(fraOgMed.dayOfMonth == 1) { "Beregninger gjøres fra den første i måneden. Dato var=$fraOgMed" }
         require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Beregninger avsluttes den siste i måneded. Dato var=$tilOgMed" }
         require(fraOgMed.isBefore(tilOgMed)) { "Startdato ($fraOgMed) for beregning må være tidligere enn sluttdato ($tilOgMed)." }
         fradrag.forEach { require(it.perMåned() >= 0) { "Fradrag kan ikke være negative" } }
-        require(forventetInntekt >= 0) { "Forventet inntekt kan ikke være negativ" }
     }
 
     companion object {
