@@ -43,6 +43,19 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     @Test
+    fun `hent utbetaling fra avstemmingsnøkkel`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", Avstemmingsnøkkel())
+            val utbetaling = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling()).copy(oppdragsmelding = oppdragsmelding)
+            repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
+            val hentet = repo.hentUtbetaling(oppdragsmelding.avstemmingsnøkkel)!!
+
+            utbetaling shouldBe hentet
+        }
+    }
+
+    @Test
     fun `oppdater med kvittering`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)

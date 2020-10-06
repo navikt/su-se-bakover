@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.toTidspunkt
 import java.time.Instant
@@ -8,6 +9,8 @@ import java.util.concurrent.TimeUnit
 data class Avstemmingsnøkkel(
     val opprettet: Tidspunkt = Tidspunkt.now()
 ) : Comparable<Avstemmingsnøkkel> {
+
+    @JsonProperty
     private val nøkkel: String = generer(opprettet)
 
     init {
