@@ -45,7 +45,7 @@ class BrevService(
     private fun lagVedtaksinnhold(person: Person, behandling: Behandling): VedtakInnhold =
         when {
             erAvslått(behandling) -> lagAvslagsvedtak(person, behandling)
-            erInnvilget(behandling) -> lagInnvilgetsvedtak(person, behandling)
+            erInnvilget(behandling) -> lagInnvilgelsesvedtak(person, behandling)
             else -> throw java.lang.RuntimeException("Kan ikke lage vedtaksinnhold for behandling som ikke er avslått/innvilget")
         }
     private fun lagAvslagsvedtak(person: Person, behandling: Behandling) =
@@ -62,7 +62,7 @@ class BrevService(
             avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
         )
-    private fun lagInnvilgetsvedtak(person: Person, behandling: Behandling): VedtakInnhold.Innvilgelsesvedtak {
+    private fun lagInnvilgelsesvedtak(person: Person, behandling: Behandling): VedtakInnhold.Innvilgelsesvedtak {
         val førsteMånedsberegning =
             behandling.beregning()!!.månedsberegninger.firstOrNull()!! // Støtte för variende beløp i framtiden?
 
