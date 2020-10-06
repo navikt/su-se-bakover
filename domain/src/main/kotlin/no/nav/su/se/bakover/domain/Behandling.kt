@@ -164,10 +164,12 @@ data class Behandling(
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
             if (this@Behandling.beregning != null) {
-                this@Behandling.beregning = null // TODO we need to discuss how to divide responsibility between service and domain.
+                this@Behandling.beregning =
+                    null // TODO we need to discuss how to divide responsibility between service and domain.
             }
 
-            behandlingsinformasjon = behandlingsinformasjon.patch(oppdatert) // TODO we need to discuss how to divide responsibility between service and domain.
+            behandlingsinformasjon =
+                behandlingsinformasjon.patch(oppdatert) // TODO we need to discuss how to divide responsibility between service and domain.
             if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
             } else if (behandlingsinformasjon.isAvslag()) {
@@ -357,7 +359,9 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
+            IverksettFeil()
+
         class Utbetaling(val msg: String) : IverksettFeil()
     }
 

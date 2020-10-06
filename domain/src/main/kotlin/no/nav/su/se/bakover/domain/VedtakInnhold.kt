@@ -2,30 +2,53 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 
-data class VedtakInnhold(
-    val dato: String,
-    val fødselsnummer: Fnr,
-    val fornavn: String,
-    val etternavn: String,
-    val adresse: String?,
-    val husnummer: String?,
-    val bruksenhet: String?,
-    val postnummer: String?,
-    val poststed: String?,
-    val månedsbeløp: Int?,
-    val fradato: String?,
-    val tildato: String?,
-    val sats: String?,
-    val satsbeløp: Int?,
-    val satsGrunn: Satsgrunn?,
-    val redusertStønadStatus: Boolean,
-    val harEktefelle: Boolean?,
-    val fradrag: List<FradragPerMåned>,
-    val fradragSum: Int,
-    val status: Behandling.BehandlingsStatus,
-    val avslagsgrunn: Avslagsgrunn?,
-    val halvGrunnbeløp: Int?,
-)
+sealed class VedtakInnhold {
+    abstract val dato: String
+    abstract val fødselsnummer: Fnr
+    abstract val fornavn: String
+    abstract val etternavn: String
+    abstract val adresse: String?
+    abstract val husnummer: String?
+    abstract val bruksenhet: String?
+    abstract val postnummer: String?
+    abstract val poststed: String
+
+    data class Innvilgelsesvedtak(
+        override val dato: String,
+        override val fødselsnummer: Fnr,
+        override val fornavn: String,
+        override val etternavn: String,
+        override val adresse: String?,
+        override val husnummer: String?,
+        override val bruksenhet: String?,
+        override val postnummer: String?,
+        override val poststed: String,
+        val månedsbeløp: Int,
+        val fradato: String,
+        val tildato: String,
+        val sats: String,
+        val satsbeløp: Int,
+        val satsGrunn: Satsgrunn,
+        val redusertStønadStatus: Boolean,
+        val harEktefelle: Boolean,
+        val fradrag: List<FradragPerMåned>,
+        val fradragSum: Int,
+    ) : VedtakInnhold()
+
+    data class Avslagsvedtak(
+        override val dato: String,
+        override val fødselsnummer: Fnr,
+        override val fornavn: String,
+        override val etternavn: String,
+        override val adresse: String?,
+        override val husnummer: String?,
+        override val bruksenhet: String?,
+        override val postnummer: String?,
+        override val poststed: String,
+        val avslagsgrunn: Avslagsgrunn,
+        val halvGrunnbeløp: Int
+    ) : VedtakInnhold()
+}
 
 enum class Avslagsgrunn {
     UFØRHET,
