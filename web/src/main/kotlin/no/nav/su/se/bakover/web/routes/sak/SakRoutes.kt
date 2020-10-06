@@ -81,11 +81,11 @@ internal fun Route.sakRoutes(
                     call.svar(BadRequest.message("Ugyldig body"))
                 },
                 ifRight = {
-                    if(it.valid()){
+                    if (it.valid()) {
                         søknadService.slettBehandlingForSøknad(it.søknadId, it.avsluttetBegrunnelse)
                         behandlingService.slettBehandlingForBehandling(it.søknadId, it.avsluttetBegrunnelse)
                         call.svar(OK.message("Nice"))
-                    }else {
+                    } else {
                         call.svar(BadRequest.message("Ugyldige begrunnelse for sletting: $it"))
                     }
                 }
@@ -93,7 +93,6 @@ internal fun Route.sakRoutes(
         }
     }
 }
-
 
 suspend fun ApplicationCall.withSak(sakService: SakService, ifRight: suspend (Sak) -> Unit) {
     this.lesUUID("sakId").fold(
