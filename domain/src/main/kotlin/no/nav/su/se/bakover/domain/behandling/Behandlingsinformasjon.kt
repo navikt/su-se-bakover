@@ -26,7 +26,7 @@ data class Behandlingsinformasjon(
         bosituasjon = b.bosituasjon ?: this.bosituasjon
     )
 
-    fun isComplete() =
+    private fun isComplete() =
         listOf(
             uførhet,
             flyktning,

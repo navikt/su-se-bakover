@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -190,19 +191,22 @@ data class Behandling(
                         this::opprettBeregning.toString(),
                         "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
                     )
-
                 val forventetInntekt =
                     this@Behandling.behandlingsinformasjon.uførhet?.forventetInntekt ?: throw TilstandException(
                         status,
                         this::opprettBeregning.toString(),
                         "Kan ikke opprette beregning. Forventet inntekt finnes ikke."
                     )
+                val oppdatertFradrag = fradragWithForventetInntekt(
+                    fradrag = fradrag,
+                    forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
+                )
 
                 beregning = Beregning(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
                     sats = sats,
-                    fradrag = fradrag,
+                    fradrag = oppdatertFradrag,
                     forventetInntekt = forventetInntekt
                 )
 

@@ -67,7 +67,7 @@ class BrevService(
                 satsbeløp = førsteMånedsberegning?.satsBeløp,
                 satsGrunn = satsgrunn,
                 redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
-                redusertStønadGrunn = "HVOR HENTES DENNE GRUNNEN FRA",
+                harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                 månedsbeløp = førsteMånedsberegning?.beløp,
                 fradrag = behandling.beregning()?.fradrag?.toFradragPerMåned() ?: emptyList(),
                 fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
@@ -197,11 +197,13 @@ fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
 fun satsgrunnForBehandling(behandling: Behandling): Satsgrunn? {
     return behandling.behandlingsinformasjon().bosituasjon?.let {
         when {
-            !it.delerBolig -> null
-            it.delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN
-            it.delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN -> Satsgrunn.DELER_BOLIG_MED_ANNEN_VOKSEN
+            !it.delerBolig -> Satsgrunn.ENSLIG
+            it.delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+            it.delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
             it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
                 && it.ektemakeEllerSamboerUnder67År == false -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+            it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER &&
+                it.ektemakeEllerSamboerUnder67År == true && it.ektemakeEllerSamboerUførFlyktning == false -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
             it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
                 && it.ektemakeEllerSamboerUførFlyktning == true -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
             else -> null
