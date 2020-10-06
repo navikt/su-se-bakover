@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
 
@@ -92,7 +91,7 @@ data class Behandling(
         return this
     }
 
-    fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+    fun simuler(utbetaling: Utbetaling): Behandling {
         return tilstand.simuler(utbetaling)
     }
 
@@ -131,7 +130,7 @@ data class Behandling(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        fun simuler(utbetaling: Utbetaling): Behandling {
             throw TilstandException(status, this::simuler.toString())
         }
 
@@ -237,16 +236,16 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        override fun simuler(utbetaling: Utbetaling): Behandling {
             // TODO just passing the utbetaling for now for backwards compatability
             this@Behandling.utbetaling = utbetaling
             nyTilstand(Simulert())
-            return this@Behandling.right()
+            return this@Behandling
         }
 
         inner class Avslag : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
-            override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+            override fun simuler(utbetaling: Utbetaling): Behandling {
                 throw TilstandException(status, this::simuler.toString())
             }
 
@@ -281,7 +280,7 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        override fun simuler(utbetaling: Utbetaling): Behandling {
             return nyTilstand(Beregnet()).simuler(utbetaling)
         }
     }
