@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -97,6 +98,17 @@ internal class BehandlingPostgresRepoTest {
             val hentet = repo.hentBehandling(behandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus.status()
+        }
+    }
+
+    @Test
+    fun `slettet behandling for behandling skal ikke bli hentet`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = testDataHelper.insertSøknad(sak.id)
+            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            repo.slettBehandlingForBehandling(søknad.id, AvsluttetBegrunnelse.Trukket)
+            repo.hentBehandling(behandling.id) shouldBe null
         }
     }
 }

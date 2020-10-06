@@ -13,6 +13,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -109,6 +110,29 @@ internal class SakRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
                 behandling.søknad.id shouldBe nySøknad.id.toString()
+            }
+        }
+    }
+
+    @Test
+    fun `kan slette en behandling for søknad eller behandling`() {
+        val nySak = repos.sak.opprettSak(fnr)
+        val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+
+        withTestApplication({
+            testSusebakover()
+        }) {
+            defaultRequest(HttpMethod.Post, "$sakPath/${nySak.id}/${nySøknad.id}/avsluttSaksbehandling") {
+                setBody(
+                    """{
+                            "sakId": "${nySak.id}",
+                            "søknadId": "${nySøknad.id}",
+                            "avsluttetBegrunnelse": "${AvsluttetBegrunnelse.AvvistSøktForTidlig}"
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe OK
             }
         }
     }
