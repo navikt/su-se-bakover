@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 
@@ -30,6 +31,13 @@ object PdfGeneratorStub : PdfGenerator {
     }
 
     override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
+        return pdf.toByteArray().right()
+    }
+
+    override fun genererAvsluttetSøknaddsBehandlingPdf(
+        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody,
+        vedtakstype: Vedtakstype
+    ): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()
     }
 }

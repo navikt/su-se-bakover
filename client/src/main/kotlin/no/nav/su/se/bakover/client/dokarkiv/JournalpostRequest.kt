@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
@@ -96,6 +97,47 @@ sealed class Journalpost {
                 )
             )
         )
+    }
+
+    data class AvsluttetSøknadsBehandlingPost(
+        val person: Person,
+        val pdf: ByteArray,
+        val avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+    ) : Journalpost() {
+        override val tittel: String = "Vedtak om avsluttet søknad om supplerende stønad"
+        override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
+            id = person.ident.fnr.toString(),
+            navn = søkersNavn(person)
+        )
+        override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
+
+        override val sak: Fagsak = Fagsak(avsluttSøknadsBehandlingBody.sakId.toString())
+
+        override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
+        override val kanal: String? = null
+        override val journalfoerendeEnhet: String = "4815"
+        override val dokumenter: List<JournalpostDokument> = toJournalpostDokument()
+
+        private fun toJournalpostDokument() = listOf(
+            JournalpostDokument(
+                tittel = "Vedtak om avsluttet søknad om supplerende stønad",
+                dokumentKategori = DokumentKategori.VB,
+                dokumentvarianter = listOf(
+                    DokumentVariant(
+                        filtype = "PDFA",
+                        fysiskDokument = Base64.getEncoder().encodeToString(pdf),
+                        variantformat = "ARKIV"
+                    ),
+                    DokumentVariant(
+                        filtype = "JSON",
+                        fysiskDokument = Base64.getEncoder()
+                            .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
+                        variantformat = "ORIGINAL"
+                    )
+                )
+            )
+        )
+
     }
 }
 

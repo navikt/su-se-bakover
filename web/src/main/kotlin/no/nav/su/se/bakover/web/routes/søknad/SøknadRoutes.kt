@@ -43,10 +43,20 @@ internal fun Route.søknadRoutes(
                 log.info("Ugyldig behandling-body: ", it)
                 call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
             },
-            ifRight = {
-                if (it.valid()) {
-                    mediator.avsluttSøknadsBehandling(it.søknadId, it.avsluttSøkndsBehandlingBegrunnelse)
-                    call.svar(HttpStatusCode.OK.message("Avsluttet behandling for ${it.søknadId}"))
+            ifRight = {avsluttSøknadsBehandlingBody ->
+                if (avsluttSøknadsBehandlingBody.valid()) {
+                    mediator.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody).fold(
+                        ifLeft = {
+                            log.error("Kunne ikke avslutte søknadsbehandling")
+                            call.svar(HttpStatusCode.InternalServerError.message("Noe gikk galt"))
+                        },
+                        ifRight = {
+                            log.info("Avsluttet søknadsbehandling OK ")
+                            call.svar(HttpStatusCode.OK.message(
+                                "Avsluttet behandling for ${avsluttSøknadsBehandlingBody.søknadId}"
+                            ))
+                        }
+                    )
                 } else {
                     call.svar(HttpStatusCode.BadRequest.message("Ugyldige begrunnelse for sletting: $it"))
                 }

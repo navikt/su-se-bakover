@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Avslagsgrunn
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
@@ -168,6 +169,61 @@ class BrevService(
             }
     }
 
+    fun journalFørAvsluttetSøknadsBehandlingOgSendBrev(
+        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
+        val loggtema = "Journalføring og avslutting av søknadsbehandling"
+
+        val person = sakService.hentSak(avsluttSøknadsBehandlingBody.sakId).fold(
+            ifLeft = {
+                log.error("$loggtema: fant ikke sak for sakId: ${avsluttSøknadsBehandlingBody.sakId}")
+                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
+            },
+            ifRight = {sak ->
+                hentPersonFraFnr(sak.fnr).fold(
+                    ifLeft = {
+                        log.error("$loggtema: kunne ikke hente person for sakId: ${avsluttSøknadsBehandlingBody.sakId}")
+                        return KunneIkkeOppretteJournalpostOgSendeBrev.left()
+                    },
+                   ifRight =  {person ->
+                       log.info("Hentet Person for avsluttet søknads-behandling OK")
+                       person
+                    }
+                )
+            }
+        )
+
+        val avsluttetSøknadsBehandlingBrevPdf = genererAvsluttetSøknadsBehandlingBrevPdf(avsluttSøknadsBehandlingBody).fold(
+            ifLeft = {
+                log.error("$loggtema: kunne ikke hente generere pdf for avsluttet søknads behandling")
+                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
+            },
+            ifRight = {
+                log.info("Generert brev for avsluttet søknads behandling OK")
+                it
+            }
+        )
+
+        val journalPostId = dokArkiv.opprettJournalpost(
+            Journalpost.AvsluttetSøknadsBehandlingPost(
+                person = person,
+                pdf = avsluttetSøknadsBehandlingBrevPdf,
+                avsluttSøknadsBehandlingBody = avsluttSøknadsBehandlingBody
+            )
+        ).fold(
+            ifLeft = {
+                log.error("$loggtema: kunne ikke få journalpost id")
+                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
+            },
+            ifRight = {
+                log.info("Journalpost id for avslutting av søknads behandling OK")
+                it
+            }
+        )
+
+        return sendBrev(journalPostId)
+    }
+
     private fun lagBrevPdf(
         behandling: Behandling,
         person: Person
@@ -179,6 +235,21 @@ class BrevService(
         }
 
         return pdfGenerator.genererPdf(vedtakinnhold, template)
+            .mapLeft {
+                log.error("Kunne ikke generere brevinnhold")
+                it
+            }
+            .map {
+                log.info("Generert brevinnhold OK")
+                it
+            }
+    }
+
+    private fun genererAvsluttetSøknadsBehandlingBrevPdf(
+        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+    ): Either<ClientError, ByteArray> {
+
+        return pdfGenerator.genererAvsluttetSøknaddsBehandlingPdf(avsluttSøknadsBehandlingBody, Vedtakstype.AVSLUTTETSØKNADSBEHANDLING)
             .mapLeft {
                 log.error("Kunne ikke generere brevinnhold")
                 it

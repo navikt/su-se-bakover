@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.database.søknad.AvsluttetSøknadsBehandlingOK
+import no.nav.su.se.bakover.database.søknad.KunneIkkeAvslutteSøknadsBehandling
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
@@ -20,9 +22,8 @@ internal class SøknadServiceImpl(
     }
 
     override fun avsluttSøknadsBehandling(
-        søknadId: UUID,
-        avsluttSøkndsBehandlingBegrunnelse: AvsluttSøkndsBehandlingBegrunnelse
-    ) {
-        return søknadRepo.avsluttSøknadsBehandling(søknadId, avsluttSøkndsBehandlingBegrunnelse)
+        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+    ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK>{
+        return søknadRepo.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody)
     }
 }

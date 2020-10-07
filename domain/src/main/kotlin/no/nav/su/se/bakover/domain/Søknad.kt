@@ -9,7 +9,8 @@ import java.util.UUID
 data class Søknad(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
-    val søknadInnhold: SøknadInnhold
+    val søknadInnhold: SøknadInnhold,
+    val avsluttetBegrunnelse: AvsluttSøkndsBehandlingBegrunnelse? = null
 )
 
 data class AvsluttSøknadsBehandlingBody(
