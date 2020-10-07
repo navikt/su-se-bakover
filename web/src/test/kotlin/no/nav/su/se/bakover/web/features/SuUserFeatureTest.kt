@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.features
 
 import arrow.core.Either
-import io.kotest.assertions.throwables.shouldThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -48,7 +48,7 @@ internal class SuUserFeatureTest {
     }
 
     @Test
-    fun `should respond with 500 if fetching from Microsoft Graph API fails`() {
+    fun `should not respond with 500 if fetching from Microsoft Graph API fails but endpoint does not access it`() {
         val response = Either.left(
             "Feil"
         )
@@ -63,9 +63,30 @@ internal class SuUserFeatureTest {
             )
         }) {
             defaultRequest(HttpMethod.Get, "/saker/${UUID.randomUUID()}").apply {
+                this.response.status() shouldBe HttpStatusCode.NotFound
+            }
+        }
+    }
+
+    @Test
+    fun `should respond with 500 if fetching from Microsoft Graph API and endpoint needs that data`() {
+        val response = Either.left(
+            "Feil"
+        )
+
+        withTestApplication({
+            testSusebakover(
+                clients = testClients.copy(
+                    microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
+                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                    }
+                )
+            )
+        }) {
+            defaultRequest(HttpMethod.Get, "/me").apply {
                 this.response.status() shouldBe HttpStatusCode.InternalServerError
-                shouldThrowAny { suUserContext.user }
-                shouldThrowAny { suUserContext.getNAVIdent() }
+                shouldThrow<KallMotMicrosoftGraphApiFeilet> { suUserContext.user }
+                shouldThrow<KallMotMicrosoftGraphApiFeilet> { suUserContext.getNAVIdent() }
             }
         }
     }
