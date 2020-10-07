@@ -316,7 +316,7 @@ internal class BehandlingRoutesKtTest {
                         "fraOgMed":"${LocalDate.of(2020, Month.JANUARY, 16)}",
                         "tom":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
                         "tilOgMed":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
-                        "sats":"LAV",
+                        "sats":"ORDINÆR",
                         "fradrag":[]
                     }
                     """.trimIndent()
