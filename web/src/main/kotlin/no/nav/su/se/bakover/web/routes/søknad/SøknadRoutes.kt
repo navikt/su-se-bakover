@@ -14,12 +14,16 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
+import org.slf4j.LoggerFactory
 
 internal const val søknadPath = "/soknad"
 
 internal fun Route.søknadRoutes(
     mediator: SøknadRouteMediator
 ) {
+
+    val log = LoggerFactory.getLogger(this::class.java)
+
     post(søknadPath) {
         Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
             ifLeft = {

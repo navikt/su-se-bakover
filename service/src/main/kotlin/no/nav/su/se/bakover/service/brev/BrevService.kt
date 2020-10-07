@@ -245,6 +245,8 @@ fun satsgrunnForBehandling(behandling: Behandling): Satsgrunn? {
             else -> null
         }
     }
+
+
 }
 
 // TODO Hente Locale fra brukerens målform

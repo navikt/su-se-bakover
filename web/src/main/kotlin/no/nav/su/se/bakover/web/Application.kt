@@ -119,7 +119,14 @@ internal fun Application.susebakover(
         oppgaveClient = clients.oppgaveClient,
         personOppslag = clients.personOppslag,
         søknadService = services.søknad,
-        sakService = services.sak
+        sakService = services.sak,
+        brevService = BrevService(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokArkiv = clients.dokArkiv,
+            dokDistFordeling = clients.dokDistFordeling,
+            sakService = services.sak
+        )
     )
 
     install(CORS) {
@@ -215,8 +222,7 @@ internal fun Application.susebakover(
                 inntektRoutes(clients.inntektOppslag)
                 sakRoutes(
                     behandlingService = services.behandling,
-                    sakService = services.sak,
-                    søknadService = services.søknad
+                    sakService = services.sak
                 )
                 søknadRoutes(søknadRoutesMediator)
                 behandlingRoutes(

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
@@ -26,16 +25,13 @@ import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
-import org.slf4j.LoggerFactory
 
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
     behandlingService: BehandlingService,
     sakService: SakService,
-    søknadService: SøknadService
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
 
     get(sakPath) {
         call.lesFnr("fnr").fold(

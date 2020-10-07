@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.web.services.brev.BrevService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -22,7 +24,8 @@ internal class SøknadRouteMediator(
     private val oppgaveClient: OppgaveClient,
     private val personOppslag: PersonOppslag,
     private val søknadService: SøknadService,
-    private val sakService: SakService
+    private val sakService: SakService,
+    private val brevService: BrevService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -37,6 +40,14 @@ internal class SøknadRouteMediator(
         opprettJournalpostOgOppgave(sak.id, søknad)
         return sakService.hentSak(søknadInnhold.personopplysninger.fnr)
             .getOrElse { throw RuntimeException("Kunne ikke hente sak") }
+    }
+
+    fun avsluttSøknadsBehandling(søknadId: UUID, avsluttSøkndsBehandlingBegrunnelse: AvsluttSøkndsBehandlingBegrunnelse){
+
+
+
+        //TODO avslutter etter at brev er OK
+        //søknadService.avsluttSøknadsBehandling(søknadId, avsluttSøkndsBehandlingBegrunnelse)
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, søknad: Søknad) {
