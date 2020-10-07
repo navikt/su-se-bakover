@@ -13,7 +13,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.AvsluttetBegrunnelse
+import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -127,7 +127,7 @@ internal class SakRoutesKtTest {
                     """{
                             "sakId": "${nySak.id}",
                             "søknadId": "${nySøknad.id}",
-                            "avsluttetBegrunnelse": "${AvsluttetBegrunnelse.AvvistSøktForTidlig}"
+                            "avsluttetBegrunnelse": "${AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig}"
                         }
                     """.trimIndent()
                 )

@@ -12,10 +12,8 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SlettBehandlingBody
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
@@ -24,16 +22,13 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
-import org.slf4j.LoggerFactory
 
 internal const val sakPath = "/saker"
 
 internal fun Route.sakRoutes(
     behandlingService: BehandlingService,
     sakService: SakService,
-    søknadService: SøknadService
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
 
     get(sakPath) {
         call.lesFnr("fnr").fold(
@@ -70,26 +65,6 @@ internal fun Route.sakRoutes(
                             )
                     }
                 )
-        }
-    }
-
-    post("$sakPath/{sakId}/{søknadId}/avsluttSaksbehandling") {
-        call.withSak(sakService) {
-            Either.catch { deserialize<SlettBehandlingBody>(call) }.fold(
-                ifLeft = {
-                    log.info("Ugyldig behandling-body: ", it)
-                    call.svar(BadRequest.message("Ugyldig body"))
-                },
-                ifRight = {
-                    if (it.valid()) {
-                        søknadService.slettBehandlingForSøknad(it.søknadId, it.avsluttetBegrunnelse)
-                        behandlingService.slettBehandlingForBehandling(it.søknadId, it.avsluttetBegrunnelse)
-                        call.svar(OK.message("Nice"))
-                    } else {
-                        call.svar(BadRequest.message("Ugyldige begrunnelse for sletting: $it"))
-                    }
-                }
-            )
         }
     }
 }
