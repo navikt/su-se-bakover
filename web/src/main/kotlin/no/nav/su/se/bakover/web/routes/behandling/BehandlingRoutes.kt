@@ -160,9 +160,7 @@ internal fun Route.behandlingRoutes(
         // TODO: Short circuit
         call.withBehandling(behandlingService) { behandling ->
             val navIdent = call.suUserContext.getNAVIdent()
-                ?: return@withBehandling call.svar(
-                    InternalServerError.message("Kunne ikke opprette oppgave for attestering")
-                )
+
             sakService.hentSak(behandling.sakId)
                 .mapLeft { throw RuntimeException("Sak id finnes ikke") }
                 .map { sak ->
@@ -193,14 +191,11 @@ internal fun Route.behandlingRoutes(
         call.withBehandling(behandlingService) { behandling ->
             call.audit("Iverksetter behandling med id: ${behandling.id}")
             val navIdent = call.suUserContext.getNAVIdent()
-                ?: return@withBehandling call.svar(
-                    InternalServerError.message("Kunne ikke opprette oppgave for attestering")
-                )
+
             sakService.hentSak(behandling.sakId)
                 .mapLeft { throw RuntimeException("Sak id finnes ikke") }
                 .map { sak ->
                     // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-                    // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
                     brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                         ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                         ifRight = {
@@ -227,9 +222,6 @@ internal fun Route.behandlingRoutes(
             return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
         val navIdent = call.suUserContext.getNAVIdent()
-            ?: return@patch call.svar(
-                InternalServerError.message("Kunne ikke opprette oppgave for attestering")
-            )
 
         call.withBehandling(behandlingService) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")

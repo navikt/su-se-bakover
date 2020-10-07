@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.features.SuUserFeature
+import no.nav.su.se.bakover.web.features.SuUserFeatureException
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
@@ -131,6 +132,10 @@ internal fun Application.susebakover(
     }
 
     install(StatusPages) {
+        exception<SuUserFeatureException> {
+            log.error("Got SuUserFeatureException with message=${it.message}", it)
+            call.respond(HttpStatusCode.InternalServerError, ErrorJson("Kunne ikke hente informasjon om bruker"))
+        }
         exception<UgyldigFnrException> {
             log.error("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))

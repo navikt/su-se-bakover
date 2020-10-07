@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.web.features
 
-import arrow.core.Either
+import arrow.core.getOrHandle
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.application.feature
 import io.ktor.auth.Authentication
-import io.ktor.auth.authentication
 import io.ktor.http.HttpHeaders
 import io.ktor.request.header
 import io.ktor.routing.Route
@@ -25,6 +24,8 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 /**
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
  */
+
+class SuUserFeatureException(override val message: String) : Exception(message)
 
 @KtorExperimentalAPI
 class SuUserFeature(configuration: Configuration) {
@@ -46,13 +47,15 @@ class SuUserFeature(configuration: Configuration) {
     private fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val suUserContext = SuUserContext.from(context.call)
 
-        if (suUserContext.user != null || context.call.authentication.allErrors.isNotEmpty()) {
+        if (suUserContext.isInitialized()) {
             return
         }
 
-        val authHeader = context.call.request.header(HttpHeaders.Authorization) ?: return
+        val authHeader = context.call.request.header(HttpHeaders.Authorization)
+            ?: throw SuUserFeatureException("Could not find auth header")
 
         suUserContext.user = clients.microsoftGraphApiClient.hentBrukerinformasjon(authHeader)
+            .getOrHandle { throw SuUserFeatureException("Fetching user from Microsoft Graph API failed: $it") }
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, SuUserFeature> {
@@ -68,7 +71,7 @@ class SuUserFeature(configuration: Configuration) {
 }
 
 class SuUserContext(val call: ApplicationCall) {
-    var user: Either<String, MicrosoftGraphResponse>? = null
+    lateinit var user: MicrosoftGraphResponse
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
@@ -77,11 +80,9 @@ class SuUserContext(val call: ApplicationCall) {
             call.attributes.computeIfAbsent(AttributeKey) { SuUserContext(call) }
     }
 
-    fun getNAVIdent(): String? = user?.let { u ->
-        u
-            .map { it.onPremisesSamAccountName }
-            .orNull()
-    }
+    internal fun isInitialized() = this::user.isInitialized
+
+    fun getNAVIdent(): String = user.onPremisesSamAccountName!!
 }
 
 val ApplicationCall.suUserContext: SuUserContext
