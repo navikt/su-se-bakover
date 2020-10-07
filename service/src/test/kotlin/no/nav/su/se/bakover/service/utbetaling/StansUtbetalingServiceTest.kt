@@ -153,6 +153,38 @@ internal class StansUtbetalingServiceTest {
     }
 
     @Test
+    fun `svarer med feil dersom simulering inneholder beløp større enn 0`() {
+        val setup = Setup()
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on {
+                simulerUtbetaling(any())
+            } doAnswer (
+                Answer {
+                    setup.nySimulering.copy(nettoBeløp = 6000).right()
+                }
+                )
+        }
+
+        val utbetalingServiceMock: UtbetalingService = mock()
+
+        val service = StansUtbetalingService(
+            simuleringClient = simuleringClientMock,
+            clock = setup.clock,
+            utbetalingPublisher = mock(),
+            utbetalingService = utbetalingServiceMock
+        )
+
+        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+
+        actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
+
+        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+
+        verifyNoMoreInteractions(simuleringClientMock, utbetalingServiceMock)
+    }
+
+    @Test
     fun `Sjekk at vi svarer furnuftig når publisering feiler`() {
         val setup = Setup()
         val simuleringClientMock = mock<SimuleringClient> {

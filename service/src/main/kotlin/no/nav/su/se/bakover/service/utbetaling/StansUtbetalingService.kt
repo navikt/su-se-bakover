@@ -56,7 +56,7 @@ class StansUtbetalingService(
         val simulertUtbetaling = simuleringClient.simulerUtbetaling(utbetalingForSimulering).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulering ->
-                if (simulering.nettoBeløp != 0) {
+                if (simulering.nettoBeløp != 0 || simulering.bruttoYtelse() != 0) {
                     log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, men nettobeløp i simulering var ${simulering.nettoBeløp}")
                     return KunneIkkeStanseUtbetalinger.left()
                 }
