@@ -38,4 +38,8 @@ data class Utbetaling(
             return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
         }
     }
+
+    fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
+    fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
+    fun bruttoBeløp() = utbetalingslinjer.sumBy { it.beløp }
 }

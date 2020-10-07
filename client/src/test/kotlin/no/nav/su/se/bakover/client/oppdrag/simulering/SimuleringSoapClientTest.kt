@@ -1,18 +1,22 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -28,6 +32,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
+import java.time.LocalDate
 import java.util.UUID
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
@@ -158,6 +163,70 @@ internal class SimuleringSoapClientTest {
         val response = simuleringService.simulerUtbetaling(nyUtbetaling)
 
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+    }
+
+    @Test
+    fun `skal returnere simulering ekvivalent med 0-utbetaling dersom response ikke inneholder data`() {
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
+
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                        .apply { response = null }
+                }
+            }
+        )
+
+        val utenBeløp = NyUtbetaling(
+            oppdrag = createOppdrag(),
+            utbetaling = Utbetaling(
+                fnr = FNR,
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        fraOgMed = 1.oktober(2020),
+                        tilOgMed = 31.desember(2020),
+                        forrigeUtbetalingslinjeId = null,
+                        beløp = 0
+                    )
+                )
+            ),
+            attestant = Attestant("SU")
+        )
+
+        simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
+            gjelderId = FNR,
+            gjelderNavn = FNR.toString(),
+            nettoBeløp = 0,
+            datoBeregnet = LocalDate.now(),
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.oktober(2020),
+                    tilOgMed = 31.desember(2020),
+                    utbetaling = emptyList()
+                )
+            )
+        ).right()
+    }
+
+    @Test
+    fun `returnerer funksjonell feil hvis man forsøker å utbetale penger, men simuleringen er tom`() {
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
+
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                        .apply { response = null }
+                }
+            }
+        )
+
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     private fun createOppdrag() = Oppdrag(
