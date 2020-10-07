@@ -57,7 +57,7 @@ class StartUtbetalingerService(
             }.filter {
                 // Merk: En utbetalingslinje kan være delvis stanset.
                 it.fraOgMed.between(stansetFraOgMed, stansetTilOgMed) ||
-                    it.fraOgMed.between(stansetFraOgMed, stansetTilOgMed)
+                    it.tilOgMed.between(stansetFraOgMed, stansetTilOgMed)
             }
         check(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
             "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
