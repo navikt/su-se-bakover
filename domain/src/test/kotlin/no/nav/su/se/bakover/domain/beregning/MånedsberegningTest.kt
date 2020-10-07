@@ -26,14 +26,14 @@ internal class MånedsberegningTest {
     fun `calculation 2`() {
         val månedsberegning = Månedsberegning(
             fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV,
+            sats = Sats.ORDINÆR,
             fradrag = 0
         )
 
         månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
         månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
-        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.sats shouldBe Sats.ORDINÆR
         månedsberegning.beløp shouldBe 17790
     }
 
@@ -41,14 +41,14 @@ internal class MånedsberegningTest {
     fun `trekker fra fradrag`() {
         val månedsberegning = Månedsberegning(
             fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV,
+            sats = Sats.ORDINÆR,
             fradrag = 100
         )
 
         månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
         månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
-        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.sats shouldBe Sats.ORDINÆR
         månedsberegning.beløp shouldBe 17690
     }
 
@@ -56,14 +56,14 @@ internal class MånedsberegningTest {
     fun `beløp kan ikke bli negativt pga fradrag`() {
         val månedsberegning = Månedsberegning(
             fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV,
+            sats = Sats.ORDINÆR,
             fradrag = Int.MAX_VALUE
         )
 
         månedsberegning.fraOgMed shouldBe LocalDate.of(2018, Month.MARCH, 1)
         månedsberegning.tilOgMed shouldBe LocalDate.of(2018, Month.MARCH, 31)
         månedsberegning.grunnbeløp shouldBe 93634
-        månedsberegning.sats shouldBe Sats.LAV
+        månedsberegning.sats shouldBe Sats.ORDINÆR
         månedsberegning.beløp shouldBe 0
     }
 
@@ -71,7 +71,7 @@ internal class MånedsberegningTest {
     fun `uses grunnbeløp based on date`() {
         val old = Månedsberegning(
             fraOgMed = LocalDate.of(2018, Month.MARCH, 1),
-            sats = Sats.LAV,
+            sats = Sats.ORDINÆR,
             fradrag = 0
         )
 
@@ -80,7 +80,7 @@ internal class MånedsberegningTest {
 
         val new = Månedsberegning(
             fraOgMed = LocalDate.of(2018, Month.SEPTEMBER, 1),
-            sats = Sats.LAV,
+            sats = Sats.ORDINÆR,
             fradrag = 0
         )
 
