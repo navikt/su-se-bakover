@@ -72,7 +72,7 @@ fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): 
 
     val totalArbeidsinntekt = arbeidsinntektFradrag.sumBy { it.beløp }
 
-    if (totalArbeidsinntekt > forventetInntekt) {
+    if (totalArbeidsinntekt >= forventetInntekt) {
         return fradrag
     }
 

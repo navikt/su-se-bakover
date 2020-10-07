@@ -348,7 +348,7 @@ data class Behandling(
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
         IVERKSATT_INNVILGET,
-        IVERKSATT_AVSLAG
+        IVERKSATT_AVSLAG,
     }
 
     class TilstandException(
@@ -359,7 +359,9 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
+            IverksettFeil()
+
         class Utbetaling(val msg: String) : IverksettFeil()
     }
 
