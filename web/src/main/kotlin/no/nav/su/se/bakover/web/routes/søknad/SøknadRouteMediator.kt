@@ -1,11 +1,17 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.database.søknad.AvsluttetSøknadsBehandlingOK
+import no.nav.su.se.bakover.database.søknad.KunneIkkeAvslutteSøknadsBehandling
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -42,12 +48,41 @@ internal class SøknadRouteMediator(
             .getOrElse { throw RuntimeException("Kunne ikke hente sak") }
     }
 
-    fun avsluttSøknadsBehandling(søknadId: UUID, avsluttSøkndsBehandlingBegrunnelse: AvsluttSøkndsBehandlingBegrunnelse){
 
+    fun avsluttSøknadsBehandling(
+        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+    ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
+        val loggtema = "Avslutting av søknadsbehandling"
 
+        if(avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse
+                == AvsluttSøkndsBehandlingBegrunnelse.Bortfalt ||
+            avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse
+                == AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig)
+        {
+            log.info("Bortfalt og avvistSøktForTidlig er ennå ikke implementert :)")
+        }
 
-        //TODO avslutter etter at brev er OK
-        //søknadService.avsluttSøknadsBehandling(søknadId, avsluttSøkndsBehandlingBegrunnelse)
+        if(avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Trukket){
+            brevService.journalFørAvsluttetSøknadsBehandlingOgSendBrev(avsluttSøknadsBehandlingBody).fold(
+                ifLeft = {
+                    log.error("$loggtema: Kunne ikke sende brev for å avslutte søknadsbehandling")
+                    return KunneIkkeAvslutteSøknadsBehandling.left()
+                },
+                ifRight = {
+                    //TODO avslutter etter at brev er OK
+                     søknadService.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody).fold(
+                         ifLeft = {
+                             log.error("$loggtema: Kunne ikke avslutte søknadsbehandling")
+                             it
+                         },
+                         ifRight = {
+                            return it.right()
+                         }
+                     )
+                }
+            )
+        }
+        return KunneIkkeAvslutteSøknadsBehandling.left()
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, søknad: Søknad) {
@@ -90,4 +125,6 @@ internal class SøknadRouteMediator(
             }
         )
     }
+
 }
+
