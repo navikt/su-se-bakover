@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -151,7 +152,10 @@ internal class BehandlingRoutesKtTest {
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            services.behandling.oppdaterBehandlingsinformasjon(objects.behandling.id, extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
 
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
@@ -242,7 +246,10 @@ internal class BehandlingRoutesKtTest {
             val tom = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            services.behandling.oppdaterBehandlingsinformasjon(objects.behandling.id, extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.behandling.id,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
 
             defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
                 setBody(
@@ -449,7 +456,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("randomoid")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("randomoid")
+                    )
+                }
             )
 
             defaultRequest(
@@ -532,7 +545,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456oid")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("S123456oid")
+                    )
+                }
             )
 
             defaultRequest(
@@ -644,7 +663,7 @@ internal class BehandlingRoutesKtTest {
                             nyUtbetaling: NyUtbetaling
                         ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                             UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                Oppdragsmelding(FEIL, "")
+                                Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
                             ).left()
                     }
                 )
@@ -663,7 +682,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.behandling.id,
+                        AktørId("aktørId"),
+                        Saksbehandler("S123456")
+                    )
+                }
             )
 
             requestSomAttestant(
@@ -683,7 +708,8 @@ internal class BehandlingRoutesKtTest {
 
     private fun setup(): Objects {
         val sak = repos.sak.opprettSak(FnrGenerator.random())
-        val søknad = repos.søknad.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+        val søknad =
+            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         val behandling = repos.behandling.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }

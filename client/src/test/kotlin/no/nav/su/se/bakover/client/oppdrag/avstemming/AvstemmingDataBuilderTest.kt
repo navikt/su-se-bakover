@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
@@ -116,7 +117,11 @@ internal class AvstemmingDataBuilderTest {
                         Utbetaling(
                             utbetalingslinjer = emptyList(),
                             fnr = fnr,
-                            oppdragsmelding = Oppdragsmelding(status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL, "")
+                            oppdragsmelding = Oppdragsmelding(
+                                status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
+                                originalMelding = "",
+                                avstemmingsnøkkel = Avstemmingsnøkkel()
+                            )
                         )
                     ),
                     avstemmingXmlRequest = null
@@ -141,7 +146,11 @@ fun lagUtbetaling(
     opprettet: LocalDate,
     status: Kvittering.Utbetalingsstatus?,
     linjer: List<Utbetalingslinje>,
-    oppdragsmelding: Oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "Melding")
+    oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
+        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+        originalMelding = "Melding",
+        avstemmingsnøkkel = Avstemmingsnøkkel()
+    )
 ) =
     Utbetaling(
         id = id,

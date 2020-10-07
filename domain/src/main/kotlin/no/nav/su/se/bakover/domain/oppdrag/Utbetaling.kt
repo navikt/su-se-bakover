@@ -30,6 +30,7 @@ data class Utbetaling(
         // TODO jah: I en annen pull-request bør vi utvide en utbetaling til å være en sealed class med de forskjellig typene utbetaling.
         it.beløp == 0 // Stopputbetalinger vil ha beløp 0. Vi ønsker ikke å stoppe en stopputbetaling.
     } ?: false
+
     fun kanSlettes() = oppdragsmelding == null && kvittering == null
 
     object Opprettet : Comparator<Utbetaling> {

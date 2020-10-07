@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 
 internal class AvstemmingPostgresRepoTest {
@@ -69,7 +70,7 @@ internal class AvstemmingPostgresRepoTest {
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = "",
-                    tidspunkt = oppdragsmeldingTidspunkt
+                    Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
                 )
             )
 
@@ -79,7 +80,7 @@ internal class AvstemmingPostgresRepoTest {
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                     originalMelding = "",
-                    tidspunkt = oppdragsmeldingTidspunkt
+                    Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
                 )
             )
 
@@ -110,7 +111,7 @@ internal class AvstemmingPostgresRepoTest {
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = "",
-                    tidspunkt = 11.oktober(2020).startOfDay()
+                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
                 )
             )
 
@@ -120,7 +121,7 @@ internal class AvstemmingPostgresRepoTest {
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = "",
-                    tidspunkt = 11.oktober(2020).endOfDay()
+                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
                 )
             )
 
@@ -130,7 +131,7 @@ internal class AvstemmingPostgresRepoTest {
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = "",
-                    tidspunkt = 12.oktober(2020).startOfDay()
+                    avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
                 )
             )
 
@@ -154,7 +155,8 @@ internal class AvstemmingPostgresRepoTest {
                 utbetalingId = utbetaling.id,
                 oppdragsmelding = Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                    originalMelding = ""
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
                 )
             )
 

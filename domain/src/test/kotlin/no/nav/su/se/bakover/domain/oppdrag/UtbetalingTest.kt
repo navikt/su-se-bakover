@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
@@ -47,7 +48,8 @@ internal class UtbetalingTest {
         createUtbetaling().copy(
             oppdragsmelding = Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                "some xml"
+                "some xml",
+                Avstemmingsnøkkel()
             )
         ).also {
             it.erOversendt() shouldBe true
@@ -55,7 +57,8 @@ internal class UtbetalingTest {
         createUtbetaling().copy(
             oppdragsmelding = Oppdragsmelding(
                 Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                "some xml"
+                "some xml",
+                Avstemmingsnøkkel()
             )
         ).also {
             it.erOversendt() shouldBe false

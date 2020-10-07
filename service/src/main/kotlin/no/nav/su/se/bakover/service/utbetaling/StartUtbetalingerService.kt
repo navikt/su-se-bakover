@@ -3,22 +3,26 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 class StartUtbetalingerService(
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
     private val utbetalingService: UtbetalingService,
-    private val sakService: SakService
+    private val sakService: SakService,
+    private val clock: Clock = Clock.systemUTC()
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -77,7 +81,8 @@ class StartUtbetalingerService(
         val nyUtbetaling = NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
-            attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            attestant = Attestant("SU"), // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
         val simulertUtbetaling = simuleringClient.simulerUtbetaling(nyUtbetaling).fold(

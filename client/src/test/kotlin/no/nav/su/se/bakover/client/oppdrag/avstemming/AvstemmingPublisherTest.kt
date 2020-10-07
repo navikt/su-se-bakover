@@ -9,9 +9,11 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 
 class AvstemmingPublisherTest {
@@ -43,7 +45,11 @@ class AvstemmingPublisherTest {
             Utbetaling(
                 utbetalingslinjer = listOf(),
                 fnr = Fnr("12345678910"),
-                oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "")
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                )
             )
         )
     )

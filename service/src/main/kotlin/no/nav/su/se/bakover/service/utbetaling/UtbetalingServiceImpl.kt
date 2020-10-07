@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.slf4j.LoggerFactory
 
@@ -20,17 +21,19 @@ internal class UtbetalingServiceImpl(
         return repo.hentUtbetaling(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
     }
 
-    override fun oppdaterMedKvittering(utbetalingId: UUID30, kvittering: Kvittering): Either<FantIkkeUtbetaling, Utbetaling> {
-        return hentUtbetaling(utbetalingId)
-            .mapLeft { FantIkkeUtbetaling }
-            .map {
+    override fun oppdaterMedKvittering(
+        avstemmingsnøkkel: Avstemmingsnøkkel,
+        kvittering: Kvittering
+    ): Either<FantIkkeUtbetaling, Utbetaling> {
+        return repo.hentUtbetaling(avstemmingsnøkkel)
+            ?.let {
                 if (it.erKvittert()) {
                     log.info("Kvittering er allerede mottatt for utbetaling: ${it.id}")
                     it
                 } else {
-                    repo.oppdaterMedKvittering(utbetalingId, kvittering)
-                }
-            }
+                    repo.oppdaterMedKvittering(it.id, kvittering)
+                }.right()
+            } ?: FantIkkeUtbetaling.left()
     }
 
     override fun slettUtbetaling(utbetaling: Utbetaling) {

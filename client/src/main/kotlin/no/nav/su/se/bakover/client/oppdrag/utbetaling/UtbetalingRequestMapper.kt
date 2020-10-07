@@ -4,13 +4,10 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 
 internal fun toUtbetalingRequest(
-    nyUtbetaling: NyUtbetaling,
-    tidspunkt: Tidspunkt = Tidspunkt.now()
+    nyUtbetaling: NyUtbetaling
 ): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
@@ -24,8 +21,8 @@ internal fun toUtbetalingRequest(
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
-                nokkelAvstemming = "${Avstemmingsnøkkel.generer(tidspunkt)}",
-                tidspktMelding = tidspunkt.toOppdragTimestamp(),
+                nokkelAvstemming = nyUtbetaling.avstemmingsnøkkel.toString(),
+                tidspktMelding = nyUtbetaling.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.KODE_KOMPONENT
             ),
             oppdragslinjer = nyUtbetaling.utbetaling.utbetalingslinjer.map {

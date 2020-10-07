@@ -35,8 +35,8 @@ internal class UtbetalingKvitteringResponseTest {
                 saksbehId = "SU",
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
-                    nokkelAvstemming = "2a08e16a-7569-47cd-b600-039158",
-                    tidspktMelding = "2020-09-02-15.57.08.298000"
+                    nokkelAvstemming = avstemmingsnøkkelIXml,
+                    tidspktMelding = avstemmingsnøkkelTidspunktIXml
                 ),
                 oppdragsEnheter = listOf(
                     UtbetalingRequest.OppdragsEnhet(
@@ -68,8 +68,11 @@ internal class UtbetalingKvitteringResponseTest {
     }
 
     companion object {
+        val avstemmingsnøkkelIXml: String = "7282171188123456"
+        val avstemmingsnøkkelTidspunktIXml = "2200-10-06-09.19.48.123456"
+
         //language=XML
-        fun kvitteringXml(nokkelAvstemming: String = "2a08e16a-7569-47cd-b600-039158") =
+        fun kvitteringXml() =
             """
 <?xml version="1.0" encoding="UTF-8"?>
 <oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
@@ -88,8 +91,8 @@ internal class UtbetalingKvitteringResponseTest {
       <saksbehId>SU</saksbehId>
       <avstemming-115>
          <kodeKomponent>SU</kodeKomponent>
-         <nokkelAvstemming>$nokkelAvstemming</nokkelAvstemming>
-         <tidspktMelding>2020-09-02-15.57.08.298000</tidspktMelding>
+         <nokkelAvstemming>$avstemmingsnøkkelIXml</nokkelAvstemming>
+         <tidspktMelding>$avstemmingsnøkkelTidspunktIXml</tidspktMelding>
       </avstemming-115>
       <oppdrags-enhet-120>
          <typeEnhet>BOS</typeEnhet>
