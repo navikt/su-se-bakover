@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -16,9 +15,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
@@ -37,6 +34,8 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withBehandlingId
+import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -44,7 +43,6 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.behandlingRoutes(
     brevService: BrevService,
-    personOppslag: PersonOppslag,
     behandlingService: BehandlingService,
     sakService: SakService,
 ) {
@@ -157,29 +155,46 @@ internal fun Route.behandlingRoutes(
     }
 
     post("$behandlingPath/{behandlingId}/tilAttestering") {
-        // TODO: Short circuit
-        call.withBehandling(behandlingService) { behandling ->
-            sakService.hentSak(behandling.sakId)
-                .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-                .map { sak ->
-                    val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-                        log.error("Fant ikke aktør-id med gitt fødselsnummer")
-                        throw RuntimeException("Kunne ikke finne aktørid")
+        call.withBehandlingId { behandlingId ->
+            call.withSakId { sakId ->
+                val saksBehandler = Saksbehandler(call.lesBehandlerId())
+                behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
+                    {
+                        call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+                    },
+                    {
+                        call.audit("Sender behandling med id: ${it.id} til attestering")
+                        call.svar(OK.jsonBody(it))
                     }
-                    val saksBehandler = Saksbehandler(call.lesBehandlerId())
-
-                    behandlingService.sendTilAttestering(behandling.id, aktørId, saksBehandler).fold(
-                        {
-                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
-                        },
-                        {
-                            call.audit("Sender behandling med id: ${it.id} til attestering")
-                            call.svar(OK.jsonBody(it))
-                        }
-                    )
-                }
+                )
+            }
         }
     }
+
+//    post("$behandlingPath/{behandlingId}/tilAttestering") {
+//        // TODO: Short circuit
+//        call.withBehandling(behandlingService) { behandling ->
+//            sakService.hentSak(behandling.sakId)
+//                .mapLeft { throw RuntimeException("Sak id finnes ikke") }
+//                .map { sak ->
+//                    val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
+//                        log.error("Fant ikke aktør-id med gitt fødselsnummer")
+//                        throw RuntimeException("Kunne ikke finne aktørid")
+//                    }
+//                    val saksBehandler = Saksbehandler(call.lesBehandlerId())
+//
+//                    behandlingService.sendTilAttestering(behandling.id, aktørId, saksBehandler).fold(
+//                        {
+//                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+//                        },
+//                        {
+//                            call.audit("Sender behandling med id: ${it.id} til attestering")
+//                            call.svar(OK.jsonBody(it))
+//                        }
+//                    )
+//                }
+//        }
+//    }
 
     patch("$behandlingPath/{behandlingId}/iverksett") {
         if (!call.erAttestant()) {

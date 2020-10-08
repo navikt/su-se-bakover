@@ -50,7 +50,8 @@ class ServiceBuilder(
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 søknadService = søknadService,
-                sakService = sakService
+                sakService = sakService,
+                personOppslag = clients.personOppslag
             ),
             sak = sakService,
             søknad = søknadService,

@@ -1,8 +1,18 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
+internal data class OppgaveSøkResponse(
+    val oppgaver: List<OppgaveSøkeResultat>
+)
+
+internal data class FerdigstillResponse(
+    val id: Long,
+    val versjon: Int,
+    val status: String
+)
 internal data class OppgaveResponse(
     val id: Long,
     val tildeltEnhetsnr: String,

@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import arrow.core.Either
+import no.nav.su.se.bakover.domain.AktørId
 
 interface OppgaveClient {
     fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long>
+    fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int>
 }
 
-data class KunneIkkeOppretteOppgave(
-    val statuskode: Int,
-    val melding: String
-)
+object KunneIkkeOppretteOppgave
+object KunneIkkeFerdigstilleOppgave

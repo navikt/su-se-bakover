@@ -170,7 +170,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { opprettet.simuler(defaultUtbetaling()) }
             assertThrows<Behandling.TilstandException> {
                 opprettet.sendTilAttestering(
-                    aktørId,
                     Saksbehandler("S123456")
                 )
             }
@@ -307,7 +306,6 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> { vilkårsvurdert.simuler(defaultUtbetaling()) }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.sendTilAttestering(
-                    aktørId,
                     Saksbehandler("S123456")
                 )
             }
@@ -335,7 +333,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            vilkårsvurdert.sendTilAttestering(aktørId, saksbehandler)
+            vilkårsvurdert.sendTilAttestering(saksbehandler)
             vilkårsvurdert.status() shouldBe TIL_ATTESTERING_AVSLAG
 
             vilkårsvurdert.saksbehandler() shouldBe saksbehandler
@@ -403,7 +401,6 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
                 beregnet.sendTilAttestering(
-                    aktørId,
                     Saksbehandler("S123456")
                 )
             }
@@ -457,7 +454,7 @@ internal class BehandlingTest {
             @Test
             fun `skal kunne sende til attestering`() {
                 val saksbehandler = Saksbehandler("S123456")
-                beregnet.sendTilAttestering(aktørId, saksbehandler)
+                beregnet.sendTilAttestering(saksbehandler)
 
                 beregnet.status() shouldBe TIL_ATTESTERING_AVSLAG
                 beregnet.saksbehandler() shouldBe saksbehandler
@@ -494,7 +491,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne sende til attestering`() {
             val saksbehandler = Saksbehandler("S123456")
-            simulert.sendTilAttestering(aktørId, saksbehandler)
+            simulert.sendTilAttestering(saksbehandler)
 
             simulert.status() shouldBe TIL_ATTESTERING_INNVILGET
             simulert.saksbehandler() shouldBe saksbehandler
@@ -582,7 +579,7 @@ internal class BehandlingTest {
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             tilAttestering.simuler(defaultUtbetaling())
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
+            tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
 
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
@@ -613,7 +610,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
             }
         }
     }
@@ -628,7 +625,7 @@ internal class BehandlingTest {
             tilAttestering.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
-            tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
+            tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
         }
 
@@ -658,7 +655,7 @@ internal class BehandlingTest {
                 tilAttestering.simuler(defaultUtbetaling())
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.sendTilAttestering(AktørId(id1.toString()), Saksbehandler("S123456"))
+                tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
             }
         }
     }

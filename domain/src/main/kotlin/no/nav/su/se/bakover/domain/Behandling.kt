@@ -97,10 +97,9 @@ data class Behandling(
     }
 
     fun sendTilAttestering(
-        aktørId: AktørId,
         saksbehandler: Saksbehandler
     ): Behandling {
-        return tilstand.sendTilAttestering(aktørId, saksbehandler)
+        return tilstand.sendTilAttestering(saksbehandler)
     }
 
     fun iverksett(
@@ -136,7 +135,6 @@ data class Behandling(
         }
 
         fun sendTilAttestering(
-            aktørId: AktørId,
             saksbehandler: Saksbehandler
         ): Behandling {
             throw TilstandException(status, this::sendTilAttestering.toString())
@@ -216,7 +214,6 @@ data class Behandling(
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override fun sendTilAttestering(
-                aktørId: AktørId,
                 saksbehandler: Saksbehandler,
             ): Behandling {
                 this@Behandling.saksbehandler = saksbehandler
@@ -251,7 +248,6 @@ data class Behandling(
             }
 
             override fun sendTilAttestering(
-                aktørId: AktørId,
                 saksbehandler: Saksbehandler,
             ): Behandling {
                 this@Behandling.saksbehandler = saksbehandler
@@ -265,7 +261,6 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
-            aktørId: AktørId,
             saksbehandler: Saksbehandler
         ): Behandling {
             this@Behandling.saksbehandler = saksbehandler

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
 import java.util.UUID
+import kotlin.random.Random
 
 internal class BehandlingRoutesKtTest {
 
@@ -112,7 +115,11 @@ internal class BehandlingRoutesKtTest {
                 clients = testClients.copy(
                     oppgaveClient = object : OppgaveClient {
                         override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
-                            return Either.left(KunneIkkeOppretteOppgave(500, "Kunne ikke opprette oppgave"))
+                            return Either.left(KunneIkkeOppretteOppgave)
+                        }
+
+                        override fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+                            return Random.nextInt().right()
                         }
                     }
                 )
@@ -449,7 +456,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("randomoid")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.sak.id,
+                        objects.behandling.id,
+                        Saksbehandler("randomoid")
+                    )
+                }
             )
 
             defaultRequest(
@@ -532,7 +545,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456oid")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.sak.id,
+                        objects.behandling.id,
+                        Saksbehandler("S123456oid")
+                    )
+                }
             )
 
             defaultRequest(
@@ -663,7 +682,13 @@ internal class BehandlingRoutesKtTest {
             )
             services.behandling.simuler(objects.behandling.id).fold(
                 { it },
-                { services.behandling.sendTilAttestering(objects.behandling.id, AktørId("aktørId"), Saksbehandler("S123456")) }
+                {
+                    services.behandling.sendTilAttestering(
+                        objects.sak.id,
+                        objects.behandling.id,
+                        Saksbehandler("S123456")
+                    )
+                }
             )
 
             requestSomAttestant(
