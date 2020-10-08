@@ -14,14 +14,14 @@ import java.time.format.DateTimeFormatter
 data class UtbetalingJson(
     val id: String,
     val opprettet: String,
-    val simulering: SimuleringJson?,
+    val simulering: SimuleringJson?
 ) {
     companion object {
         fun Utbetaling.toJson() =
             UtbetalingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                simulering = simulering?.toJson(),
+                simulering = simulering?.toJson()
             )
 
         internal fun HttpStatusCode.jsonBody(utbetaling: Utbetaling) =
