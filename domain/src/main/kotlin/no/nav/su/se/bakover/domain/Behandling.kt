@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
 
@@ -92,7 +91,7 @@ data class Behandling(
         return this
     }
 
-    fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+    fun simuler(utbetaling: Utbetaling): Behandling {
         return tilstand.simuler(utbetaling)
     }
 
@@ -130,7 +129,7 @@ data class Behandling(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        fun simuler(utbetaling: Utbetaling): Behandling {
             throw TilstandException(status, this::simuler.toString())
         }
 
@@ -162,10 +161,12 @@ data class Behandling(
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
             if (this@Behandling.beregning != null) {
-                this@Behandling.beregning = null // TODO we need to discuss how to divide responsibility between service and domain.
+                this@Behandling.beregning =
+                    null // TODO we need to discuss how to divide responsibility between service and domain.
             }
 
-            behandlingsinformasjon = behandlingsinformasjon.patch(oppdatert) // TODO we need to discuss how to divide responsibility between service and domain.
+            behandlingsinformasjon =
+                behandlingsinformasjon.patch(oppdatert) // TODO we need to discuss how to divide responsibility between service and domain.
             if (behandlingsinformasjon.isInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
             } else if (behandlingsinformasjon.isAvslag()) {
@@ -234,16 +235,16 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        override fun simuler(utbetaling: Utbetaling): Behandling {
             // TODO just passing the utbetaling for now for backwards compatability
             this@Behandling.utbetaling = utbetaling
             nyTilstand(Simulert())
-            return this@Behandling.right()
+            return this@Behandling
         }
 
         inner class Avslag : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
-            override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+            override fun simuler(utbetaling: Utbetaling): Behandling {
                 throw TilstandException(status, this::simuler.toString())
             }
 
@@ -276,7 +277,7 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Either<SimuleringFeilet, Behandling> {
+        override fun simuler(utbetaling: Utbetaling): Behandling {
             return nyTilstand(Beregnet()).simuler(utbetaling)
         }
     }
@@ -288,7 +289,7 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
-                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
@@ -302,7 +303,7 @@ data class Behandling(
             override fun iverksett(
                 attestant: Attestant
             ): Either<IverksettFeil, Behandling> {
-                if (attestant.id == this@Behandling.saksbehandler?.id) {
+                if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
                 }
                 this@Behandling.attestant = attestant
@@ -312,11 +313,11 @@ data class Behandling(
         }
 
         override fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
-            if (attestant.id == this@Behandling.saksbehandler?.id) {
+            if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return KunneIkkeUnderkjenne().left()
             }
 
-            hendelseslogg.hendelse(UnderkjentAttestering(attestant.id, begrunnelse))
+            hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
             nyTilstand(Simulert())
             return this@Behandling.right()
         }
@@ -341,7 +342,7 @@ data class Behandling(
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
         IVERKSATT_INNVILGET,
-        IVERKSATT_AVSLAG
+        IVERKSATT_AVSLAG,
     }
 
     class TilstandException(
@@ -352,7 +353,9 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
+            IverksettFeil()
+
         class Utbetaling(val msg: String) : IverksettFeil()
     }
 

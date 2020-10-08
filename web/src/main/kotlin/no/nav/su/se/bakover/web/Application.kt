@@ -44,7 +44,12 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
+import no.nav.su.se.bakover.web.features.IkkeInitialisert
+import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
+import no.nav.su.se.bakover.web.features.ManglerAuthHeader
 import no.nav.su.se.bakover.web.features.SuUserFeature
+import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
@@ -131,6 +136,20 @@ internal fun Application.susebakover(
     }
 
     install(StatusPages) {
+        exception<SuUserFeaturefeil> {
+            log.error("Got SuUserFeaturefeil with message=${it.message}", it)
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ErrorJson(
+                    when (it) {
+                        is KallMotMicrosoftGraphApiFeilet ->
+                            "Kunne ikke hente informasjon om innlogget bruker"
+                        is ManglerAuthHeader, IkkeInitialisert, FantBrukerMenManglerNAVIdent ->
+                            "En feil oppstod"
+                    }
+                )
+            )
+        }
         exception<UgyldigFnrException> {
             log.error("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))

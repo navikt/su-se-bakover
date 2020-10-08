@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.erAttestant
-import no.nav.su.se.bakover.web.lesBehandlerId
+import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -157,7 +157,7 @@ internal fun Route.behandlingRoutes(
     post("$behandlingPath/{behandlingId}/tilAttestering") {
         call.withBehandlingId { behandlingId ->
             call.withSakId { sakId ->
-                val saksBehandler = Saksbehandler(call.lesBehandlerId())
+                val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
                 behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
                     {
                         call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
@@ -171,31 +171,6 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-//    post("$behandlingPath/{behandlingId}/tilAttestering") {
-//        // TODO: Short circuit
-//        call.withBehandling(behandlingService) { behandling ->
-//            sakService.hentSak(behandling.sakId)
-//                .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-//                .map { sak ->
-//                    val aktørId: AktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-//                        log.error("Fant ikke aktør-id med gitt fødselsnummer")
-//                        throw RuntimeException("Kunne ikke finne aktørid")
-//                    }
-//                    val saksBehandler = Saksbehandler(call.lesBehandlerId())
-//
-//                    behandlingService.sendTilAttestering(behandling.id, aktørId, saksBehandler).fold(
-//                        {
-//                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
-//                        },
-//                        {
-//                            call.audit("Sender behandling med id: ${it.id} til attestering")
-//                            call.svar(OK.jsonBody(it))
-//                        }
-//                    )
-//                }
-//        }
-//    }
-
     patch("$behandlingPath/{behandlingId}/iverksett") {
         if (!call.erAttestant()) {
             return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
@@ -203,17 +178,18 @@ internal fun Route.behandlingRoutes(
 
         call.withBehandling(behandlingService) { behandling ->
             call.audit("Iverksetter behandling med id: ${behandling.id}")
+            val navIdent = call.suUserContext.getNAVIdent()
+
             sakService.hentSak(behandling.sakId)
                 .mapLeft { throw RuntimeException("Sak id finnes ikke") }
                 .map { sak ->
                     // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-                    // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
                     brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                         ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                         ifRight = {
                             behandlingService.iverksett(
                                 behandlingId = behandling.id,
-                                attestant = Attestant(id = call.lesBehandlerId())
+                                attestant = Attestant(navIdent)
                             ).fold(
                                 {
                                     when (it) {
@@ -233,11 +209,11 @@ internal fun Route.behandlingRoutes(
         if (!call.erAttestant()) {
             return@patch call.svar(Forbidden.message("Du har ikke tillgang."))
         }
+        val navIdent = call.suUserContext.getNAVIdent()
 
         call.withBehandling(behandlingService) { behandling ->
             call.audit("behandling med id: ${behandling.id} godkjennes ikke")
             // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-            // TODO jah: lesBehandlerId() henter bare oid fra JWT som er en UUID. Her er det nok heller ønskelig med 7-tegns ident
 
             Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                 ifLeft = {
@@ -248,7 +224,7 @@ internal fun Route.behandlingRoutes(
                     if (body.valid()) {
                         behandlingService.underkjenn(
                             begrunnelse = body.begrunnelse,
-                            attestant = Attestant(call.lesBehandlerId()),
+                            attestant = Attestant(navIdent),
                             behandling = behandling
                         ).fold(
                             ifLeft = {

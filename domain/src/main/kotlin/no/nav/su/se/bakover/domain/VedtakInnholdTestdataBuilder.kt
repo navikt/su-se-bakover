@@ -5,8 +5,8 @@ package no.nav.su.se.bakover.domain
  */
 object VedtakInnholdTestdataBuilder {
 
-    fun build(): VedtakInnhold {
-        return VedtakInnhold(
+    fun build(): VedtakInnhold.Innvilgelsesvedtak {
+        return VedtakInnhold.Innvilgelsesvedtak(
             dato = "01.01.2020",
             fødselsnummer = Fnr("12345678901"),
             fornavn = "Tore",
@@ -26,9 +26,6 @@ object VedtakInnholdTestdataBuilder {
             harEktefelle = true,
             fradrag = emptyList(),
             fradragSum = 0,
-            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
-            avslagsgrunn = Avslagsgrunn.FLYKTNING,
-            halvGrunnbeløp = 50
         )
     }
 }

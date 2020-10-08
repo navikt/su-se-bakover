@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -153,6 +154,38 @@ internal class StansUtbetalingServiceTest {
     }
 
     @Test
+    fun `svarer med feil dersom simulering inneholder beløp større enn 0`() {
+        val setup = Setup()
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on {
+                simulerUtbetaling(any())
+            } doAnswer (
+                Answer {
+                    setup.nySimulering.copy(nettoBeløp = 6000).right()
+                }
+                )
+        }
+
+        val utbetalingServiceMock: UtbetalingService = mock()
+
+        val service = StansUtbetalingService(
+            simuleringClient = simuleringClientMock,
+            clock = setup.clock,
+            utbetalingPublisher = mock(),
+            utbetalingService = utbetalingServiceMock
+        )
+
+        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+
+        actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
+
+        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+
+        verifyNoMoreInteractions(simuleringClientMock, utbetalingServiceMock)
+    }
+
+    @Test
     fun `Sjekk at vi svarer furnuftig når publisering feiler`() {
         val setup = Setup()
         val simuleringClientMock = mock<SimuleringClient> {
@@ -185,7 +218,7 @@ internal class StansUtbetalingServiceTest {
                 publish(any())
             } doAnswer (
                 Answer {
-                    KunneIkkeSendeUtbetaling("").left()
+                    KunneIkkeSendeUtbetaling(Oppdragsmelding(SENDT, "", Avstemmingsnøkkel())).left()
                 }
                 )
         }
@@ -232,7 +265,7 @@ internal class StansUtbetalingServiceTest {
                 originalKvittering = "<someXml></someXml>",
                 mottattTidspunkt = Tidspunkt.EPOCH
             ),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = UUID30.randomUUID(),
@@ -267,8 +300,8 @@ internal class StansUtbetalingServiceTest {
             fnr = fnr,
             oppdrag = eksisterendeOppdrag
         ),
-        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, ""),
-        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "")
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
+        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
     ) {
 
         fun forventetNyUtbetaling(
@@ -278,7 +311,8 @@ internal class StansUtbetalingServiceTest {
         ) = NyUtbetaling(
             oppdrag = eksisterendeOppdrag,
             utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding),
-            attestant = attestant
+            attestant = attestant,
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
         /**

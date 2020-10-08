@@ -16,6 +16,16 @@ internal class SimuleringTest {
         simulering.bruttoYtelse() shouldBe 41274
         simulering.periodeList[0].bruttoYtelse() shouldBe 20637
         simulering.periodeList[1].bruttoYtelse() shouldBe 20637
+
+        simulering.copy(
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
+                    utbetaling = listOf()
+                )
+            )
+        ).bruttoYtelse() shouldBe 0
     }
 
     private val FNR = Fnr("07028820547")

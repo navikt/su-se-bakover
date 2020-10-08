@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsperiode
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService.ValidertStansUtbetaling.Companion.validerStansUtbetaling
@@ -51,12 +53,13 @@ class StansUtbetalingService(
         val utbetalingForSimulering = NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
-            attestant = Attestant("SU") // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            attestant = Attestant("SU"), // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
         val simulertUtbetaling = simuleringClient.simulerUtbetaling(utbetalingForSimulering).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulering ->
-                if (simulering.nettoBeløp != 0) {
+                if (simulering.nettoBeløp != 0 || simulering.bruttoYtelse() != 0) {
                     log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, men nettobeløp i simulering var ${simulering.nettoBeløp}")
                     return KunneIkkeStanseUtbetalinger.left()
                 }

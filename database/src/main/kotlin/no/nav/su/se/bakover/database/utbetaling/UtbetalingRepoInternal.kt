@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.utbetaling
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.OppdragsmeldingJson
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -51,8 +51,8 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
         oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
             objectMapper.readValue(
                 it,
-                Oppdragsmelding::class.java
-            )
+                OppdragsmeldingJson::class.java
+            ).toOppdragsmelding() // TODO should probably find a better solution to this
         },
         utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session),
         avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) },

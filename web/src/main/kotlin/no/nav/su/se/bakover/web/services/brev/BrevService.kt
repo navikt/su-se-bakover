@@ -42,39 +42,77 @@ class BrevService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    companion object {
-        fun lagVedtakInnhold(person: Person, behandling: Behandling): VedtakInnhold {
-            val fnr = behandling.søknad.søknadInnhold.personopplysninger.fnr
-            val avslagsgrunn = avslagsgrunnForBehandling(behandling)
-            val satsgrunn = satsgrunnForBehandling(behandling)
-            val førsteMånedsberegning = behandling.beregning()?.månedsberegninger?.firstOrNull()
-
-            return VedtakInnhold(
-                dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                fødselsnummer = fnr,
-                fornavn = person.navn.fornavn,
-                etternavn = person.navn.etternavn,
-                adresse = person.adresse?.adressenavn,
-                bruksenhet = person.adresse?.bruksenhet,
-                husnummer = person.adresse?.husnummer,
-                postnummer = person.adresse?.poststed?.postnummer,
-                poststed = person.adresse?.poststed?.poststed,
-                status = behandling.status(),
-                avslagsgrunn = avslagsgrunn,
-                fradato = behandling.beregning()?.fraOgMed?.formatMonthYear(),
-                tildato = behandling.beregning()?.tilOgMed?.formatMonthYear(),
-                sats = behandling.beregning()?.sats.toString().toLowerCase(),
-                satsbeløp = førsteMånedsberegning?.satsBeløp,
-                satsGrunn = satsgrunn,
-                redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
-                harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-                månedsbeløp = førsteMånedsberegning?.beløp,
-                fradrag = behandling.beregning()?.fradrag?.toFradragPerMåned() ?: emptyList(),
-                fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
-                    ?.sumBy { fradrag -> fradrag.beløp } ?: 0,
-                halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
-            )
+    private fun lagVedtaksinnhold(person: Person, behandling: Behandling): VedtakInnhold =
+        when {
+            erAvslått(behandling) -> lagAvslagsvedtak(person, behandling)
+            erInnvilget(behandling) -> lagInnvilgelsesvedtak(person, behandling)
+            else -> throw java.lang.RuntimeException("Kan ikke lage vedtaksinnhold for behandling som ikke er avslått/innvilget")
         }
+
+    private fun lagAvslagsvedtak(person: Person, behandling: Behandling) =
+        VedtakInnhold.Avslagsvedtak(
+            dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+            fødselsnummer = behandling.søknad.søknadInnhold.personopplysninger.fnr,
+            fornavn = person.navn.fornavn,
+            etternavn = person.navn.etternavn,
+            adresse = person.adresse?.adressenavn,
+            bruksenhet = person.adresse?.bruksenhet,
+            husnummer = person.adresse?.husnummer,
+            postnummer = person.adresse?.poststed?.postnummer,
+            poststed = person.adresse?.poststed?.poststed!!,
+            satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
+            fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0,
+            avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
+            halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
+        )
+
+    private fun lagInnvilgelsesvedtak(person: Person, behandling: Behandling): VedtakInnhold.Innvilgelsesvedtak {
+        val førsteMånedsberegning =
+            behandling.beregning()!!.månedsberegninger.firstOrNull()!! // Støtte för variende beløp i framtiden?
+
+        return VedtakInnhold.Innvilgelsesvedtak(
+            dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+            fødselsnummer = behandling.søknad.søknadInnhold.personopplysninger.fnr,
+            fornavn = person.navn.fornavn,
+            etternavn = person.navn.etternavn,
+            adresse = person.adresse?.adressenavn,
+            bruksenhet = person.adresse?.bruksenhet,
+            husnummer = person.adresse?.husnummer,
+            postnummer = person.adresse?.poststed?.postnummer,
+            poststed = person.adresse?.poststed?.poststed!!,
+            månedsbeløp = førsteMånedsberegning.beløp,
+            fradato = behandling.beregning()!!.fraOgMed.formatMonthYear(),
+            tildato = behandling.beregning()!!.tilOgMed.formatMonthYear(),
+            sats = behandling.beregning()?.sats.toString().toLowerCase(),
+            satsbeløp = førsteMånedsberegning.satsBeløp,
+            satsGrunn = satsgrunnForBehandling(behandling)!!,
+            redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
+            harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
+            fradrag = behandling.beregning()!!.fradrag.toFradragPerMåned(),
+            fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned().sumBy { fradrag -> fradrag.beløp },
+        )
+    }
+
+    private fun erInnvilget(behandling: Behandling): Boolean {
+        val innvilget = listOf(
+            Behandling.BehandlingsStatus.SIMULERT,
+            Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+        )
+
+        return innvilget.contains(behandling.status())
+    }
+
+    private fun erAvslått(behandling: Behandling): Boolean {
+        val avslått = listOf(
+            Behandling.BehandlingsStatus.BEREGNET_AVSLAG,
+            Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
+            Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
+            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+        )
+
+        return avslått.contains(behandling.status())
     }
 
     fun journalførVedtakOgSendBrev(
@@ -91,7 +129,7 @@ class BrevService(
             Journalpost.Vedtakspost(
                 person = person,
                 sakId = sak.id.toString(),
-                vedtakInnhold = lagVedtakInnhold(person, behandling),
+                vedtakInnhold = lagVedtaksinnhold(person, behandling),
                 pdf = brevInnhold
             )
         ).fold(
@@ -134,13 +172,11 @@ class BrevService(
         behandling: Behandling,
         person: Person
     ): Either<ClientError, ByteArray> {
-        val vedtakinnhold = lagVedtakInnhold(person, behandling)
-        val innvilget = listOf(
-            Behandling.BehandlingsStatus.SIMULERT,
-            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
-        )
-        val template = if (innvilget.contains(vedtakinnhold.status)) Vedtakstype.INNVILGELSE else Vedtakstype.AVSLAG
+        val vedtakinnhold = lagVedtaksinnhold(person, behandling)
+        val template = when (vedtakinnhold) {
+            is VedtakInnhold.Innvilgelsesvedtak -> Vedtakstype.INNVILGELSE
+            is VedtakInnhold.Avslagsvedtak -> Vedtakstype.AVSLAG
+        }
 
         return pdfGenerator.genererPdf(vedtakinnhold, template)
             .mapLeft {

@@ -213,15 +213,15 @@ data class Behandlingsinformasjon(
                 // Det _bør_ være trygt fordi gyldighet av objektet skal bli sjekket andre plasser
                 when (delerBoligMed!!) {
                     Boforhold.DelerBoligMed.VOKSNE_BARN ->
-                        Sats.LAV
+                        Sats.ORDINÆR
                     Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
-                        Sats.LAV
+                        Sats.ORDINÆR
                     Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER ->
                         if (!ektemakeEllerSamboerUnder67År!!) {
-                            Sats.LAV
+                            Sats.ORDINÆR
                         } else {
                             if (ektemakeEllerSamboerUførFlyktning!!) {
-                                Sats.LAV
+                                Sats.ORDINÆR
                             } else {
                                 Sats.HØY
                             }

@@ -1,16 +1,16 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 
 data class Oppdragsmelding(
     val status: Oppdragsmeldingstatus,
     val originalMelding: String,
-    val tidspunkt: Tidspunkt = now()
+    val avstemmingsnøkkel: Avstemmingsnøkkel
 ) {
     enum class Oppdragsmeldingstatus {
         SENDT,
         FEIL
     }
+
     fun erSendt() = Oppdragsmeldingstatus.SENDT == status
 }

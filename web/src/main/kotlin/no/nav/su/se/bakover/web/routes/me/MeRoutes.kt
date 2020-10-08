@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.getGroupsFromJWT
-import org.slf4j.LoggerFactory
 
 data class UserData(
     val navn: String,
@@ -21,32 +20,21 @@ data class UserData(
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Route.meRoutes() {
-    val logger = LoggerFactory.getLogger(this::class.java)
-
     get("/me") {
-        val user = call.suUserContext.user!!
         val prince = call.authentication.principal
         val roller = getGroupsFromJWT(prince).filterMap {
             Brukerrolle.fromAzureGroup(it)
         }
 
-        user.fold(
-            ifLeft = {
-                logger.info("Feil ved henting av bruker: $it")
-                call.respond(HttpStatusCode.InternalServerError, "Feil under henting av bruker")
-            },
-            ifRight = {
-                call.respond(
-                    HttpStatusCode.OK,
-                    serialize(
-                        UserData(
-                            navn = it.displayName,
-                            navIdent = it.onPremisesSamAccountName!!,
-                            roller = roller
-                        )
-                    )
+        call.respond(
+            HttpStatusCode.OK,
+            serialize(
+                UserData(
+                    navn = call.suUserContext.user.displayName,
+                    navIdent = call.suUserContext.getNAVIdent(),
+                    roller = roller
                 )
-            }
+            )
         )
     }
 }

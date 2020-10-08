@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
@@ -36,6 +37,19 @@ internal class UtbetalingPostgresRepoTest {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling())
             val hentet = repo.hentUtbetaling(utbetaling.id)
+
+            utbetaling shouldBe hentet
+        }
+    }
+
+    @Test
+    fun `hent utbetaling fra avstemmingsnøkkel`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", Avstemmingsnøkkel())
+            val utbetaling = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling()).copy(oppdragsmelding = oppdragsmelding)
+            repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
+            val hentet = repo.hentUtbetaling(oppdragsmelding.avstemmingsnøkkel)!!
 
             utbetaling shouldBe hentet
         }
@@ -131,7 +145,11 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultUtbetaling())
-            val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "some xml")
+            val oppdragsmelding = Oppdragsmelding(
+                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                originalMelding = "some xml",
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            )
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
 
             val hentet = repo.hentUtbetaling(utbetaling.id)!!.oppdragsmelding!!
@@ -147,7 +165,14 @@ internal class UtbetalingPostgresRepoTest {
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
                 repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
-            repo.addOppdragsmelding(utbetaling.id, Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""))
+            repo.addOppdragsmelding(
+                utbetalingId = utbetaling.id,
+                oppdragsmelding = Oppdragsmelding(
+                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                )
+            )
 
             assertThrows<IllegalStateException> { repo.slettUtbetaling(repo.hentUtbetaling(utbetaling.id)!!) }
 

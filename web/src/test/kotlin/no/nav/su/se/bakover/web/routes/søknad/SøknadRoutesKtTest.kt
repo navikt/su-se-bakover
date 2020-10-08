@@ -109,23 +109,31 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
-        val pdfGenerator: PdfGenerator = mock() {
+        val pdfGenerator: PdfGenerator = mock {
             val captor = ArgumentCaptor.forClass(SøknadInnhold::class.java)
             on { genererPdf(capture<SøknadInnhold>(captor)) } doAnswer { PdfGeneratorStub.genererPdf(captor.value) }
         }
-        val dokArkiv: DokArkiv = mock() {
+        val dokArkiv: DokArkiv = mock {
             val captor = ArgumentCaptor.forClass(Journalpost.Søknadspost::class.java)
-            on { opprettJournalpost(capture<Journalpost.Søknadspost>(captor)) } doAnswer { DokArkivStub.opprettJournalpost(captor.value) }
+            on { opprettJournalpost(capture<Journalpost.Søknadspost>(captor)) } doAnswer {
+                DokArkivStub.opprettJournalpost(
+                    captor.value
+                )
+            }
         }
-        val personOppslag: PersonOppslag = mock() {
+        val personOppslag: PersonOppslag = mock {
             val fnrCaptor = ArgumentCaptor.forClass(Fnr::class.java)
             val aktørIdCaptor = ArgumentCaptor.forClass(Fnr::class.java)
             on { person(capture<Fnr>(fnrCaptor)) } doAnswer { PersonOppslagStub.person(fnrCaptor.value) }
             on { aktørId(capture<Fnr>(aktørIdCaptor)) } doAnswer { PersonOppslagStub.aktørId(aktørIdCaptor.value) }
         }
-        val oppgaveClient: OppgaveClient = mock() {
+        val oppgaveClient: OppgaveClient = mock {
             val captor = ArgumentCaptor.forClass(OppgaveConfig.Saksbehandling::class.java)
-            on { opprettOppgave(capture<OppgaveConfig.Saksbehandling>(captor)) } doAnswer { OppgaveClientStub.opprettOppgave(captor.value) }
+            on { opprettOppgave(capture<OppgaveConfig.Saksbehandling>(captor)) } doAnswer {
+                OppgaveClientStub.opprettOppgave(
+                    captor.value
+                )
+            }
         }
 
         val clients = TestClientsBuilder.build().copy(

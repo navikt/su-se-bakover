@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 enum class Sats(val grunnbeløp: Grunnbeløp) {
-    LAV(Grunnbeløp.`2,28G`),
+    ORDINÆR(Grunnbeløp.`2,28G`),
     HØY(Grunnbeløp.`2,48G`);
 
     fun fraDato(dato: LocalDate): Double = grunnbeløp.fraDato(dato)

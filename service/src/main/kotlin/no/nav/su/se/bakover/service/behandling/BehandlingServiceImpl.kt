@@ -106,16 +106,16 @@ internal class BehandlingServiceImpl(
         val utbetaling = oppdrag.genererUtbetaling(behandling.beregning()!!, sak.fnr)
         val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
-            .map {
+            .map { simulering ->
                 val beforeUpdate = behandling.copy() // need ref to existing utbetaling to delete
-                return behandling.simuler(utbetaling).map { behandling -> // invoke first to perform state-check
+                behandling.simuler(utbetaling).also { oppdatert -> // invoke first to perform state-check
                     beforeUpdate.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
                     utbetalingService.opprettUtbetaling(oppdrag.id, utbetaling)
-                    utbetalingService.addSimulering(utbetaling.id, it)
+                    utbetalingService.addSimulering(utbetaling.id, simulering)
                     behandlingRepo.leggTilUtbetaling(behandlingId, utbetaling.id)
-                    behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
-                    behandlingRepo.hentBehandling(behandlingId)!!
+                    behandlingRepo.oppdaterBehandlingStatus(oppdatert.id, oppdatert.status())
                 }
+                behandlingRepo.hentBehandling(behandlingId)!!
             }
     }
 

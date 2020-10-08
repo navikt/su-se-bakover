@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -39,7 +40,10 @@ import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class StartUtbetalingerServiceTest {
@@ -103,7 +107,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
             utbetalingService = utbetalingServiceMock,
-            utbetalingPublisher = publisherMock
+            utbetalingPublisher = publisherMock,
+            clock = setup.clock
         )
         val startetUtbetaling = service.startUtbetalinger(setup.sakId)
 
@@ -140,7 +145,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = repoMock,
             simuleringClient = mock(),
             utbetalingPublisher = mock(),
-            utbetalingService = mock()
+            utbetalingService = mock(),
+            clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
 
@@ -169,7 +175,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = repoMock,
             simuleringClient = mock(),
             utbetalingPublisher = mock(),
-            utbetalingService = mock()
+            utbetalingService = mock(),
+            clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
 
@@ -198,7 +205,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = repoMock,
             simuleringClient = mock(),
             utbetalingPublisher = mock(),
-            utbetalingService = mock()
+            utbetalingService = mock(),
+            clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
 
@@ -232,7 +240,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = repoMock,
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = mock(),
-            utbetalingService = mock()
+            utbetalingService = mock(),
+            clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
 
@@ -297,7 +306,8 @@ internal class StartUtbetalingerServiceTest {
             sakService = repoMock,
             simuleringClient = simuleringClientMock,
             utbetalingService = utbetalingServiceMock,
-            utbetalingPublisher = publisherMock
+            utbetalingPublisher = publisherMock,
+            clock = setup.clock
         )
         val startetUtbetaling = service.startUtbetalinger(setup.sakId)
 
@@ -319,10 +329,11 @@ internal class StartUtbetalingerServiceTest {
     }
 
     data class Setup(
+        val clock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
         val fnr: Fnr = Fnr("20128127969"),
         val sakId: UUID = UUID.fromString("3ae00766-f055-4f8f-b816-42f4b7f8bc96"),
-        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, ""),
-        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, ""),
+        val oppdragsmeldingSendt: Oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
+        val oppdragsmeldingFeil: Oppdragsmelding = Oppdragsmelding(FEIL, "", Avstemmingsnøkkel()),
         val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val eksisterendeUtbetalingslinje1: Utbetalingslinje = Utbetalingslinje(
@@ -351,17 +362,17 @@ internal class StartUtbetalingerServiceTest {
         ),
         val eksisterendeUtbetaling1: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje1),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         val eksisterendeUtbetaling2: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje2, eksisterendeUtbetalingslinje3),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         val eksisterendeStansutbetaling: Utbetaling = Utbetaling(
             utbetalingslinjer = listOf(eksisterendeStansUtbetalingslinje),
-            oppdragsmelding = Oppdragsmelding(SENDT, ""),
+            oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
         // Denne inneholder bare dummy-data inntil "avstemming" av simuleringen er på plass
@@ -397,7 +408,8 @@ internal class StartUtbetalingerServiceTest {
         ) = NyUtbetaling(
             oppdrag = eksisterendeOppdrag,
             utbetaling = forventetUtbetaling(actualUtbetaling, simulering, oppdragsmelding),
-            attestant = attestant
+            attestant = attestant,
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
         fun forventetUtbetaling(

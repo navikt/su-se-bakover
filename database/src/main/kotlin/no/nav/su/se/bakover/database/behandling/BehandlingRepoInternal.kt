@@ -50,6 +50,8 @@ internal fun Row.toBehandling(session: Session): Behandling {
         attestant = stringOrNull("attestant")?.let { Attestant(it) },
         saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
         sakId = uuid("sakId"),
-        hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session) ?: Hendelseslogg(behandlingId.toString())
+        hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session) ?: Hendelseslogg(
+            behandlingId.toString()
+        )
     )
 }

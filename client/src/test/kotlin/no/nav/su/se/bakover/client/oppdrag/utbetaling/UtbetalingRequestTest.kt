@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -126,9 +127,9 @@ internal class UtbetalingRequestTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456")
+                attestant = Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
-            tidspunkt = 1.januar(2020).startOfDay()
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -139,7 +140,11 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling(
-                    oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, ""),
+                    oppdragsmelding = Oppdragsmelding(
+                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+                        originalMelding = "",
+                        avstemmingsnøkkel = Avstemmingsnøkkel()
+                    ),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                         originalKvittering = "someFakeData",
@@ -184,9 +189,9 @@ internal class UtbetalingRequestTest {
             nyUtbetaling = NyUtbetaling(
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456")
+                attestant = Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
-            tidspunkt = 1.januar(2020).startOfDay()
         )
 
         utbetalingRequest shouldBe UtbetalingRequest(

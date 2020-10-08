@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import javax.sql.DataSource
 
@@ -16,6 +18,16 @@ internal class UtbetalingPostgresRepo(
 ) : UtbetalingRepo {
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
         dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
+
+    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling? =
+        dataSource.withSession { session ->
+            "select * from utbetaling where oppdragsmelding -> 'avstemmingsnøkkel' ->> 'nøkkel' = :nokkel".hent(
+                mapOf(
+                    "nokkel" to avstemmingsnøkkel.toString()
+                ),
+                session
+            ) { it.toUtbetaling(session) }
+        }
 
     override fun oppdaterMedKvittering(utbetalingId: UUID30, kvittering: Kvittering): Utbetaling {
         dataSource.withSession { session ->
