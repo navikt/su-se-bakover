@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
+import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
@@ -36,20 +38,29 @@ internal class SøknadPostgresRepoTest {
         }
     }
 
-    /*
     @Test
-    fun `slettet behandling for søknad skal ikke bli hentet`() {
+    fun `avsluttet søknad skal bli hentet med begrunnelse for avsluttelse`() {
         withMigratedDb {
-                val sak = testDataHelper.insertSak(FNR)
-                val søknad = repo.opprettSøknad(
-                    sakId = sak.id,
-                    søknad = Søknad(
-                        id = UUID.randomUUID(),
-                        søknadInnhold = SøknadInnholdTestdataBuilder.build()
-                    )
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = repo.opprettSøknad(
+                sakId = sak.id,
+                søknad = Søknad(
+                    id = UUID.randomUUID(),
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 )
-                repo.avsluttBehandlingForSøknad(søknadId = søknad.id, avsluttetBegrunnelse = AvsluttetBegrunnelse.Trukket)
-                repo.hentSøknad(søknad.id) shouldBe null
-            }
-    }*/
+            )
+
+            val avsluttSøknadsBehandlingBody = AvsluttSøknadsBehandlingBody(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                avsluttSøkndsBehandlingBegrunnelse = AvsluttSøkndsBehandlingBegrunnelse.Trukket
+            )
+
+            repo.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody)
+            val hentetSøknad = repo.hentSøknad(søknad.id)
+
+            hentetSøknad!!.id shouldBe søknad.id
+            hentetSøknad.avsluttetBegrunnelse shouldBe AvsluttSøkndsBehandlingBegrunnelse.Trukket
+        }
+    }
 }

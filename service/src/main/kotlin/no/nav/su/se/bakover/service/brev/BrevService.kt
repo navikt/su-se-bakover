@@ -179,15 +179,15 @@ class BrevService(
                 log.error("$loggtema: fant ikke sak for sakId: ${avsluttSøknadsBehandlingBody.sakId}")
                 return KunneIkkeOppretteJournalpostOgSendeBrev.left()
             },
-            ifRight = {sak ->
+            ifRight = { sak ->
                 hentPersonFraFnr(sak.fnr).fold(
                     ifLeft = {
                         log.error("$loggtema: kunne ikke hente person for sakId: ${avsluttSøknadsBehandlingBody.sakId}")
                         return KunneIkkeOppretteJournalpostOgSendeBrev.left()
                     },
-                   ifRight =  {person ->
-                       log.info("Hentet Person for avsluttet søknads-behandling OK")
-                       person
+                    ifRight = { person ->
+                        log.info("Hentet Person for avsluttet søknads-behandling OK")
+                        person
                     }
                 )
             }
@@ -316,8 +316,6 @@ fun satsgrunnForBehandling(behandling: Behandling): Satsgrunn? {
             else -> null
         }
     }
-
-
 }
 
 // TODO Hente Locale fra brukerens målform

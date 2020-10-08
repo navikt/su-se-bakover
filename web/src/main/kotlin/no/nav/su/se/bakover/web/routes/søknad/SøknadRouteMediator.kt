@@ -48,37 +48,35 @@ internal class SøknadRouteMediator(
             .getOrElse { throw RuntimeException("Kunne ikke hente sak") }
     }
 
-
     fun avsluttSøknadsBehandling(
         avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
     ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
         val loggtema = "Avslutting av søknadsbehandling"
 
-        if(avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse
-                == AvsluttSøkndsBehandlingBegrunnelse.Bortfalt ||
+        if (avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse
+            == AvsluttSøkndsBehandlingBegrunnelse.Bortfalt ||
             avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse
-                == AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig)
-        {
+            == AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig
+        ) {
             log.info("Bortfalt og avvistSøktForTidlig er ennå ikke implementert :)")
         }
 
-        if(avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Trukket){
+        if (avsluttSøknadsBehandlingBody.avsluttSøkndsBehandlingBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Trukket) {
             brevService.journalFørAvsluttetSøknadsBehandlingOgSendBrev(avsluttSøknadsBehandlingBody).fold(
                 ifLeft = {
                     log.error("$loggtema: Kunne ikke sende brev for å avslutte søknadsbehandling")
                     return KunneIkkeAvslutteSøknadsBehandling.left()
                 },
                 ifRight = {
-                    //TODO avslutter etter at brev er OK
-                     søknadService.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody).fold(
-                         ifLeft = {
-                             log.error("$loggtema: Kunne ikke avslutte søknadsbehandling")
-                             it
-                         },
-                         ifRight = {
+                    søknadService.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody).fold(
+                        ifLeft = {
+                            log.error("$loggtema: Kunne ikke avslutte søknadsbehandling")
+                            it
+                        },
+                        ifRight = {
                             return it.right()
-                         }
-                     )
+                        }
+                    )
                 }
             )
         }
@@ -125,6 +123,4 @@ internal class SøknadRouteMediator(
             }
         )
     }
-
 }
-

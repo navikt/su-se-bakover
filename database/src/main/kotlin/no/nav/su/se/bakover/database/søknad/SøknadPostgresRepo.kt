@@ -49,5 +49,4 @@ internal class SøknadPostgresRepo(
         }
         return søknadAvsluttetOK(avsluttSøknadsBehandlingBody.søknadId)
     }
-
 }
