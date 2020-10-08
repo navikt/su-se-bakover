@@ -45,6 +45,19 @@ internal object SøknadRepoInternal {
         }
         return KunneIkkeAvslutteSøknadsBehandling.left()
     }
+
+    fun finnesBehandlingForSøknadInternal(
+        søknadId: UUID,
+        session: Session
+    ): Boolean {
+       val finnesBehandlingForSøknad = "select * from behandling where søknadId=:id".hent(
+            mapOf("id" to søknadId), session)
+       {
+           it.stringOrNull("søknadId")
+       }
+
+        return finnesBehandlingForSøknad != null
+    }
 }
 
 internal fun toAvsluttetBegrunnelse(string: String?): AvsluttSøkndsBehandlingBegrunnelse? {
