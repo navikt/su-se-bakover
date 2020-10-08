@@ -15,14 +15,12 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
 internal fun ApplicationCall.audit(msg: String) {
-    sikkerLogg.info("${lesBehandlerId()} $msg")
+    sikkerLogg.info("${suUserContext.getNAVIdent()} $msg")
 }
-
-internal fun ApplicationCall.lesBehandlerId() =
-    (this.authentication.principal as JWTPrincipal).payload.getClaim("oid").asString()
 
 internal fun ApplicationCall.erAttestant(): Boolean =
     Config.azureGroupAttestant in getGroupsFromJWT((this.authentication.principal))

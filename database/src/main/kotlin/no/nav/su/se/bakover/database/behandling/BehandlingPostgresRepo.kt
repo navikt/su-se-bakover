@@ -70,7 +70,7 @@ internal class BehandlingPostgresRepo(
             "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
                 mapOf(
                     "id" to behandlingId,
-                    "saksbehandler" to saksbehandler.id
+                    "saksbehandler" to saksbehandler.navIdent
                 ),
                 session
             )
@@ -83,7 +83,7 @@ internal class BehandlingPostgresRepo(
             "update behandling set attestant = :attestant where id=:id".oppdatering(
                 mapOf(
                     "id" to behandlingId,
-                    "attestant" to attestant.id
+                    "attestant" to attestant.navIdent
                 ),
                 session
             )

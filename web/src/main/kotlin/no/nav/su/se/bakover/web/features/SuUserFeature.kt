@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.features
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.application.feature
 import io.ktor.auth.Authentication
-import io.ktor.auth.authentication
 import io.ktor.http.HttpHeaders
 import io.ktor.request.header
 import io.ktor.routing.Route
@@ -46,13 +46,20 @@ class SuUserFeature(configuration: Configuration) {
     private fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val suUserContext = SuUserContext.from(context.call)
 
-        if (suUserContext.user != null || context.call.authentication.allErrors.isNotEmpty()) {
+        if (suUserContext.isInitialized()) {
             return
         }
 
-        val authHeader = context.call.request.header(HttpHeaders.Authorization) ?: return
+        val authHeader = context.call.request.header(HttpHeaders.Authorization)
 
-        suUserContext.user = clients.microsoftGraphApiClient.hentBrukerinformasjon(authHeader)
+        suUserContext.setUser(
+            if (authHeader != null) {
+                clients.microsoftGraphApiClient.hentBrukerinformasjon(authHeader)
+                    .mapLeft { KallMotMicrosoftGraphApiFeilet(it) }
+            } else {
+                Either.Left(ManglerAuthHeader)
+            }
+        )
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, SuUserFeature> {
@@ -67,8 +74,24 @@ class SuUserFeature(configuration: Configuration) {
     }
 }
 
+internal sealed class SuUserFeaturefeil(override val message: String) : RuntimeException(message)
+
+internal object ManglerAuthHeader : SuUserFeaturefeil("Mangler auth header")
+internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
+internal data class KallMotMicrosoftGraphApiFeilet(override val message: String) : SuUserFeaturefeil(message)
+internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
+
 class SuUserContext(val call: ApplicationCall) {
-    var user: Either<String, MicrosoftGraphResponse>? = null
+    private var _user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>? = null
+
+    val user: MicrosoftGraphResponse
+        get() = _user
+            ?.getOrHandle { throw it }
+            ?: throw IkkeInitialisert
+
+    internal fun setUser(u: Either<SuUserFeaturefeil, MicrosoftGraphResponse>) {
+        _user = u
+    }
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
@@ -77,11 +100,9 @@ class SuUserContext(val call: ApplicationCall) {
             call.attributes.computeIfAbsent(AttributeKey) { SuUserContext(call) }
     }
 
-    fun getNAVIdent(): String? = user?.let { u ->
-        u
-            .map { it.onPremisesSamAccountName }
-            .orNull()
-    }
+    internal fun isInitialized() = _user != null
+
+    fun getNAVIdent(): String = user.onPremisesSamAccountName ?: throw FantBrukerMenManglerNAVIdent
 }
 
 val ApplicationCall.suUserContext: SuUserContext
