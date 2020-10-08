@@ -1,28 +1,30 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
+import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.Month
 import java.util.UUID
 
-internal class OppdragTest {
+internal class OppdragNyStrategyTest {
     private val sakId = UUID.randomUUID()
     private lateinit var oppdrag: Oppdrag
     private val fnr = Fnr("12345678910")
@@ -38,16 +40,7 @@ internal class OppdragTest {
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
-        val actual = oppdrag.genererUtbetaling(
-            utbetalingsperioder = listOf(
-                Utbetalingsperiode(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    beløp = 5600,
-                )
-            ),
-            fnr
-        )
+        val actual = oppdrag.genererUtbetaling(Ny(createBeregning(1.januar(2020), 30.april(2020))), fnr)
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(
@@ -57,8 +50,8 @@ internal class OppdragTest {
                     utbetalingslinjeId = first.id,
                     opprettet = first.opprettet,
                     fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    beløp = 5600,
+                    tilOgMed = 30.april(2020),
+                    beløp = 20637,
                     forrigeUtbetalingslinjeId = null
                 )
             )
@@ -97,21 +90,10 @@ internal class OppdragTest {
         )
 
         val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
-            utbetalingsperioder = listOf(
-                Utbetalingsperiode(
+            Ny(
+                createBeregning(
                     fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.mai(2020),
-                    beløp = 5600,
-                ),
-                Utbetalingsperiode(
-                    fraOgMed = 1.juni(2020),
-                    tilOgMed = 31.august(2020),
-                    beløp = 5700,
-                ),
-                Utbetalingsperiode(
-                    fraOgMed = 1.september(2020),
-                    tilOgMed = 31.desember(2020),
-                    beløp = 5800,
+                    tilOgMed = 31.desember(2020)
                 )
             ),
             fnr
@@ -126,25 +108,17 @@ internal class OppdragTest {
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
                     opprettet = nyUtbetaling.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.mai(2020),
-                    beløp = 5600,
+                    tilOgMed = 30.april(2020),
+                    beløp = 20637,
                     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
                 ),
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id,
                     opprettet = nyUtbetaling.utbetalingslinjer[1].opprettet,
-                    fraOgMed = 1.juni(2020),
-                    tilOgMed = 31.august(2020),
-                    beløp = 5700,
-                    forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id
-                ),
-                expectedUtbetalingslinje(
-                    utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[2].id,
-                    opprettet = nyUtbetaling.utbetalingslinjer[2].opprettet,
-                    fraOgMed = 1.september(2020),
+                    fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
-                    beløp = 5800,
-                    forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[1].id
+                    beløp = 20946,
+                    forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id
                 )
             ),
             fnr = fnr
@@ -202,16 +176,10 @@ internal class OppdragTest {
 
     @Test
     fun `konverterer beregning til utbetalingsperioder`() {
-        val opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt()
-        val b = Beregning(
-            opprettet = opprettet,
-            fraOgMed = 1.januar(2020),
-            tilOgMed = 31.desember(2020),
-            sats = Sats.HØY,
-            fradrag = emptyList()
+        val actualUtbetaling = oppdrag.genererUtbetaling(
+            strategy = Ny(beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))),
+            fnr = fnr
         )
-
-        val actualUtbetaling = oppdrag.genererUtbetaling(b, fnr)
         actualUtbetaling shouldBe Utbetaling(
             opprettet = actualUtbetaling.opprettet,
             kvittering = null,
@@ -268,4 +236,11 @@ internal class OppdragTest {
             beløp = beløp
         )
     }
+
+    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = Beregning(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        sats = Sats.HØY,
+        fradrag = emptyList()
+    )
 }

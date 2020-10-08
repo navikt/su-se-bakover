@@ -12,8 +12,11 @@ data class Utbetalingslinje(
     val tilOgMed: LocalDate,
     var forrigeUtbetalingslinjeId: UUID30?,
     val beløp: Int
-
 ) {
+    init {
+        require(fraOgMed < tilOgMed) { "fraOgMed må være tidligere enn tilOgMed" }
+    }
+
     fun link(other: Utbetalingslinje) {
         forrigeUtbetalingslinjeId = other.id
     }
