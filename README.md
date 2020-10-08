@@ -5,8 +5,19 @@
 ### Lokalt oppsett
 #### Gradle
 For å få tilgang til å hente ut packages fra https://github.com/navikt/ kreves det autentisering mot Github package registry.
-Dette kan gjøres ved å spesifisere følgende variabler i `~/.gradle/gradle.properties`:
-`githubUser=x-access-token` og `githubPassword="mitt SSO enabled access token med repo+read packages access generert på github"`
+Det gjør du ved å lage en ny fil i .gradle-mappa i hjemmemappa: 
+
+`$ vim ~/.gradle/gradle.properties`
+
+I denne filen skriver du: 
+```
+githubUser=x-access-token
+githubPassword={et access token som du lager på GitHub}
+```
+Access tokens lager du på: https://github.com/settings/tokens. Tokenet skal kun ha  `repo + read packages access`. 
+Husk å kopiere tokenet før du går videre. 
+
+Deretter må tokenet autentiseres med SSO-tilgang. Det gjør du i listen over tokens.  
 
 #### Database (Postgres)
 Lokal database startes med `./docker-compose up`
