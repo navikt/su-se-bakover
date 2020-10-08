@@ -23,7 +23,7 @@ internal class SøknadPostgresRepo(
     }
 
     fun finnesBehandlingForSøknad(søknadId: UUID) = dataSource.withSession {
-           finnesBehandlingForSøknadInternal(søknadId, it)
+        finnesBehandlingForSøknadInternal(søknadId, it)
     }
 
     override fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
@@ -45,9 +45,9 @@ internal class SøknadPostgresRepo(
         avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
     ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
 
-        //Det er mulig å url hacke routen med søknad id for å avslutte søknaden selv om det
-        //finnes en behandling.
-        if(finnesBehandlingForSøknad(avsluttSøknadsBehandlingBody.søknadId)){
+        // Det er mulig å url hacke routen med søknad id for å avslutte søknaden selv om det
+        // finnes en behandling.
+        if (finnesBehandlingForSøknad(avsluttSøknadsBehandlingBody.søknadId)) {
             return KunneIkkeAvslutteSøknadsBehandling.left()
         }
 

@@ -50,12 +50,11 @@ internal object SøknadRepoInternal {
         søknadId: UUID,
         session: Session
     ): Boolean {
-       val finnesBehandlingForSøknad = "select * from behandling where søknadId=:id".hent(
-            mapOf("id" to søknadId), session)
-       {
-           it.stringOrNull("søknadId")
-       }
-
+        val finnesBehandlingForSøknad = "select * from behandling where søknadId=:id".hent(
+            mapOf("id" to søknadId), session
+        ) {
+            it.stringOrNull("søknadId")
+        }
         return finnesBehandlingForSøknad != null
     }
 }
