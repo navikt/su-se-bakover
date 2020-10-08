@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.database.søknad
 
 import arrow.core.Either
+import arrow.core.left
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.finnesBehandlingForSøknadInternal
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.søknadAvsluttetOKInternal
 import no.nav.su.se.bakover.database.withSession
@@ -18,6 +20,10 @@ internal class SøknadPostgresRepo(
 
     fun søknadAvsluttetOK(søknadId: UUID) = dataSource.withSession {
         søknadAvsluttetOKInternal(søknadId, it)
+    }
+
+    fun finnesBehandlingForSøknad(søknadId: UUID) = dataSource.withSession {
+           finnesBehandlingForSøknadInternal(søknadId, it)
     }
 
     override fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
@@ -38,6 +44,13 @@ internal class SøknadPostgresRepo(
     override fun avsluttSøknadsBehandling(
         avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
     ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
+
+        //Det er mulig å url hacke routen med søknad id for å avslutte søknaden selv om det
+        //finnes en behandling.
+        if(finnesBehandlingForSøknad(avsluttSøknadsBehandlingBody.søknadId)){
+            return KunneIkkeAvslutteSøknadsBehandling.left()
+        }
+
         dataSource.withSession { session ->
             "update søknad set avsluttetBegrunnelse = :avsluttetBegrunnelse where id=:id".oppdatering(
                 mapOf(
