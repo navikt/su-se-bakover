@@ -2,9 +2,13 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.between
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import java.time.Clock
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
 import java.util.UUID
 
 data class Oppdrag(
@@ -38,20 +42,117 @@ data class Oppdrag(
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
-    fun genererUtbetaling(beregning: Beregning, fnr: Fnr): Utbetaling {
-        val utbetalingsperioder = beregning.månedsberegninger
-            .groupBy { it.beløp }
-            .map {
-                Utbetalingsperiode(
-                    fraOgMed = it.value.minByOrNull { it.fraOgMed }!!.fraOgMed,
-                    tilOgMed = it.value.maxByOrNull { it.tilOgMed }!!.tilOgMed,
-                    beløp = it.key,
-                )
-            }
-        return genererUtbetaling(utbetalingsperioder, fnr)
+    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr) = when (strategy) {
+        is UtbetalingStrategy.Stans -> Strategy().Stans(strategy.clock).generate(fnr)
+        is UtbetalingStrategy.Ny -> Strategy().Ny().generate(strategy.beregning, fnr)
+        is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta().generate(fnr)
     }
 
-    fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>, fnr: Fnr): Utbetaling {
+    sealed class UtbetalingStrategy {
+        class Stans(val clock: Clock = Clock.systemUTC()) : UtbetalingStrategy()
+        class Ny(val beregning: Beregning) : UtbetalingStrategy()
+        object Gjenoppta : UtbetalingStrategy()
+    }
+
+    private open inner class Strategy() {
+        inner class Stans(private val clock: Clock = Clock.systemUTC()) : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling {
+                val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
+                validerStansUtbetaling(stansesFraOgMed)
+                val stansesTilOgMed = sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tilOgMed
+
+                return genererUtbetaling(
+                    utbetalingsperioder = listOf(
+                        Utbetalingsperiode(
+                            fraOgMed = stansesFraOgMed,
+                            tilOgMed = stansesTilOgMed,
+                            beløp = 0,
+                        )
+                    ),
+                    fnr = fnr
+                )
+            }
+
+            private fun validerStansUtbetaling(stansesFraDato: LocalDate): Boolean {
+                require(harOversendteUtbetalingerEtter(stansesFraDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraDato" }
+                require(
+                    sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.let { it.beløp > 0 }
+                        ?: true
+                ) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+                return true
+            }
+        }
+
+        inner class Ny : Strategy() {
+            fun generate(beregning: Beregning, fnr: Fnr): Utbetaling {
+                return genererUtbetaling(createUtbetalingsperioder(beregning), fnr)
+            }
+
+            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger
+                .groupBy { it.beløp }
+                .map {
+                    Utbetalingsperiode(
+                        fraOgMed = it.value.minByOrNull { it.fraOgMed }!!.fraOgMed,
+                        tilOgMed = it.value.maxByOrNull { it.tilOgMed }!!.tilOgMed,
+                        beløp = it.key,
+                    )
+                }
+        }
+
+        inner class Gjenoppta : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling {
+                require(sisteOversendteUtbetaling() != null) { "Ingen oversendte utbetalinger å gjenoppta" }
+                val sisteOversendteUtbetaling = sisteOversendteUtbetaling()!!
+                val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fraOgMed
+                val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tilOgMed
+
+                // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
+                val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
+                    it.erStansutbetaling()
+                }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
+
+                val stansetEllerDelvisStansetUtbetalingslinjer = oversendteUtbetalinger()
+                    .subList(
+                        startIndeks,
+                        oversendteUtbetalinger().size - 1
+                    ) // Ekskluderer den siste stopp-utbetalingen
+                    .flatMap {
+                        it.utbetalingslinjer
+                    }.filter {
+                        // Merk: En utbetalingslinje kan være delvis stanset.
+                        it.fraOgMed.between(
+                            stansetFraOgMed,
+                            stansetTilOgMed
+                        ) || it.tilOgMed.between(
+                            stansetFraOgMed,
+                            stansetTilOgMed
+                        )
+                    }
+
+                check(stansetEllerDelvisStansetUtbetalingslinjer.isNotEmpty()) { "Kan ikke gjenoppta utbetaling. Fant ingen utbetalinger som kan gjenopptas i perioden: $stansetFraOgMed-$stansetTilOgMed" }
+                check(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
+                    "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
+                }
+
+                return Utbetaling(
+                    utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
+                        (
+                            acc + Utbetalingslinje(
+                                fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
+                                tilOgMed = utbetalingslinje.tilOgMed,
+                                forrigeUtbetalingslinjeId = acc.lastOrNull()?.id
+                                    ?: sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.id,
+                                beløp = utbetalingslinje.beløp
+                            )
+                            )
+                    },
+                    fnr = fnr
+                )
+            }
+        }
+    }
+
+    private fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>, fnr: Fnr): Utbetaling {
         return Utbetaling(
             utbetalingslinjer = utbetalingsperioder.map {
                 Utbetalingslinje(

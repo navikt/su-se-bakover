@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -96,7 +97,7 @@ internal class BehandlingServiceImpl(
             { it }
         )
         val oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!
-        val utbetaling = oppdrag.genererUtbetaling(behandling.beregning()!!, sak.fnr)
+        val utbetaling = oppdrag.genererUtbetaling(Ny(behandling.beregning()!!), sak.fnr)
         val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulering ->

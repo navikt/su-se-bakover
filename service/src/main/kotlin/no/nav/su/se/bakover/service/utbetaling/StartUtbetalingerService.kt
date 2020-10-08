@@ -4,11 +4,10 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -36,47 +35,7 @@ class StartUtbetalingerService(
 
         if (!sisteOversendteUtbetaling.erStansutbetaling()) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fraOgMed
-        val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tilOgMed
-        check(stansetFraOgMed <= stansetTilOgMed) {
-            "Feil ved start av utbetalinger. Stopputbetalingens fraOgMed er etter tilOgMed"
-        }
-
-        // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
-        val startIndeks = sak.oppdrag.oversendteUtbetalinger().dropLast(1).indexOfLast {
-            it.erStansutbetaling()
-        }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
-
-        val stansetEllerDelvisStansetUtbetalingslinjer = sak.oppdrag.oversendteUtbetalinger()
-            .subList(
-                startIndeks,
-                sak.oppdrag.oversendteUtbetalinger().size - 1
-            ) // Ekskluderer den siste stopp-utbetalingen
-            .flatMap {
-                it.utbetalingslinjer
-            }.filter {
-                // Merk: En utbetalingslinje kan være delvis stanset.
-                it.fraOgMed.between(stansetFraOgMed, stansetTilOgMed) ||
-                    it.tilOgMed.between(stansetFraOgMed, stansetTilOgMed)
-            }
-        check(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
-            "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
-        }
-
-        val utbetaling = Utbetaling(
-            utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
-                (
-                    acc + Utbetalingslinje(
-                        fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
-                        tilOgMed = utbetalingslinje.tilOgMed,
-                        forrigeUtbetalingslinjeId = acc.lastOrNull()?.id
-                            ?: sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.id,
-                        beløp = utbetalingslinje.beløp
-                    )
-                    )
-            },
-            fnr = sak.fnr
-        )
+        val utbetaling = sak.oppdrag.genererUtbetaling(Gjenoppta, sak.fnr)
 
         val nyUtbetaling = NyUtbetaling(
             oppdrag = sak.oppdrag,
