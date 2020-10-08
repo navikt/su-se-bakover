@@ -10,7 +10,7 @@ import java.util.UUID
 interface SøknadService {
     fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
-    fun avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody):Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK>
+    fun avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK>
 }
 
 object FantIkkeSøknad

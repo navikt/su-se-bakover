@@ -137,7 +137,6 @@ sealed class Journalpost {
                 )
             )
         )
-
     }
 }
 

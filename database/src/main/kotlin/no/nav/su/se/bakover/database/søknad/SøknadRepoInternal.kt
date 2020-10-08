@@ -26,20 +26,21 @@ internal object SøknadRepoInternal {
             it.toSøknad()
         }.toMutableList()
 
-
     fun søknadAvsluttetOKInternal(
-        søknadId: UUID, session: Session
+        søknadId: UUID,
+        session: Session
     ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
         val avsluttetBegrunnelse = "select avsluttetBegrunnelse from søknad where id=:id".hent(
-            mapOf("id" to søknadId), session){
-                it.stringOrNull("avsluttetBegrunnelse")
-                }
+            mapOf("id" to søknadId), session
+        ) {
+            it.stringOrNull("avsluttetBegrunnelse")
+        }
 
-        if(
+        if (
             avsluttetBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Trukket.toString() ||
-                avsluttetBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig.toString() ||
-                avsluttetBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Bortfalt.toString()
-            ){
+            avsluttetBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig.toString() ||
+            avsluttetBegrunnelse == AvsluttSøkndsBehandlingBegrunnelse.Bortfalt.toString()
+        ) {
             return AvsluttetSøknadsBehandlingOK.right()
         }
         return KunneIkkeAvslutteSøknadsBehandling.left()
@@ -47,7 +48,7 @@ internal object SøknadRepoInternal {
 }
 
 internal fun toAvsluttetBegrunnelse(string: String?): AvsluttSøkndsBehandlingBegrunnelse? {
-    return when(string){
+    return when (string) {
         AvsluttSøkndsBehandlingBegrunnelse.Trukket.toString() -> AvsluttSøkndsBehandlingBegrunnelse.Trukket
         AvsluttSøkndsBehandlingBegrunnelse.Bortfalt.toString() -> AvsluttSøkndsBehandlingBegrunnelse.Bortfalt
         AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig.toString() -> AvsluttSøkndsBehandlingBegrunnelse.AvvistSøktForTidlig

@@ -40,10 +40,10 @@ internal fun Route.søknadRoutes(
     post("$søknadPath/{søknadId}/avsluttSoknadsbehandling") {
         Either.catch { deserialize<AvsluttSøknadsBehandlingBody>(call) }.fold(
             ifLeft = {
-                log.info("Ugyldig behandling-body: ", it)
+                log.info("Ugyldig søknads avslutting-body: ", it)
                 call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
             },
-            ifRight = {avsluttSøknadsBehandlingBody ->
+            ifRight = { avsluttSøknadsBehandlingBody ->
                 if (avsluttSøknadsBehandlingBody.valid()) {
                     mediator.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody).fold(
                         ifLeft = {
@@ -52,9 +52,11 @@ internal fun Route.søknadRoutes(
                         },
                         ifRight = {
                             log.info("Avsluttet søknadsbehandling OK ")
-                            call.svar(HttpStatusCode.OK.message(
-                                "Avsluttet behandling for ${avsluttSøknadsBehandlingBody.søknadId}"
-                            ))
+                            call.svar(
+                                HttpStatusCode.OK.message(
+                                    "Avsluttet behandling for ${avsluttSøknadsBehandlingBody.søknadId} "
+                                )
+                            )
                         }
                     )
                 } else {
@@ -62,7 +64,5 @@ internal fun Route.søknadRoutes(
                 }
             }
         )
-
     }
-
 }

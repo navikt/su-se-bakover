@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -168,6 +169,43 @@ internal class SøknadRoutesKtTest {
                 verify(personOppslag, Times(1)).aktørId(any())
                 verify(oppgaveClient, Times(1)).opprettOppgave(any())
             }
+        }
+    }
+
+    @Test
+    fun `lager en søknad, så avslutter en søknadsbehandling`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val søknadCreateResponse = defaultRequest(
+                Post,
+                søknadPath
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(soknadJson)
+            }.apply {
+                assertEquals(Created, response.status())
+            }.response
+
+            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(søknadCreateResponse.content!!) }
+
+            val sak = sakRepo.hentSak(fnr)
+            sak shouldNotBe null
+            sak!!.søknader() shouldHaveAtLeastSize 1
+
+            defaultRequest(Post, "$søknadPath/{søknadId}/avsluttSoknadsbehandling") {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """{
+                        "sakId": "${sak.id}",
+                        "søknadId": "${sak.søknader().first().id}",
+                        "avsluttSøkndsBehandlingBegrunnelse": "${AvsluttSøkndsBehandlingBegrunnelse.Trukket}"
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe OK
+            }.response
         }
     }
 }

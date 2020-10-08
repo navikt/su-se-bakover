@@ -23,7 +23,7 @@ internal class SøknadServiceImpl(
 
     override fun avsluttSøknadsBehandling(
         avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
-    ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK>{
+    ): Either<KunneIkkeAvslutteSøknadsBehandling, AvsluttetSøknadsBehandlingOK> {
         return søknadRepo.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody)
     }
 }
