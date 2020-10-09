@@ -192,7 +192,7 @@ internal class SøknadRoutesKtTest {
             sak shouldNotBe null
             sak!!.søknader() shouldHaveAtLeastSize 1
 
-            defaultRequest(Post, "$søknadPath/${sak.søknader().first().id}/trekkSøknad") {
+            defaultRequest(Post, "$søknadPath/${sak.søknader().first().id}/trekkSoknad") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{
