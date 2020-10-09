@@ -65,7 +65,7 @@ class DokArkivClient(
                 }
             },
             {
-                log.warn("Feil ved journalføring", it)
+                log.warn("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
                 ClientError(response.statusCode, "Feil ved journalføring").left()
             }
 
