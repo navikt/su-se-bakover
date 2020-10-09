@@ -43,7 +43,7 @@ internal fun Route.søknadRoutes(
         )
     }
 
-    post("$søknadPath/{søknadId}/trekkSøknad") {
+    post("$søknadPath/{søknadId}/trekkSoknad") {
         call.withSøknadId {
             Either.catch { deserialize<TrukketSøknadBody>(call) }.fold(
                 ifLeft = {

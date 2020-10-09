@@ -128,7 +128,7 @@ internal class SøknadJsonTest {
                 "harFullmektigEllerVerge":"verge"
             }
           },
-          "trukket": false
+          "søknadTrukket": false
         }
             """.trimIndent()
     }

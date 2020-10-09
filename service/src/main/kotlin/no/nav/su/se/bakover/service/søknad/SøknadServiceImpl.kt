@@ -34,7 +34,7 @@ internal class SøknadServiceImpl(
         val loggtema = "Avslutting av søknadsbehandling"
 
         if (søknadRepo.hentSøknad(trukketSøknadBody.søknadId)!!.søknadTrukket) {
-            log.error("$loggtema: Prøve å trekke en allerede trukket søknad")
+            log.error("$loggtema: Prøver å trekke en allerede trukket søknad")
             return KunneIkkeTrekkeSøknad.left()
         }
 

@@ -9,7 +9,7 @@ internal data class SøknadJson(
     val id: String,
     val søknadInnhold: SøknadInnholdJson,
     val opprettet: String,
-    val trukket: Boolean
+    val søknadTrukket: Boolean
 )
 
 internal fun Søknad.toJson() = SøknadJson(
@@ -17,5 +17,5 @@ internal fun Søknad.toJson() = SøknadJson(
     id = id.toString(),
     søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    trukket = søknadTrukket
+    søknadTrukket = søknadTrukket
 )
