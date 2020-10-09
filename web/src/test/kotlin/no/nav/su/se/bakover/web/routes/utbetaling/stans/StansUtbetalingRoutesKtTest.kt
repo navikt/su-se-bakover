@@ -46,7 +46,7 @@ internal class StansUtbetalingRoutesKtTest {
         )
     )
     val utbetalingId = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4")
-    val nyUtbetaling = Utbetaling(
+    val nyUtbetaling = Utbetaling.Ny(
         id = utbetalingId,
         opprettet = tidspunkt,
         simulering = null,

@@ -63,7 +63,7 @@ internal class UtbetalingJsonTest {
         }
         """.trimIndent()
 
-    private val utbetaling = Utbetaling(
+    private val utbetaling = Utbetaling.Ny(
         id = id,
         opprettet = opprettet,
         simulering = Simulering(

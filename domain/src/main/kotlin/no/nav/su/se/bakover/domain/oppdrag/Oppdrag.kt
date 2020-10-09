@@ -54,19 +54,21 @@ data class Oppdrag(
         object Gjenoppta : UtbetalingStrategy()
     }
 
-    private open inner class Strategy() {
+    private open inner class Strategy {
         inner class Stans(private val clock: Clock = Clock.systemUTC()) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling {
                 val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
                 validerStansUtbetaling(stansesFraOgMed)
-                val stansesTilOgMed = sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!.tilOgMed
+                val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!
+                val stansesTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
-                return genererUtbetaling(
-                    utbetalingsperioder = listOf(
-                        Utbetalingsperiode(
+                return Utbetaling.Stans(
+                    utbetalingslinjer = listOf(
+                        Utbetalingslinje(
                             fraOgMed = stansesFraOgMed,
                             tilOgMed = stansesTilOgMed,
-                            beløp = 0,
+                            forrigeUtbetalingslinjeId = sisteOversendteUtbetalingslinje.id,
+                            beløp = 0
                         )
                     ),
                     fnr = fnr
@@ -75,17 +77,26 @@ data class Oppdrag(
 
             private fun validerStansUtbetaling(stansesFraDato: LocalDate): Boolean {
                 require(harOversendteUtbetalingerEtter(stansesFraDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraDato" }
-                require(
-                    sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.let { it.beløp > 0 }
-                        ?: true
-                ) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+                require(sisteOversendteUtbetaling() !is Utbetaling.Stans) { "Kan ikke stanse utbetalinger som allerede er stanset" }
                 return true
             }
         }
 
         inner class Ny : Strategy() {
             fun generate(beregning: Beregning, fnr: Fnr): Utbetaling {
-                return genererUtbetaling(createUtbetalingsperioder(beregning), fnr)
+                return Utbetaling.Ny(
+                    utbetalingslinjer = createUtbetalingsperioder(beregning).map {
+                        Utbetalingslinje(
+                            fraOgMed = it.fraOgMed,
+                            tilOgMed = it.tilOgMed,
+                            forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                            beløp = it.beløp
+                        )
+                    }.also {
+                        it.zipWithNext { a, b -> b.link(a) }
+                    },
+                    fnr = fnr
+                )
             }
 
             private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger
@@ -108,7 +119,7 @@ data class Oppdrag(
 
                 // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
                 val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
-                    it.erStansutbetaling()
+                    it is Utbetaling.Stans
                 }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
                 val stansetEllerDelvisStansetUtbetalingslinjer = oversendteUtbetalinger()
@@ -134,7 +145,7 @@ data class Oppdrag(
                     "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
                 }
 
-                return Utbetaling(
+                return Utbetaling.Gjenoppta(
                     utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
                         (
                             acc + Utbetalingslinje(
@@ -150,21 +161,5 @@ data class Oppdrag(
                 )
             }
         }
-    }
-
-    private fun genererUtbetaling(utbetalingsperioder: List<Utbetalingsperiode>, fnr: Fnr): Utbetaling {
-        return Utbetaling(
-            utbetalingslinjer = utbetalingsperioder.map {
-                Utbetalingslinje(
-                    fraOgMed = it.fraOgMed,
-                    tilOgMed = it.tilOgMed,
-                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
-                    beløp = it.beløp
-                )
-            }.also {
-                it.zipWithNext { a, b -> b.link(a) }
-            },
-            fnr = fnr
-        )
     }
 }

@@ -43,21 +43,53 @@ internal object UtbetalingInternalRepo {
 
 internal fun Row.toUtbetaling(session: Session): Utbetaling {
     val utbetalingId = uuid30("id")
-    return Utbetaling(
-        id = utbetalingId,
-        opprettet = tidspunkt("opprettet"),
-        simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
-        kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) },
-        oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
-            objectMapper.readValue(
-                it,
-                OppdragsmeldingJson::class.java
-            ).toOppdragsmelding() // TODO should probably find a better solution to this
-        },
-        utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session),
-        avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) },
-        fnr = Fnr(string("fnr"))
-    )
+    val id = utbetalingId
+    val opprettet = tidspunkt("opprettet")
+    val simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) }
+    val kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) }
+    val oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
+        objectMapper.readValue(
+            it,
+            OppdragsmeldingJson::class.java
+        ).toOppdragsmelding() // TODO should probably find a better solution to this
+    }
+    val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
+    val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
+    val fnr = Fnr(string("fnr"))
+    val type = Utbetaling.UtbetalingType.valueOf(string("type"))
+
+    return when (type) {
+        Utbetaling.UtbetalingType.NY -> Utbetaling.Ny(
+            id,
+            opprettet,
+            simulering,
+            kvittering,
+            oppdragsmelding,
+            utbetalingslinjer,
+            avstemmingId,
+            fnr
+        )
+        Utbetaling.UtbetalingType.STANS -> Utbetaling.Stans(
+            id,
+            opprettet,
+            simulering,
+            kvittering,
+            oppdragsmelding,
+            utbetalingslinjer,
+            avstemmingId,
+            fnr
+        )
+        Utbetaling.UtbetalingType.GJENOPPTA -> Utbetaling.Gjenoppta(
+            id,
+            opprettet,
+            simulering,
+            kvittering,
+            oppdragsmelding,
+            utbetalingslinjer,
+            avstemmingId,
+            fnr
+        )
+    }
 }
 
 internal fun Row.toUtbetalingslinje(): Utbetalingslinje {

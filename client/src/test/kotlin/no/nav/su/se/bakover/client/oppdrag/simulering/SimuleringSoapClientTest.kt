@@ -182,7 +182,7 @@ internal class SimuleringSoapClientTest {
 
         val utenBeløp = NyUtbetaling(
             oppdrag = createOppdrag(),
-            utbetaling = Utbetaling(
+            utbetaling = Utbetaling.Ny(
                 fnr = FNR,
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
@@ -236,7 +236,7 @@ internal class SimuleringSoapClientTest {
         utbetalinger = mutableListOf()
     )
 
-    private fun createUtbetaling() = Utbetaling(
+    private fun createUtbetaling() = Utbetaling.Ny(
         utbetalingslinjer = listOf(
             Utbetalingslinje(
                 id = UUID30.randomUUID(),

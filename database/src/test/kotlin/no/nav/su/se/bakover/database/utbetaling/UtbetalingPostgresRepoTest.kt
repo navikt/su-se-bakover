@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -47,7 +48,8 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", Avstemmingsnøkkel())
-            val utbetaling = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling()).copy(oppdragsmelding = oppdragsmelding)
+            val utbetaling = testDataHelper.insertUtbetaling(sak.oppdrag.id, defaultUtbetaling())
+                .copy(oppdragsmelding = oppdragsmelding)
             repo.addOppdragsmelding(utbetaling.id, oppdragsmelding)
             val hentet = repo.hentUtbetaling(oppdragsmelding.avstemmingsnøkkel)!!
 
@@ -182,7 +184,41 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
-    private fun defaultUtbetaling() = Utbetaling(
+    @Test
+    fun `håndterer forskjellige typer utbetalinger`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val ny = repo.opprettUtbetaling(
+                sak.oppdrag.id,
+                Utbetaling.Ny(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+
+            val stans = repo.opprettUtbetaling(
+                sak.oppdrag.id,
+                Utbetaling.Stans(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+
+            val gjenoppta = repo.opprettUtbetaling(
+                sak.oppdrag.id,
+                Utbetaling.Gjenoppta(
+                    utbetalingslinjer = emptyList(),
+                    fnr = FNR
+                )
+            )
+
+            assertTrue(repo.hentUtbetaling(ny.id) is Utbetaling.Ny)
+            assertTrue(repo.hentUtbetaling(stans.id) is Utbetaling.Stans)
+            assertTrue(repo.hentUtbetaling(gjenoppta.id) is Utbetaling.Gjenoppta)
+        }
+    }
+
+    private fun defaultUtbetaling() = Utbetaling.Ny(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR

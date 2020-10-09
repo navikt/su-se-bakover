@@ -79,12 +79,12 @@ internal class StartUtbetalingerServiceTest {
             on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
         }
 
-        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Gjenoppta::class.java)
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+                opprettUtbetaling(any(), capture<Utbetaling.Gjenoppta>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
                 addSimulering(any(), capture<Simulering>(capturedAddSimulering))
@@ -163,8 +163,7 @@ internal class StartUtbetalingerServiceTest {
         val sak = setup.eksisterendeSak.copy(
             oppdrag = setup.eksisterendeSak.oppdrag.copy(
                 utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger()
-                    .map { it.copy(oppdragsmelding = null) }
-                    .toMutableList()
+                    .map { Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = setup.fnr) }.toMutableList()
             )
         )
         val repoMock = mock<SakService> {
@@ -283,11 +282,11 @@ internal class StartUtbetalingerServiceTest {
             } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(setup.oppdragsmeldingFeil).left()
         }
 
-        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Gjenoppta::class.java)
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+                opprettUtbetaling(any(), capture<Utbetaling.Gjenoppta>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
                 addSimulering(any(), capture<Simulering>(capturedAddSimulering))
@@ -360,17 +359,17 @@ internal class StartUtbetalingerServiceTest {
             beløp = 0,
             forrigeUtbetalingslinjeId = eksisterendeUtbetalingslinje3.id
         ),
-        val eksisterendeUtbetaling1: Utbetaling = Utbetaling(
+        val eksisterendeUtbetaling1: Utbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje1),
             oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
-        val eksisterendeUtbetaling2: Utbetaling = Utbetaling(
+        val eksisterendeUtbetaling2: Utbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(eksisterendeUtbetalingslinje2, eksisterendeUtbetalingslinje3),
             oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
         ),
-        val eksisterendeStansutbetaling: Utbetaling = Utbetaling(
+        val eksisterendeStansutbetaling: Utbetaling = Utbetaling.Stans(
             utbetalingslinjer = listOf(eksisterendeStansUtbetalingslinje),
             oppdragsmelding = Oppdragsmelding(SENDT, "", Avstemmingsnøkkel()),
             fnr = fnr
@@ -435,7 +434,7 @@ internal class StartUtbetalingerServiceTest {
             ).also {
                 check(actualUtbetaling.utbetalingslinjer.size == it.size)
             }
-        ) = Utbetaling(
+        ) = Utbetaling.Gjenoppta(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             utbetalingslinjer = utbetalingslinjer,

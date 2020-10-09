@@ -102,7 +102,7 @@ internal class AvstemmingDataBuilderTest {
                 Avstemming(
                     fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    utbetalinger = alleUtbetalinger() + listOf(Utbetaling(utbetalingslinjer = emptyList(), fnr = fnr)),
+                    utbetalinger = alleUtbetalinger() + listOf(Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = fnr)),
                     avstemmingXmlRequest = null
                 ),
             ).build()
@@ -114,7 +114,7 @@ internal class AvstemmingDataBuilderTest {
                     fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     utbetalinger = alleUtbetalinger() + listOf(
-                        Utbetaling(
+                        Utbetaling.Ny(
                             utbetalingslinjer = emptyList(),
                             fnr = fnr,
                             oppdragsmelding = Oppdragsmelding(
@@ -152,7 +152,7 @@ fun lagUtbetaling(
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 ) =
-    Utbetaling(
+    Utbetaling.Ny(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
         simulering = null,

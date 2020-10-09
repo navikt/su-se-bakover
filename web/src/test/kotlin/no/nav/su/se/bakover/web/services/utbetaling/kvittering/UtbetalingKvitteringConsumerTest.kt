@@ -49,7 +49,7 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `should add kvittering`() {
 
-        val utbetaling = Utbetaling(
+        val utbetaling = Utbetaling.Ny(
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel)

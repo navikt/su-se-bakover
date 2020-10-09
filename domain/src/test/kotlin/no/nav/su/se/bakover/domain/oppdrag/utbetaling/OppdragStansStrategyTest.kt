@@ -73,7 +73,7 @@ internal class OppdragStansTest {
 
     @Test
     fun `siste utbetaling er en 'stans utbetaling'`() {
-        val utbetaling = createUtbetaling(
+        val utbetaling = createStansUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -98,7 +98,19 @@ internal class OppdragStansTest {
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling(
+    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
+        oppdragsmelding = Oppdragsmelding(
+            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+            originalMelding = "",
+            avstemmingsnøkkel = Avstemmingsnøkkel(
+                opprettet = Tidspunkt.now()
+            )
+        ),
+        utbetalingslinjer = utbetalingslinjer,
+        fnr = fnr
+    )
+
+    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
         oppdragsmelding = Oppdragsmelding(
             status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",

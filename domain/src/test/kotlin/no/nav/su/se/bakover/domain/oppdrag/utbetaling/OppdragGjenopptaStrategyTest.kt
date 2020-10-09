@@ -26,7 +26,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig = createUtbetaling(
+        val opprinnelig = createNyUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -37,7 +37,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        val stans = createUtbetaling(
+        val stans = createStansUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -73,7 +73,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
-        val første = createUtbetaling(
+        val første = createNyUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -84,7 +84,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        val førsteStans = createUtbetaling(
+        val førsteStans = createStansUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -95,7 +95,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        val førsteGjenopptak = createUtbetaling(
+        val førsteGjenopptak = createGjenopptaUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -106,7 +106,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        val andre = createUtbetaling(
+        val andre = createNyUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.november(2020),
@@ -117,7 +117,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        val andreStans = createUtbetaling(
+        val andreStans = createStansUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.mai(2021),
@@ -141,7 +141,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
-        val første = createUtbetaling(
+        val første = createNyUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -176,11 +176,11 @@ internal class OppdragGjenopptaStrategyTest {
             forrigeUtbetalingslinjeId = l1.id,
             beløp = 5100
         )
-        val første = createUtbetaling(
+        val første = createNyUtbetaling(
             listOf(l1, l2)
         )
 
-        val stans = createUtbetaling(
+        val stans = createStansUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.april(2020),
@@ -217,7 +217,31 @@ internal class OppdragGjenopptaStrategyTest {
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling(
+    fun createNyUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
+        oppdragsmelding = Oppdragsmelding(
+            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+            originalMelding = "",
+            avstemmingsnøkkel = Avstemmingsnøkkel(
+                opprettet = Tidspunkt.now()
+            )
+        ),
+        utbetalingslinjer = utbetalingslinjer,
+        fnr = fnr
+    )
+
+    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
+        oppdragsmelding = Oppdragsmelding(
+            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
+            originalMelding = "",
+            avstemmingsnøkkel = Avstemmingsnøkkel(
+                opprettet = Tidspunkt.now()
+            )
+        ),
+        utbetalingslinjer = utbetalingslinjer,
+        fnr = fnr
+    )
+
+    fun createGjenopptaUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Gjenoppta(
         oppdragsmelding = Oppdragsmelding(
             status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
