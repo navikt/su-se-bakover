@@ -42,7 +42,7 @@ class AvstemmingPublisherTest {
         fraOgMed = 1.januar(2020).atStartOfDay().toTidspunkt(),
         tilOgMed = 2.januar(2020).atStartOfDay().toTidspunkt(),
         utbetalinger = listOf(
-            Utbetaling(
+            Utbetaling.Ny(
                 utbetalingslinjer = listOf(),
                 fnr = Fnr("12345678910"),
                 oppdragsmelding = Oppdragsmelding(

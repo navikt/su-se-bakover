@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -17,10 +20,14 @@ import java.time.Month
 import java.time.Period
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerUtbetaling(
-        nyUtbetaling: NyUtbetaling
-    ): Either<SimuleringFeilet, Simulering> {
-        val (_, utbetaling) = nyUtbetaling
+    override fun simulerUtbetaling(nyUtbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering> =
+        when (val utbetaling = nyUtbetaling.utbetaling) {
+            is Utbetaling.Ny -> simulerNyUtbetaling(utbetaling).right()
+            is Utbetaling.Stans -> simulerStans(utbetaling).right()
+            is Utbetaling.Gjenoppta -> simulerNyUtbetaling(utbetaling).right()
+        }
+
+    private fun simulerNyUtbetaling(utbetaling: Utbetaling): Simulering {
         val months = 0L until Period.between(
             utbetaling.utbetalingslinjer.map { it.fraOgMed }.minOrNull()!!,
             utbetaling.utbetalingslinjer.map { it.tilOgMed }.maxOrNull()!!.plusDays(1)
@@ -28,6 +35,7 @@ object SimuleringStub : SimuleringClient {
         val perioder = months.map {
             val fraOgMed = LocalDate.of(2020, Month.of((it + 1L).toInt()), 1)
             val tilOgMed = fraOgMed.plusMonths(1).minusDays(1)
+            val beløp = utbetaling.utbetalingslinjer.findBeløpForDate(fraOgMed)
             SimulertPeriode(
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed,
@@ -39,8 +47,8 @@ object SimuleringStub : SimuleringClient {
                         utbetalesTilId = utbetaling.fnr,
                         utbetalesTilNavn = "MYGG LUR",
                         detaljer = listOf(
-                            createYtelse(fraOgMed, tilOgMed),
-                            createForskuddsskatt(fraOgMed, tilOgMed)
+                            createYtelse(fraOgMed, tilOgMed, beløp),
+                            createForskuddsskatt(fraOgMed, tilOgMed, beløp)
                         )
                     )
                 )
@@ -51,18 +59,41 @@ object SimuleringStub : SimuleringClient {
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
-            nettoBeløp = perioder.sumBy { it.bruttoYtelse() / 2 },
+            nettoBeløp = perioder.calculateNetto(),
             periodeList = perioder
-        ).right()
+        )
     }
 
-    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate) = SimulertDetaljer(
+    private fun List<SimulertPeriode>.calculateNetto() = this.sumBy { it.bruttoYtelse() } + this.sumBy {
+        it.utbetaling.flatMap { it.detaljer }.filter { !it.isYtelse() }.sumBy { it.belop }
+    }
+
+    private fun List<Utbetalingslinje>.findBeløpForDate(fraOgMed: LocalDate) =
+        this.first() { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
+
+    private fun simulerStans(utbetaling: Utbetaling): Simulering {
+        return Simulering(
+            gjelderId = utbetaling.fnr,
+            gjelderNavn = "MYGG LUR",
+            datoBeregnet = idag(),
+            nettoBeløp = 0,
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = utbetaling.tidligsteDato(),
+                    tilOgMed = utbetaling.senesteDato(),
+                    utbetaling = emptyList()
+                )
+            )
+        )
+    }
+
+    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "4952000",
-        belop = 20637,
+        belop = beløp,
         tilbakeforing = false,
-        sats = 20637,
+        sats = beløp,
         typeSats = "MND",
         antallSats = 1,
         uforegrad = 0,
@@ -71,13 +102,13 @@ object SimuleringStub : SimuleringClient {
         klasseType = KlasseType.YTEL
     )
 
-    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate) = SimulertDetaljer(
+    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "0510000",
-        belop = -10318,
+        belop = -(beløp * 0.25).toInt(),
         tilbakeforing = false,
-        sats = 0,
+        sats = 1,
         typeSats = "MND",
         antallSats = 31,
         uforegrad = 0,

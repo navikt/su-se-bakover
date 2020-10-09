@@ -42,7 +42,7 @@ internal class SimuleringRequestBuilderValidationTest {
                     utbetalinger = mutableListOf()
 
                 ),
-                utbetaling = Utbetaling(
+                utbetaling = Utbetaling.Ny(
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             fraOgMed = 1.januar(2020),

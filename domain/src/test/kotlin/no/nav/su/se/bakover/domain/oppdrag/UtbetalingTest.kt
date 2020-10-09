@@ -78,7 +78,7 @@ internal class UtbetalingTest {
         opprettet: Tidspunkt = Tidspunkt.now(),
         kvittering: Kvittering? = null,
         utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
-    ) = Utbetaling(
+    ) = Utbetaling.Ny(
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
         kvittering = kvittering,

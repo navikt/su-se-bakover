@@ -57,12 +57,12 @@ internal class StansUtbetalingServiceTest {
                 )
         }
 
-        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Stans::class.java)
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+                opprettUtbetaling(any(), capture<Utbetaling.Stans>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
                 addSimulering(any(), capture<Simulering>(capturedAddSimulering))
@@ -198,11 +198,11 @@ internal class StansUtbetalingServiceTest {
                 )
         }
 
-        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling::class.java)
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Stans::class.java)
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                opprettUtbetaling(any(), capture<Utbetaling>(capturedOpprettUtbetaling))
+                opprettUtbetaling(any(), capture<Utbetaling.Stans>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
                 addSimulering(any(), capture<Simulering>(capturedAddSimulering))
@@ -250,7 +250,7 @@ internal class StansUtbetalingServiceTest {
         val attestant: Attestant = Attestant("SU"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val utbetalingId: UUID30 = UUID30.randomUUID(),
-        val eksisterendeUtbetaling: Utbetaling = Utbetaling(
+        val eksisterendeUtbetaling: Utbetaling = Utbetaling.Ny(
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             simulering = Simulering(
@@ -322,7 +322,7 @@ internal class StansUtbetalingServiceTest {
             actualUtbetaling: Utbetaling,
             simulering: Simulering? = null,
             oppdragsmelding: Oppdragsmelding? = null
-        ) = Utbetaling(
+        ) = Utbetaling.Stans(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             utbetalingslinjer = listOf(

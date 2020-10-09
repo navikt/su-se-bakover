@@ -31,7 +31,7 @@ internal class UtbetalingPublisherTest {
                     opprettet = Tidspunkt.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
-                utbetaling = Utbetaling(
+                utbetaling = Utbetaling.Ny(
                     utbetalingslinjer = emptyList(),
                     fnr = Fnr("12345678910")
                 ),
@@ -55,7 +55,7 @@ internal class UtbetalingPublisherTest {
                     opprettet = Tidspunkt.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
-                utbetaling = Utbetaling(
+                utbetaling = Utbetaling.Ny(
                     utbetalingslinjer = emptyList(),
                     fnr = Fnr("12345678910")
                 ),

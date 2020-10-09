@@ -57,14 +57,15 @@ internal class UtbetalingPostgresRepo(
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
         dataSource.withSession { session ->
             """
-            insert into utbetaling (id, opprettet, oppdragId, fnr)
-            values (:id, :opprettet, :oppdragId, :fnr)
+            insert into utbetaling (id, opprettet, oppdragId, fnr, type)
+            values (:id, :opprettet, :oppdragId, :fnr, :type)
          """.oppdatering(
                 mapOf(
                     "id" to utbetaling.id,
                     "opprettet" to utbetaling.opprettet,
                     "oppdragId" to oppdragId,
-                    "fnr" to utbetaling.fnr
+                    "fnr" to utbetaling.fnr,
+                    "type" to utbetaling.type.name
                 ),
                 session
             )

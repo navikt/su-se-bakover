@@ -32,8 +32,8 @@ internal class TestDataHelper(
     private val sakRepo = SakPostgresRepo(dataSource)
 
     fun insertSak(fnr: Fnr) = sakRepo.opprettSak(fnr)
-    fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling =
-        utbetaling.also { utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling) }
+    fun insertUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling.Ny =
+        utbetaling.also { utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling) } as Utbetaling.Ny
 
     fun insertOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding) =
         utbetalingRepo.addOppdragsmelding(utbetalingId, oppdragsmelding)

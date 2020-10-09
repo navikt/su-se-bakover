@@ -177,7 +177,7 @@ internal class AvstemmingPostgresRepoTest {
         }
     }
 
-    private fun defaultUtbetaling() = Utbetaling(
+    private fun defaultUtbetaling() = Utbetaling.Ny(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR

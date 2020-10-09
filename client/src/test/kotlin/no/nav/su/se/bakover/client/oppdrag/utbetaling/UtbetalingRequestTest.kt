@@ -41,7 +41,7 @@ internal class UtbetalingRequestTest {
 
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
-        val nyUtbetaling = Utbetaling(
+        val nyUtbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -139,7 +139,7 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
-                Utbetaling(
+                Utbetaling.Ny(
                     oppdragsmelding = Oppdragsmelding(
                         status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
@@ -166,7 +166,7 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
-        val nyUtbetaling = Utbetaling(
+        val nyUtbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,

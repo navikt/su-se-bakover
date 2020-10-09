@@ -7,16 +7,17 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.Comparator
 
-data class Utbetaling(
-    val id: UUID30 = UUID30.randomUUID(),
-    val opprettet: Tidspunkt = now(),
-    val simulering: Simulering? = null,
-    val kvittering: Kvittering? = null,
-    val oppdragsmelding: Oppdragsmelding? = null,
-    val utbetalingslinjer: List<Utbetalingslinje>,
-    val avstemmingId: UUID30? = null,
-    val fnr: Fnr
-) {
+sealed class Utbetaling {
+    abstract val id: UUID30
+    abstract val opprettet: Tidspunkt
+    abstract val simulering: Simulering?
+    abstract val kvittering: Kvittering?
+    abstract val oppdragsmelding: Oppdragsmelding?
+    abstract val utbetalingslinjer: List<Utbetalingslinje>
+    abstract val avstemmingId: UUID30?
+    abstract val fnr: Fnr
+    abstract val type: UtbetalingType
+
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
     /**
@@ -26,10 +27,6 @@ data class Utbetaling(
     fun erKvittert() = kvittering != null
     fun erKvittertOk() = kvittering?.erKvittertOk() ?: false
     fun erKvittertFeil() = kvittering?.erKvittertOk() == false
-    fun erStansutbetaling() = sisteUtbetalingslinje()?.let {
-        // TODO jah: I en annen pull-request bør vi utvide en utbetaling til å være en sealed class med de forskjellig typene utbetaling.
-        it.beløp == 0 // Stopputbetalinger vil ha beløp 0. Vi ønsker ikke å stoppe en stopputbetaling.
-    } ?: false
 
     fun kanSlettes() = oppdragsmelding == null && kvittering == null
 
@@ -42,4 +39,50 @@ data class Utbetaling(
     fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
     fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
     fun bruttoBeløp() = utbetalingslinjer.sumBy { it.beløp }
+
+    data class Ny(
+        override val id: UUID30 = UUID30.randomUUID(),
+        override val opprettet: Tidspunkt = now(),
+        override val simulering: Simulering? = null,
+        override val kvittering: Kvittering? = null,
+        override val oppdragsmelding: Oppdragsmelding? = null,
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val avstemmingId: UUID30? = null,
+        override val fnr: Fnr,
+        override val type: UtbetalingType = UtbetalingType.NY
+    ) : Utbetaling()
+
+    data class Stans(
+        override val id: UUID30 = UUID30.randomUUID(),
+        override val opprettet: Tidspunkt = now(),
+        override val simulering: Simulering? = null,
+        override val kvittering: Kvittering? = null,
+        override val oppdragsmelding: Oppdragsmelding? = null,
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val avstemmingId: UUID30? = null,
+        override val fnr: Fnr,
+        override val type: UtbetalingType = UtbetalingType.STANS
+    ) : Utbetaling() {
+        init {
+            require(utbetalingslinjer.all { it.beløp == 0 }) { "Stans kan bare inneholde utbetalingslinjer med beløp = 0!" }
+        }
+    }
+
+    data class Gjenoppta(
+        override val id: UUID30 = UUID30.randomUUID(),
+        override val opprettet: Tidspunkt = now(),
+        override val simulering: Simulering? = null,
+        override val kvittering: Kvittering? = null,
+        override val oppdragsmelding: Oppdragsmelding? = null,
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val avstemmingId: UUID30? = null,
+        override val fnr: Fnr,
+        override val type: UtbetalingType = UtbetalingType.GJENOPPTA
+    ) : Utbetaling()
+
+    enum class UtbetalingType {
+        NY,
+        STANS,
+        GJENOPPTA
+    }
 }

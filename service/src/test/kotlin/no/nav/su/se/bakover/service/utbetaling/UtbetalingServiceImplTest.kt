@@ -30,7 +30,7 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `hent utbetaling - funnet`() {
-        val utbetaling = Utbetaling(
+        val utbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910")
         )
@@ -64,7 +64,7 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
-        val utbetaling = Utbetaling(
+        val utbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
             oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel)
@@ -95,7 +95,7 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
-        val utbetaling = Utbetaling(
+        val utbetaling = Utbetaling.Ny(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
             kvittering = Kvittering(

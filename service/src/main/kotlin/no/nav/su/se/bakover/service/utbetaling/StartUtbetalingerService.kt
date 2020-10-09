@@ -33,7 +33,7 @@ class StartUtbetalingerService(
         val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
             ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
 
-        if (!sisteOversendteUtbetaling.erStansutbetaling()) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
+        if (sisteOversendteUtbetaling !is Utbetaling.Stans) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
         val utbetaling = sak.oppdrag.genererUtbetaling(Gjenoppta, sak.fnr)
 

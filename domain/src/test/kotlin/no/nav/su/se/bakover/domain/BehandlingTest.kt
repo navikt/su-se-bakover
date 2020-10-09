@@ -670,5 +670,5 @@ internal class BehandlingTest {
         sakId = id1
     )
 
-    private fun defaultUtbetaling() = Utbetaling(fnr = Fnr("12345678910"), utbetalingslinjer = emptyList())
+    private fun defaultUtbetaling() = Utbetaling.Ny(fnr = Fnr("12345678910"), utbetalingslinjer = emptyList())
 }
