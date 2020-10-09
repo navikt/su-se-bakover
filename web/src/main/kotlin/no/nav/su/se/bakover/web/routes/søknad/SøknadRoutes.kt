@@ -8,9 +8,9 @@ import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
