@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.brev
+package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
 import arrow.core.left

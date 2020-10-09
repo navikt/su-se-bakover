@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
 import no.nav.su.se.bakover.web.features.IkkeInitialisert
 import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
@@ -64,7 +65,6 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.start.startutbetalingRoutes
-import no.nav.su.se.bakover.web.services.brev.BrevService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitteringIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
