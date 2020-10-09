@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -173,7 +172,7 @@ internal class SøknadRoutesKtTest {
     }
 
     @Test
-    fun `lager en søknad, så avslutter en søknadsbehandling`() {
+    fun `lager en søknad, så trekker søknaden`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -193,13 +192,13 @@ internal class SøknadRoutesKtTest {
             sak shouldNotBe null
             sak!!.søknader() shouldHaveAtLeastSize 1
 
-            defaultRequest(Post, "$søknadPath/{søknadId}/avsluttSoknadsbehandling") {
+            defaultRequest(Post, "$søknadPath/${sak.søknader().first().id}/trekkSøknad") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{
                         "sakId": "${sak.id}",
                         "søknadId": "${sak.søknader().first().id}",
-                        "avsluttSøkndsBehandlingBegrunnelse": "${AvsluttSøkndsBehandlingBegrunnelse.Trukket}"
+                        "søknadTrukket": true
                     }
                     """.trimIndent()
                 )

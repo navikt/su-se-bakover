@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import java.util.Base64
 
@@ -99,19 +99,19 @@ sealed class Journalpost {
         )
     }
 
-    data class AvsluttetSøknadsBehandlingPost(
+    data class TrekkSøknadsPost(
         val person: Person,
         val pdf: ByteArray,
-        val avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody
+        val trukketSøknadBody: TrukketSøknadBody
     ) : Journalpost() {
-        override val tittel: String = "Vedtak om avsluttet søknad om supplerende stønad"
+        override val tittel: String = "Vedtak om trekking av søknad for supplerende stønad"
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
 
-        override val sak: Fagsak = Fagsak(avsluttSøknadsBehandlingBody.sakId.toString())
+        override val sak: Fagsak = Fagsak(trukketSøknadBody.sakId.toString())
 
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -120,7 +120,7 @@ sealed class Journalpost {
 
         private fun toJournalpostDokument() = listOf(
             JournalpostDokument(
-                tittel = "Vedtak om avsluttet søknad om supplerende stønad",
+                tittel = "Vedtak om trekking av søknad for supplerende stønad",
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
                     DokumentVariant(

@@ -13,8 +13,10 @@ import java.util.UUID
 
 internal class SøknadJsonTest {
     companion object {
+        val sakId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val søknad = Søknad(
+            sakId = sakId,
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
@@ -24,6 +26,7 @@ internal class SøknadJsonTest {
         val søknadJsonString =
             """
         {
+          "sakId": "$sakId",
           "id": "$søknadId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
@@ -125,7 +128,7 @@ internal class SøknadJsonTest {
                 "harFullmektigEllerVerge":"verge"
             }
           },
-          "avsluttetBegrunnelse": null
+          "trukket": false
         }
             """.trimIndent()
     }

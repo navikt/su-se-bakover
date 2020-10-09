@@ -64,6 +64,15 @@ suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     )
 }
 
+suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("søknadId").fold(
+        ifLeft = {
+            this.svar(HttpStatusCode.BadRequest.message(it))
+        },
+        ifRight = { ifRight(it) }
+    )
+}
+
 suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("behandlingId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },

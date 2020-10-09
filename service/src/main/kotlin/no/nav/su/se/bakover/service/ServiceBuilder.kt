@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppdrag.OppdragServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
@@ -22,14 +24,23 @@ class ServiceBuilder(
     private val clients: Clients
 ) {
     fun build(): Services {
+        val sakService = SakServiceImpl(
+            sakRepo = databaseRepos.sak
+        )
+        val brevService = BrevServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokArkiv = clients.dokArkiv,
+            dokDistFordeling = clients.dokDistFordeling,
+            sakService = sakService
+        )
         val utbetalingService = UtbetalingServiceImpl(
             repo = databaseRepos.utbetaling,
         )
         val søknadService = SøknadServiceImpl(
-            søknadRepo = databaseRepos.søknad
-        )
-        val sakService = SakServiceImpl(
-            sakRepo = databaseRepos.sak
+            søknadRepo = databaseRepos.søknad,
+            behandlingRepo = databaseRepos.behandling,
+            brevService = brevService
         )
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -65,7 +76,8 @@ class ServiceBuilder(
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
                 sakService = sakService
-            )
+            ),
+            brevService = brevService
         )
     }
 }
@@ -78,5 +90,6 @@ data class Services(
     val sak: SakService,
     val søknad: SøknadService,
     val stansUtbetaling: StansUtbetalingService,
-    val startUtbetalinger: StartUtbetalingerService
+    val startUtbetalinger: StartUtbetalingerService,
+    val brevService: BrevService
 )

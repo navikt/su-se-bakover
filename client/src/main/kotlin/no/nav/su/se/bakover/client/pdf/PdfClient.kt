@@ -6,8 +6,8 @@ import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -28,11 +28,11 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
         return genererPdf(objectMapper.writeValueAsString(vedtak), vedtakstype.template)
     }
 
-    override fun genererAvsluttetSøknaddsBehandlingPdf(
-        avsluttSøknadsBehandlingBody: AvsluttSøknadsBehandlingBody,
+    override fun genererTrukketSøknadPdf(
+        trukketSøknadBody: TrukketSøknadBody,
         vedtakstype: Vedtakstype
     ): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(avsluttSøknadsBehandlingBody), vedtakstype.template)
+        return genererPdf(objectMapper.writeValueAsString(trukketSøknadBody), vedtakstype.template)
     }
 
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {

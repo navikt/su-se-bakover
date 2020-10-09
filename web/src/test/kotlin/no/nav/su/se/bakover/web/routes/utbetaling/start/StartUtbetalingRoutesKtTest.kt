@@ -37,7 +37,8 @@ internal class StartUtbetalingRoutesKtTest {
         sak = mock(),
         søknad = mock(),
         stansUtbetaling = mock(),
-        startUtbetalinger = mock()
+        startUtbetalinger = mock(),
+        brevService = mock()
     )
 
     @Test

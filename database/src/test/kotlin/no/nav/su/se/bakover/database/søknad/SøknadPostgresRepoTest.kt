@@ -1,16 +1,14 @@
 package no.nav.su.se.bakover.database.søknad
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.AvsluttSøknadsBehandlingBody
-import no.nav.su.se.bakover.domain.AvsluttSøkndsBehandlingBegrunnelse
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -28,6 +26,7 @@ internal class SøknadPostgresRepoTest {
                 val søknad = repo.opprettSøknad(
                     sakId = sak.id,
                     søknad = Søknad(
+                        sakId = sak.id,
                         id = UUID.randomUUID(),
                         søknadInnhold = SøknadInnholdTestdataBuilder.build()
                     )
@@ -40,57 +39,49 @@ internal class SøknadPostgresRepoTest {
     }
 
     @Test
-    fun `avsluttet søknad skal bli hentet med begrunnelse for avsluttelse`() {
+    fun `søknader som ikke er trukket skal ikke være trukket`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = repo.opprettSøknad(
                 sakId = sak.id,
                 søknad = Søknad(
+                    sakId = sak.id,
                     id = UUID.randomUUID(),
                     søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 )
             )
 
-            val avsluttSøknadsBehandlingBody = AvsluttSøknadsBehandlingBody(
-                sakId = sak.id,
-                søknadId = søknad.id,
-                avsluttSøkndsBehandlingBegrunnelse = AvsluttSøkndsBehandlingBegrunnelse.Trukket
-            )
-
-            repo.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody)
             val hentetSøknad = repo.hentSøknad(søknad.id)
 
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.avsluttetBegrunnelse shouldBe AvsluttSøkndsBehandlingBegrunnelse.Trukket
+            hentetSøknad.søknadTrukket shouldBe false
         }
     }
 
     @Test
-    fun `søknader med en førstegangsbehandling skal ikke bli avsluttet`() {
+    fun `trukket søknad skal bli hentet med begrunnelse for trukket`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = repo.opprettSøknad(
                 sakId = sak.id,
                 søknad = Søknad(
+                    sakId = sak.id,
                     id = UUID.randomUUID(),
                     søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 )
             )
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
 
-            val avsluttSøknadsBehandlingBody = AvsluttSøknadsBehandlingBody(
+            val trukketSøknadBody = TrukketSøknadBody(
                 sakId = sak.id,
                 søknadId = søknad.id,
-                avsluttSøkndsBehandlingBegrunnelse = AvsluttSøkndsBehandlingBegrunnelse.Trukket
+                søknadTrukket = true
             )
 
-            repo.avsluttSøknadsBehandling(avsluttSøknadsBehandlingBody)
+            repo.trekkSøknad(trukketSøknadBody)
             val hentetSøknad = repo.hentSøknad(søknad.id)
 
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.avsluttetBegrunnelse shouldBe null
-            behandling shouldNotBe null
-            behandling.id shouldNotBe null
+            hentetSøknad.søknadTrukket shouldBe true
         }
     }
 }

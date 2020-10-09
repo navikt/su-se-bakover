@@ -44,7 +44,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
 import no.nav.su.se.bakover.web.features.IkkeInitialisert
 import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
@@ -108,6 +108,7 @@ internal fun Application.susebakover(
             }
         }
     },
+
     services: Services = ServiceBuilder(databaseRepos, clients).build()
 ) {
     // Application er allerede reservert av Ktor
@@ -120,13 +121,6 @@ internal fun Application.susebakover(
         personOppslag = clients.personOppslag,
         søknadService = services.søknad,
         sakService = services.sak,
-        brevService = BrevService(
-            pdfGenerator = clients.pdfGenerator,
-            personOppslag = clients.personOppslag,
-            dokArkiv = clients.dokArkiv,
-            dokDistFordeling = clients.dokDistFordeling,
-            sakService = services.sak
-        )
     )
 
     install(CORS) {
@@ -224,9 +218,9 @@ internal fun Application.susebakover(
                     behandlingService = services.behandling,
                     sakService = services.sak
                 )
-                søknadRoutes(søknadRoutesMediator)
+                søknadRoutes(søknadRoutesMediator, søknadService = services.søknad)
                 behandlingRoutes(
-                    brevService = BrevService(
+                    brevService = BrevServiceImpl(
                         pdfGenerator = clients.pdfGenerator,
                         personOppslag = clients.personOppslag,
                         dokArkiv = clients.dokArkiv,
