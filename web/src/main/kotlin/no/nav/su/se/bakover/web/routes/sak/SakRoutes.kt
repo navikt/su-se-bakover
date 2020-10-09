@@ -11,15 +11,18 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 
@@ -37,14 +40,16 @@ internal fun Route.sakRoutes(
                     .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
                     .map {
                         call.audit("Hentet sak for fnr: $fnr")
-                        call.svar(OK.jsonBody(it))
+                        call.svar(Resultat.json(OK, serialize((it.toJson()))))
                     }
             }
         )
     }
 
     get("$sakPath/{sakId}") {
-        call.withSak(sakService) { call.svar(OK.jsonBody(it)) }
+        call.withSak(sakService) {
+            call.svar(Resultat.json(OK, serialize((it.toJson()))))
+        }
     }
 
     data class OpprettBehandlingBody(val soknadId: String)

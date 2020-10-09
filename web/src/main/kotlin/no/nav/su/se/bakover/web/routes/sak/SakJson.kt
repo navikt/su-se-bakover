@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 
@@ -13,15 +15,40 @@ internal data class SakJson(
     val id: String,
     val fnr: String,
     val søknader: List<SøknadJson>,
-    val behandlinger: List<BehandlingJson>
-)
+    val behandlinger: List<BehandlingJson>,
+    val utbetalinger: List<UtbetalingJson>,
+    val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
+) {
+    enum class KanStansesEllerGjenopptas {
+        STANS,
+        GJENOPPTA,
+        INGEN;
 
-internal fun Sak.toJson() = SakJson(
-    id = id.toString(),
-    fnr = fnr.toString(),
-    søknader = søknader().map { it.toJson() },
-    behandlinger = behandlinger().map { it.toJson() }
-)
+        companion object {
+            internal fun Oppdrag.kanStansesEllerGjenopptas(): KanStansesEllerGjenopptas {
+                // TODO jah: Dette er en ad-hoc algoritme, kun for å få noe front-end. Bør bruke det samme som stans/gjenoppta endepunktene.
+                val oversendteUtbetalinger = this.oversendteUtbetalinger()
+                return when {
+                    oversendteUtbetalinger.isEmpty() -> INGEN
+                    oversendteUtbetalinger.last() is Utbetaling.Stans -> GJENOPPTA
+                    else -> STANS
+                }
+            }
+        }
+    }
 
-internal fun HttpStatusCode.jsonBody(sak: Sak) =
-    Resultat.json(this, objectMapper.writeValueAsString(sak.toJson()))
+    companion object {
+        internal fun Sak.toJson() = SakJson(
+            id = id.toString(),
+            fnr = fnr.toString(),
+            søknader = søknader().map { it.toJson() },
+            behandlinger = behandlinger().map { it.toJson() },
+            utbetalinger = oppdrag.hentUtbetalinger()
+                .filter { it.erOversendt() }
+                .map {
+                    it.toJson()
+                },
+            utbetalingerKanStansesEllerGjenopptas = oppdrag.kanStansesEllerGjenopptas()
+        )
+    }
+}
