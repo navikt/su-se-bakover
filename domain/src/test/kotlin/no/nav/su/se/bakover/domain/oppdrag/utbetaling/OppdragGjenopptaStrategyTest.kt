@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
@@ -61,7 +62,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
-        assertThrows<IllegalArgumentException> {
+        assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf()).genererUtbetaling(
                 Gjenoppta,
                 fnr
@@ -152,7 +153,7 @@ internal class OppdragGjenopptaStrategyTest {
             )
         )
 
-        assertThrows<IllegalStateException> {
+        assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf(første)).genererUtbetaling(
                 strategy = Gjenoppta,
                 fnr = fnr

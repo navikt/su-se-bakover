@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
@@ -64,7 +65,7 @@ internal class OppdragStansTest {
             )
         )
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
         }.also {
             it.message shouldContain "${1.juli(2020)}"
@@ -84,7 +85,7 @@ internal class OppdragStansTest {
             )
         )
 
-        assertThrows<IllegalArgumentException> {
+        assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
         }.also {
             it.message shouldContain "allerede er stanset"

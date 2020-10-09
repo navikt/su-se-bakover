@@ -58,8 +58,12 @@ data class Oppdrag(
         inner class Stans(private val clock: Clock = Clock.systemUTC()) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling {
                 val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
-                validerStansUtbetaling(stansesFraOgMed)
-                val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()!!.sisteUtbetalingslinje()!!
+
+                validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
+                validate(sisteOversendteUtbetaling() !is Utbetaling.Stans) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+
+                val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
+                    ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
                 val stansesTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
                 return Utbetaling.Stans(
@@ -73,12 +77,6 @@ data class Oppdrag(
                     ),
                     fnr = fnr
                 )
-            }
-
-            private fun validerStansUtbetaling(stansesFraDato: LocalDate): Boolean {
-                require(harOversendteUtbetalingerEtter(stansesFraDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraDato" }
-                require(sisteOversendteUtbetaling() !is Utbetaling.Stans) { "Kan ikke stanse utbetalinger som allerede er stanset" }
-                return true
             }
         }
 
@@ -112,10 +110,11 @@ data class Oppdrag(
 
         inner class Gjenoppta : Strategy() {
             fun generate(fnr: Fnr): Utbetaling {
-                require(sisteOversendteUtbetaling() != null) { "Ingen oversendte utbetalinger å gjenoppta" }
-                val sisteOversendteUtbetaling = sisteOversendteUtbetaling()!!
-                val stansetFraOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.fraOgMed
-                val stansetTilOgMed = sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.tilOgMed
+                val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
+                    ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
+
+                val stansetFraOgMed = sisteOversendteUtbetalingslinje.fraOgMed
+                val stansetTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
                 // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
                 val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
@@ -140,8 +139,8 @@ data class Oppdrag(
                         )
                     }
 
-                check(stansetEllerDelvisStansetUtbetalingslinjer.isNotEmpty()) { "Kan ikke gjenoppta utbetaling. Fant ingen utbetalinger som kan gjenopptas i perioden: $stansetFraOgMed-$stansetTilOgMed" }
-                check(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
+                validate(stansetEllerDelvisStansetUtbetalingslinjer.isNotEmpty()) { "Kan ikke gjenoppta utbetaling. Fant ingen utbetalinger som kan gjenopptas i perioden: $stansetFraOgMed-$stansetTilOgMed" }
+                validate(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
                     "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
                 }
 
@@ -151,8 +150,7 @@ data class Oppdrag(
                             acc + Utbetalingslinje(
                                 fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
                                 tilOgMed = utbetalingslinje.tilOgMed,
-                                forrigeUtbetalingslinjeId = acc.lastOrNull()?.id
-                                    ?: sisteOversendteUtbetaling.sisteUtbetalingslinje()!!.id,
+                                forrigeUtbetalingslinjeId = acc.lastOrNull()?.id ?: sisteOversendteUtbetalingslinje.id,
                                 beløp = utbetalingslinje.beløp
                             )
                             )
@@ -162,4 +160,13 @@ data class Oppdrag(
             }
         }
     }
+
+    private fun validate(value: Boolean, lazyMessage: () -> Any) {
+        if (!value) {
+            val message = lazyMessage()
+            throw UtbetalingStrategyException(message.toString())
+        }
+    }
 }
+
+class UtbetalingStrategyException(msg: String) : RuntimeException(msg)
