@@ -16,6 +16,7 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
@@ -31,9 +32,11 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -58,9 +61,9 @@ internal class SøknadRoutesKtTest {
     )
 
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-
     private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
     private val sakRepo = databaseRepos.sak
+    private val søknadRepo = databaseRepos.søknad
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -204,6 +207,43 @@ internal class SøknadRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe OK
+            }.response
+        }
+    }
+
+    @Test
+    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val sak = sakRepo.opprettSak(fnr)
+            val søknad = søknadRepo.opprettSøknad(
+                sakId = sak.id,
+                søknad = Søknad(
+                    sakId = sak.id,
+                    søknadInnhold = build()
+                )
+            )
+            søknadRepo.trekkSøknad(
+                TrukketSøknadBody(
+                    sakId = sak.id,
+                    søknadId = søknad.id,
+                    søknadTrukket = true
+                )
+            )
+
+            defaultRequest(Post, "$søknadPath/${søknad.id}/trekkSoknad") {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """{
+                        "sakId": "${sak.id}",
+                        "søknadId": "${søknad.id}",
+                        "søknadTrukket": true
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe InternalServerError
             }.response
         }
     }
