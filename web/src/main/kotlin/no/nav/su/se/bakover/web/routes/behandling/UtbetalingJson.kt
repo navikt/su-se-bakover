@@ -65,3 +65,11 @@ data class UtbetalingJson(
         }
     }
 }
+
+data class UtbetalingslinjeJson(
+    val id: String,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val beløp: Int,
+    val type: String
+)

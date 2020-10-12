@@ -4,8 +4,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingslinjeJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -16,7 +15,7 @@ internal data class SakJson(
     val fnr: String,
     val søknader: List<SøknadJson>,
     val behandlinger: List<BehandlingJson>,
-    val utbetalinger: List<UtbetalingJson>,
+    val utbetalinger: List<UtbetalingslinjeJson>,
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
 ) {
     enum class KanStansesEllerGjenopptas {
@@ -45,8 +44,16 @@ internal data class SakJson(
             behandlinger = behandlinger().map { it.toJson() },
             utbetalinger = oppdrag.hentUtbetalinger()
                 .filter { it.erOversendt() }
-                .map {
-                    it.toJson()
+                .flatMap { utbetaling ->
+                    utbetaling.utbetalingslinjer.map { utbetalingslinje ->
+                        UtbetalingslinjeJson(
+                            id = utbetalingslinje.id.toString(),
+                            fraOgMed = utbetalingslinje.fraOgMed,
+                            tilOgMed = utbetalingslinje.tilOgMed,
+                            beløp = utbetalingslinje.beløp,
+                            type = utbetaling.type.toString()
+                        )
+                    }
                 },
             utbetalingerKanStansesEllerGjenopptas = oppdrag.kanStansesEllerGjenopptas()
         )
