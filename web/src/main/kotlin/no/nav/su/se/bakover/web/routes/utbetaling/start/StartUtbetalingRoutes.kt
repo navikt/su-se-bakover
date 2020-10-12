@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.withSakId
 internal fun Route.startutbetalingRoutes(
     service: StartUtbetalingerService
 ) {
-    post("$sakPath/{sakId}/utbetalinger/start") {
+    post("$sakPath/{sakId}/utbetalinger/gjenoppta") {
         call.withSakId { sakId ->
             service.startUtbetalinger(sakId).fold(
                 {

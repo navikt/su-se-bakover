@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
 import java.time.Month
-import java.time.Period
 
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(nyUtbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering> =
@@ -28,12 +27,9 @@ object SimuleringStub : SimuleringClient {
         }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling): Simulering {
-        val months = 0L until Period.between(
-            utbetaling.utbetalingslinjer.map { it.fraOgMed }.minOrNull()!!,
-            utbetaling.utbetalingslinjer.map { it.tilOgMed }.maxOrNull()!!.plusDays(1)
-        ).toTotalMonths()
+        val months = utbetaling.utbetalingslinjer.first().fraOgMed.monthValue..utbetaling.utbetalingslinjer.last().tilOgMed.monthValue
         val perioder = months.map {
-            val fraOgMed = LocalDate.of(2020, Month.of((it + 1L).toInt()), 1)
+            val fraOgMed = LocalDate.of(2020, Month.of((it).toInt()), 1)
             val tilOgMed = fraOgMed.plusMonths(1).minusDays(1)
             val beløp = utbetaling.utbetalingslinjer.findBeløpForDate(fraOgMed)
             SimulertPeriode(

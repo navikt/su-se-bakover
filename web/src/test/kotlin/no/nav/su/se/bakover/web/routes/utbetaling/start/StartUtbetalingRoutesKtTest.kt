@@ -52,7 +52,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
@@ -72,7 +72,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ingen utbetalinger"
@@ -92,7 +92,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Siste utbetaling er ikke en stans"
@@ -112,7 +112,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Simulering feilet"
@@ -132,7 +132,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Oversendelse til oppdrag feilet"
@@ -163,7 +163,7 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/start") {
+            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 objectMapper.readValue<UtbetalingJson>(response.content!!) shouldBe utbetaling.toJson()
