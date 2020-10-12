@@ -42,6 +42,8 @@ internal class UtbetalingJsonTest {
           "id": "$id",
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(opprettet)}",
           "simulering": {
+            "utbetalingId": "$id",
+            "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(opprettet)}",
             "totalBruttoYtelse" : 41274,
             "perioder" : [
                 {

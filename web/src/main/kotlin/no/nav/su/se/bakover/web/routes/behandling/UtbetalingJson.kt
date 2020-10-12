@@ -3,10 +3,9 @@ package no.nav.su.se.bakover.web.routes.behandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.Companion.toSimuleringJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.SimulertPeriodeJson.Companion.toJson
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -21,7 +20,7 @@ data class UtbetalingJson(
             UtbetalingJson(
                 id = id.toString(),
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                simulering = simulering?.toJson()
+                simulering = toSimuleringJson()
             )
 
         internal fun HttpStatusCode.jsonBody(utbetaling: Utbetaling) =
@@ -29,14 +28,20 @@ data class UtbetalingJson(
     }
 
     data class SimuleringJson(
+        val utbetalingId: String,
+        val opprettet: String,
         val totalBruttoYtelse: Int,
         val perioder: List<SimulertPeriodeJson>
     ) {
         companion object {
-            fun Simulering.toJson() = SimuleringJson(
-                totalBruttoYtelse = bruttoYtelse(),
-                perioder = periodeList.toJson()
-            )
+            fun Utbetaling.toSimuleringJson(): SimuleringJson? = simulering?.let {
+                SimuleringJson(
+                    utbetalingId = id.toString(),
+                    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                    totalBruttoYtelse = it.bruttoYtelse(),
+                    perioder = it.periodeList.toJson()
+                )
+            }
         }
 
         data class SimulertPeriodeJson(

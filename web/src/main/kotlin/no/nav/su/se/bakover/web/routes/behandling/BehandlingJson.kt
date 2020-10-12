@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.SimuleringJson.Companion.toSimuleringJson
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.hendelse.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -20,6 +21,7 @@ internal data class BehandlingJson(
     val beregning: BeregningJson?,
     val status: String,
     val utbetaling: UtbetalingJson?,
+    val simulering: UtbetalingJson.SimuleringJson?,
     val opprettet: String,
     val attestant: String?,
     val saksbehandler: String?,
@@ -33,7 +35,8 @@ internal fun Behandling.toJson() = BehandlingJson(
     søknad = søknad.toJson(),
     beregning = beregning()?.toJson(),
     status = status().toString(),
-    utbetaling = utbetaling()?.toJson(),
+    utbetaling = utbetaling()?.toJson(), // Deprecated - Frontend har p.t. kun behov for simuleringa.
+    simulering = utbetaling()?.toSimuleringJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     attestant = attestant()?.navIdent,
     saksbehandler = saksbehandler()?.navIdent,
