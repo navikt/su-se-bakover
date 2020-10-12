@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
+import java.util.UUID
 
 object PdfGeneratorStub : PdfGenerator {
 
@@ -35,7 +35,8 @@ object PdfGeneratorStub : PdfGenerator {
     }
 
     override fun genererTrukketSøknadPdf(
-        trukketSøknadBody: TrukketSøknadBody,
+        sakId: UUID,
+        søknadId: UUID,
         vedtakstype: Vedtakstype
     ): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()

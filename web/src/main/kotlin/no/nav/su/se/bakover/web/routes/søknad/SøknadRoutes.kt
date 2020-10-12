@@ -8,16 +8,17 @@ import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknad.TrekkSøknadFeil
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withSakId
 import no.nav.su.se.bakover.web.withSøknadId
-import org.slf4j.LoggerFactory
 
 internal const val søknadPath = "/soknad"
 
@@ -25,8 +26,6 @@ internal fun Route.søknadRoutes(
     mediator: SøknadRouteMediator,
     søknadService: SøknadService
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
-
     post(søknadPath) {
         Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
             ifLeft = {
@@ -43,32 +42,40 @@ internal fun Route.søknadRoutes(
         )
     }
 
-    post("$søknadPath/{søknadId}/trekkSoknad") {
-        call.withSøknadId {
-            Either.catch { deserialize<TrukketSøknadBody>(call) }.fold(
-                ifLeft = {
-                    log.info("Ugyldig søknads avslutting-body: ", it)
-                    call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
-                },
-                ifRight = { trukketSøknadBody ->
-                    if (trukketSøknadBody.valid()) {
-                        søknadService.trekkSøknad(trukketSøknadBody).fold(
+    post("$søknadPath/{sakId}/{søknadId}/trekk") {
+        call.withSakId {
+            call.withSøknadId { søknadId ->
+                Either.catch { deserialize<Saksbehandler>(call) }.fold(
+                    ifLeft = {
+                        call.svar(
+                            HttpStatusCode.BadRequest.message(
+                                "Ugyldig nav-ident"
+                            )
+                        )
+                    },
+                    ifRight = { saksbehandler ->
+                        søknadService.trekkSøknad(søknadId = søknadId, saksbehandler = saksbehandler).fold(
                             ifLeft = {
-                                call.svar(HttpStatusCode.InternalServerError.message("Noe gikk galt"))
+                                when (it) {
+                                    is TrekkSøknadFeil.KunneIkkeTrekkeSøknad ->
+                                        call.svar(HttpStatusCode.InternalServerError.message("Noe gikk galt"))
+                                    is TrekkSøknadFeil.SøknadErAlleredeTrukket ->
+                                        call.svar(HttpStatusCode.BadRequest.message("Søknad er allerede trukket"))
+                                    is TrekkSøknadFeil.SøknadHarEnBehandling ->
+                                        call.svar(Created.message("Søknaden har en behandling"))
+                                }
                             },
                             ifRight = {
                                 call.svar(
                                     HttpStatusCode.OK.message(
-                                        "Trukket søknad for ${trukketSøknadBody.søknadId} "
+                                        "Trukket søknad for $søknadId "
                                     )
                                 )
                             }
                         )
-                    } else {
-                        call.svar(HttpStatusCode.BadRequest.message("Ugyldige begrunnelse for trekking av søknad: $it"))
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

@@ -15,8 +15,8 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
@@ -32,11 +32,11 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -195,14 +195,12 @@ internal class SøknadRoutesKtTest {
             sak shouldNotBe null
             sak!!.søknader() shouldHaveAtLeastSize 1
 
-            defaultRequest(Post, "$søknadPath/${sak.søknader().first().id}/trekkSoknad") {
+            defaultRequest(Post, "$søknadPath/${sak.id}/${sak.søknader().first().id}/trekk") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{
-                        "sakId": "${sak.id}",
-                        "søknadId": "${sak.søknader().first().id}",
-                        "søknadTrukket": true
-                    }
+                        "navIdent": "Z993156"
+                        }
                     """.trimIndent()
                 )
             }.apply {
@@ -225,25 +223,20 @@ internal class SøknadRoutesKtTest {
                 )
             )
             søknadRepo.trekkSøknad(
-                TrukketSøknadBody(
-                    sakId = sak.id,
-                    søknadId = søknad.id,
-                    søknadTrukket = true
-                )
+                søknadId = søknad.id,
+                saksbehandler = Saksbehandler("Z993156")
             )
 
-            defaultRequest(Post, "$søknadPath/${søknad.id}/trekkSoknad") {
+            defaultRequest(Post, "$søknadPath/${sak.id}/${søknad.id}/trekk") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{
-                        "sakId": "${sak.id}",
-                        "søknadId": "${søknad.id}",
-                        "søknadTrukket": true
-                    }
+                        "navIdent": "Z993156"
+                        }
                     """.trimIndent()
                 )
             }.apply {
-                response.status() shouldBe InternalServerError
+                response.status() shouldBe BadRequest
             }.response
         }
     }

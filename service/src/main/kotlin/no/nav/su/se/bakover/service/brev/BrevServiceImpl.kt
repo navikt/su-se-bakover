@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Satsgrunn
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 
 class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
@@ -170,19 +170,20 @@ class BrevServiceImpl(
     }
 
     override fun journalførTrukketSøknadOgSendBrev(
-        trukketSøknadBody: TrukketSøknadBody
+        sakId: UUID,
+        søknadId: UUID
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
         val loggtema = "Journalføring og trekking av søknad"
 
-        val person = sakService.hentSak(trukketSøknadBody.sakId).fold(
+        val person = sakService.hentSak(sakId).fold(
             ifLeft = {
-                log.error("$loggtema: fant ikke sak for sakId: ${trukketSøknadBody.sakId}")
+                log.error("$loggtema: fant ikke sak for sakId: $sakId")
                 return KunneIkkeOppretteJournalpostOgSendeBrev.left()
             },
             ifRight = { sak ->
                 hentPersonFraFnr(sak.fnr).fold(
                     ifLeft = {
-                        log.error("$loggtema: kunne ikke hente person for sakId: ${trukketSøknadBody.sakId}")
+                        log.error("$loggtema: kunne ikke hente person for sakId: $sakId")
                         return KunneIkkeOppretteJournalpostOgSendeBrev.left()
                     },
                     ifRight = { person ->
@@ -193,7 +194,7 @@ class BrevServiceImpl(
             }
         )
 
-        val trukketSøknadBrevPdf = genererTrukketSøknadBrevPdf(trukketSøknadBody).fold(
+        val trukketSøknadBrevPdf = genererTrukketSøknadBrevPdf(sakId = sakId, søknadId = søknadId).fold(
             ifLeft = {
                 log.error("$loggtema: kunne ikke generere pdf for å trekke søknad")
                 return KunneIkkeOppretteJournalpostOgSendeBrev.left()
@@ -205,10 +206,11 @@ class BrevServiceImpl(
         )
 
         val journalPostId = dokArkiv.opprettJournalpost(
-            Journalpost.TrekkSøknadsPost(
+            Journalpost.Trukket(
                 person = person,
                 pdf = trukketSøknadBrevPdf,
-                trukketSøknadBody = trukketSøknadBody
+                sakId = sakId,
+                søknadId = søknadId,
             )
         ).fold(
             ifLeft = {
@@ -246,10 +248,11 @@ class BrevServiceImpl(
     }
 
     private fun genererTrukketSøknadBrevPdf(
-        trukketSøknadBody: TrukketSøknadBody
+        sakId: UUID,
+        søknadId: UUID
     ): Either<ClientError, ByteArray> {
 
-        return pdfGenerator.genererTrukketSøknadPdf(trukketSøknadBody, Vedtakstype.TREKKSØKNAD)
+        return pdfGenerator.genererTrukketSøknadPdf(sakId = sakId, søknadId = søknadId, Vedtakstype.TREKK_SØKNAD)
             .mapLeft {
                 log.error("Kunne ikke generere brevinnhold")
                 it

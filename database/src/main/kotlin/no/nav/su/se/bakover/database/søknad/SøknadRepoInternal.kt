@@ -29,6 +29,6 @@ internal fun Row.toSøknad(): Søknad {
         id = uuid("id"),
         søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
         opprettet = tidspunkt("opprettet"),
-        søknadTrukket = boolean("trukket")
+        trukket = stringOrNull("trukket")?.let { objectMapper.readValue(it) }
     )
 }

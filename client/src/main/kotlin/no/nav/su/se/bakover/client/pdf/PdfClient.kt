@@ -7,11 +7,11 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.util.UUID
 
 internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen"
 internal const val SOKNAD_TEMPLATE = "soknad"
@@ -29,10 +29,21 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     }
 
     override fun genererTrukketSøknadPdf(
-        trukketSøknadBody: TrukketSøknadBody,
+        sakId: UUID,
+        søknadId: UUID,
         vedtakstype: Vedtakstype
     ): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(trukketSøknadBody), vedtakstype.template)
+        return genererPdf(
+            objectMapper.writeValueAsString(
+                // TODO: fix temp
+                """{
+                    "sakId": "$sakId",
+                    "søknadId": "$søknadId"
+                }
+                """.trimIndent()
+            ),
+            vedtakstype.template
+        )
     }
 
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {

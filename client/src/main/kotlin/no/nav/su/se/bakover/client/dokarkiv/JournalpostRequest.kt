@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.client.dokarkiv
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import java.util.Base64
+import java.util.UUID
 
 sealed class Journalpost {
     val tema: String = "SUP"
@@ -99,10 +99,11 @@ sealed class Journalpost {
         )
     }
 
-    data class TrekkSøknadsPost(
+    data class Trukket(
         val person: Person,
         val pdf: ByteArray,
-        val trukketSøknadBody: TrukketSøknadBody
+        val sakId: UUID,
+        val søknadId: UUID,
     ) : Journalpost() {
         override val tittel: String = "Vedtak om trekking av søknad for supplerende stønad"
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
@@ -111,7 +112,7 @@ sealed class Journalpost {
         )
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
 
-        override val sak: Fagsak = Fagsak(trukketSøknadBody.sakId.toString())
+        override val sak: Fagsak = Fagsak(sakId.toString())
 
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -120,7 +121,7 @@ sealed class Journalpost {
 
         private fun toJournalpostDokument() = listOf(
             JournalpostDokument(
-                tittel = "Vedtak om trekking av søknad for supplerende stønad",
+                tittel = tittel,
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
                     DokumentVariant(

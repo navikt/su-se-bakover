@@ -9,13 +9,11 @@ data class Søknad(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
     val søknadInnhold: SøknadInnhold,
-    val søknadTrukket: Boolean = false
+    val trukket: Trukket? = null,
+
 )
 
-data class TrukketSøknadBody(
-    val sakId: UUID,
-    val søknadId: UUID,
-    val søknadTrukket: Boolean
-) {
-    fun valid() = søknadTrukket
-}
+data class Trukket(
+    val tidspunkt: Tidspunkt,
+    val saksbehandler: Saksbehandler
+)

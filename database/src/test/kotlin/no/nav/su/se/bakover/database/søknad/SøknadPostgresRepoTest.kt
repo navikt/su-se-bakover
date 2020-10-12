@@ -6,9 +6,10 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
+import no.nav.su.se.bakover.domain.Trukket
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -54,12 +55,12 @@ internal class SøknadPostgresRepoTest {
             val hentetSøknad = repo.hentSøknad(søknad.id)
 
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.søknadTrukket shouldBe false
+            hentetSøknad.trukket shouldBe null
         }
     }
 
     @Test
-    fun `trukket søknad skal bli hentet med begrunnelse for trukket`() {
+    fun `trukket søknad skal bli hentet med saksbehandler som har trekt søknaden`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = repo.opprettSøknad(
@@ -71,17 +72,15 @@ internal class SøknadPostgresRepoTest {
                 )
             )
 
-            val trukketSøknadBody = TrukketSøknadBody(
-                sakId = sak.id,
+            val saksbehandler = Saksbehandler("Z993156")
+            repo.trekkSøknad(
                 søknadId = søknad.id,
-                søknadTrukket = true
+                saksbehandler = saksbehandler
             )
-
-            repo.trekkSøknad(trukketSøknadBody)
             val hentetSøknad = repo.hentSøknad(søknad.id)
 
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.søknadTrukket shouldBe true
+            hentetSøknad.trukket shouldBe Trukket(hentetSøknad.trukket!!.tidspunkt, saksbehandler)
         }
     }
 }

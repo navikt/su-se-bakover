@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.database.søknad
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
+import no.nav.su.se.bakover.domain.Trukket
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -29,12 +31,14 @@ internal class SøknadPostgresRepo(
         return hentSøknad(søknad.id)!!
     }
 
-    override fun trekkSøknad(trukketSøknadBody: TrukketSøknadBody) {
+    override fun trekkSøknad(søknadId: UUID, saksbehandler: Saksbehandler) {
+        val trukket = Trukket(Tidspunkt.now(), saksbehandler)
+
         dataSource.withSession { session ->
-            "update søknad set trukket = :trukket where id=:id".oppdatering(
+            "update søknad set trukket = to_json(:trukket::json) where id=:id".oppdatering(
                 mapOf(
-                    "id" to trukketSøknadBody.søknadId,
-                    "trukket" to trukketSøknadBody.søknadTrukket.toString()
+                    "id" to søknadId,
+                    "trukket" to objectMapper.writeValueAsString(trukket)
                 ),
                 session
             )

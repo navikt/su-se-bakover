@@ -8,12 +8,11 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.søknad.KunneIkkeTrekkeSøknad
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.database.søknad.SøknadTrukketOk
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.TrukketSøknadBody
+import no.nav.su.se.bakover.domain.Trukket
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import org.junit.jupiter.api.Test
@@ -28,23 +27,20 @@ internal class SøknadServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            søknadTrukket = false
+            trukket = null
         )
-        val trukketSøknadBody = TrukketSøknadBody(
-            sakId = sakId,
-            søknadId = søknad.id,
-            søknadTrukket = true
-        )
+        val saksbehandler = Saksbehandler("Z993156")
+
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(trukketSøknadBody) }.doNothing()
+            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { finnesBehandlingForSøknad(søknad.id) } doReturn false
+            on { harSøknadBehandling(søknad.id) } doReturn false
         }
         val brevServiceMock = mock<BrevService> {
             on {
-                journalførTrukketSøknadOgSendBrev(trukketSøknadBody)
+                journalførTrukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknad.id)
             } doReturn Either.right("aMockedReturn")
         }
 
@@ -52,7 +48,7 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).trekkSøknad(trukketSøknadBody) shouldBe SøknadTrukketOk.right()
+        ).trekkSøknad(søknad.id, saksbehandler) shouldBe SøknadTrukketOk.right()
     }
 
     @Test
@@ -63,24 +59,20 @@ internal class SøknadServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            søknadTrukket = false
+            trukket = null
         )
-        val trukketSøknadBody = TrukketSøknadBody(
-            sakId = sakId,
-            søknadId = søknad.id,
-            søknadTrukket = true
-        )
+        val saksbehandler = Saksbehandler("Z993156")
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(trukketSøknadBody) }.doNothing()
+            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { finnesBehandlingForSøknad(søknad.id) } doReturn true
+            on { harSøknadBehandling(søknad.id) } doReturn true
         }
         val brevServiceMock = mock<BrevService> {
             on {
-                journalførTrukketSøknadOgSendBrev(trukketSøknadBody)
+                journalførTrukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknad.id)
             } doReturn Either.right("a mocked return")
         }
 
@@ -88,35 +80,35 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).trekkSøknad(trukketSøknadBody) shouldBe KunneIkkeTrekkeSøknad.left()
+        ).trekkSøknad(søknadId = søknad.id, saksbehandler) shouldBe TrekkSøknadFeil.SøknadHarEnBehandling.left()
     }
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
         val sakId = UUID.randomUUID()
+        val saksbehandler = Saksbehandler("Z993156")
+
         val søknad = Søknad(
             sakId = sakId,
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            søknadTrukket = true
-        )
-        val trukketSøknadBody = TrukketSøknadBody(
-            sakId = sakId,
-            søknadId = søknad.id,
-            søknadTrukket = true
+            trukket = Trukket(
+                tidspunkt = Tidspunkt.now(),
+                saksbehandler = saksbehandler
+            )
         )
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(trukketSøknadBody) }.doNothing()
+            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { finnesBehandlingForSøknad(søknad.id) } doReturn true
+            on { harSøknadBehandling(søknad.id) } doReturn true
         }
         val brevServiceMock = mock<BrevService> {
             on {
-                journalførTrukketSøknadOgSendBrev(trukketSøknadBody)
+                journalførTrukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknad.id)
             } doReturn Either.right("a mocked return")
         }
 
@@ -124,6 +116,6 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).trekkSøknad(trukketSøknadBody) shouldBe KunneIkkeTrekkeSøknad.left()
+        ).trekkSøknad(søknadId = søknad.id, saksbehandler) shouldBe TrekkSøknadFeil.SøknadErAlleredeTrukket.left()
     }
 }
