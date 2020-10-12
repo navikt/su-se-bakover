@@ -5,7 +5,7 @@
   "env": {
     "ALLOW_CORS_ORIGIN": "su-se-framover.nais.preprod.local",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.preprod.local/callback",
-    "FRONTEND_REDIRECT_URL": "https://su-se-framover.nais.preprod.local/auth/complete",
+    "FRONTEND_BASE_URL": "https://su-se-framover.nais.preprod.local",
     "SU_PERSON_AZURE_CLIENT_ID": "76de0063-2696-423b-84a4-19d886c116ca",
     "SU_INNTEKT_AZURE_CLIENT_ID": "9cd61904-33ad-40e8-9cc8-19e4dab588c5",
     "VAULT_MOUNTPATH": "postgresql/preprod-fss/",

@@ -175,6 +175,7 @@ internal fun Application.susebakover(
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
+        jwkConfig = jwkConfig,
         oAuth = clients.oauth,
     )
 

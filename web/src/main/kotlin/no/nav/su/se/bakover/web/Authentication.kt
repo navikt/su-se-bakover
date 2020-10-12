@@ -30,6 +30,7 @@ import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject
+import java.net.URLEncoder
 import java.time.Instant
 import java.util.Base64.getDecoder
 import java.util.Date
@@ -112,17 +113,34 @@ private fun errorMessage(date: Date) =
     } else ""
 
 internal const val AUTH_CALLBACK_PATH = "/callback"
+internal const val LOGOUT_CALLBACK_PATH = "$AUTH_CALLBACK_PATH/logout-complete"
 
-internal fun Application.oauthRoutes(frontendRedirectUrl: String, oAuth: OAuth) {
+internal fun Application.oauthRoutes(
+    frontendRedirectUrl: String,
+    jwkConfig: JSONObject,
+    oAuth: OAuth
+) {
     routing {
         authenticate("azure") {
             get("/login") {
                 // Initiate login sequence
             }
             get(AUTH_CALLBACK_PATH) {
-                val tokenResponse = call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
+                val tokenResponse =
+                    call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
+
                 call.respondRedirect("$frontendRedirectUrl#${tokenResponse.accessToken}#${tokenResponse.refreshToken}")
             }
+        }
+        get("/logout") {
+            val endSessionEndpoint = jwkConfig.getString("end_session_endpoint")
+
+            val redirectUri = URLEncoder.encode("${Config.azureBackendCallbackUrl}/logout-complete", "utf-8")
+
+            call.respondRedirect("$endSessionEndpoint?post_logout_redirect_uri=$redirectUri")
+        }
+        get(LOGOUT_CALLBACK_PATH) {
+            call.respondRedirect(Config.suSeFramoverLogoutSuccessUrl)
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {
