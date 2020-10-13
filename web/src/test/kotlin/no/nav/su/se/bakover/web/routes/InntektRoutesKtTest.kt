@@ -8,6 +8,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.ClientResponse
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
@@ -39,7 +40,7 @@ internal class InntektRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, path)
+            defaultRequest(Get, path, listOf(Brukerrolle.Saksbehandler))
         }.apply {
             assertEquals(OK, response.status())
             assertEquals(ident, JSONObject(response.content!!).getJSONObject("ident").getString("identifikator"))
@@ -65,7 +66,7 @@ internal class InntektRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(Get, path)
+            defaultRequest(Get, path, listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(InternalServerError, response.status())
             assertEquals(errorMessage, response.content!!)

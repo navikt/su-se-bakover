@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.domain.Brukerrolle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -40,7 +41,7 @@ internal class AuthenticationTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, secureEndpoint)
+            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(OK, response.status())
         }
@@ -65,7 +66,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create(groups = listOf("WRONG_GROUP_UUID")))
+                addHeader(Authorization, Jwt.create(roller = emptyList()))
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -94,7 +95,11 @@ internal class AuthenticationTest {
             applog = environment.log as Logger
         }) {
             applog.apply { addAppender(appender) }
-            defaultRequest(Get, "/callback?code=code&state=state&session_state=session_state") {
+            defaultRequest(
+                Get,
+                "/callback?code=code&state=state&session_state=session_state",
+                listOf(Brukerrolle.Veileder)
+            ) {
             }
         }.apply {
             appender.list.forEach {
@@ -111,7 +116,7 @@ internal class AuthenticationTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, "auth/refresh") {
+            defaultRequest(Get, "auth/refresh", listOf(Brukerrolle.Veileder)) {
                 addHeader("refresh_token", "my.refresh.token")
             }
         }.apply {

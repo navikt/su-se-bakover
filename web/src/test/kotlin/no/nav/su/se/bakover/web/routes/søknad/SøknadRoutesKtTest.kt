@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -69,7 +70,8 @@ internal class SøknadRoutesKtTest {
         }) {
             val createResponse = defaultRequest(
                 Post,
-                søknadPath
+                søknadPath,
+                listOf(Brukerrolle.Veileder)
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
@@ -91,7 +93,7 @@ internal class SøknadRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Post, søknadPath) {
+            defaultRequest(Post, søknadPath, listOf(Brukerrolle.Veileder)) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
             }.apply {
@@ -99,7 +101,7 @@ internal class SøknadRoutesKtTest {
                 sakNr = objectMapper.readValue<SakJson>(response.content!!).id
             }
 
-            defaultRequest(Get, "$sakPath/$sakNr").apply {
+            defaultRequest(Get, "$sakPath/$sakNr", listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, response.status())
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
@@ -151,12 +153,13 @@ internal class SøknadRoutesKtTest {
         withTestApplication({
             testSusebakover(
                 clients = clients,
-                services = services
+                services = services,
             )
         }) {
             defaultRequest(
                 Post,
-                søknadPath
+                søknadPath,
+                listOf(Brukerrolle.Veileder)
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)

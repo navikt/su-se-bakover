@@ -10,7 +10,6 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.Jwt
@@ -52,7 +51,7 @@ internal class MeRoutesKtTest {
                     HttpHeaders.Authorization,
                     Jwt.create(
                         subject = "random",
-                        groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                        roller = listOf(Brukerrolle.Attestant)
                     )
                 )
             }.apply {

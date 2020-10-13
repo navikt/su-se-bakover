@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -40,7 +41,7 @@ internal class SuUserFeatureTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Get, "/saker/${UUID.randomUUID()}").apply {
+            defaultRequest(HttpMethod.Get, "/saker/${UUID.randomUUID()}", listOf(Brukerrolle.Veileder)).apply {
                 this.suUserContext.user shouldBe response
                 this.suUserContext.getNAVIdent() shouldBe "heisann"
             }
@@ -62,7 +63,7 @@ internal class SuUserFeatureTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Get, "/saker/${UUID.randomUUID()}").apply {
+            defaultRequest(HttpMethod.Get, "/saker/${UUID.randomUUID()}", listOf(Brukerrolle.Veileder)).apply {
                 this.response.status() shouldBe HttpStatusCode.NotFound
             }
         }
@@ -83,7 +84,7 @@ internal class SuUserFeatureTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Get, "/me").apply {
+            defaultRequest(HttpMethod.Get, "/me", listOf(Brukerrolle.Veileder)).apply {
                 this.response.status() shouldBe HttpStatusCode.InternalServerError
                 shouldThrow<KallMotMicrosoftGraphApiFeilet> { suUserContext.user }
                 shouldThrow<KallMotMicrosoftGraphApiFeilet> { suUserContext.getNAVIdent() }

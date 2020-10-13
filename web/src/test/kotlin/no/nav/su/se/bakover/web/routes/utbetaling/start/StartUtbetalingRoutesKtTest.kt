@@ -13,6 +13,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -55,7 +56,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
@@ -75,7 +80,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ingen utbetalinger"
@@ -95,7 +104,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Siste utbetaling er ikke en stans"
@@ -115,7 +128,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Simulering feilet"
@@ -135,7 +152,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Oversendelse til oppdrag feilet"
@@ -175,7 +196,11 @@ internal class StartUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 objectMapper.readValue<SakJson>(response.content!!) shouldBe sak.toJson()

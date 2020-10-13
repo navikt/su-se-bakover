@@ -15,10 +15,10 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import java.util.Base64
@@ -83,11 +83,12 @@ internal object JwkProviderStub : JwkProvider {
 fun TestApplicationEngine.defaultRequest(
     method: HttpMethod,
     uri: String,
+    roller: List<Brukerrolle>,
     setup: TestApplicationRequest.() -> Unit = {}
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, Jwt.create())
+        addHeader(HttpHeaders.Authorization, Jwt.create(roller = roller))
         setup()
     }
 }
@@ -101,7 +102,7 @@ fun TestApplicationEngine.requestSomAttestant(
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
         addHeader(
             HttpHeaders.Authorization,
-            Jwt.create(groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant))
+            Jwt.create(roller = listOf(Brukerrolle.Attestant))
         )
         setup()
     }
