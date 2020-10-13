@@ -83,7 +83,7 @@ internal class OppgaveHttpClient(
     }
 
     private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, Int> {
-        val (_, response, result) = "$baseUrl$oppgavePath".httpPatch()
+        val (request, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -97,6 +97,9 @@ internal class OppgaveHttpClient(
                     )
                 )
             ).responseString()
+
+        log.info("Patch oppgave request : $request")
+        log.info("Patch oppgave response : $response")
 
         return result.fold(
             { json ->
@@ -118,7 +121,7 @@ internal class OppgaveHttpClient(
                 "oppgavetype" to oppgavetype,
                 "behandlingstype" to behandlingstype,
                 "behandlingstema" to behandlingstema,
-                "aktorId" to aktørId.toString()
+                "aktoerId" to aktørId.toString()
             )
         )
             .authentication().bearer(tokenOppslag.token())
