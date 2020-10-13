@@ -174,7 +174,8 @@ internal fun Application.susebakover(
         httpClient = authenticationHttpClient
     )
     oauthRoutes(
-        frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
+        frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
+        jwkConfig = jwkConfig,
         oAuth = clients.oauth,
     )
 
@@ -231,8 +232,7 @@ internal fun Application.susebakover(
                 )
                 avstemmingRoutes(services.avstemming)
                 stansutbetalingRoutes(
-                    stansUtbetalingService = services.stansUtbetaling,
-                    sakService = services.sak
+                    stansUtbetalingService = services.stansUtbetaling
                 )
                 startutbetalingRoutes(services.startUtbetalinger)
                 meRoutes()

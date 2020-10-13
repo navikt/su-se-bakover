@@ -110,13 +110,19 @@ internal class StartUtbetalingerServiceTest {
             utbetalingPublisher = publisherMock,
             clock = setup.clock
         )
-        val startetUtbetaling = service.startUtbetalinger(setup.sakId)
-
-        startetUtbetaling shouldBe setup.forventetUtbetaling(
-            startetUtbetaling.orNull()!!,
+        val actualSak = service.startUtbetalinger(setup.sakId)
+        val expectedUtbetaling = setup.forventetUtbetaling(
+            actualUtbetaling = actualSak.orNull()!!.oppdrag.hentUtbetalinger()[3],
             simulering = setup.simulerStartutbetaling,
             oppdragsmelding = setup.oppdragsmeldingSendt
-        ).right()
+        )
+        val expectedSak = setup.eksisterendeSak.copy(
+            oppdrag = setup.eksisterendeOppdrag.copy(
+                utbetalinger = setup.eksisterendeOppdrag.hentUtbetalinger() + expectedUtbetaling
+            )
+        )
+
+        actualSak shouldBe expectedSak.right()
 
         inOrder(
             sakServiceMock,

@@ -10,7 +10,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.withSakId
 

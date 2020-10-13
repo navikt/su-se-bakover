@@ -5,7 +5,7 @@
   "env": {
     "ALLOW_CORS_ORIGIN": "su-se-framover.nais.adeo.no",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.adeo.no/callback",
-    "FRONTEND_REDIRECT_URL": "https://su-se-framover.nais.adeo.no/auth/complete",
+    "FRONTEND_BASE_URL": "https://su-se-framover.nais.adeo.no",
     "SU_PERSON_AZURE_CLIENT_ID": "0a07e33e-48b4-49b3-9d62-508a4669ca7a",
     "SU_INNTEKT_AZURE_CLIENT_ID": "added321-62ff-4c30-9599-81dc343f749b",
     "VAULT_MOUNTPATH": "postgresql/prod-fss/",

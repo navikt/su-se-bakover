@@ -14,13 +14,16 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet
 import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
+import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -153,8 +156,17 @@ internal class StartUtbetalingRoutesKtTest {
             avstemmingId = null,
             fnr = Fnr("12345678911")
         )
+        val sak = Sak(
+            fnr = FnrGenerator.random(),
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                sakId = sakId,
+                utbetalinger = listOf(utbetaling)
+            )
+        )
         val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn utbetaling.right()
+            on { startUtbetalinger(sakId) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -166,7 +178,7 @@ internal class StartUtbetalingRoutesKtTest {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/gjenoppta") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                objectMapper.readValue<UtbetalingJson>(response.content!!) shouldBe utbetaling.toJson()
+                objectMapper.readValue<SakJson>(response.content!!) shouldBe sak.toJson()
             }
         }
     }

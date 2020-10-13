@@ -15,7 +15,7 @@ data class Oppdrag(
     val id: UUID30,
     val opprettet: Tidspunkt,
     val sakId: UUID,
-    private val utbetalinger: MutableList<Utbetaling> = mutableListOf()
+    private val utbetalinger: List<Utbetaling> = listOf()
 ) {
     fun sisteOversendteUtbetaling(): Utbetaling? = oversendteUtbetalinger().lastOrNull()
 
@@ -42,7 +42,7 @@ data class Oppdrag(
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
-    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr) = when (strategy) {
+    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling = when (strategy) {
         is UtbetalingStrategy.Stans -> Strategy().Stans(strategy.clock).generate(fnr)
         is UtbetalingStrategy.Ny -> Strategy().Ny().generate(strategy.beregning, fnr)
         is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta().generate(fnr)

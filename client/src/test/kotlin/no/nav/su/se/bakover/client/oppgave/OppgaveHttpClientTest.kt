@@ -211,7 +211,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            post((urlPathEqualTo("$oppgavePath")))
+            post((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -239,7 +239,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         WireMock.configureFor(WiremockBase.wireMockServer.port())
         verify(
             1,
-            postRequestedFor(urlPathEqualTo("$oppgavePath"))
+            postRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
                 .withRequestBody(
                     equalToJson(
                         //language=JSON

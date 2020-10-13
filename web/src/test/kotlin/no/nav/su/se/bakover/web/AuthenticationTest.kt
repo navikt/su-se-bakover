@@ -102,7 +102,7 @@ internal class AuthenticationTest {
                 it.message shouldNotContain "callback"
             }
             response.status() shouldBe Found
-            response.headers["Location"] shouldBe "${Config.suSeFramoverRedirectUrl}#access#refresh"
+            response.headers["Location"] shouldBe "${Config.suSeFramoverLoginSuccessUrl}#access#refresh"
         }
     }
 

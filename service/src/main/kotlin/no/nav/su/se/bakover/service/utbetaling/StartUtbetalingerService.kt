@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -25,7 +26,7 @@ class StartUtbetalingerService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Utbetaling> {
+    fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Sak> {
         val sak = sakService.hentSak(sakId).fold(
             { return StartUtbetalingFeilet.FantIkkeSak.left() },
             { it }
@@ -40,7 +41,7 @@ class StartUtbetalingerService(
         val nyUtbetaling = NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
-            attestant = Attestant("SU"), // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            attestant = Attestant("SU"), // TODO: Bruk saksbehandler
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
@@ -63,7 +64,13 @@ class StartUtbetalingerService(
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                utbetalingService.addOppdragsmelding(utbetaling.id, it).right()
+                val utbetalingMedOppdragsMelding = utbetalingService.addOppdragsmelding(utbetaling.id, it)
+                // TODO jah: Unngår å kalle databasen igjen, men føles feil å gjøre copy på dette tidspunktet.
+                sak.copy(
+                    oppdrag = sak.oppdrag.copy(
+                        utbetalinger = sak.oppdrag.hentUtbetalinger() + utbetalingMedOppdragsMelding,
+                    ),
+                ).right()
             }
         )
     }

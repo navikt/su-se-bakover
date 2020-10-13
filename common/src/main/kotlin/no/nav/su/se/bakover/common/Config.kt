@@ -47,7 +47,9 @@ object Config {
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
-    val suSeFramoverRedirectUrl = env["FRONTEND_REDIRECT_URL"] ?: "http://localhost:1234/auth/complete"
+    val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
+    val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
+    val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
 
     val oppdrag = Oppdrag(serviceUser = serviceUser)
 
