@@ -232,8 +232,7 @@ internal fun Application.susebakover(
                 )
                 avstemmingRoutes(services.avstemming)
                 stansutbetalingRoutes(
-                    stansUtbetalingService = services.stansUtbetaling,
-                    sakService = services.sak
+                    stansUtbetalingService = services.stansUtbetaling
                 )
                 startutbetalingRoutes(services.startUtbetalinger)
                 meRoutes()

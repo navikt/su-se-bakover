@@ -58,7 +58,8 @@ class ServiceBuilder(
             stansUtbetaling = StansUtbetalingService(
                 simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
-                utbetalingService = utbetalingService
+                utbetalingService = utbetalingService,
+                sakService = sakService
             ),
             startUtbetalinger = StartUtbetalingerService(
                 simuleringClient = clients.simuleringClient,

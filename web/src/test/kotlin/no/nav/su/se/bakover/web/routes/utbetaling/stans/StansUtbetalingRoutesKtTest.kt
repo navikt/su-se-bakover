@@ -19,12 +19,11 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -32,10 +31,10 @@ import java.util.UUID
 
 internal class StansUtbetalingRoutesKtTest {
 
-    val fnr = Fnr("12345678911")
-    val sakId = UUID.randomUUID()
-    val tidspunkt = Tidspunkt.EPOCH
-    val sak = Sak(
+    private val fnr = Fnr("12345678911")
+    private val sakId: UUID = UUID.randomUUID()
+    private val tidspunkt = Tidspunkt.EPOCH
+    private val sak: Sak = Sak(
         id = sakId,
         opprettet = tidspunkt,
         fnr = fnr,
@@ -45,17 +44,6 @@ internal class StansUtbetalingRoutesKtTest {
             sakId = sakId
         )
     )
-    val utbetalingId = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4")
-    val nyUtbetaling = Utbetaling.Ny(
-        id = utbetalingId,
-        opprettet = tidspunkt,
-        simulering = null,
-        kvittering = null,
-        oppdragsmelding = null,
-        utbetalingslinjer = listOf(),
-        avstemmingId = null,
-        fnr = fnr
-    )
 
     @Test
     fun `stans utbetaling feiler`() {
@@ -63,7 +51,7 @@ internal class StansUtbetalingRoutesKtTest {
             on { hentSak(sakId) } doReturn sak
         }
         val stansutbetalingServiceMock = mock<StansUtbetalingService> {
-            on { stansUtbetalinger(any()) } doReturn StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
+            on { stansUtbetalinger(any(), any()) } doReturn StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
         }
         withTestApplication({
             val services = no.nav.su.se.bakover.service.ServiceBuilder(
@@ -100,7 +88,7 @@ internal class StansUtbetalingRoutesKtTest {
         }
 
         val stansUtbetalingServiceMock = mock<StansUtbetalingService> {
-            on { stansUtbetalinger(any()) } doReturn nyUtbetaling.right()
+            on { stansUtbetalinger(any(), any()) } doReturn sak.right()
         }
 
         withTestApplication({
@@ -126,7 +114,7 @@ internal class StansUtbetalingRoutesKtTest {
             defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                objectMapper.readValue<UtbetalingJson>(response.content!!) shouldBe nyUtbetaling.toJson()
+                objectMapper.readValue<SakJson>(response.content!!) shouldBe sak.toJson()
             }
         }
     }

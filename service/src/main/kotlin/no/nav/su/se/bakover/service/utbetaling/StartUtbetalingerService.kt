@@ -41,7 +41,7 @@ class StartUtbetalingerService(
         val nyUtbetaling = NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
-            attestant = Attestant("SU"), // Det er ikke nødvendigvis valgt en attestant på dette tidspunktet.
+            attestant = Attestant("SU"), // TODO: Bruk saksbehandler
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
@@ -65,7 +65,7 @@ class StartUtbetalingerService(
             },
             {
                 val utbetalingMedOppdragsMelding = utbetalingService.addOppdragsmelding(utbetaling.id, it)
-                // TODO jah: Burde kunne slippe
+                // TODO jah: Unngår å kalle databasen igjen, men føles feil å gjøre copy på dette tidspunktet.
                 sak.copy(
                     oppdrag = sak.oppdrag.copy(
                         utbetalinger = sak.oppdrag.hentUtbetalinger() + utbetalingMedOppdragsMelding,

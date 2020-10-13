@@ -5,6 +5,7 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.capture
 import com.nhaarman.mockitokotlin2.doAnswer
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -29,6 +31,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
+import no.nav.su.se.bakover.service.argShouldBe
+import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
@@ -45,6 +49,11 @@ internal class StansUtbetalingServiceTest {
     fun `stans utbetalinger`() {
         val setup = Setup()
         val capturedSimuleringArgument = ArgumentCaptor.forClass(NyUtbetaling::class.java)
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
+        }
+
         val simuleringClientMock = mock<SimuleringClient> {
             on {
                 simulerUtbetaling(capture<NyUtbetaling>(capturedSimuleringArgument))
@@ -101,16 +110,22 @@ internal class StansUtbetalingServiceTest {
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = publisherMock,
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock
         )
 
-        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
-
-        actualResponse shouldBe setup.forventetUtbetaling(
+        val actualSak = service.stansUtbetalinger(sakId = setup.eksisterendeSak.id, Saksbehandler("AB12345")).orNull()!!
+        val expectedUtbetaling = setup.forventetUtbetaling(
             capturedUtbetalingArgument.value.utbetaling,
             setup.nySimulering,
             setup.oppdragsmeldingSendt
-        ).right()
+        )
+        val expectedSak = setup.eksisterendeSak.copy(
+            oppdrag = setup.eksisterendeOppdrag.copy(
+                utbetalinger = setup.eksisterendeOppdrag.hentUtbetalinger() + expectedUtbetaling
+            )
+        )
+        actualSak shouldBe expectedSak
 
         verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
         verify(publisherMock, Times(1)).publish(any())
@@ -124,6 +139,10 @@ internal class StansUtbetalingServiceTest {
     @Test
     fun `Sjekk at vi svarer furnuftig når simulering feiler`() {
         val setup = Setup()
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
+        }
 
         val simuleringClientMock = mock<SimuleringClient> {
             on {
@@ -141,10 +160,12 @@ internal class StansUtbetalingServiceTest {
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = mock(),
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock
         )
 
-        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+        val actualResponse =
+            service.stansUtbetalinger(sakId = setup.eksisterendeSak.id, saksbehandler = Saksbehandler("AB12345"))
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
@@ -156,6 +177,10 @@ internal class StansUtbetalingServiceTest {
     @Test
     fun `svarer med feil dersom simulering inneholder beløp større enn 0`() {
         val setup = Setup()
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
+        }
 
         val simuleringClientMock = mock<SimuleringClient> {
             on {
@@ -173,10 +198,12 @@ internal class StansUtbetalingServiceTest {
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = mock(),
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock
         )
 
-        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+        val actualResponse =
+            service.stansUtbetalinger(sakId = setup.eksisterendeSak.id, saksbehandler = Saksbehandler("AB12345"))
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
@@ -188,6 +215,11 @@ internal class StansUtbetalingServiceTest {
     @Test
     fun `Sjekk at vi svarer furnuftig når publisering feiler`() {
         val setup = Setup()
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
+        }
+
         val simuleringClientMock = mock<SimuleringClient> {
             on {
                 simulerUtbetaling(any())
@@ -227,10 +259,12 @@ internal class StansUtbetalingServiceTest {
             simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = publisherMock,
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock
         )
 
-        val actualResponse = service.stansUtbetalinger(sak = setup.eksisterendeSak)
+        val actualResponse =
+            service.stansUtbetalinger(sakId = setup.eksisterendeSak.id, saksbehandler = Saksbehandler("AB12345"))
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
@@ -247,7 +281,7 @@ internal class StansUtbetalingServiceTest {
         val clock: Clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
         val sakId: UUID = UUID.randomUUID(),
         val fnr: Fnr = Fnr("12345678910"),
-        val attestant: Attestant = Attestant("SU"),
+        val attestant: Attestant = Attestant("AB12345"),
         val oppdragId: UUID30 = UUID30.randomUUID(),
         val utbetalingId: UUID30 = UUID30.randomUUID(),
         val eksisterendeUtbetaling: Utbetaling = Utbetaling.Ny(
