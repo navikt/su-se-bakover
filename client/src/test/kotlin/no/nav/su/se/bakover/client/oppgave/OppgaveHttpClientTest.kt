@@ -5,8 +5,9 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.patch
+import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.post
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.verify
 import io.kotest.assertions.arrow.either.shouldBeLeft
@@ -211,7 +212,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         wireMockServer.stubFor(
-            post((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -239,7 +240,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         WireMock.configureFor(WiremockBase.wireMockServer.port())
         verify(
             1,
-            postRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
                 .withRequestBody(
                     equalToJson(
                         //language=JSON

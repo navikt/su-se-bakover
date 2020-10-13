@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
@@ -83,7 +84,9 @@ internal class OppgaveHttpClient(
     }
 
     private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, Int> {
-        val (request, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
+        // https://fuel.gitbook.io/documentation/core/fuel
+        FuelManager.instance.forceMethods = true
+        val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -98,9 +101,6 @@ internal class OppgaveHttpClient(
                 )
             ).responseString()
 
-        log.info("Patch oppgave request : $request")
-        log.info("Patch oppgave response : $response")
-
         return result.fold(
             { json ->
                 log.info("Endret oppgave i oppgave. status=${response.statusCode} body=$json")
@@ -114,7 +114,7 @@ internal class OppgaveHttpClient(
     }
 
     private fun søkEtterOppgave(oppgavetype: String, behandlingstype: String, behandlingstema: String, aktørId: AktørId): Either<KunneIkkeSøkeEtterOppgave, OppgaveSøkeResultat> {
-        val (request, response, result) = "$baseUrl$oppgavePath".httpGet(
+        val (_, response, result) = "$baseUrl$oppgavePath".httpGet(
             listOf(
                 "statuskategori" to "AAPEN",
                 "tema" to "SUP",
@@ -130,12 +130,8 @@ internal class OppgaveHttpClient(
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .responseString()
 
-        log.info("Søk etter oppgave request : $request")
-        log.info("Søk etter oppgave response : $response")
-
         return result.fold(
             { json ->
-                log.info("Søk etter oppgave json : $json")
                 val oppgaver = objectMapper.readValue<OppgaveSøkResponse>(json).oppgaver
                     .map {
                         OppgaveSøkeResultat(
