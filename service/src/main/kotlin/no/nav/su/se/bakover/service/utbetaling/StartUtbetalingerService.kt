@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -25,7 +26,7 @@ class StartUtbetalingerService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Utbetaling> {
+    fun startUtbetalinger(sakId: UUID): Either<StartUtbetalingFeilet, Sak> {
         val sak = sakService.hentSak(sakId).fold(
             { return StartUtbetalingFeilet.FantIkkeSak.left() },
             { it }
@@ -63,7 +64,13 @@ class StartUtbetalingerService(
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                utbetalingService.addOppdragsmelding(utbetaling.id, it).right()
+                val utbetalingMedOppdragsMelding = utbetalingService.addOppdragsmelding(utbetaling.id, it)
+                // TODO jah: Burde kunne slippe
+                sak.copy(
+                    oppdrag = sak.oppdrag.copy(
+                        utbetalinger = sak.oppdrag.hentUtbetalinger() + utbetalingMedOppdragsMelding,
+                    ),
+                ).right()
             }
         )
     }
