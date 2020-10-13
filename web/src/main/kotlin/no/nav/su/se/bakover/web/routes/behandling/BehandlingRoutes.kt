@@ -193,7 +193,9 @@ internal fun Route.behandlingRoutes(
                                 {
                                     when (it) {
                                         is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
-                                        else -> call.svar(InternalServerError.message(it.msg))
+                                        is Behandling.IverksettFeil.Utbetaling -> call.svar(InternalServerError.message(it.msg))
+                                        is Behandling.IverksettFeil.KunneIkkeSimulere -> call.svar(InternalServerError.message(it.msg))
+                                        is Behandling.IverksettFeil.InkonsistentSimuleringsResultat -> call.svar(InternalServerError.message(it.msg))
                                     }
                                 },
                                 { call.svar(OK.jsonBody(it)) }

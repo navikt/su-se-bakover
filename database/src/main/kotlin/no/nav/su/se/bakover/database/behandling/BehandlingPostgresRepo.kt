@@ -66,7 +66,7 @@ internal class BehandlingPostgresRepo(
         return hentBehandling(behandlingId)!!
     }
 
-    override fun leggTilSimulering(behandlingId: UUID, simulering: Simulering): Behandling {
+    override fun leggTilSimulering(behandlingId: UUID, simulering: Simulering) {
         dataSource.withSession { session ->
             """
             update behandling set simulering=to_json(:simulering::json) where id=:id
@@ -78,7 +78,6 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Behandling {

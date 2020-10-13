@@ -351,13 +351,11 @@ data class Behandling(
     ) :
         RuntimeException(msg)
 
-    sealed class IverksettFeil(
-        open val msg: String = "Iverksett Feil"
-    ) {
-        data class AttestantOgSaksbehandlerErLik(override val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
-        data class Utbetaling(override val msg: String = "Feil ved oversendelse av utbetaling til oppdrag!") : IverksettFeil()
-        data class KunneIkkeSimulere(override val msg: String = "Kunne ikke gjennomføre simulering av utbetaling") : IverksettFeil()
-        data class InkonsistentSimuleringsResultat(override val msg: String = "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres") : IverksettFeil()
+    sealed class IverksettFeil {
+        data class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        data class Utbetaling(val msg: String = "Feil ved oversendelse av utbetaling til oppdrag!") : IverksettFeil()
+        data class KunneIkkeSimulere(val msg: String = "Kunne ikke gjennomføre kontrollsimulering av utbtaling") : IverksettFeil()
+        data class InkonsistentSimuleringsResultat(val msg: String = "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres") : IverksettFeil()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
