@@ -33,7 +33,7 @@ internal class SøknadRouteMediator(
                 { sakService.opprettSak(søknadInnhold.personopplysninger.fnr) },
                 { it }
             )
-        val søknad = søknadService.opprettSøknad(sak.id, Søknad(søknadInnhold = søknadInnhold))
+        val søknad = søknadService.opprettSøknad(sak.id, Søknad(sakId = sak.id, søknadInnhold = søknadInnhold))
         opprettJournalpostOgOppgave(sak.id, søknad)
         return sakService.hentSak(søknadInnhold.personopplysninger.fnr)
             .getOrElse { throw RuntimeException("Kunne ikke hente sak") }

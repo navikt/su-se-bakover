@@ -871,7 +871,7 @@ internal class BehandlingRoutesKtTest {
     private fun setup(): Objects {
         val sak = repos.sak.opprettSak(FnrGenerator.random())
         val søknad =
-            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(sakId = sak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         val behandling = repos.behandling.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }

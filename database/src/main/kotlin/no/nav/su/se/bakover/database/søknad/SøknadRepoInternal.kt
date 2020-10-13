@@ -25,8 +25,10 @@ internal object SøknadRepoInternal {
 
 internal fun Row.toSøknad(): Søknad {
     return Søknad(
+        sakId = uuid("sakId"),
         id = uuid("id"),
         søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-        opprettet = tidspunkt("opprettet")
+        opprettet = tidspunkt("opprettet"),
+        søknadTrukket = stringOrNull("søknadTrukket")?.let { objectMapper.readValue(it) }
     )
 }

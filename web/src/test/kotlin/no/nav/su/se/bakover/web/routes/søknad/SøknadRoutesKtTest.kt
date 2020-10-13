@@ -15,6 +15,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.setBody
@@ -27,14 +28,18 @@ import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.SøknadTrukket
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -62,6 +67,7 @@ internal class SøknadRoutesKtTest {
 
     private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
     private val sakRepo = databaseRepos.sak
+    private val søknadRepo = databaseRepos.søknad
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -171,6 +177,82 @@ internal class SøknadRoutesKtTest {
                 verify(personOppslag, Times(1)).aktørId(any())
                 verify(oppgaveClient, Times(1)).opprettOppgave(any())
             }
+        }
+    }
+
+    @Test
+    fun `lager en søknad, så trekker søknaden`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val søknadCreateResponse = defaultRequest(
+                method = Post,
+                uri = søknadPath,
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(soknadJson)
+            }.apply {
+                assertEquals(Created, response.status())
+            }.response
+            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(søknadCreateResponse.content!!) }
+            val sak = sakRepo.hentSak(fnr)
+            sak shouldNotBe null
+            sak!!.søknader() shouldHaveAtLeastSize 1
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/${sak.søknader().first().id}/trekk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """{
+                        "navIdent": "Z993156"
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe OK
+            }.response
+        }
+    }
+    @Test
+    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val sak = sakRepo.opprettSak(fnr)
+            val søknad = søknadRepo.opprettSøknad(
+                sakId = sak.id,
+                søknad = Søknad(
+                    sakId = sak.id,
+                    søknadInnhold = build()
+                )
+            )
+            val saksbehandler = Saksbehandler("Z993156")
+            søknadRepo.trekkSøknad(
+                søknadId = søknad.id,
+                søknadTrukket = SøknadTrukket(
+                    tidspunkt = Tidspunkt.now(),
+                    saksbehandler = saksbehandler
+                )
+            )
+
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/${søknad.id}/trekk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """{
+                        "navIdent": "Z993156"
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe BadRequest
+            }.response
         }
     }
 }

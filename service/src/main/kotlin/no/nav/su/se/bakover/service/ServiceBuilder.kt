@@ -27,7 +27,8 @@ class ServiceBuilder(
             sakRepo = databaseRepos.sak
         )
         val søknadService = SøknadServiceImpl(
-            søknadRepo = databaseRepos.søknad
+            søknadRepo = databaseRepos.søknad,
+            behandlingRepo = databaseRepos.behandling
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak

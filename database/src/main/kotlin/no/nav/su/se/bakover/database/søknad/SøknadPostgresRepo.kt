@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadTrukket
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -26,5 +27,17 @@ internal class SøknadPostgresRepo(
             )
         }
         return hentSøknad(søknad.id)!!
+    }
+
+    override fun trekkSøknad(søknadId: UUID, søknadTrukket: SøknadTrukket) {
+        dataSource.withSession { session ->
+            "update søknad set søknadTrukket=to_json(:soknadTrukket::json) where id=:id".oppdatering(
+                mapOf(
+                    "id" to søknadId,
+                    "soknadTrukket" to objectMapper.writeValueAsString(søknadTrukket)
+                ),
+                session
+            )
+        }
     }
 }
