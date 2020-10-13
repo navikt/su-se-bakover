@@ -89,7 +89,6 @@ internal class SøknadRoutesKtTest {
 
     private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
     private val sakRepo = databaseRepos.sak
-    private val søknadRepo = databaseRepos.søknad
 
     @Test
     fun `lagrer og henter søknad`() {
