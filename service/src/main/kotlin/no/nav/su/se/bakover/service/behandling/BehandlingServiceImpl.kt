@@ -98,21 +98,13 @@ internal class BehandlingServiceImpl(
     // TODO need to define responsibilities for domain and services.
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val utbetalingTilSimulering = utbetalingService.lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+        val utbetalingTilSimulering =
+            utbetalingService.lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulering ->
-                val beforeUpdate = behandling.copy() // need ref to existing utbetaling to delete
-                behandling.simuler(utbetalingTilSimulering.utbetaling)
-                    .also { oppdatert -> // invoke first to perform state-check
-                        beforeUpdate.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
-                        utbetalingService.opprettUtbetaling(
-                            utbetalingTilSimulering.oppdrag.id,
-                            utbetalingTilSimulering.utbetaling
-                        )
-                        utbetalingService.addSimulering(utbetalingTilSimulering.utbetaling.id, simulering)
-                        behandlingRepo.leggTilUtbetaling(behandlingId, utbetalingTilSimulering.utbetaling.id)
-                        behandlingRepo.oppdaterBehandlingStatus(oppdatert.id, oppdatert.status())
-                    }
+                behandling.leggTilSimulering(simulering)
+                behandlingRepo.leggTilSimulering(behandlingId, simulering)
+                behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
                 behandlingRepo.hentBehandling(behandlingId)!!
             }
     }
@@ -159,30 +151,66 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
+    // TODO refactor the beast
     override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
-                val utbetaling = behandling.utbetaling()!!
-                return utbetalingPublisher.publish(
-                    NyUtbetaling(
-                        oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
-                        utbetaling = utbetaling,
-                        attestant = attestant
+                return when (behandling.status()) {
+                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> {
+                        behandlingRepo.attester(behandlingId, attestant)
+                        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                        behandling.right()
+                    }
+                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
+                        val utbetaling = utbetalingService.lagUtbetalingForSimulering(
+                            sakId = behandling.sakId,
+                            beregning = behandling.beregning()!!
+                        )
+                        return simuleringClient.simulerUtbetaling(utbetaling)
+                            .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
+                            .map { simulering ->
+                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
+
+                                utbetalingService.opprettUtbetaling(
+                                    oppdragId = utbetaling.oppdrag.id,
+                                    utbetaling = utbetaling.utbetaling
+                                )
+                                utbetalingService.addSimulering(
+                                    utbetalingId = utbetaling.utbetaling.id,
+                                    simulering = simulering
+                                )
+                                behandlingRepo.leggTilUtbetaling(
+                                    behandlingId = behandlingId,
+                                    utbetalingId = utbetaling.utbetaling.id
+                                )
+
+                                return utbetalingPublisher.publish(
+                                    NyUtbetaling(
+                                        oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
+                                        utbetaling = utbetaling.utbetaling,
+                                        attestant = attestant
+                                    )
+                                ).mapLeft {
+                                    utbetalingService.addOppdragsmelding(
+                                        utbetalingId = utbetaling.utbetaling.id,
+                                        oppdragsmelding = it.oppdragsmelding
+                                    )
+                                    return Behandling.IverksettFeil.Utbetaling().left()
+                                }.map { oppdragsmelding ->
+                                    utbetalingService.addOppdragsmelding(
+                                        utbetalingId = utbetaling.utbetaling.id,
+                                        oppdragsmelding = oppdragsmelding
+                                    )
+                                    behandlingRepo.attester(behandlingId, attestant)
+                                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                                    return behandling.right()
+                                }
+                            }
+                    }
+                    else -> throw Behandling.TilstandException(
+                        state = behandling.status(),
+                        operation = behandling::iverksett.toString()
                     )
-                ).mapLeft {
-                    utbetalingService.addOppdragsmelding(
-                        utbetaling.id,
-                        it.oppdragsmelding
-                    )
-                    Behandling.IverksettFeil.Utbetaling("Feil ved oversendelse av utbetaling til oppdrag!")
-                }.map { oppdragsmelding ->
-                    utbetalingService.addOppdragsmelding(
-                        utbetaling.id,
-                        oppdragsmelding
-                    )
-                    behandlingRepo.attester(behandlingId, attestant)
-                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                    behandling
                 }
             }
     }

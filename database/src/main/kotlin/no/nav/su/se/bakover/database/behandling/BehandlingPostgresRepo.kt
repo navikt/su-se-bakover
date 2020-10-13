@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -58,6 +59,21 @@ internal class BehandlingPostgresRepo(
                 mapOf(
                     "id" to behandlingId,
                     "utbetalingId" to utbetalingId
+                ),
+                session
+            )
+        }
+        return hentBehandling(behandlingId)!!
+    }
+
+    override fun leggTilSimulering(behandlingId: UUID, simulering: Simulering): Behandling {
+        dataSource.withSession { session ->
+            """
+            update behandling set simulering=to_json(:simulering::json) where id=:id
+        """.oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "simulering" to objectMapper.writeValueAsString(simulering)
                 ),
                 session
             )

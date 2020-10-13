@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
-import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.Utbetaling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -194,7 +193,7 @@ internal fun Route.behandlingRoutes(
                                 {
                                     when (it) {
                                         is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
-                                        is Utbetaling -> call.svar(InternalServerError.message(it.msg))
+                                        else -> call.svar(InternalServerError.message(it.msg))
                                     }
                                 },
                                 { call.svar(OK.jsonBody(it)) }
