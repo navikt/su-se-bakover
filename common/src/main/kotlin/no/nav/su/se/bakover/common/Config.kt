@@ -48,7 +48,7 @@ object Config {
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
-    val suSeFramoverRedirectUrl = "$frontendBaseUrl/auth/complete"
+    val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
 
     val oppdrag = Oppdrag(serviceUser = serviceUser)

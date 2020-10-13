@@ -174,7 +174,7 @@ internal fun Application.susebakover(
         httpClient = authenticationHttpClient
     )
     oauthRoutes(
-        frontendRedirectUrl = Config.suSeFramoverRedirectUrl,
+        frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
     )
