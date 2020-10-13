@@ -111,7 +111,7 @@ internal class OppgaveHttpClient(
     }
 
     private fun søkEtterOppgave(oppgavetype: String, behandlingstype: String, behandlingstema: String, aktørId: AktørId): Either<KunneIkkeSøkeEtterOppgave, OppgaveSøkeResultat> {
-        val (_, response, result) = "$baseUrl$oppgavePath".httpGet(
+        val (request, response, result) = "$baseUrl$oppgavePath".httpGet(
             listOf(
                 "statuskategori" to "AAPEN",
                 "tema" to "SUP",
@@ -127,8 +127,12 @@ internal class OppgaveHttpClient(
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
             .responseString()
 
+        log.info("Søk etter oppgave request : $request")
+        log.info("Søk etter oppgave response : $response")
+
         return result.fold(
             { json ->
+                log.info("Søk etter oppgave json : $json")
                 val oppgaver = objectMapper.readValue<OppgaveSøkResponse>(json).oppgaver
                     .map {
                         OppgaveSøkeResultat(
