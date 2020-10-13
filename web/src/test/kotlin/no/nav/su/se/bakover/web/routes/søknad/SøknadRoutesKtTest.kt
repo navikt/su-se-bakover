@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.Trukket
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -195,7 +197,7 @@ internal class SøknadRoutesKtTest {
             sak shouldNotBe null
             sak!!.søknader() shouldHaveAtLeastSize 1
 
-            defaultRequest(Post, "$søknadPath/${sak.id}/${sak.søknader().first().id}/trekk") {
+            defaultRequest(Post, "$søknadPath/${sak.søknader().first().id}/trekk") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{
@@ -222,12 +224,16 @@ internal class SøknadRoutesKtTest {
                     søknadInnhold = build()
                 )
             )
+            val saksbehandler = Saksbehandler("Z993156")
             søknadRepo.trekkSøknad(
                 søknadId = søknad.id,
-                saksbehandler = Saksbehandler("Z993156")
+                trukket = Trukket(
+                    tidspunkt = Tidspunkt.now(),
+                    saksbehandler = saksbehandler
+                )
             )
 
-            defaultRequest(Post, "$søknadPath/${sak.id}/${søknad.id}/trekk") {
+            defaultRequest(Post, "$søknadPath/${søknad.id}/trekk") {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     """{

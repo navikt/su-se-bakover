@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
+import no.nav.su.se.bakover.service.søknad.TrekkSøknadFeil
 import java.time.LocalDate
 import java.util.UUID
 
@@ -34,7 +34,7 @@ interface BehandlingService {
         saksbehandler: Saksbehandler
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
-    fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling>
+    fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<TrekkSøknadFeil.FantIkkeSøknad, Behandling>
 }
 
 object FantIkkeBehandling

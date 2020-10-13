@@ -10,7 +10,6 @@ data class Søknad(
     val opprettet: Tidspunkt = now(),
     val søknadInnhold: SøknadInnhold,
     val trukket: Trukket? = null,
-
 )
 
 data class Trukket(

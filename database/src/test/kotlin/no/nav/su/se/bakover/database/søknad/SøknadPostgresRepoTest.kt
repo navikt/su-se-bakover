@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -75,7 +76,10 @@ internal class SøknadPostgresRepoTest {
             val saksbehandler = Saksbehandler("Z993156")
             repo.trekkSøknad(
                 søknadId = søknad.id,
-                saksbehandler = saksbehandler
+                trukket = Trukket(
+                    tidspunkt = Tidspunkt.now(),
+                    saksbehandler = saksbehandler
+                )
             )
             val hentetSøknad = repo.hentSøknad(søknad.id)
 

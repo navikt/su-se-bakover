@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.Inte
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknad.TrekkSøknadFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -191,7 +191,7 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling> {
+    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<TrekkSøknadFeil.FantIkkeSøknad, Behandling> {
         return søknadService.hentSøknad(søknadId)
             .map {
                 behandlingRepo.opprettSøknadsbehandling(

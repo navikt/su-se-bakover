@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Saksbehandler
@@ -33,10 +34,10 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
+            on { trekkSøknad(søknad.id, Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { harSøknadBehandling(søknad.id) } doReturn false
+            on { harSøknadsbehandling(søknad.id) } doReturn false
         }
         val brevServiceMock = mock<BrevService> {
             on {
@@ -65,10 +66,10 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
+            on { trekkSøknad(søknad.id, Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { harSøknadBehandling(søknad.id) } doReturn true
+            on { harSøknadsbehandling(søknad.id) } doReturn true
         }
         val brevServiceMock = mock<BrevService> {
             on {
@@ -101,10 +102,10 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { trekkSøknad(søknad.id, saksbehandler) }.doNothing()
+            on { trekkSøknad(søknad.id, Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
         }
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { harSøknadBehandling(søknad.id) } doReturn true
+            on { harSøknadsbehandling(søknad.id) } doReturn true
         }
         val brevServiceMock = mock<BrevService> {
             on {

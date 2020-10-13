@@ -117,7 +117,7 @@ internal class BehandlingPostgresRepo(
         return hentBehandling(behandling.id)!!
     }
 
-    override fun harSøknadBehandling(søknadId: UUID): Boolean {
+    override fun harSøknadsbehandling(søknadId: UUID): Boolean {
         return dataSource.withSession { session ->
             "select * from behandling where søknadId=:soknadId".hentListe(
                 mapOf("soknadId" to søknadId), session
