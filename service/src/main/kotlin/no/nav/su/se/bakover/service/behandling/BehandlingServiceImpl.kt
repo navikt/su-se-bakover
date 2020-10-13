@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -99,23 +98,21 @@ internal class BehandlingServiceImpl(
     // TODO need to define responsibilities for domain and services.
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val sak = sakService.hentSak(behandling.sakId).fold(
-            { throw RuntimeException("Kunne ikke finne sak") },
-            { it }
-        )
-        val oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!
-        val utbetaling = oppdrag.genererUtbetaling(Ny(behandling.beregning()!!), sak.fnr)
-        val utbetalingTilSimulering = NyUtbetaling(oppdrag, utbetaling, Attestant("SU"))
+        val utbetalingTilSimulering = utbetalingService.lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulering ->
                 val beforeUpdate = behandling.copy() // need ref to existing utbetaling to delete
-                behandling.simuler(utbetaling).also { oppdatert -> // invoke first to perform state-check
-                    beforeUpdate.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
-                    utbetalingService.opprettUtbetaling(oppdrag.id, utbetaling)
-                    utbetalingService.addSimulering(utbetaling.id, simulering)
-                    behandlingRepo.leggTilUtbetaling(behandlingId, utbetaling.id)
-                    behandlingRepo.oppdaterBehandlingStatus(oppdatert.id, oppdatert.status())
-                }
+                behandling.simuler(utbetalingTilSimulering.utbetaling)
+                    .also { oppdatert -> // invoke first to perform state-check
+                        beforeUpdate.utbetaling()?.let { utbetalingService.slettUtbetaling(it) }
+                        utbetalingService.opprettUtbetaling(
+                            utbetalingTilSimulering.oppdrag.id,
+                            utbetalingTilSimulering.utbetaling
+                        )
+                        utbetalingService.addSimulering(utbetalingTilSimulering.utbetaling.id, simulering)
+                        behandlingRepo.leggTilUtbetaling(behandlingId, utbetalingTilSimulering.utbetaling.id)
+                        behandlingRepo.oppdaterBehandlingStatus(oppdatert.id, oppdatert.status())
+                    }
                 behandlingRepo.hentBehandling(behandlingId)!!
             }
     }
