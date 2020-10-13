@@ -125,7 +125,8 @@ internal class SøknadJsonTest {
             "forNav":{
                 "harFullmektigEllerVerge":"verge"
             }
-          }
+          },
+          "søknadTrukket": null
         }
             """.trimIndent()
     }
