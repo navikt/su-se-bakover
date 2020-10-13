@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.sak.SakRepo
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -73,7 +74,11 @@ internal class StansUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/stans",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Kunne ikke stanse utbetalinger for sak med id $sakId"
@@ -111,7 +116,11 @@ internal class StansUtbetalingRoutesKtTest {
                 )
             )
         }) {
-            defaultRequest(HttpMethod.Post, "$sakPath/$sakId/utbetalinger/stans") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/$sakId/utbetalinger/stans",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 objectMapper.readValue<SakJson>(response.content!!) shouldBe sak.toJson()

@@ -62,14 +62,17 @@ internal fun Application.setupAuthentication(
             verifier(jwkProvider, jwkConfig.getString("issuer"))
             validate { credential ->
                 val validAudience = Config.azureClientId in credential.payload.audience
-                val groups = credential.payload.getClaim("groups").asList(String::class.java)
-                val validGroup = Config.azureRequiredGroup in groups
+                val groupsFromToken = credential.payload.getClaim("groups").asList(String::class.java)
+
+                val allowedGroups =
+                    listOf(Config.azureGroupVeileder, Config.azureGroupSaksbehandler, Config.azureGroupAttestant)
+                val validGroup = groupsFromToken.any { it in allowedGroups }
 
                 if (validAudience && validGroup) {
                     JWTPrincipal(credential.payload)
                 } else {
                     if (!validAudience) log.info("Invalid audience: ${credential.payload.audience}")
-                    if (!validGroup) log.info("Subject in groups $groups, but not in required group")
+                    if (!validGroup) log.info("Subject in groups $groupsFromToken, but not in any required group")
                     null
                 }
             }

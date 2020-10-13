@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.domain.Brukerrolle
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
@@ -13,7 +14,7 @@ object Jwt {
     val keys = generate()
     fun create(
         subject: String = "enSaksbehandler",
-        groups: List<String> = listOf(Config.azureRequiredGroup),
+        roller: List<Brukerrolle> = emptyList(),
         audience: String = Config.azureClientId,
         expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
         algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
@@ -23,7 +24,7 @@ object Jwt {
             .withAudience(audience)
             .withKeyId("key-1234")
             .withSubject(subject)
-            .withArrayClaim("groups", groups.toTypedArray())
+            .withArrayClaim("groups", roller.map(Brukerrolle::toAzureGroup).toTypedArray())
             .withClaim("oid", subject + "oid")
             .withExpiresAt(expiresAt)
             .sign(algorithm)}"

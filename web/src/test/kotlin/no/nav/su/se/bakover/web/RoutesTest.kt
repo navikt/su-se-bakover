@@ -16,6 +16,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -36,7 +37,7 @@ class RoutesTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, secureEndpoint)
+            defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(OK, response.status())
             assertEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
@@ -49,7 +50,7 @@ class RoutesTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, Jwt.create())
+                addHeader(HttpHeaders.Authorization, Jwt.create(roller = listOf(Brukerrolle.Veileder)))
             }
         }.apply {
             assertEquals(OK, response.status())
@@ -69,7 +70,7 @@ class RoutesTest {
         }) {
             applog.apply { addAppender(appender) }
             handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, Jwt.create())
+                addHeader(HttpHeaders.Authorization, Jwt.create(roller = listOf(Brukerrolle.Veileder)))
             }
         }
         val logStatement = appender.list.first { it.message.contains("200 OK") }
@@ -93,7 +94,7 @@ class RoutesTest {
                 )
             )
         }) {
-            defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
+            defaultRequest(Get, "$personPath/${FnrGenerator.random()}", listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(InternalServerError, response.status())
             JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
@@ -105,7 +106,7 @@ class RoutesTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, "$personPath/${FnrGenerator.random()}")
+            defaultRequest(Get, "$personPath/${FnrGenerator.random()}", listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(
                 "${ContentType.Application.Json}; charset=${Charsets.UTF_8}",

@@ -17,7 +17,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
@@ -74,7 +74,11 @@ internal class BehandlingRoutesKtTest {
             testSusebakover(services = services)
         }) {
             val objects = setup()
-            defaultRequest(HttpMethod.Get, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}").apply {
+            defaultRequest(
+                HttpMethod.Get,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}",
+                listOf(Brukerrolle.Attestant)
+            ).apply {
                 objectMapper.readValue<BehandlingJson>(response.content!!).let {
                     it.id shouldBe objects.behandling.id.toString()
                     it.behandlingsinformasjon shouldNotBe null
@@ -103,7 +107,8 @@ internal class BehandlingRoutesKtTest {
             services.behandling.simuler(objects.behandling.id)
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
+                listOf(Brukerrolle.Saksbehandler)
             ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
@@ -144,7 +149,8 @@ internal class BehandlingRoutesKtTest {
             services.behandling.simuler(objects.behandling.id)
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
+                listOf(Brukerrolle.Saksbehandler)
             ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
@@ -168,7 +174,11 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """
                     {
@@ -205,7 +215,11 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """
                     {
@@ -262,7 +276,11 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """
                     {
@@ -301,25 +319,35 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn"
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke behandling med behandlingId"
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldig body"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """
                     {
@@ -340,7 +368,11 @@ internal class BehandlingRoutesKtTest {
 
             objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """{
                            "fraOgMed":"$fraOgMed",
@@ -373,24 +405,34 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            defaultRequest(HttpMethod.Post, "$sakPath/missing/behandlinger/${objects.behandling.id}/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/missing/behandlinger/${objects.behandling.id}/simuler",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${objects.behandling.id}/simuler"
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${objects.behandling.id}/simuler",
+                listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Ugyldig kombinasjon av sak og behandling"
             }
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler") {}.apply {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {}.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ikke en gyldig UUID"
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler"
+                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler",
+                listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke behandling med behandlingId"
@@ -409,7 +451,8 @@ internal class BehandlingRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/simuler"
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/simuler",
+                listOf(Brukerrolle.Saksbehandler)
             ) {}.apply {
                 response.status() shouldBe HttpStatusCode.OK
             }
@@ -424,7 +467,11 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             objects.behandling.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
 
-            defaultRequest(HttpMethod.Post, "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn") {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
                 setBody(
                     """
                     {
@@ -479,14 +526,16 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${it.behandling.id}/iverksett"
+                    "$sakPath/rubbish/behandlinger/${it.behandling.id}/iverksett",
+                    listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
 
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
+                    listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -532,7 +581,7 @@ internal class BehandlingRoutesKtTest {
                         HttpHeaders.Authorization,
                         Jwt.create(
                             subject = "random",
-                            groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                            roller = listOf(Brukerrolle.Attestant)
                         )
                     )
                 }.apply {
@@ -595,7 +644,8 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn"
+                    "$sakPath/rubbish/behandlinger/${objects.behandling.id}/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -603,6 +653,7 @@ internal class BehandlingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -610,6 +661,7 @@ internal class BehandlingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -679,7 +731,7 @@ internal class BehandlingRoutesKtTest {
                         HttpHeaders.Authorization,
                         Jwt.create(
                             subject = "S123456",
-                            groups = listOf(Config.azureRequiredGroup, Config.azureGroupAttestant)
+                            roller = listOf(Brukerrolle.Attestant)
                         )
                     )
                     setBody(

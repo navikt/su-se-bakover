@@ -15,5 +15,12 @@ enum class Brukerrolle(val type: String) {
                 Config.azureGroupVeileder -> Brukerrolle.Veileder
                 else -> null
             }
+
+        fun toAzureGroup(rolle: Brukerrolle) =
+            when (rolle) {
+                Brukerrolle.Attestant -> Config.azureGroupAttestant
+                Brukerrolle.Saksbehandler -> Config.azureGroupSaksbehandler
+                Brukerrolle.Veileder -> Config.azureGroupVeileder
+            }
     }
 }

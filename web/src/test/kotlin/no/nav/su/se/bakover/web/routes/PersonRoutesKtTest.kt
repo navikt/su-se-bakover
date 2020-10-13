@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -39,7 +40,7 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, "$personPath/qwertyuiopå")
+            defaultRequest(Get, "$personPath/qwertyuiopå", listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(HttpStatusCode.BadRequest, response.status())
         }
@@ -87,7 +88,7 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover(clients = testClients.copy(personOppslag = personoppslag(testIdent = testIdent)))
         }) {
-            defaultRequest(Get, "$personPath/$testIdent")
+            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(OK, response.status())
             JSONAssert.assertEquals(excpectedResponseJson, response.content!!, true)
@@ -101,7 +102,7 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.Ukjent, null)))
         }) {
-            defaultRequest(Get, "$personPath/$testIdent")
+            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
             response.status() shouldBe HttpStatusCode.InternalServerError
         }
@@ -114,7 +115,7 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.FantIkkePerson, null)))
         }) {
-            defaultRequest(Get, "$personPath/$testIdent")
+            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
             response.status() shouldBe NotFound
         }
