@@ -10,9 +10,7 @@ import java.time.format.DateTimeFormatter
 internal data class BeregningJson(
     val id: String,
     val opprettet: String,
-    val fom: String,
     val fraOgMed: String,
-    val tom: String,
     val tilOgMed: String,
     val sats: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
@@ -22,9 +20,7 @@ internal data class BeregningJson(
 internal fun Beregning.toJson() = BeregningJson(
     id = id.toString(),
     opprettet = opprettet.toString(),
-    fom = fraOgMed.format(DateTimeFormatter.ISO_DATE),
     fraOgMed = fraOgMed.format(DateTimeFormatter.ISO_DATE),
-    tom = tilOgMed.format(DateTimeFormatter.ISO_DATE),
     tilOgMed = tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = sats.name,
     månedsberegninger = månedsberegninger.map { it.toJson() },

@@ -23,9 +23,7 @@ internal class BeregningJsonTest {
             {
                 "id":"$uuid",
                 "opprettet":"2020-08-01T12:15:15Z",
-                "fom":"2020-08-01",
                 "fraOgMed":"2020-08-01",
-                "tom":"2020-08-31",
                 "tilOgMed":"2020-08-31",
                 "sats":"HØY",
                 "månedsberegninger": [$expectedMånedsberegningJson],

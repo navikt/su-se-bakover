@@ -19,8 +19,8 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
         val resultat = oppslag.inntekt(
             ident = Fnr(inntektPath.ident),
             innloggetSaksbehandlerToken = call.request.header(Authorization)!!,
-            fraOgMedDato = inntektPath.fomDato,
-            tilOgMedDato = inntektPath.tomDato
+            fraOgMedDato = inntektPath.fraOgMedDato,
+            tilOgMedDato = inntektPath.tilOgMedDato
         )
         call.svar(Resultat.from(resultat))
     }
@@ -28,4 +28,4 @@ internal fun Route.inntektRoutes(oppslag: InntektOppslag) {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 @Location("/inntekt")
-internal data class InntektPath(val ident: String, val fomDato: String, val tomDato: String)
+internal data class InntektPath(val ident: String, internal val fraOgMedDato: String, val tilOgMedDato: String)

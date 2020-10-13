@@ -20,9 +20,7 @@ internal class MånedsberegningJsonTest {
             """
             {
                 "id":"$uuid",
-                "fom":"2020-01-01",
                 "fraOgMed":"2020-01-01",
-                "tom":"2020-12-31",
                 "tilOgMed":"2020-12-31",
                 "sats":"HØY",
                 "grunnbeløp":15000,

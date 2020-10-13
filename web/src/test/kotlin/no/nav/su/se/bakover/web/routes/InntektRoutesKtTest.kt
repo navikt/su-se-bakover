@@ -19,9 +19,9 @@ import kotlin.test.assertEquals
 internal class InntektRoutesKtTest {
 
     private val ident = "12345678910"
-    private val fomDato = "2020-01-01"
-    private val tomDato = "2020-01-30"
-    private val path = "/inntekt?ident=$ident&fomDato=$fomDato&tomDato=$tomDato"
+    private val fraOgMedDato = "2020-01-01"
+    private val tilOgMedDato = "2020-01-30"
+    private val path = "/inntekt?ident=$ident&fraOgMedDato=$fraOgMedDato&tilOgMedDato=$tilOgMedDato"
 
     @Test
     fun `får ikke hente inntekt uten å være innlogget`() {
