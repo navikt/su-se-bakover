@@ -50,35 +50,39 @@ internal fun Route.behandlingRoutes(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    get("$behandlingPath/{behandlingId}") {
-        call.withBehandling(behandlingService) {
-            call.svar(OK.jsonBody(it))
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        get("$behandlingPath/{behandlingId}") {
+            call.withBehandling(behandlingService) {
+                call.svar(OK.jsonBody(it))
+            }
         }
     }
 
-    patch("$behandlingPath/{behandlingId}/informasjon") {
-        call.withBehandling(behandlingService) { behandling ->
-            Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
-                ifLeft = {
-                    log.info("Ugylding behandlingsinformasjon-body", it)
-                    call.svar(BadRequest.message("Klarte ikke deserialisere body"))
-                },
-                ifRight = { body ->
-                    call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
-                    if (body.isValid()) {
-                        call.svar(
-                            OK.jsonBody(
-                                behandlingService.oppdaterBehandlingsinformasjon(
-                                    behandlingId = behandling.id,
-                                    behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+    authorize(Brukerrolle.Saksbehandler) {
+        patch("$behandlingPath/{behandlingId}/informasjon") {
+            call.withBehandling(behandlingService) { behandling ->
+                Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
+                    ifLeft = {
+                        log.info("Ugylding behandlingsinformasjon-body", it)
+                        call.svar(BadRequest.message("Klarte ikke deserialisere body"))
+                    },
+                    ifRight = { body ->
+                        call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
+                        if (body.isValid()) {
+                            call.svar(
+                                OK.jsonBody(
+                                    behandlingService.oppdaterBehandlingsinformasjon(
+                                        behandlingId = behandling.id,
+                                        behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                                    )
                                 )
                             )
-                        )
-                    } else {
-                        call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
+                        } else {
+                            call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 
@@ -102,73 +106,83 @@ internal fun Route.behandlingRoutes(
         fun valid() = begrunnelse.isNotBlank()
     }
 
-    post("$behandlingPath/{behandlingId}/beregn") {
-        call.withBehandling(behandlingService) { behandling ->
-            Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
-                ifLeft = {
-                    log.info("Ugyldig behandling-body: ", it)
-                    call.svar(BadRequest.message("Ugyldig body"))
-                },
-                ifRight = { body ->
-                    if (body.valid()) {
-                        call.svar(
-                            Created.jsonBody(
-                                behandlingService.opprettBeregning(
-                                    behandlingId = behandling.id,
-                                    fraOgMed = body.fraOgMed,
-                                    tilOgMed = body.tilOgMed,
-                                    fradrag = body.fradrag.map { it.toFradrag() }
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/beregn") {
+            call.withBehandling(behandlingService) { behandling ->
+                Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
+                    ifLeft = {
+                        log.info("Ugyldig behandling-body: ", it)
+                        call.svar(BadRequest.message("Ugyldig body"))
+                    },
+                    ifRight = { body ->
+                        if (body.valid()) {
+                            call.svar(
+                                Created.jsonBody(
+                                    behandlingService.opprettBeregning(
+                                        behandlingId = behandling.id,
+                                        fraOgMed = body.fraOgMed,
+                                        tilOgMed = body.tilOgMed,
+                                        fradrag = body.fradrag.map { it.toFradrag() }
+                                    )
                                 )
                             )
-                        )
-                    } else {
-                        call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
-                    }
-                }
-            )
-        }
-    }
-
-    get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
-        call.withBehandling(behandlingService) { behandling ->
-            call.svar(Resultat.json(OK, serialize(behandling.toUtledetSatsInfoJson())))
-        }
-    }
-
-    get("$behandlingPath/{behandlingId}/vedtaksutkast") {
-        call.withBehandling(behandlingService) { behandling ->
-            brevService.lagUtkastTilBrev(behandling).fold(
-                ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
-                ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
-            )
-        }
-    }
-
-    post("$behandlingPath/{behandlingId}/simuler") {
-        call.withBehandling(behandlingService) { behandling ->
-            behandlingService.simuler(behandling.id).fold(
-                {
-                    log.info("Feil ved simulering: ", it)
-                    call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
-                },
-                { call.svar(OK.jsonBody(it)) }
-            )
-        }
-    }
-
-    post("$behandlingPath/{behandlingId}/tilAttestering") {
-        call.withBehandlingId { behandlingId ->
-            call.withSakId { sakId ->
-                val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
-                behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
-                    {
-                        call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
-                    },
-                    {
-                        call.audit("Sender behandling med id: ${it.id} til attestering")
-                        call.svar(OK.jsonBody(it))
+                        } else {
+                            call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
+                        }
                     }
                 )
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
+            call.withBehandling(behandlingService) { behandling ->
+                call.svar(Resultat.json(OK, serialize(behandling.toUtledetSatsInfoJson())))
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        get("$behandlingPath/{behandlingId}/vedtaksutkast") {
+            call.withBehandling(behandlingService) { behandling ->
+                brevService.lagUtkastTilBrev(behandling).fold(
+                    ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
+                    ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
+                )
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/simuler") {
+            call.withBehandling(behandlingService) { behandling ->
+                behandlingService.simuler(behandling.id).fold(
+                    {
+                        log.info("Feil ved simulering: ", it)
+                        call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
+                    },
+                    { call.svar(OK.jsonBody(it)) }
+                )
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/tilAttestering") {
+            call.withBehandlingId { behandlingId ->
+                call.withSakId { sakId ->
+                    val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                    behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
+                        {
+                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+                        },
+                        {
+                            call.audit("Sender behandling med id: ${it.id} til attestering")
+                            call.svar(OK.jsonBody(it))
+                        }
+                    )
+                }
             }
         }
     }
