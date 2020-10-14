@@ -255,7 +255,7 @@ internal fun Route.behandlingRoutes(
                                 ifRight = { call.svar(OK.jsonBody(it)) }
                             )
                         } else {
-                            call.svar(BadRequest.message("Må anngi en begrunnelse"))
+                            call.svar(BadRequest.message("Må angi en begrunnelse"))
                         }
                     }
                 )

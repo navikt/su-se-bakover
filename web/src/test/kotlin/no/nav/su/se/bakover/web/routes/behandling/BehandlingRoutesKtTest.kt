@@ -754,7 +754,7 @@ internal class BehandlingRoutesKtTest {
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Må anngi en begrunnelse"
+                    response.content shouldContain "Må angi en begrunnelse"
                 }
             }
         }
