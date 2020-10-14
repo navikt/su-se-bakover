@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
@@ -54,7 +53,10 @@ internal class StansUtbetalingServiceTest {
             on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
         }
 
-        val simuleringClientMock = mock<SimuleringClient> {
+        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Stans::class.java)
+        val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
+        val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
+        val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 simulerUtbetaling(capture<NyUtbetaling>(capturedSimuleringArgument))
             } doAnswer (
@@ -64,12 +66,6 @@ internal class StansUtbetalingServiceTest {
                     setup.nySimulering.right()
                 }
                 )
-        }
-
-        val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Stans::class.java)
-        val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
-        val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
-        val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 opprettUtbetaling(any(), capture<Utbetaling.Stans>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
@@ -107,7 +103,6 @@ internal class StansUtbetalingServiceTest {
         }
 
         val service = StansUtbetalingService(
-            simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = publisherMock,
             utbetalingService = utbetalingServiceMock,
@@ -127,13 +122,13 @@ internal class StansUtbetalingServiceTest {
         )
         actualSak shouldBe expectedSak
 
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
         verify(publisherMock, Times(1)).publish(any())
         verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
         verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
         verify(utbetalingServiceMock, Times(1)).addOppdragsmelding(any(), any())
 
-        verifyNoMoreInteractions(simuleringClientMock, publisherMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(publisherMock, utbetalingServiceMock)
     }
 
     @Test
@@ -144,20 +139,13 @@ internal class StansUtbetalingServiceTest {
             on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
         }
 
-        val simuleringClientMock = mock<SimuleringClient> {
+        val utbetalingServiceMock: UtbetalingService = mock() {
             on {
                 simulerUtbetaling(any())
-            } doAnswer (
-                Answer {
-                    SimuleringFeilet.TEKNISK_FEIL.left()
-                }
-                )
+            } doAnswer (Answer { SimuleringFeilet.TEKNISK_FEIL.left() })
         }
 
-        val utbetalingServiceMock: UtbetalingService = mock()
-
         val service = StansUtbetalingService(
-            simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = mock(),
             utbetalingService = utbetalingServiceMock,
@@ -169,9 +157,9 @@ internal class StansUtbetalingServiceTest {
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
 
-        verifyNoMoreInteractions(simuleringClientMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(utbetalingServiceMock)
     }
 
     @Test
@@ -182,20 +170,13 @@ internal class StansUtbetalingServiceTest {
             on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
         }
 
-        val simuleringClientMock = mock<SimuleringClient> {
+        val utbetalingServiceMock: UtbetalingService = mock() {
             on {
                 simulerUtbetaling(any())
-            } doAnswer (
-                Answer {
-                    setup.nySimulering.copy(nettoBeløp = 6000).right()
-                }
-                )
+            } doAnswer (Answer { setup.nySimulering.copy(nettoBeløp = 6000).right() })
         }
 
-        val utbetalingServiceMock: UtbetalingService = mock()
-
         val service = StansUtbetalingService(
-            simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = mock(),
             utbetalingService = utbetalingServiceMock,
@@ -207,9 +188,9 @@ internal class StansUtbetalingServiceTest {
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
 
-        verifyNoMoreInteractions(simuleringClientMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(utbetalingServiceMock)
     }
 
     @Test
@@ -220,19 +201,12 @@ internal class StansUtbetalingServiceTest {
             on { hentSak(argShouldBe(setup.sakId)) } doReturn setup.eksisterendeSak.right()
         }
 
-        val simuleringClientMock = mock<SimuleringClient> {
-            on {
-                simulerUtbetaling(any())
-            } doAnswer (
-                Answer {
-                    setup.nySimulering.right()
-                }
-                )
-        }
-
         val capturedOpprettUtbetaling = ArgumentCaptor.forClass(Utbetaling.Stans::class.java)
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                simulerUtbetaling(any())
+            } doAnswer (Answer { setup.nySimulering.right() })
             on {
                 opprettUtbetaling(any(), capture<Utbetaling.Stans>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
@@ -256,7 +230,6 @@ internal class StansUtbetalingServiceTest {
         }
 
         val service = StansUtbetalingService(
-            simuleringClient = simuleringClientMock,
             clock = setup.clock,
             utbetalingPublisher = publisherMock,
             utbetalingService = utbetalingServiceMock,
@@ -268,13 +241,13 @@ internal class StansUtbetalingServiceTest {
 
         actualResponse shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
 
-        verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
         verify(publisherMock, Times(1)).publish(any())
         verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(eq(setup.oppdragId), any())
         verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
         verify(utbetalingServiceMock, Times(1)).addOppdragsmelding(any(), any())
 
-        verifyNoMoreInteractions(simuleringClientMock, publisherMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(publisherMock, utbetalingServiceMock)
     }
 
     private data class Setup(

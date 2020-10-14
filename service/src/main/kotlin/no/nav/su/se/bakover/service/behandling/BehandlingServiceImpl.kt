@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -37,9 +36,8 @@ internal class BehandlingServiceImpl(
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
     private val oppdragRepo: OppdragRepo,
-    private val simuleringClient: SimuleringClient,
-    private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
-    private val oppgaveClient: OppgaveClient,
+    private val utbetalingService: UtbetalingService,
+    private val oppgaveClient: OppgaveClient, // TODO use services or repos? probably services
     private val utbetalingPublisher: UtbetalingPublisher,
     private val søknadService: SøknadService,
     private val sakService: SakService,
@@ -101,7 +99,7 @@ internal class BehandlingServiceImpl(
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
         val utbetalingTilSimulering =
             utbetalingService.lagUtbetaling(behandling.sakId, Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!))
-        return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
+        return utbetalingService.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulering ->
                 behandling.leggTilSimulering(simulering)
                 behandlingRepo.leggTilSimulering(behandlingId, simulering)
@@ -167,10 +165,11 @@ internal class BehandlingServiceImpl(
                             sakId = behandling.sakId,
                             strategy = Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!)
                         )
-                        return simuleringClient.simulerUtbetaling(utbetaling)
+                        return utbetalingService.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
                             .map { simulering ->
-                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
+                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
+                                    .left()
 
                                 utbetalingService.opprettUtbetaling(
                                     oppdragId = utbetaling.oppdrag.id,

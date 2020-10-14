@@ -14,12 +14,15 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
-    private val sakRepo: SakRepo
+    private val sakRepo: SakRepo,
+    private val simuleringClient: SimuleringClient
 ) : UtbetalingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -66,5 +69,9 @@ internal class UtbetalingServiceImpl(
             attestant = Attestant("SU"),
             avstemmingsnøkkel = Avstemmingsnøkkel()
         )
+    }
+
+    override fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering> {
+        return simuleringClient.simulerUtbetaling(utbetaling)
     }
 }

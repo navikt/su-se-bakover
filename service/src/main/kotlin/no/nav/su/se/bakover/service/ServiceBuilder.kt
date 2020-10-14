@@ -24,7 +24,8 @@ class ServiceBuilder(
     fun build(): Services {
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
-            sakRepo = databaseRepos.sak
+            sakRepo = databaseRepos.sak,
+            simuleringClient = clients.simuleringClient
         )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad
@@ -46,7 +47,6 @@ class ServiceBuilder(
                 hendelsesloggRepo = databaseRepos.hendelseslogg,
                 beregningRepo = databaseRepos.beregning,
                 oppdragRepo = databaseRepos.oppdrag,
-                simuleringClient = clients.simuleringClient,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
@@ -57,13 +57,11 @@ class ServiceBuilder(
             sak = sakService,
             søknad = søknadService,
             stansUtbetaling = StansUtbetalingService(
-                simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
                 sakService = sakService
             ),
             startUtbetalinger = StartUtbetalingerService(
-                simuleringClient = clients.simuleringClient,
                 utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
                 sakService = sakService

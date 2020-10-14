@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.util.UUID
 
 interface UtbetalingService {
@@ -24,6 +25,7 @@ interface UtbetalingService {
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling
 
     fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling
+    fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering>
 }
 
 object FantIkkeUtbetaling

@@ -34,8 +34,9 @@ internal class UtbetalingServiceImplTest {
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn null }
 
         UtbetalingServiceImpl(
-            utbetalingRepoMock,
-            mock()
+            utbetalingRepo = utbetalingRepoMock,
+            sakRepo = mock(),
+            simuleringClient = mock()
         ).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
 
         verify(utbetalingRepoMock, Times(1)).hentUtbetaling(any<UUID30>())
@@ -49,7 +50,11 @@ internal class UtbetalingServiceImplTest {
         )
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
-        UtbetalingServiceImpl(utbetalingRepoMock, mock()).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
+        UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            sakRepo = mock(),
+            simuleringClient = mock()
+        ).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
 
         verify(utbetalingRepoMock).hentUtbetaling(utbetaling.id)
     }
@@ -65,7 +70,11 @@ internal class UtbetalingServiceImplTest {
 
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(avstemmingsnøkkel) } doReturn null }
 
-        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
+        UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            sakRepo = mock(),
+            simuleringClient = mock()
+        ).oppdaterMedKvittering(
             avstemmingsnøkkel = avstemmingsnøkkel,
             kvittering = kvittering
         ) shouldBe FantIkkeUtbetaling.left()
@@ -96,7 +105,11 @@ internal class UtbetalingServiceImplTest {
             on { oppdaterMedKvittering(utbetaling.id, kvittering) } doReturn postUpdate
         }
 
-        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
+        UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            sakRepo = mock(),
+            simuleringClient = mock()
+        ).oppdaterMedKvittering(
             utbetaling.oppdragsmelding!!.avstemmingsnøkkel,
             kvittering
         ) shouldBe postUpdate.right()
@@ -127,7 +140,11 @@ internal class UtbetalingServiceImplTest {
             on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
         }
 
-        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
+        UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            sakRepo = mock(),
+            simuleringClient = mock()
+        ).oppdaterMedKvittering(
             avstemmingsnøkkel,
             nyKvittering
         ) shouldBe utbetaling.right()
@@ -159,7 +176,8 @@ internal class UtbetalingServiceImplTest {
 
         val response = UtbetalingServiceImpl(
             utbetalingRepo = mock(),
-            sakRepo = sakRepoMock
+            sakRepo = sakRepoMock,
+            simuleringClient = mock()
         ).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Ny(beregning))
 
         verify(sakRepoMock).hentSak(sakId)

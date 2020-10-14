@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argShouldBe
@@ -51,16 +50,6 @@ internal class StartUtbetalingerServiceTest {
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
         val setup = Setup()
-
-        val simuleringClientMock = mock<SimuleringClient> {
-            on {
-                simulerUtbetaling(
-                    argThat {
-                        it shouldBe setup.forventetNyUtbetaling(actualUtbetaling = it.utbetaling)
-                    }
-                )
-            } doReturn setup.simulerStartutbetaling.right()
-        }
 
         val publisherMock = mock<UtbetalingPublisher> {
             on {
@@ -84,6 +73,11 @@ internal class StartUtbetalingerServiceTest {
         val capturedAddOppdragsmelding = ArgumentCaptor.forClass(Oppdragsmelding::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
+                simulerUtbetaling(
+                    argThat { it shouldBe setup.forventetNyUtbetaling(actualUtbetaling = it.utbetaling) }
+                )
+            } doReturn setup.simulerStartutbetaling.right()
+            on {
                 opprettUtbetaling(any(), capture<Utbetaling.Gjenoppta>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
@@ -104,10 +98,9 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(
-            sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock,
-            utbetalingService = utbetalingServiceMock,
             utbetalingPublisher = publisherMock,
+            utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock,
             clock = setup.clock
         )
         val actualSak = service.startUtbetalinger(setup.sakId)
@@ -127,11 +120,11 @@ internal class StartUtbetalingerServiceTest {
         inOrder(
             sakServiceMock,
             publisherMock,
-            simuleringClientMock,
+            utbetalingServiceMock,
             utbetalingServiceMock
         ) {
             verify(sakServiceMock, Times(1)).hentSak(any<UUID>())
-            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
             verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(any(), any())
             verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
             verify(publisherMock, Times(1)).publish(any())
@@ -148,10 +141,9 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(
-            sakService = repoMock,
-            simuleringClient = mock(),
             utbetalingPublisher = mock(),
             utbetalingService = mock(),
+            sakService = repoMock,
             clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
@@ -177,10 +169,9 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(
-            sakService = repoMock,
-            simuleringClient = mock(),
             utbetalingPublisher = mock(),
             utbetalingService = mock(),
+            sakService = repoMock,
             clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
@@ -207,10 +198,9 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(
-            sakService = repoMock,
-            simuleringClient = mock(),
             utbetalingPublisher = mock(),
             utbetalingService = mock(),
+            sakService = repoMock,
             clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
@@ -226,7 +216,12 @@ internal class StartUtbetalingerServiceTest {
     fun `Simulering feilet`() {
         val setup = Setup()
 
-        val simuleringClientMock = mock<SimuleringClient> {
+        val sak = setup.eksisterendeSak.copy()
+        val repoMock = mock<SakService> {
+            on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 simulerUtbetaling(
                     argThat {
@@ -236,44 +231,26 @@ internal class StartUtbetalingerServiceTest {
             } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
-        val sak = setup.eksisterendeSak.copy()
-        val repoMock = mock<SakService> {
-            on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
-        }
-
         val service = StartUtbetalingerService(
-            sakService = repoMock,
-            simuleringClient = simuleringClientMock,
             utbetalingPublisher = mock(),
-            utbetalingService = mock(),
+            utbetalingService = utbetalingServiceMock,
+            sakService = repoMock,
             clock = setup.clock
         )
         val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
 
         actualResponse shouldBe StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left()
 
-        inOrder(repoMock, simuleringClientMock) {
+        inOrder(repoMock, utbetalingServiceMock) {
             verify(repoMock, Times(1)).hentSak(any<UUID>())
-            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
         }
-        verifyNoMoreInteractions(repoMock, simuleringClientMock)
+        verifyNoMoreInteractions(repoMock, utbetalingServiceMock)
     }
 
     @Test
     fun `Utbetaling feilet`() {
         val setup = Setup()
-
-        val simuleringClientMock = mock<SimuleringClient> {
-            on {
-                simulerUtbetaling(
-                    argThat {
-                        it shouldBe setup.forventetNyUtbetaling(
-                            actualUtbetaling = it.utbetaling
-                        )
-                    }
-                )
-            } doReturn setup.simulerStartutbetaling.right()
-        }
 
         val publisherMock = mock<UtbetalingPublisher> {
             on {
@@ -292,6 +269,15 @@ internal class StartUtbetalingerServiceTest {
         val capturedAddSimulering = ArgumentCaptor.forClass(Simulering::class.java)
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
+                simulerUtbetaling(
+                    argThat {
+                        it shouldBe setup.forventetNyUtbetaling(
+                            actualUtbetaling = it.utbetaling
+                        )
+                    }
+                )
+            } doReturn setup.simulerStartutbetaling.right()
+            on {
                 opprettUtbetaling(any(), capture<Utbetaling.Gjenoppta>(capturedOpprettUtbetaling))
             } doAnswer { capturedOpprettUtbetaling.value }
             on {
@@ -308,10 +294,9 @@ internal class StartUtbetalingerServiceTest {
         }
 
         val service = StartUtbetalingerService(
-            sakService = repoMock,
-            simuleringClient = simuleringClientMock,
-            utbetalingService = utbetalingServiceMock,
             utbetalingPublisher = publisherMock,
+            utbetalingService = utbetalingServiceMock,
+            sakService = repoMock,
             clock = setup.clock
         )
         val startetUtbetaling = service.startUtbetalinger(setup.sakId)
@@ -321,11 +306,10 @@ internal class StartUtbetalingerServiceTest {
         inOrder(
             repoMock,
             publisherMock,
-            simuleringClientMock,
             utbetalingServiceMock
         ) {
             verify(repoMock, Times(1)).hentSak(any<UUID>())
-            verify(simuleringClientMock, Times(1)).simulerUtbetaling(any())
+            verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(any())
             verify(utbetalingServiceMock, Times(1)).opprettUtbetaling(any(), any())
             verify(utbetalingServiceMock, Times(1)).addSimulering(any(), any())
             verify(publisherMock, Times(1)).publish(any())

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -19,7 +18,6 @@ import java.time.Clock
 import java.util.UUID
 
 class StansUtbetalingService(
-    private val simuleringClient: SimuleringClient,
     private val clock: Clock = Clock.systemUTC(),
     private val utbetalingPublisher: UtbetalingPublisher,
     private val utbetalingService: UtbetalingService,
@@ -43,7 +41,7 @@ class StansUtbetalingService(
             attestant = Attestant(saksbehandler.navIdent),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
-        val simulertUtbetaling = simuleringClient.simulerUtbetaling(utbetalingForSimulering).fold(
+        val simulertUtbetaling = utbetalingService.simulerUtbetaling(utbetalingForSimulering).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulering ->
                 if (simulering.nettoBeløp != 0 || simulering.bruttoYtelse() != 0) {

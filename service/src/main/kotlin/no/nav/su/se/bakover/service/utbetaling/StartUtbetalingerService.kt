@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -18,7 +17,6 @@ import java.time.Clock
 import java.util.UUID
 
 class StartUtbetalingerService(
-    private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
     private val utbetalingService: UtbetalingService,
     private val sakService: SakService,
@@ -45,7 +43,7 @@ class StartUtbetalingerService(
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
         )
 
-        val simulertUtbetaling = simuleringClient.simulerUtbetaling(nyUtbetaling).fold(
+        val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },
             { simulering ->
                 utbetalingService.opprettUtbetaling(sak.oppdrag.id, utbetaling)
