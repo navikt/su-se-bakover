@@ -46,7 +46,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
@@ -236,7 +236,7 @@ internal fun Application.susebakover(
                 )
                 søknadRoutes(søknadRoutesMediator, services.søknad)
                 behandlingRoutes(
-                    brevService = BrevService(
+                    brevServiceImpl = BrevServiceImpl(
                         pdfGenerator = clients.pdfGenerator,
                         personOppslag = clients.personOppslag,
                         dokArkiv = clients.dokArkiv,

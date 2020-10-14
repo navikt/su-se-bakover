@@ -9,12 +9,14 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.brev.BrevService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
-    private val sakService: SakService
+    private val sakService: SakService,
+    private val brevService: BrevService,
 ) : SøknadService {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -45,15 +47,24 @@ internal class SøknadServiceImpl(
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
-        søknadRepo.lukkSøknad(
-            søknadId = søknadId,
-            lukket = Søknad.Lukket.Trukket(
-                tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler,
-                begrunnelse = begrunnelse
-            )
+        brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknadId).fold(
+            ifLeft = {
+                log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
+                return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+            },
+            ifRight = {
+                log.info("Bestillings id for trekking av søknad: $it")
+                søknadRepo.lukkSøknad(
+                    søknadId = søknadId,
+                    lukket = Søknad.Lukket.Trukket(
+                        tidspunkt = Tidspunkt.now(),
+                        saksbehandler = saksbehandler,
+                        begrunnelse = begrunnelse
+                    )
+                )
+                return sakService.hentSak(søknad.sakId).orNull()!!.right()
+            }
         )
-        return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
     override fun trekkSøknad(

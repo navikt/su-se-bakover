@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.orNull
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe

@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.client.stubs.pdf
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.pdf.LukketSøknadType
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 
@@ -30,6 +32,13 @@ object PdfGeneratorStub : PdfGenerator {
     }
 
     override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
+        return pdf.toByteArray().right()
+    }
+
+    override fun genererPdf(
+        lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
+        lukketSøknadType: LukketSøknadType
+    ): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()
     }
 }

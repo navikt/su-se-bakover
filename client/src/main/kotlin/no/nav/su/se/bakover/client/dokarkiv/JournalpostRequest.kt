@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import java.util.Base64
+import java.util.UUID
 
 sealed class Journalpost {
     val tema: String = "SUP"
@@ -36,23 +38,16 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String? = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: String = "9999"
-        override val dokumenter: List<JournalpostDokument> = søknadInnhold.toJournalpostDokument()
-
-        private fun SøknadInnhold.toJournalpostDokument() = listOf(
+        override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
-                tittel = "Søknad om supplerende stønad for uføre flyktninger",
+                tittel = tittel,
                 dokumentKategori = DokumentKategori.SOK,
                 dokumentvarianter = listOf(
-                    DokumentVariant(
-                        filtype = "PDFA",
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdf),
-                        variantformat = "ARKIV"
-                    ),
-                    DokumentVariant(
-                        filtype = "JSON",
-                        fysiskDokument = Base64.getEncoder()
-                            .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
-                        variantformat = "ORIGINAL"
+                    DokumentVariant.Arkiv(pdf = pdf),
+                    DokumentVariant.OriginalJson(
+                        brevinnholdJson = objectMapper.writeValueAsString(
+                            søknadInnhold
+                        )
                     )
                 )
             )
@@ -75,23 +70,51 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: String = "4815"
-        override val dokumenter: List<JournalpostDokument> = vedtakInnhold.toJournalpostDokument()
-
-        private fun VedtakInnhold.toJournalpostDokument() = listOf(
+        override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
-                tittel = "Vedtaksbrev for soknad om supplerende stønad",
+                tittel = tittel,
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
-                    DokumentVariant(
-                        filtype = "PDFA",
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdf),
-                        variantformat = "ARKIV"
-                    ),
-                    DokumentVariant(
-                        filtype = "JSON",
-                        fysiskDokument = Base64.getEncoder()
-                            .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
-                        variantformat = "ORIGINAL"
+                    DokumentVariant.Arkiv(pdf = pdf),
+                    DokumentVariant.OriginalJson(
+                        brevinnholdJson = objectMapper.writeValueAsString(
+                            vedtakInnhold
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    data class lukketSøknadJournalpostRequest(
+        val person: Person,
+        val pdf: ByteArray,
+        val sakId: UUID,
+        val søknadId: UUID,
+        val lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
+    ) : Journalpost() {
+        // TODO: Riktig tittel
+        override val tittel: String = "Brev om avsluttet søknad om supplerende stønad"
+        override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
+            id = person.ident.fnr.toString(),
+            navn = søkersNavn(person)
+        )
+        override val sak: Fagsak = Fagsak(sakId.toString())
+        override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
+        override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
+        override val kanal: String? = null
+        override val journalfoerendeEnhet: String = "4815"
+        override val dokumenter: List<JournalpostDokument> = listOf(
+            JournalpostDokument(
+                tittel = tittel,
+                dokumentKategori = DokumentKategori.Infobrev,
+                dokumentvarianter = listOf(
+                    DokumentVariant.Arkiv(pdf = pdf),
+                    // TODO: var det riktig?
+                    DokumentVariant.OriginalJson(
+                        brevinnholdJson = objectMapper.writeValueAsString(
+                            lukketSøknadBrevinnhold
+                        )
                     )
                 )
             )
@@ -134,11 +157,28 @@ data class JournalpostDokument(
     val dokumentvarianter: List<DokumentVariant>
 )
 
+/*
 data class DokumentVariant(
     val filtype: String,
     val fysiskDokument: String,
     val variantformat: String
-)
+)*/
+// TODO: var det riktig?
+sealed class DokumentVariant {
+    data class Arkiv(
+        val pdf: ByteArray,
+        val filtype: String = "PDFA",
+        val fysiskDokument: String = Base64.getEncoder().encodeToString(pdf),
+        val variantformat: String = "ARKIV"
+    ) : DokumentVariant()
+
+    data class OriginalJson(
+        val brevinnholdJson: String,
+        val filtype: String = "JSON",
+        val fysiskDokument: String = Base64.getEncoder().encodeToString(brevinnholdJson.toByteArray()),
+        val variantformat: String = "ORIGINAL"
+    ) : DokumentVariant()
+}
 
 enum class JournalPostType(val type: String) {
     INNGAAENDE("INNGAAENDE"),
@@ -147,5 +187,6 @@ enum class JournalPostType(val type: String) {
 
 enum class DokumentKategori(val type: String) {
     SOK("SOK"),
-    VB("VB")
+    VB("VB"),
+    Infobrev("IB")
 }
