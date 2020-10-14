@@ -56,6 +56,7 @@ internal class SøknadPostgresRepoTest {
             hentetSøknad.lukket shouldBe null
         }
     }
+
     @Test
     fun `trukket søknad skal bli hentet med saksbehandler som har trekt søknaden`() {
         withMigratedDb {

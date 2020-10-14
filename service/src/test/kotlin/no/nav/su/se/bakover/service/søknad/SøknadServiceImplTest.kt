@@ -37,7 +37,7 @@ internal class SøknadServiceImplTest {
     )
 
     @Test
-    fun `trekker en søknadsbehandling`() {
+    fun `trekker en søknad`() {
         val sakId = UUID.randomUUID()
         val søknad = Søknad(
             sakId = sakId,

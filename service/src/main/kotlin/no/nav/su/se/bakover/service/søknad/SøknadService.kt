@@ -17,5 +17,3 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
 }
-
-object SøknadTrukketOk

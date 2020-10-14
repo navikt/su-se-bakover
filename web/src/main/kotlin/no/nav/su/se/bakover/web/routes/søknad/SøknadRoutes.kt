@@ -67,11 +67,8 @@ internal fun Route.søknadRoutes(
                     }
                 },
                 ifRight = {
-                    call.svar(
-                        HttpStatusCode.OK.message(
-                            "Trukket søknad for $søknadId "
-                        )
-                    )
+                    call.audit("Lukket søknad for søknad: $søknadId")
+                    call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
                 }
             )
         }

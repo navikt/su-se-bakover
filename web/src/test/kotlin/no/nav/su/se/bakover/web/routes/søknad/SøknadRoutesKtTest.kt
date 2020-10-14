@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.capture
 import com.nhaarman.mockitokotlin2.doAnswer
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -29,20 +33,26 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -51,6 +61,7 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
+import java.util.UUID
 import kotlin.test.assertEquals
 
 internal class SøknadRoutesKtTest {
@@ -59,6 +70,18 @@ internal class SøknadRoutesKtTest {
     private val søknadInnhold: SøknadInnhold = build(
         personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
             fnr = fnr.toString()
+        )
+    )
+    private val sakId: UUID = UUID.randomUUID()
+    private val tidspunkt = Tidspunkt.EPOCH
+    private val sak: Sak = Sak(
+        id = sakId,
+        opprettet = tidspunkt,
+        fnr = fnr,
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = tidspunkt,
+            sakId = sakId
         )
     )
 
@@ -181,77 +204,76 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lager en søknad, så trekker søknaden`() {
+        val søknadId = UUID.randomUUID()
+        val navIdent = "navident"
+        val søknadServiceMock = mock<SøknadService> {
+            on { trekkSøknad(any(), any(), any()) } doReturn sak.right()
+        }
         withTestApplication({
-            testSusebakover()
+            testSusebakover(
+                services = Services(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    behandling = mock(),
+                    sak = mock(),
+                    søknad = søknadServiceMock,
+                    stansUtbetaling = mock(),
+                    startUtbetalinger = mock()
+                )
+            )
         }) {
-            val søknadCreateResponse = defaultRequest(
-                method = Post,
-                uri = søknadPath,
-                roller = listOf(Brukerrolle.Saksbehandler)
-            ) {
-                addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
-            }.apply {
-                assertEquals(Created, response.status())
-            }.response
-            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(søknadCreateResponse.content!!) }
-            val sak = sakRepo.hentSak(fnr)
-            sak shouldNotBe null
-            sak!!.søknader() shouldHaveAtLeastSize 1
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/${sak.søknader().first().id}/trekk",
+                uri = "$søknadPath/$søknadId/trekk",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(
-                    """{
-                        "navIdent": "Z993156"
-                        }
-                    """.trimIndent()
-                )
             }.apply {
                 response.status() shouldBe OK
+                verify(søknadServiceMock, times(1)).trekkSøknad(
+                    argThat { it shouldBe søknadId },
+                    argThat { it shouldBe Saksbehandler(navIdent) },
+                    argThat { it shouldBe "" }
+                )
             }.response
         }
     }
+
     @Test
     fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+        val søknadId = UUID.randomUUID()
+        val navIdent = "navident"
+        val søknadServiceMock = mock<SøknadService> {
+            on { trekkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
         withTestApplication({
-            testSusebakover()
+            testSusebakover(
+                services = Services(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    behandling = mock(),
+                    sak = mock(),
+                    søknad = søknadServiceMock,
+                    stansUtbetaling = mock(),
+                    startUtbetalinger = mock()
+                )
+            )
         }) {
-            val sak = sakRepo.opprettSak(fnr)
-            val søknad = søknadRepo.opprettSøknad(
-                sakId = sak.id,
-                søknad = Søknad(
-                    sakId = sak.id,
-                    søknadInnhold = build()
-                )
-            )
-            val saksbehandler = Saksbehandler("Z993156")
-            søknadRepo.lukkSøknad(
-                søknadId = søknad.id,
-                lukket = Søknad.Lukket.Trukket(
-                    tidspunkt = Tidspunkt.now(),
-                    saksbehandler = saksbehandler,
-                    begrunnelse = ""
-                )
-            )
-
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/${søknad.id}/trekk",
+                uri = "$søknadPath/$søknadId/trekk",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(
-                    """{
-                        "navIdent": "Z993156"
-                        }
-                    """.trimIndent()
-                )
             }.apply {
                 response.status() shouldBe BadRequest
+                verify(søknadServiceMock, times(1)).trekkSøknad(
+                    argThat { it shouldBe søknadId },
+                    argThat { it shouldBe Saksbehandler(navIdent) },
+                    argThat { it shouldBe "" }
+                )
             }.response
         }
     }

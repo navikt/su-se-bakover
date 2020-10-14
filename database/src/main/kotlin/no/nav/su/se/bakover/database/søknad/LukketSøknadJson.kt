@@ -12,7 +12,7 @@ data class LukketSøknadJson(
     val begrunnelse: String,
     val type: LukketType
 ) {
-    enum class LukketType(val value: String){
+    enum class LukketType(val value: String) {
         TRUKKET("TRUKKET")
     }
 
@@ -35,4 +35,3 @@ data class LukketSøknadJson(
         )
     }
 }
-
