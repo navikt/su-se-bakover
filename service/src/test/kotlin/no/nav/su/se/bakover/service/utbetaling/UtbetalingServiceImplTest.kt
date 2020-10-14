@@ -7,25 +7,38 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
+import java.util.UUID
 
 internal class UtbetalingServiceImplTest {
 
     @Test
     fun `hent utbetaling - ikke funnet`() {
-        val repoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn null }
+        val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn null }
 
-        UtbetalingServiceImpl(repoMock).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
+        UtbetalingServiceImpl(
+            utbetalingRepoMock,
+            mock()
+        ).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
 
-        verify(repoMock, Times(1)).hentUtbetaling(any<UUID30>())
+        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(any<UUID30>())
     }
 
     @Test
@@ -34,11 +47,11 @@ internal class UtbetalingServiceImplTest {
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910")
         )
-        val repoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
+        val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
-        UtbetalingServiceImpl(repoMock).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
+        UtbetalingServiceImpl(utbetalingRepoMock, mock()).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
 
-        verify(repoMock).hentUtbetaling(utbetaling.id)
+        verify(utbetalingRepoMock).hentUtbetaling(utbetaling.id)
     }
 
     @Test
@@ -50,15 +63,15 @@ internal class UtbetalingServiceImplTest {
 
         val avstemmingsnøkkel = Avstemmingsnøkkel()
 
-        val repoMock = mock<UtbetalingRepo> { on { hentUtbetaling(avstemmingsnøkkel) } doReturn null }
+        val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(avstemmingsnøkkel) } doReturn null }
 
-        UtbetalingServiceImpl(repoMock).oppdaterMedKvittering(
+        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
             avstemmingsnøkkel = avstemmingsnøkkel,
             kvittering = kvittering
         ) shouldBe FantIkkeUtbetaling.left()
 
-        verify(repoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-        verify(repoMock, Times(0)).oppdaterMedKvittering(any(), any())
+        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
+        verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(any(), any())
     }
 
     @Test
@@ -78,18 +91,18 @@ internal class UtbetalingServiceImplTest {
             kvittering = kvittering
         )
 
-        val repoMock = mock<UtbetalingRepo> {
+        val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
             on { oppdaterMedKvittering(utbetaling.id, kvittering) } doReturn postUpdate
         }
 
-        UtbetalingServiceImpl(repoMock).oppdaterMedKvittering(
+        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
             utbetaling.oppdragsmelding!!.avstemmingsnøkkel,
             kvittering
         ) shouldBe postUpdate.right()
 
-        verify(repoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-        verify(repoMock, Times(1)).oppdaterMedKvittering(utbetaling.id, kvittering)
+        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
+        verify(utbetalingRepoMock, Times(1)).oppdaterMedKvittering(utbetaling.id, kvittering)
     }
 
     @Test
@@ -110,16 +123,48 @@ internal class UtbetalingServiceImplTest {
             originalKvittering = ""
         )
 
-        val repoMock = mock<UtbetalingRepo> {
+        val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
         }
 
-        UtbetalingServiceImpl(repoMock).oppdaterMedKvittering(
+        UtbetalingServiceImpl(utbetalingRepoMock, mock()).oppdaterMedKvittering(
             avstemmingsnøkkel,
             nyKvittering
         ) shouldBe utbetaling.right()
 
-        verify(repoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-        verify(repoMock, Times(0)).oppdaterMedKvittering(utbetaling.id, nyKvittering)
+        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
+        verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(utbetaling.id, nyKvittering)
+    }
+
+    @Test
+    fun `lag utbetaling for simulering`() {
+        val sakId = UUID.randomUUID()
+        val fnr = Fnr("12345678910")
+        val beregning = Beregning(
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.januar(2020),
+            sats = Sats.HØY,
+            fradrag = emptyList()
+        )
+        val sak = Sak(
+            id = sakId, fnr = fnr,
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(), opprettet = Tidspunkt.now(), sakId = sakId, utbetalinger = mutableListOf()
+            )
+        )
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(sakId) } doReturn sak
+        }
+
+        val response = UtbetalingServiceImpl(
+            utbetalingRepo = mock(),
+            sakRepo = sakRepoMock
+        ).lagUtbetalingForSimulering(sak.id, beregning)
+
+        verify(sakRepoMock).hentSak(sakId)
+        response.oppdrag shouldBe sak.oppdrag
+        response.utbetaling shouldNotBe null
+        response.attestant shouldBe Attestant("SU")
     }
 }

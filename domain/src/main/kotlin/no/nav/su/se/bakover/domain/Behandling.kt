@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
 import java.util.UUID
 
@@ -30,7 +30,7 @@ data class Behandling(
     ),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
-    private var utbetaling: Utbetaling? = null,
+    internal var simulering: Simulering? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
     private var saksbehandler: Saksbehandler? = null,
     private var attestant: Attestant? = null,
@@ -50,7 +50,7 @@ data class Behandling(
 
     fun behandlingsinformasjon() = behandlingsinformasjon
 
-    fun utbetaling() = utbetaling
+    fun simulering() = simulering
 
     fun hendelser() = hendelseslogg.hendelser()
 
@@ -91,8 +91,8 @@ data class Behandling(
         return this
     }
 
-    fun simuler(utbetaling: Utbetaling): Behandling {
-        return tilstand.simuler(utbetaling)
+    fun leggTilSimulering(simulering: Simulering): Behandling {
+        return tilstand.leggTilSimulering(simulering)
     }
 
     fun sendTilAttestering(
@@ -129,8 +129,8 @@ data class Behandling(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun simuler(utbetaling: Utbetaling): Behandling {
-            throw TilstandException(status, this::simuler.toString())
+        fun leggTilSimulering(simulering: Simulering): Behandling {
+            throw TilstandException(status, this::leggTilSimulering.toString())
         }
 
         fun sendTilAttestering(
@@ -235,17 +235,16 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Behandling {
-            // TODO just passing the utbetaling for now for backwards compatability
-            this@Behandling.utbetaling = utbetaling
+        override fun leggTilSimulering(simulering: Simulering): Behandling {
+            this@Behandling.simulering = simulering
             nyTilstand(Simulert())
             return this@Behandling
         }
 
         inner class Avslag : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
-            override fun simuler(utbetaling: Utbetaling): Behandling {
-                throw TilstandException(status, this::simuler.toString())
+            override fun leggTilSimulering(simulering: Simulering): Behandling {
+                throw TilstandException(status, this::leggTilSimulering.toString())
             }
 
             override fun sendTilAttestering(
@@ -277,8 +276,8 @@ data class Behandling(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun simuler(utbetaling: Utbetaling): Behandling {
-            return nyTilstand(Beregnet()).simuler(utbetaling)
+        override fun leggTilSimulering(simulering: Simulering): Behandling {
+            return nyTilstand(Beregnet()).leggTilSimulering(simulering)
         }
     }
 
@@ -353,10 +352,10 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") :
-            IverksettFeil()
-
-        class Utbetaling(val msg: String) : IverksettFeil()
+        data class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
+        data class Utbetaling(val msg: String = "Feil ved oversendelse av utbetaling til oppdrag!") : IverksettFeil()
+        data class KunneIkkeSimulere(val msg: String = "Kunne ikke gjennomføre kontrollsimulering av utbtaling") : IverksettFeil()
+        data class InkonsistentSimuleringsResultat(val msg: String = "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres") : IverksettFeil()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")

@@ -21,15 +21,15 @@ import java.time.Month
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(nyUtbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering> =
         when (val utbetaling = nyUtbetaling.utbetaling) {
-            is Utbetaling.Ny -> simulerNyUtbetaling(utbetaling).right()
+            is Utbetaling.Ny -> simulerNyUtbetaling(utbetaling, nyUtbetaling.oppdrag.id).right()
             is Utbetaling.Stans -> simulerStans(utbetaling).right()
-            is Utbetaling.Gjenoppta -> simulerNyUtbetaling(utbetaling).right()
+            is Utbetaling.Gjenoppta -> simulerNyUtbetaling(utbetaling, nyUtbetaling.oppdrag.id).right()
         }
 
-    private fun simulerNyUtbetaling(utbetaling: Utbetaling): Simulering {
-        val months = utbetaling.utbetalingslinjer.first().fraOgMed.monthValue..utbetaling.utbetalingslinjer.last().tilOgMed.monthValue
+    private fun simulerNyUtbetaling(utbetaling: Utbetaling, oppdragId: UUID30): Simulering {
+        val months = utbetaling.tidligsteDato().monthValue..utbetaling.senesteDato().monthValue
         val perioder = months.map {
-            val fraOgMed = LocalDate.of(2020, Month.of((it).toInt()), 1)
+            val fraOgMed = LocalDate.of(utbetaling.tidligsteDato().year, Month.of((it)), 1)
             val tilOgMed = fraOgMed.plusMonths(1).minusDays(1)
             val beløp = utbetaling.utbetalingslinjer.findBeløpForDate(fraOgMed)
             SimulertPeriode(
@@ -37,7 +37,7 @@ object SimuleringStub : SimuleringClient {
                 tilOgMed = tilOgMed,
                 utbetaling = listOf(
                     SimulertUtbetaling(
-                        fagSystemId = UUID30.randomUUID().toString(),
+                        fagSystemId = oppdragId.toString(),
                         feilkonto = false,
                         forfall = idag(),
                         utbetalesTilId = utbetaling.fnr,

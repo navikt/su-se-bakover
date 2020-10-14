@@ -23,7 +23,8 @@ class ServiceBuilder(
 ) {
     fun build(): Services {
         val utbetalingService = UtbetalingServiceImpl(
-            repo = databaseRepos.utbetaling,
+            utbetalingRepo = databaseRepos.utbetaling,
+            sakRepo = databaseRepos.sak
         )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad
