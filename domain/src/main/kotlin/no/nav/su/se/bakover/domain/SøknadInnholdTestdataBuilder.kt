@@ -5,6 +5,12 @@ import java.time.Month.FEBRUARY
 import java.time.Month.JANUARY
 import java.time.Month.JULY
 
+fun fnrUnder67(): Fnr {
+    val femtiÅrSiden = (LocalDate.now().year - 50).toString().substring(2, 4)
+
+    return Fnr("0101${femtiÅrSiden}01337")
+}
+
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
  */
@@ -29,8 +35,10 @@ object SøknadInnholdTestdataBuilder {
             borOgOppholderSegINorge = true,
             delerBolig = true,
             delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
-            ektemakeEllerSamboerUførFlyktning = false
+            ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr(
+                erUførFlyktning = false,
+                fnr = fnrUnder67()
+            )
         ),
 
         utenlandsopphold: Utenlandsopphold = Utenlandsopphold(

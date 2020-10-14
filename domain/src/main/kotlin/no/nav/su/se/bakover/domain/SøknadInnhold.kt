@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr
+import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerUtenFnr
 import java.time.LocalDate
 
 data class SøknadInnhold(
@@ -45,14 +49,37 @@ data class Boforhold(
     val borOgOppholderSegINorge: Boolean,
     val delerBolig: Boolean,
     val delerBoligMed: DelerBoligMed? = null,
-    val ektemakeEllerSamboerUnder67År: Boolean? = null,
-    val ektemakeEllerSamboerUførFlyktning: Boolean? = null
-
+    val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
 ) {
     enum class DelerBoligMed() {
-        EKTEMAKE_SAMBOER,
+        EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
         VOKSNE_BARN,
         ANNEN_VOKSEN;
+    }
+
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = EktefellePartnerSamboerUtenFnr::class, name = "UtenFnr"),
+        JsonSubTypes.Type(value = EktefellePartnerSamboerMedFnr::class, name = "MedFnr"),
+    )
+    sealed class EktefellePartnerSamboer {
+        abstract val erUførFlyktning: Boolean
+
+        data class EktefellePartnerSamboerUtenFnr(
+            override val erUførFlyktning: Boolean,
+            val navn: String,
+            val fødselsdato: String
+        ) :
+            EktefellePartnerSamboer()
+
+        data class EktefellePartnerSamboerMedFnr(
+            override val erUførFlyktning: Boolean,
+            val fnr: Fnr
+        ) : EktefellePartnerSamboer()
     }
 }
 

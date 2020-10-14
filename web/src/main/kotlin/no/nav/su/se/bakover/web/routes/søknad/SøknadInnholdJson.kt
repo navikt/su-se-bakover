@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
+import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
@@ -127,8 +129,7 @@ data class SøknadInnholdJson(
         val borOgOppholderSegINorge: Boolean,
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
-        val ektemakeEllerSamboerUnder67År: Boolean? = null,
-        val ektemakeEllerSamboerUførFlyktning: Boolean? = null
+        val ektefellePartnerSamboer: EktefellePartnerSamboer?,
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -136,15 +137,14 @@ data class SøknadInnholdJson(
             delerBoligMed = delerBoligMed?.let {
                 toBoforholdType(it)
             },
-            ektemakeEllerSamboerUnder67År = ektemakeEllerSamboerUnder67År,
-            ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning
+            ektefellePartnerSamboer = ektefellePartnerSamboer
         )
 
-        private fun toBoforholdType(str: String): Boforhold.DelerBoligMed {
+        private fun toBoforholdType(str: String): DelerBoligMed {
             return when (str) {
-                "EKTEMAKE_SAMBOER" -> Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
-                "VOKSNE_BARN" -> Boforhold.DelerBoligMed.VOKSNE_BARN
-                "ANNEN_VOKSEN" -> Boforhold.DelerBoligMed.ANNEN_VOKSEN
+                "EKTEMAKE_SAMBOER" -> DelerBoligMed.EKTEMAKE_SAMBOER
+                "VOKSNE_BARN" -> DelerBoligMed.VOKSNE_BARN
+                "ANNEN_VOKSEN" -> DelerBoligMed.ANNEN_VOKSEN
                 else -> throw IllegalArgumentException("delerBoligMed feltet er ugyldig")
             }
         }
@@ -155,8 +155,7 @@ data class SøknadInnholdJson(
                     borOgOppholderSegINorge = this.borOgOppholderSegINorge,
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
-                    ektemakeEllerSamboerUnder67År = this.ektemakeEllerSamboerUnder67År,
-                    ektemakeEllerSamboerUførFlyktning = this.ektemakeEllerSamboerUførFlyktning
+                    ektefellePartnerSamboer = this.ektefellePartnerSamboer,
                 )
         }
     }
@@ -428,11 +427,11 @@ private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
     }
 }
 
-private fun Boforhold.DelerBoligMed.toJson(): String {
+private fun DelerBoligMed.toJson(): String {
     return when (this) {
-        Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER -> "EKTEMAKE_SAMBOER"
-        Boforhold.DelerBoligMed.VOKSNE_BARN -> "VOKSNE_BARN"
-        Boforhold.DelerBoligMed.ANNEN_VOKSEN -> "ANNEN_VOKSEN"
+        DelerBoligMed.EKTEMAKE_SAMBOER -> "EKTEMAKE_SAMBOER"
+        DelerBoligMed.VOKSNE_BARN -> "VOKSNE_BARN"
+        DelerBoligMed.ANNEN_VOKSEN -> "ANNEN_VOKSEN"
     }
 }
 

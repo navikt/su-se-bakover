@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.fnrUnder67
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
@@ -21,6 +22,7 @@ internal class SøknadJsonTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
+
         //language=JSON
         val søknadJsonString =
             """
@@ -41,8 +43,11 @@ internal class SøknadJsonTest {
                 "borOgOppholderSegINorge":true,
                 "delerBoligMedVoksne":true,
                 "delerBoligMed":"EKTEMAKE_SAMBOER",
-                "ektemakeEllerSamboerUnder67År":true,
-                "ektemakeEllerSamboerUførFlyktning":false
+                "ektefellePartnerSamboer":{
+                    "type": "MedFnr",
+                    "erUførFlyktning": false,
+                    "fnr": "${fnrUnder67()}"
+                }
             },
             "utenlandsopphold":{
                 "registrertePerioder":[
