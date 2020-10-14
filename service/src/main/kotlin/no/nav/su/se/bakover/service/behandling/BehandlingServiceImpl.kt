@@ -171,19 +171,6 @@ internal class BehandlingServiceImpl(
                                 if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
                                     .left()
 
-                                utbetalingService.opprettUtbetaling(
-                                    oppdragId = utbetaling.oppdrag.id,
-                                    utbetaling = utbetaling.utbetaling
-                                )
-                                utbetalingService.addSimulering(
-                                    utbetalingId = utbetaling.utbetaling.id,
-                                    simulering = simulering
-                                )
-                                behandlingRepo.leggTilUtbetaling(
-                                    behandlingId = behandlingId,
-                                    utbetalingId = utbetaling.utbetaling.id
-                                )
-
                                 return utbetalingPublisher.publish(
                                     NyUtbetaling(
                                         oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
@@ -191,12 +178,20 @@ internal class BehandlingServiceImpl(
                                         attestant = attestant
                                     )
                                 ).mapLeft {
-                                    utbetalingService.addOppdragsmelding(
-                                        utbetalingId = utbetaling.utbetaling.id,
-                                        oppdragsmelding = it.oppdragsmelding
-                                    )
                                     return Behandling.IverksettFeil.Utbetaling().left()
                                 }.map { oppdragsmelding ->
+                                    utbetalingService.opprettUtbetaling(
+                                        oppdragId = utbetaling.oppdrag.id,
+                                        utbetaling = utbetaling.utbetaling
+                                    )
+                                    utbetalingService.addSimulering(
+                                        utbetalingId = utbetaling.utbetaling.id,
+                                        simulering = simulering
+                                    )
+                                    behandlingRepo.leggTilUtbetaling(
+                                        behandlingId = behandlingId,
+                                        utbetalingId = utbetaling.utbetaling.id
+                                    )
                                     utbetalingService.addOppdragsmelding(
                                         utbetalingId = utbetaling.utbetaling.id,
                                         oppdragsmelding = oppdragsmelding

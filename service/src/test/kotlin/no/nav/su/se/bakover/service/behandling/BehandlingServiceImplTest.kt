@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
@@ -165,19 +166,24 @@ internal class BehandlingServiceImplTest {
         ).iverksett(behandling.id, Attestant("Z123456"))
 
         response shouldBe behandling.right()
-        verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
-        verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
-        verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
-        verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
-        verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetaling.id)
-        verify(utbetalingPublisherMock).publish(any())
-        verify(utbetalingServiceMock).addOppdragsmelding(utbetaling.id, oppdragsmelding)
-        verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
-        verify(behandlingRepoMock).oppdaterBehandlingStatus(
-            behandling.id,
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
-        )
+
+        inOrder(
+            behandlingRepoMock, utbetalingServiceMock, utbetalingPublisherMock, behandlingRepoMock
+        ) {
+            verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
+            verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
+            verify(utbetalingPublisherMock).publish(any())
+            verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
+            verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
+            verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetaling.id)
+            verify(utbetalingServiceMock).addOppdragsmelding(utbetaling.id, oppdragsmelding)
+            verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(
+                behandling.id,
+                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            )
+        }
     }
 
     @Test
