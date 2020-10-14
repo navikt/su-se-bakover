@@ -160,7 +160,7 @@ internal class UtbetalingServiceImplTest {
         val response = UtbetalingServiceImpl(
             utbetalingRepo = mock(),
             sakRepo = sakRepoMock
-        ).lagUtbetalingForSimulering(sak.id, beregning)
+        ).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Ny(beregning))
 
         verify(sakRepoMock).hentSak(sakId)
         response.oppdrag shouldBe sak.oppdrag

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -99,7 +100,7 @@ internal class BehandlingServiceImpl(
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
         val utbetalingTilSimulering =
-            utbetalingService.lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+            utbetalingService.lagUtbetaling(behandling.sakId, Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!))
         return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulering ->
                 behandling.leggTilSimulering(simulering)
@@ -162,9 +163,9 @@ internal class BehandlingServiceImpl(
                         behandling.right()
                     }
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                        val utbetaling = utbetalingService.lagUtbetalingForSimulering(
+                        val utbetaling = utbetalingService.lagUtbetaling(
                             sakId = behandling.sakId,
-                            beregning = behandling.beregning()!!
+                            strategy = Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!)
                         )
                         return simuleringClient.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }

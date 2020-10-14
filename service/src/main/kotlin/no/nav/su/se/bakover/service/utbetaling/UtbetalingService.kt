@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -23,7 +23,7 @@ interface UtbetalingService {
     fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Utbetaling
     fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling
 
-    fun lagUtbetalingForSimulering(sakId: UUID, beregning: Beregning): NyUtbetaling
+    fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling
 }
 
 object FantIkkeUtbetaling

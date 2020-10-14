@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Attestant
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -59,9 +58,13 @@ internal class UtbetalingServiceImpl(
         return utbetalingRepo.addOppdragsmelding(utbetalingId, oppdragsmelding)
     }
 
-    override fun lagUtbetalingForSimulering(sakId: UUID, beregning: Beregning): NyUtbetaling {
-        val sak = sakRepo.hentSak(sakId = sakId)!!
-        val utbetaling = sak.oppdrag.genererUtbetaling(Oppdrag.UtbetalingStrategy.Ny(beregning), sak.fnr)
-        return NyUtbetaling(sak.oppdrag, utbetaling, Attestant("SU"))
+    override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling {
+        val sak = sakRepo.hentSak(sakId)!!
+        return NyUtbetaling(
+            oppdrag = sak.oppdrag,
+            utbetaling = sak.oppdrag.genererUtbetaling(strategy, sak.fnr),
+            attestant = Attestant("SU"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
+        )
     }
 }

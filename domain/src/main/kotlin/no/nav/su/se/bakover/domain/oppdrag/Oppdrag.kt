@@ -49,8 +49,8 @@ data class Oppdrag(
     }
 
     sealed class UtbetalingStrategy {
-        class Stans(val clock: Clock = Clock.systemUTC()) : UtbetalingStrategy()
-        class Ny(val beregning: Beregning) : UtbetalingStrategy()
+        data class Stans(val clock: Clock = Clock.systemUTC()) : UtbetalingStrategy()
+        data class Ny(val beregning: Beregning) : UtbetalingStrategy()
         object Gjenoppta : UtbetalingStrategy()
     }
 

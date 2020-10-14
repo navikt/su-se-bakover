@@ -58,7 +58,7 @@ internal class BehandlingServiceImplTest {
             on { hentBehandling(any()) } doReturn behandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!) } doReturn nyUtbetaling
+            on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
         }
 
         val simuleringClient = mock<SimuleringClient>() {
@@ -76,7 +76,7 @@ internal class BehandlingServiceImplTest {
 
         response shouldBe behandling.right()
         verify(behandlingRepoMock, Times(2)).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
         verify(simuleringClient).simulerUtbetaling(nyUtbetaling)
         verify(behandlingRepoMock).leggTilSimulering(behandling.id, simulering)
         verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.SIMULERT)
@@ -90,7 +90,7 @@ internal class BehandlingServiceImplTest {
             on { hentBehandling(any()) } doReturn behandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!) } doReturn nyUtbetaling
+            on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
         }
 
         val simuleringClient = mock<SimuleringClient>() {
@@ -105,7 +105,7 @@ internal class BehandlingServiceImplTest {
 
         response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
         verify(behandlingRepoMock, Times(1)).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
         verify(simuleringClient).simulerUtbetaling(nyUtbetaling)
         verifyNoMoreInteractions(behandlingRepoMock)
     }
@@ -146,7 +146,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!) } doReturn nyUtbetaling
+            on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
         }
 
         val simuleringClientMock = mock<SimuleringClient>() {
@@ -180,7 +180,7 @@ internal class BehandlingServiceImplTest {
 
         response shouldBe behandling.right()
         verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
         verify(simuleringClientMock).simulerUtbetaling(nyUtbetaling)
         verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
         verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
@@ -203,7 +203,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!) } doReturn nyUtbetaling
+            on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
         }
 
         val simuleringClientMock = mock<SimuleringClient>() {
@@ -222,7 +222,7 @@ internal class BehandlingServiceImplTest {
         response shouldBe Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
 
         verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
         verify(simuleringClientMock).simulerUtbetaling(nyUtbetaling)
         verify(behandlingRepoMock, Times(0)).oppdaterBehandlingStatus(any(), any())
         verifyNoMoreInteractions(utbetalingServiceMock)
@@ -238,7 +238,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!) } doReturn nyUtbetaling
+            on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
         }
 
         val simuleringClientMock = mock<SimuleringClient>() {
@@ -292,6 +292,8 @@ internal class BehandlingServiceImplTest {
         sats = Sats.HØY,
         fradrag = listOf()
     )
+
+    private val strategy = Oppdrag.UtbetalingStrategy.Ny(beregning)
 
     private val oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
