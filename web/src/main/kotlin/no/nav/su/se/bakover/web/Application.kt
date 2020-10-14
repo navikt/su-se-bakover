@@ -21,7 +21,7 @@ import io.ktor.features.XForwardedHeaderSupport
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders.Authorization
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Options
@@ -37,14 +37,18 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.web.features.Authorization
+import no.nav.su.se.bakover.web.features.AuthorizationException
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
 import no.nav.su.se.bakover.web.features.IkkeInitialisert
 import no.nav.su.se.bakover.web.features.KallMotMicrosoftGraphApiFeilet
@@ -125,7 +129,7 @@ internal fun Application.susebakover(
     install(CORS) {
         method(Options)
         method(Patch)
-        header(Authorization)
+        header(HttpHeaders.Authorization)
         header("refresh_token")
         header(XCorrelationId)
         allowNonSimpleContentTypes = true
@@ -149,6 +153,10 @@ internal fun Application.susebakover(
                     }
                 )
             )
+        }
+        exception<AuthorizationException> {
+            log.error("Got authorizationException with message=${it.message}", it)
+            call.respond(HttpStatusCode.Forbidden, ErrorJson(it.message))
         }
         exception<UgyldigFnrException> {
             log.error("Got UgyldigFnrException with message=${it.message}", it)
@@ -178,6 +186,14 @@ internal fun Application.susebakover(
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
     )
+
+    install(Authorization) {
+        getRoller { principal ->
+            getGroupsFromJWT(principal)
+                .filterMap { Brukerrolle.fromAzureGroup(it) }
+                .toSet()
+        }
+    }
 
     install(Locations)
 
