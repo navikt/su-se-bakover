@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.behandling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
-import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Attestant
@@ -130,13 +129,5 @@ internal class BehandlingPostgresRepo(
             )
         }
         return hentBehandling(behandling.id)!!
-    }
-
-    override fun harSøknadsbehandling(søknadId: UUID): Boolean {
-        return dataSource.withSession { session ->
-            "select * from behandling where søknadId=:soknadId".hentListe(
-                mapOf("soknadId" to søknadId), session
-            ) { it.stringOrNull("søknadId") }
-        }.isNotEmpty()
     }
 }

@@ -4,17 +4,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadTrukket
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
-    private val behandlingRepo: BehandlingRepo
+    private val sakService: SakService
 ) : SøknadService {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -22,36 +22,50 @@ internal class SøknadServiceImpl(
         return søknadRepo.opprettSøknad(sakId, søknad)
     }
 
-    override fun hentSøknad(søknadId: UUID): Either<SøknadServiceFeil.FantIkkeSøknad, Søknad> {
-        return søknadRepo.hentSøknad(søknadId)?.right() ?: SøknadServiceFeil.FantIkkeSøknad.left()
+    override fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
+        return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+    }
+
+    private fun lukkSøknad(
+        søknadId: UUID,
+        saksbehandler: Saksbehandler,
+        begrunnelse: String,
+        loggtema: String
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        val søknad = hentSøknad(søknadId).getOrElse {
+            log.info("$loggtema: Fant ikke søknad")
+            return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+        }
+        if (søknad.lukket != null) {
+            log.info("$loggtema: Prøver å lukke en allerede trukket søknad")
+            return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        if (søknadRepo.harSøknadPåbegyntBehandling(søknadId)) {
+            log.info("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
+            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        }
+
+        søknadRepo.lukkSøknad(
+            søknadId = søknadId,
+            lukket = Søknad.Lukket.Trukket(
+                tidspunkt = Tidspunkt.now(),
+                saksbehandler = saksbehandler,
+                begrunnelse = begrunnelse
+            )
+        )
+        return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
     override fun trekkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler
-    ): Either<SøknadServiceFeil, SøknadTrukketOk> {
-        val loggtema = "Trekking av søknad"
-
-        val søknad = hentSøknad(søknadId).getOrElse {
-            log.error("$loggtema: Fant ikke søknad")
-            return SøknadServiceFeil.FantIkkeSøknad.left()
-        }
-        if (søknad.søknadTrukket != null) {
-            log.error("$loggtema: Prøver å trekke en allerede trukket søknad")
-            return SøknadServiceFeil.SøknadErAlleredeTrukket.left()
-        }
-        if (behandlingRepo.harSøknadsbehandling(søknadId)) {
-            log.error("$loggtema: Kan ikke trekke søknad. Finnes en behandling")
-            return SøknadServiceFeil.SøknadHarEnBehandling.left()
-        }
-
-        søknadRepo.trekkSøknad(
+        saksbehandler: Saksbehandler,
+        begrunnelse: String
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        return lukkSøknad(
             søknadId = søknadId,
-            søknadTrukket = SøknadTrukket(
-                tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler
-            )
+            saksbehandler = saksbehandler,
+            begrunnelse = begrunnelse,
+            loggtema = "Trekking av søknad"
         )
-        return SøknadTrukketOk.right()
     }
 }

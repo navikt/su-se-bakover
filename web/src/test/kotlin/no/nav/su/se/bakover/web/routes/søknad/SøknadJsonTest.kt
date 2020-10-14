@@ -126,7 +126,7 @@ internal class SøknadJsonTest {
                 "harFullmektigEllerVerge":"verge"
             }
           },
-          "søknadTrukket": null
+          "lukket": null
         }
             """.trimIndent()
     }

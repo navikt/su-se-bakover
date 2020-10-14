@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding

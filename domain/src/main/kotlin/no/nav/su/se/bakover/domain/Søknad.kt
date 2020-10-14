@@ -9,10 +9,17 @@ data class Søknad(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
     val søknadInnhold: SøknadInnhold,
-    val søknadTrukket: SøknadTrukket? = null,
-)
+    val lukket: Lukket? = null,
+) {
+    sealed class Lukket {
+        abstract val tidspunkt: Tidspunkt
+        abstract val saksbehandler: Saksbehandler
+        abstract val begrunnelse: String
 
-data class SøknadTrukket(
-    val tidspunkt: Tidspunkt,
-    val saksbehandler: Saksbehandler
-)
+        data class Trukket(
+            override val tidspunkt: Tidspunkt,
+            override val saksbehandler: Saksbehandler,
+            override val begrunnelse: String
+        ) : Lukket()
+    }
+}

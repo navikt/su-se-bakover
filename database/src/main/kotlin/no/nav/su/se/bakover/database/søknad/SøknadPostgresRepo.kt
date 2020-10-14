@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.søknad.LukketSøknadJson.Companion.toJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadTrukket
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -29,15 +30,23 @@ internal class SøknadPostgresRepo(
         return hentSøknad(søknad.id)!!
     }
 
-    override fun trekkSøknad(søknadId: UUID, søknadTrukket: SøknadTrukket) {
+    override fun lukkSøknad(søknadId: UUID, lukket: Søknad.Lukket) {
         dataSource.withSession { session ->
-            "update søknad set søknadTrukket=to_json(:soknadTrukket::json) where id=:id".oppdatering(
+            "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to søknadId,
-                    "soknadTrukket" to objectMapper.writeValueAsString(søknadTrukket)
+                    "lukket" to objectMapper.writeValueAsString(lukket.toJson())
                 ),
                 session
             )
         }
+    }
+
+    override fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean {
+        return dataSource.withSession { session ->
+            "select * from behandling where søknadId=:soknadId".hentListe(
+                mapOf("soknadId" to søknadId), session
+            ) { it.stringOrNull("søknadId") }
+        }.isNotEmpty()
     }
 }

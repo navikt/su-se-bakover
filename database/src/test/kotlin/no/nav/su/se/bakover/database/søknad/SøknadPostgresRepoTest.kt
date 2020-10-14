@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.SøknadTrukket
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -54,7 +53,7 @@ internal class SøknadPostgresRepoTest {
             )
             val hentetSøknad = repo.hentSøknad(søknad.id)
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.søknadTrukket shouldBe null
+            hentetSøknad.lukket shouldBe null
         }
     }
     @Test
@@ -70,16 +69,17 @@ internal class SøknadPostgresRepoTest {
                 )
             )
             val saksbehandler = Saksbehandler("Z993156")
-            repo.trekkSøknad(
+            repo.lukkSøknad(
                 søknadId = søknad.id,
-                søknadTrukket = SøknadTrukket(
+                lukket = Søknad.Lukket.Trukket(
                     tidspunkt = Tidspunkt.now(),
-                    saksbehandler = saksbehandler
+                    saksbehandler = saksbehandler,
+                    begrunnelse = ""
                 )
             )
             val hentetSøknad = repo.hentSøknad(søknad.id)
             hentetSøknad!!.id shouldBe søknad.id
-            hentetSøknad.søknadTrukket shouldBe SøknadTrukket(hentetSøknad.søknadTrukket!!.tidspunkt, saksbehandler)
+            hentetSøknad.lukket shouldBe Søknad.Lukket.Trukket(hentetSøknad.lukket!!.tidspunkt, saksbehandler, "")
         }
     }
 }

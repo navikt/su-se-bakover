@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
-import no.nav.su.se.bakover.domain.SøknadTrukket
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -230,11 +229,12 @@ internal class SøknadRoutesKtTest {
                 )
             )
             val saksbehandler = Saksbehandler("Z993156")
-            søknadRepo.trekkSøknad(
+            søknadRepo.lukkSøknad(
                 søknadId = søknad.id,
-                søknadTrukket = SøknadTrukket(
+                lukket = Søknad.Lukket.Trukket(
                     tidspunkt = Tidspunkt.now(),
-                    saksbehandler = saksbehandler
+                    saksbehandler = saksbehandler,
+                    begrunnelse = ""
                 )
             )
 

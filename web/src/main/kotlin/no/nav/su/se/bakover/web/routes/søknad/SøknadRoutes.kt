@@ -12,8 +12,8 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.søknad.SøknadServiceFeil
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -51,16 +51,18 @@ internal fun Route.søknadRoutes(
 
     post("$søknadPath/{søknadId}/trekk") {
         call.withSøknadId { søknadId ->
-            søknadService.trekkSøknad(søknadId = søknadId, saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())).fold(
+            søknadService.trekkSøknad(
+                søknadId = søknadId,
+                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                begrunnelse = ""
+            ).fold(
                 ifLeft = {
                     when (it) {
-                        is SøknadServiceFeil.KunneIkkeTrekkeSøknad ->
-                            call.svar(HttpStatusCode.InternalServerError.message("Noe gikk galt"))
-                        is SøknadServiceFeil.SøknadErAlleredeTrukket ->
+                        is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
                             call.svar(BadRequest.message("Søknad er allerede trukket"))
-                        is SøknadServiceFeil.SøknadHarEnBehandling ->
+                        is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
                             call.svar(BadRequest.message("Søknaden har en behandling"))
-                        is SøknadServiceFeil.FantIkkeSøknad ->
+                        is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
                             call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
                     }
                 },
