@@ -10,25 +10,29 @@ data class LukketSøknadJson(
     val tidspunkt: String,
     val saksbehandler: String,
     val begrunnelse: String,
-    val type: String
+    val type: LukketType
 ) {
+    enum class LukketType(val value: String){
+        TRUKKET("TRUKKET")
+    }
+
     companion object {
         fun Søknad.Lukket.toJson() = LukketSøknadJson(
             tidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunkt),
             saksbehandler = saksbehandler.toString(),
             begrunnelse = begrunnelse,
             type = when (this) {
-                is Søknad.Lukket.Trukket -> "TRUKKET"
+                is Søknad.Lukket.Trukket -> LukketType.TRUKKET
             }
         )
     }
 
     fun toLukket() = when (type) {
-        "TRUKKET" -> Søknad.Lukket.Trukket(
+        LukketType.TRUKKET -> Søknad.Lukket.Trukket(
             tidspunkt = Instant.parse(tidspunkt).toTidspunkt(),
             saksbehandler = Saksbehandler(saksbehandler),
             begrunnelse = begrunnelse
         )
-        else -> throw IllegalStateException("Ugyldig tilstand")
     }
 }
+
