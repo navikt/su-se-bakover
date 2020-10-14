@@ -50,7 +50,7 @@ internal class SøknadServiceImpl(
         brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknadId).fold(
             ifLeft = {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
-                return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+                return KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
             },
             ifRight = {
                 log.info("Bestillings id for trekking av søknad: $it")

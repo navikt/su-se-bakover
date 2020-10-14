@@ -19,5 +19,6 @@ interface SøknadService {
 sealed class KunneIkkeLukkeSøknad {
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
+    object KunneIkkeSendeBrev : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
 }
