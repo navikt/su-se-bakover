@@ -16,9 +16,6 @@
     "DOKDIST_URL": "http://dokdistfordeling.q2.svc.nais.local",
     "SIMULERING_URL": "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding",
     "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/",
-    "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local",
-    "AZURE_GROUP_ATTESTANT": "d75164fa-39e6-4149-956e-8404bc9080b6",
-    "AZURE_GROUP_SAKSBEHANDLER": "0ba009c4-d148-4a51-b501-4b1cf906889d",
-    "AZURE_GROUP_VEILEDER": "062d4814-8538-4f3a-bcb9-32821af7909a"
+    "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local"
   }
 }

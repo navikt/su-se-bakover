@@ -34,8 +34,10 @@ docker-compose up
 
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
 Krever environmentvariablene:
-* AZURE_REQUIRED_GROUP
 * AZURE_CLIENT_SECRET
+* AZURE_GROUP_VEILEDER
+* AZURE_GROUP_SAKSBEHANDLER
+* AZURE_GROUP_ATTESTANT
 
 Dette kan man enten legge inn i `Run Configuration` i IntelliJ eller lage en `.env` fil på rot-nivå.
 
