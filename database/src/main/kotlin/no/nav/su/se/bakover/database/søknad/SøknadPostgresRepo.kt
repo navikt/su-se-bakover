@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.søknad.LukketSøknadJson.Companion.toJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Søknad
@@ -26,5 +28,25 @@ internal class SøknadPostgresRepo(
             )
         }
         return hentSøknad(søknad.id)!!
+    }
+
+    override fun lukkSøknad(søknadId: UUID, lukket: Søknad.Lukket) {
+        dataSource.withSession { session ->
+            "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
+                mapOf(
+                    "id" to søknadId,
+                    "lukket" to objectMapper.writeValueAsString(lukket.toJson())
+                ),
+                session
+            )
+        }
+    }
+
+    override fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean {
+        return dataSource.withSession { session ->
+            "select * from behandling where søknadId=:soknadId".hentListe(
+                mapOf("soknadId" to søknadId), session
+            ) { it.stringOrNull("søknadId") }
+        }.isNotEmpty()
     }
 }

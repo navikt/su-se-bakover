@@ -123,7 +123,7 @@ internal class SakRoutesKtTest {
     fun `kan opprette behandling på en sak og søknad`() {
 
         val nySak = repos.sak.opprettSak(fnr)
-        val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+        val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(sakId = nySak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()))
 
         withTestApplication({
             testSusebakover()

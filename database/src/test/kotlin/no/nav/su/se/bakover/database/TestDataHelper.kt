@@ -41,6 +41,7 @@ internal class TestDataHelper(
     fun insertSøknad(sakId: UUID) = søknadRepo.opprettSøknad(
         sakId,
         Søknad(
+            sakId = sakId,
             id = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
