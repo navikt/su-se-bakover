@@ -108,7 +108,7 @@ internal class AvstemmingDataBuilderTest {
                         Utbetaling.UtbetalingForSimulering(
                             utbetalingslinjer = emptyList(),
                             fnr = fnr,
-                            type = Utbetaling.UtbetalingType.NY
+                            type = Utbetaling.UtbetalingsType.NY
                         )
                     ),
                     avstemmingXmlRequest = null
@@ -131,7 +131,7 @@ internal class AvstemmingDataBuilderTest {
                                 avstemmingsnøkkel = Avstemmingsnøkkel()
                             ),
                             simulering = simulering,
-                            type = Utbetaling.UtbetalingType.NY
+                            type = Utbetaling.UtbetalingsType.NY
                         )
                     ),
                     avstemmingXmlRequest = null
@@ -169,7 +169,7 @@ fun lagUtbetaling(
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
     else -> Utbetaling.KvittertUtbetaling(
         id = id,
@@ -183,7 +183,7 @@ fun lagUtbetaling(
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 }
 

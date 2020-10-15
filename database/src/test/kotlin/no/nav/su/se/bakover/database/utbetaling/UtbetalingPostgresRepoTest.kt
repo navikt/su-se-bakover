@@ -104,7 +104,7 @@ internal class UtbetalingPostgresRepoTest {
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel()
         ),
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 
     private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(

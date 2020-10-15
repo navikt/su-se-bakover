@@ -43,7 +43,7 @@ internal class OppdragStansTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val stans = createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
@@ -67,7 +67,7 @@ internal class OppdragStansTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -88,7 +88,7 @@ internal class OppdragStansTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingType.STANS
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -105,7 +105,7 @@ internal class OppdragStansTest {
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingType) = Utbetaling.KvittertUtbetaling(
+    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.KvittertUtbetaling(
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",

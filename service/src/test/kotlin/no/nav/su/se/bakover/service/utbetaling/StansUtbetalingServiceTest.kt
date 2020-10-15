@@ -223,7 +223,7 @@ internal class StansUtbetalingServiceTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingType.STANS
+        type = Utbetaling.UtbetalingsType.STANS
     )
 
     private val simulering = Simulering(

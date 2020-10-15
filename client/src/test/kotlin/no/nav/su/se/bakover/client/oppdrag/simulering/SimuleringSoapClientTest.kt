@@ -192,7 +192,7 @@ internal class SimuleringSoapClientTest {
                         beløp = 0
                     )
                 ),
-                type = Utbetaling.UtbetalingType.NY
+                type = Utbetaling.UtbetalingsType.NY
             ),
             attestant = Attestant("SU")
         )
@@ -248,7 +248,7 @@ internal class SimuleringSoapClientTest {
             )
         ),
         fnr = Fnr("12345678910"),
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

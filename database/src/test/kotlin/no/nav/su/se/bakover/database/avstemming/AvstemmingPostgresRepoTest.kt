@@ -224,6 +224,6 @@ internal class AvstemmingPostgresRepoTest {
             periodeList = listOf()
         ),
         oppdragsmelding = oppdragsmelding,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 }

@@ -38,7 +38,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val stans = createOversendtUtbetaling(
@@ -50,7 +50,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingType.GJENOPPTA
+            type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
 
         createOppdrag(mutableListOf(opprinnelig, stans)).genererUtbetaling(
@@ -87,7 +87,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
 
         )
 
@@ -100,7 +100,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingType.STANS
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         val førsteGjenopptak = createOversendtUtbetaling(
@@ -112,7 +112,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.GJENOPPTA
+            type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
 
         val andre = createOversendtUtbetaling(
@@ -124,7 +124,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 5100
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val andreStans = createOversendtUtbetaling(
@@ -136,7 +136,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingType.STANS
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         createOppdrag(mutableListOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
@@ -161,7 +161,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 1500
                 )
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -189,7 +189,7 @@ internal class OppdragGjenopptaStrategyTest {
             beløp = 5100
         )
         val første = createOversendtUtbetaling(
-            listOf(l1, l2), Utbetaling.UtbetalingType.NY
+            listOf(l1, l2), Utbetaling.UtbetalingsType.NY
         )
 
         val stans = createOversendtUtbetaling(
@@ -201,7 +201,7 @@ internal class OppdragGjenopptaStrategyTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingType.STANS
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         createOppdrag(mutableListOf(første, stans)).genererUtbetaling(
@@ -290,7 +290,7 @@ internal class OppdragGjenopptaStrategyTest {
         utbetalinger = utbetalinger
     )
 
-    fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingType) = Utbetaling.OversendtUtbetaling(
+    fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling(
         oppdragsmelding = Oppdragsmelding(
             status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",

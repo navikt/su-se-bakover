@@ -80,7 +80,7 @@ internal class UtbetalingPublisherTest {
     private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
         fnr = Fnr("12345678910"),
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingType.NY,
+        type = Utbetaling.UtbetalingsType.NY,
         simulering = Simulering(
             gjelderId = Fnr(
                 fnr = "12345678910"

@@ -172,7 +172,7 @@ internal class StartUtbetalingRoutesKtTest {
             opprettet = Tidspunkt.EPOCH,
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678911"),
-            type = Utbetaling.UtbetalingType.GJENOPPTA
+            type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),

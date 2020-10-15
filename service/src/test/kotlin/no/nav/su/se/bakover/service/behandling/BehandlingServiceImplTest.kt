@@ -284,7 +284,7 @@ internal class BehandlingServiceImplTest {
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(),
         fnr = fnr,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

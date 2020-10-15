@@ -60,7 +60,7 @@ data class Oppdrag(
                 val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
 
                 validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
-                validate(Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling()?.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+                validate(Utbetaling.UtbetalingsType.STANS != sisteOversendteUtbetaling()?.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
 
                 val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                     ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
@@ -76,7 +76,7 @@ data class Oppdrag(
                         )
                     ),
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingType.STANS
+                    type = Utbetaling.UtbetalingsType.STANS
                 )
             }
         }
@@ -95,7 +95,7 @@ data class Oppdrag(
                         it.zipWithNext { a, b -> b.link(a) }
                     },
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingType.NY
+                    type = Utbetaling.UtbetalingsType.NY
                 )
             }
 
@@ -120,7 +120,7 @@ data class Oppdrag(
 
                 // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
                 val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
-                    it.type == Utbetaling.UtbetalingType.STANS
+                    it.type == Utbetaling.UtbetalingsType.STANS
                 }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
                 val stansetEllerDelvisStansetUtbetalingslinjer = oversendteUtbetalinger()
@@ -158,7 +158,7 @@ data class Oppdrag(
                             )
                     },
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingType.GJENOPPTA
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA
                 )
             }
         }

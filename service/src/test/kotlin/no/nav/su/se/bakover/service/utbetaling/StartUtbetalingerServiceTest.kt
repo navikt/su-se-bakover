@@ -192,7 +192,7 @@ internal class StartUtbetalingerServiceTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingType.GJENOPPTA
+        type = Utbetaling.UtbetalingsType.GJENOPPTA
     )
 
     private val simulering = Simulering(

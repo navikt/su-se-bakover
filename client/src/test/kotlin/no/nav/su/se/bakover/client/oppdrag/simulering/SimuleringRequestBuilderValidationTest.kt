@@ -52,7 +52,7 @@ internal class SimuleringRequestBuilderValidationTest {
                         )
                     ),
                     fnr = Fnr("12345678910"),
-                    type = Utbetaling.UtbetalingType.NY
+                    type = Utbetaling.UtbetalingsType.NY
                 ),
                 attestant = Attestant("A123456")
             )

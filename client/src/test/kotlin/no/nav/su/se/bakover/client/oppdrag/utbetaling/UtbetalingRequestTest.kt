@@ -61,7 +61,7 @@ internal class UtbetalingRequestTest {
                 )
             ),
             fnr = FNR,
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -170,7 +170,7 @@ internal class UtbetalingRequestTest {
                         )
                     ),
                     fnr = FNR,
-                    type = Utbetaling.UtbetalingType.NY
+                    type = Utbetaling.UtbetalingsType.NY
                 )
             )
         )
@@ -195,7 +195,7 @@ internal class UtbetalingRequestTest {
                 )
             ),
             fnr = FNR,
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
         val utbetalingRequest = toUtbetalingRequest(
             tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(

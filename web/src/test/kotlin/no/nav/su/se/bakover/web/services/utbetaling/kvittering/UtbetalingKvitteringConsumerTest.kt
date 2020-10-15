@@ -64,7 +64,7 @@ internal class UtbetalingKvitteringConsumerTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
         )
         val xmlMessage = kvitteringXml()
         val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)

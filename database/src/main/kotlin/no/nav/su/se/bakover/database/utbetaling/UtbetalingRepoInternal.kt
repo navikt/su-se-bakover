@@ -56,7 +56,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
     val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
     val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
     val fnr = Fnr(string("fnr"))
-    val type = Utbetaling.UtbetalingType.valueOf(string("type"))
+    val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
 
     return UtbetalingMapper(
         id = id,

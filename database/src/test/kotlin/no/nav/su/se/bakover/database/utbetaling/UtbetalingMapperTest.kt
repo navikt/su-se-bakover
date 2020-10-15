@@ -21,7 +21,7 @@ internal class UtbetalingMapperTest {
             opprettet = Tidspunkt.now(),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             simulering = null,
             oppdragsmelding = null,
             kvittering = null,
@@ -33,7 +33,7 @@ internal class UtbetalingMapperTest {
             opprettet = Tidspunkt.now(),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -51,7 +51,7 @@ internal class UtbetalingMapperTest {
             opprettet = Tidspunkt.now(),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -75,7 +75,7 @@ internal class UtbetalingMapperTest {
             opprettet = Tidspunkt.now(),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -104,7 +104,7 @@ internal class UtbetalingMapperTest {
             opprettet = Tidspunkt.now(),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",

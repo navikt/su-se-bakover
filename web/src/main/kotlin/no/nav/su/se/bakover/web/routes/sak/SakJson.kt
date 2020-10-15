@@ -29,7 +29,7 @@ internal data class SakJson(
                 val oversendteUtbetalinger = this.oversendteUtbetalinger()
                 return when {
                     oversendteUtbetalinger.isEmpty() -> INGEN
-                    oversendteUtbetalinger.last().type == Utbetaling.UtbetalingType.STANS -> GJENOPPTA
+                    oversendteUtbetalinger.last().type == Utbetaling.UtbetalingsType.STANS -> GJENOPPTA
                     else -> STANS
                 }
             }

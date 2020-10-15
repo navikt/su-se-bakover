@@ -12,7 +12,7 @@ sealed class Utbetaling {
     abstract val opprettet: Tidspunkt
     abstract val fnr: Fnr
     abstract val utbetalingslinjer: List<Utbetalingslinje>
-    abstract val type: UtbetalingType
+    abstract val type: UtbetalingsType
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
@@ -31,7 +31,7 @@ sealed class Utbetaling {
         override val opprettet: Tidspunkt = now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingType,
+        override val type: UtbetalingsType,
     ) : Utbetaling()
 
     data class SimulertUtbetaling(
@@ -39,7 +39,7 @@ sealed class Utbetaling {
         override val opprettet: Tidspunkt = now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingType,
+        override val type: UtbetalingsType,
         val simulering: Simulering
     ) : Utbetaling()
 
@@ -48,7 +48,7 @@ sealed class Utbetaling {
         override val opprettet: Tidspunkt = now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingType,
+        override val type: UtbetalingsType,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding
     ) : Utbetaling()
@@ -58,7 +58,7 @@ sealed class Utbetaling {
         override val opprettet: Tidspunkt = now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingType,
+        override val type: UtbetalingsType,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering
@@ -69,14 +69,14 @@ sealed class Utbetaling {
         override val opprettet: Tidspunkt = now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingType,
+        override val type: UtbetalingsType,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering,
         val avstemmingId: UUID30
     ) : Utbetaling()
 
-    enum class UtbetalingType {
+    enum class UtbetalingsType {
         NY,
         STANS,
         GJENOPPTA

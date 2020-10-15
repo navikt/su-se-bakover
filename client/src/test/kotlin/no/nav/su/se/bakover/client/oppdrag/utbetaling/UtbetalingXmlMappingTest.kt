@@ -61,7 +61,7 @@ class UtbetalingXmlMappingTest {
             andreUtbetalingslinje
         ),
         fnr = fnr,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
     private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = oppdrag,

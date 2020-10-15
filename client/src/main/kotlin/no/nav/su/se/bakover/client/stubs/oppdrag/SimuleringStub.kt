@@ -21,9 +21,9 @@ import java.time.Month
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(tilSimulering: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Simulering> =
         when (tilSimulering.utbetaling.type) {
-            Utbetaling.UtbetalingType.NY -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.oppdrag.id).right()
-            Utbetaling.UtbetalingType.STANS -> simulerStans(tilSimulering.utbetaling).right()
-            Utbetaling.UtbetalingType.GJENOPPTA -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.oppdrag.id).right()
+            Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.oppdrag.id).right()
+            Utbetaling.UtbetalingsType.STANS -> simulerStans(tilSimulering.utbetaling).right()
+            Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.oppdrag.id).right()
         }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, oppdragId: UUID30): Simulering {

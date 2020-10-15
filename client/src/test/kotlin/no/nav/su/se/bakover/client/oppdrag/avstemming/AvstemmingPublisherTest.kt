@@ -66,7 +66,7 @@ class AvstemmingPublisherTest {
                     originalKvittering = "hallo",
                     mottattTidspunkt = now()
                 ),
-                type = Utbetaling.UtbetalingType.NY
+                type = Utbetaling.UtbetalingsType.NY
             )
         )
     )

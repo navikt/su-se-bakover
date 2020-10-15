@@ -56,7 +56,7 @@ internal class UtbetalingServiceImplTest {
         val utbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
@@ -109,7 +109,7 @@ internal class UtbetalingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
         val kvittering = Kvittering(
             Kvittering.Utbetalingsstatus.OK,
@@ -151,7 +151,7 @@ internal class UtbetalingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY,
+            type = Utbetaling.UtbetalingsType.NY,
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = ""
@@ -284,7 +284,7 @@ internal class UtbetalingServiceImplTest {
         opprettet = Tidspunkt.now(),
         fnr = Fnr("12345678910"),
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingType.NY,
+        type = Utbetaling.UtbetalingsType.NY,
         simulering = Simulering(
             gjelderId = Fnr("12345678910"),
             gjelderNavn = "navn",

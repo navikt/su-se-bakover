@@ -94,7 +94,7 @@ internal class OppdragNyStrategyTest {
                         )
                     ),
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingType.NY
+                    type = Utbetaling.UtbetalingsType.NY
                 )
             )
         )
@@ -131,7 +131,7 @@ internal class OppdragNyStrategyTest {
                 )
             ),
             fnr = fnr,
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
     }
 
@@ -150,7 +150,7 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val second = Utbetaling.KvittertUtbetaling(
@@ -166,7 +166,7 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val third = Utbetaling.KvittertUtbetaling(
@@ -182,7 +182,7 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
         val fourth = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt(),
@@ -197,7 +197,7 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
         val fifth = Utbetaling.OversendtUtbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt(),
@@ -211,7 +211,7 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         val oppdrag = Oppdrag(
@@ -251,7 +251,7 @@ internal class OppdragNyStrategyTest {
                 )
             ),
             fnr = fnr,
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
     }
 
@@ -264,7 +264,7 @@ internal class OppdragNyStrategyTest {
             opprettet = actual.opprettet,
             utbetalingslinjer = oppdragslinjer,
             fnr = fnr,
-            type = Utbetaling.UtbetalingType.NY
+            type = Utbetaling.UtbetalingsType.NY
         )
     }
 

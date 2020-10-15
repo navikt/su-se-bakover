@@ -14,7 +14,7 @@ data class UtbetalingMapper(
     val opprettet: Tidspunkt,
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
-    val type: Utbetaling.UtbetalingType,
+    val type: Utbetaling.UtbetalingsType,
     val simulering: Simulering?,
     val oppdragsmelding: Oppdragsmelding?,
     val kvittering: Kvittering?,

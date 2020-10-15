@@ -46,7 +46,7 @@ internal class UtbetalingTest {
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
         opprettet = opprettet,
-        type = Utbetaling.UtbetalingType.NY
+        type = Utbetaling.UtbetalingsType.NY
     )
 
     private fun createUtbetalingslinjer() = listOf(
