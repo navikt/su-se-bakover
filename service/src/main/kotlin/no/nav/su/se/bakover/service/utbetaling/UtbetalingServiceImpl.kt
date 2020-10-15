@@ -8,19 +8,22 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
     private val sakRepo: SakRepo,
-    private val simuleringClient: SimuleringClient
+    private val simuleringClient: SimuleringClient,
+    private val utbetalingPublisher: UtbetalingPublisher
 ) : UtbetalingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -43,9 +46,9 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
-    override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling {
+    override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): OversendelseTilOppdrag.NyUtbetaling {
         val sak = sakRepo.hentSak(sakId)!!
-        return NyUtbetaling(
+        return OversendelseTilOppdrag.NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = sak.oppdrag.genererUtbetaling(strategy, sak.fnr),
             attestant = Attestant("SU"),
@@ -53,7 +56,7 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    override fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(utbetaling)
             .map {
                 Utbetaling.SimulertUtbetaling(
@@ -64,6 +67,21 @@ internal class UtbetalingServiceImpl(
                     type = utbetaling.utbetaling.type,
                     simulering = it
                 )
+            }
+    }
+
+    override fun utbetal(utbetaling: OversendelseTilOppdrag.TilUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
+        // TODO could/should we always perform consistency at this point?
+        return utbetalingPublisher.publish(utbetaling)
+            .mapLeft {
+                return UtbetalingFeilet.left()
+            }.map { oppdragsmelding ->
+                val oversendtUtbetaling = utbetaling.utbetaling.toOversendtUtbetaling(oppdragsmelding)
+                opprettUtbetaling(
+                    oppdragId = utbetaling.oppdrag.id,
+                    utbetaling = oversendtUtbetaling
+                )
+                oversendtUtbetaling
             }
     }
 

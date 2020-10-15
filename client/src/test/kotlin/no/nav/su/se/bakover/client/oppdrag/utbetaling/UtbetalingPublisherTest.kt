@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ internal class UtbetalingPublisherTest {
         val client = UtbetalingMqPublisher(mqClient)
 
         val res = client.publish(
-            nyUtbetaling = NyUtbetaling(
+            tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
                 oppdrag = Oppdrag(
                     id = UUID30.randomUUID(),
                     opprettet = Tidspunkt.EPOCH,
@@ -48,7 +48,7 @@ internal class UtbetalingPublisherTest {
         val client = UtbetalingMqPublisher(mqClient)
 
         val res = client.publish(
-            nyUtbetaling = NyUtbetaling(
+            tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
                 oppdrag = Oppdrag(
                     id = UUID30.randomUUID(),
                     opprettet = Tidspunkt.EPOCH,

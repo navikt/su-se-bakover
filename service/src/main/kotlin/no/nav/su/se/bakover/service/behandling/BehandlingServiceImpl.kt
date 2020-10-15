@@ -14,11 +14,9 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
@@ -39,7 +37,6 @@ internal class BehandlingServiceImpl(
     private val oppdragRepo: OppdragRepo,
     private val utbetalingService: UtbetalingService,
     private val oppgaveClient: OppgaveClient, // TODO use services or repos? probably services
-    private val utbetalingPublisher: UtbetalingPublisher,
     private val søknadService: SøknadService,
     private val sakService: SakService,
     private val personOppslag: PersonOppslag
@@ -172,20 +169,16 @@ internal class BehandlingServiceImpl(
                                 if (simulertUtbetaling.simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
                                     .left()
 
-                                return utbetalingPublisher.publish(
-                                    NyUtbetaling(
+                                return utbetalingService.utbetal(
+                                    OversendelseTilOppdrag.TilUtbetaling(
                                         oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
-                                        utbetaling = utbetaling.utbetaling,
-                                        attestant = attestant
+                                        utbetaling = simulertUtbetaling,
+                                        attestant = utbetaling.attestant,
+                                        avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
                                     )
                                 ).mapLeft {
                                     return Behandling.IverksettFeil.Utbetaling().left()
-                                }.map { oppdragsmelding ->
-                                    val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-                                    utbetalingService.opprettUtbetaling(
-                                        oppdragId = utbetaling.oppdrag.id,
-                                        utbetaling = oversendtUtbetaling
-                                    )
+                                }.map { oversendtUtbetaling ->
                                     behandlingRepo.leggTilUtbetaling(
                                         behandlingId = behandlingId,
                                         utbetalingId = oversendtUtbetaling.id

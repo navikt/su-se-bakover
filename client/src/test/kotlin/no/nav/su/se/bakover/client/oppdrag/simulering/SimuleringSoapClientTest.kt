@@ -10,8 +10,8 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -41,7 +41,7 @@ internal class SimuleringSoapClientTest {
 
     private val FNR = Fnr("12345678910")
 
-    private val nyUtbetaling = NyUtbetaling(
+    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = createOppdrag(),
         utbetaling = createUtbetaling(),
         attestant = Attestant("A123456")
@@ -180,7 +180,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val utenBeløp = NyUtbetaling(
+        val utenBeløp = OversendelseTilOppdrag.NyUtbetaling(
             oppdrag = createOppdrag(),
             utbetaling = Utbetaling.UtbetalingForSimulering(
                 fnr = FNR,

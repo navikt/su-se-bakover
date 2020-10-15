@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -127,7 +127,7 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            nyUtbetaling = NyUtbetaling(
+            tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456"),
@@ -198,7 +198,7 @@ internal class UtbetalingRequestTest {
             type = Utbetaling.UtbetalingType.NY
         )
         val utbetalingRequest = toUtbetalingRequest(
-            nyUtbetaling = NyUtbetaling(
+            tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
                 attestant = Attestant("A123456"),

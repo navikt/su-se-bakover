@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 
 interface UtbetalingPublisher {
     fun publish(
-        nyUtbetaling: NyUtbetaling
+        tilUtbetaling: OversendelseTilOppdrag.TilUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Oppdragsmelding>
 
     data class KunneIkkeSendeUtbetaling(

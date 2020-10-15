@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.oppdrag.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
 
@@ -13,16 +13,16 @@ class UtbetalingMqPublisher(
 ) : UtbetalingPublisher {
 
     override fun publish(
-        nyUtbetaling: NyUtbetaling
+        tilUtbetaling: OversendelseTilOppdrag.TilUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Oppdragsmelding> {
-        val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(nyUtbetaling))
+        val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(tilUtbetaling))
         return mqPublisher.publish(xml)
             .mapLeft {
                 KunneIkkeSendeUtbetaling(
                     Oppdragsmelding(
                         Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                         xml,
-                        nyUtbetaling.avstemmingsnøkkel
+                        tilUtbetaling.avstemmingsnøkkel
                     )
                 )
             }
@@ -30,7 +30,7 @@ class UtbetalingMqPublisher(
                 Oppdragsmelding(
                     status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = xml,
-                    avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
+                    avstemmingsnøkkel = tilUtbetaling.avstemmingsnøkkel
                 )
             }
     }

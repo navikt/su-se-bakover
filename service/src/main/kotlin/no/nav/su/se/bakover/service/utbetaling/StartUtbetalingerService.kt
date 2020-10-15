@@ -5,19 +5,16 @@ import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
 class StartUtbetalingerService(
-    private val utbetalingPublisher: UtbetalingPublisher,
     private val utbetalingService: UtbetalingService,
     private val sakService: SakService,
     private val clock: Clock = Clock.systemUTC()
@@ -36,7 +33,7 @@ class StartUtbetalingerService(
 
         val utbetaling = sak.oppdrag.genererUtbetaling(Gjenoppta, sak.fnr)
 
-        val nyUtbetaling = NyUtbetaling(
+        val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
             attestant = Attestant("SU"), // TODO: Bruk saksbehandler
@@ -48,9 +45,12 @@ class StartUtbetalingerService(
             { it }
         )
 
-        return utbetalingPublisher.publish(
-            nyUtbetaling.copy(
-                utbetaling = simulertUtbetaling
+        return utbetalingService.utbetal(
+            OversendelseTilOppdrag.TilUtbetaling(
+                nyUtbetaling.oppdrag,
+                utbetaling = simulertUtbetaling,
+                attestant = nyUtbetaling.attestant,
+                avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
             )
         ).fold(
             {
@@ -58,11 +58,6 @@ class StartUtbetalingerService(
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                utbetalingService.opprettUtbetaling(
-                    nyUtbetaling.oppdrag.id,
-                    simulertUtbetaling.toOversendtUtbetaling(it)
-                )
-                // TODO Fix
                 return sakService.hentSak(sakId)
                     .mapLeft { StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet }
                     .map { it }

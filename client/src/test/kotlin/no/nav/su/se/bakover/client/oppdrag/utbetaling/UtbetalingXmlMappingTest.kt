@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -29,7 +29,7 @@ class UtbetalingXmlMappingTest {
         assertThat(
             XmlMapper.writeValueAsString(
                 toUtbetalingRequest(
-                    nyUtbetaling = nyUtbetaling
+                    tilOppdrag = nyUtbetaling
                 )
             ),
             isSimilarTo(expected).withNodeMatcher(nodeMatcher)
@@ -63,7 +63,7 @@ class UtbetalingXmlMappingTest {
         fnr = fnr,
         type = Utbetaling.UtbetalingType.NY
     )
-    private val nyUtbetaling = NyUtbetaling(
+    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = oppdrag,
         utbetaling = utbetaling,
         attestant = Attestant("A123456"),

@@ -25,7 +25,8 @@ class ServiceBuilder(
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
             sakRepo = databaseRepos.sak,
-            simuleringClient = clients.simuleringClient
+            simuleringClient = clients.simuleringClient,
+            utbetalingPublisher = clients.utbetalingPublisher
         )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad
@@ -49,7 +50,6 @@ class ServiceBuilder(
                 oppdragRepo = databaseRepos.oppdrag,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,
-                utbetalingPublisher = clients.utbetalingPublisher,
                 søknadService = søknadService,
                 sakService = sakService,
                 personOppslag = clients.personOppslag
@@ -57,12 +57,10 @@ class ServiceBuilder(
             sak = sakService,
             søknad = søknadService,
             stansUtbetaling = StansUtbetalingService(
-                utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
                 sakService = sakService
             ),
             startUtbetalinger = StartUtbetalingerService(
-                utbetalingPublisher = clients.utbetalingPublisher,
                 utbetalingService = utbetalingService,
                 sakService = sakService
             )

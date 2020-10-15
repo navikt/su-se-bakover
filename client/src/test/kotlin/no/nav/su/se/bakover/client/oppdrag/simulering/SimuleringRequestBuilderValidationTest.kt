@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
@@ -34,7 +34,7 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            NyUtbetaling(
+            OversendelseTilOppdrag.NyUtbetaling(
                 oppdrag = Oppdrag(
                     id = oppdragId,
                     opprettet = Tidspunkt.EPOCH,

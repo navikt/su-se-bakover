@@ -7,11 +7,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
+import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -19,7 +17,6 @@ import java.util.UUID
 
 class StansUtbetalingService(
     private val clock: Clock = Clock.systemUTC(),
-    private val utbetalingPublisher: UtbetalingPublisher,
     private val utbetalingService: UtbetalingService,
     private val sakService: SakService
 ) {
@@ -35,7 +32,7 @@ class StansUtbetalingService(
             return KunneIkkeStanseUtbetalinger.left()
         }
         val utbetaling = sak.oppdrag.genererUtbetaling(strategy = Stans(clock), sak.fnr)
-        val utbetalingForSimulering = NyUtbetaling(
+        val utbetalingForSimulering = OversendelseTilOppdrag.NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = utbetaling,
             attestant = Attestant(saksbehandler.navIdent),
@@ -53,9 +50,12 @@ class StansUtbetalingService(
         )
 
         // TODO Her kan vi legge inn transaksjon
-        return utbetalingPublisher.publish(
-            utbetalingForSimulering.copy(
-                utbetaling = simulertUtbetaling
+        return utbetalingService.utbetal(
+            OversendelseTilOppdrag.TilUtbetaling(
+                utbetalingForSimulering.oppdrag,
+                utbetaling = simulertUtbetaling,
+                attestant = utbetalingForSimulering.attestant,
+                avstemmingsnøkkel = utbetalingForSimulering.avstemmingsnøkkel
             )
         ).fold(
             {
@@ -63,11 +63,6 @@ class StansUtbetalingService(
                 KunneIkkeStanseUtbetalinger.left()
             },
             {
-                utbetalingService.opprettUtbetaling(
-                    utbetalingForSimulering.oppdrag.id,
-                    simulertUtbetaling.toOversendtUtbetaling(it)
-                )
-                // TODO Fix
                 sakService.hentSak(sakId)
                     .mapLeft { KunneIkkeStanseUtbetalinger }
                     .map { it }
