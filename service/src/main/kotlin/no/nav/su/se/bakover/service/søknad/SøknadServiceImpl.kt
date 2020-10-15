@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -18,7 +18,7 @@ internal class SøknadServiceImpl(
     private val sakService: SakService,
     private val brevService: BrevService,
 ) : SøknadService {
-    val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
         return søknadRepo.opprettSøknad(sakId, søknad)
@@ -28,7 +28,20 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
-    private fun lukkSøknad(
+    override fun lukkSøknad(
+        søknadId: UUID,
+        saksbehandler: Saksbehandler,
+        begrunnelse: String
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        return trekkSøknad(
+            søknadId = søknadId,
+            saksbehandler = saksbehandler,
+            begrunnelse = begrunnelse,
+            loggtema = "Trekking av søknad"
+        )
+    }
+
+    private fun trekkSøknad(
         søknadId: UUID,
         saksbehandler: Saksbehandler,
         begrunnelse: String,
@@ -47,10 +60,10 @@ internal class SøknadServiceImpl(
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
-        brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknadId).fold(
+        return brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknadId).fold(
             ifLeft = {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
-                return KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
+                KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
             },
             ifRight = {
                 log.info("Bestillings id for trekking av søknad: $it")
@@ -62,21 +75,10 @@ internal class SøknadServiceImpl(
                         begrunnelse = begrunnelse
                     )
                 )
-                return sakService.hentSak(søknad.sakId).orNull()!!.right()
+                return sakService.hentSak(søknad.sakId).mapLeft {
+                    return KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
+                }
             }
-        )
-    }
-
-    override fun trekkSøknad(
-        søknadId: UUID,
-        saksbehandler: Saksbehandler,
-        begrunnelse: String
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        return lukkSøknad(
-            søknadId = søknadId,
-            saksbehandler = saksbehandler,
-            begrunnelse = begrunnelse,
-            loggtema = "Trekking av søknad"
         )
     }
 }

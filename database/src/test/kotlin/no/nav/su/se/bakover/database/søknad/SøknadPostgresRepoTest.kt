@@ -81,10 +81,6 @@ internal class SøknadPostgresRepoTest {
             val hentetSøknad = repo.hentSøknad(søknad.id)
             hentetSøknad!!.id shouldBe søknad.id
             hentetSøknad.lukket shouldBe Søknad.Lukket.Trukket(hentetSøknad.lukket!!.tidspunkt, saksbehandler, "")
-<<<<<<< HEAD
-
-=======
->>>>>>> forbedringer av trekking av søknad
         }
     }
 }

@@ -206,7 +206,7 @@ internal class SøknadRoutesKtTest {
         val søknadId = UUID.randomUUID()
         val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { trekkSøknad(any(), any(), any()) } doReturn sak.right()
+            on { lukkSøknad(any(), any(), any()) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -230,7 +230,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock, times(1)).trekkSøknad(
+                verify(søknadServiceMock, times(1)).lukkSøknad(
                     argThat { it shouldBe søknadId },
                     argThat { it shouldBe Saksbehandler(navIdent) },
                     argThat { it shouldBe "" }
@@ -244,7 +244,7 @@ internal class SøknadRoutesKtTest {
         val søknadId = UUID.randomUUID()
         val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { trekkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
         withTestApplication({
             testSusebakover(
@@ -268,7 +268,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(1)).trekkSøknad(
+                verify(søknadServiceMock, times(1)).lukkSøknad(
                     argThat { it shouldBe søknadId },
                     argThat { it shouldBe Saksbehandler(navIdent) },
                     argThat { it shouldBe "" }

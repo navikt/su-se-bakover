@@ -43,11 +43,12 @@ sealed class Journalpost {
                 tittel = tittel,
                 dokumentKategori = DokumentKategori.SOK,
                 dokumentvarianter = listOf(
-                    DokumentVariant.Arkiv(pdf = pdf),
+                    DokumentVariant.Arkiv(
+                        fysiskDokument = Base64.getEncoder().encodeToString(pdf)
+                    ),
                     DokumentVariant.OriginalJson(
-                        brevinnholdJson = objectMapper.writeValueAsString(
-                            søknadInnhold
-                        )
+                        fysiskDokument =
+                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
                     )
                 )
             )
@@ -75,11 +76,10 @@ sealed class Journalpost {
                 tittel = tittel,
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
-                    DokumentVariant.Arkiv(pdf = pdf),
+                    DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        brevinnholdJson = objectMapper.writeValueAsString(
-                            vedtakInnhold
-                        )
+                        fysiskDokument =
+                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())
                     )
                 )
             )
@@ -90,7 +90,6 @@ sealed class Journalpost {
         val person: Person,
         val pdf: ByteArray,
         val sakId: UUID,
-        val søknadId: UUID,
         val lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
     ) : Journalpost() {
         // TODO: Riktig tittel
@@ -107,14 +106,12 @@ sealed class Journalpost {
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = tittel,
-                dokumentKategori = DokumentKategori.Infobrev,
+                dokumentKategori = DokumentKategori.IB,
                 dokumentvarianter = listOf(
-                    DokumentVariant.Arkiv(pdf = pdf),
-                    // TODO: var det riktig?
+                    DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        brevinnholdJson = objectMapper.writeValueAsString(
-                            lukketSøknadBrevinnhold
-                        )
+                        fysiskDokument =
+                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(lukketSøknadBrevinnhold).toByteArray())
                     )
                 )
             )
@@ -157,25 +154,16 @@ data class JournalpostDokument(
     val dokumentvarianter: List<DokumentVariant>
 )
 
-/*
-data class DokumentVariant(
-    val filtype: String,
-    val fysiskDokument: String,
-    val variantformat: String
-)*/
-// TODO: var det riktig?
 sealed class DokumentVariant {
     data class Arkiv(
-        val pdf: ByteArray,
         val filtype: String = "PDFA",
-        val fysiskDokument: String = Base64.getEncoder().encodeToString(pdf),
+        val fysiskDokument: String,
         val variantformat: String = "ARKIV"
     ) : DokumentVariant()
 
     data class OriginalJson(
-        val brevinnholdJson: String,
         val filtype: String = "JSON",
-        val fysiskDokument: String = Base64.getEncoder().encodeToString(brevinnholdJson.toByteArray()),
+        val fysiskDokument: String,
         val variantformat: String = "ORIGINAL"
     ) : DokumentVariant()
 }
@@ -188,5 +176,5 @@ enum class JournalPostType(val type: String) {
 enum class DokumentKategori(val type: String) {
     SOK("SOK"),
     VB("VB"),
-    Infobrev("IB")
+    IB("Infobrev")
 }

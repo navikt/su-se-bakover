@@ -40,6 +40,20 @@ sealed class LukketSøknadBrevinnhold {
                     poststed = person.adresse?.poststed?.poststed!!,
                 )
             }
+
+            fun buildTestData(): TrukketSøknadBrevinnhold {
+                return TrukketSøknadBrevinnhold(
+                    dato = "01.01.2020",
+                    fødselsnummer = Fnr("12345678901"),
+                    fornavn = "Tore",
+                    etternavn = "Strømøy",
+                    adresse = "en Adresse",
+                    husnummer = "4C",
+                    bruksenhet = "H102",
+                    postnummer = "0186",
+                    poststed = "Oslo",
+                )
+            }
         }
     }
 

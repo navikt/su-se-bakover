@@ -6,6 +6,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
@@ -51,7 +52,7 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/trekk") {
             call.withSøknadId { søknadId ->
-                søknadService.trekkSøknad(
+                søknadService.lukkSøknad(
                     søknadId = søknadId,
                     saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
                     begrunnelse = ""
@@ -64,6 +65,8 @@ internal fun Route.søknadRoutes(
                                 call.svar(BadRequest.message("Søknaden har en behandling"))
                             is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
                                 call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
+                            is KunneIkkeLukkeSøknad.KunneIkkeSendeBrev ->
+                                call.svar(InternalServerError.message("Kunne ikke sende brev for $søknadId"))
                         }
                     },
                     ifRight = {

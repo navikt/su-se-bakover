@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.client.pdf.LukketSøknadType
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.Companion.lagLukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.Companion.lagLukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.VedtakInnhold
@@ -157,10 +157,9 @@ class BrevServiceImpl(
         val journalPostId = dokArkiv.opprettJournalpost(
             Journalpost.lukketSøknadJournalpostRequest(
                 person = person,
-                pdf = lukketSøknadBrevPdf,
                 sakId = sakId,
-                søknadId = søknadId,
-                lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person = person)
+                lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person = person),
+                pdf = lukketSøknadBrevPdf
             )
         ).fold(
             ifLeft = {

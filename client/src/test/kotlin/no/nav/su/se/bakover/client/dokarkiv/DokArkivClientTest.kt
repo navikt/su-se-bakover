@@ -12,18 +12,22 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
 import java.util.Base64
+import java.util.UUID
 
 internal class DokArkivClientTest : WiremockBase {
 
     private val sakId = "1"
+    private val uuidSakId = UUID.randomUUID()
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
+    private val trukketSøknadBrevinnhold = LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.buildTestData()
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -130,6 +134,53 @@ internal class DokArkivClientTest : WiremockBase {
                     }
         """.trimIndent()
 
+    val forventetLukketRequest =
+        """
+                    {
+                      "tittel": "Brev om avsluttet søknad om supplerende stønad",
+                      "journalpostType": "UTGAAENDE",
+                      "tema": "SUP",
+                      "kanal": null,
+                      "behandlingstema": "ab0268",
+                      "journalfoerendeEnhet": "4815",
+                      "avsenderMottaker": {
+                        "id": "$fnr",
+                        "idType": "FNR",
+                        "navn": "$navn"
+                      },
+                      "bruker": {
+                        "id": "$fnr",
+                        "idType": "FNR"
+                      },
+                      "sak": {
+                        "fagsakId": "$uuidSakId",
+                        "fagsaksystem": "SUPSTONAD",
+                        "sakstype": "FAGSAK"
+                      },
+                      "dokumenter": [
+                        {
+                          "tittel": "Brev om avsluttet søknad om supplerende stønad",
+                          "dokumentKategori": "IB",
+                          "brevkode": "XX.YY-ZZ",
+                          "dokumentvarianter": [
+                            {
+                              "filtype": "PDFA",
+                              "fysiskDokument": "${Base64.getEncoder().encodeToString(pdf)}",
+                              "variantformat": "ARKIV"
+                            },
+                            {
+                              "filtype": "JSON",
+                              "fysiskDokument": "${
+        Base64.getEncoder()
+            .encodeToString(objectMapper.writeValueAsString(trukketSøknadBrevinnhold).toByteArray())}",
+                              "variantformat": "ORIGINAL"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+        """.trimIndent()
+
     @Test
     fun `should send pdf to journal`() {
         wireMockServer.stubFor(
@@ -213,6 +264,42 @@ internal class DokArkivClientTest : WiremockBase {
                 person = person,
                 pdf = pdf,
                 sakId = sakId
+            )
+        ) shouldBe(
+            "1".right()
+            )
+    }
+
+    @Test
+    fun `should send lukket pdf to journal`() {
+        wireMockServer.stubFor(
+            wiremockBuilder
+                .withRequestBody(WireMock.equalToJson(forventetLukketRequest))
+
+                .willReturn(
+                    WireMock.okJson(
+                        """
+                        {
+                          "journalpostId": "1",
+                          "journalpostferdigstilt": true,
+                          "dokumenter": [
+                            {
+                              "dokumentInfoId": "485227498",
+                              "tittel": "Brev om avsluttet søknad om supplerende stønad"
+                            }
+                          ]
+                        }
+                        """.trimIndent()
+                    )
+                )
+        )
+
+        client.opprettJournalpost(
+            Journalpost.lukketSøknadJournalpostRequest(
+                person = person,
+                pdf = pdf,
+                sakId = uuidSakId,
+                lukketSøknadBrevinnhold = trukketSøknadBrevinnhold
             )
         ) shouldBe(
             "1".right()
