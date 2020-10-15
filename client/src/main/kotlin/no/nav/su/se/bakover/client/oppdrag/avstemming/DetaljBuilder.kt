@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Deta
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.FEIL
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_VARSEL
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
@@ -22,20 +21,20 @@ class DetaljBuilder(
         }
 
     private fun mapStatus(utbetaling: Utbetaling): Detaljdata.Detaljtype = when (utbetaling.kvittertMedFeilEllerVarsel()) {
-        true -> mapUtbetalingsstatus(utbetaling.kvittering!!.utbetalingsstatus)
+        true -> mapUtbetalingsstatus((utbetaling as Utbetaling.KvittertUtbetaling).kvittering.utbetalingsstatus)
         false -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
     }
 
     private fun mapUtbetalingsstatus(utbetalingsstatus: Utbetalingsstatus) = when (utbetalingsstatus) {
         OK_MED_VARSEL -> Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
         FEIL -> Detaljdata.Detaljtype.AVVIST
-        else -> throw IllegalArgumentException("Funksjonell feil - skal ikke lage detajl for utbetalinger med status:$OK")
+        else -> throw IllegalArgumentException("Funksjonell feil - skal ikke lage detajl for utbetalinger med status:$utbetalingsstatus")
     }
 
     private fun shouldCreate(utbetaling: Utbetaling) =
         utbetaling.oversendtUtenKvittering() || utbetaling.kvittertMedFeilEllerVarsel()
 
-    private fun Utbetaling.oversendtUtenKvittering() = erOversendt() && !erKvittert()
+    private fun Utbetaling.oversendtUtenKvittering() = this is Utbetaling.OversendtUtbetaling && this.oppdragsmelding.erSendt()
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
-        erKvittert() && listOf(OK_MED_VARSEL, FEIL).contains(kvittering!!.utbetalingsstatus)
+        this is Utbetaling.KvittertUtbetaling && listOf(OK_MED_VARSEL, FEIL).contains(kvittering.utbetalingsstatus)
 }

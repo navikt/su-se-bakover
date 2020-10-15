@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
@@ -23,6 +24,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.toKvittertUtbetaling
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -44,9 +47,10 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `hent utbetaling - funnet`() {
-        val utbetaling = Utbetaling.Ny(
+        val utbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(),
-            fnr = Fnr("12345678910")
+            fnr = Fnr("12345678910"),
+            type = Utbetaling.UtbetalingType.NY
         )
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
@@ -86,19 +90,25 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
-        val utbetaling = Utbetaling.Ny(
+        val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel)
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            simulering = Simulering(
+                gjelderId = Fnr("12345678910"),
+                gjelderNavn = "navn",
+                datoBeregnet = idag(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
         val kvittering = Kvittering(
             Kvittering.Utbetalingsstatus.OK,
             ""
         )
 
-        val postUpdate = utbetaling.copy(
-            kvittering = kvittering
-        )
+        val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
@@ -110,7 +120,7 @@ internal class UtbetalingServiceImplTest {
             sakRepo = mock(),
             simuleringClient = mock()
         ).oppdaterMedKvittering(
-            utbetaling.oppdragsmelding!!.avstemmingsnøkkel,
+            utbetaling.oppdragsmelding.avstemmingsnøkkel,
             kvittering
         ) shouldBe postUpdate.right()
 
@@ -121,24 +131,32 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
-        val utbetaling = Utbetaling.Ny(
+        val utbetaling = Utbetaling.KvittertUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            kvittering = Kvittering(
-                Kvittering.Utbetalingsstatus.OK,
-                ""
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            simulering = Simulering(
+                gjelderId = Fnr("12345678910"),
+                gjelderNavn = "navn",
+                datoBeregnet = idag(),
+                nettoBeløp = 0,
+                periodeList = listOf()
             ),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel)
-        )
-
-        val nyKvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-            originalKvittering = ""
+            type = Utbetaling.UtbetalingType.NY,
+            kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                originalKvittering = ""
+            )
         )
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
         }
+
+        val nyKvittering = Kvittering(
+            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+            originalKvittering = ""
+        )
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,

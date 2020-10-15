@@ -10,10 +10,8 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import org.slf4j.LoggerFactory
@@ -36,29 +34,13 @@ internal class UtbetalingServiceImpl(
     ): Either<FantIkkeUtbetaling, Utbetaling> {
         return utbetalingRepo.hentUtbetaling(avstemmingsnøkkel)
             ?.let {
-                if (it.erKvittert()) {
+                if (it is Utbetaling.KvittertUtbetaling) {
                     log.info("Kvittering er allerede mottatt for utbetaling: ${it.id}")
                     it
                 } else {
                     utbetalingRepo.oppdaterMedKvittering(it.id, kvittering)
                 }.right()
             } ?: FantIkkeUtbetaling.left()
-    }
-
-    override fun slettUtbetaling(utbetaling: Utbetaling) {
-        return utbetalingRepo.slettUtbetaling(utbetaling)
-    }
-
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling {
-        return utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling)
-    }
-
-    override fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Utbetaling {
-        return utbetalingRepo.addSimulering(utbetalingId, simulering)
-    }
-
-    override fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling {
-        return utbetalingRepo.addOppdragsmelding(utbetalingId, oppdragsmelding)
     }
 
     override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling {
@@ -71,7 +53,21 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering> {
+    override fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(utbetaling)
+            .map {
+                Utbetaling.SimulertUtbetaling(
+                    id = utbetaling.utbetaling.id,
+                    opprettet = utbetaling.utbetaling.opprettet,
+                    fnr = utbetaling.utbetaling.fnr,
+                    utbetalingslinjer = utbetaling.utbetaling.utbetalingslinjer,
+                    type = utbetaling.utbetaling.type,
+                    simulering = it
+                )
+            }
+    }
+
+    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
+        return utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling)
     }
 }

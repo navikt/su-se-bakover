@@ -10,11 +10,15 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.toKvittertUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -49,10 +53,18 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `should add kvittering`() {
 
-        val utbetaling = Utbetaling.Ny(
+        val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel)
+            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            simulering = Simulering(
+                gjelderId = Fnr("12345678910"),
+                gjelderNavn = "navn",
+                datoBeregnet = idag(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            type = Utbetaling.UtbetalingType.NY,
         )
         val xmlMessage = kvitteringXml()
         val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
@@ -63,9 +75,7 @@ internal class UtbetalingKvitteringConsumerTest {
             mottattTidspunkt = now(clock)
         )
 
-        val postUpdate = utbetaling.copy(
-            kvittering = kvittering
-        )
+        val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
 
         val serviceMock = mock<UtbetalingService> {
             on {

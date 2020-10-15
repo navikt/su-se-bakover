@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -100,9 +101,9 @@ internal class BehandlingServiceImpl(
         val utbetalingTilSimulering =
             utbetalingService.lagUtbetaling(behandling.sakId, Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!))
         return utbetalingService.simulerUtbetaling(utbetalingTilSimulering)
-            .map { simulering ->
-                behandling.leggTilSimulering(simulering)
-                behandlingRepo.leggTilSimulering(behandlingId, simulering)
+            .map { simulertUtbetaling ->
+                behandling.leggTilSimulering(simulertUtbetaling.simulering)
+                behandlingRepo.leggTilSimulering(behandlingId, simulertUtbetaling.simulering)
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
                 behandlingRepo.hentBehandling(behandlingId)!!
             }
@@ -167,8 +168,8 @@ internal class BehandlingServiceImpl(
                         )
                         return utbetalingService.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
-                            .map { simulering ->
-                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
+                            .map { simulertUtbetaling ->
+                                if (simulertUtbetaling.simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
                                     .left()
 
                                 return utbetalingPublisher.publish(
@@ -180,21 +181,14 @@ internal class BehandlingServiceImpl(
                                 ).mapLeft {
                                     return Behandling.IverksettFeil.Utbetaling().left()
                                 }.map { oppdragsmelding ->
+                                    val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
                                     utbetalingService.opprettUtbetaling(
                                         oppdragId = utbetaling.oppdrag.id,
-                                        utbetaling = utbetaling.utbetaling
-                                    )
-                                    utbetalingService.addSimulering(
-                                        utbetalingId = utbetaling.utbetaling.id,
-                                        simulering = simulering
+                                        utbetaling = oversendtUtbetaling
                                     )
                                     behandlingRepo.leggTilUtbetaling(
                                         behandlingId = behandlingId,
-                                        utbetalingId = utbetaling.utbetaling.id
-                                    )
-                                    utbetalingService.addOppdragsmelding(
-                                        utbetalingId = utbetaling.utbetaling.id,
-                                        oppdragsmelding = oppdragsmelding
+                                        utbetalingId = oversendtUtbetaling.id
                                     )
                                     behandlingRepo.attester(behandlingId, attestant)
                                     behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())

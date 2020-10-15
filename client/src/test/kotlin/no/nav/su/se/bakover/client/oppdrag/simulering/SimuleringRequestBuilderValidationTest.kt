@@ -42,7 +42,7 @@ internal class SimuleringRequestBuilderValidationTest {
                     utbetalinger = mutableListOf()
 
                 ),
-                utbetaling = Utbetaling.Ny(
+                utbetaling = Utbetaling.UtbetalingForSimulering(
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             fraOgMed = 1.januar(2020),
@@ -51,7 +51,8 @@ internal class SimuleringRequestBuilderValidationTest {
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                         )
                     ),
-                    fnr = Fnr("12345678910")
+                    fnr = Fnr("12345678910"),
+                    type = Utbetaling.UtbetalingType.NY
                 ),
                 attestant = Attestant("A123456")
             )

@@ -55,12 +55,13 @@ class UtbetalingXmlMappingTest {
         utbetalinger = mutableListOf()
     )
     private val fnr = Fnr("12345678910")
-    private val utbetaling = Utbetaling.Ny(
+    private val utbetaling = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
         ),
-        fnr = fnr
+        fnr = fnr,
+        type = Utbetaling.UtbetalingType.NY
     )
     private val nyUtbetaling = NyUtbetaling(
         oppdrag = oppdrag,

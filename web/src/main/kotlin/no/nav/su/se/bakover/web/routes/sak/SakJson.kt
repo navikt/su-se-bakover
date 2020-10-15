@@ -29,7 +29,7 @@ internal data class SakJson(
                 val oversendteUtbetalinger = this.oversendteUtbetalinger()
                 return when {
                     oversendteUtbetalinger.isEmpty() -> INGEN
-                    oversendteUtbetalinger.last() is Utbetaling.Stans -> GJENOPPTA
+                    oversendteUtbetalinger.last().type == Utbetaling.UtbetalingType.STANS -> GJENOPPTA
                     else -> STANS
                 }
             }
@@ -43,7 +43,7 @@ internal data class SakJson(
             søknader = søknader().map { it.toJson() },
             behandlinger = behandlinger().map { it.toJson() },
             utbetalinger = oppdrag.hentUtbetalinger()
-                .filter { it.erOversendt() }
+                .filterIsInstance(Utbetaling.OversendtUtbetaling::class.java)
                 .flatMap { utbetaling ->
                     utbetaling.utbetalingslinjer.map { utbetalingslinje ->
                         UtbetalingslinjeJson(

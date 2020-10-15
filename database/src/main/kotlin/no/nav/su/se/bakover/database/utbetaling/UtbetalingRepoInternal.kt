@@ -58,38 +58,17 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
     val fnr = Fnr(string("fnr"))
     val type = Utbetaling.UtbetalingType.valueOf(string("type"))
 
-    return when (type) {
-        Utbetaling.UtbetalingType.NY -> Utbetaling.Ny(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-        Utbetaling.UtbetalingType.STANS -> Utbetaling.Stans(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-        Utbetaling.UtbetalingType.GJENOPPTA -> Utbetaling.Gjenoppta(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-    }
+    return UtbetalingMapper(
+        id = id,
+        opprettet = opprettet,
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        simulering = simulering,
+        oppdragsmelding = oppdragsmelding,
+        kvittering = kvittering,
+        avstemmingId = avstemmingId
+    ).map()
 }
 
 internal fun Row.toUtbetalingslinje(): Utbetalingslinje {

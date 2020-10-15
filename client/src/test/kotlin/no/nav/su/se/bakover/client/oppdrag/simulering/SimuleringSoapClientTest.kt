@@ -182,7 +182,7 @@ internal class SimuleringSoapClientTest {
 
         val utenBeløp = NyUtbetaling(
             oppdrag = createOppdrag(),
-            utbetaling = Utbetaling.Ny(
+            utbetaling = Utbetaling.UtbetalingForSimulering(
                 fnr = FNR,
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
@@ -191,7 +191,8 @@ internal class SimuleringSoapClientTest {
                         forrigeUtbetalingslinjeId = null,
                         beløp = 0
                     )
-                )
+                ),
+                type = Utbetaling.UtbetalingType.NY
             ),
             attestant = Attestant("SU")
         )
@@ -236,7 +237,7 @@ internal class SimuleringSoapClientTest {
         utbetalinger = mutableListOf()
     )
 
-    private fun createUtbetaling() = Utbetaling.Ny(
+    private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(
             Utbetalingslinje(
                 id = UUID30.randomUUID(),
@@ -246,7 +247,8 @@ internal class SimuleringSoapClientTest {
                 forrigeUtbetalingslinjeId = null
             )
         ),
-        fnr = Fnr("12345678910")
+        fnr = Fnr("12345678910"),
+        type = Utbetaling.UtbetalingType.NY
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

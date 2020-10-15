@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -41,7 +43,7 @@ internal class UtbetalingRequestTest {
 
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
-        val nyUtbetaling = Utbetaling.Ny(
+        val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -58,7 +60,8 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
             ),
-            fnr = FNR
+            fnr = FNR,
+            type = Utbetaling.UtbetalingType.NY
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -139,11 +142,18 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
-                Utbetaling.Ny(
+                Utbetaling.KvittertUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel()
+                    ),
+                    simulering = Simulering(
+                        gjelderId = FNR,
+                        gjelderNavn = "",
+                        datoBeregnet = idag(),
+                        nettoBeløp = 0,
+                        periodeList = listOf()
                     ),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -159,14 +169,15 @@ internal class UtbetalingRequestTest {
                             forrigeUtbetalingslinjeId = null,
                         )
                     ),
-                    fnr = FNR
+                    fnr = FNR,
+                    type = Utbetaling.UtbetalingType.NY
                 )
             )
         )
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
-        val nyUtbetaling = Utbetaling.Ny(
+        val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
@@ -183,7 +194,8 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )
             ),
-            fnr = FNR
+            fnr = FNR,
+            type = Utbetaling.UtbetalingType.NY
         )
         val utbetalingRequest = toUtbetalingRequest(
             nyUtbetaling = NyUtbetaling(

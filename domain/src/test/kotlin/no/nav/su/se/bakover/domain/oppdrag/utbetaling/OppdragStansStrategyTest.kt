@@ -5,11 +5,13 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -17,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -39,7 +42,8 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
 
         val stans = createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
@@ -62,7 +66,8 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -74,7 +79,7 @@ internal class OppdragStansTest {
 
     @Test
     fun `siste utbetaling er en 'stans utbetaling'`() {
-        val utbetaling = createStansUtbetaling(
+        val utbetaling = createUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -82,7 +87,8 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.STANS
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -99,7 +105,14 @@ internal class OppdragStansTest {
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
+    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingType) = Utbetaling.KvittertUtbetaling(
+        simulering = Simulering(
+            gjelderId = fnr,
+            gjelderNavn = "navn",
+            datoBeregnet = idag(),
+            nettoBeløp = 0,
+            periodeList = listOf()
+        ),
         oppdragsmelding = Oppdragsmelding(
             status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
@@ -107,20 +120,10 @@ internal class OppdragStansTest {
                 opprettet = Tidspunkt.now()
             )
         ),
+        kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
         utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
+        fnr = fnr,
+        type = type
     )
 }
 

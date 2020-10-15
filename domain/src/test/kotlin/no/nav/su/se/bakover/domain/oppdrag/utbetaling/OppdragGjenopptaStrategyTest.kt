@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -27,7 +29,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig = createNyUtbetaling(
+        val opprinnelig = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -35,10 +37,11 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
 
-        val stans = createStansUtbetaling(
+        val stans = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -46,7 +49,8 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.GJENOPPTA
         )
 
         createOppdrag(mutableListOf(opprinnelig, stans)).genererUtbetaling(
@@ -74,7 +78,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
-        val første = createNyUtbetaling(
+        val første = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -82,51 +86,57 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
+
         )
 
-        val førsteStans = createStansUtbetaling(
+        val førsteStans = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                element = Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.STANS
         )
 
-        val førsteGjenopptak = createGjenopptaUtbetaling(
+        val førsteGjenopptak = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                element = Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.GJENOPPTA
         )
 
-        val andre = createNyUtbetaling(
-            listOf(
+        val andre = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
                     beløp = 5100
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
 
-        val andreStans = createStansUtbetaling(
-            listOf(
+        val andreStans = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.STANS
         )
 
         createOppdrag(mutableListOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
@@ -142,7 +152,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
-        val første = createNyUtbetaling(
+        val første = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -150,7 +160,8 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
@@ -177,19 +188,20 @@ internal class OppdragGjenopptaStrategyTest {
             forrigeUtbetalingslinjeId = l1.id,
             beløp = 5100
         )
-        val første = createNyUtbetaling(
-            listOf(l1, l2)
+        val første = createOversendtUtbetaling(
+            listOf(l1, l2), Utbetaling.UtbetalingType.NY
         )
 
-        val stans = createStansUtbetaling(
-            listOf(
+        val stans = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.april(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[1].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingType.STANS
         )
 
         createOppdrag(mutableListOf(første, stans)).genererUtbetaling(
@@ -218,7 +230,7 @@ internal class OppdragGjenopptaStrategyTest {
         utbetalinger = utbetalinger
     )
 
-    fun createNyUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
+    fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingType) = Utbetaling.OversendtUtbetaling(
         oppdragsmelding = Oppdragsmelding(
             status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
@@ -227,30 +239,14 @@ internal class OppdragGjenopptaStrategyTest {
             )
         ),
         utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createGjenopptaUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Gjenoppta(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
+        fnr = fnr,
+        type = type,
+        simulering = Simulering(
+            gjelderId = Fnr(fnr = fnr.toString()),
+            gjelderNavn = "navn",
+            datoBeregnet = idag(),
+            nettoBeløp = 0,
+            periodeList = listOf()
+        )
     )
 }

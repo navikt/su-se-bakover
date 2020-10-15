@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
@@ -29,40 +28,6 @@ internal class UtbetalingTest {
     }
 
     @Test
-    fun `ikke lov å slette utbetalinger som er forsøkt oversendt oppdrag eller utbetalt`() {
-        createUtbetaling().copy(
-            oppdragsmelding = Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                "some xml",
-                Avstemmingsnøkkel()
-            )
-        ).also {
-            it.erOversendt() shouldBe true
-        }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling().copy(
-            oppdragsmelding = Oppdragsmelding(
-                Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                "some xml",
-                Avstemmingsnøkkel()
-            )
-        ).also {
-            it.erOversendt() shouldBe false
-        }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling(kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "")).also {
-            it.erKvittert() shouldBe true
-            it.erKvittertOk() shouldBe true
-        }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling(kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "")).also {
-            it.erKvittert() shouldBe true
-            it.erKvittertOk() shouldBe true
-        }.let { it.kanSlettes() shouldBe false }
-        createUtbetaling(kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")).also {
-            it.erKvittert() shouldBe true
-            it.erKvittertOk() shouldBe false
-        }.let { it.kanSlettes() shouldBe false }
-    }
-
-    @Test
     fun `tidligste og seneste dato`() {
         createUtbetaling().tidligsteDato() shouldBe 1.januar(2019)
         createUtbetaling().senesteDato() shouldBe 31.januar(2021)
@@ -76,13 +41,12 @@ internal class UtbetalingTest {
 
     private fun createUtbetaling(
         opprettet: Tidspunkt = Tidspunkt.now(),
-        kvittering: Kvittering? = null,
         utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
-    ) = Utbetaling.Ny(
+    ) = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
-        kvittering = kvittering,
-        opprettet = opprettet
+        opprettet = opprettet,
+        type = Utbetaling.UtbetalingType.NY
     )
 
     private fun createUtbetalingslinjer() = listOf(

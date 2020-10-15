@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
@@ -10,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -32,7 +32,7 @@ class StartUtbetalingerService(
         val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
             ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
 
-        if (sisteOversendteUtbetaling !is Utbetaling.Stans) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
+        if (Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling.type) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
         val utbetaling = sak.oppdrag.genererUtbetaling(Gjenoppta, sak.fnr)
 
@@ -45,10 +45,7 @@ class StartUtbetalingerService(
 
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },
-            { simulering ->
-                utbetalingService.opprettUtbetaling(sak.oppdrag.id, utbetaling)
-                utbetalingService.addSimulering(utbetaling.id, simulering)
-            }
+            { it }
         )
 
         return utbetalingPublisher.publish(
@@ -58,17 +55,17 @@ class StartUtbetalingerService(
         ).fold(
             {
                 log.error("Startutbetaling feilet ved publisering av utbetaling")
-                utbetalingService.addOppdragsmelding(utbetaling.id, it.oppdragsmelding)
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                val utbetalingMedOppdragsMelding = utbetalingService.addOppdragsmelding(utbetaling.id, it)
-                // TODO jah: Unngår å kalle databasen igjen, men føles feil å gjøre copy på dette tidspunktet.
-                sak.copy(
-                    oppdrag = sak.oppdrag.copy(
-                        utbetalinger = sak.oppdrag.hentUtbetalinger() + utbetalingMedOppdragsMelding,
-                    ),
-                ).right()
+                utbetalingService.opprettUtbetaling(
+                    nyUtbetaling.oppdrag.id,
+                    simulertUtbetaling.toOversendtUtbetaling(it)
+                )
+                // TODO Fix
+                return sakService.hentSak(sakId)
+                    .mapLeft { StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet }
+                    .map { it }
             }
         )
     }

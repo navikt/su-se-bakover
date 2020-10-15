@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
@@ -102,7 +104,13 @@ internal class AvstemmingDataBuilderTest {
                 Avstemming(
                     fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    utbetalinger = alleUtbetalinger() + listOf(Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = fnr)),
+                    utbetalinger = alleUtbetalinger() + listOf(
+                        Utbetaling.UtbetalingForSimulering(
+                            utbetalingslinjer = emptyList(),
+                            fnr = fnr,
+                            type = Utbetaling.UtbetalingType.NY
+                        )
+                    ),
                     avstemmingXmlRequest = null
                 ),
             ).build()
@@ -114,14 +122,16 @@ internal class AvstemmingDataBuilderTest {
                     fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
                     utbetalinger = alleUtbetalinger() + listOf(
-                        Utbetaling.Ny(
+                        Utbetaling.OversendtUtbetaling(
                             utbetalingslinjer = emptyList(),
                             fnr = fnr,
                             oppdragsmelding = Oppdragsmelding(
                                 status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                                 originalMelding = "",
                                 avstemmingsnøkkel = Avstemmingsnøkkel()
-                            )
+                            ),
+                            simulering = simulering,
+                            type = Utbetaling.UtbetalingType.NY
                         )
                     ),
                     avstemmingXmlRequest = null
@@ -151,22 +161,31 @@ fun lagUtbetaling(
         originalMelding = "Melding",
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )
-) =
-    Utbetaling.Ny(
+) = when (status) {
+    null -> Utbetaling.OversendtUtbetaling(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
-        simulering = null,
-        kvittering = status?.let {
-            Kvittering(
-                utbetalingsstatus = it,
-                originalKvittering = "hallo",
-                mottattTidspunkt = now()
-            )
-        },
+        simulering = simulering,
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
-        fnr = fnr
+        fnr = fnr,
+        type = Utbetaling.UtbetalingType.NY
     )
+    else -> Utbetaling.KvittertUtbetaling(
+        id = id,
+        opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
+        simulering = simulering,
+        kvittering = Kvittering(
+            utbetalingsstatus = status,
+            originalKvittering = "hallo",
+            mottattTidspunkt = now()
+        ),
+        oppdragsmelding = oppdragsmelding,
+        utbetalingslinjer = linjer,
+        fnr = fnr,
+        type = Utbetaling.UtbetalingType.NY
+    )
+}
 
 val fnr = Fnr("12345678910")
 val ok1Id = UUID30.randomUUID()
@@ -174,6 +193,13 @@ val ok2Id = UUID30.randomUUID()
 val okMedVarselId = UUID30.randomUUID()
 val feildId = UUID30.randomUUID()
 val manglerKvitteringId = UUID30.randomUUID()
+private val simulering = Simulering(
+    gjelderId = fnr,
+    gjelderNavn = "",
+    datoBeregnet = idag(),
+    nettoBeløp = 0,
+    periodeList = listOf()
+)
 fun alleUtbetalinger() = listOf(
     lagUtbetaling(
         id = ok1Id,

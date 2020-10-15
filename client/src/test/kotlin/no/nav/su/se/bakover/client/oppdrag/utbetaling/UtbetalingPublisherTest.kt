@@ -8,12 +8,14 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -31,10 +33,7 @@ internal class UtbetalingPublisherTest {
                     opprettet = Tidspunkt.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
-                utbetaling = Utbetaling.Ny(
-                    utbetalingslinjer = emptyList(),
-                    fnr = Fnr("12345678910")
-                ),
+                utbetaling = simulertUtbetaling,
                 attestant = Attestant("id")
             )
         )
@@ -55,10 +54,7 @@ internal class UtbetalingPublisherTest {
                     opprettet = Tidspunkt.EPOCH,
                     sakId = UUID.randomUUID()
                 ),
-                utbetaling = Utbetaling.Ny(
-                    utbetalingslinjer = emptyList(),
-                    fnr = Fnr("12345678910")
-                ),
+                utbetaling = simulertUtbetaling,
                 attestant = Attestant("id")
             )
         )
@@ -80,4 +76,16 @@ internal class UtbetalingPublisherTest {
             return response
         }
     }
+
+    private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
+        fnr = Fnr("12345678910"),
+        utbetalingslinjer = listOf(),
+        type = Utbetaling.UtbetalingType.NY,
+        simulering = Simulering(
+            gjelderId = Fnr(
+                fnr = "12345678910"
+            ),
+            gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
+        )
+    )
 }

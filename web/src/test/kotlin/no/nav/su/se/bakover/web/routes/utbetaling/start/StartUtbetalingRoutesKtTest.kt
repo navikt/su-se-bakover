@@ -167,15 +167,12 @@ internal class StartUtbetalingRoutesKtTest {
     @Test
     fun `Starter utbetalinger OK`() {
         val sakId = UUID.randomUUID()
-        val utbetaling = Utbetaling.Gjenoppta(
+        val utbetaling = Utbetaling.UtbetalingForSimulering(
             id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),
             opprettet = Tidspunkt.EPOCH,
-            simulering = null,
-            kvittering = null,
-            oppdragsmelding = null,
             utbetalingslinjer = listOf(),
-            avstemmingId = null,
-            fnr = Fnr("12345678911")
+            fnr = Fnr("12345678911"),
+            type = Utbetaling.UtbetalingType.GJENOPPTA
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),

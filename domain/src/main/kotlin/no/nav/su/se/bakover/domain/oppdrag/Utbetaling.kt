@@ -10,25 +10,11 @@ import java.util.Comparator
 sealed class Utbetaling {
     abstract val id: UUID30
     abstract val opprettet: Tidspunkt
-    abstract val simulering: Simulering?
-    abstract val kvittering: Kvittering?
-    abstract val oppdragsmelding: Oppdragsmelding?
-    abstract val utbetalingslinjer: List<Utbetalingslinje>
-    abstract val avstemmingId: UUID30?
     abstract val fnr: Fnr
+    abstract val utbetalingslinjer: List<Utbetalingslinje>
     abstract val type: UtbetalingType
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
-
-    /**
-     * Er oversendt OK til det eksterne oppdragssystemet (utbetalinger o.l.)
-     */
-    fun erOversendt() = oppdragsmelding?.erSendt() ?: false
-    fun erKvittert() = kvittering != null
-    fun erKvittertOk() = kvittering?.erKvittertOk() ?: false
-    fun erKvittertFeil() = kvittering?.erKvittertOk() == false
-
-    fun kanSlettes() = oppdragsmelding == null && kvittering == null
 
     object Opprettet : Comparator<Utbetaling> {
         override fun compare(o1: Utbetaling?, o2: Utbetaling?): Int {
@@ -40,44 +26,54 @@ sealed class Utbetaling {
     fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
     fun bruttoBeløp() = utbetalingslinjer.sumBy { it.beløp }
 
-    data class Ny(
+    data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt = now(),
-        override val simulering: Simulering? = null,
-        override val kvittering: Kvittering? = null,
-        override val oppdragsmelding: Oppdragsmelding? = null,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val avstemmingId: UUID30? = null,
         override val fnr: Fnr,
-        override val type: UtbetalingType = UtbetalingType.NY
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val type: UtbetalingType,
     ) : Utbetaling()
 
-    data class Stans(
+    data class SimulertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt = now(),
-        override val simulering: Simulering? = null,
-        override val kvittering: Kvittering? = null,
-        override val oppdragsmelding: Oppdragsmelding? = null,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val avstemmingId: UUID30? = null,
         override val fnr: Fnr,
-        override val type: UtbetalingType = UtbetalingType.STANS
-    ) : Utbetaling() {
-        init {
-            require(utbetalingslinjer.all { it.beløp == 0 }) { "Stans kan bare inneholde utbetalingslinjer med beløp = 0!" }
-        }
-    }
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val type: UtbetalingType,
+        val simulering: Simulering
+    ) : Utbetaling()
 
-    data class Gjenoppta(
+    data class OversendtUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt = now(),
-        override val simulering: Simulering? = null,
-        override val kvittering: Kvittering? = null,
-        override val oppdragsmelding: Oppdragsmelding? = null,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val avstemmingId: UUID30? = null,
         override val fnr: Fnr,
-        override val type: UtbetalingType = UtbetalingType.GJENOPPTA
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val type: UtbetalingType,
+        val simulering: Simulering,
+        val oppdragsmelding: Oppdragsmelding
+    ) : Utbetaling()
+
+    data class KvittertUtbetaling(
+        override val id: UUID30 = UUID30.randomUUID(),
+        override val opprettet: Tidspunkt = now(),
+        override val fnr: Fnr,
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val type: UtbetalingType,
+        val simulering: Simulering,
+        val oppdragsmelding: Oppdragsmelding,
+        val kvittering: Kvittering
+    ) : Utbetaling()
+
+    data class AvstemtUtbetaling(
+        override val id: UUID30 = UUID30.randomUUID(),
+        override val opprettet: Tidspunkt = now(),
+        override val fnr: Fnr,
+        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val type: UtbetalingType,
+        val simulering: Simulering,
+        val oppdragsmelding: Oppdragsmelding,
+        val kvittering: Kvittering,
+        val avstemmingId: UUID30
     ) : Utbetaling()
 
     enum class UtbetalingType {
@@ -86,3 +82,12 @@ sealed class Utbetaling {
         GJENOPPTA
     }
 }
+
+fun Utbetaling.UtbetalingForSimulering.toSimulertUtbetaling(simulering: Simulering) =
+    Utbetaling.SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering)
+
+fun Utbetaling.SimulertUtbetaling.toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
+    Utbetaling.OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding)
+
+fun Utbetaling.OversendtUtbetaling.toKvittertUtbetaling(kvittering: Kvittering) =
+    Utbetaling.KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding, kvittering)

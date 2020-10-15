@@ -5,10 +5,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.util.UUID
 
@@ -19,13 +17,10 @@ interface UtbetalingService {
         kvittering: Kvittering
     ): Either<FantIkkeUtbetaling, Utbetaling>
 
-    fun slettUtbetaling(utbetaling: Utbetaling)
-    fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling): Utbetaling
-    fun addSimulering(utbetalingId: UUID30, simulering: Simulering): Utbetaling
-    fun addOppdragsmelding(utbetalingId: UUID30, oppdragsmelding: Oppdragsmelding): Utbetaling
+    fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling
 
     fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): NyUtbetaling
-    fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering>
+    fun simulerUtbetaling(utbetaling: NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 }
 
 object FantIkkeUtbetaling

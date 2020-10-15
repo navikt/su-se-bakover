@@ -35,6 +35,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.toSimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
@@ -59,7 +61,7 @@ internal class BehandlingServiceImplTest {
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
-            on { simulerUtbetaling(nyUtbetaling) } doReturn simulering.right()
+            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.right()
         }
         behandling.simulering() shouldBe null
         behandling.status() shouldBe Behandling.BehandlingsStatus.BEREGNET_INNVILGET
@@ -138,7 +140,7 @@ internal class BehandlingServiceImplTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
-            on { simulerUtbetaling(nyUtbetaling) } doReturn simulering.right()
+            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.right()
         }
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
@@ -146,7 +148,7 @@ internal class BehandlingServiceImplTest {
                 publish(
                     argThat {
                         it.oppdrag shouldBe oppdrag
-                        it.utbetaling shouldBe utbetaling
+                        it.utbetaling shouldBe utbetalingForSimulering
                         it.attestant shouldBe Attestant("Z123456")
                         it.avstemmingsnøkkel shouldNotBe null
                     }
@@ -174,10 +176,8 @@ internal class BehandlingServiceImplTest {
             verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
             verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
             verify(utbetalingPublisherMock).publish(any())
-            verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
-            verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
-            verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetaling.id)
-            verify(utbetalingServiceMock).addOppdragsmelding(utbetaling.id, oppdragsmelding)
+            verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, oversendtUtbetaling)
+            verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
             verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
@@ -196,7 +196,7 @@ internal class BehandlingServiceImplTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
-            on { simulerUtbetaling(nyUtbetaling) } doReturn simulering.copy(nettoBeløp = 4).right()
+            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.copy(simulering = simulering.copy(nettoBeløp = 4)).right()
         }
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher>()
@@ -227,7 +227,7 @@ internal class BehandlingServiceImplTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
-            on { simulerUtbetaling(nyUtbetaling) } doReturn simulering.right()
+            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.right()
         }
 
         val oppdragRepoMock = mock<OppdragRepo>() {
@@ -299,14 +299,18 @@ internal class BehandlingServiceImplTest {
         periodeList = listOf()
     )
 
-    private val utbetaling = Utbetaling.Ny(
+    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(),
-        fnr = fnr
+        fnr = fnr,
+        type = Utbetaling.UtbetalingType.NY
     )
+
+    private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
+    private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 
     private val nyUtbetaling = NyUtbetaling(
         oppdrag = oppdrag,
-        utbetaling = utbetaling,
+        utbetaling = utbetalingForSimulering,
         attestant = Attestant("SU")
     )
 
