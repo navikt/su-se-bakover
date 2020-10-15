@@ -71,7 +71,13 @@ sealed class Utbetaling {
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering
-    ) : Utbetaling()
+    ) : Utbetaling() {
+        fun kvittertMedFeilEllerVarsel() =
+            listOf(
+                Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
+                Kvittering.Utbetalingsstatus.FEIL
+            ).contains(kvittering.utbetalingsstatus)
+    }
 
     data class AvstemtUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),

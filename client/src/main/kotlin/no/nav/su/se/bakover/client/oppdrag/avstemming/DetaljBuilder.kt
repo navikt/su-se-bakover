@@ -11,7 +11,7 @@ class DetaljBuilder(
     private val utbetalinger: List<Utbetaling>
 ) {
     fun build(): List<Detaljdata> =
-        utbetalinger.filter { it.oversendtUtenKvittering() || it.kvittertMedFeilEllerVarsel() }
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling || it.kvittertMedFeilEllerVarsel() }
             .map {
                 Detaljdata(
                     detaljType = mapStatus(it),
@@ -33,8 +33,6 @@ class DetaljBuilder(
         else -> throw IllegalArgumentException("Funksjonell feil - skal ikke lage detajl for utbetalinger med status:$utbetalingsstatus")
     }
 
-    private fun Utbetaling.oversendtUtenKvittering() = this is Utbetaling.OversendtUtbetaling
-
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
-        this is Utbetaling.KvittertUtbetaling && listOf(OK_MED_VARSEL, FEIL).contains(kvittering.utbetalingsstatus)
+        this is Utbetaling.KvittertUtbetaling && kvittertMedFeilEllerVarsel()
 }
