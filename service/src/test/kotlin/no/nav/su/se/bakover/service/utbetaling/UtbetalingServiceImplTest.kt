@@ -99,7 +99,7 @@ internal class UtbetalingServiceImplTest {
         val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
@@ -141,7 +141,7 @@ internal class UtbetalingServiceImplTest {
         val utbetaling = Utbetaling.KvittertUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
@@ -244,7 +244,6 @@ internal class UtbetalingServiceImplTest {
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on { publish(tilUtbetaling) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                 Oppdragsmelding(
-                    status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                     originalMelding = "adadad",
                     avstemmingsnøkkel = avstemmingsnøkkel
                 )
@@ -272,7 +271,6 @@ internal class UtbetalingServiceImplTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
     private val oppdragsmelding = Oppdragsmelding(
-        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
         originalMelding = "",
         avstemmingsnøkkel = avstemmingsnøkkel
     )

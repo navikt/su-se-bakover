@@ -100,7 +100,6 @@ internal class UtbetalingPostgresRepoTest {
             periodeList = listOf()
         ),
         oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel()
         ),

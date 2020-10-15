@@ -55,7 +55,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",

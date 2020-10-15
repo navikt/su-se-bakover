@@ -33,8 +33,7 @@ class DetaljBuilder(
         else -> throw IllegalArgumentException("Funksjonell feil - skal ikke lage detajl for utbetalinger med status:$utbetalingsstatus")
     }
 
-    private fun Utbetaling.oversendtUtenKvittering() =
-        this is Utbetaling.OversendtUtbetaling && oppdragsmelding.erSendt()
+    private fun Utbetaling.oversendtUtenKvittering() = this is Utbetaling.OversendtUtbetaling
 
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
         this is Utbetaling.KvittertUtbetaling && listOf(OK_MED_VARSEL, FEIL).contains(kvittering.utbetalingsstatus)

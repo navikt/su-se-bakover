@@ -60,7 +60,6 @@ internal class UtbetalingMapperTest {
                 periodeList = listOf()
             ),
             oppdragsmelding = Oppdragsmelding(
-                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 originalMelding = "",
                 avstemmingsnøkkel = Avstemmingsnøkkel(
                     opprettet = Tidspunkt.now()
@@ -84,7 +83,6 @@ internal class UtbetalingMapperTest {
                 periodeList = listOf()
             ),
             oppdragsmelding = Oppdragsmelding(
-                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 originalMelding = "",
                 avstemmingsnøkkel = Avstemmingsnøkkel(
                     opprettet = Tidspunkt.now()
@@ -113,7 +111,6 @@ internal class UtbetalingMapperTest {
                 periodeList = listOf()
             ),
             oppdragsmelding = Oppdragsmelding(
-                status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                 originalMelding = "",
                 avstemmingsnøkkel = Avstemmingsnøkkel(
                     opprettet = Tidspunkt.now()

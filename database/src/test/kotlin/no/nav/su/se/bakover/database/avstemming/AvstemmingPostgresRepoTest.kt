@@ -15,8 +15,10 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -83,23 +85,27 @@ internal class AvstemmingPostgresRepoTest {
                 sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
-                        Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
+                        avstemmingsnøkkel = Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
                     )
                 )
             )
 
-            utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
-                oversendtUtbetaling(
-                    Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                        originalMelding = "",
-                        Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
-                    )
+            EmbeddedDatabase.instance().withSession { session ->
+                """
+                    insert into utbetaling (id, opprettet, oppdragId, fnr, type)
+                    values (:id, :opprettet, :oppdragId, :fnr, :type)
+                 """.oppdatering(
+                    mapOf(
+                        "id" to UUID30.randomUUID(),
+                        "opprettet" to Tidspunkt.now(),
+                        "oppdragId" to sak.oppdrag.id,
+                        "fnr" to FNR,
+                        "type" to "NY"
+                    ),
+                    session
                 )
-            )
+            }
 
             repo.hentUtbetalingerForAvstemming(
                 fraOgMed = 10.oktober(2020).startOfDay(),
@@ -126,7 +132,6 @@ internal class AvstemmingPostgresRepoTest {
                 sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
                     )
@@ -137,7 +142,6 @@ internal class AvstemmingPostgresRepoTest {
                 sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
                     )
@@ -148,7 +152,6 @@ internal class AvstemmingPostgresRepoTest {
                 sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
                     )
@@ -173,7 +176,6 @@ internal class AvstemmingPostgresRepoTest {
                 sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel()
                     )
@@ -208,7 +210,6 @@ internal class AvstemmingPostgresRepoTest {
 
     private fun oversendtUtbetaling(
         oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel()
         )

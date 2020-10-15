@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -782,7 +781,7 @@ internal class BehandlingRoutesKtTest {
                                 tilUtbetaling: OversendelseTilOppdrag.TilUtbetaling
                             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                                 UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                    Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
+                                    Oppdragsmelding("", Avstemmingsnøkkel())
                                 ).left()
                         },
                         microsoftGraphApiClient = graphApiClientForNavIdent(navIdentAttestant)

@@ -20,7 +20,6 @@ class UtbetalingMqPublisher(
             .mapLeft {
                 KunneIkkeSendeUtbetaling(
                     Oppdragsmelding(
-                        Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
                         xml,
                         tilUtbetaling.avstemmingsnøkkel
                     )
@@ -28,7 +27,6 @@ class UtbetalingMqPublisher(
             }
             .map {
                 Oppdragsmelding(
-                    status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                     originalMelding = xml,
                     avstemmingsnøkkel = tilUtbetaling.avstemmingsnøkkel
                 )

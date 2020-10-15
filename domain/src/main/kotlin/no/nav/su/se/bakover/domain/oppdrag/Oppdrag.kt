@@ -32,7 +32,7 @@ data class Oppdrag(
      * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
      */
     fun oversendteUtbetalinger(): List<Utbetaling> =
-        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling && it.oppdragsmelding.erSendt() || it is Utbetaling.KvittertUtbetaling && it.kvittering.erKvittertOk() }
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling || it is Utbetaling.KvittertUtbetaling && it.kvittering.erKvittertOk() }
             .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
 
     fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()

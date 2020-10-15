@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -232,7 +231,6 @@ internal class StansUtbetalingServiceTest {
         periodeList = listOf()
     )
     private val oppdragsmelding = Oppdragsmelding(
-        status = SENDT,
         originalMelding = "",
         avstemmingsnøkkel = avstemmingsnøkkel
     )

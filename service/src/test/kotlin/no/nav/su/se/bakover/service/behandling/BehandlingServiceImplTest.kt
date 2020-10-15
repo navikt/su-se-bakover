@@ -245,7 +245,6 @@ internal class BehandlingServiceImplTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
     private val oppdragsmelding = Oppdragsmelding(
-        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
         originalMelding = "",
         avstemmingsnøkkel = avstemmingsnøkkel
     )
