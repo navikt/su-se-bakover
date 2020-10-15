@@ -32,7 +32,10 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingType,
-    ) : Utbetaling()
+    ) : Utbetaling() {
+        fun toSimulertUtbetaling(simulering: Simulering) =
+            SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering)
+    }
 
     data class SimulertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -41,7 +44,10 @@ sealed class Utbetaling {
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingType,
         val simulering: Simulering
-    ) : Utbetaling()
+    ) : Utbetaling() {
+        fun toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
+            OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding)
+    }
 
     data class OversendtUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -51,7 +57,10 @@ sealed class Utbetaling {
         override val type: UtbetalingType,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding
-    ) : Utbetaling()
+    ) : Utbetaling() {
+        fun toKvittertUtbetaling(kvittering: Kvittering) =
+            KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding, kvittering)
+    }
 
     data class KvittertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -82,12 +91,3 @@ sealed class Utbetaling {
         GJENOPPTA
     }
 }
-
-fun Utbetaling.UtbetalingForSimulering.toSimulertUtbetaling(simulering: Simulering) =
-    Utbetaling.SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering)
-
-fun Utbetaling.SimulertUtbetaling.toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
-    Utbetaling.OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding)
-
-fun Utbetaling.OversendtUtbetaling.toKvittertUtbetaling(kvittering: Kvittering) =
-    Utbetaling.KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding, kvittering)
