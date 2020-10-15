@@ -46,6 +46,7 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
+    // TODO incorporate attestant/saksbehandler
     override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): OversendelseTilOppdrag.NyUtbetaling {
         val sak = sakRepo.hentSak(sakId)!!
         return OversendelseTilOppdrag.NyUtbetaling(

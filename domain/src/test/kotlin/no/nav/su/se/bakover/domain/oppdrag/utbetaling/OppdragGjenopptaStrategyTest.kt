@@ -223,6 +223,66 @@ internal class OppdragGjenopptaStrategyTest {
         }
     }
 
+    // TODO consider for test - moved from start utbetaling service
+    //
+    // @Test
+    // fun `Har ingen oversendte utbetalinger`() {
+    //     val setup = Setup()
+    //
+    //     val sak = setup.eksisterendeSak.copy(
+    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
+    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger()
+    //                 .map { Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = setup.fnr) }.toMutableList()
+    //         )
+    //     )
+    //     val repoMock = mock<SakService> {
+    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
+    //     }
+    //
+    //     val service = StartUtbetalingerService(
+    //         utbetalingPublisher = mock(),
+    //         utbetalingService = mock(),
+    //         sakService = repoMock,
+    //         clock = setup.clock
+    //     )
+    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
+    //
+    //     actualResponse shouldBe StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
+    //
+    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
+    //     verifyNoMoreInteractions(repoMock)
+    // }
+    //
+    // @Test
+    // fun `Siste utbetaling er ikke en stansutbetaling`() {
+    //     val setup = Setup()
+    //
+    //     val sak = setup.eksisterendeSak.copy(
+    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
+    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger().toMutableList().also {
+    //                 it.removeLast()
+    //             }
+    //         )
+    //     )
+    //     val repoMock = mock<SakService> {
+    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
+    //     }
+    //
+    //     val service = StartUtbetalingerService(
+    //         utbetalingPublisher = mock(),
+    //         utbetalingService = mock(),
+    //         sakService = repoMock,
+    //         clock = setup.clock
+    //     )
+    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
+    //
+    //     actualResponse shouldBe StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
+    //
+    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
+    //
+    //     verifyNoMoreInteractions(repoMock)
+    // }
+
     fun createOppdrag(utbetalinger: MutableList<Utbetaling>) = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),

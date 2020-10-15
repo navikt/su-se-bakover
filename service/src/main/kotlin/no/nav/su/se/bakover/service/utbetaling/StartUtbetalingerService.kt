@@ -2,13 +2,9 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -26,19 +22,12 @@ class StartUtbetalingerService(
             { return StartUtbetalingFeilet.FantIkkeSak.left() },
             { it }
         )
-        val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
-            ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
+        // TODO implement guards in strategy
+        // val sisteOversendteUtbetaling = sak.oppdrag.sisteOversendteUtbetaling()
+        //     ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
+        // if (Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling.type) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        if (Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling.type) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
-
-        val utbetaling = sak.oppdrag.genererUtbetaling(Gjenoppta, sak.fnr)
-
-        val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
-            oppdrag = sak.oppdrag,
-            utbetaling = utbetaling,
-            attestant = Attestant("SU"), // TODO: Bruk saksbehandler
-            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
-        )
+        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Gjenoppta)
 
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },
@@ -58,7 +47,7 @@ class StartUtbetalingerService(
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
             },
             {
-                return sakService.hentSak(sakId)
+                sakService.hentSak(sakId)
                     .mapLeft { StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet }
                     .map { it }
             }
