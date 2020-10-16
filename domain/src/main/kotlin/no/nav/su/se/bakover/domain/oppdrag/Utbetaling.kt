@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import java.util.Comparator
 
 sealed class Utbetaling {
     abstract val id: UUID30
@@ -15,12 +14,6 @@ sealed class Utbetaling {
     abstract val type: UtbetalingsType
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
-
-    object Opprettet : Comparator<Utbetaling> {
-        override fun compare(o1: Utbetaling?, o2: Utbetaling?): Int {
-            return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
-        }
-    }
 
     fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
     fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed

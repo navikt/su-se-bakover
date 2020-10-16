@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
-import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
@@ -8,24 +7,12 @@ import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.Month
 
 internal class UtbetalingTest {
 
     private val fnr = Fnr("12345678910")
-
-    @Test
-    fun `sorts utbetalinger ascending by opprettet`() {
-        val first = createUtbetaling(opprettet = LocalDate.of(2020, Month.APRIL, 1).atStartOfDay().toTidspunkt())
-        val second = createUtbetaling(opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toTidspunkt())
-        val third = createUtbetaling(opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt())
-        val sorted = listOf(first, second, third).sortedWith(Utbetaling.Opprettet)
-        sorted shouldContainInOrder listOf(second, first, third)
-    }
 
     @Test
     fun `tidligste og seneste dato`() {
