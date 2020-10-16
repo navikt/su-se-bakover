@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
@@ -37,22 +38,29 @@ internal fun Route.sakRoutes(
     sakService: SakService
 ) {
     get(sakPath) {
-        call.lesFnr("fnr").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { fnr ->
+        call.lesFnr("fnr")
+            .mapLeft { BadRequest.message(it) }
+            .flatMap { fnr ->
+                call.suUserContext.assertBrukerHarTilgangTilPerson(fnr)
+
                 sakService.hentSak(fnr)
-                    .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
+                    .mapLeft { NotFound.message("Fant ikke noen sak for person: $fnr") }
                     .map {
                         call.audit("Hentet sak for fnr: $fnr")
-                        call.svar(Resultat.json(OK, serialize((it.toJson()))))
+                        Resultat.json(OK, serialize((it.toJson())))
                     }
             }
-        )
+            .fold(
+                ifLeft = { call.svar(it) },
+                ifRight = { call.svar(it) }
+            )
     }
 
     get("$sakPath/{sakId}") {
-        call.withSak(sakService) {
-            call.svar(Resultat.json(OK, serialize((it.toJson()))))
+        call.withSak(sakService) { sak ->
+            call.suUserContext.assertBrukerHarTilgangTilPerson(sak.fnr)
+
+            call.svar(Resultat.json(OK, serialize(sak.toJson())))
         }
     }
 
@@ -61,6 +69,8 @@ internal fun Route.sakRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
             call.withSak(sakService) { sak ->
+                call.suUserContext.assertBrukerHarTilgangTilPerson(sak.fnr)
+
                 Either.catch { deserialize<OpprettBehandlingBody>(call) }
                     .flatMap { it.soknadId.toUUID() }
                     .fold(
