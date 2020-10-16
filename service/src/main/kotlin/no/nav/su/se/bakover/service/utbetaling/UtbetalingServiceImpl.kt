@@ -65,7 +65,9 @@ internal class UtbetalingServiceImpl(
                     fnr = utbetaling.utbetaling.fnr,
                     utbetalingslinjer = utbetaling.utbetaling.utbetalingslinjer,
                     type = utbetaling.utbetaling.type,
-                    simulering = it
+                    simulering = it,
+                    oppdragId = utbetaling.utbetaling.oppdragId,
+                    behandler = utbetaling.utbetaling.behandler
                 )
             }
     }
@@ -86,6 +88,6 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
-        return utbetalingRepo.opprettUtbetaling(oppdragId, utbetaling)
+        return utbetalingRepo.opprettUtbetaling(utbetaling)
     }
 }

@@ -199,7 +199,7 @@ internal class StansUtbetalingServiceTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
     private val attestant = NavIdentBruker.Attestant("SU")
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
-    private val strategy = Oppdrag.UtbetalingStrategy.Stans()
+    private val strategy = Oppdrag.UtbetalingStrategy.Stans(behandler = saksbehandler)
     private val oppdrag: Oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -219,7 +219,9 @@ internal class StansUtbetalingServiceTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.STANS
+        type = Utbetaling.UtbetalingsType.STANS,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 
     private val simulering = Simulering(

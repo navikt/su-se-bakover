@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import java.time.Clock
 import java.time.LocalDate
@@ -43,19 +44,42 @@ data class Oppdrag(
 
     fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling.UtbetalingForSimulering =
         when (strategy) {
-            is UtbetalingStrategy.Stans -> Strategy().Stans(strategy.clock).generate(fnr)
-            is UtbetalingStrategy.Ny -> Strategy().Ny().generate(strategy.beregning, fnr)
-            is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta().generate(fnr)
+            is UtbetalingStrategy.Stans -> Strategy().Stans(
+                behandler = strategy.behandler,
+                clock = strategy.clock
+            ).generate(fnr)
+            is UtbetalingStrategy.Ny -> Strategy().Ny(
+                behandler = strategy.behandler,
+                beregning = strategy.beregning
+            ).generate(fnr)
+            is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta(
+                behandler = strategy.behandler
+            ).generate(fnr)
         }
 
     sealed class UtbetalingStrategy {
-        data class Stans(val clock: Clock = Clock.systemUTC()) : UtbetalingStrategy()
-        data class Ny(val beregning: Beregning) : UtbetalingStrategy()
-        object Gjenoppta : UtbetalingStrategy()
+        abstract val behandler: NavIdentBruker
+
+        data class Stans(
+            override val behandler: NavIdentBruker,
+            val clock: Clock = Clock.systemUTC()
+        ) : UtbetalingStrategy()
+
+        data class Ny(
+            override val behandler: NavIdentBruker,
+            val beregning: Beregning
+        ) : UtbetalingStrategy()
+
+        data class Gjenoppta(
+            override val behandler: NavIdentBruker
+        ) : UtbetalingStrategy()
     }
 
     private open inner class Strategy {
-        inner class Stans(private val clock: Clock = Clock.systemUTC()) : Strategy() {
+        inner class Stans(
+            private val behandler: NavIdentBruker,
+            private val clock: Clock = Clock.systemUTC()
+        ) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
 
@@ -76,13 +100,18 @@ data class Oppdrag(
                         )
                     ),
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingsType.STANS
+                    type = Utbetaling.UtbetalingsType.STANS,
+                    oppdragId = id,
+                    behandler = behandler
                 )
             }
         }
 
-        inner class Ny : Strategy() {
-            fun generate(beregning: Beregning, fnr: Fnr): Utbetaling.UtbetalingForSimulering {
+        inner class Ny(
+            private val behandler: NavIdentBruker,
+            private val beregning: Beregning
+        ) : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 return Utbetaling.UtbetalingForSimulering(
                     utbetalingslinjer = createUtbetalingsperioder(beregning).map {
                         Utbetalingslinje(
@@ -95,7 +124,9 @@ data class Oppdrag(
                         it.zipWithNext { a, b -> b.link(a) }
                     },
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingsType.NY
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = id,
+                    behandler = behandler
                 )
             }
 
@@ -110,7 +141,9 @@ data class Oppdrag(
                 }
         }
 
-        inner class Gjenoppta : Strategy() {
+        inner class Gjenoppta(
+            private val behandler: NavIdentBruker
+        ) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                     ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
@@ -158,7 +191,9 @@ data class Oppdrag(
                             )
                     },
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingsType.GJENOPPTA
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                    oppdragId = id,
+                    behandler = behandler
                 )
             }
         }

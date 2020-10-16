@@ -30,7 +30,7 @@ class StansUtbetalingService(
         // TODO fix saksbehandler
         println(saksbehandler)
 
-        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Stans())
+        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Stans(behandler = saksbehandler))
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return KunneIkkeStanseUtbetalinger.left() },
             { simulertUtbetaling ->

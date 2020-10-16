@@ -39,7 +39,7 @@ internal class StartUtbetalingerServiceTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             } doReturn nyUtbetaling
             on {
                 simulerUtbetaling(nyUtbetaling)
@@ -68,7 +68,7 @@ internal class StartUtbetalingerServiceTest {
             utbetalingServiceMock
         ) {
             verify(sakServiceMock, Times(1)).hentSak(sak.id)
-            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(nyUtbetaling)
             verify(utbetalingServiceMock, Times(1)).utbetal(tilUtbetaling)
         }
@@ -101,7 +101,7 @@ internal class StartUtbetalingerServiceTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             } doReturn nyUtbetaling
             on {
                 simulerUtbetaling(nyUtbetaling)
@@ -117,7 +117,7 @@ internal class StartUtbetalingerServiceTest {
 
         inOrder(repoMock, utbetalingServiceMock) {
             verify(repoMock, Times(1)).hentSak(sak.id)
-            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(nyUtbetaling)
         }
         verifyNoMoreInteractions(repoMock, utbetalingServiceMock)
@@ -131,7 +131,7 @@ internal class StartUtbetalingerServiceTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+                lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             } doReturn nyUtbetaling
             on {
                 simulerUtbetaling(nyUtbetaling)
@@ -160,7 +160,7 @@ internal class StartUtbetalingerServiceTest {
             utbetalingServiceMock
         ) {
             verify(repoMock, Times(1)).hentSak(sak.id)
-            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta)
+            verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Gjenoppta(behandler = attestant))
             verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(nyUtbetaling)
             verify(utbetalingServiceMock, Times(1)).utbetal(tilUtbetaling)
         }
@@ -189,7 +189,9 @@ internal class StartUtbetalingerServiceTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.GJENOPPTA
+        type = Utbetaling.UtbetalingsType.GJENOPPTA,
+        oppdragId = oppdrag.id,
+        behandler = attestant
     )
 
     private val simulering = Simulering(

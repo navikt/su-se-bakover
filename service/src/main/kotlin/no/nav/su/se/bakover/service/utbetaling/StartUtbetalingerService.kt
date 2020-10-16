@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
@@ -27,7 +28,7 @@ class StartUtbetalingerService(
         //     ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
         // if (Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling.type) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Gjenoppta)
+        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Gjenoppta(behandler = NavIdentBruker.Attestant("SU"))) // TODO pass actual
 
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },

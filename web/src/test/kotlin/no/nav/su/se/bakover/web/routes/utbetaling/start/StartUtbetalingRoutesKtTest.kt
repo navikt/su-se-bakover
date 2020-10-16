@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -172,7 +173,9 @@ internal class StartUtbetalingRoutesKtTest {
             opprettet = Tidspunkt.EPOCH,
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678911"),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA
+            type = Utbetaling.UtbetalingsType.GJENOPPTA,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Attestant("Z123")
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),

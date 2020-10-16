@@ -61,7 +61,9 @@ class UtbetalingXmlMappingTest {
             andreUtbetalingslinje
         ),
         fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
     private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = oppdrag,

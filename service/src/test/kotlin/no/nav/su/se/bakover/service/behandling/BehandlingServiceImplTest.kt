@@ -113,11 +113,11 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingSericeMock,
-        ).iverksett(behandling.id, Attestant("Z123456"))
+        ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
         verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
+        verify(behandlingRepoMock).attester(behandling.id, attestant)
         verify(behandlingRepoMock).oppdaterBehandlingStatus(
             behandling.id,
             Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -156,7 +156,7 @@ internal class BehandlingServiceImplTest {
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             oppdragRepo = oppdragRepoMock
-        ).iverksett(behandling.id, Attestant("Z123456"))
+        ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
 
@@ -168,7 +168,7 @@ internal class BehandlingServiceImplTest {
             verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
             verify(utbetalingServiceMock).utbetal(tilUtbetaling)
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
+            verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
@@ -186,13 +186,17 @@ internal class BehandlingServiceImplTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn nyUtbetaling
-            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.copy(simulering = simulering.copy(nettoBeløp = 4)).right()
+            on { simulerUtbetaling(nyUtbetaling) } doReturn simulertUtbetaling.copy(
+                simulering = simulering.copy(
+                    nettoBeløp = 4
+                )
+            ).right()
         }
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock
-        ).iverksett(behandling.id, Attestant("Z123456"))
+        ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
 
@@ -225,7 +229,7 @@ internal class BehandlingServiceImplTest {
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             oppdragRepo = oppdragRepoMock
-        ).iverksett(behandling.id, Attestant("Z123456"))
+        ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.IverksettFeil.Utbetaling().left()
     }
@@ -243,6 +247,7 @@ internal class BehandlingServiceImplTest {
     )
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
+    private val attestant = Attestant("SU")
 
     private val oppdragsmelding = Oppdragsmelding(
         originalMelding = "",
@@ -256,7 +261,10 @@ internal class BehandlingServiceImplTest {
         fradrag = listOf()
     )
 
-    private val strategy = Oppdrag.UtbetalingStrategy.Ny(beregning)
+    private val strategy = Oppdrag.UtbetalingStrategy.Ny(
+        behandler = attestant,
+        beregning = beregning
+    )
 
     private val oppdrag = Oppdrag(
         id = UUID30.randomUUID(),
@@ -281,7 +289,9 @@ internal class BehandlingServiceImplTest {
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(),
         fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = oppdrag.id,
+        behandler = attestant
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
@@ -290,14 +300,14 @@ internal class BehandlingServiceImplTest {
     private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = oppdrag,
         utbetaling = utbetalingForSimulering,
-        attestant = Attestant("SU"),
+        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
         oppdrag = oppdrag,
         utbetaling = simulertUtbetaling,
-        attestant = Attestant("SU"),
+        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 

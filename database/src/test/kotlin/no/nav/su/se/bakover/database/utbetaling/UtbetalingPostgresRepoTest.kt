@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -30,7 +31,8 @@ internal class UtbetalingPostgresRepoTest {
     fun `hent utbetaling`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultOversendtUtbetaling())
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            repo.opprettUtbetaling(utbetaling)
             val hentet = repo.hentUtbetaling(utbetaling.id)
 
             utbetaling shouldBe hentet
@@ -41,8 +43,8 @@ internal class UtbetalingPostgresRepoTest {
     fun `hent utbetaling fra avstemmingsnøkkel`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val oversendtUtbetaling = defaultOversendtUtbetaling()
-            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, oversendtUtbetaling)
+            val oversendtUtbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            val utbetaling = repo.opprettUtbetaling(oversendtUtbetaling)
             val kvittert = repo.oppdaterMedKvittering(
                 utbetalingId = utbetaling.id,
                 kvittering = Kvittering(
@@ -60,7 +62,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `oppdater med kvittering`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultOversendtUtbetaling())
+            val utbetaling = repo.opprettUtbetaling(defaultOversendtUtbetaling(sak.oppdrag.id))
 
             val kvittering = Kvittering(
                 Kvittering.Utbetalingsstatus.OK,
@@ -77,7 +79,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(sak.oppdrag.id, defaultOversendtUtbetaling())
+            val utbetaling = repo.opprettUtbetaling(defaultOversendtUtbetaling(sak.oppdrag.id))
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
                 repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
@@ -88,7 +90,7 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
-    private fun defaultOversendtUtbetaling() = Utbetaling.OversendtUtbetaling(
+    private fun defaultOversendtUtbetaling(oppdragId: UUID30) = Utbetaling.OversendtUtbetaling(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR,
@@ -103,7 +105,9 @@ internal class UtbetalingPostgresRepoTest {
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel()
         ),
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = oppdragId,
+        behandler = NavIdentBruker.Attestant("Z123")
     )
 
     private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(

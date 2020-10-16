@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -54,7 +55,9 @@ internal class OppdragGjenopptaStrategyTest {
         )
 
         createOppdrag(mutableListOf(opprinnelig, stans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).utbetalingslinjer[0].assert(
             fraOgMed = 1.oktober(2020),
@@ -68,7 +71,9 @@ internal class OppdragGjenopptaStrategyTest {
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
         assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf()).genererUtbetaling(
-                Gjenoppta,
+                Gjenoppta(
+                    NavIdentBruker.Attestant("Z123")
+                ),
                 fnr
             )
         }.also {
@@ -140,7 +145,9 @@ internal class OppdragGjenopptaStrategyTest {
         )
 
         createOppdrag(mutableListOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).utbetalingslinjer[0].assert(
             fraOgMed = 1.mai(2021),
@@ -166,7 +173,9 @@ internal class OppdragGjenopptaStrategyTest {
 
         assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf(første)).genererUtbetaling(
-                strategy = Gjenoppta,
+                strategy = Gjenoppta(
+                    NavIdentBruker.Attestant("Z123")
+                ),
                 fnr = fnr
             )
         }.also {
@@ -205,7 +214,9 @@ internal class OppdragGjenopptaStrategyTest {
         )
 
         createOppdrag(mutableListOf(første, stans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).also {
             it.utbetalingslinjer[0].assert(
@@ -306,6 +317,8 @@ internal class OppdragGjenopptaStrategyTest {
             datoBeregnet = idag(),
             nettoBeløp = 0,
             periodeList = listOf()
-        )
+        ),
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }

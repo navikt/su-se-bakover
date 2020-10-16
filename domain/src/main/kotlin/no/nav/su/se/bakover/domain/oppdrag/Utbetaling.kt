@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 sealed class Utbetaling {
@@ -12,6 +13,8 @@ sealed class Utbetaling {
     abstract val fnr: Fnr
     abstract val utbetalingslinjer: List<Utbetalingslinje>
     abstract val type: UtbetalingsType
+    abstract val oppdragId: UUID30
+    abstract val behandler: NavIdentBruker
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
 
@@ -25,9 +28,11 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
+        override val oppdragId: UUID30,
+        override val behandler: NavIdentBruker
     ) : Utbetaling() {
         fun toSimulertUtbetaling(simulering: Simulering) =
-            SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering)
+            SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering)
     }
 
     data class SimulertUtbetaling(
@@ -36,10 +41,12 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
-        val simulering: Simulering
+        override val oppdragId: UUID30,
+        override val behandler: NavIdentBruker,
+        val simulering: Simulering,
     ) : Utbetaling() {
         fun toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
-            OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding)
+            OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering, oppdragsmelding)
     }
 
     data class OversendtUtbetaling(
@@ -48,11 +55,13 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
+        override val oppdragId: UUID30,
+        override val behandler: NavIdentBruker,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding
     ) : Utbetaling() {
         fun toKvittertUtbetaling(kvittering: Kvittering) =
-            KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding, kvittering)
+            KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering, oppdragsmelding, kvittering)
     }
 
     data class KvittertUtbetaling(
@@ -61,6 +70,8 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
+        override val oppdragId: UUID30,
+        override val behandler: NavIdentBruker,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering
@@ -78,6 +89,8 @@ sealed class Utbetaling {
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
+        override val oppdragId: UUID30,
+        override val behandler: NavIdentBruker,
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering,

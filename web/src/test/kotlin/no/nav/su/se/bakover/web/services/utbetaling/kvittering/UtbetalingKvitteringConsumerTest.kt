@@ -10,9 +10,11 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -64,6 +66,8 @@ internal class UtbetalingKvitteringConsumerTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Attestant("Z123")
         )
         val xmlMessage = kvitteringXml()
         val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)

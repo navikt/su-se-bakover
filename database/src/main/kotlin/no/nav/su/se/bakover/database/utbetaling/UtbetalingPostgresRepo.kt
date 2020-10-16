@@ -40,20 +40,21 @@ internal class UtbetalingPostgresRepo(
         return hentUtbetaling(utbetalingId)!!
     }
 
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
+    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
         dataSource.withSession { session ->
             """
-            insert into utbetaling (id, opprettet, oppdragId, fnr, type, simulering, oppdragsmelding)
-            values (:id, :opprettet, :oppdragId, :fnr, :type, to_json(:simulering::json), to_json(:oppdragsmelding::json))
+            insert into utbetaling (id, opprettet, oppdragId, fnr, type, simulering, oppdragsmelding, behandler)
+            values (:id, :opprettet, :oppdragId, :fnr, :type, to_json(:simulering::json), to_json(:oppdragsmelding::json), :behandler)
          """.oppdatering(
                 mapOf(
                     "id" to utbetaling.id,
                     "opprettet" to utbetaling.opprettet,
-                    "oppdragId" to oppdragId,
+                    "oppdragId" to utbetaling.oppdragId,
                     "fnr" to utbetaling.fnr,
                     "type" to utbetaling.type.name,
                     "simulering" to objectMapper.writeValueAsString(utbetaling.simulering),
-                    "oppdragsmelding" to objectMapper.writeValueAsString(utbetaling.oppdragsmelding)
+                    "oppdragsmelding" to objectMapper.writeValueAsString(utbetaling.oppdragsmelding),
+                    "behandler" to utbetaling.behandler.navIdent
                 ),
                 session
             )

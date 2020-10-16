@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.utbetaling
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -18,18 +19,30 @@ data class UtbetalingMapper(
     val simulering: Simulering?,
     val oppdragsmelding: Oppdragsmelding?,
     val kvittering: Kvittering?,
-    val avstemmingId: UUID30?
+    val avstemmingId: UUID30?,
+    val oppdragId: UUID30,
+    val behandler: NavIdentBruker
 ) {
     fun map() = when {
         simulering == null -> {
             // TODO: Vurdere kaste IllegalStateException eller vente til vi har gjort simulerings-kolonnen i utbetaling-tabellen non-null
-            Utbetaling.UtbetalingForSimulering(id, opprettet, fnr, utbetalingslinjer, type)
+            Utbetaling.UtbetalingForSimulering(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler)
         }
         oppdragsmelding == null -> {
-            Utbetaling.SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering)
+            Utbetaling.SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering)
         }
         kvittering == null -> {
-            Utbetaling.OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, simulering, oppdragsmelding)
+            Utbetaling.OversendtUtbetaling(
+                id,
+                opprettet,
+                fnr,
+                utbetalingslinjer,
+                type,
+                oppdragId,
+                behandler,
+                simulering,
+                oppdragsmelding
+            )
         }
         avstemmingId == null -> {
             Utbetaling.KvittertUtbetaling(
@@ -38,6 +51,8 @@ data class UtbetalingMapper(
                 fnr,
                 utbetalingslinjer,
                 type,
+                oppdragId,
+                behandler,
                 simulering,
                 oppdragsmelding,
                 kvittering
@@ -49,6 +64,8 @@ data class UtbetalingMapper(
             fnr,
             utbetalingslinjer,
             type,
+            oppdragId,
+            behandler,
             simulering,
             oppdragsmelding,
             kvittering,

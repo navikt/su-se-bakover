@@ -52,7 +52,9 @@ internal class SimuleringRequestBuilderValidationTest {
                         )
                     ),
                     fnr = Fnr("12345678910"),
-                    type = Utbetaling.UtbetalingsType.NY
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = UUID30.randomUUID(),
+                    behandler = NavIdentBruker.Saksbehandler("Z123")
                 ),
                 attestant = NavIdentBruker.Attestant("A123456")
             )

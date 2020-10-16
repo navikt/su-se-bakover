@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingTest {
@@ -33,7 +35,9 @@ internal class UtbetalingTest {
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
         opprettet = opprettet,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 
     private fun createUtbetalingslinjer() = listOf(

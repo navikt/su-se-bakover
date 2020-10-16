@@ -61,7 +61,9 @@ internal class UtbetalingRequestTest {
                 )
             ),
             fnr = FNR,
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -169,7 +171,9 @@ internal class UtbetalingRequestTest {
                         )
                     ),
                     fnr = FNR,
-                    type = Utbetaling.UtbetalingsType.NY
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = UUID30.randomUUID(),
+                    behandler = NavIdentBruker.Saksbehandler("Z123")
                 )
             )
         )
@@ -194,7 +198,9 @@ internal class UtbetalingRequestTest {
                 )
             ),
             fnr = FNR,
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val utbetalingRequest = toUtbetalingRequest(
             tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(

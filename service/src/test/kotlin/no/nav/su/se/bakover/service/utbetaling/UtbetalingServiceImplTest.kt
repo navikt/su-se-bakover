@@ -54,7 +54,9 @@ internal class UtbetalingServiceImplTest {
         val utbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
@@ -107,7 +109,9 @@ internal class UtbetalingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val kvittering = Kvittering(
             Kvittering.Utbetalingsstatus.OK,
@@ -153,7 +157,9 @@ internal class UtbetalingServiceImplTest {
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = ""
-            )
+            ),
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
@@ -205,7 +211,13 @@ internal class UtbetalingServiceImplTest {
             sakRepo = sakRepoMock,
             simuleringClient = mock(),
             utbetalingPublisher = mock()
-        ).lagUtbetaling(sak.id, Oppdrag.UtbetalingStrategy.Ny(beregning))
+        ).lagUtbetaling(
+            sak.id,
+            Oppdrag.UtbetalingStrategy.Ny(
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                beregning = beregning
+            )
+        )
 
         verify(sakRepoMock).hentSak(sakId)
         response.oppdrag shouldBe sak.oppdrag
@@ -216,7 +228,7 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `utbetaler penger og lagrer utbetaling`() {
         val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(tilUtbetaling.oppdrag.id, oversendtUtbetaling) } doReturn oversendtUtbetaling
+            on { opprettUtbetaling(oversendtUtbetaling) } doReturn oversendtUtbetaling
         }
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on { publish(tilUtbetaling) } doReturn oppdragsmelding.right()
@@ -234,7 +246,7 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepoMock
         ) {
             verify(utbetalingPublisherMock).publish(tilUtbetaling)
-            verify(utbetalingRepoMock).opprettUtbetaling(tilUtbetaling.oppdrag.id, oversendtUtbetaling)
+            verify(utbetalingRepoMock).opprettUtbetaling(oversendtUtbetaling)
         }
     }
 
@@ -287,7 +299,9 @@ internal class UtbetalingServiceImplTest {
             datoBeregnet = idag(),
             nettoBeløp = 5155,
             periodeList = listOf()
-        )
+        ),
+        oppdragId = oppdrag.id,
+        behandler = NavIdentBruker.Attestant("SU")
     )
 
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)

@@ -84,6 +84,8 @@ internal class UtbetalingPublisherTest {
                 fnr = "12345678910"
             ),
             gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
-        )
+        ),
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }

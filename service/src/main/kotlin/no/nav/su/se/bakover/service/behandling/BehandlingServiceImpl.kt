@@ -95,7 +95,13 @@ internal class BehandlingServiceImpl(
     override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
         val utbetalingTilSimulering =
-            utbetalingService.lagUtbetaling(behandling.sakId, Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!))
+            utbetalingService.lagUtbetaling(
+                behandling.sakId,
+                Oppdrag.UtbetalingStrategy.Ny(
+                    behandler = NavIdentBruker.Attestant("SU"), // TODO pass actual
+                    beregning = behandling.beregning()!!
+                )
+            )
         return utbetalingService.simulerUtbetaling(utbetalingTilSimulering)
             .map { simulertUtbetaling ->
                 behandling.leggTilSimulering(simulertUtbetaling.simulering)
@@ -148,7 +154,10 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     // TODO refactor the beast
-    override fun iverksett(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Either<Behandling.IverksettFeil, Behandling> {
+    override fun iverksett(
+        behandlingId: UUID,
+        attestant: NavIdentBruker.Attestant
+    ): Either<Behandling.IverksettFeil, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
                 return when (behandling.status()) {
@@ -160,7 +169,10 @@ internal class BehandlingServiceImpl(
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
                         val utbetaling = utbetalingService.lagUtbetaling(
                             sakId = behandling.sakId,
-                            strategy = Oppdrag.UtbetalingStrategy.Ny(behandling.beregning()!!)
+                            strategy = Oppdrag.UtbetalingStrategy.Ny(
+                                behandler = attestant,
+                                beregning = behandling.beregning()!!
+                            ),
                         )
                         return utbetalingService.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }

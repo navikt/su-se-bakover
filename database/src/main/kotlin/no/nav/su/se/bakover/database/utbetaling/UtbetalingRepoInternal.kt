@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -57,6 +58,8 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
     val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
     val fnr = Fnr(string("fnr"))
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
+    val oppdragId = uuid30("oppdragId")
+    val behandler = NavIdentBruker.Attestant(string("behandler"))
 
     return UtbetalingMapper(
         id = id,
@@ -67,7 +70,9 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
         simulering = simulering,
         oppdragsmelding = oppdragsmelding,
         kvittering = kvittering,
-        avstemmingId = avstemmingId
+        avstemmingId = avstemmingId,
+        oppdragId = oppdragId,
+        behandler = behandler
     ).map()
 }
 

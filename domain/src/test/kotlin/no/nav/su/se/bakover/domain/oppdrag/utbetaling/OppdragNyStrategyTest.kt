@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -42,7 +43,13 @@ internal class OppdragNyStrategyTest {
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
-        val actual = oppdrag.genererUtbetaling(Ny(createBeregning(1.januar(2020), 30.april(2020))), fnr)
+        val actual = oppdrag.genererUtbetaling(
+            Ny(
+                NavIdentBruker.Saksbehandler("Z123"),
+                createBeregning(1.januar(2020), 30.april(2020))
+            ),
+            fnr = fnr
+        )
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(
@@ -93,19 +100,22 @@ internal class OppdragNyStrategyTest {
                         )
                     ),
                     fnr = fnr,
-                    type = Utbetaling.UtbetalingsType.NY
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = UUID30.randomUUID(),
+                    behandler = NavIdentBruker.Saksbehandler("Z123")
                 )
             )
         )
 
         val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
             Ny(
+                NavIdentBruker.Saksbehandler("Z123"),
                 createBeregning(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020)
                 )
             ),
-            fnr
+            fnr = fnr
         )
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -130,7 +140,9 @@ internal class OppdragNyStrategyTest {
                 )
             ),
             fnr = fnr,
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = eksisterendeOppdrag.id,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
     }
 
@@ -149,7 +161,9 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val second = Utbetaling.KvittertUtbetaling(
@@ -165,7 +179,9 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val third = Utbetaling.KvittertUtbetaling(
@@ -181,7 +197,9 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val fourth = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt(),
@@ -196,7 +214,9 @@ internal class OppdragNyStrategyTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
@@ -210,7 +230,10 @@ internal class OppdragNyStrategyTest {
     @Test
     fun `konverterer beregning til utbetalingsperioder`() {
         val actualUtbetaling = oppdrag.genererUtbetaling(
-            strategy = Ny(beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))),
+            strategy = Ny(
+                NavIdentBruker.Saksbehandler("Z123"),
+                beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+            ),
             fnr = fnr
         )
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -235,7 +258,9 @@ internal class OppdragNyStrategyTest {
                 )
             ),
             fnr = fnr,
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = oppdrag.id,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
     }
 
@@ -248,7 +273,9 @@ internal class OppdragNyStrategyTest {
             opprettet = actual.opprettet,
             utbetalingslinjer = oppdragslinjer,
             fnr = fnr,
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = oppdrag.id,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
     }
 

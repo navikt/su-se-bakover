@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -38,7 +39,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste avstemming`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FnrGenerator.random())
-            val utbetaling = utbetalingRepo.opprettUtbetaling(sak.oppdrag.id, oversendtUtbetaling())
+            val utbetaling = utbetalingRepo.opprettUtbetaling(oversendtUtbetaling(oppdragId = sak.oppdrag.id))
                 .also {
                     utbetalingRepo.oppdaterMedKvittering(
                         it.id,
@@ -82,26 +83,27 @@ internal class AvstemmingPostgresRepoTest {
 
             val sak = testDataHelper.insertSak(FnrGenerator.random())
             utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
-                    )
+                    ),
+                    oppdragId = sak.oppdrag.id
                 )
             )
 
             EmbeddedDatabase.instance().withSession { session ->
                 """
-                    insert into utbetaling (id, opprettet, oppdragId, fnr, type)
-                    values (:id, :opprettet, :oppdragId, :fnr, :type)
+                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler)
+                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler)
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to Tidspunkt.now(),
                         "oppdragId" to sak.oppdrag.id,
                         "fnr" to FNR,
-                        "type" to "NY"
+                        "type" to "NY",
+                        "behandler" to "Z123"
                     ),
                     session
                 )
@@ -129,32 +131,32 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling1 = utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
-                    )
+                    ),
+                    oppdragId = sak.oppdrag.id
                 )
             )
 
             val utbetaling2 = utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
-                    )
+                    ),
+                    oppdragId = sak.oppdrag.id
                 )
             )
 
             utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
-                    )
+                    ),
+                    oppdragId = sak.oppdrag.id
                 )
             )
 
@@ -173,12 +175,12 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling = utbetalingRepo.opprettUtbetaling(
-                sak.oppdrag.id,
                 oversendtUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel()
-                    )
+                    ),
+                    oppdragId = sak.oppdrag.id
                 )
             )
 
@@ -212,7 +214,8 @@ internal class AvstemmingPostgresRepoTest {
         oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel()
-        )
+        ),
+        oppdragId: UUID30
     ) = Utbetaling.OversendtUtbetaling(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
@@ -225,6 +228,8 @@ internal class AvstemmingPostgresRepoTest {
             periodeList = listOf()
         ),
         oppdragsmelding = oppdragsmelding,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = oppdragId,
+        behandler = NavIdentBruker.Attestant("Z123")
     )
 }

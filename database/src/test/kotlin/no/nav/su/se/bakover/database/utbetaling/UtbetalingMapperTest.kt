@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -22,6 +23,8 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
             simulering = null,
             oppdragsmelding = null,
             kvittering = null,
@@ -34,6 +37,8 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -52,6 +57,8 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -75,6 +82,8 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -103,6 +112,8 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",

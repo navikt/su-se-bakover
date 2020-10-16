@@ -5,11 +5,13 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -64,7 +66,9 @@ class AvstemmingPublisherTest {
                     originalKvittering = "hallo",
                     mottattTidspunkt = now()
                 ),
-                type = Utbetaling.UtbetalingsType.NY
+                type = Utbetaling.UtbetalingsType.NY,
+                oppdragId = UUID30.randomUUID(),
+                behandler = NavIdentBruker.Saksbehandler("Z123")
             )
         )
     )

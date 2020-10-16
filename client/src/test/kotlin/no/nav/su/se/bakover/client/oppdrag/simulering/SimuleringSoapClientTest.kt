@@ -192,7 +192,9 @@ internal class SimuleringSoapClientTest {
                         beløp = 0
                     )
                 ),
-                type = Utbetaling.UtbetalingsType.NY
+                type = Utbetaling.UtbetalingsType.NY,
+                oppdragId = UUID30.randomUUID(),
+                behandler = NavIdentBruker.Saksbehandler("Z123")
             ),
             attestant = NavIdentBruker.Attestant("SU")
         )
@@ -248,7 +250,9 @@ internal class SimuleringSoapClientTest {
             )
         ),
         fnr = Fnr("12345678910"),
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

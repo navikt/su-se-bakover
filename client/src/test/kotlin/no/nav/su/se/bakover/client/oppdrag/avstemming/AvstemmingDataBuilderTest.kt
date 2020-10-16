@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -108,7 +109,9 @@ internal class AvstemmingDataBuilderTest {
                         Utbetaling.UtbetalingForSimulering(
                             utbetalingslinjer = emptyList(),
                             fnr = fnr,
-                            type = Utbetaling.UtbetalingsType.NY
+                            type = Utbetaling.UtbetalingsType.NY,
+                            oppdragId = UUID30.randomUUID(),
+                            behandler = NavIdentBruker.Saksbehandler("Z123")
                         )
                     ),
                     avstemmingXmlRequest = null
@@ -145,7 +148,9 @@ fun lagUtbetaling(
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
     else -> Utbetaling.KvittertUtbetaling(
         id = id,
@@ -159,7 +164,9 @@ fun lagUtbetaling(
         oppdragsmelding = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }
 
