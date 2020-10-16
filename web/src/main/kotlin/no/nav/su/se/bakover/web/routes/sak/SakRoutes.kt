@@ -11,13 +11,16 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
@@ -28,6 +31,7 @@ import no.nav.su.se.bakover.web.toUUID
 
 internal const val sakPath = "/saker"
 
+@KtorExperimentalAPI
 internal fun Route.sakRoutes(
     behandlingService: BehandlingService,
     sakService: SakService
@@ -54,21 +58,23 @@ internal fun Route.sakRoutes(
 
     data class OpprettBehandlingBody(val soknadId: String)
 
-    post("$sakPath/{sakId}/behandlinger") {
-        call.withSak(sakService) { sak ->
-            Either.catch { deserialize<OpprettBehandlingBody>(call) }
-                .flatMap { it.soknadId.toUUID() }
-                .fold(
-                    ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
-                    ifRight = { søknadId ->
-                        call.audit("Oppretter behandling på sak: ${sak.id} og søknadId: $søknadId")
-                        behandlingService.opprettSøknadsbehandling(sak.id, søknadId)
-                            .fold(
-                                { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
-                                { call.svar(HttpStatusCode.Created.jsonBody(it)) }
-                            )
-                    }
-                )
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$sakPath/{sakId}/behandlinger") {
+            call.withSak(sakService) { sak ->
+                Either.catch { deserialize<OpprettBehandlingBody>(call) }
+                    .flatMap { it.soknadId.toUUID() }
+                    .fold(
+                        ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
+                        ifRight = { søknadId ->
+                            call.audit("Oppretter behandling på sak: ${sak.id} og søknadId: $søknadId")
+                            behandlingService.opprettSøknadsbehandling(sak.id, søknadId)
+                                .fold(
+                                    { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
+                                    { call.svar(HttpStatusCode.Created.jsonBody(it)) }
+                                )
+                        }
+                    )
+            }
         }
     }
 }

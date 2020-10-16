@@ -22,6 +22,9 @@ class ServiceBuilder(
     private val clients: Clients
 ) {
     fun build(): Services {
+        val sakService = SakServiceImpl(
+            sakRepo = databaseRepos.sak
+        )
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
             sakRepo = databaseRepos.sak,
@@ -29,10 +32,8 @@ class ServiceBuilder(
             utbetalingPublisher = clients.utbetalingPublisher
         )
         val søknadService = SøknadServiceImpl(
-            søknadRepo = databaseRepos.søknad
-        )
-        val sakService = SakServiceImpl(
-            sakRepo = databaseRepos.sak
+            søknadRepo = databaseRepos.søknad,
+            sakService = sakService
         )
         return Services(
             avstemming = AvstemmingServiceImpl(

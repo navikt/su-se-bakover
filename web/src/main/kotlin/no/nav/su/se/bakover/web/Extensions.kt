@@ -3,14 +3,12 @@ package no.nav.su.se.bakover.web
 import arrow.core.Either
 import io.ktor.application.ApplicationCall
 import io.ktor.auth.Principal
-import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.receiveStream
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -21,9 +19,6 @@ import java.util.UUID
 internal fun ApplicationCall.audit(msg: String) {
     sikkerLogg.info("${suUserContext.getNAVIdent()} $msg")
 }
-
-internal fun ApplicationCall.erAttestant(): Boolean =
-    Config.azureGroupAttestant in getGroupsFromJWT((this.authentication.principal))
 
 internal fun getGroupsFromJWT(principal: Principal?): List<String> =
     (principal as JWTPrincipal).payload.getClaim("groups").asList(String::class.java)
@@ -59,6 +54,13 @@ suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStr
 
 suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifRight = { ifRight(it) }
+    )
+}
+
+suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("søknadId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
         ifRight = { ifRight(it) }
     )

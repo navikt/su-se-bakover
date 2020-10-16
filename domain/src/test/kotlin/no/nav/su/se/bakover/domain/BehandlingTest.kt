@@ -45,7 +45,7 @@ internal class BehandlingTest {
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
     private val aktørId = AktørId("aktørId")
-    private val søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build())
+    private val søknad = Søknad(sakId = UUID.randomUUID(), søknadInnhold = SøknadInnholdTestdataBuilder.build())
 
     companion object {
         val oppdrag = Oppdrag(

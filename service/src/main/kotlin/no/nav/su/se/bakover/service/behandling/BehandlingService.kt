@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import java.time.LocalDate
 import java.util.UUID
 
@@ -14,7 +14,7 @@ interface BehandlingService {
     fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(
         begrunnelse: String,
-        attestant: NavIdentBruker.Attestant,
+        attestant: Attestant,
         behandling: Behandling
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
 
@@ -30,13 +30,16 @@ interface BehandlingService {
     fun sendTilAttestering(
         sakId: UUID,
         behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: Saksbehandler
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
-    fun iverksett(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Either<Behandling.IverksettFeil, Behandling>
-    fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<FantIkkeSøknad, Behandling>
+    fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
+    fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
 }
 
 object FantIkkeBehandling
+sealed class KunneIkkeOppretteSøknadsbehandling {
+    object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
+}
 sealed class KunneIkkeSendeTilAttestering() {
     object UgyldigKombinasjonSakOgBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()

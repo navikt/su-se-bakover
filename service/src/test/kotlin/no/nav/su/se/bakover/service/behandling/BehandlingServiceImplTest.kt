@@ -234,7 +234,7 @@ internal class BehandlingServiceImplTest {
 
     private fun beregnetBehandling() = Behandling(
         sakId = sakId,
-        søknad = Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()),
+        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning
     )

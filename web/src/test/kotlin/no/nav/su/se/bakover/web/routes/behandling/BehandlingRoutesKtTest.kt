@@ -67,21 +67,60 @@ internal class BehandlingRoutesKtTest {
         clients = TestClientsBuilder.build()
     ).build()
 
-    @Test
-    fun `henter en behandling`() {
-        withTestApplication({
-            testSusebakover(services = services)
-        }) {
-            val objects = setup()
-            defaultRequest(
-                HttpMethod.Get,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}",
-                listOf(Brukerrolle.Attestant)
-            ).apply {
-                objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                    it.id shouldBe objects.behandling.id.toString()
-                    it.behandlingsinformasjon shouldNotBe null
-                    it.søknad.id shouldBe objects.søknad.id.toString()
+    @Nested
+    inner class `Henting av behandling` {
+        @Test
+        fun `Forbidden når bruker bare er veileder`() {
+            withTestApplication({
+                testSusebakover(services = services)
+            }) {
+                val objects = setup()
+                defaultRequest(
+                    HttpMethod.Get,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}",
+                    listOf(Brukerrolle.Veileder)
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
+            }
+        }
+
+        @Test
+        fun `OK når bruker er saksbehandler`() {
+            withTestApplication({
+                testSusebakover(services = services)
+            }) {
+                val objects = setup()
+                defaultRequest(
+                    HttpMethod.Get,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}",
+                    listOf(Brukerrolle.Saksbehandler)
+                ).apply {
+                    objectMapper.readValue<BehandlingJson>(response.content!!).let {
+                        it.id shouldBe objects.behandling.id.toString()
+                        it.behandlingsinformasjon shouldNotBe null
+                        it.søknad.id shouldBe objects.søknad.id.toString()
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `OK når bruker er attestant`() {
+            withTestApplication({
+                testSusebakover(services = services)
+            }) {
+                val objects = setup()
+                defaultRequest(
+                    HttpMethod.Get,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}",
+                    listOf(Brukerrolle.Attestant)
+                ).apply {
+                    objectMapper.readValue<BehandlingJson>(response.content!!).let {
+                        it.id shouldBe objects.behandling.id.toString()
+                        it.behandlingsinformasjon shouldNotBe null
+                        it.søknad.id shouldBe objects.søknad.id.toString()
+                    }
                 }
             }
         }
@@ -714,7 +753,7 @@ internal class BehandlingRoutesKtTest {
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Må anngi en begrunnelse"
+                    response.content shouldContain "Må angi en begrunnelse"
                 }
             }
         }
@@ -830,7 +869,7 @@ internal class BehandlingRoutesKtTest {
     private fun setup(): Objects {
         val sak = repos.sak.opprettSak(FnrGenerator.random())
         val søknad =
-            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(sakId = sak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()))
         val behandling = repos.behandling.opprettSøknadsbehandling(sak.id, Behandling(sakId = sak.id, søknad = søknad))
         return Objects(sak, søknad, behandling)
     }

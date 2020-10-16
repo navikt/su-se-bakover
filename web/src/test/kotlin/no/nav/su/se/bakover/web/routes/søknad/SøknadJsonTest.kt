@@ -15,6 +15,7 @@ internal class SøknadJsonTest {
     companion object {
         val søknadId = UUID.randomUUID()
         val søknad = Søknad(
+            sakId = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
@@ -124,7 +125,8 @@ internal class SøknadJsonTest {
             "forNav":{
                 "harFullmektigEllerVerge":"verge"
             }
-          }
+          },
+          "lukket": null
         }
             """.trimIndent()
     }

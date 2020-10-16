@@ -10,17 +10,17 @@ enum class Brukerrolle(val type: String) {
     companion object {
         fun fromAzureGroup(group: String) =
             when (group) {
-                Config.azureGroupAttestant -> Brukerrolle.Attestant
-                Config.azureGroupSaksbehandler -> Brukerrolle.Saksbehandler
-                Config.azureGroupVeileder -> Brukerrolle.Veileder
+                Config.azureGroupAttestant -> Attestant
+                Config.azureGroupSaksbehandler -> Saksbehandler
+                Config.azureGroupVeileder -> Veileder
                 else -> null
             }
 
         fun toAzureGroup(rolle: Brukerrolle) =
             when (rolle) {
-                Brukerrolle.Attestant -> Config.azureGroupAttestant
-                Brukerrolle.Saksbehandler -> Config.azureGroupSaksbehandler
-                Brukerrolle.Veileder -> Config.azureGroupVeileder
+                Attestant -> Config.azureGroupAttestant
+                Saksbehandler -> Config.azureGroupSaksbehandler
+                Veileder -> Config.azureGroupVeileder
             }
     }
 }

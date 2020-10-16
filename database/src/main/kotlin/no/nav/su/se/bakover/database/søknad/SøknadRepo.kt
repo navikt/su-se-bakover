@@ -6,4 +6,6 @@ import java.util.UUID
 interface SøknadRepo {
     fun hentSøknad(søknadId: UUID): Søknad?
     fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad
+    fun lukkSøknad(søknadId: UUID, lukket: Søknad.Lukket)
+    fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean
 }
