@@ -62,8 +62,8 @@ internal class UtbetalingRequestTest {
             ),
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            oppdragId = oppdragId,
+            behandler = NavIdentBruker.Attestant("A123456")
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -129,10 +129,8 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
-                oppdrag = oppdrag,
+            tilOppdrag = OversendelseTilOppdrag.TilSimulering(
                 utbetaling = nyUtbetaling,
-                attestant = NavIdentBruker.Attestant("A123456"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )
@@ -199,14 +197,12 @@ internal class UtbetalingRequestTest {
             ),
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            oppdragId = eksisterendeOppdrag.id,
+            behandler = NavIdentBruker.Attestant("A123456")
         )
         val utbetalingRequest = toUtbetalingRequest(
-            tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
-                oppdrag = eksisterendeOppdrag,
+            tilOppdrag = OversendelseTilOppdrag.TilSimulering(
                 utbetaling = nyUtbetaling,
-                attestant = NavIdentBruker.Attestant("A123456"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )

@@ -37,9 +37,7 @@ class StartUtbetalingerService(
 
         return utbetalingService.utbetal(
             OversendelseTilOppdrag.TilUtbetaling(
-                nyUtbetaling.oppdrag,
                 utbetaling = simulertUtbetaling,
-                attestant = nyUtbetaling.attestant,
                 avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
             )
         ).fold(

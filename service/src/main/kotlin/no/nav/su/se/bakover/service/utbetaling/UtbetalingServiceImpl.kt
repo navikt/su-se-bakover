@@ -6,7 +6,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
@@ -46,30 +45,20 @@ internal class UtbetalingServiceImpl(
     }
 
     // TODO incorporate attestant/saksbehandler
-    override fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): OversendelseTilOppdrag.NyUtbetaling {
+    override fun lagUtbetaling(
+        sakId: UUID,
+        strategy: Oppdrag.UtbetalingStrategy
+    ): OversendelseTilOppdrag.TilSimulering {
         val sak = sakRepo.hentSak(sakId)!!
-        return OversendelseTilOppdrag.NyUtbetaling(
-            oppdrag = sak.oppdrag,
+        return OversendelseTilOppdrag.TilSimulering(
             utbetaling = sak.oppdrag.genererUtbetaling(strategy, sak.fnr),
-            attestant = NavIdentBruker.Attestant("SU"),
             avstemmingsnøkkel = Avstemmingsnøkkel()
         )
     }
 
-    override fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    override fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(utbetaling)
-            .map {
-                Utbetaling.SimulertUtbetaling(
-                    id = utbetaling.utbetaling.id,
-                    opprettet = utbetaling.utbetaling.opprettet,
-                    fnr = utbetaling.utbetaling.fnr,
-                    utbetalingslinjer = utbetaling.utbetaling.utbetalingslinjer,
-                    type = utbetaling.utbetaling.type,
-                    simulering = it,
-                    oppdragId = utbetaling.utbetaling.oppdragId,
-                    behandler = utbetaling.utbetaling.behandler
-                )
-            }
+            .map { utbetaling.utbetaling.toSimulertUtbetaling(it) }
     }
 
     override fun utbetal(utbetaling: OversendelseTilOppdrag.TilUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
@@ -79,15 +68,8 @@ internal class UtbetalingServiceImpl(
                 return UtbetalingFeilet.left()
             }.map { oppdragsmelding ->
                 val oversendtUtbetaling = utbetaling.utbetaling.toOversendtUtbetaling(oppdragsmelding)
-                opprettUtbetaling(
-                    oppdragId = utbetaling.oppdrag.id,
-                    utbetaling = oversendtUtbetaling
-                )
+                utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
                 oversendtUtbetaling
             }
-    }
-
-    override fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
-        return utbetalingRepo.opprettUtbetaling(utbetaling)
     }
 }

@@ -47,9 +47,7 @@ internal class StartUtbetalingerServiceTest {
             on {
                 utbetal(
                     argThat {
-                        it.oppdrag shouldBe oppdrag
                         it.utbetaling shouldBe simulertUtbetaling
-                        it.attestant shouldBe attestant
                         it.avstemmingsnøkkel shouldBe avstemmingsnøkkel
                     }
                 )
@@ -139,9 +137,7 @@ internal class StartUtbetalingerServiceTest {
             on {
                 utbetal(
                     argThat {
-                        it.oppdrag shouldBe oppdrag
                         it.utbetaling shouldBe simulertUtbetaling
-                        it.attestant shouldBe attestant
                         it.avstemmingsnøkkel shouldBe avstemmingsnøkkel
                     }
                 )
@@ -207,16 +203,12 @@ internal class StartUtbetalingerServiceTest {
     )
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
-        oppdrag = oppdrag,
+    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
         utbetaling = utbetalingForSimulering,
-        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        oppdrag = oppdrag,
         utbetaling = simulertUtbetaling,
-        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 }

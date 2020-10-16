@@ -16,9 +16,9 @@ internal class SimuleringRequestBuilder(
     private val mappedRequest: UtbetalingRequest.OppdragRequest
 ) {
     constructor(
-        nyUtbetaling: OversendelseTilOppdrag.NyUtbetaling
+        tilSimulering: OversendelseTilOppdrag.TilSimulering
     ) : this(
-        toUtbetalingRequest(nyUtbetaling).oppdragRequest
+        toUtbetalingRequest(tilSimulering).oppdragRequest
     )
 
     private val oppdragRequest = Oppdrag().apply {

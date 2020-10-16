@@ -17,6 +17,7 @@ sealed class Utbetaling {
     abstract val behandler: NavIdentBruker
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
+    fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
 
     fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
     fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed

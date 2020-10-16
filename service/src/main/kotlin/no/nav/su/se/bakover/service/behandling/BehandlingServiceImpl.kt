@@ -174,6 +174,7 @@ internal class BehandlingServiceImpl(
                                 beregning = behandling.beregning()!!
                             ),
                         )
+                        // TODO move this to utbetalingservice probably
                         return utbetalingService.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
                             .map { simulertUtbetaling ->
@@ -182,9 +183,7 @@ internal class BehandlingServiceImpl(
 
                                 return utbetalingService.utbetal(
                                     OversendelseTilOppdrag.TilUtbetaling(
-                                        oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
                                         utbetaling = simulertUtbetaling,
-                                        attestant = utbetaling.attestant,
                                         avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
                                     )
                                 ).mapLeft {

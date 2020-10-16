@@ -62,13 +62,11 @@ class UtbetalingXmlMappingTest {
         ),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = UUID30.randomUUID(),
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        oppdragId = oppdrag.id,
+        behandler = NavIdentBruker.Attestant("A123456")
     )
-    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
-        oppdrag = oppdrag,
+    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
         utbetaling = utbetaling,
-        attestant = NavIdentBruker.Attestant("A123456"),
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 

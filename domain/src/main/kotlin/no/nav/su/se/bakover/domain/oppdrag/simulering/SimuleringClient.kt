@@ -4,5 +4,5 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 
 interface SimuleringClient {
-    fun simulerUtbetaling(tilSimulering: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Simulering>
+    fun simulerUtbetaling(tilSimulering: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Simulering>
 }

@@ -220,9 +220,7 @@ internal class UtbetalingServiceImplTest {
         )
 
         verify(sakRepoMock).hentSak(sakId)
-        response.oppdrag shouldBe sak.oppdrag
         response.utbetaling shouldNotBe null
-        response.attestant shouldBe NavIdentBruker.Attestant("SU")
     }
 
     @Test
@@ -307,9 +305,7 @@ internal class UtbetalingServiceImplTest {
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        oppdrag = oppdrag,
         utbetaling = simulertUtbetaling,
-        attestant = NavIdentBruker.Attestant("SU"),
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 }

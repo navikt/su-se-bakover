@@ -139,9 +139,7 @@ internal class BehandlingServiceImplTest {
             on {
                 utbetal(
                     argThat {
-                        it.oppdrag shouldBe tilUtbetaling.oppdrag
                         it.utbetaling shouldBe tilUtbetaling.utbetaling
-                        it.attestant shouldBe tilUtbetaling.attestant
                         it.avstemmingsnøkkel shouldBe tilUtbetaling.avstemmingsnøkkel
                     }
                 )
@@ -297,17 +295,13 @@ internal class BehandlingServiceImplTest {
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 
-    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
-        oppdrag = oppdrag,
+    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
         utbetaling = utbetalingForSimulering,
-        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        oppdrag = oppdrag,
         utbetaling = simulertUtbetaling,
-        attestant = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 

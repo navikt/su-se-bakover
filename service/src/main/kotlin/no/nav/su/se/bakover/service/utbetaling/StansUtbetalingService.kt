@@ -45,9 +45,7 @@ class StansUtbetalingService(
         // TODO Her kan vi legge inn transaksjon
         return utbetalingService.utbetal(
             OversendelseTilOppdrag.TilUtbetaling(
-                nyUtbetaling.oppdrag,
                 utbetaling = simulertUtbetaling,
-                attestant = nyUtbetaling.attestant,
                 avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
             )
         ).fold(

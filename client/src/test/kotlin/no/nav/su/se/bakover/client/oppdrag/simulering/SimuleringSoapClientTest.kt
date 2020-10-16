@@ -41,10 +41,8 @@ internal class SimuleringSoapClientTest {
 
     private val FNR = Fnr("12345678910")
 
-    private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
-        oppdrag = createOppdrag(),
-        utbetaling = createUtbetaling(),
-        attestant = NavIdentBruker.Attestant("A123456")
+    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
+        utbetaling = createUtbetaling()
     )
 
     @Test
@@ -180,8 +178,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val utenBeløp = OversendelseTilOppdrag.NyUtbetaling(
-            oppdrag = createOppdrag(),
+        val utenBeløp = OversendelseTilOppdrag.TilSimulering(
             utbetaling = Utbetaling.UtbetalingForSimulering(
                 fnr = FNR,
                 utbetalingslinjer = listOf(
@@ -195,8 +192,7 @@ internal class SimuleringSoapClientTest {
                 type = Utbetaling.UtbetalingsType.NY,
                 oppdragId = UUID30.randomUUID(),
                 behandler = NavIdentBruker.Saksbehandler("Z123")
-            ),
-            attestant = NavIdentBruker.Attestant("SU")
+            )
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(

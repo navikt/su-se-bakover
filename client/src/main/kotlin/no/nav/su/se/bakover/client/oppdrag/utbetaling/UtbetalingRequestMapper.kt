@@ -12,9 +12,9 @@ internal fun toUtbetalingRequest(
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = if (tilOppdrag.oppdrag.sisteOversendteUtbetaling() != null) UtbetalingRequest.KodeEndring.ENDRING else UtbetalingRequest.KodeEndring.NY,
+            kodeEndring = if (tilOppdrag.utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
-            fagsystemId = tilOppdrag.oppdrag.id.toString(),
+            fagsystemId = tilOppdrag.utbetaling.oppdragId.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
             oppdragGjelderId = tilOppdrag.utbetaling.fnr.toString(),
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
@@ -39,8 +39,8 @@ internal fun toUtbetalingRequest(
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
                     utbetalesTilId = tilOppdrag.utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
-                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { tilOppdrag.oppdrag.id.toString() },
-                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(tilOppdrag.attestant.navIdent))
+                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { tilOppdrag.utbetaling.oppdragId.toString() },
+                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(tilOppdrag.utbetaling.behandler.navIdent))
                 )
             }
         )

@@ -36,7 +36,7 @@ internal class SimuleringSoapClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun simulerUtbetaling(
-        tilSimulering: OversendelseTilOppdrag.NyUtbetaling
+        tilSimulering: OversendelseTilOppdrag.TilSimulering
     ): Either<SimuleringFeilet, Simulering> {
         val simulerRequest = SimuleringRequestBuilder(tilSimulering).build()
         return try {
@@ -85,20 +85,20 @@ internal class SimuleringSoapClient(
      * Return something with meaning for our domain for cases where simulering returns an empty response.
      * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
      */
-    private fun mapEmptyResponseToResultat(nyUtbetaling: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Simulering> {
-        if (nyUtbetaling.utbetaling.bruttoBeløp() != 0) {
+    private fun mapEmptyResponseToResultat(tilSimulering: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Simulering> {
+        if (tilSimulering.utbetaling.bruttoBeløp() != 0) {
             log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
             return SimuleringFeilet.FUNKSJONELL_FEIL.left()
         }
         return Simulering(
-            gjelderId = nyUtbetaling.utbetaling.fnr,
-            gjelderNavn = nyUtbetaling.utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
+            gjelderId = tilSimulering.utbetaling.fnr,
+            gjelderNavn = tilSimulering.utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
             datoBeregnet = LocalDate.now(),
             nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(
-                    fraOgMed = nyUtbetaling.utbetaling.tidligsteDato(),
-                    tilOgMed = nyUtbetaling.utbetaling.senesteDato(),
+                    fraOgMed = tilSimulering.utbetaling.tidligsteDato(),
+                    tilOgMed = tilSimulering.utbetaling.senesteDato(),
                     utbetaling = emptyList()
                 )
             )

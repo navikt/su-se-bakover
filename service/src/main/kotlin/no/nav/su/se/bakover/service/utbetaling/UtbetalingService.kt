@@ -17,10 +17,8 @@ interface UtbetalingService {
         kvittering: Kvittering
     ): Either<FantIkkeUtbetaling, Utbetaling>
 
-    fun opprettUtbetaling(oppdragId: UUID30, utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling
-
-    fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): OversendelseTilOppdrag.NyUtbetaling
-    fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.NyUtbetaling): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+    fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): OversendelseTilOppdrag.TilSimulering
+    fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
     fun utbetal(utbetaling: OversendelseTilOppdrag.TilUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling>
 }
 

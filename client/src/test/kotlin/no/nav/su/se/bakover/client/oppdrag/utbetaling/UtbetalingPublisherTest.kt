@@ -6,17 +6,14 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class UtbetalingPublisherTest {
 
@@ -27,13 +24,7 @@ internal class UtbetalingPublisherTest {
 
         val res = client.publish(
             tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-                oppdrag = Oppdrag(
-                    id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID()
-                ),
-                utbetaling = simulertUtbetaling,
-                attestant = NavIdentBruker.Attestant("id")
+                utbetaling = simulertUtbetaling
             )
         )
         mqClient.count shouldBe 1
@@ -48,13 +39,7 @@ internal class UtbetalingPublisherTest {
 
         val res = client.publish(
             tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-                oppdrag = Oppdrag(
-                    id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID()
-                ),
-                utbetaling = simulertUtbetaling,
-                attestant = NavIdentBruker.Attestant("id")
+                utbetaling = simulertUtbetaling
             )
         )
         mqClient.count shouldBe 1
