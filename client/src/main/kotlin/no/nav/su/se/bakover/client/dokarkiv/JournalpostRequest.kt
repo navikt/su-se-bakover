@@ -176,5 +176,5 @@ enum class JournalPostType(val type: String) {
 enum class DokumentKategori(val type: String) {
     SOK("SOK"),
     VB("VB"),
-    IB("Infobrev")
+    IB("IB")
 }

@@ -48,15 +48,15 @@ internal class SøknadServiceImpl(
         loggtema: String
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(søknadId).getOrElse {
-            log.info("$loggtema: Fant ikke søknad")
+            log.error("$loggtema: Fant ikke søknad")
             return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
         }
         if (søknad.lukket != null) {
-            log.info("$loggtema: Prøver å lukke en allerede trukket søknad")
+            log.error("$loggtema: Prøver å lukke en allerede trukket søknad")
             return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknadId)) {
-            log.info("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
+            log.error("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
@@ -66,7 +66,7 @@ internal class SøknadServiceImpl(
                 KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
             },
             ifRight = {
-                log.info("Bestillings id for trekking av søknad: $it")
+                log.info("Bestilt distribusjon av brev for trukket søknad. Bestillings-id: $it")
                 søknadRepo.lukkSøknad(
                     søknadId = søknadId,
                     lukket = Søknad.Lukket.Trukket(
@@ -75,6 +75,7 @@ internal class SøknadServiceImpl(
                         begrunnelse = begrunnelse
                     )
                 )
+                log.info("Trukket søknad $søknadId")
                 return sakService.hentSak(søknad.sakId).mapLeft {
                     return KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
                 }

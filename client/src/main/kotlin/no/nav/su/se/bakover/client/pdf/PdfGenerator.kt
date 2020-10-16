@@ -12,7 +12,7 @@ enum class Vedtakstype(val template: String) {
 }
 
 enum class LukketSøknadType(val template: String) {
-    TRUKKET("trukket")
+    TRUKKET("søknadTrukket")
 }
 
 interface PdfGenerator {

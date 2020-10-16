@@ -167,7 +167,7 @@ class BrevServiceImpl(
                 return KunneIkkeOppretteJournalpostOgSendeBrev.left()
             },
             ifRight = {
-                log.info("Journalpost id for lukking av søknad OK")
+                log.info("Journalpost id for lukking av søknad OK. Journalpost-id: $it")
                 it
             }
         )
