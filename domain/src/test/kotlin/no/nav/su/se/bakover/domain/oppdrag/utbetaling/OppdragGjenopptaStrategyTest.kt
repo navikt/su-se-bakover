@@ -292,7 +292,6 @@ internal class OppdragGjenopptaStrategyTest {
 
     fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling(
         oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel(
                 opprettet = Tidspunkt.now()

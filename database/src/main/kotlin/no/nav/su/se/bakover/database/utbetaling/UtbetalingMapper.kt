@@ -22,6 +22,7 @@ data class UtbetalingMapper(
 ) {
     fun map() = when {
         simulering == null -> {
+            // TODO: Vurdere kaste IllegalStateException eller vente til vi har gjort simulerings-kolonnen i utbetaling-tabellen non-null
             Utbetaling.UtbetalingForSimulering(id, opprettet, fnr, utbetalingslinjer, type)
         }
         oppdragsmelding == null -> {

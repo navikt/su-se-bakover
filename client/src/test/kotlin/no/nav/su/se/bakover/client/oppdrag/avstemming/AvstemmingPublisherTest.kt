@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -57,7 +56,6 @@ class AvstemmingPublisherTest {
                     periodeList = listOf()
                 ),
                 oppdragsmelding = Oppdragsmelding(
-                    status = Oppdragsmeldingstatus.SENDT,
                     originalMelding = "",
                     avstemmingsnøkkel = Avstemmingsnøkkel()
                 ),

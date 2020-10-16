@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.toKvittertUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -32,7 +31,7 @@ import java.time.ZoneOffset
 
 internal class UtbetalingKvitteringConsumerTest {
 
-    val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
+    private val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
 
     @Test
     fun `should throw when unknown utbetalingId`() {
@@ -56,7 +55,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
-            oppdragsmelding = Oppdragsmelding(Oppdragsmelding.Oppdragsmeldingstatus.SENDT, "", avstemmingsnøkkel),
+            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",

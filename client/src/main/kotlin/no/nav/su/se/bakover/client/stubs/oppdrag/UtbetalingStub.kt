@@ -13,7 +13,6 @@ object UtbetalingStub : UtbetalingPublisher {
     override fun publish(
         tilUtbetaling: OversendelseTilOppdrag.TilUtbetaling
     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> = Oppdragsmelding(
-        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
         originalMelding = XmlMapper.writeValueAsString(toUtbetalingRequest(tilUtbetaling)),
         avstemmingsnøkkel = Avstemmingsnøkkel()
     ).right()

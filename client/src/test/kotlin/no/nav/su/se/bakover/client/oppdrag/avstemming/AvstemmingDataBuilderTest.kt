@@ -115,29 +115,6 @@ internal class AvstemmingDataBuilderTest {
                 ),
             ).build()
         }
-
-        assertThrows<IllegalStateException> {
-            AvstemmingDataBuilder(
-                Avstemming(
-                    fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    utbetalinger = alleUtbetalinger() + listOf(
-                        Utbetaling.OversendtUtbetaling(
-                            utbetalingslinjer = emptyList(),
-                            fnr = fnr,
-                            oppdragsmelding = Oppdragsmelding(
-                                status = Oppdragsmelding.Oppdragsmeldingstatus.FEIL,
-                                originalMelding = "",
-                                avstemmingsnøkkel = Avstemmingsnøkkel()
-                            ),
-                            simulering = simulering,
-                            type = Utbetaling.UtbetalingsType.NY
-                        )
-                    ),
-                    avstemmingXmlRequest = null
-                ),
-            ).build()
-        }
     }
 }
 
@@ -157,7 +134,6 @@ fun lagUtbetaling(
     status: Kvittering.Utbetalingsstatus?,
     linjer: List<Utbetalingslinje>,
     oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
-        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
         originalMelding = "Melding",
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )

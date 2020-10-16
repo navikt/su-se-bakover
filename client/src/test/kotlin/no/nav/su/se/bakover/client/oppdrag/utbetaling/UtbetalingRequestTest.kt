@@ -144,7 +144,6 @@ internal class UtbetalingRequestTest {
             utbetalinger = mutableListOf(
                 Utbetaling.KvittertUtbetaling(
                     oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
                         originalMelding = "",
                         avstemmingsnøkkel = Avstemmingsnøkkel()
                     ),

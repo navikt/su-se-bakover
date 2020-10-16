@@ -17,14 +17,11 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.SENDT
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.toSimulertUtbetaling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -203,7 +200,6 @@ internal class StartUtbetalingerServiceTest {
         periodeList = listOf()
     )
     private val oppdragsmelding = Oppdragsmelding(
-        status = SENDT,
         originalMelding = "",
         avstemmingsnøkkel = avstemmingsnøkkel
     )

@@ -34,8 +34,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.toOversendtUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.toSimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
@@ -247,7 +245,6 @@ internal class BehandlingServiceImplTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
     private val oppdragsmelding = Oppdragsmelding(
-        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
         originalMelding = "",
         avstemmingsnøkkel = avstemmingsnøkkel
     )

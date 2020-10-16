@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -62,7 +61,6 @@ internal class UtbetalingPublisherTest {
         res.isRight() shouldBe true
         res.map {
             it.originalMelding shouldBe mqClient.messages.first()
-            it.status shouldBe Oppdragsmelding.Oppdragsmeldingstatus.SENDT
         }
     }
 

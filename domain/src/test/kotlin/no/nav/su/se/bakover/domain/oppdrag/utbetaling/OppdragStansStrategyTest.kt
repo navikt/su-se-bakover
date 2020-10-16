@@ -114,7 +114,6 @@ internal class OppdragStansTest {
             periodeList = listOf()
         ),
         oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
             originalMelding = "",
             avstemmingsnøkkel = Avstemmingsnøkkel(
                 opprettet = Tidspunkt.now()

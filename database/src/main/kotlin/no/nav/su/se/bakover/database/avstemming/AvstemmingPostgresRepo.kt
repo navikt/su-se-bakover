@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import javax.sql.DataSource
@@ -72,6 +71,9 @@ internal class AvstemmingPostgresRepo(
             }
         }
 
+    /**
+     * List<Utbetaling> vil i praksis være List<Utbetaling.OversendtUtbetaling | Utbetaling.KvittertUtbetaling>
+     */
     override fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling> =
         dataSource.withSession { session ->
             // Bakoverkompatibel med gammel json-modell
@@ -79,17 +81,16 @@ internal class AvstemmingPostgresRepo(
                 """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz >= :fom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom)"""
             val tilOgMedCondition =
                 """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom)"""
-            """select * from utbetaling where oppdragsmelding is not null and $fraOgMedCondition and $tilOgMedCondition and oppdragsmelding ->> 'status' = :status"""
+            """select * from utbetaling where $fraOgMedCondition and $tilOgMedCondition"""
                 .hentListe(
                     mapOf(
                         "fom" to fraOgMed,
-                        "tom" to tilOgMed,
-                        "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
+                        "tom" to tilOgMed
                     ),
                     session
                 ) {
                     it.toUtbetaling(session)
-                }
+                }.filter { it is Utbetaling.OversendtUtbetaling || it is Utbetaling.KvittertUtbetaling }
         }
 }
 
