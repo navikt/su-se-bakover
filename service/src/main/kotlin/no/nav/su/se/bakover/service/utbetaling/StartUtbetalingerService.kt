@@ -5,7 +5,6 @@ import arrow.core.left
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -28,19 +27,17 @@ class StartUtbetalingerService(
         //     ?: return StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
         // if (Utbetaling.UtbetalingType.STANS != sisteOversendteUtbetaling.type) return StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
 
-        val nyUtbetaling = utbetalingService.lagUtbetaling(sak.id, Gjenoppta(behandler = NavIdentBruker.Attestant("SU"))) // TODO pass actual
+        val nyUtbetaling = utbetalingService.lagUtbetaling(
+            sakId = sak.id,
+            strategy = Gjenoppta(behandler = NavIdentBruker.Attestant("SU"))
+        ) // TODO pass actual
 
         val simulertUtbetaling = utbetalingService.simulerUtbetaling(nyUtbetaling).fold(
             { return StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left() },
             { it }
         )
 
-        return utbetalingService.utbetal(
-            OversendelseTilOppdrag.TilUtbetaling(
-                utbetaling = simulertUtbetaling,
-                avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
-            )
-        ).fold(
+        return utbetalingService.utbetal(utbetaling = simulertUtbetaling).fold(
             {
                 log.error("Startutbetaling feilet ved publisering av utbetaling")
                 StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()

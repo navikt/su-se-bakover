@@ -6,7 +6,6 @@ import arrow.core.left
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -43,12 +42,7 @@ class StansUtbetalingService(
         )
 
         // TODO Her kan vi legge inn transaksjon
-        return utbetalingService.utbetal(
-            OversendelseTilOppdrag.TilUtbetaling(
-                utbetaling = simulertUtbetaling,
-                avstemmingsnøkkel = nyUtbetaling.avstemmingsnøkkel
-            )
-        ).fold(
+        return utbetalingService.utbetal(utbetaling = simulertUtbetaling).fold(
             {
                 log.error("Stansutbetaling feilet ved publisering av utbetaling")
                 KunneIkkeStanseUtbetalinger.left()

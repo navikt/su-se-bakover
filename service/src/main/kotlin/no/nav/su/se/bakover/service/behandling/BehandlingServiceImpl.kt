@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -180,22 +179,18 @@ internal class BehandlingServiceImpl(
                                 if (simulertUtbetaling.simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
                                     .left()
 
-                                return utbetalingService.utbetal(
-                                    OversendelseTilOppdrag.TilUtbetaling(
-                                        utbetaling = simulertUtbetaling,
-                                        avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
-                                    )
-                                ).mapLeft {
-                                    return Behandling.IverksettFeil.Utbetaling().left()
-                                }.map { oversendtUtbetaling ->
-                                    behandlingRepo.leggTilUtbetaling(
-                                        behandlingId = behandlingId,
-                                        utbetalingId = oversendtUtbetaling.id
-                                    )
-                                    behandlingRepo.attester(behandlingId, attestant)
-                                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                                    return behandling.right()
-                                }
+                                return utbetalingService.utbetal(utbetaling = simulertUtbetaling)
+                                    .mapLeft {
+                                        return Behandling.IverksettFeil.Utbetaling().left()
+                                    }.map { oversendtUtbetaling ->
+                                        behandlingRepo.leggTilUtbetaling(
+                                            behandlingId = behandlingId,
+                                            utbetalingId = oversendtUtbetaling.id
+                                        )
+                                        behandlingRepo.attester(behandlingId, attestant)
+                                        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                                        return behandling.right()
+                                    }
                             }
                     }
                     else -> throw Behandling.TilstandException(
@@ -207,7 +202,10 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
+    override fun opprettSøknadsbehandling(
+        sakId: UUID,
+        søknadId: UUID
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
         return søknadService.hentSøknad(søknadId)

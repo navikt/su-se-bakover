@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.service.argThat
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -220,7 +221,7 @@ internal class UtbetalingServiceImplTest {
         )
 
         verify(sakRepoMock).hentSak(sakId)
-        response.utbetaling shouldNotBe null
+        response shouldNotBe null
     }
 
     @Test
@@ -229,7 +230,14 @@ internal class UtbetalingServiceImplTest {
             on { opprettUtbetaling(oversendtUtbetaling) } doReturn oversendtUtbetaling
         }
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
-            on { publish(tilUtbetaling) } doReturn oppdragsmelding.right()
+            on {
+                publish(
+                    argThat {
+                        it.utbetaling shouldBe tilUtbetaling.utbetaling
+                        it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
+                    }
+                )
+            } doReturn oppdragsmelding.right()
         }
 
         UtbetalingServiceImpl(
@@ -237,13 +245,18 @@ internal class UtbetalingServiceImplTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakRepo = mock(),
             simuleringClient = mock()
-        ).utbetal(tilUtbetaling)
+        ).utbetal(simulertUtbetaling)
 
         inOrder(
             utbetalingPublisherMock,
             utbetalingRepoMock
         ) {
-            verify(utbetalingPublisherMock).publish(tilUtbetaling)
+            verify(utbetalingPublisherMock).publish(
+                argThat {
+                    it.utbetaling shouldBe tilUtbetaling.utbetaling
+                    it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
+                }
+            )
             verify(utbetalingRepoMock).opprettUtbetaling(oversendtUtbetaling)
         }
     }
@@ -252,7 +265,14 @@ internal class UtbetalingServiceImplTest {
     fun `returnerer feilmelding dersom utbetaling feiler`() {
         val utbetalingRepoMock = mock<UtbetalingRepo>()
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
-            on { publish(tilUtbetaling) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+            on {
+                publish(
+                    argThat {
+                        it.utbetaling shouldBe tilUtbetaling.utbetaling
+                        it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
+                    }
+                )
+            } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                 Oppdragsmelding(
                     originalMelding = "adadad",
                     avstemmingsnøkkel = avstemmingsnøkkel
@@ -265,10 +285,15 @@ internal class UtbetalingServiceImplTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakRepo = mock(),
             simuleringClient = mock()
-        ).utbetal(tilUtbetaling)
+        ).utbetal(simulertUtbetaling)
 
         response shouldBe UtbetalingFeilet.left()
-        verify(utbetalingPublisherMock).publish(tilUtbetaling)
+        verify(utbetalingPublisherMock).publish(
+            argThat {
+                it.utbetaling shouldBe tilUtbetaling.utbetaling
+                it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
+            }
+        )
         verifyZeroInteractions(utbetalingRepoMock)
     }
 
@@ -306,6 +331,6 @@ internal class UtbetalingServiceImplTest {
 
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
         utbetaling = simulertUtbetaling,
-        avstemmingsnøkkel = avstemmingsnøkkel
+        avstemmingsnøkkel = avstemmingsnøkkel // TODO fix when kontrollsimulering is o
     )
 }

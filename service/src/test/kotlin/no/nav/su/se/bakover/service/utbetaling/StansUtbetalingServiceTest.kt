@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -41,17 +40,12 @@ internal class StansUtbetalingServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 lagUtbetaling(sak.id, strategy)
-            } doReturn nyUtbetaling
+            } doReturn utbetalingForSimulering
             on {
-                simulerUtbetaling(nyUtbetaling)
+                simulerUtbetaling(utbetalingForSimulering)
             } doReturn simulertUtbetaling.right()
             on {
-                utbetal(
-                    argThat {
-                        it.utbetaling shouldBe simulertUtbetaling
-                        it.avstemmingsnøkkel shouldBe avstemmingsnøkkel
-                    }
-                )
+                utbetal(argThat { it shouldBe simulertUtbetaling })
             } doReturn oversendtUtbetaling.right()
         }
 
@@ -62,8 +56,8 @@ internal class StansUtbetalingServiceTest {
 
         response shouldBe sak.right()
         verify(utbetalingServiceMock, Times(1)).lagUtbetaling(sak.id, strategy)
-        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(nyUtbetaling)
-        verify(utbetalingServiceMock, Times(1)).utbetal(tilUtbetaling)
+        verify(utbetalingServiceMock, Times(1)).simulerUtbetaling(utbetalingForSimulering)
+        verify(utbetalingServiceMock, Times(1)).utbetal(simulertUtbetaling)
         verify(sakServiceMock, Times(2)).hentSak(sak.id)
     }
 
@@ -76,9 +70,9 @@ internal class StansUtbetalingServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 lagUtbetaling(sak.id, strategy)
-            } doReturn nyUtbetaling
+            } doReturn utbetalingForSimulering
             on {
-                simulerUtbetaling(nyUtbetaling)
+                simulerUtbetaling(utbetalingForSimulering)
             } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
         val response = StansUtbetalingService(
@@ -90,7 +84,7 @@ internal class StansUtbetalingServiceTest {
 
         verify(sakServiceMock).hentSak(sak.id)
         verify(utbetalingServiceMock).lagUtbetaling(sak.id, strategy)
-        verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
+        verify(utbetalingServiceMock).simulerUtbetaling(utbetalingForSimulering)
         verifyNoMoreInteractions(utbetalingServiceMock, sakServiceMock)
     }
 
@@ -103,9 +97,9 @@ internal class StansUtbetalingServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 lagUtbetaling(sak.id, strategy)
-            } doReturn nyUtbetaling
+            } doReturn utbetalingForSimulering
             on {
-                simulerUtbetaling(nyUtbetaling)
+                simulerUtbetaling(utbetalingForSimulering)
             } doReturn simulertUtbetaling.copy(
                 simulering = simulering.copy(
                     periodeList = listOf(
@@ -151,7 +145,7 @@ internal class StansUtbetalingServiceTest {
 
         verify(sakServiceMock, Times(1)).hentSak(sak.id)
         verify(utbetalingServiceMock).lagUtbetaling(sak.id, strategy)
-        verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
+        verify(utbetalingServiceMock).simulerUtbetaling(utbetalingForSimulering)
         verifyNoMoreInteractions(utbetalingServiceMock, sakServiceMock)
     }
 
@@ -164,17 +158,12 @@ internal class StansUtbetalingServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 lagUtbetaling(sak.id, strategy)
-            } doReturn nyUtbetaling
+            } doReturn utbetalingForSimulering
             on {
-                simulerUtbetaling(nyUtbetaling)
+                simulerUtbetaling(utbetalingForSimulering)
             } doReturn simulertUtbetaling.right()
             on {
-                utbetal(
-                    argThat {
-                        it.utbetaling shouldBe simulertUtbetaling
-                        it.avstemmingsnøkkel shouldBe avstemmingsnøkkel
-                    }
-                )
+                utbetal(argThat { it shouldBe simulertUtbetaling })
             } doReturn UtbetalingFeilet.left()
         }
 
@@ -186,8 +175,8 @@ internal class StansUtbetalingServiceTest {
         response shouldBe StansUtbetalingService.KunneIkkeStanseUtbetalinger.left()
         verify(sakServiceMock, Times(1)).hentSak(sak.id)
         verify(utbetalingServiceMock).lagUtbetaling(sak.id, strategy)
-        verify(utbetalingServiceMock).simulerUtbetaling(nyUtbetaling)
-        verify(utbetalingServiceMock).utbetal(tilUtbetaling)
+        verify(utbetalingServiceMock).simulerUtbetaling(utbetalingForSimulering)
+        verify(utbetalingServiceMock).utbetal(simulertUtbetaling)
     }
 
     private val fnr = Fnr("12345678910")
@@ -233,12 +222,4 @@ internal class StansUtbetalingServiceTest {
     )
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = utbetalingForSimulering,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
-    private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        utbetaling = simulertUtbetaling,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
 }

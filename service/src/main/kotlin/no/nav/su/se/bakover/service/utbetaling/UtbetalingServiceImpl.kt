@@ -48,28 +48,33 @@ internal class UtbetalingServiceImpl(
     override fun lagUtbetaling(
         sakId: UUID,
         strategy: Oppdrag.UtbetalingStrategy
-    ): OversendelseTilOppdrag.TilSimulering {
+    ): Utbetaling.UtbetalingForSimulering {
         val sak = sakRepo.hentSak(sakId)!!
-        return OversendelseTilOppdrag.TilSimulering(
-            utbetaling = sak.oppdrag.genererUtbetaling(strategy, sak.fnr),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
-        )
+        return sak.oppdrag.genererUtbetaling(strategy, sak.fnr)
     }
 
-    override fun simulerUtbetaling(utbetaling: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        return simuleringClient.simulerUtbetaling(utbetaling)
-            .map { utbetaling.utbetaling.toSimulertUtbetaling(it) }
+    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        return simuleringClient.simulerUtbetaling(
+            OversendelseTilOppdrag.TilSimulering(
+                utbetaling = utbetaling,
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            )
+        ).map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun utbetal(utbetaling: OversendelseTilOppdrag.TilUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
+    override fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
         // TODO could/should we always perform consistency at this point?
-        return utbetalingPublisher.publish(utbetaling)
-            .mapLeft {
-                return UtbetalingFeilet.left()
-            }.map { oppdragsmelding ->
-                val oversendtUtbetaling = utbetaling.utbetaling.toOversendtUtbetaling(oppdragsmelding)
-                utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
-                oversendtUtbetaling
-            }
+        return utbetalingPublisher.publish(
+            OversendelseTilOppdrag.TilUtbetaling(
+                utbetaling = utbetaling,
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            )
+        ).mapLeft {
+            return UtbetalingFeilet.left()
+        }.map { oppdragsmelding ->
+            val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
+            utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
+            oversendtUtbetaling
+        }
     }
 }
