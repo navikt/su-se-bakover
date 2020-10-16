@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
@@ -130,7 +130,7 @@ internal class UtbetalingRequestTest {
             tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
                 oppdrag = oppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456"),
+                attestant = NavIdentBruker.Attestant("A123456"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )
@@ -200,7 +200,7 @@ internal class UtbetalingRequestTest {
             tilOppdrag = OversendelseTilOppdrag.NyUtbetaling(
                 oppdrag = eksisterendeOppdrag,
                 utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456"),
+                attestant = NavIdentBruker.Attestant("A123456"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
             ),
         )

@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -210,7 +210,7 @@ internal class UtbetalingServiceImplTest {
         verify(sakRepoMock).hentSak(sakId)
         response.oppdrag shouldBe sak.oppdrag
         response.utbetaling shouldNotBe null
-        response.attestant shouldBe Attestant("SU")
+        response.attestant shouldBe NavIdentBruker.Attestant("SU")
     }
 
     @Test
@@ -295,7 +295,7 @@ internal class UtbetalingServiceImplTest {
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
         oppdrag = oppdrag,
         utbetaling = simulertUtbetaling,
-        attestant = Attestant("SU"),
+        attestant = NavIdentBruker.Attestant("SU"),
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 }

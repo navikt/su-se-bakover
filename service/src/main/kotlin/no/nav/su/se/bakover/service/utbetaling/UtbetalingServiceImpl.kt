@@ -6,7 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
@@ -51,7 +51,7 @@ internal class UtbetalingServiceImpl(
         return OversendelseTilOppdrag.NyUtbetaling(
             oppdrag = sak.oppdrag,
             utbetaling = sak.oppdrag.genererUtbetaling(strategy, sak.fnr),
-            attestant = Attestant("SU"),
+            attestant = NavIdentBruker.Attestant("SU"),
             avstemmingsnøkkel = Avstemmingsnøkkel()
         )
     }

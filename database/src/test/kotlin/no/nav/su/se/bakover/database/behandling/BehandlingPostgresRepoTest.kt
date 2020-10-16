@@ -6,9 +6,8 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import org.junit.jupiter.api.Test
 
@@ -63,7 +62,7 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val behandling = testDataHelper.insertBehandling(sak.id, søknad)
 
-            val saksbehandler = repo.settSaksbehandler(behandling.id, Saksbehandler("Per"))
+            val saksbehandler = repo.settSaksbehandler(behandling.id, NavIdentBruker.Saksbehandler("Per"))
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler.saksbehandler()
@@ -77,7 +76,7 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val behandling = testDataHelper.insertBehandling(sak.id, søknad)
 
-            val attestant = repo.attester(behandling.id, Attestant("kjella"))
+            val attestant = repo.attester(behandling.id, NavIdentBruker.Attestant("kjella"))
             val hentet = repo.hentBehandling(behandling.id)!!
 
             hentet.attestant() shouldBe attestant.attestant()

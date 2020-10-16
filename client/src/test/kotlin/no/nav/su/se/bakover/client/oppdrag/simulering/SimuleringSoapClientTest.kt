@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -44,7 +44,7 @@ internal class SimuleringSoapClientTest {
     private val nyUtbetaling = OversendelseTilOppdrag.NyUtbetaling(
         oppdrag = createOppdrag(),
         utbetaling = createUtbetaling(),
-        attestant = Attestant("A123456")
+        attestant = NavIdentBruker.Attestant("A123456")
     )
 
     @Test
@@ -194,7 +194,7 @@ internal class SimuleringSoapClientTest {
                 ),
                 type = Utbetaling.UtbetalingsType.NY
             ),
-            attestant = Attestant("SU")
+            attestant = NavIdentBruker.Attestant("SU")
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(

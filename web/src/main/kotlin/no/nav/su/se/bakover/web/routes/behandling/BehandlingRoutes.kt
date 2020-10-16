@@ -16,10 +16,9 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -156,7 +155,7 @@ internal fun Route.behandlingRoutes(
     post("$behandlingPath/{behandlingId}/tilAttestering") {
         call.withBehandlingId { behandlingId ->
             call.withSakId { sakId ->
-                val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                val saksBehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
                 behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
                     {
                         call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
@@ -188,7 +187,7 @@ internal fun Route.behandlingRoutes(
                         ifRight = {
                             behandlingService.iverksett(
                                 behandlingId = behandling.id,
-                                attestant = Attestant(navIdent)
+                                attestant = NavIdentBruker.Attestant(navIdent)
                             ).fold(
                                 {
                                     when (it) {
@@ -225,7 +224,7 @@ internal fun Route.behandlingRoutes(
                     if (body.valid()) {
                         behandlingService.underkjenn(
                             begrunnelse = body.begrunnelse,
-                            attestant = Attestant(navIdent),
+                            attestant = NavIdentBruker.Attestant(navIdent),
                             behandling = behandling
                         ).fold(
                             ifLeft = {

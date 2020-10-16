@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -54,7 +54,7 @@ internal class SimuleringRequestBuilderValidationTest {
                     fnr = Fnr("12345678910"),
                     type = Utbetaling.UtbetalingsType.NY
                 ),
-                attestant = Attestant("A123456")
+                attestant = NavIdentBruker.Attestant("A123456")
             )
         ).build().request
 

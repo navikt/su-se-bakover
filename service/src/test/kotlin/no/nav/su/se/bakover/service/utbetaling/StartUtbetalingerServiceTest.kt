@@ -12,8 +12,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
@@ -168,7 +168,7 @@ internal class StartUtbetalingerServiceTest {
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val attestant = Attestant("SU")
+    private val attestant = NavIdentBruker.Attestant("SU")
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
     private val oppdrag: Oppdrag = Oppdrag(
         id = UUID30.randomUUID(),

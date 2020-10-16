@@ -10,10 +10,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
@@ -197,8 +196,8 @@ internal class StansUtbetalingServiceTest {
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksbehandler = Saksbehandler("Z123")
-    private val attestant = Attestant("SU")
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+    private val attestant = NavIdentBruker.Attestant("SU")
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
     private val strategy = Oppdrag.UtbetalingStrategy.Stans()
     private val oppdrag: Oppdrag = Oppdrag(

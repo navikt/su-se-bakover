@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
@@ -514,7 +514,7 @@ internal class BehandlingRoutesKtTest {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
                                 behandling.id,
-                                Saksbehandler(navIdentSaksbehandler)
+                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
                         }
                 }
@@ -632,7 +632,7 @@ internal class BehandlingRoutesKtTest {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
                                 behandling.id,
-                                Saksbehandler(navIdentSaksbehandler)
+                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
                         }
                 }
@@ -806,8 +806,7 @@ internal class BehandlingRoutesKtTest {
                         services.behandling.sendTilAttestering(
                             objects.sak.id,
                             objects.behandling.id,
-
-                            Saksbehandler("S123456")
+                            NavIdentBruker.Saksbehandler("S123456")
                         )
                     }
                 )

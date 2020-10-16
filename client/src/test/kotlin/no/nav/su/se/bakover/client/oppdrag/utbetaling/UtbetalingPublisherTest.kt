@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -33,7 +33,7 @@ internal class UtbetalingPublisherTest {
                     sakId = UUID.randomUUID()
                 ),
                 utbetaling = simulertUtbetaling,
-                attestant = Attestant("id")
+                attestant = NavIdentBruker.Attestant("id")
             )
         )
         mqClient.count shouldBe 1
@@ -54,7 +54,7 @@ internal class UtbetalingPublisherTest {
                     sakId = UUID.randomUUID()
                 ),
                 utbetaling = simulertUtbetaling,
-                attestant = Attestant("id")
+                attestant = NavIdentBruker.Attestant("id")
             )
         )
         mqClient.count shouldBe 1

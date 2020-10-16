@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.suUserContext
@@ -24,7 +24,7 @@ internal fun Route.stansutbetalingRoutes(
             call.svar(
                 stansUtbetalingService.stansUtbetalinger(
                     sakId = sakId,
-                    saksbehandler = call.suUserContext.getNAVIdent().let { Saksbehandler(it) }
+                    saksbehandler = call.suUserContext.getNAVIdent().let { NavIdentBruker.Saksbehandler(it) }
                 ).fold(
                     {
                         InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")

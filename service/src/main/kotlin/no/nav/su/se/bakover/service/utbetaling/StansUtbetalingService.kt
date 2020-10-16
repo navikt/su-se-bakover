@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.service.sak.SakService
@@ -21,7 +21,7 @@ class StansUtbetalingService(
 
     fun stansUtbetalinger(
         sakId: UUID,
-        saksbehandler: Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeStanseUtbetalinger, Sak> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStanseUtbetalinger.left()

@@ -9,9 +9,8 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -49,7 +48,7 @@ internal class BehandlingServiceImpl(
 
     override fun underkjenn(
         begrunnelse: String,
-        attestant: Attestant,
+        attestant: NavIdentBruker.Attestant,
         behandling: Behandling
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
@@ -110,7 +109,7 @@ internal class BehandlingServiceImpl(
     override fun sendTilAttestering(
         sakId: UUID,
         behandlingId: UUID,
-        saksbehandler: Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
         val sak = sakService.hentSak(sakId).getOrElse {
             log.info("Fant ikke sak med sakId : $sakId")
@@ -149,7 +148,7 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     // TODO refactor the beast
-    override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
+    override fun iverksett(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Either<Behandling.IverksettFeil, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
                 return when (behandling.status()) {
