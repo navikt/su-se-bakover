@@ -30,9 +30,9 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
     override fun genererPdf(
         lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
-        lukketSøknadType: LukketSøknadType
+        lukketSøknadPdfTemplate: LukketSøknadPdfTemplate
     ): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(lukketSøknadBrevinnhold), lukketSøknadType.template)
+        return genererPdf(objectMapper.writeValueAsString(lukketSøknadBrevinnhold), lukketSøknadPdfTemplate.template)
     }
 
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {

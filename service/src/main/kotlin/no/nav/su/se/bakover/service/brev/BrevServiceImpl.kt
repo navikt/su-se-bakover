@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.pdf.LukketSøknadType
+import no.nav.su.se.bakover.client.pdf.LukketSøknadPdfTemplate
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PersonOppslag
@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.Companion.lagLukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold.Companion.lagVedtaksinnhold
 import no.nav.su.se.bakover.service.sak.SakService
@@ -42,6 +43,21 @@ class BrevServiceImpl(
                     { it }
                 )
                 return lagBrevPdf(behandling, person)
+            }
+    }
+
+    override fun lagLukketSøknadBrevUtkast(
+        sakId: UUID,
+        typeLukking: Søknad.TypeLukking
+    ): Either<ClientError, ByteArray> {
+        return sakService.hentSak(sakId = sakId)
+            .mapLeft { throw RuntimeException("Fant ikke sak") }
+            .map {
+                val person = hentPersonFraFnr(it.fnr).fold(
+                    { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
+                    { it }
+                )
+                return genererLukketSøknadBrevPdf(person = person, typeLukking = typeLukking)
             }
     }
 
@@ -143,7 +159,10 @@ class BrevServiceImpl(
             }
         )
 
-        val lukketSøknadBrevPdf = genererLukketSøknadBrevPdf(person = person).fold(
+        val lukketSøknadBrevPdf = genererLukketSøknadBrevPdf(
+            person = person,
+            typeLukking = Søknad.TypeLukking.Trukket
+        ).fold(
             ifLeft = {
                 log.error("$loggtema: kunne ikke generere pdf for å lukke søknad")
                 return KunneIkkeOppretteJournalpostOgSendeBrev.left()
@@ -158,7 +177,10 @@ class BrevServiceImpl(
             Journalpost.lukketSøknadJournalpostRequest(
                 person = person,
                 sakId = sakId,
-                lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person = person),
+                lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(
+                    person = person,
+                    typeLukking = Søknad.TypeLukking.Trukket
+                ),
                 pdf = lukketSøknadBrevPdf
             )
         ).fold(
@@ -176,11 +198,12 @@ class BrevServiceImpl(
     }
 
     private fun genererLukketSøknadBrevPdf(
-        person: Person
+        person: Person,
+        typeLukking: Søknad.TypeLukking
     ): Either<ClientError, ByteArray> {
-        val lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person)
-        val template = when (lukketSøknadBrevinnhold) {
-            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> LukketSøknadType.TRUKKET
+        val lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person, typeLukking)
+        val pdfTemplate = when (lukketSøknadBrevinnhold) {
+            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> LukketSøknadPdfTemplate.TRUKKET
             else -> throw java.lang.RuntimeException(
                 "template kan bare være trukket"
             )
@@ -188,7 +211,7 @@ class BrevServiceImpl(
 
         return pdfGenerator.genererPdf(
             lukketSøknadBrevinnhold = lukketSøknadBrevinnhold,
-            lukketSøknadType = template
+            lukketSøknadPdfTemplate = pdfTemplate
         )
             .mapLeft {
                 log.error("Kunne ikke generere brevinnhold")

@@ -28,15 +28,31 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
+    override fun lukketBrevutkast(
+        søknadId: UUID,
+        typeLukking: Søknad.TypeLukking
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        val søknad = hentSøknad(søknadId).getOrElse {
+            log.error("Lukket brev utkast: Fant ikke søknad")
+            return KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
+        }
+
+        return brevService.lagLukketSøknadBrevUtkast(
+            sakId = søknad.sakId,
+            typeLukking = typeLukking
+        ).mapLeft {
+            log.error("Lukket brev utkast: Feil ved henting av person")
+            KunneIkkeLageBrevutkast.FeilVedHentingAvPerson
+        }
+    }
+
     override fun lukkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler,
-        begrunnelse: String
+        saksbehandler: Saksbehandler
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         return trekkSøknad(
             søknadId = søknadId,
             saksbehandler = saksbehandler,
-            begrunnelse = begrunnelse,
             loggtema = "Trekking av søknad"
         )
     }
@@ -44,7 +60,6 @@ internal class SøknadServiceImpl(
     private fun trekkSøknad(
         søknadId: UUID,
         saksbehandler: Saksbehandler,
-        begrunnelse: String,
         loggtema: String
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(søknadId).getOrElse {
@@ -72,7 +87,7 @@ internal class SøknadServiceImpl(
                     lukket = Søknad.Lukket.Trukket(
                         tidspunkt = Tidspunkt.now(),
                         saksbehandler = saksbehandler,
-                        begrunnelse = begrunnelse
+                        typeLukking = Søknad.TypeLukking.Trukket
                     )
                 )
                 log.info("Trukket søknad $søknadId")

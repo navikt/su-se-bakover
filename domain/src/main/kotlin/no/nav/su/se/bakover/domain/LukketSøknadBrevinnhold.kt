@@ -60,18 +60,17 @@ sealed class LukketSøknadBrevinnhold {
     companion object {
         fun lagLukketSøknadBrevinnhold(
             person: Person,
+            typeLukking: Søknad.TypeLukking
         ): LukketSøknadBrevinnhold =
             when {
-                erTrukket() -> lagTrukketSøknadBrevinnhold(person)
+                erTrukket(typeLukking) -> lagTrukketSøknadBrevinnhold(person)
                 else -> throw java.lang.RuntimeException(
                     "Kan ikke lage brevinnhold for å lukke søknad som ikke er trukket eller avvist"
                 )
             }
 
-        private fun erTrukket(): Boolean {
-            // TODO: sjekk for begrunnelse for hvilket brev
-            // return trukket.begrunnelse == "trukket"
-            return true
+        private fun erTrukket(typeLukking: Søknad.TypeLukking): Boolean {
+            return typeLukking == Søknad.TypeLukking.Trukket
         }
     }
 }

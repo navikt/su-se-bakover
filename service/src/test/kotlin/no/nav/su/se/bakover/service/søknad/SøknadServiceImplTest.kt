@@ -50,7 +50,7 @@ internal class SøknadServiceImplTest {
         val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
+            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -69,7 +69,7 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknad.id, saksbehandler, "") shouldBe sak.right()
+        ).lukkSøknad(søknad.id, saksbehandler) shouldBe sak.right()
     }
 
     @Test
@@ -103,7 +103,7 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).lukkSøknad(søknadId = søknad.id, saksbehandler) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test
@@ -117,13 +117,12 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler,
-                begrunnelse = ""
+                saksbehandler = saksbehandler
             )
         )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
+            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -141,6 +140,6 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).lukkSøknad(søknadId = søknad.id, saksbehandler) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 }

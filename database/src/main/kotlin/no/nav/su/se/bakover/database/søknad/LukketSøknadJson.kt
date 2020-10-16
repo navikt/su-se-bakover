@@ -9,29 +9,24 @@ import java.time.format.DateTimeFormatter
 data class LukketSøknadJson(
     val tidspunkt: String,
     val saksbehandler: String,
-    val begrunnelse: String,
-    val type: LukketType
+    val type: Søknad.TypeLukking
 ) {
-    enum class LukketType(val value: String) {
-        TRUKKET("TRUKKET")
-    }
 
     companion object {
         fun Søknad.Lukket.toJson() = LukketSøknadJson(
             tidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunkt),
             saksbehandler = saksbehandler.toString(),
-            begrunnelse = begrunnelse,
             type = when (this) {
-                is Søknad.Lukket.Trukket -> LukketType.TRUKKET
+                is Søknad.Lukket.Trukket -> Søknad.TypeLukking.Trukket
             }
         )
     }
 
     fun toLukket() = when (type) {
-        LukketType.TRUKKET -> Søknad.Lukket.Trukket(
+        Søknad.TypeLukking.Trukket -> Søknad.Lukket.Trukket(
             tidspunkt = Instant.parse(tidspunkt).toTidspunkt(),
             saksbehandler = Saksbehandler(saksbehandler),
-            begrunnelse = begrunnelse
+            typeLukking = Søknad.TypeLukking.Trukket
         )
     }
 }

@@ -11,7 +11,7 @@ enum class Vedtakstype(val template: String) {
     INNVILGELSE("vedtakInnvilgelse")
 }
 
-enum class LukketSøknadType(val template: String) {
+enum class LukketSøknadPdfTemplate(val template: String) {
     TRUKKET("søknadTrukket")
 }
 
@@ -20,6 +20,6 @@ interface PdfGenerator {
     fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray>
     fun genererPdf(
         lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
-        lukketSøknadType: LukketSøknadType
+        lukketSøknadPdfTemplate: LukketSøknadPdfTemplate
     ): Either<ClientError, ByteArray>
 }
