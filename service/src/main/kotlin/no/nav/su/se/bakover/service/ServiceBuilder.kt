@@ -48,7 +48,6 @@ class ServiceBuilder(
                 behandlingRepo = databaseRepos.behandling,
                 hendelsesloggRepo = databaseRepos.hendelseslogg,
                 beregningRepo = databaseRepos.beregning,
-                oppdragRepo = databaseRepos.oppdrag,
                 utbetalingService = utbetalingService,
                 oppgaveClient = clients.oppgaveClient,
                 søknadService = søknadService,

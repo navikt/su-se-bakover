@@ -8,12 +8,10 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -32,10 +30,9 @@ internal class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
-    private val oppdragRepo: OppdragRepo,
     private val utbetalingService: UtbetalingService,
-    private val oppgaveClient: OppgaveClient, // TODO use services or repos? probably services
-    private val søknadService: SøknadService,
+    private val oppgaveClient: OppgaveClient,
+    private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val sakService: SakService,
     private val personOppslag: PersonOppslag
 ) : BehandlingService {
@@ -91,17 +88,10 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
+    override fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val utbetalingTilSimulering =
-            utbetalingService.lagUtbetaling(
-                behandling.sakId,
-                Oppdrag.UtbetalingStrategy.Ny(
-                    behandler = NavIdentBruker.Attestant("SU"), // TODO pass actual
-                    beregning = behandling.beregning()!!
-                )
-            )
-        return utbetalingService.simulerUtbetaling(utbetalingTilSimulering)
+
+        return utbetalingService.simulerUtbetaling(behandling.sakId, saksbehandler, behandling.beregning()!!)
             .map { simulertUtbetaling ->
                 behandling.leggTilSimulering(simulertUtbetaling.simulering)
                 behandlingRepo.leggTilSimulering(behandlingId, simulertUtbetaling.simulering)

@@ -157,7 +157,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/simuler") {
             call.withBehandling(behandlingService) { behandling ->
-                behandlingService.simuler(behandling.id).fold(
+                behandlingService.simuler(behandling.id, Saksbehandler(call.suUserContext.getNAVIdent())).fold(
                     {
                         log.info("Feil ved simulering: ", it)
                         call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))

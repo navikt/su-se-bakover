@@ -61,6 +61,8 @@ import kotlin.random.Random
 
 internal class BehandlingRoutesKtTest {
 
+    private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
+
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ServiceBuilder(
         databaseRepos = repos,
@@ -142,7 +144,7 @@ internal class BehandlingRoutesKtTest {
                 31.desember(2020),
                 emptyList()
             )
-            services.behandling.simuler(objects.behandling.id)
+            services.behandling.simuler(objects.behandling.id, saksbehandler)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
@@ -184,7 +186,7 @@ internal class BehandlingRoutesKtTest {
                 31.desember(2020),
                 emptyList()
             )
-            services.behandling.simuler(objects.behandling.id)
+            services.behandling.simuler(objects.behandling.id, saksbehandler)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
@@ -548,7 +550,7 @@ internal class BehandlingRoutesKtTest {
                         31.desember(2020),
                         emptyList()
                     )
-                    services.behandling.simuler(behandling.id)
+                    services.behandling.simuler(behandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
@@ -666,7 +668,7 @@ internal class BehandlingRoutesKtTest {
                         31.desember(2020),
                         emptyList()
                     )
-                    services.behandling.simuler(behandling.id)
+                    services.behandling.simuler(behandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
@@ -838,14 +840,14 @@ internal class BehandlingRoutesKtTest {
                     31.desember(2020),
                     emptyList()
                 )
-                services.behandling.simuler(objects.behandling.id).fold(
+                services.behandling.simuler(objects.behandling.id, saksbehandler).fold(
                     { it },
                     {
 
                         services.behandling.sendTilAttestering(
                             objects.sak.id,
                             objects.behandling.id,
-                            NavIdentBruker.Saksbehandler("S123456")
+                            saksbehandler
                         )
                     }
                 )
