@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
@@ -27,13 +28,13 @@ internal class DokArkivClientTest : WiremockBase {
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
-    private val trukketSøknadBrevinnhold = LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.buildTestData()
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")
     }
+    private val trukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(person, Søknad.TypeLukking.Trukket)
 
     val client = DokArkivClient(
         wireMockServer.baseUrl(),

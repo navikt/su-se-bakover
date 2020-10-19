@@ -46,7 +46,7 @@ class BrevServiceImpl(
             }
     }
 
-    override fun lagLukketSøknadBrevUtkast(
+    override fun lagLukketSøknadBrevutkast(
         sakId: UUID,
         typeLukking: Søknad.TypeLukking
     ): Either<ClientError, ByteArray> {
@@ -135,11 +135,9 @@ class BrevServiceImpl(
     }
 
     override fun journalførLukketSøknadOgSendBrev(
-        sakId: UUID,
-        søknadId: UUID
+        sakId: UUID
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
         val loggtema = "Journalføring og lukking av søknad"
-
         val person = sakService.hentSak(sakId).fold(
             ifLeft = {
                 log.error("$loggtema: fant ikke sak for sakId: $sakId")

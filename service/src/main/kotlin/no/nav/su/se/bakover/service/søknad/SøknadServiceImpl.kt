@@ -28,24 +28,6 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
-    override fun lukketBrevutkast(
-        søknadId: UUID,
-        typeLukking: Søknad.TypeLukking
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        val søknad = hentSøknad(søknadId).getOrElse {
-            log.error("Lukket brev utkast: Fant ikke søknad")
-            return KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
-        }
-
-        return brevService.lagLukketSøknadBrevUtkast(
-            sakId = søknad.sakId,
-            typeLukking = typeLukking
-        ).mapLeft {
-            log.error("Lukket brev utkast: Feil ved henting av person")
-            KunneIkkeLageBrevutkast.FeilVedHentingAvPerson
-        }
-    }
-
     override fun lukkSøknad(
         søknadId: UUID,
         saksbehandler: Saksbehandler
@@ -75,7 +57,7 @@ internal class SøknadServiceImpl(
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
-        return brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId, søknadId = søknadId).fold(
+        return brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId).fold(
             ifLeft = {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
                 KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
@@ -96,5 +78,23 @@ internal class SøknadServiceImpl(
                 }
             }
         )
+    }
+
+    override fun lagLukketSøknadBrevutkast(
+        søknadId: UUID,
+        typeLukking: Søknad.TypeLukking
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        val søknad = hentSøknad(søknadId).getOrElse {
+            log.error("Lukket brevutkast: Fant ikke søknad")
+            return KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
+        }
+
+        return brevService.lagLukketSøknadBrevutkast(
+            sakId = søknad.sakId,
+            typeLukking = typeLukking
+        ).mapLeft {
+            log.error("Lukket brevutkast: feil ved generering av brevutkast")
+            KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast
+        }
     }
 }

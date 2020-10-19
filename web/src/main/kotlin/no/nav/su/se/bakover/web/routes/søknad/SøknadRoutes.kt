@@ -95,7 +95,7 @@ internal fun Route.søknadRoutes(
                 },
                 ifRight = {
                     call.withSøknadId { søknadId ->
-                        søknadService.lukketBrevutkast(
+                        søknadService.lagLukketSøknadBrevutkast(
                             søknadId = søknadId,
                             typeLukking = it
                         ).fold(

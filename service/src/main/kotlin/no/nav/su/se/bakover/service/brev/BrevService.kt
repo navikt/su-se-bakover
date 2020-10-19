@@ -15,11 +15,10 @@ interface BrevService {
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String>
 
     fun journalførLukketSøknadOgSendBrev(
-        sakId: UUID,
-        søknadId: UUID
+        sakId: UUID
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String>
 
-    fun lagLukketSøknadBrevUtkast(
+    fun lagLukketSøknadBrevutkast(
         sakId: UUID,
         typeLukking: Søknad.TypeLukking
     ): Either<ClientError, ByteArray>

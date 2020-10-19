@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -28,7 +27,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
-import no.nav.su.se.bakover.client.pdf.LukketSøknadPdfTemplate
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -42,7 +40,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
@@ -282,16 +279,11 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `kall mot brevutkast skal gi status 200 OK`() {
-        val pdfStub = PdfGeneratorStub.genererPdf(
-            lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.buildTestData(),
-            lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
-        ).getOrElse {
-            throw Exception("Dette skulle være en byte Array")
-        }
+        val pdf = PdfGeneratorStub.pdf.toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lukketBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdfStub.right()
+            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -315,7 +307,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Pdf.contentType)
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock, times(1)).lukketBrevutkast(
+                verify(søknadServiceMock, times(1)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
                     argThat { it shouldBe Søknad.TypeLukking.Trukket }
                 )
@@ -324,17 +316,12 @@ internal class SøknadRoutesKtTest {
     }
 
     @Test
-    fun `Ugyldig type på brevutkast gir 400`() {
-        val pdfStub = PdfGeneratorStub.genererPdf(
-            lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.buildTestData(),
-            lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
-        ).getOrElse {
-            throw Exception("Dette skulle være en byte Array")
-        }
+    fun `Ugyldig type-parameter på brevutkast gir 400`() {
+        val pdf = PdfGeneratorStub.pdf.toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lukketBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdfStub.right()
+            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -358,7 +345,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Pdf.contentType)
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(0)).lukketBrevutkast(
+                verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
                     argThat { it shouldBe Søknad.TypeLukking.Trukket }
                 )
@@ -368,16 +355,11 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `Ingen type på brevutkast gir 400`() {
-        val pdfStub = PdfGeneratorStub.genererPdf(
-            lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.buildTestData(),
-            lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
-        ).getOrElse {
-            throw Exception("Dette skulle være en byte Array")
-        }
+        val pdf = PdfGeneratorStub.pdf.toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lukketBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdfStub.right()
+            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -401,7 +383,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Pdf.contentType)
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(0)).lukketBrevutkast(
+                verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
                     argThat { it shouldBe Søknad.TypeLukking.Trukket }
                 )
