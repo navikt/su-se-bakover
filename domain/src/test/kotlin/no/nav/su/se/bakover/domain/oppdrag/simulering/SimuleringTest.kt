@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -26,6 +27,18 @@ internal class SimuleringTest {
                 )
             )
         ).bruttoYtelse() shouldBe 0
+    }
+
+    @Test
+    fun equals() {
+        simulering shouldBe simulering
+        simulering shouldBe simulering.copy()
+        simulering shouldBe simulering.copy(datoBeregnet = 1.januar(2020))
+
+        simulering shouldNotBe simulering.copy(gjelderId = Fnr("10101010101"))
+        simulering shouldNotBe simulering.copy(gjelderNavn = "MYGG DUM")
+        simulering shouldNotBe simulering.copy(nettoBeløp = 70)
+        simulering shouldNotBe simulering.copy(periodeList = emptyList())
     }
 
     private val FNR = Fnr("07028820547")
