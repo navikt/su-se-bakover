@@ -1,0 +1,13 @@
+truncate
+  hendelseslogg,
+  utbetalingslinje,
+  månedsberegning,
+  fradrag,
+  beregning,
+  behandling,
+  utbetaling,
+  avstemming,
+  oppdrag,
+  søknad,
+  sak
+  cascade;
