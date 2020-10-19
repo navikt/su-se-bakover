@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.Kunn
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -165,33 +166,26 @@ internal class BehandlingServiceImpl(
                         behandling.right()
                     }
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                        val utbetaling = utbetalingService.lagUtbetaling(
-                            sakId = behandling.sakId,
-                            strategy = Oppdrag.UtbetalingStrategy.Ny(
-                                behandler = attestant,
-                                beregning = behandling.beregning()!!
-                            ),
-                        )
-                        // TODO move this to utbetalingservice probably
-                        return utbetalingService.simulerUtbetaling(utbetaling)
-                            .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
-                            .map { simulertUtbetaling ->
-                                if (simulertUtbetaling.simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
-                                    .left()
-
-                                return utbetalingService.utbetal(utbetaling = simulertUtbetaling)
-                                    .mapLeft {
-                                        return Behandling.IverksettFeil.Utbetaling().left()
-                                    }.map { oversendtUtbetaling ->
-                                        behandlingRepo.leggTilUtbetaling(
-                                            behandlingId = behandlingId,
-                                            utbetalingId = oversendtUtbetaling.id
-                                        )
-                                        behandlingRepo.attester(behandlingId, attestant)
-                                        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                                        return behandling.right()
-                                    }
+                        utbetalingService.utbetal(
+                            behandling.sakId,
+                            attestant,
+                            behandling.beregning()!!,
+                            behandling.simulering()!!
+                        ).mapLeft {
+                            when (it) {
+                                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                                UtbetalingFeilet.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
+                                UtbetalingFeilet.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
                             }
+                        }.map { oversendtUtbetaling ->
+                            behandlingRepo.leggTilUtbetaling(
+                                behandlingId = behandlingId,
+                                utbetalingId = oversendtUtbetaling.id
+                            )
+                            behandlingRepo.attester(behandlingId, attestant)
+                            behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                            behandling
+                        }
                     }
                     else -> throw Behandling.TilstandException(
                         state = behandling.status(),

@@ -289,7 +289,7 @@ data class Behandling(
                 attestant: NavIdentBruker.Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Innvilget())
@@ -303,7 +303,7 @@ data class Behandling(
                 attestant: NavIdentBruker.Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Avslag())
@@ -352,10 +352,10 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        data class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
-        data class Utbetaling(val msg: String = "Feil ved oversendelse av utbetaling til oppdrag!") : IverksettFeil()
-        data class KunneIkkeSimulere(val msg: String = "Kunne ikke gjennomføre kontrollsimulering av utbtaling") : IverksettFeil()
-        data class InkonsistentSimuleringsResultat(val msg: String = "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres") : IverksettFeil()
+        object AttestantOgSaksbehandlerErLik : IverksettFeil()
+        object KunneIkkeUtbetale : IverksettFeil()
+        object KunneIkkeKontrollSimulere : IverksettFeil()
+        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : IverksettFeil()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")

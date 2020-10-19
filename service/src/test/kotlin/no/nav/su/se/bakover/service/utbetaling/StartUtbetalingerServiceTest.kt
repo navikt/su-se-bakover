@@ -130,7 +130,7 @@ internal class StartUtbetalingerServiceTest {
             } doReturn simulertUtbetaling.right()
             on {
                 utbetal(argThat { it shouldBe simulertUtbetaling })
-            } doReturn UtbetalingFeilet.left()
+            } doReturn UtbetalingFeilet.Protokollfeil.left()
         }
 
         val response = StartUtbetalingerService(

@@ -287,7 +287,7 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = mock()
         ).utbetal(simulertUtbetaling)
 
-        response shouldBe UtbetalingFeilet.left()
+        response shouldBe UtbetalingFeilet.Protokollfeil.left()
         verify(utbetalingPublisherMock).publish(
             argThat {
                 it.utbetaling shouldBe tilUtbetaling.utbetaling

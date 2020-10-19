@@ -206,17 +206,15 @@ internal fun Route.behandlingRoutes(
                                 ).fold(
                                     {
                                         when (it) {
-                                            is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
-                                            is Behandling.IverksettFeil.Utbetaling -> call.svar(
-                                                InternalServerError.message(
-                                                    it.msg
-                                                )
+                                            is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message("Attestant og saksbehandler kan ikke være samme person"))
+                                            is Behandling.IverksettFeil.KunneIkkeUtbetale -> call.svar(
+                                                InternalServerError.message("Kunne ikke utføre utbetaling")
                                             )
-                                            is Behandling.IverksettFeil.KunneIkkeSimulere -> call.svar(
-                                                InternalServerError.message(it.msg)
+                                            is Behandling.IverksettFeil.KunneIkkeKontrollSimulere -> call.svar(
+                                                InternalServerError.message("Kunne ikke utføre kontrollsimulering")
                                             )
-                                            is Behandling.IverksettFeil.InkonsistentSimuleringsResultat -> call.svar(
-                                                InternalServerError.message(it.msg)
+                                            is Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> call.svar(
+                                                InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
                                             )
                                         }
                                     },

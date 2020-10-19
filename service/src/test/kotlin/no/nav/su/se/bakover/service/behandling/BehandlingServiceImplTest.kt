@@ -136,7 +136,12 @@ internal class BehandlingServiceImplTest {
             on { lagUtbetaling(behandling.sakId, strategy) } doReturn utbetalingForSimulering
             on { simulerUtbetaling(utbetalingForSimulering) } doReturn simulertUtbetaling.right()
             on {
-                utbetal(argThat { it shouldBe simulertUtbetaling })
+                utbetal(
+                    sakId = argThat { it shouldBe behandling.sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering }
+                )
             } doReturn oversendtUtbetaling.right()
         }
 
@@ -156,9 +161,7 @@ internal class BehandlingServiceImplTest {
             behandlingRepoMock, utbetalingServiceMock, behandlingRepoMock
         ) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
-            verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
-            verify(utbetalingServiceMock).simulerUtbetaling(utbetalingForSimulering)
-            verify(utbetalingServiceMock).utbetal(simulertUtbetaling)
+            verify(utbetalingServiceMock).utbetal(any(), any(), any(), any())
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
@@ -177,12 +180,14 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetaling(behandling.sakId, strategy) } doReturn utbetalingForSimulering
-            on { simulerUtbetaling(utbetalingForSimulering) } doReturn simulertUtbetaling.copy(
-                simulering = simulering.copy(
-                    nettoBeløp = 4
+            on {
+                utbetal(
+                    behandling.sakId,
+                    attestant,
+                    beregning,
+                    simulering
                 )
-            ).right()
+            } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
         }
 
         val response = createService(
@@ -190,11 +195,10 @@ internal class BehandlingServiceImplTest {
             utbetalingService = utbetalingServiceMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
+        response shouldBe Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
 
         verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetaling(behandling.sakId, strategy)
-        verify(utbetalingServiceMock).simulerUtbetaling(utbetalingForSimulering)
+        verify(utbetalingServiceMock).utbetal(behandling.sakId, attestant, beregning, simulering)
         verify(behandlingRepoMock, Times(0)).oppdaterBehandlingStatus(any(), any())
         verifyNoMoreInteractions(utbetalingServiceMock)
     }
@@ -208,12 +212,17 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetaling(behandling.sakId, strategy) } doReturn utbetalingForSimulering
-            on { simulerUtbetaling(utbetalingForSimulering) } doReturn simulertUtbetaling.right()
-            on { utbetal(any()) } doReturn UtbetalingFeilet.left()
+            on {
+                utbetal(
+                    sakId = argThat { it shouldBe behandling.sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering }
+                )
+            } doReturn UtbetalingFeilet.Protokollfeil.left()
         }
 
-        val oppdragRepoMock = mock<OppdragRepo>() {
+        val oppdragRepoMock = mock<OppdragRepo> {
             on { hentOppdrag(behandling.sakId) } doReturn oppdrag
         }
 
@@ -223,7 +232,7 @@ internal class BehandlingServiceImplTest {
             oppdragRepo = oppdragRepoMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.IverksettFeil.Utbetaling().left()
+        response shouldBe Behandling.IverksettFeil.KunneIkkeUtbetale.left()
     }
 
     private fun beregnetBehandling() = Behandling(
