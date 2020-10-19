@@ -94,8 +94,8 @@ internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler
 typealias AssertBrukerHarTilgangTilPersonFunction = (Fnr) -> Person
 
 class SuUserContext(val call: ApplicationCall) {
-    private var _user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>? = null
-    private var _assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction? = null
+    private lateinit var _user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>
+    private lateinit var _assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction
 
     internal fun init(
         user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>,
@@ -105,7 +105,7 @@ class SuUserContext(val call: ApplicationCall) {
         _assertBrukerHarTilgangTilPerson = assertBrukerHarTilgangTilPerson
     }
 
-    internal fun isInitialized() = _user != null
+    internal fun isInitialized() = this::_user.isInitialized
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
@@ -115,11 +115,20 @@ class SuUserContext(val call: ApplicationCall) {
     }
 
     val user: MicrosoftGraphResponse
-        get() = _user
-            ?.getOrHandle { throw it }
-            ?: throw IkkeInitialisert
+        get() =
+            if (isInitialized()) {
+                _user.getOrHandle { throw it }
+            } else {
+                throw IkkeInitialisert
+            }
     val assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction
-        get() = _assertBrukerHarTilgangTilPerson ?: throw IkkeInitialisert
+        get() =
+            if (isInitialized()) {
+                _assertBrukerHarTilgangTilPerson
+            } else {
+                throw IkkeInitialisert
+            }
+
     fun getNAVIdent(): String = user.onPremisesSamAccountName ?: throw FantBrukerMenManglerNAVIdent
 }
 
