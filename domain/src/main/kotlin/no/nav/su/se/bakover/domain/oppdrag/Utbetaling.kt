@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 sealed class Utbetaling {
@@ -15,6 +16,7 @@ sealed class Utbetaling {
     abstract val type: UtbetalingsType
     abstract val oppdragId: UUID30
     abstract val behandler: NavIdentBruker
+    abstract val avstemmingsnøkkel: Avstemmingsnøkkel
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
     fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
@@ -30,10 +32,21 @@ sealed class Utbetaling {
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
-        override val behandler: NavIdentBruker
+        override val behandler: NavIdentBruker,
+        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet)
     ) : Utbetaling() {
         fun toSimulertUtbetaling(simulering: Simulering) =
-            SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering)
+            SimulertUtbetaling(
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering
+            )
     }
 
     data class SimulertUtbetaling(
@@ -44,10 +57,22 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
+        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
     ) : Utbetaling() {
         fun toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
-            OversendtUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering, oppdragsmelding)
+            OversendtUtbetaling(
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering,
+                oppdragsmelding = oppdragsmelding
+            )
     }
 
     data class OversendtUtbetaling(
@@ -58,11 +83,24 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
+        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding
     ) : Utbetaling() {
         fun toKvittertUtbetaling(kvittering: Kvittering) =
-            KvittertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering, oppdragsmelding, kvittering)
+            KvittertUtbetaling(
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering,
+                oppdragsmelding = oppdragsmelding,
+                kvittering = kvittering
+            )
     }
 
     data class KvittertUtbetaling(
@@ -73,6 +111,7 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
+        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering
@@ -92,6 +131,7 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
+        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
         val oppdragsmelding: Oppdragsmelding,
         val kvittering: Kvittering,

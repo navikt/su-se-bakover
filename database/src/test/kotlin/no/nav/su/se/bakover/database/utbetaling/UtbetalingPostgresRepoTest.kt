@@ -94,6 +94,7 @@ internal class UtbetalingPostgresRepoTest {
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR,
+        avstemmingsnøkkel = Avstemmingsnøkkel(),
         simulering = Simulering(
             gjelderId = FNR,
             gjelderNavn = "",

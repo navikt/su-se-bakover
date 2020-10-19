@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -94,8 +95,8 @@ internal class AvstemmingPostgresRepoTest {
 
             EmbeddedDatabase.instance().withSession { session ->
                 """
-                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler)
-                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler)
+                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler, avstemmingsnøkkel)
+                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler, :avstemmingsnokkel)
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
@@ -103,7 +104,8 @@ internal class AvstemmingPostgresRepoTest {
                         "oppdragId" to sak.oppdrag.id,
                         "fnr" to FNR,
                         "type" to "NY",
-                        "behandler" to "Z123"
+                        "behandler" to "Z123",
+                        "avstemmingsnokkel" to objectMapper.writeValueAsString(Avstemmingsnøkkel())
                     ),
                     session
                 )

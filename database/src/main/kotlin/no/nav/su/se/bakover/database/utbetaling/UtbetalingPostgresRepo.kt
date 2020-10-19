@@ -43,8 +43,8 @@ internal class UtbetalingPostgresRepo(
     override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
         dataSource.withSession { session ->
             """
-            insert into utbetaling (id, opprettet, oppdragId, fnr, type, simulering, oppdragsmelding, behandler)
-            values (:id, :opprettet, :oppdragId, :fnr, :type, to_json(:simulering::json), to_json(:oppdragsmelding::json), :behandler)
+            insert into utbetaling (id, opprettet, oppdragId, fnr, type, avstemmingsnøkkel, simulering, oppdragsmelding, behandler)
+            values (:id, :opprettet, :oppdragId, :fnr, :type, :avstemmingsnokkel, to_json(:simulering::json), to_json(:oppdragsmelding::json), :behandler)
          """.oppdatering(
                 mapOf(
                     "id" to utbetaling.id,
@@ -52,6 +52,7 @@ internal class UtbetalingPostgresRepo(
                     "oppdragId" to utbetaling.oppdragId,
                     "fnr" to utbetaling.fnr,
                     "type" to utbetaling.type.name,
+                    "avstemmingsnokkel" to objectMapper.writeValueAsString(utbetaling.avstemmingsnøkkel),
                     "simulering" to objectMapper.writeValueAsString(utbetaling.simulering),
                     "oppdragsmelding" to objectMapper.writeValueAsString(utbetaling.oppdragsmelding),
                     "behandler" to utbetaling.behandler.navIdent

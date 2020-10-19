@@ -23,12 +23,13 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = null,
             oppdragsmelding = null,
             kvittering = null,
-            avstemmingId = null
+            avstemmingId = null,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.UtbetalingForSimulering::class)
 
         UtbetalingMapper(
@@ -37,8 +38,7 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -48,7 +48,9 @@ internal class UtbetalingMapperTest {
             ),
             oppdragsmelding = null,
             kvittering = null,
-            avstemmingId = null
+            avstemmingId = null,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.SimulertUtbetaling::class)
 
         UtbetalingMapper(
@@ -57,8 +59,7 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -73,7 +74,9 @@ internal class UtbetalingMapperTest {
                 )
             ),
             kvittering = null,
-            avstemmingId = null
+            avstemmingId = null,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling::class)
 
         UtbetalingMapper(
@@ -82,8 +85,7 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -103,7 +105,9 @@ internal class UtbetalingMapperTest {
                 mottattTidspunkt = Tidspunkt.now()
 
             ),
-            avstemmingId = null
+            avstemmingId = null,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.KvittertUtbetaling::class)
 
         UtbetalingMapper(
@@ -112,8 +116,7 @@ internal class UtbetalingMapperTest {
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
@@ -133,7 +136,9 @@ internal class UtbetalingMapperTest {
                 mottattTidspunkt = Tidspunkt.now()
 
             ),
-            avstemmingId = UUID30.randomUUID()
+            avstemmingId = UUID30.randomUUID(),
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.AvstemtUtbetaling::class)
     }
 }

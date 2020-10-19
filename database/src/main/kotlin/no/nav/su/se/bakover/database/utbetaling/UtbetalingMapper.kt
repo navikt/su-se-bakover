@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 data class UtbetalingMapper(
@@ -16,6 +17,7 @@ data class UtbetalingMapper(
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
     val type: Utbetaling.UtbetalingsType,
+    val avstemmingsnøkkel: Avstemmingsnøkkel,
     val simulering: Simulering?,
     val oppdragsmelding: Oppdragsmelding?,
     val kvittering: Kvittering?,
@@ -26,50 +28,72 @@ data class UtbetalingMapper(
     fun map() = when {
         simulering == null -> {
             // TODO: Vurdere kaste IllegalStateException eller vente til vi har gjort simulerings-kolonnen i utbetaling-tabellen non-null
-            Utbetaling.UtbetalingForSimulering(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler)
+            Utbetaling.UtbetalingForSimulering(
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel
+            )
         }
         oppdragsmelding == null -> {
-            Utbetaling.SimulertUtbetaling(id, opprettet, fnr, utbetalingslinjer, type, oppdragId, behandler, simulering)
+            Utbetaling.SimulertUtbetaling(
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering
+            )
         }
         kvittering == null -> {
             Utbetaling.OversendtUtbetaling(
-                id,
-                opprettet,
-                fnr,
-                utbetalingslinjer,
-                type,
-                oppdragId,
-                behandler,
-                simulering,
-                oppdragsmelding
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering,
+                oppdragsmelding = oppdragsmelding
             )
         }
         avstemmingId == null -> {
             Utbetaling.KvittertUtbetaling(
-                id,
-                opprettet,
-                fnr,
-                utbetalingslinjer,
-                type,
-                oppdragId,
-                behandler,
-                simulering,
-                oppdragsmelding,
-                kvittering
+                id = id,
+                opprettet = opprettet,
+                fnr = fnr,
+                utbetalingslinjer = utbetalingslinjer,
+                type = type,
+                oppdragId = oppdragId,
+                behandler = behandler,
+                avstemmingsnøkkel = avstemmingsnøkkel,
+                simulering = simulering,
+                oppdragsmelding = oppdragsmelding,
+                kvittering = kvittering
             )
         }
         else -> Utbetaling.AvstemtUtbetaling(
-            id,
-            opprettet,
-            fnr,
-            utbetalingslinjer,
-            type,
-            oppdragId,
-            behandler,
-            simulering,
-            oppdragsmelding,
-            kvittering,
-            avstemmingId
+            id = id,
+            opprettet = opprettet,
+            fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
+            type = type,
+            oppdragId = oppdragId,
+            behandler = behandler,
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            simulering = simulering,
+            oppdragsmelding = oppdragsmelding,
+            kvittering = kvittering,
+            avstemmingId = avstemmingId
         )
     }
 }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 internal object UtbetalingInternalRepo {
@@ -60,6 +61,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val oppdragId = uuid30("oppdragId")
     val behandler = NavIdentBruker.Attestant(string("behandler"))
+    val avstemmingsnøkkel = string("avstemmingsnøkkel").let { objectMapper.readValue(it, Avstemmingsnøkkel::class.java) }
 
     return UtbetalingMapper(
         id = id,
@@ -67,6 +69,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling {
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
         type = type,
+        avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,
         oppdragsmelding = oppdragsmelding,
         kvittering = kvittering,
