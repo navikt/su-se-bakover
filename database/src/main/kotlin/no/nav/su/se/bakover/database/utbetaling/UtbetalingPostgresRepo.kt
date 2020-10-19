@@ -40,7 +40,7 @@ internal class UtbetalingPostgresRepo(
         return hentUtbetaling(utbetalingId)!!
     }
 
-    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling {
+    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling) {
         dataSource.withSession { session ->
             """
             insert into utbetaling (id, opprettet, oppdragId, fnr, type, avstemmingsnøkkel, simulering, oppdragsmelding, behandler)
@@ -61,7 +61,6 @@ internal class UtbetalingPostgresRepo(
             )
         }
         utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
-        return hentUtbetaling(utbetaling.id)!!
     }
 
     internal fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje): Utbetalingslinje {

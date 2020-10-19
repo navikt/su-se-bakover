@@ -40,10 +40,11 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste avstemming`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FnrGenerator.random())
-            val utbetaling = utbetalingRepo.opprettUtbetaling(oversendtUtbetaling(oppdragId = sak.oppdrag.id))
+            val utbetaling = oversendtUtbetaling(oppdragId = sak.oppdrag.id)
+            utbetalingRepo.opprettUtbetaling(utbetaling)
                 .also {
                     utbetalingRepo.oppdaterMedKvittering(
-                        it.id,
+                        utbetaling.id,
                         Kvittering(
                             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                             originalKvittering = "hallo",
@@ -132,25 +133,23 @@ internal class AvstemmingPostgresRepoTest {
     fun `hent utbetalinger for avstemming tidspunkt test`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling1 = utbetalingRepo.opprettUtbetaling(
-                oversendtUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
-                    ),
-                    oppdragId = sak.oppdrag.id
-                )
+            val utbetaling1 = oversendtUtbetaling(
+                oppdragsmelding = Oppdragsmelding(
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
+                ),
+                oppdragId = sak.oppdrag.id
             )
+            utbetalingRepo.opprettUtbetaling(utbetaling1)
 
-            val utbetaling2 = utbetalingRepo.opprettUtbetaling(
-                oversendtUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
-                    ),
-                    oppdragId = sak.oppdrag.id
-                )
+            val utbetaling2 = oversendtUtbetaling(
+                oppdragsmelding = Oppdragsmelding(
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
+                ),
+                oppdragId = sak.oppdrag.id
             )
+            utbetalingRepo.opprettUtbetaling(utbetaling2)
 
             utbetalingRepo.opprettUtbetaling(
                 oversendtUtbetaling(
@@ -176,15 +175,14 @@ internal class AvstemmingPostgresRepoTest {
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = utbetalingRepo.opprettUtbetaling(
-                oversendtUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel()
-                    ),
-                    oppdragId = sak.oppdrag.id
-                )
+            val utbetaling = oversendtUtbetaling(
+                oppdragsmelding = Oppdragsmelding(
+                    originalMelding = "",
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                ),
+                oppdragId = sak.oppdrag.id
             )
+            utbetalingRepo.opprettUtbetaling(utbetaling)
 
             utbetalingRepo.oppdaterMedKvittering(
                 utbetaling.id,

@@ -10,5 +10,5 @@ interface UtbetalingRepo {
     fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling?
     fun oppdaterMedKvittering(utbetalingId: UUID30, kvittering: Kvittering): Utbetaling
 
-    fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling): Utbetaling
+    fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling)
 }

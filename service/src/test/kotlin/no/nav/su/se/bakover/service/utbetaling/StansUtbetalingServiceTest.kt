@@ -164,7 +164,7 @@ internal class StansUtbetalingServiceTest {
             } doReturn simulertUtbetaling.right()
             on {
                 utbetal(argThat { it shouldBe simulertUtbetaling })
-            } doReturn UtbetalingFeilet.Protokollfeil.left()
+            } doReturn KunneIkkeUtbetale.Protokollfeil.left()
         }
 
         val response = StansUtbetalingService(
@@ -206,7 +206,8 @@ internal class StansUtbetalingServiceTest {
         utbetalingslinjer = listOf(),
         type = Utbetaling.UtbetalingsType.STANS,
         oppdragId = UUID30.randomUUID(),
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
+        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private val simulering = Simulering(

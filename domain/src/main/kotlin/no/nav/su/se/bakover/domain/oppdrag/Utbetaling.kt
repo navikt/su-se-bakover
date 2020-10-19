@@ -33,7 +33,7 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet)
+        override val avstemmingsnøkkel: Avstemmingsnøkkel
     ) : Utbetaling() {
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(

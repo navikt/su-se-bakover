@@ -2,12 +2,13 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -18,14 +19,17 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 internal class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
-    private val sakRepo: SakRepo,
+    private val sakService: SakService,
     private val simuleringClient: SimuleringClient,
-    private val utbetalingPublisher: UtbetalingPublisher
+    private val utbetalingPublisher: UtbetalingPublisher,
+    private val clock: Clock = Clock.systemUTC()
 ) : UtbetalingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -53,7 +57,7 @@ internal class UtbetalingServiceImpl(
         sakId: UUID,
         strategy: Oppdrag.UtbetalingStrategy
     ): Utbetaling.UtbetalingForSimulering {
-        val sak = sakRepo.hentSak(sakId)!!
+        val sak = sakService.hentSak(sakId).orNull()!!
         return sak.oppdrag.genererUtbetaling(strategy, sak.fnr)
     }
 
@@ -62,15 +66,15 @@ internal class UtbetalingServiceImpl(
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
+    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling> {
         return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
-            UtbetalingFeilet.KunneIkkeSimulere
+            KunneIkkeUtbetale.KunneIkkeSimulere
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     simulering,
                     simulertUtbetaling
                 )
-            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertUtbetaling)
         }
     }
@@ -115,24 +119,46 @@ internal class UtbetalingServiceImpl(
         return simuleringClient.simulerUtbetaling(
             OversendelseTilOppdrag.TilSimulering(
                 utbetaling = utbetaling,
-                avstemmingsnøkkel = Avstemmingsnøkkel()
+                avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
             )
         ).map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling> {
+    override fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling> {
         // TODO could/should we always perform consistency at this point?
         return utbetalingPublisher.publish(
             OversendelseTilOppdrag.TilUtbetaling(
                 utbetaling = utbetaling,
-                avstemmingsnøkkel = Avstemmingsnøkkel()
+                avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
             )
         ).mapLeft {
-            return UtbetalingFeilet.Protokollfeil.left()
+            KunneIkkeUtbetale.Protokollfeil
         }.map { oppdragsmelding ->
             val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
             utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
             oversendtUtbetaling
+        }
+    }
+
+    override fun gjenopptaUtbetalinger(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker
+    ): Either<KunneIkkeGjenopptaUtbetalinger, Sak> {
+
+        val sak = sakService.hentSak(sakId).getOrElse {
+            return KunneIkkeGjenopptaUtbetalinger.FantIkkeSak.left()
+        }
+        val utbetalingTilSimulering =
+            sak.oppdrag.genererUtbetaling(Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler), sak.fnr)
+
+        return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
+            KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet
+        }.flatMap {
+            utbetal(it).mapLeft {
+                KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+            }
+        }.map {
+            sakService.hentSak(sakId).orNull()!!
         }
     }
 }

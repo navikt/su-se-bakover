@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.Kunn
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingFeilet
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -163,9 +163,9 @@ internal class BehandlingServiceImpl(
                             behandling.simulering()!!
                         ).mapLeft {
                             when (it) {
-                                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                                UtbetalingFeilet.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
-                                UtbetalingFeilet.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
+                                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                                KunneIkkeUtbetale.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
+                                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
                             }
                         }.map { oversendtUtbetaling ->
                             behandlingRepo.leggTilUtbetaling(

@@ -4,9 +4,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
@@ -42,6 +44,7 @@ data class Oppdrag(
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
+    // TODO: Returner Either istedet for å kaste?
     fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling.UtbetalingForSimulering =
         when (strategy) {
             is UtbetalingStrategy.Stans -> Strategy().Stans(
@@ -50,10 +53,12 @@ data class Oppdrag(
             ).generate(fnr)
             is UtbetalingStrategy.Ny -> Strategy().Ny(
                 behandler = strategy.behandler,
-                beregning = strategy.beregning
+                beregning = strategy.beregning,
+                clock = strategy.clock
             ).generate(fnr)
             is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta(
-                behandler = strategy.behandler
+                behandler = strategy.behandler,
+                clock = strategy.clock
             ).generate(fnr)
         }
 
@@ -67,11 +72,13 @@ data class Oppdrag(
 
         data class Ny(
             override val behandler: NavIdentBruker,
-            val beregning: Beregning
+            val beregning: Beregning,
+            val clock: Clock = Clock.systemUTC()
         ) : UtbetalingStrategy()
 
         data class Gjenoppta(
-            override val behandler: NavIdentBruker
+            override val behandler: NavIdentBruker,
+            val clock: Clock = Clock.systemUTC()
         ) : UtbetalingStrategy()
     }
 
@@ -102,14 +109,16 @@ data class Oppdrag(
                     fnr = fnr,
                     type = Utbetaling.UtbetalingsType.STANS,
                     oppdragId = id,
-                    behandler = behandler
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
         }
 
         inner class Ny(
             private val behandler: NavIdentBruker,
-            private val beregning: Beregning
+            private val beregning: Beregning,
+            private val clock: Clock = Clock.systemUTC()
         ) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 return Utbetaling.UtbetalingForSimulering(
@@ -126,7 +135,8 @@ data class Oppdrag(
                     fnr = fnr,
                     type = Utbetaling.UtbetalingsType.NY,
                     oppdragId = id,
-                    behandler = behandler
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
 
@@ -142,7 +152,8 @@ data class Oppdrag(
         }
 
         inner class Gjenoppta(
-            private val behandler: NavIdentBruker
+            private val behandler: NavIdentBruker,
+            private val clock: Clock = Clock.systemUTC()
         ) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
@@ -193,7 +204,8 @@ data class Oppdrag(
                     fnr = fnr,
                     type = Utbetaling.UtbetalingsType.GJENOPPTA,
                     oppdragId = id,
-                    behandler = behandler
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
         }

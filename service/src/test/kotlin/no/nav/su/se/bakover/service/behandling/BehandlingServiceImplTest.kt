@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -37,7 +36,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingFeilet
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -189,7 +188,7 @@ internal class BehandlingServiceImplTest {
                     beregning,
                     simulering
                 )
-            } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            } doReturn KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
         }
 
         val response = createService(
@@ -221,7 +220,7 @@ internal class BehandlingServiceImplTest {
                     beregning = argThat { it shouldBe beregning },
                     simulering = argThat { it shouldBe simulering }
                 )
-            } doReturn UtbetalingFeilet.Protokollfeil.left()
+            } doReturn KunneIkkeUtbetale.Protokollfeil.left()
         }
 
         val response = createService(
@@ -270,12 +269,6 @@ internal class BehandlingServiceImplTest {
         sakId = sakId,
     )
 
-    private val sak = Sak(
-        id = sakId,
-        fnr = fnr,
-        oppdrag = oppdrag
-    )
-
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "NAVN",
@@ -289,7 +282,8 @@ internal class BehandlingServiceImplTest {
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         oppdragId = oppdrag.id,
-        behandler = attestant
+        behandler = attestant,
+        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -30,6 +29,8 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -42,7 +43,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
@@ -57,13 +58,14 @@ internal class UtbetalingServiceImplTest {
             fnr = Fnr("12345678910"),
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
@@ -84,7 +86,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).oppdaterMedKvittering(
@@ -128,7 +130,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).oppdaterMedKvittering(
@@ -174,7 +176,7 @@ internal class UtbetalingServiceImplTest {
 
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).oppdaterMedKvittering(
@@ -203,13 +205,13 @@ internal class UtbetalingServiceImplTest {
             )
         )
 
-        val sakRepoMock = mock<SakRepo> {
-            on { hentSak(sakId) } doReturn sak
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sak.id) } doReturn sak.right()
         }
 
         val response = UtbetalingServiceImpl(
             utbetalingRepo = mock(),
-            sakRepo = sakRepoMock,
+            sakService = sakServiceMock,
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).lagUtbetaling(
@@ -220,14 +222,14 @@ internal class UtbetalingServiceImplTest {
             )
         )
 
-        verify(sakRepoMock).hentSak(sakId)
+        verify(sakServiceMock).hentSak(sakId)
         response shouldNotBe null
     }
 
     @Test
     fun `utbetaler penger og lagrer utbetaling`() {
         val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(oversendtUtbetaling) } doReturn oversendtUtbetaling
+            on { opprettUtbetaling(oversendtUtbetaling) }.doNothing()
         }
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on {
@@ -243,7 +245,7 @@ internal class UtbetalingServiceImplTest {
         UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock()
         ).utbetal(simulertUtbetaling)
 
@@ -283,11 +285,11 @@ internal class UtbetalingServiceImplTest {
         val response = UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            sakRepo = mock(),
+            sakService = mock(),
             simuleringClient = mock()
         ).utbetal(simulertUtbetaling)
 
-        response shouldBe UtbetalingFeilet.Protokollfeil.left()
+        response shouldBe KunneIkkeUtbetale.Protokollfeil.left()
         verify(utbetalingPublisherMock).publish(
             argThat {
                 it.utbetaling shouldBe tilUtbetaling.utbetaling

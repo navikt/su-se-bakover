@@ -44,9 +44,9 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val oversendtUtbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
-            val utbetaling = repo.opprettUtbetaling(oversendtUtbetaling)
+            repo.opprettUtbetaling(oversendtUtbetaling)
             val kvittert = repo.oppdaterMedKvittering(
-                utbetalingId = utbetaling.id,
+                utbetalingId = oversendtUtbetaling.id,
                 kvittering = Kvittering(
                     Kvittering.Utbetalingsstatus.OK,
                     "some xml",
@@ -62,7 +62,8 @@ internal class UtbetalingPostgresRepoTest {
     fun `oppdater med kvittering`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(defaultOversendtUtbetaling(sak.oppdrag.id))
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            repo.opprettUtbetaling(utbetaling)
 
             val kvittering = Kvittering(
                 Kvittering.Utbetalingsstatus.OK,
@@ -79,7 +80,8 @@ internal class UtbetalingPostgresRepoTest {
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = repo.opprettUtbetaling(defaultOversendtUtbetaling(sak.oppdrag.id))
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
                 repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))

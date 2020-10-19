@@ -234,7 +234,7 @@ internal class OppdragGjenopptaStrategyTest {
         }
     }
 
-    // TODO consider for test - moved from start utbetaling service
+    // TODO consider for test - moved from gjenoppta utbetaling service
     //
     // @Test
     // fun `Har ingen oversendte utbetalinger`() {

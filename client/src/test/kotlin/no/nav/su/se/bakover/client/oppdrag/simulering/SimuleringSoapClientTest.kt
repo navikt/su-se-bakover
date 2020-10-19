@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
@@ -191,7 +192,8 @@ internal class SimuleringSoapClientTest {
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
                 oppdragId = UUID30.randomUUID(),
-                behandler = NavIdentBruker.Saksbehandler("Z123")
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel()
             )
         )
 
@@ -248,7 +250,8 @@ internal class SimuleringSoapClientTest {
         fnr = Fnr("12345678910"),
         type = Utbetaling.UtbetalingsType.NY,
         oppdragId = UUID30.randomUUID(),
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
+        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

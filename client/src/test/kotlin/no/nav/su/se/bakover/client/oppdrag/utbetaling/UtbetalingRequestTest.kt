@@ -63,7 +63,8 @@ internal class UtbetalingRequestTest {
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = oppdragId,
-            behandler = NavIdentBruker.Attestant("A123456")
+            behandler = NavIdentBruker.Attestant("A123456"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -198,7 +199,8 @@ internal class UtbetalingRequestTest {
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = eksisterendeOppdrag.id,
-            behandler = NavIdentBruker.Attestant("A123456")
+            behandler = NavIdentBruker.Attestant("A123456"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
         val utbetalingRequest = toUtbetalingRequest(
             tilOppdrag = OversendelseTilOppdrag.TilSimulering(

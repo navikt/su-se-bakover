@@ -19,10 +19,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingFeilet
-import no.nav.su.se.bakover.service.utbetaling.StartUtbetalingerService
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
@@ -31,29 +33,38 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class StartUtbetalingRoutesKtTest {
+internal class GjenopptaUtbetalingRoutesKtTest {
 
-    val sakId = UUID.randomUUID()
-    val services = Services(
+    private val sakId = UUID.randomUUID()
+    private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
         oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),
-        stansUtbetaling = mock(),
-        startUtbetalinger = mock()
+        stansUtbetaling = mock()
     )
+    private val saksbehandler = NavIdentBruker.Saksbehandler("navident")
 
     @Test
     fun `Fant ikke sak returnerer not found`() {
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.FantIkkeSak.left()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    argThat {
+                        it shouldBe sakId
+                    },
+                    argThat {
+                        it shouldBe saksbehandler
+                    }
+                )
+            } doReturn KunneIkkeGjenopptaUtbetalinger.FantIkkeSak.left()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {
@@ -71,13 +82,18 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Har ingen oversendte utbetalinger returnerer bad request`() {
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    sakId,
+                    saksbehandler
+                )
+            } doReturn KunneIkkeGjenopptaUtbetalinger.HarIngenOversendteUtbetalinger.left()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {
@@ -95,13 +111,18 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Siste utbetaling er ikke en stansbetaling returnerer bad request`() {
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    sakId,
+                    saksbehandler
+                )
+            } doReturn KunneIkkeGjenopptaUtbetalinger.SisteUtbetalingErIkkeEnStansutbetaling.left()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {
@@ -118,14 +139,19 @@ internal class StartUtbetalingRoutesKtTest {
     }
 
     @Test
-    fun `Simulering av start utbetaling returnerer internal server error`() {
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SimuleringAvStartutbetalingFeilet.left()
+    fun `Simulering av gjenoppta utbetaling returnerer internal server error`() {
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    sakId,
+                    saksbehandler
+                )
+            } doReturn KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet.left()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {
@@ -143,13 +169,18 @@ internal class StartUtbetalingRoutesKtTest {
 
     @Test
     fun `Sending av utbetaling til oppdrag returnerer internal server error`() {
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn StartUtbetalingFeilet.SendingAvUtebetalingTilOppdragFeilet.left()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    sakId,
+                    saksbehandler
+                )
+            } doReturn KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {
@@ -175,7 +206,8 @@ internal class StartUtbetalingRoutesKtTest {
             fnr = Fnr("12345678911"),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
             oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Attestant("Z123")
+            behandler = NavIdentBruker.Attestant("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),
@@ -186,13 +218,13 @@ internal class StartUtbetalingRoutesKtTest {
                 utbetalinger = listOf(utbetaling)
             )
         )
-        val utbetalingServiceMock = mock<StartUtbetalingerService> {
-            on { startUtbetalinger(sakId) } doReturn sak.right()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { gjenopptaUtbetalinger(sakId, saksbehandler) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
                 services = services.copy(
-                    startUtbetalinger = utbetalingServiceMock
+                    utbetaling = utbetalingServiceMock
                 )
             )
         }) {

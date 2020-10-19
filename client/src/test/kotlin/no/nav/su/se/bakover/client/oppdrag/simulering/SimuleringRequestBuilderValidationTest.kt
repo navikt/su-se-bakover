@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
@@ -44,7 +45,8 @@ internal class SimuleringRequestBuilderValidationTest {
                     fnr = Fnr("12345678910"),
                     type = Utbetaling.UtbetalingsType.NY,
                     oppdragId = oppdragId,
-                    behandler = NavIdentBruker.Saksbehandler("Z123")
+                    behandler = NavIdentBruker.Saksbehandler("Z123"),
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
                 )
             )
         ).build().request

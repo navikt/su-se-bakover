@@ -111,7 +111,8 @@ internal class AvstemmingDataBuilderTest {
                             fnr = fnr,
                             type = Utbetaling.UtbetalingsType.NY,
                             oppdragId = UUID30.randomUUID(),
-                            behandler = NavIdentBruker.Saksbehandler("Z123")
+                            behandler = NavIdentBruker.Saksbehandler("Z123"),
+                            avstemmingsnøkkel = Avstemmingsnøkkel()
                         )
                     ),
                     avstemmingXmlRequest = null

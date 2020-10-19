@@ -23,14 +23,19 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class OppdragNyStrategyTest {
     private val sakId = UUID.randomUUID()
     private lateinit var oppdrag: Oppdrag
     private val fnr = Fnr("12345678910")
+
+    private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
     @BeforeEach
     fun beforeEach() {
@@ -46,7 +51,8 @@ internal class OppdragNyStrategyTest {
         val actual = oppdrag.genererUtbetaling(
             Ny(
                 NavIdentBruker.Saksbehandler("Z123"),
-                createBeregning(1.januar(2020), 30.april(2020))
+                createBeregning(1.januar(2020), 30.april(2020)),
+                fixedClock
             ),
             fnr = fnr
         )
@@ -113,7 +119,8 @@ internal class OppdragNyStrategyTest {
                 createBeregning(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020)
-                )
+                ),
+                fixedClock
             ),
             fnr = fnr
         )
@@ -142,7 +149,8 @@ internal class OppdragNyStrategyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = eksisterendeOppdrag.id,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )
     }
 
@@ -150,7 +158,7 @@ internal class OppdragNyStrategyTest {
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel()),
+            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel(Tidspunkt.EPOCH)),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,
@@ -168,7 +176,7 @@ internal class OppdragNyStrategyTest {
 
         val second = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel()),
+            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel(Tidspunkt.EPOCH)),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,
@@ -232,7 +240,8 @@ internal class OppdragNyStrategyTest {
         val actualUtbetaling = oppdrag.genererUtbetaling(
             strategy = Ny(
                 NavIdentBruker.Saksbehandler("Z123"),
-                beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+                beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                fixedClock
             ),
             fnr = fnr
         )
@@ -260,7 +269,8 @@ internal class OppdragNyStrategyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = oppdrag.id,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )
     }
 
@@ -275,7 +285,8 @@ internal class OppdragNyStrategyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = oppdrag.id,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )
     }
 
