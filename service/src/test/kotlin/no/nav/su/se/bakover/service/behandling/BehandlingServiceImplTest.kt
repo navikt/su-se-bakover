@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.service.behandling
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.capture
+import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -11,6 +13,7 @@ import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -42,6 +45,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
 import java.util.UUID
 
@@ -170,12 +174,25 @@ internal class BehandlingServiceImplTest {
             on { hentOppdrag(sak.id) } doReturn oppdrag
         }
 
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val personOppslagMock: PersonOppslag = mock {
+            val fnrCaptor = ArgumentCaptor.forClass(Fnr::class.java)
+            val aktørIdCaptor = ArgumentCaptor.forClass(Fnr::class.java)
+            on { person(capture<Fnr>(fnrCaptor)) } doAnswer { PersonOppslagStub.person(fnrCaptor.value) }
+            on { aktørId(capture<Fnr>(aktørIdCaptor)) } doAnswer { PersonOppslagStub.aktørId(aktørIdCaptor.value) }
+        }
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             simuleringClient = simuleringClientMock,
             utbetalingService = utbetalingServiceMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            oppdragRepo = oppdragRepoMock
+            oppdragRepo = oppdragRepoMock,
+            personOppslag = personOppslagMock,
+            sakService = sakServiceMock
         ).iverksett(behandling.id, Attestant("Z123456"))
 
         response shouldBe behandling.right()

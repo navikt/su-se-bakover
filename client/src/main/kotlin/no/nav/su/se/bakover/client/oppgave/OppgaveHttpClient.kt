@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstema.SU_UFØRE_FLYKNING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstype.FØRSTEGANGSSØKNAD
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.BEHANDLE_SAK
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.TIL_ATTESTERING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -74,6 +75,18 @@ internal class OppgaveHttpClient(
     override fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
         return søkEtterOppgave(
             BEHANDLE_SAK.value,
+            FØRSTEGANGSSØKNAD.value,
+            SU_UFØRE_FLYKNING.value,
+            aktørId
+        ).fold(
+            { KunneIkkeFerdigstilleOppgave.left() },
+            { ferdigstillOppgave(it.id, it.versjon) }
+        )
+    }
+
+    override fun ferdigstillAttesteringsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+        return søkEtterOppgave(
+            TIL_ATTESTERING.value,
             FØRSTEGANGSSØKNAD.value,
             SU_UFØRE_FLYKNING.value,
             aktørId

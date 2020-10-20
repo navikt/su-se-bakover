@@ -15,4 +15,7 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> =
         Random.nextInt().right()
+
+    override fun ferdigstillAttesteringsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> =
+        Random.nextInt().right()
 }

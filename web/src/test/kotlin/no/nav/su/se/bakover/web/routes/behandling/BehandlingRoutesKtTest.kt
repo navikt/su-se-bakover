@@ -170,6 +170,10 @@ internal class BehandlingRoutesKtTest {
                         override fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
                             return Random.nextInt().right()
                         }
+
+                        override fun ferdigstillAttesteringsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+                            return Random.nextInt().right()
+                        }
                     }
                 )
             )

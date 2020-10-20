@@ -202,6 +202,25 @@ internal class BehandlingServiceImpl(
                                     )
                                     behandlingRepo.attester(behandlingId, attestant)
                                     behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+
+                                    sakService.hentSak(behandling.sakId).fold(
+                                        {
+                                            log.warn("Fant ikke sak med sakId : ${behandling.sakId}")
+                                        },
+                                        { sak ->
+                                            personOppslag.aktørId(sak.fnr).fold(
+                                                {
+                                                    log.warn("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
+                                                },
+                                                { aktørId ->
+                                                    oppgaveClient.ferdigstillAttesteringsOppgave(
+                                                        aktørId = aktørId
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    )
+
                                     return behandling.right()
                                 }
                             }
