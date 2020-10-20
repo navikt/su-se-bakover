@@ -123,21 +123,6 @@ sealed class Utbetaling {
             ).contains(kvittering.utbetalingsstatus)
     }
 
-    data class AvstemtUtbetaling(
-        override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = now(),
-        override val fnr: Fnr,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingsType,
-        override val oppdragId: UUID30,
-        override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
-        val simulering: Simulering,
-        val oppdragsmelding: Utbetalingsrequest,
-        val kvittering: Kvittering,
-        val avstemmingId: UUID30
-    ) : Utbetaling()
-
     enum class UtbetalingsType {
         NY,
         STANS,

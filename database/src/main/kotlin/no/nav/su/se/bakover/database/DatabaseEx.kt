@@ -37,3 +37,8 @@ internal fun Session.inClauseWith(values: List<String>): Array =
 internal fun <T> DataSource.withSession(block: (session: Session) -> T): T {
     return using(sessionOf(this)) { block(it) }
 }
+
+internal fun String.antall(
+    params: Map<String, Any> = emptyMap(),
+    session: Session
+): Long = session.run(queryOf(this, params).map { row -> row.long("count") }.asSingle)!!

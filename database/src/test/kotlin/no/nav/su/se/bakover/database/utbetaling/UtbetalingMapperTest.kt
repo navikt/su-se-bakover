@@ -68,33 +68,5 @@ internal class UtbetalingMapperTest {
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map() shouldBe instanceOf(Utbetaling.KvittertUtbetaling::class)
-
-        UtbetalingMapper(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            fnr = Fnr(fnr = "12345678910"),
-            utbetalingslinjer = listOf(),
-            type = Utbetaling.UtbetalingsType.NY,
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
-            simulering = Simulering(
-                gjelderId = Fnr(fnr = "12345678910"),
-                gjelderNavn = "navn",
-                datoBeregnet = idag(),
-                nettoBeløp = 0,
-                periodeList = listOf()
-            ),
-            utbetalingsrequest = Utbetalingsrequest(
-                value = ""
-            ),
-            kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                originalKvittering = "",
-                mottattTidspunkt = Tidspunkt.now()
-
-            ),
-            avstemmingId = UUID30.randomUUID(),
-            oppdragId = UUID30.randomUUID(),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
-        ).map() shouldBe instanceOf(Utbetaling.AvstemtUtbetaling::class)
     }
 }

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -194,8 +195,9 @@ internal class AvstemmingPostgresRepoTest {
             repo.opprettAvstemming(avstemming)
             repo.oppdaterAvstemteUtbetalinger(avstemming)
 
-            val oppdatertUtbetaling = utbetalingRepo.hentUtbetaling(utbetaling.id) as Utbetaling.AvstemtUtbetaling
-            oppdatertUtbetaling.avstemmingId shouldBe avstemming.id
+            EmbeddedDatabase.instance().withSession { session ->
+                "select count(*) from Utbetaling where avstemmingId is not null".antall(session = session)
+            } shouldBe 1
         }
     }
 

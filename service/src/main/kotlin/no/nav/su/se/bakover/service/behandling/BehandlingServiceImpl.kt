@@ -104,7 +104,7 @@ internal class BehandlingServiceImpl(
     override fun sendTilAttestering(
         sakId: UUID,
         behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
         val sak = sakService.hentSak(sakId).getOrElse {
             log.info("Fant ikke sak med sakId : $sakId")

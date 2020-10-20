@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.database.beregning
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotliquery.queryOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -103,11 +103,6 @@ internal class BeregningPostgresRepoTest {
 
     private fun selectCount(from: String, where: String, id: String) =
         EmbeddedDatabase.instance().withSession { session ->
-            session.run(
-                queryOf(
-                    "select count(*) from $from where $where='$id'",
-                    emptyMap()
-                ).map { it.int("count") }.asSingle
-            )
+            "select count(*) from $from where $where='$id'".antall(session = session)
         }
 }

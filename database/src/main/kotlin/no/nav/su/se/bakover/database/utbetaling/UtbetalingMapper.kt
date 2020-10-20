@@ -25,8 +25,8 @@ data class UtbetalingMapper(
     val oppdragId: UUID30,
     val behandler: NavIdentBruker
 ) {
-    fun map() = when {
-        kvittering == null -> {
+    fun map() = when (kvittering) {
+        null -> {
             Utbetaling.OversendtUtbetaling(
                 id = id,
                 opprettet = opprettet,
@@ -40,7 +40,7 @@ data class UtbetalingMapper(
                 utbetalingsrequest = utbetalingsrequest
             )
         }
-        avstemmingId == null -> {
+        else -> {
             Utbetaling.KvittertUtbetaling(
                 id = id,
                 opprettet = opprettet,
@@ -55,19 +55,5 @@ data class UtbetalingMapper(
                 kvittering = kvittering
             )
         }
-        else -> Utbetaling.AvstemtUtbetaling(
-            id = id,
-            opprettet = opprettet,
-            fnr = fnr,
-            utbetalingslinjer = utbetalingslinjer,
-            type = type,
-            oppdragId = oppdragId,
-            behandler = behandler,
-            avstemmingsnøkkel = avstemmingsnøkkel,
-            simulering = simulering,
-            oppdragsmelding = utbetalingsrequest,
-            kvittering = kvittering,
-            avstemmingId = avstemmingId
-        )
     }
 }
