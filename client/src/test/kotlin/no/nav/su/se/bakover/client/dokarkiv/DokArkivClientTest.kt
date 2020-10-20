@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.Base64
 import java.util.UUID
 
@@ -34,7 +35,19 @@ internal class DokArkivClientTest : WiremockBase {
     private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")
     }
-    private val trukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(person, Søknad.TypeLukking.Trukket)
+    private val trukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+        person = person,
+        søknad = Søknad(
+            sakId = uuidSakId,
+            id = UUID.randomUUID(),
+            søknadInnhold = søknadInnhold
+        ),
+        lukketSøknadBody = Søknad.LukketSøknadBody(
+            datoSøkerTrakkSøknad = LocalDate.now(),
+            typeLukking = Søknad.TypeLukking.Trukket
+
+        )
+    )
 
     val client = DokArkivClient(
         wireMockServer.baseUrl(),
@@ -138,7 +151,7 @@ internal class DokArkivClientTest : WiremockBase {
     val forventetLukketRequest =
         """
                     {
-                      "tittel": "Brev om avsluttet søknad om supplerende stønad",
+                      "tittel": "Bekrefter at søknad er trukket",
                       "journalpostType": "UTGAAENDE",
                       "tema": "SUP",
                       "kanal": null,
@@ -160,7 +173,7 @@ internal class DokArkivClientTest : WiremockBase {
                       },
                       "dokumenter": [
                         {
-                          "tittel": "Brev om avsluttet søknad om supplerende stønad",
+                          "tittel": "Bekrefter at søknad er trukket",
                           "dokumentKategori": "IB",
                           "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [
@@ -286,7 +299,7 @@ internal class DokArkivClientTest : WiremockBase {
                           "dokumenter": [
                             {
                               "dokumentInfoId": "485227498",
-                              "tittel": "Brev om avsluttet søknad om supplerende stønad"
+                              "tittel": "Bekrefter at søknad er trukket"
                             }
                           ]
                         }

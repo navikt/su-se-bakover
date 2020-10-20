@@ -236,7 +236,7 @@ internal fun Application.susebakover(
                 )
                 søknadRoutes(søknadRoutesMediator, services.søknad)
                 behandlingRoutes(
-                    brevServiceImpl = BrevServiceImpl(
+                    brevService = BrevServiceImpl(
                         pdfGenerator = clients.pdfGenerator,
                         personOppslag = clients.personOppslag,
                         dokArkiv = clients.dokArkiv,

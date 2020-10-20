@@ -30,19 +30,22 @@ internal class SøknadServiceImpl(
 
     override fun lukkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler
+        saksbehandler: Saksbehandler,
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         return trekkSøknad(
             søknadId = søknadId,
             saksbehandler = saksbehandler,
-            loggtema = "Trekking av søknad"
+            loggtema = "Trekking av søknad",
+            lukketSøknadBody = lukketSøknadBody
         )
     }
 
     private fun trekkSøknad(
         søknadId: UUID,
         saksbehandler: Saksbehandler,
-        loggtema: String
+        loggtema: String,
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(søknadId).getOrElse {
             log.error("$loggtema: Fant ikke søknad")
@@ -57,7 +60,11 @@ internal class SøknadServiceImpl(
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
-        return brevService.journalførLukketSøknadOgSendBrev(sakId = søknad.sakId).fold(
+        return brevService.journalførLukketSøknadOgSendBrev(
+            sakId = søknad.sakId,
+            søknad = søknad,
+            lukketSøknadBody = lukketSøknadBody
+        ).fold(
             ifLeft = {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
                 KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
@@ -82,7 +89,7 @@ internal class SøknadServiceImpl(
 
     override fun lagLukketSøknadBrevutkast(
         søknadId: UUID,
-        typeLukking: Søknad.TypeLukking
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         val søknad = hentSøknad(søknadId).getOrElse {
             log.error("Lukket brevutkast: Fant ikke søknad")
@@ -91,7 +98,8 @@ internal class SøknadServiceImpl(
 
         return brevService.lagLukketSøknadBrevutkast(
             sakId = søknad.sakId,
-            typeLukking = typeLukking
+            søknad = søknad,
+            lukketSøknadBody = lukketSøknadBody
         ).mapLeft {
             log.error("Lukket brevutkast: feil ved generering av brevutkast")
             KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast

@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -44,7 +44,7 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    brevServiceImpl: BrevServiceImpl,
+    brevService: BrevService,
     behandlingService: BehandlingService,
     sakService: SakService,
 ) {
@@ -146,7 +146,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandling(behandlingService) { behandling ->
-                brevServiceImpl.lagUtkastTilBrev(behandling).fold(
+                brevService.lagUtkastTilBrev(behandling).fold(
                     ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
                     ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
                 )
@@ -197,7 +197,7 @@ internal fun Route.behandlingRoutes(
                     .mapLeft { throw RuntimeException("Sak id finnes ikke") }
                     .map { sak ->
                         // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-                        brevServiceImpl.journalførVedtakOgSendBrev(sak, behandling).fold(
+                        brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
                             ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
                             ifRight = {
                                 behandlingService.iverksett(

@@ -10,7 +10,6 @@ import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
-import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
@@ -58,25 +57,33 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk") {
             call.withSøknadId { søknadId ->
-                søknadService.lukkSøknad(
-                    søknadId = søknadId,
-                    saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
-                ).fold(
+                Either.catch { deserialize<Søknad.LukketSøknadBody>(call) }.fold(
                     ifLeft = {
-                        when (it) {
-                            is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
-                                call.svar(BadRequest.message("Søknad er allerede trukket"))
-                            is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
-                                call.svar(BadRequest.message("Søknaden har en behandling"))
-                            is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
-                                call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
-                            is KunneIkkeLukkeSøknad.KunneIkkeSendeBrev ->
-                                call.svar(InternalServerError.message("Kunne ikke sende brev for $søknadId"))
-                        }
+                        call.svar(BadRequest.message("Ugyldig body"))
                     },
-                    ifRight = {
-                        call.audit("Lukket søknad for søknad: $søknadId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                    ifRight = { lukketSøknadBody ->
+                        søknadService.lukkSøknad(
+                            søknadId = søknadId,
+                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                            lukketSøknadBody = lukketSøknadBody
+                        ).fold(
+                            ifLeft = {
+                                when (it) {
+                                    is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
+                                        call.svar(BadRequest.message("Søknad er allerede trukket"))
+                                    is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
+                                        call.svar(BadRequest.message("Søknaden har en behandling"))
+                                    is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
+                                        call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
+                                    is KunneIkkeLukkeSøknad.KunneIkkeSendeBrev ->
+                                        call.svar(InternalServerError.message("Kunne ikke sende brev for $søknadId"))
+                                }
+                            },
+                            ifRight = {
+                                call.audit("Lukket søknad for søknad: $søknadId")
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                            }
+                        )
                     }
                 )
             }
@@ -84,20 +91,16 @@ internal fun Route.søknadRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$søknadPath/{søknadId}/lukk/brevutkast") {
-            val typeLukking = call.parameters["type"]?.let {
-                Either.catch { Søknad.TypeLukking.valueOf(it) }.mapLeft { "Type er ikke en gyldig type lukking" }
-            } ?: Either.Left("Type er ikke et parameter")
-
-            typeLukking.fold(
-                ifLeft = {
-                    call.svar(BadRequest.message(it))
-                },
-                ifRight = {
-                    call.withSøknadId { søknadId ->
+        post("$søknadPath/{søknadId}/lukk/brevutkast") {
+            call.withSøknadId { søknadId ->
+                Either.catch { deserialize<Søknad.LukketSøknadBody>(call) }.fold(
+                    ifLeft = {
+                        call.svar(BadRequest.message("Ugyldig body"))
+                    },
+                    ifRight = { lukketSøknadBody ->
                         søknadService.lagLukketSøknadBrevutkast(
                             søknadId = søknadId,
-                            typeLukking = it
+                            lukketSøknadBody = lukketSøknadBody
                         ).fold(
                             ifLeft = {
                                 when (it) {
@@ -105,6 +108,8 @@ internal fun Route.søknadRoutes(
                                         call.svar(BadRequest.message("Fant ikke søknad $søknadId"))
                                     KunneIkkeLageBrevutkast.FeilVedHentingAvPerson ->
                                         call.svar(BadRequest.message("Feil ved henting av person"))
+                                    KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast ->
+                                        call.svar(BadRequest.message("Feil ved generering av PDF"))
                                 }
                             },
                             ifRight = {
@@ -112,8 +117,8 @@ internal fun Route.søknadRoutes(
                             }
                         )
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

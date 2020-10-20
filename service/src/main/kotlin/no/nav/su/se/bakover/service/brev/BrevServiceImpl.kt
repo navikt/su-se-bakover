@@ -48,7 +48,8 @@ class BrevServiceImpl(
 
     override fun lagLukketSøknadBrevutkast(
         sakId: UUID,
-        typeLukking: Søknad.TypeLukking
+        søknad: Søknad,
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<ClientError, ByteArray> {
         return sakService.hentSak(sakId = sakId)
             .mapLeft { throw RuntimeException("Fant ikke sak") }
@@ -57,7 +58,11 @@ class BrevServiceImpl(
                     { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
                     { it }
                 )
-                return genererLukketSøknadBrevPdf(person = person, typeLukking = typeLukking)
+                return genererLukketSøknadBrevPdf(
+                    person = person,
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
+                )
             }
     }
 
@@ -135,7 +140,9 @@ class BrevServiceImpl(
     }
 
     override fun journalførLukketSøknadOgSendBrev(
-        sakId: UUID
+        sakId: UUID,
+        søknad: Søknad,
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
         val loggtema = "Journalføring og lukking av søknad"
         val person = sakService.hentSak(sakId).fold(
@@ -159,7 +166,8 @@ class BrevServiceImpl(
 
         val lukketSøknadBrevPdf = genererLukketSøknadBrevPdf(
             person = person,
-            typeLukking = Søknad.TypeLukking.Trukket
+            søknad = søknad,
+            lukketSøknadBody = lukketSøknadBody
         ).fold(
             ifLeft = {
                 log.error("$loggtema: kunne ikke generere pdf for å lukke søknad")
@@ -177,7 +185,8 @@ class BrevServiceImpl(
                 sakId = sakId,
                 lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(
                     person = person,
-                    typeLukking = Søknad.TypeLukking.Trukket
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 ),
                 pdf = lukketSøknadBrevPdf
             )
@@ -197,9 +206,15 @@ class BrevServiceImpl(
 
     private fun genererLukketSøknadBrevPdf(
         person: Person,
-        typeLukking: Søknad.TypeLukking
+        søknad: Søknad,
+        lukketSøknadBody: Søknad.LukketSøknadBody
     ): Either<ClientError, ByteArray> {
-        val lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(person, typeLukking)
+        val lukketSøknadBrevinnhold =
+            lagLukketSøknadBrevinnhold(
+                person = person,
+                søknad = søknad,
+                lukketSøknadBody = lukketSøknadBody
+            )
         val pdfTemplate = when (lukketSøknadBrevinnhold) {
             is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> LukketSøknadPdfTemplate.TRUKKET
             else -> throw java.lang.RuntimeException(

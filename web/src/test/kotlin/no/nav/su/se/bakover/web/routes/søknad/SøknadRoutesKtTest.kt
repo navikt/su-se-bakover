@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.søknad.LukketSøknadJson
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -63,6 +64,7 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
 
@@ -86,6 +88,8 @@ internal class SøknadRoutesKtTest {
             sakId = sakId
         )
     )
+    private val lukketSøknadBody = Søknad.LukketSøknadBody(LocalDate.now(), Søknad.TypeLukking.Trukket)
+    private val lukketSøknadBodyJson = objectMapper.writeValueAsString(lukketSøknadBody)
 
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
 
@@ -208,7 +212,7 @@ internal class SøknadRoutesKtTest {
         val søknadId = UUID.randomUUID()
         val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any()) } doReturn sak.right()
+            on { lukkSøknad(any(), any(), any()) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -230,22 +234,24 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
+                setBody(lukketSøknadBodyJson)
             }.apply {
                 response.status() shouldBe OK
                 verify(søknadServiceMock, times(1)).lukkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) }
+                    argThat { it shouldBe Saksbehandler(navIdent) },
+                    argThat { it shouldBe lukketSøknadBody }
                 )
             }.response
         }
     }
 
     @Test
-    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+    fun `ugyldig body på lukk gir 400`() {
         val søknadId = UUID.randomUUID()
         val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any(), any(), any()) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -269,9 +275,49 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
             }.apply {
                 response.status() shouldBe BadRequest
+                verify(søknadServiceMock, times(0)).lukkSøknad(
+                    argThat { it shouldBe søknadId },
+                    argThat { it shouldBe Saksbehandler(navIdent) },
+                    argThat { it shouldBe lukketSøknadBody }
+                )
+            }.response
+        }
+    }
+
+    @Test
+    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+        val søknadId = UUID.randomUUID()
+        val navIdent = "navident"
+        val søknadServiceMock = mock<SøknadService> {
+            on { lukkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = Services(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    behandling = mock(),
+                    sak = mock(),
+                    søknad = søknadServiceMock,
+                    stansUtbetaling = mock(),
+                    startUtbetalinger = mock()
+                )
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(lukketSøknadBodyJson)
+            }.apply {
+                response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(1)).lukkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) }
+                    argThat { it shouldBe Saksbehandler(navIdent) },
+                    argThat { it shouldBe lukketSøknadBody }
                 )
             }.response
         }
@@ -283,7 +329,7 @@ internal class SøknadRoutesKtTest {
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
+            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -300,28 +346,29 @@ internal class SøknadRoutesKtTest {
             )
         }) {
             defaultRequest(
-                method = Get,
-                uri = "$søknadPath/$søknadId/lukk/brevutkast?type=Trukket",
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Pdf.contentType)
+                setBody(lukketSøknadBodyJson)
             }.apply {
                 response.status() shouldBe OK
                 verify(søknadServiceMock, times(1)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Søknad.TypeLukking.Trukket }
+                    argThat { it shouldBe lukketSøknadBody }
                 )
             }.response
         }
     }
 
     @Test
-    fun `Ugyldig type-parameter på brevutkast gir 400`() {
+    fun `ingen body på brevutkast gir 400`() {
         val pdf = PdfGeneratorStub.pdf.toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
+            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -338,8 +385,8 @@ internal class SøknadRoutesKtTest {
             )
         }) {
             defaultRequest(
-                method = Get,
-                uri = "$søknadPath/$søknadId/lukk/brevutkast?type=EnTypeSomErHeltKlartFeil",
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Pdf.contentType)
@@ -347,19 +394,19 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Søknad.TypeLukking.Trukket }
+                    argThat { it shouldBe lukketSøknadBody }
                 )
             }.response
         }
     }
 
     @Test
-    fun `Ingen type på brevutkast gir 400`() {
+    fun `ugyldig body på brevutkast gir 400`() {
         val pdf = PdfGeneratorStub.pdf.toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, Søknad.TypeLukking.Trukket) } doReturn pdf.right()
+            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -376,11 +423,20 @@ internal class SøknadRoutesKtTest {
             )
         }) {
             defaultRequest(
-                method = Get,
+                method = Post,
                 uri = "$søknadPath/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Pdf.contentType)
+                setBody(
+                    objectMapper.writeValueAsString(
+                        LukketSøknadJson(
+                            Tidspunkt.now().toString(),
+                            Saksbehandler("12345").toString(),
+                            Søknad.TypeLukking.Trukket
+                        )
+                    )
+                )
             }.apply {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(

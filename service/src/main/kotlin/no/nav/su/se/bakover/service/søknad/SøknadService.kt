@@ -9,8 +9,16 @@ import java.util.UUID
 interface SøknadService {
     fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
-    fun lukkSøknad(søknadId: UUID, saksbehandler: Saksbehandler): Either<KunneIkkeLukkeSøknad, Sak>
-    fun lagLukketSøknadBrevutkast(søknadId: UUID, typeLukking: Søknad.TypeLukking): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun lukkSøknad(
+        søknadId: UUID,
+        saksbehandler: Saksbehandler,
+        lukketSøknadBody: Søknad.LukketSøknadBody
+    ): Either<KunneIkkeLukkeSøknad, Sak>
+
+    fun lagLukketSøknadBrevutkast(
+        søknadId: UUID,
+        lukketSøknadBody: Søknad.LukketSøknadBody
+    ): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
 sealed class KunneIkkeLukkeSøknad {

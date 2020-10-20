@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
+import java.time.LocalDate
 import java.util.UUID
 
 data class Søknad(
@@ -22,6 +23,11 @@ data class Søknad(
             override val typeLukking: TypeLukking = TypeLukking.Trukket
         ) : Lukket()
     }
+
+    data class LukketSøknadBody(
+        val datoSøkerTrakkSøknad: LocalDate,
+        val typeLukking: TypeLukking
+    )
 
     enum class TypeLukking(val value: String) {
         Trukket("Trukket")

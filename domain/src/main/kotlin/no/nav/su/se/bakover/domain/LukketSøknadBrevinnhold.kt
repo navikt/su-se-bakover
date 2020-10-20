@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.Companion.lagTrukketSøknadBrevinnhold
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 sealed class LukketSøknadBrevinnhold {
     abstract val dato: String
+    abstract val datoSøknadOpprettet: String
     abstract val fødselsnummer: Fnr
     abstract val fornavn: String
     abstract val mellomnavn: String?
@@ -19,6 +21,8 @@ sealed class LukketSøknadBrevinnhold {
 
     data class TrukketSøknadBrevinnhold(
         override val dato: String,
+        override val datoSøknadOpprettet: String,
+        val datoSøkerTrakkSøknad: String,
         override val fødselsnummer: Fnr,
         override val fornavn: String,
         override val mellomnavn: String?,
@@ -32,9 +36,17 @@ sealed class LukketSøknadBrevinnhold {
     ) : LukketSøknadBrevinnhold() {
 
         companion object {
-            fun lagTrukketSøknadBrevinnhold(person: Person): TrukketSøknadBrevinnhold {
+            fun lagTrukketSøknadBrevinnhold(
+                person: Person,
+                søknad: Søknad,
+                lukketSøknadBody: Søknad.LukketSøknadBody
+            ): TrukketSøknadBrevinnhold {
                 return TrukketSøknadBrevinnhold(
-                    dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                    datoSøknadOpprettet = LocalDate.ofInstant(søknad.opprettet.instant, ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                    datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+                        .toString(),
                     fødselsnummer = person.ident.fnr,
                     fornavn = person.navn.fornavn,
                     mellomnavn = person.navn.mellomnavn,
@@ -52,10 +64,13 @@ sealed class LukketSøknadBrevinnhold {
     companion object {
         fun lagLukketSøknadBrevinnhold(
             person: Person,
-            typeLukking: Søknad.TypeLukking
+            søknad: Søknad,
+            lukketSøknadBody: Søknad.LukketSøknadBody
         ): LukketSøknadBrevinnhold =
             when {
-                erTrukket(typeLukking) -> lagTrukketSøknadBrevinnhold(person)
+                erTrukket(lukketSøknadBody.typeLukking) -> lagTrukketSøknadBrevinnhold(
+                    person = person, søknad = søknad, lukketSøknadBody = lukketSøknadBody
+                )
                 else -> throw java.lang.RuntimeException(
                     "Kan ikke lage brevinnhold for å lukke søknad som ikke er trukket eller avvist"
                 )

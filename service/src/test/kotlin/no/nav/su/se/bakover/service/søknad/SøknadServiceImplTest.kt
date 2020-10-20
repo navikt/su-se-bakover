@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadServiceImplTest {
@@ -37,6 +38,10 @@ internal class SøknadServiceImplTest {
             sakId = sakId,
             utbetalinger = emptyList()
         )
+    )
+    private val lukketSøknadBody = Søknad.LukketSøknadBody(
+        datoSøkerTrakkSøknad = LocalDate.now(),
+        typeLukking = Søknad.TypeLukking.Trukket
     )
 
     @Test
@@ -61,7 +66,9 @@ internal class SøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 journalførLukketSøknadOgSendBrev(
-                    sakId = sakId
+                    sakId = sakId,
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -70,7 +77,11 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknad.id, saksbehandler) shouldBe sak.right()
+        ).lukkSøknad(
+            søknadId = søknad.id,
+            saksbehandler = saksbehandler,
+            lukketSøknadBody = lukketSøknadBody
+        ) shouldBe sak.right()
     }
 
     @Test
@@ -94,7 +105,9 @@ internal class SøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 journalførLukketSøknadOgSendBrev(
-                    sakId = UUID.randomUUID()
+                    sakId = UUID.randomUUID(),
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -103,7 +116,11 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknadId = søknad.id, saksbehandler) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).lukkSøknad(
+            søknadId = søknad.id,
+            saksbehandler = saksbehandler,
+            lukketSøknadBody = lukketSøknadBody
+        ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test
@@ -131,7 +148,9 @@ internal class SøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 journalførLukketSøknadOgSendBrev(
-                    sakId = UUID.randomUUID()
+                    sakId = UUID.randomUUID(),
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -140,7 +159,7 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknadId = søknad.id, saksbehandler) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).lukkSøknad(søknadId = søknad.id, saksbehandler = saksbehandler, lukketSøknadBody = lukketSøknadBody) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 
     @Test
@@ -171,7 +190,8 @@ internal class SøknadServiceImplTest {
             on {
                 lagLukketSøknadBrevutkast(
                     sakId = søknad.sakId,
-                    typeLukking = Søknad.TypeLukking.Trukket
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             } doReturn brevPdf.right()
         }
@@ -181,7 +201,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
-            typeLukking = Søknad.TypeLukking.Trukket
+            lukketSøknadBody = lukketSøknadBody
         ) shouldBe brevPdf.right()
     }
 
@@ -212,7 +232,8 @@ internal class SøknadServiceImplTest {
             on {
                 lagLukketSøknadBrevutkast(
                     sakId = søknad.sakId,
-                    typeLukking = Søknad.TypeLukking.Trukket
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             } doReturn ClientError(
                 httpStatus = 400,
@@ -225,7 +246,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
-            typeLukking = Søknad.TypeLukking.Trukket
+            lukketSøknadBody = lukketSøknadBody
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast.left()
     }
 }

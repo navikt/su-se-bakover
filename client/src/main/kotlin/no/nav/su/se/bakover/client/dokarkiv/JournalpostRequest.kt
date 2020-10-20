@@ -92,8 +92,7 @@ sealed class Journalpost {
         val sakId: UUID,
         val lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
     ) : Journalpost() {
-        // TODO: Riktig tittel
-        override val tittel: String = "Brev om avsluttet søknad om supplerende stønad"
+        override val tittel: String = "Bekrefter at søknad er trukket"
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)

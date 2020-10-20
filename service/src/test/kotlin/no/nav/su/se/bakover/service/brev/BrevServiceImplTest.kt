@@ -20,11 +20,13 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
+import java.time.LocalDate
 import java.util.UUID
 
 internal class BrevServiceImplTest {
@@ -42,6 +44,15 @@ internal class BrevServiceImplTest {
             sakId = sakId,
             utbetalinger = emptyList()
         )
+    )
+    private val søknad = Søknad(
+        sakId = sakId,
+        id = UUID.randomUUID(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    )
+    private val lukketSøknadBody = Søknad.LukketSøknadBody(
+        datoSøkerTrakkSøknad = LocalDate.now(),
+        typeLukking = Søknad.TypeLukking.Trukket
     )
 
     @Test
@@ -61,8 +72,9 @@ internal class BrevServiceImplTest {
             on {
                 genererPdf(
                     lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                        person,
-                        Søknad.TypeLukking.Trukket
+                        person = person,
+                        søknad = søknad,
+                        lukketSøknadBody = lukketSøknadBody
                     ),
                     lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
                 )
@@ -77,8 +89,9 @@ internal class BrevServiceImplTest {
                         pdf = pdf,
                         sakId = sakId,
                         lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                            person,
-                            Søknad.TypeLukking.Trukket
+                            person = person,
+                            søknad = søknad,
+                            lukketSøknadBody = lukketSøknadBody
                         )
                     )
                 )
@@ -97,7 +110,7 @@ internal class BrevServiceImplTest {
             dokArkiv = dokArkivMock,
             dokDistFordeling = dokdistFordelingMock,
             sakService = sakServiceMock
-        ).journalførLukketSøknadOgSendBrev(sakId) shouldBe "en bestillings id".right()
+        ).journalførLukketSøknadOgSendBrev(sakId, søknad, lukketSøknadBody) shouldBe "en bestillings id".right()
 
         verify(sakServiceMock, Times(1)).hentSak(
             argThat<UUID> { it shouldBe sakId }
@@ -108,8 +121,9 @@ internal class BrevServiceImplTest {
         verify(pdfGeneratorMock, Times(1)).genererPdf(
             argThat<LukketSøknadBrevinnhold> {
                 it shouldBe LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                    person,
-                    Søknad.TypeLukking.Trukket
+                    person = person,
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             },
             argThat { it shouldBe LukketSøknadPdfTemplate.TRUKKET }
@@ -120,7 +134,11 @@ internal class BrevServiceImplTest {
                     person = person,
                     pdf = pdf,
                     sakId = sakId,
-                    lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(person, Søknad.TypeLukking.Trukket)
+                    lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+                        person = person,
+                        søknad = søknad,
+                        lukketSøknadBody = lukketSøknadBody
+                    )
                 )
             }
         )
@@ -147,8 +165,9 @@ internal class BrevServiceImplTest {
             on {
                 genererPdf(
                     lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                        person,
-                        Søknad.TypeLukking.Trukket
+                        person = person,
+                        søknad = søknad,
+                        lukketSøknadBody = lukketSøknadBody
                     ),
                     lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
                 )
@@ -163,7 +182,11 @@ internal class BrevServiceImplTest {
             dokArkiv = dokArkivMock,
             dokDistFordeling = dokdistFordelingMock,
             sakService = sakServiceMock
-        ).lagLukketSøknadBrevutkast(sakId = sakId, typeLukking = Søknad.TypeLukking.Trukket) shouldBe pdf.right()
+        ).lagLukketSøknadBrevutkast(
+            sakId = sakId,
+            søknad = søknad,
+            lukketSøknadBody = lukketSøknadBody
+        ) shouldBe pdf.right()
 
         verify(sakServiceMock, Times(1)).hentSak(
             argThat<UUID> { it shouldBe sakId }
@@ -174,8 +197,9 @@ internal class BrevServiceImplTest {
         verify(pdfGeneratorMock, Times(1)).genererPdf(
             argThat<LukketSøknadBrevinnhold> {
                 it shouldBe LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                    person,
-                    Søknad.TypeLukking.Trukket
+                    person = person,
+                    søknad = søknad,
+                    lukketSøknadBody = lukketSøknadBody
                 )
             },
             argThat { it shouldBe LukketSøknadPdfTemplate.TRUKKET }
