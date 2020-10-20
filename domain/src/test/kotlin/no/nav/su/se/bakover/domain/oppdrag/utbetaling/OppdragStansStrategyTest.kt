@@ -116,15 +116,15 @@ internal class OppdragStansTest {
         }
     }
 
-    fun createOppdrag(utbetalinger: MutableList<Utbetaling>) = Oppdrag(
+    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
-        Utbetaling.KvittertUtbetaling(
+    private fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
+        Utbetaling.OversendtUtbetaling.MedKvittering(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -132,7 +132,7 @@ internal class OppdragStansTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppdragsmelding = Utbetalingsrequest(
+            utbetalingsrequest = Utbetalingsrequest(
                 value = ""
             ),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),

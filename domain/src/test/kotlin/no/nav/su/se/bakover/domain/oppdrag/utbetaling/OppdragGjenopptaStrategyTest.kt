@@ -293,14 +293,14 @@ internal class OppdragGjenopptaStrategyTest {
     //     verifyNoMoreInteractions(repoMock)
     // }
 
-    fun createOppdrag(utbetalinger: MutableList<Utbetaling>) = Oppdrag(
+    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
         utbetalinger = utbetalinger
     )
 
-    fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling(
+    private fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling.UtenKvittering(
         utbetalingsrequest = Utbetalingsrequest(
             value = ""
         ),

@@ -18,27 +18,19 @@ data class Oppdrag(
     val id: UUID30,
     val opprettet: Tidspunkt,
     val sakId: UUID,
-    private val utbetalinger: List<Utbetaling> = listOf()
+    private val utbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList()
 ) {
-    fun sisteOversendteUtbetaling(): Utbetaling? = oversendteUtbetalinger().lastOrNull()
-
-    /**
-     * Returnerer alle utbetalinger som tilhører oppdraget i den rekkefølgen de er opprettet.
-     *
-     * Uavhengig om de er oversendt/prøvd oversendt/kvitter ok eller kvittert feil.
-     */
-    fun hentUtbetalinger(): List<Utbetaling> = utbetalinger
-        .sortedBy { it.opprettet.instant }
+    private fun sisteOversendteUtbetaling(): Utbetaling? = hentOversendteUtbetalingerUtenFeil().lastOrNull()
 
     /**
      * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
      * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
      */
-    fun oversendteUtbetalinger(): List<Utbetaling> =
-        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling || it is Utbetaling.KvittertUtbetaling && it.kvittering.erKvittertOk() }
+    fun hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
             .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
 
-    fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()
+    private fun harOversendteUtbetalingerEtter(value: LocalDate) = hentOversendteUtbetalingerUtenFeil()
         .flatMap { it.utbetalingslinjer }
         .any {
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
@@ -163,14 +155,14 @@ data class Oppdrag(
                 val stansetTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
                 // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
-                val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
+                val startIndeks = hentOversendteUtbetalingerUtenFeil().dropLast(1).indexOfLast {
                     it.type == Utbetaling.UtbetalingsType.STANS
                 }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
-                val stansetEllerDelvisStansetUtbetalingslinjer = oversendteUtbetalinger()
+                val stansetEllerDelvisStansetUtbetalingslinjer = hentOversendteUtbetalingerUtenFeil()
                     .subList(
                         startIndeks,
-                        oversendteUtbetalinger().size - 1
+                        hentOversendteUtbetalingerUtenFeil().size - 1
                     ) // Ekskluderer den siste stopp-utbetalingen
                     .flatMap {
                         it.utbetalingslinjer

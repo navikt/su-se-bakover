@@ -71,16 +71,13 @@ internal class AvstemmingPostgresRepo(
             }
         }
 
-    /**
-     * List<Utbetaling> vil i praksis være List<Utbetaling.OversendtUtbetaling | Utbetaling.KvittertUtbetaling>
-     */
-    override fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(
+        fraOgMed: Tidspunkt,
+        tilOgMed: Tidspunkt
+    ): List<Utbetaling.OversendtUtbetaling> =
         dataSource.withSession { session ->
-            // Bakoverkompatibel med gammel json-modell
-            val fraOgMedCondition =
-                """(avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
-            val tilOgMedCondition =
-                """(avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
+            val fraOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
+            val tilOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
             """select * from utbetaling where $fraOgMedCondition and $tilOgMedCondition"""
                 .hentListe(
                     mapOf(
@@ -90,7 +87,7 @@ internal class AvstemmingPostgresRepo(
                     session
                 ) {
                     it.toUtbetaling(session)
-                }.filter { it is Utbetaling.OversendtUtbetaling || it is Utbetaling.KvittertUtbetaling }
+                }.filterIsInstance<Utbetaling.OversendtUtbetaling>()
         }
 }
 
@@ -101,7 +98,10 @@ private fun Row.toAvstemming(session: Session) = Avstemming(
     tilOgMed = tidspunkt("tom"),
     utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
-            UtbetalingInternalRepo.hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
+            UtbetalingInternalRepo.hentUtbetalingInternal(
+                UUID30(utbetalingId as String),
+                session
+            )!! as Utbetaling.OversendtUtbetaling
         }
     }!!,
     avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")

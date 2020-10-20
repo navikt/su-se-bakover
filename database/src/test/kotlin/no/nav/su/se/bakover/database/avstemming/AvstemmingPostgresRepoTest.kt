@@ -204,7 +204,7 @@ internal class AvstemmingPostgresRepoTest {
     private fun oversendtUtbetaling(
         oppdragId: UUID30,
         avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel()
-    ) = Utbetaling.OversendtUtbetaling(
+    ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR,

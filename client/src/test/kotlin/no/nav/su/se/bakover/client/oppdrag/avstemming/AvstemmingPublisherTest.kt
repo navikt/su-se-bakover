@@ -46,7 +46,7 @@ class AvstemmingPublisherTest {
         fraOgMed = 1.januar(2020).atStartOfDay().toTidspunkt(),
         tilOgMed = 2.januar(2020).atStartOfDay().toTidspunkt(),
         utbetalinger = listOf(
-            Utbetaling.KvittertUtbetaling(
+            Utbetaling.OversendtUtbetaling.MedKvittering(
                 utbetalingslinjer = listOf(),
                 fnr = Fnr("12345678910"),
                 simulering = Simulering(
@@ -56,7 +56,7 @@ class AvstemmingPublisherTest {
                     nettoBeløp = 0,
                     periodeList = listOf()
                 ),
-                oppdragsmelding = Utbetalingsrequest(
+                utbetalingsrequest = Utbetalingsrequest(
                     value = ""
                 ),
                 kvittering = Kvittering(

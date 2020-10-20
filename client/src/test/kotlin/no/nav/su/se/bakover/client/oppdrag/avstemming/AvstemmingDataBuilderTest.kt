@@ -18,10 +18,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
@@ -97,29 +95,6 @@ internal class AvstemmingDataBuilderTest {
             ),
         ).build() shouldBe expected
     }
-
-    @Test
-    fun `kast exception inkonsistens i data`() {
-        assertThrows<IllegalStateException> {
-            AvstemmingDataBuilder(
-                Avstemming(
-                    fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                    utbetalinger = alleUtbetalinger() + listOf(
-                        Utbetaling.UtbetalingForSimulering(
-                            utbetalingslinjer = emptyList(),
-                            fnr = fnr,
-                            type = Utbetaling.UtbetalingsType.NY,
-                            oppdragId = UUID30.randomUUID(),
-                            behandler = NavIdentBruker.Saksbehandler("Z123"),
-                            avstemmingsnøkkel = Avstemmingsnøkkel()
-                        )
-                    ),
-                    avstemmingXmlRequest = null
-                ),
-            ).build()
-        }
-    }
 }
 
 private val zoneId = ZoneId.of("Europe/Oslo")
@@ -140,8 +115,8 @@ fun lagUtbetaling(
     oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
         value = "Melding"
     )
-) = when (status) {
-    null -> Utbetaling.OversendtUtbetaling(
+): Utbetaling.OversendtUtbetaling = when (status) {
+    null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
         simulering = simulering,
@@ -152,7 +127,7 @@ fun lagUtbetaling(
         oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123")
     )
-    else -> Utbetaling.KvittertUtbetaling(
+    else -> Utbetaling.OversendtUtbetaling.MedKvittering(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
         simulering = simulering,
@@ -161,7 +136,7 @@ fun lagUtbetaling(
             originalKvittering = "hallo",
             mottattTidspunkt = now()
         ),
-        oppdragsmelding = oppdragsmelding,
+        utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,

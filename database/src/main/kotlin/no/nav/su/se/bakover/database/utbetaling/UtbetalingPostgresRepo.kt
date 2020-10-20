@@ -40,7 +40,7 @@ internal class UtbetalingPostgresRepo(
         return hentUtbetaling(utbetalingId)!!
     }
 
-    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling) {
+    override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) {
         dataSource.withSession { session ->
             """
             insert into utbetaling (id, opprettet, oppdragId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)

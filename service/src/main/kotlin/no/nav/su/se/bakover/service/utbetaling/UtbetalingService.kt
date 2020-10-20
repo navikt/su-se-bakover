@@ -30,7 +30,7 @@ interface UtbetalingService {
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling>
+    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun stansUtbetalinger(
         sakId: UUID,

@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -31,6 +33,7 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class GjenopptaUtbetalingRoutesKtTest {
@@ -198,7 +201,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
     @Test
     fun `Starter utbetalinger OK`() {
         val sakId = UUID.randomUUID()
-        val utbetaling = Utbetaling.UtbetalingForSimulering(
+        val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
             id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),
             opprettet = Tidspunkt.EPOCH,
             utbetalingslinjer = listOf(),
@@ -206,7 +209,15 @@ internal class GjenopptaUtbetalingRoutesKtTest {
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Attestant("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            simulering = Simulering(
+                gjelderId = FnrGenerator.random(),
+                gjelderNavn = "",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            utbetalingsrequest = Utbetalingsrequest("")
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),

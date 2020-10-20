@@ -42,7 +42,7 @@ internal class UtbetalingServiceImpl(
     ): Either<FantIkkeUtbetaling, Utbetaling> {
         return utbetalingRepo.hentUtbetaling(avstemmingsnøkkel)
             ?.let {
-                if (it is Utbetaling.KvittertUtbetaling) {
+                if (it is Utbetaling.OversendtUtbetaling.MedKvittering) {
                     log.info("Kvittering er allerede mottatt for utbetaling: ${it.id}")
                     it
                 } else {
@@ -64,7 +64,7 @@ internal class UtbetalingServiceImpl(
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling> {
+    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
             KunneIkkeUtbetale.KunneIkkeSimulere
         }.flatMap { simulertUtbetaling ->
@@ -118,7 +118,7 @@ internal class UtbetalingServiceImpl(
             .map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling> {
+    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return utbetalingPublisher.publish(utbetaling = utbetaling)
             .mapLeft {
                 KunneIkkeUtbetale.Protokollfeil

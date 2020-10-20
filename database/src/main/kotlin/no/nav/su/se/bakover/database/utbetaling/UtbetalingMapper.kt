@@ -27,7 +27,7 @@ data class UtbetalingMapper(
 ) {
     fun map() = when (kvittering) {
         null -> {
-            Utbetaling.OversendtUtbetaling(
+            Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = id,
                 opprettet = opprettet,
                 fnr = fnr,
@@ -41,7 +41,7 @@ data class UtbetalingMapper(
             )
         }
         else -> {
-            Utbetaling.KvittertUtbetaling(
+            Utbetaling.OversendtUtbetaling.MedKvittering(
                 id = id,
                 opprettet = opprettet,
                 fnr = fnr,
@@ -51,7 +51,7 @@ data class UtbetalingMapper(
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
-                oppdragsmelding = utbetalingsrequest,
+                utbetalingsrequest = utbetalingsrequest,
                 kvittering = kvittering
             )
         }

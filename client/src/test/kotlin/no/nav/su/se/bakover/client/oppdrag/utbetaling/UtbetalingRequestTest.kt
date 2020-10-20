@@ -139,8 +139,8 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
-                Utbetaling.KvittertUtbetaling(
-                    oppdragsmelding = Utbetalingsrequest(
+                Utbetaling.OversendtUtbetaling.MedKvittering(
+                    utbetalingsrequest = Utbetalingsrequest(
                         value = ""
                     ),
                     simulering = Simulering(

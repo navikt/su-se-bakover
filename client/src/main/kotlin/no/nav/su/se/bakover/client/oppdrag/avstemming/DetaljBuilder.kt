@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_V
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 class DetaljBuilder(
-    private val utbetalinger: List<Utbetaling>
+    internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>
 ) {
     fun build(): List<Detaljdata> =
-        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling || it.kvittertMedFeilEllerVarsel() }
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it.kvittertMedFeilEllerVarsel() }
             .map {
                 Detaljdata(
                     detaljType = mapStatus(it),
@@ -21,10 +21,9 @@ class DetaljBuilder(
                 )
             }
 
-    private fun mapStatus(utbetaling: Utbetaling): Detaljdata.Detaljtype = when (utbetaling) {
-        is Utbetaling.KvittertUtbetaling -> mapUtbetalingsstatus(utbetaling.kvittering.utbetalingsstatus)
-        is Utbetaling.OversendtUtbetaling -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
-        else -> throw IllegalArgumentException("Funksjonell feil - skal ikke lage detajl for utbetalinger med type:${utbetaling::class.simpleName}")
+    private fun mapStatus(utbetaling: Utbetaling.OversendtUtbetaling): Detaljdata.Detaljtype = when (utbetaling) {
+        is Utbetaling.OversendtUtbetaling.MedKvittering -> mapUtbetalingsstatus(utbetaling.kvittering.utbetalingsstatus)
+        is Utbetaling.OversendtUtbetaling.UtenKvittering -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
     }
 
     private fun mapUtbetalingsstatus(utbetalingsstatus: Utbetalingsstatus) = when (utbetalingsstatus) {
@@ -34,5 +33,5 @@ class DetaljBuilder(
     }
 
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
-        this is Utbetaling.KvittertUtbetaling && kvittertMedFeilEllerVarsel()
+        this is Utbetaling.OversendtUtbetaling.MedKvittering && kvittertMedFeilEllerVarsel()
 }

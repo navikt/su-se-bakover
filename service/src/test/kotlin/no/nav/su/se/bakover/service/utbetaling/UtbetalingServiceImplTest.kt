@@ -101,7 +101,7 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
-        val utbetaling = Utbetaling.OversendtUtbetaling(
+        val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -146,10 +146,10 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
-        val utbetaling = Utbetaling.KvittertUtbetaling(
+        val utbetaling = Utbetaling.OversendtUtbetaling.MedKvittering(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Utbetalingsrequest(""),
+            utbetalingsrequest = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",

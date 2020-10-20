@@ -39,7 +39,7 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
-        ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling::class)
+        ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling.UtenKvittering::class)
 
         UtbetalingMapper(
             id = UUID30.randomUUID(),
@@ -67,6 +67,6 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
-        ).map() shouldBe instanceOf(Utbetaling.KvittertUtbetaling::class)
+        ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling.MedKvittering::class)
     }
 }

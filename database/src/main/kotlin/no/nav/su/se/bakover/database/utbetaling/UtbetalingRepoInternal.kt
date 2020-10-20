@@ -27,13 +27,13 @@ internal object UtbetalingInternalRepo {
             session
         ) { it.toUtbetaling(session) }
 
-    fun hentUtbetalinger(oppdragId: UUID30, session: Session) =
+    fun hentUtbetalinger(oppdragId: UUID30, session: Session): List<Utbetaling.OversendtUtbetaling> =
         "select * from utbetaling where oppdragId=:oppdragId".hentListe(
             mapOf("oppdragId" to oppdragId.toString()),
             session
         ) {
             it.toUtbetaling(session)
-        }.toMutableList()
+        }
 
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
         "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
@@ -44,7 +44,7 @@ internal object UtbetalingInternalRepo {
         }
 }
 
-internal fun Row.toUtbetaling(session: Session): Utbetaling {
+internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
     val utbetalingId = uuid30("id")
     val opprettet = tidspunkt("opprettet")
     val simulering = string("simulering").let { objectMapper.readValue(it, Simulering::class.java) }

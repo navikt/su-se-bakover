@@ -26,7 +26,7 @@ internal data class SakJson(
         companion object {
             internal fun Oppdrag.kanStansesEllerGjenopptas(): KanStansesEllerGjenopptas {
                 // TODO jah: Dette er en ad-hoc algoritme, kun for å få noe front-end. Bør bruke det samme som stans/gjenoppta endepunktene.
-                val oversendteUtbetalinger = this.oversendteUtbetalinger()
+                val oversendteUtbetalinger = this.hentOversendteUtbetalingerUtenFeil()
                 return when {
                     oversendteUtbetalinger.isEmpty() -> INGEN
                     oversendteUtbetalinger.last().type == Utbetaling.UtbetalingsType.STANS -> GJENOPPTA
@@ -42,8 +42,7 @@ internal data class SakJson(
             fnr = fnr.toString(),
             søknader = søknader().map { it.toJson() },
             behandlinger = behandlinger().map { it.toJson() },
-            utbetalinger = oppdrag.hentUtbetalinger()
-                .filterIsInstance(Utbetaling.OversendtUtbetaling::class.java)
+            utbetalinger = oppdrag.hentOversendteUtbetalingerUtenFeil()
                 .flatMap { utbetaling ->
                     utbetaling.utbetalingslinjer.map { utbetalingslinje ->
                         UtbetalingslinjeJson(

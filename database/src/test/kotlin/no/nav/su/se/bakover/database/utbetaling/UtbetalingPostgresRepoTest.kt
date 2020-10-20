@@ -53,7 +53,7 @@ internal class UtbetalingPostgresRepoTest {
                     mottattTidspunkt = Tidspunkt.EPOCH
                 )
             )
-            val hentet = repo.hentUtbetaling(oversendtUtbetaling.id) as Utbetaling.KvittertUtbetaling
+            val hentet = repo.hentUtbetaling(oversendtUtbetaling.id) as Utbetaling.OversendtUtbetaling.MedKvittering
             kvittert shouldBe hentet
         }
     }
@@ -72,7 +72,7 @@ internal class UtbetalingPostgresRepoTest {
             )
             val oppdatert = repo.oppdaterMedKvittering(utbetaling.id, kvittering)
 
-            oppdatert shouldBe beInstanceOf(Utbetaling.KvittertUtbetaling::class)
+            oppdatert shouldBe beInstanceOf(Utbetaling.OversendtUtbetaling.MedKvittering::class)
         }
     }
 
@@ -92,7 +92,7 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
-    private fun defaultOversendtUtbetaling(oppdragId: UUID30) = Utbetaling.OversendtUtbetaling(
+    private fun defaultOversendtUtbetaling(oppdragId: UUID30) = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
         fnr = FNR,
