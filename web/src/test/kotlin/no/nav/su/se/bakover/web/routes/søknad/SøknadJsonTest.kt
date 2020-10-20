@@ -96,8 +96,6 @@ internal class SøknadJsonTest {
                     }
                 ],
                 "pensjon":[
-
-
                     {
                         "ordning":"KLP",
                         "beløp":2000.0
@@ -129,6 +127,22 @@ internal class SøknadJsonTest {
             },
             "forNav":{
                 "harFullmektigEllerVerge":"verge"
+            },
+            "ektefelle": {
+                "formue": {
+                "borIBolig":false,
+                "verdiPåBolig": 0,
+                "boligBrukesTil":"",
+                "depositumsBeløp":0,
+                "kontonummer":"11111111111",
+                "verdiPåEiendom":0,
+                "eiendomBrukesTil":"",
+                "kjøretøy": [],
+                "innskuddsBeløp": 0,
+                "verdipapirBeløp": 0,
+                "skylderNoenMegPengerBeløp": 0,
+                "kontanterBeløp": 0
+                }
             }
           },
           "lukket": null

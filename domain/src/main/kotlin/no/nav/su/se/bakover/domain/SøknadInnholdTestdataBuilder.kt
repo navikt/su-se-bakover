@@ -125,6 +125,20 @@ object SøknadInnholdTestdataBuilder {
         oppholdstillatelse,
         inntektOgPensjon,
         formue,
-        forNav
+        forNav,
+        ektefelle = Ektefelle(formue = Formue(
+            borIBolig = false,
+            verdiPåBolig = 0,
+            boligBrukesTil = "",
+            depositumsBeløp = 0,
+            kontonummer = "11111111111",
+            verdiPåEiendom = 0,
+            eiendomBrukesTil = "",
+            kjøretøy = listOf(),
+            innskuddsBeløp = 0,
+            verdipapirBeløp = 0,
+            skylderNoenMegPengerBeløp = 0,
+            kontanterBeløp = 0
+        ))
     )
 }
