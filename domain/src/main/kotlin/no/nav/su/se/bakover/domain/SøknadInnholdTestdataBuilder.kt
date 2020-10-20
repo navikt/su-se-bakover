@@ -115,18 +115,8 @@ object SøknadInnholdTestdataBuilder {
 
         forNav: ForNav = ForNav(
             harFullmektigEllerVerge = ForNav.Vergemål.VERGE
-        )
-    ) = SøknadInnhold(
-        uførevedtak,
-        personopplysninger,
-        flyktningsstatus,
-        boforhold,
-        utenlandsopphold,
-        oppholdstillatelse,
-        inntektOgPensjon,
-        formue,
-        forNav,
-        ektefelle = Ektefelle(
+        ),
+        ektefelle: Ektefelle = Ektefelle(
             formue = Formue(
                 borIBolig = false,
                 verdiPåBolig = 0,
@@ -142,5 +132,16 @@ object SøknadInnholdTestdataBuilder {
                 kontanterBeløp = 0
             )
         )
+    ) = SøknadInnhold(
+        uførevedtak,
+        personopplysninger,
+        flyktningsstatus,
+        boforhold,
+        utenlandsopphold,
+        oppholdstillatelse,
+        inntektOgPensjon,
+        formue,
+        forNav,
+        ektefelle
     )
 }
