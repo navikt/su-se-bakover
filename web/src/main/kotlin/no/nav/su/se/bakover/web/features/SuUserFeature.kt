@@ -24,6 +24,11 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.web.audit
+import java.util.UUID
 
 /**
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
@@ -32,9 +37,11 @@ import no.nav.su.se.bakover.domain.Person
 @KtorExperimentalAPI
 class SuUserFeature(configuration: Configuration) {
     val clients = configuration.clients
+    val services = configuration.services
 
     class Configuration {
         lateinit var clients: Clients
+        lateinit var services: Services
     }
 
     fun interceptPipeline(pipeline: ApplicationCallPipeline) {
@@ -63,9 +70,19 @@ class SuUserFeature(configuration: Configuration) {
                 } else {
                     Either.Left(ManglerAuthHeader)
                 },
-            assertBrukerHarTilgangTilPerson = { fnr ->
-                clients.personOppslag.person(fnr)
-                    .getOrHandle { throw Tilgangssjekkfeil(it, fnr) }
+            asserter = object : PersontilgangAsserter {
+                override fun assertBrukerHarTilgangTilPerson(fnr: Fnr): Person =
+                    clients.personOppslag.person(fnr)
+                        .getOrHandle { throw Tilgangssjekkfeil(it, fnr) }
+
+                override fun assertBrukerHarTilgangTilPerson(sakId: UUID): Either<FantIkkeSak, Pair<Person, Sak>> =
+                    services.sak.hentSak(sakId)
+                        .map { sak ->
+                            context.call.audit("Hentet sak med id: $sakId")
+                            val person = assertBrukerHarTilgangTilPerson(sak.fnr)
+
+                            Pair(person, sak)
+                        }
             }
         )
     }
@@ -91,21 +108,24 @@ internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
 internal data class KallMotMicrosoftGraphApiFeilet(override val message: String) : SuUserFeaturefeil(message)
 internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
 
-typealias AssertBrukerHarTilgangTilPersonFunction = (Fnr) -> Person
+interface PersontilgangAsserter {
+    fun assertBrukerHarTilgangTilPerson(fnr: Fnr): Person
+    fun assertBrukerHarTilgangTilPerson(sakId: UUID): Either<FantIkkeSak, Pair<Person, Sak>>
+}
 
-class SuUserContext(val call: ApplicationCall) {
+class SuUserContext(val call: ApplicationCall) : PersontilgangAsserter {
     private lateinit var _user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>
-    private lateinit var _assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction
+    private lateinit var _asserter: PersontilgangAsserter
 
     internal fun init(
         user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>,
-        assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction
+        asserter: PersontilgangAsserter
     ) {
         _user = user
-        _assertBrukerHarTilgangTilPerson = assertBrukerHarTilgangTilPerson
+        _asserter = asserter
     }
 
-    internal fun isInitialized() = this::_user.isInitialized
+    internal fun isInitialized() = ::_user.isInitialized
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
@@ -121,15 +141,22 @@ class SuUserContext(val call: ApplicationCall) {
             } else {
                 throw IkkeInitialisert
             }
-    val assertBrukerHarTilgangTilPerson: AssertBrukerHarTilgangTilPersonFunction
+
+    fun getNAVIdent(): String = user.onPremisesSamAccountName ?: throw FantBrukerMenManglerNAVIdent
+
+    private val asserter: PersontilgangAsserter
         get() =
-            if (isInitialized()) {
-                _assertBrukerHarTilgangTilPerson
+            if (::_asserter.isInitialized) {
+                _asserter
             } else {
                 throw IkkeInitialisert
             }
 
-    fun getNAVIdent(): String = user.onPremisesSamAccountName ?: throw FantBrukerMenManglerNAVIdent
+    override fun assertBrukerHarTilgangTilPerson(fnr: Fnr): Person =
+        asserter.assertBrukerHarTilgangTilPerson(fnr)
+
+    override fun assertBrukerHarTilgangTilPerson(sakId: UUID): Either<FantIkkeSak, Pair<Person, Sak>> =
+        asserter.assertBrukerHarTilgangTilPerson(sakId)
 }
 
 val ApplicationCall.suUserContext: SuUserContext

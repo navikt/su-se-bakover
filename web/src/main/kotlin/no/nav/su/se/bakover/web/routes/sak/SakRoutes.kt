@@ -12,9 +12,9 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.foldBoth
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
@@ -50,57 +50,45 @@ internal fun Route.sakRoutes(
                         Resultat.json(OK, serialize((it.toJson())))
                     }
             }
-            .fold(
-                ifLeft = { call.svar(it) },
-                ifRight = { call.svar(it) }
-            )
+            .foldBoth { call.svar(it) }
     }
 
     get("$sakPath/{sakId}") {
-        call.withSak(sakService) { sak ->
-            call.suUserContext.assertBrukerHarTilgangTilPerson(sak.fnr)
-
-            call.svar(Resultat.json(OK, serialize(sak.toJson())))
-        }
+        getSak(call)
+            .map { sak ->
+                Resultat.json(OK, serialize(sak.toJson()))
+            }
+            .foldBoth { call.svar(it) }
     }
 
     data class OpprettBehandlingBody(val soknadId: String)
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
-            call.withSak(sakService) { sak ->
-                call.suUserContext.assertBrukerHarTilgangTilPerson(sak.fnr)
-
-                Either.catch { deserialize<OpprettBehandlingBody>(call) }
-                    .flatMap { it.soknadId.toUUID() }
-                    .fold(
-                        ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
-                        ifRight = { søknadId ->
+            getSak(call)
+                .flatMap { sak ->
+                    Either.catch { deserialize<OpprettBehandlingBody>(call) }
+                        .flatMap { it.soknadId.toUUID() }
+                        .mapLeft { BadRequest.message("Ugyldig body") }
+                        .map { søknadId ->
                             call.audit("Oppretter behandling på sak: ${sak.id} og søknadId: $søknadId")
                             behandlingService.opprettSøknadsbehandling(sak.id, søknadId)
                                 .fold(
-                                    { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
-                                    { call.svar(HttpStatusCode.Created.jsonBody(it)) }
+                                    { NotFound.message("Fant ikke søknad med id:$søknadId") },
+                                    { HttpStatusCode.Created.jsonBody(it) }
                                 )
                         }
-                    )
-            }
+                }
+                .foldBoth { call.svar(it) }
         }
     }
 }
 
-suspend fun ApplicationCall.withSak(sakService: SakService, ifRight: suspend (Sak) -> Unit) {
-    this.lesUUID("sakId").fold(
-        ifLeft = {
-            this.svar(BadRequest.message(it))
-        },
-        ifRight = { sakId ->
-            sakService.hentSak(sakId)
-                .mapLeft { this.svar(NotFound.message("Fant ikke sak med sakId: $sakId")) }
-                .map {
-                    this.audit("Hentet sak med id: $sakId")
-                    ifRight(it)
-                }
+internal fun getSak(call: ApplicationCall) =
+    call.lesUUID("sakId")
+        .mapLeft { BadRequest.message(it) }
+        .flatMap { sakId ->
+            call.suUserContext.assertBrukerHarTilgangTilPerson(sakId)
+                .mapLeft { NotFound.message("Fant ikke sak med id $sakId") }
         }
-    )
-}
+        .map { it.second }

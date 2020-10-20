@@ -239,6 +239,7 @@ internal fun Application.susebakover(
 
     install(SuUserFeature) {
         this.clients = clients
+        this.services = services
     }
 
     routing {
