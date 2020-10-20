@@ -12,6 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
@@ -27,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
@@ -189,45 +191,20 @@ internal class UtbetalingServiceImplTest {
     }
 
     @Test
-    fun `lag utbetaling for simulering`() {
-        val sakId = UUID.randomUUID()
-        val fnr = Fnr("12345678910")
-        val beregning = Beregning(
-            fraOgMed = 1.januar(2020),
-            tilOgMed = 31.januar(2020),
-            sats = Sats.HØY,
-            fradrag = emptyList()
-        )
-        val sak = Sak(
-            id = sakId, fnr = fnr,
-            oppdrag = Oppdrag(
-                id = UUID30.randomUUID(), opprettet = Tidspunkt.now(), sakId = sakId, utbetalinger = mutableListOf()
-            )
-        )
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sak.id) } doReturn sak.right()
+    fun `utbetaler penger og lagrer utbetaling`() {
+        val oppdragMock = mock<Oppdrag> {
+            on { genererUtbetaling(any(), any()) } doReturn utbetalingTilSimulering
         }
 
-        val response = UtbetalingServiceImpl(
-            utbetalingRepo = mock(),
-            sakService = sakServiceMock,
-            simuleringClient = mock(),
-            utbetalingPublisher = mock()
-        ).lagUtbetaling(
-            sak.id,
-            Oppdrag.UtbetalingStrategy.Ny(
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                beregning = beregning
-            )
-        )
+        val sak = sak.copy(oppdrag = oppdragMock)
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
 
-        verify(sakServiceMock).hentSak(sakId)
-        response shouldNotBe null
-    }
+        val simuleringClientMock = mock<SimuleringClient> {
+            on { simulerUtbetaling(any()) } doReturn simulering.right()
+        }
 
-    @Test
-    fun `utbetaler penger og lagrer utbetaling`() {
         val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { opprettUtbetaling(oversendtUtbetaling) }.doNothing()
         }
@@ -242,17 +219,27 @@ internal class UtbetalingServiceImplTest {
             } doReturn oppdragsmelding.right()
         }
 
-        UtbetalingServiceImpl(
+        val response = UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            sakService = mock(),
-            simuleringClient = mock()
-        ).utbetal(simulertUtbetaling)
+            sakService = sakServiceMock,
+            simuleringClient = simuleringClientMock
+        ).utbetal(
+            sakId = sakId,
+            attestant = attestant,
+            beregning = beregning,
+            simulering = simulering
+        )
 
+        response shouldBe oversendtUtbetaling.right()
         inOrder(
+            sakServiceMock,
+            simuleringClientMock,
             utbetalingPublisherMock,
             utbetalingRepoMock
         ) {
+            verify(sakServiceMock).hentSak(sakId)
+            verify(simuleringClientMock).simulerUtbetaling(tilSimulering)
             verify(utbetalingPublisherMock).publish(
                 argThat {
                     it.utbetaling shouldBe tilUtbetaling.utbetaling
@@ -265,6 +252,19 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `returnerer feilmelding dersom utbetaling feiler`() {
+        val oppdragMock = mock<Oppdrag> {
+            on { genererUtbetaling(any(), any()) } doReturn utbetalingTilSimulering
+        }
+
+        val sak = sak.copy(oppdrag = oppdragMock)
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on { simulerUtbetaling(any()) } doReturn simulering.right()
+        }
+
         val utbetalingRepoMock = mock<UtbetalingRepo>()
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on {
@@ -274,22 +274,23 @@ internal class UtbetalingServiceImplTest {
                         it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
                     }
                 )
-            } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                Oppdragsmelding(
-                    originalMelding = "adadad",
-                    avstemmingsnøkkel = avstemmingsnøkkel
-                )
-            ).left()
+            } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(oppdragsmelding).left()
         }
 
         val response = UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            sakService = mock(),
-            simuleringClient = mock()
-        ).utbetal(simulertUtbetaling)
+            sakService = sakServiceMock,
+            simuleringClient = simuleringClientMock
+        ).utbetal(
+            sakId = sakId,
+            attestant = attestant,
+            beregning = beregning,
+            simulering = simulering
+        )
 
         response shouldBe KunneIkkeUtbetale.Protokollfeil.left()
+
         verify(utbetalingPublisherMock).publish(
             argThat {
                 it.utbetaling shouldBe tilUtbetaling.utbetaling
@@ -299,11 +300,65 @@ internal class UtbetalingServiceImplTest {
         verifyZeroInteractions(utbetalingRepoMock)
     }
 
-    private val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = UUID.randomUUID(),
+    @Test
+    fun `returnerer feil dersom kontrollsimulering er ulik innsendt simulering`() {
+        val oppdragMock = mock<Oppdrag> {
+            on { genererUtbetaling(any(), any()) } doReturn utbetalingTilSimulering
+        }
+
+        val sak = sak.copy(oppdrag = oppdragMock)
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234).right()
+        }
+
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
+        val utbetalingPublisherMock = mock<UtbetalingPublisher>()
+
+        val response = UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            utbetalingPublisher = utbetalingPublisherMock,
+            sakService = sakServiceMock,
+            simuleringClient = simuleringClientMock
+        ).utbetal(
+            sakId = sakId,
+            attestant = attestant,
+            beregning = beregning,
+            simulering = simulering
+        )
+
+        response shouldBe KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        inOrder(
+            sakServiceMock,
+            simuleringClientMock,
+            utbetalingPublisherMock,
+            utbetalingRepoMock
+        ) {
+            verify(sakServiceMock).hentSak(sakId)
+            verify(simuleringClientMock).simulerUtbetaling(tilSimulering)
+            verifyZeroInteractions(utbetalingPublisherMock, utbetalingRepoMock)
+        }
+    }
+
+    private val sakId = UUID.randomUUID()
+    private val fnr = Fnr("12345678910")
+    private val sak = Sak(
+        id = sakId,
+        fnr = fnr,
+        oppdrag = mock()
     )
+
+    private val beregning = Beregning(
+        fraOgMed = 1.januar(2020),
+        tilOgMed = 31.desember(2020),
+        sats = Sats.HØY,
+        fradrag = listOf(),
+    )
+
+    private val attestant = NavIdentBruker.Attestant("SU")
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
@@ -312,24 +367,32 @@ internal class UtbetalingServiceImplTest {
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 
-    private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        fnr = Fnr("12345678910"),
-        utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.NY,
-        simulering = Simulering(
-            gjelderId = Fnr("12345678910"),
-            gjelderNavn = "navn",
-            datoBeregnet = idag(),
-            nettoBeløp = 5155,
-            periodeList = listOf()
-        ),
-        oppdragId = oppdrag.id,
-        behandler = NavIdentBruker.Attestant("SU")
+    private val simulering = Simulering(
+        gjelderId = fnr,
+        gjelderNavn = "navn",
+        datoBeregnet = idag(),
+        nettoBeløp = 5155,
+        periodeList = listOf()
     )
 
+    private val utbetalingTilSimulering = Utbetaling.UtbetalingForSimulering(
+        id = UUID30.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        fnr = fnr,
+        utbetalingslinjer = listOf(),
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel
+    )
+
+    private val simulertUtbetaling = utbetalingTilSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
+
+    private val tilSimulering = OversendelseTilOppdrag.TilSimulering(
+        utbetaling = utbetalingTilSimulering,
+        avstemmingsnøkkel = avstemmingsnøkkel
+    )
 
     private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
         utbetaling = simulertUtbetaling,

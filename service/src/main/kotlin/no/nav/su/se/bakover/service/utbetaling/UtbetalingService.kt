@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -20,9 +19,6 @@ interface UtbetalingService {
         kvittering: Kvittering
     ): Either<FantIkkeUtbetaling, Utbetaling>
 
-    fun lagUtbetaling(sakId: UUID, strategy: Oppdrag.UtbetalingStrategy): Utbetaling.UtbetalingForSimulering
-    fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
-    fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling>
     fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,

@@ -52,8 +52,7 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
-    // TODO incorporate attestant/saksbehandler
-    override fun lagUtbetaling(
+    private fun lagUtbetaling(
         sakId: UUID,
         strategy: Oppdrag.UtbetalingStrategy
     ): Utbetaling.UtbetalingForSimulering {
@@ -115,7 +114,7 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    private fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(
             OversendelseTilOppdrag.TilSimulering(
                 utbetaling = utbetaling,
@@ -124,8 +123,7 @@ internal class UtbetalingServiceImpl(
         ).map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling> {
-        // TODO could/should we always perform consistency at this point?
+    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling> {
         return utbetalingPublisher.publish(
             OversendelseTilOppdrag.TilUtbetaling(
                 utbetaling = utbetaling,

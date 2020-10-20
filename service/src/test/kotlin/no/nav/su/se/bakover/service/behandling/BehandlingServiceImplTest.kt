@@ -139,8 +139,6 @@ internal class BehandlingServiceImplTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { lagUtbetaling(behandling.sakId, strategy) } doReturn utbetalingForSimulering
-            on { simulerUtbetaling(utbetalingForSimulering) } doReturn simulertUtbetaling.right()
             on {
                 utbetal(
                     sakId = argThat { it shouldBe behandling.sakId },
