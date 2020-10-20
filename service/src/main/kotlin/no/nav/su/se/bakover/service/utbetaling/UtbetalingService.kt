@@ -36,6 +36,11 @@ interface UtbetalingService {
         simulering: Simulering
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling>
 
+    fun stansUtbetalinger(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker
+    ): Either<KunneIkkeStanseUtbetalinger, Sak>
+
     fun gjenopptaUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker
@@ -48,6 +53,13 @@ sealed class KunneIkkeUtbetale {
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
     object Protokollfeil : KunneIkkeUtbetale()
     object KunneIkkeSimulere : KunneIkkeUtbetale()
+}
+
+sealed class KunneIkkeStanseUtbetalinger {
+    object FantIkkeSak : KunneIkkeStanseUtbetalinger()
+    object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
+    object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
+    object SimulertStansHarBeløpUlikt0 : KunneIkkeStanseUtbetalinger()
 }
 
 sealed class KunneIkkeGjenopptaUtbetalinger {

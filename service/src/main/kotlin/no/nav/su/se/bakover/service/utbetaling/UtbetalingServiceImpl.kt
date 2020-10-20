@@ -140,6 +140,34 @@ internal class UtbetalingServiceImpl(
         }
     }
 
+    override fun stansUtbetalinger(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker
+    ): Either<KunneIkkeStanseUtbetalinger, Sak> {
+        val sak = sakService.hentSak(sakId).getOrElse {
+            return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
+        }
+        val utbetalingTilSimulering =
+            sak.oppdrag.genererUtbetaling(Oppdrag.UtbetalingStrategy.Stans(saksbehandler), sak.fnr)
+        return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
+            KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
+        }.flatMap {
+            if (simulertStansHarBeløpUlikt0(it)) return KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0.left()
+            utbetal(it).mapLeft {
+                KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+            }
+        }.map {
+            sakService.hentSak(sakId).orNull()!!
+        }
+    }
+
+    private fun simulertStansHarBeløpUlikt0(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Boolean {
+        return if (simulertUtbetaling.simulering.nettoBeløp != 0 || simulertUtbetaling.simulering.bruttoYtelse() != 0) {
+            log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, nettobeløp i simulering var ${simulertUtbetaling.simulering.nettoBeløp}, bruttobeløp var:${simulertUtbetaling.simulering.bruttoYtelse()}")
+            true
+        } else false
+    }
+
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker

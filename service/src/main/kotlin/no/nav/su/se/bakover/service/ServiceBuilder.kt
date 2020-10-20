@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
-import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
@@ -54,11 +53,7 @@ class ServiceBuilder(
                 personOppslag = clients.personOppslag
             ),
             sak = sakService,
-            søknad = søknadService,
-            stansUtbetaling = StansUtbetalingService(
-                utbetalingService = utbetalingService,
-                sakService = sakService
-            )
+            søknad = søknadService
         )
     }
 }
@@ -69,6 +64,5 @@ data class Services(
     val oppdrag: OppdragService,
     val behandling: BehandlingService,
     val sak: SakService,
-    val søknad: SøknadService,
-    val stansUtbetaling: StansUtbetalingService
+    val søknad: SøknadService
 )

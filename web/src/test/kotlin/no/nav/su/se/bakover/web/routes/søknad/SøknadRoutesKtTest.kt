@@ -217,8 +217,7 @@ internal class SøknadRoutesKtTest {
                     oppdrag = mock(),
                     behandling = mock(),
                     sak = mock(),
-                    søknad = søknadServiceMock,
-                    stansUtbetaling = mock()
+                    søknad = søknadServiceMock
                 )
             )
         }) {
@@ -254,8 +253,7 @@ internal class SøknadRoutesKtTest {
                     oppdrag = mock(),
                     behandling = mock(),
                     sak = mock(),
-                    søknad = søknadServiceMock,
-                    stansUtbetaling = mock()
+                    søknad = søknadServiceMock
                 )
             )
         }) {
