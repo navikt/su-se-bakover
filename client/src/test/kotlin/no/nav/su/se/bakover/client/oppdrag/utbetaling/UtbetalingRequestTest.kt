@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
@@ -140,9 +140,8 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
                 Utbetaling.KvittertUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel()
+                    oppdragsmelding = Utbetalingsrequest(
+                        value = ""
                     ),
                     simulering = Simulering(
                         gjelderId = FNR,

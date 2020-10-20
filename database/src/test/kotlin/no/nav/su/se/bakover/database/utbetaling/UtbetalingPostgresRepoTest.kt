@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
@@ -104,9 +104,8 @@ internal class UtbetalingPostgresRepoTest {
             nettoBeløp = 0,
             periodeList = listOf()
         ),
-        oppdragsmelding = Oppdragsmelding(
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+        utbetalingsrequest = Utbetalingsrequest(
+            value = ""
         ),
         type = Utbetaling.UtbetalingsType.NY,
         oppdragId = oppdragId,

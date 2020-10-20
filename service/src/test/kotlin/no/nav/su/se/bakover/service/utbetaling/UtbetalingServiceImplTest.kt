@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -22,8 +23,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -100,11 +101,10 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
-        val avstemmingsnøkkel = Avstemmingsnøkkel()
         val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
+            utbetalingsrequest = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
@@ -124,7 +124,7 @@ internal class UtbetalingServiceImplTest {
         val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUtbetaling(avstemmingsnøkkel) } doReturn utbetaling
+            on { hentUtbetaling(utbetaling.avstemmingsnøkkel) } doReturn utbetaling
             on { oppdaterMedKvittering(utbetaling.id, kvittering) } doReturn postUpdate
         }
 
@@ -134,12 +134,13 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = mock(),
             utbetalingPublisher = mock()
         ).oppdaterMedKvittering(
-            utbetaling.oppdragsmelding.avstemmingsnøkkel,
+            utbetaling.avstemmingsnøkkel,
             kvittering
         ) shouldBe postUpdate.right()
 
-        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-        verify(utbetalingRepoMock, Times(1)).oppdaterMedKvittering(utbetaling.id, kvittering)
+        verify(utbetalingRepoMock).hentUtbetaling(utbetaling.avstemmingsnøkkel)
+        verify(utbetalingRepoMock).oppdaterMedKvittering(utbetaling.id, kvittering)
+        verifyNoMoreInteractions(utbetalingRepoMock)
     }
 
     @Test
@@ -148,7 +149,7 @@ internal class UtbetalingServiceImplTest {
         val utbetaling = Utbetaling.KvittertUtbetaling(
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
-            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
+            oppdragsmelding = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
@@ -346,9 +347,8 @@ internal class UtbetalingServiceImplTest {
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
-    private val oppdragsmelding = Oppdragsmelding(
-        originalMelding = "",
-        avstemmingsnøkkel = avstemmingsnøkkel
+    private val oppdragsmelding = Utbetalingsrequest(
+        value = ""
     )
 
     private val simulering = Simulering(

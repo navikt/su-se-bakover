@@ -14,11 +14,10 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -302,11 +301,8 @@ internal class OppdragGjenopptaStrategyTest {
     )
 
     fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling(
-        oppdragsmelding = Oppdragsmelding(
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
+        utbetalingsrequest = Utbetalingsrequest(
+            value = ""
         ),
         utbetalingslinjer = utbetalingslinjer,
         fnr = fnr,

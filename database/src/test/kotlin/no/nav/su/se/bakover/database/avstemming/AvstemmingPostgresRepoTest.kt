@@ -22,8 +22,8 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -81,23 +81,19 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
-            val oppdragsmeldingTidspunkt = 11.oktober(2020).atTime(15, 30, 0).toTidspunkt()
-
             val sak = testDataHelper.insertSak(FnrGenerator.random())
+            val utbetaling = oversendtUtbetaling(
+                oppdragId = sak.oppdrag.id,
+                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).atStartOfDay().toTidspunkt())
+            )
             utbetalingRepo.opprettUtbetaling(
-                oversendtUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel(oppdragsmeldingTidspunkt)
-                    ),
-                    oppdragId = sak.oppdrag.id
-                )
+                utbetaling
             )
 
             EmbeddedDatabase.instance().withSession { session ->
                 """
-                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler, avstemmingsnøkkel)
-                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler, :avstemmingsnokkel)
+                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
+                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
@@ -106,7 +102,13 @@ internal class AvstemmingPostgresRepoTest {
                         "fnr" to FNR,
                         "type" to "NY",
                         "behandler" to "Z123",
-                        "avstemmingsnokkel" to objectMapper.writeValueAsString(Avstemmingsnøkkel())
+                        "avstemmingsnokkel" to objectMapper.writeValueAsString(
+                            Avstemmingsnøkkel(
+                                9.oktober(2020).atStartOfDay().toTidspunkt()
+                            )
+                        ),
+                        "simulering" to "{}",
+                        "utbetalingsrequest" to "{}"
                     ),
                     session
                 )
@@ -120,7 +122,7 @@ internal class AvstemmingPostgresRepoTest {
             repo.hentUtbetalingerForAvstemming(
                 fraOgMed = 11.oktober(2020).startOfDay(),
                 tilOgMed = 11.oktober(2020).endOfDay()
-            ) shouldHaveSize 1
+            ) shouldBe listOf(utbetaling)
 
             repo.hentUtbetalingerForAvstemming(
                 fraOgMed = 12.oktober(2020).startOfDay(),
@@ -134,30 +136,21 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling1 = oversendtUtbetaling(
-                oppdragsmelding = Oppdragsmelding(
-                    originalMelding = "",
-                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
-                ),
-                oppdragId = sak.oppdrag.id
+                oppdragId = sak.oppdrag.id,
+                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
             )
             utbetalingRepo.opprettUtbetaling(utbetaling1)
 
             val utbetaling2 = oversendtUtbetaling(
-                oppdragsmelding = Oppdragsmelding(
-                    originalMelding = "",
-                    avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
-                ),
-                oppdragId = sak.oppdrag.id
+                oppdragId = sak.oppdrag.id,
+                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
             )
             utbetalingRepo.opprettUtbetaling(utbetaling2)
 
             utbetalingRepo.opprettUtbetaling(
                 oversendtUtbetaling(
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
-                    ),
-                    oppdragId = sak.oppdrag.id
+                    oppdragId = sak.oppdrag.id,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
                 )
             )
 
@@ -176,10 +169,6 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val utbetaling = oversendtUtbetaling(
-                oppdragsmelding = Oppdragsmelding(
-                    originalMelding = "",
-                    avstemmingsnøkkel = Avstemmingsnøkkel()
-                ),
                 oppdragId = sak.oppdrag.id
             )
             utbetalingRepo.opprettUtbetaling(utbetaling)
@@ -211,11 +200,8 @@ internal class AvstemmingPostgresRepoTest {
     }
 
     private fun oversendtUtbetaling(
-        oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel()
-        ),
-        oppdragId: UUID30
+        oppdragId: UUID30,
+        avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel()
     ) = Utbetaling.OversendtUtbetaling(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
@@ -227,9 +213,10 @@ internal class AvstemmingPostgresRepoTest {
             nettoBeløp = 0,
             periodeList = listOf()
         ),
-        oppdragsmelding = oppdragsmelding,
+        utbetalingsrequest = Utbetalingsrequest(""),
         type = Utbetaling.UtbetalingsType.NY,
         oppdragId = oppdragId,
-        behandler = NavIdentBruker.Attestant("Z123")
+        behandler = NavIdentBruker.Attestant("Z123"),
+        avstemmingsnøkkel = avstemmingsnøkkel
     )
 }

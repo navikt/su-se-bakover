@@ -60,7 +60,7 @@ sealed class Utbetaling {
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
     ) : Utbetaling() {
-        fun toOversendtUtbetaling(oppdragsmelding: Oppdragsmelding) =
+        fun toOversendtUtbetaling(oppdragsmelding: Utbetalingsrequest) =
             OversendtUtbetaling(
                 id = id,
                 opprettet = opprettet,
@@ -71,7 +71,7 @@ sealed class Utbetaling {
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
-                oppdragsmelding = oppdragsmelding
+                utbetalingsrequest = oppdragsmelding
             )
     }
 
@@ -85,7 +85,7 @@ sealed class Utbetaling {
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
-        val oppdragsmelding: Oppdragsmelding
+        val utbetalingsrequest: Utbetalingsrequest
     ) : Utbetaling() {
         fun toKvittertUtbetaling(kvittering: Kvittering) =
             KvittertUtbetaling(
@@ -98,7 +98,7 @@ sealed class Utbetaling {
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
-                oppdragsmelding = oppdragsmelding,
+                oppdragsmelding = utbetalingsrequest,
                 kvittering = kvittering
             )
     }
@@ -113,7 +113,7 @@ sealed class Utbetaling {
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
-        val oppdragsmelding: Oppdragsmelding,
+        val oppdragsmelding: Utbetalingsrequest,
         val kvittering: Kvittering
     ) : Utbetaling() {
         fun kvittertMedFeilEllerVarsel() =
@@ -133,7 +133,7 @@ sealed class Utbetaling {
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
-        val oppdragsmelding: Oppdragsmelding,
+        val oppdragsmelding: Utbetalingsrequest,
         val kvittering: Kvittering,
         val avstemmingId: UUID30
     ) : Utbetaling()

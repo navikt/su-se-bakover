@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -137,16 +137,15 @@ fun lagUtbetaling(
     opprettet: LocalDate,
     status: Kvittering.Utbetalingsstatus?,
     linjer: List<Utbetalingslinje>,
-    oppdragsmelding: Oppdragsmelding = Oppdragsmelding(
-        originalMelding = "Melding",
-        avstemmingsnøkkel = Avstemmingsnøkkel()
+    oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
+        value = "Melding"
     )
 ) = when (status) {
     null -> Utbetaling.OversendtUtbetaling(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
         simulering = simulering,
-        oppdragsmelding = oppdragsmelding,
+        utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,

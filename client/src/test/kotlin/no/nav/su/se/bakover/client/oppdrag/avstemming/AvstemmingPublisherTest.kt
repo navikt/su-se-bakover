@@ -13,11 +13,10 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 
@@ -57,9 +56,8 @@ class AvstemmingPublisherTest {
                     nettoBeløp = 0,
                     periodeList = listOf()
                 ),
-                oppdragsmelding = Oppdragsmelding(
-                    originalMelding = "",
-                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                oppdragsmelding = Utbetalingsrequest(
+                    value = ""
                 ),
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,

@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.BeforeEach
@@ -91,9 +91,8 @@ internal class OppdragNyStrategyTest {
                         periodeList = listOf()
                     ),
                     kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-                    oppdragsmelding = Oppdragsmelding(
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel()
+                    oppdragsmelding = Utbetalingsrequest(
+                        value = ""
                     ),
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
@@ -158,7 +157,7 @@ internal class OppdragNyStrategyTest {
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel(Tidspunkt.EPOCH)),
+            oppdragsmelding = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,
@@ -176,7 +175,7 @@ internal class OppdragNyStrategyTest {
 
         val second = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel(Tidspunkt.EPOCH)),
+            oppdragsmelding = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,
@@ -194,7 +193,7 @@ internal class OppdragNyStrategyTest {
 
         val third = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel()),
+            oppdragsmelding = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,
@@ -211,7 +210,7 @@ internal class OppdragNyStrategyTest {
         )
         val fourth = Utbetaling.KvittertUtbetaling(
             opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt(),
-            oppdragsmelding = Oppdragsmelding("", Avstemmingsnøkkel()),
+            oppdragsmelding = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
             fnr = fnr,

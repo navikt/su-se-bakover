@@ -24,7 +24,7 @@ internal class UtbetalingPublisherTest {
         val res = client.publish(utbetaling = simulertUtbetaling)
         mqClient.count shouldBe 1
         res.isLeft() shouldBe true
-        res.mapLeft { it.oppdragsmelding.originalMelding shouldBe mqClient.messages.first() }
+        res.mapLeft { it.oppdragsmelding.value shouldBe mqClient.messages.first() }
     }
 
     @Test
@@ -36,7 +36,7 @@ internal class UtbetalingPublisherTest {
         mqClient.count shouldBe 1
         res.isRight() shouldBe true
         res.map {
-            it.originalMelding shouldBe mqClient.messages.first()
+            it.value shouldBe mqClient.messages.first()
         }
     }
 

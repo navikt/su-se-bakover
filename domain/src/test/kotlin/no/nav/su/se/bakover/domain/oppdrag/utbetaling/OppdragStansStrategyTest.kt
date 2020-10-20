@@ -15,11 +15,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -133,11 +132,8 @@ internal class OppdragStansTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppdragsmelding = Oppdragsmelding(
-                originalMelding = "",
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    opprettet = Tidspunkt.now()
-                )
+            oppdragsmelding = Utbetalingsrequest(
+                value = ""
             ),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = utbetalingslinjer,

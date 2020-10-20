@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
@@ -57,7 +57,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val utbetaling = Utbetaling.OversendtUtbetaling(
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
-            oppdragsmelding = Oppdragsmelding("", avstemmingsnøkkel),
+            utbetalingsrequest = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",

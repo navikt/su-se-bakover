@@ -78,9 +78,9 @@ internal class AvstemmingPostgresRepo(
         dataSource.withSession { session ->
             // Bakoverkompatibel med gammel json-modell
             val fraOgMedCondition =
-                """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz >= :fom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom)"""
+                """(avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
             val tilOgMedCondition =
-                """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom)"""
+                """(avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
             """select * from utbetaling where $fraOgMedCondition and $tilOgMedCondition"""
                 .hentListe(
                     mapOf(

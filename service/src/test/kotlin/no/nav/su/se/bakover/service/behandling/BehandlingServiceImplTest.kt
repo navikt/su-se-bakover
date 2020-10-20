@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -244,9 +244,8 @@ internal class BehandlingServiceImplTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
     private val attestant = Attestant("SU")
 
-    private val oppdragsmelding = Oppdragsmelding(
-        originalMelding = "",
-        avstemmingsnøkkel = avstemmingsnøkkel
+    private val oppdragsmelding = Utbetalingsrequest(
+        value = ""
     )
 
     private val beregning = Beregning(

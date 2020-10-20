@@ -19,7 +19,7 @@ internal class UtbetalingPostgresRepo(
 
     override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling? =
         dataSource.withSession { session ->
-            "select * from utbetaling where oppdragsmelding -> 'avstemmingsnøkkel' ->> 'nøkkel' = :nokkel".hent(
+            "select * from utbetaling where avstemmingsnøkkel -> 'nøkkel' = :nokkel".hent(
                 mapOf(
                     "nokkel" to avstemmingsnøkkel.toString()
                 ),
@@ -43,8 +43,8 @@ internal class UtbetalingPostgresRepo(
     override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling) {
         dataSource.withSession { session ->
             """
-            insert into utbetaling (id, opprettet, oppdragId, fnr, type, avstemmingsnøkkel, simulering, oppdragsmelding, behandler)
-            values (:id, :opprettet, :oppdragId, :fnr, :type, :avstemmingsnokkel, to_json(:simulering::json), to_json(:oppdragsmelding::json), :behandler)
+            insert into utbetaling (id, opprettet, oppdragId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
+            values (:id, :opprettet, :oppdragId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
          """.oppdatering(
                 mapOf(
                     "id" to utbetaling.id,
@@ -54,7 +54,7 @@ internal class UtbetalingPostgresRepo(
                     "type" to utbetaling.type.name,
                     "avstemmingsnokkel" to objectMapper.writeValueAsString(utbetaling.avstemmingsnøkkel),
                     "simulering" to objectMapper.writeValueAsString(utbetaling.simulering),
-                    "oppdragsmelding" to objectMapper.writeValueAsString(utbetaling.oppdragsmelding),
+                    "utbetalingsrequest" to objectMapper.writeValueAsString(utbetaling.utbetalingsrequest),
                     "behandler" to utbetaling.behandler.navIdent
                 ),
                 session
