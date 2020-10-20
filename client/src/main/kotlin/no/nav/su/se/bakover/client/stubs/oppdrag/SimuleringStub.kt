@@ -5,7 +5,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -19,11 +18,11 @@ import java.time.LocalDate
 import java.time.Month
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerUtbetaling(tilSimulering: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Simulering> =
-        when (tilSimulering.utbetaling.type) {
-            Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.utbetaling.oppdragId).right()
-            Utbetaling.UtbetalingsType.STANS -> simulerStans(tilSimulering.utbetaling).right()
-            Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(tilSimulering.utbetaling, tilSimulering.utbetaling.oppdragId).right()
+    override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
+        when (utbetaling.type) {
+            Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.oppdragId).right()
+            Utbetaling.UtbetalingsType.STANS -> simulerStans(utbetaling).right()
+            Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.oppdragId).right()
         }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, oppdragId: UUID30): Simulering {

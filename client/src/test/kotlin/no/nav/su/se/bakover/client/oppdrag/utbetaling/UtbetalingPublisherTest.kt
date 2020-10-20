@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
@@ -22,11 +21,7 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(
-            tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-                utbetaling = simulertUtbetaling
-            )
-        )
+        val res = client.publish(utbetaling = simulertUtbetaling)
         mqClient.count shouldBe 1
         res.isLeft() shouldBe true
         res.mapLeft { it.oppdragsmelding.originalMelding shouldBe mqClient.messages.first() }
@@ -37,11 +32,7 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(Unit.right())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(
-            tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-                utbetaling = simulertUtbetaling
-            )
-        )
+        val res = client.publish(utbetaling = simulertUtbetaling)
         mqClient.count shouldBe 1
         res.isRight() shouldBe true
         res.map {

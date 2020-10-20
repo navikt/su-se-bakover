@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -115,27 +114,19 @@ internal class UtbetalingServiceImpl(
     }
 
     private fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        return simuleringClient.simulerUtbetaling(
-            OversendelseTilOppdrag.TilSimulering(
-                utbetaling = utbetaling,
-                avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
-            )
-        ).map { utbetaling.toSimulertUtbetaling(it) }
+        return simuleringClient.simulerUtbetaling(utbetaling = utbetaling)
+            .map { utbetaling.toSimulertUtbetaling(it) }
     }
 
     private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling> {
-        return utbetalingPublisher.publish(
-            OversendelseTilOppdrag.TilUtbetaling(
-                utbetaling = utbetaling,
-                avstemmingsnøkkel = utbetaling.avstemmingsnøkkel
-            )
-        ).mapLeft {
-            KunneIkkeUtbetale.Protokollfeil
-        }.map { oppdragsmelding ->
-            val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
-            utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
-            oversendtUtbetaling
-        }
+        return utbetalingPublisher.publish(utbetaling = utbetaling)
+            .mapLeft {
+                KunneIkkeUtbetale.Protokollfeil
+            }.map { oppdragsmelding ->
+                val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
+                utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
+                oversendtUtbetaling
+            }
     }
 
     override fun stansUtbetalinger(

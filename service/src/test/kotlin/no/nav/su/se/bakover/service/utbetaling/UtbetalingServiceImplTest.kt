@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -24,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -210,12 +208,7 @@ internal class UtbetalingServiceImplTest {
         }
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on {
-                publish(
-                    argThat {
-                        it.utbetaling shouldBe tilUtbetaling.utbetaling
-                        it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
-                    }
-                )
+                publish(argThat { it shouldBe simulertUtbetaling })
             } doReturn oppdragsmelding.right()
         }
 
@@ -239,12 +232,9 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepoMock
         ) {
             verify(sakServiceMock).hentSak(sakId)
-            verify(simuleringClientMock).simulerUtbetaling(tilSimulering)
+            verify(simuleringClientMock).simulerUtbetaling(utbetalingTilSimulering)
             verify(utbetalingPublisherMock).publish(
-                argThat {
-                    it.utbetaling shouldBe tilUtbetaling.utbetaling
-                    it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
-                }
+                argThat { it shouldBe simulertUtbetaling }
             )
             verify(utbetalingRepoMock).opprettUtbetaling(oversendtUtbetaling)
         }
@@ -269,10 +259,7 @@ internal class UtbetalingServiceImplTest {
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on {
                 publish(
-                    argThat {
-                        it.utbetaling shouldBe tilUtbetaling.utbetaling
-                        it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
-                    }
+                    argThat { it shouldBe simulertUtbetaling }
                 )
             } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(oppdragsmelding).left()
         }
@@ -292,10 +279,7 @@ internal class UtbetalingServiceImplTest {
         response shouldBe KunneIkkeUtbetale.Protokollfeil.left()
 
         verify(utbetalingPublisherMock).publish(
-            argThat {
-                it.utbetaling shouldBe tilUtbetaling.utbetaling
-                it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
-            }
+            argThat { it shouldBe simulertUtbetaling }
         )
         verifyZeroInteractions(utbetalingRepoMock)
     }
@@ -338,7 +322,7 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepoMock
         ) {
             verify(sakServiceMock).hentSak(sakId)
-            verify(simuleringClientMock).simulerUtbetaling(tilSimulering)
+            verify(simuleringClientMock).simulerUtbetaling(utbetalingTilSimulering)
             verifyZeroInteractions(utbetalingPublisherMock, utbetalingRepoMock)
         }
     }
@@ -388,14 +372,4 @@ internal class UtbetalingServiceImplTest {
 
     private val simulertUtbetaling = utbetalingTilSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-
-    private val tilSimulering = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = utbetalingTilSimulering,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
-
-    private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        utbetaling = simulertUtbetaling,
-        avstemmingsnøkkel = avstemmingsnøkkel // TODO fix when kontrollsimulering is o
-    )
 }

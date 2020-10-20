@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -27,11 +26,7 @@ class UtbetalingXmlMappingTest {
     @Test
     fun `mapper utbetaling til xml request`() {
         assertThat(
-            XmlMapper.writeValueAsString(
-                toUtbetalingRequest(
-                    tilOppdrag = nyUtbetaling
-                )
-            ),
+            XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
             isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }
@@ -64,10 +59,6 @@ class UtbetalingXmlMappingTest {
         type = Utbetaling.UtbetalingsType.NY,
         oppdragId = oppdrag.id,
         behandler = NavIdentBruker.Attestant("A123456"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
-    )
-    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = utbetaling,
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -42,9 +41,7 @@ internal class SimuleringSoapClientTest {
 
     private val FNR = Fnr("12345678910")
 
-    private val nyUtbetaling = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = createUtbetaling()
-    )
+    private val nyUtbetaling = createUtbetaling()
 
     @Test
     fun `should return ok simulering`() {
@@ -179,22 +176,20 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val utenBeløp = OversendelseTilOppdrag.TilSimulering(
-            utbetaling = Utbetaling.UtbetalingForSimulering(
-                fnr = FNR,
-                utbetalingslinjer = listOf(
-                    Utbetalingslinje(
-                        fraOgMed = 1.oktober(2020),
-                        tilOgMed = 31.desember(2020),
-                        forrigeUtbetalingslinjeId = null,
-                        beløp = 0
-                    )
-                ),
-                type = Utbetaling.UtbetalingsType.NY,
-                oppdragId = UUID30.randomUUID(),
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                avstemmingsnøkkel = Avstemmingsnøkkel()
-            )
+        val utenBeløp = Utbetaling.UtbetalingForSimulering(
+            fnr = FNR,
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    fraOgMed = 1.oktober(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 0
+                )
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(

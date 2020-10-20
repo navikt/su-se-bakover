@@ -4,28 +4,28 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 internal fun toUtbetalingRequest(
-    tilOppdrag: OversendelseTilOppdrag
+    utbetaling: Utbetaling
 ): UtbetalingRequest {
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = if (tilOppdrag.utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
+            kodeEndring = if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
-            fagsystemId = tilOppdrag.utbetaling.oppdragId.toString(),
+            fagsystemId = utbetaling.oppdragId.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
-            oppdragGjelderId = tilOppdrag.utbetaling.fnr.toString(),
+            oppdragGjelderId = utbetaling.fnr.toString(),
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
             oppdragsEnheter = OppdragDefaults.oppdragsenheter,
             avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
-                nokkelAvstemming = tilOppdrag.avstemmingsnøkkel.toString(),
-                tidspktMelding = tilOppdrag.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
+                nokkelAvstemming = utbetaling.avstemmingsnøkkel.toString(),
+                tidspktMelding = utbetaling.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
                 kodeKomponent = OppdragDefaults.KODE_KOMPONENT
             ),
-            oppdragslinjer = tilOppdrag.utbetaling.utbetalingslinjer.map {
+            oppdragslinjer = utbetaling.utbetalingslinjer.map {
                 UtbetalingRequest.Oppdragslinje(
                     kodeEndringLinje = OppdragslinjeDefaults.kodeEndring,
                     delytelseId = it.id.toString(),
@@ -37,10 +37,10 @@ internal fun toUtbetalingRequest(
                     typeSats = OppdragslinjeDefaults.typeSats,
                     brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
-                    utbetalesTilId = tilOppdrag.utbetaling.fnr.toString(),
+                    utbetalesTilId = utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
-                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { tilOppdrag.utbetaling.oppdragId.toString() },
-                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(tilOppdrag.utbetaling.behandler.navIdent))
+                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.oppdragId.toString() },
+                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent))
                 )
             }
         )

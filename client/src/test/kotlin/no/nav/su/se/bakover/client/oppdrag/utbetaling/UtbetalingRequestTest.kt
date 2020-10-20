@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -130,10 +129,7 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            tilOppdrag = OversendelseTilOppdrag.TilSimulering(
-                utbetaling = nyUtbetaling,
-                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
-            ),
+            utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()))
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -200,14 +196,9 @@ internal class UtbetalingRequestTest {
             type = Utbetaling.UtbetalingsType.NY,
             oppdragId = eksisterendeOppdrag.id,
             behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
         )
-        val utbetalingRequest = toUtbetalingRequest(
-            tilOppdrag = OversendelseTilOppdrag.TilSimulering(
-                utbetaling = nyUtbetaling,
-                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
-            ),
-        )
+        val utbetalingRequest = toUtbetalingRequest(utbetaling = nyUtbetaling)
 
         utbetalingRequest shouldBe UtbetalingRequest(
             oppdragRequest = UtbetalingRequest.OppdragRequest(

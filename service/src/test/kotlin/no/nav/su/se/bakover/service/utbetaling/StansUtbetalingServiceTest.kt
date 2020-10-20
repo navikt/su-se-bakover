@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -87,13 +86,10 @@ internal class StansUtbetalingServiceTest {
                 fnr = argThat { it shouldBe fnr }
             )
             verify(simuleringClientMock).simulerUtbetaling(
-                argThat { it shouldBe utbetalingTilSimulering }
+                argThat { it shouldBe utbetalingForSimulering }
             )
             verify(utbetalingPublisherMock).publish(
-                argThat {
-                    it.utbetaling shouldBe simulertUtbetaling
-                    it.avstemmingsnøkkel shouldBe simulertUtbetaling.avstemmingsnøkkel
-                }
+                argThat { it shouldBe simulertUtbetaling }
             )
 
             verify(utbetalingRepoMock).opprettUtbetaling(
@@ -147,7 +143,7 @@ internal class StansUtbetalingServiceTest {
                 strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Stans(saksbehandler) },
                 fnr = argThat { it shouldBe fnr }
             )
-            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingTilSimulering })
+            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingForSimulering })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -223,7 +219,7 @@ internal class StansUtbetalingServiceTest {
                 strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Stans(saksbehandler) },
                 fnr = argThat { it shouldBe fnr }
             )
-            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingTilSimulering })
+            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingForSimulering })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -284,13 +280,10 @@ internal class StansUtbetalingServiceTest {
                 fnr = argThat { it shouldBe fnr }
             )
             verify(simuleringClientMock).simulerUtbetaling(
-                argThat { it shouldBe utbetalingTilSimulering }
+                argThat { it shouldBe utbetalingForSimulering }
             )
             verify(utbetalingPublisherMock).publish(
-                argThat {
-                    it.utbetaling shouldBe simulertUtbetaling
-                    it.avstemmingsnøkkel shouldBe simulertUtbetaling.avstemmingsnøkkel
-                }
+                argThat { it shouldBe simulertUtbetaling }
             )
         }
         verifyNoMoreInteractions(
@@ -306,7 +299,6 @@ internal class StansUtbetalingServiceTest {
     private val sakId = UUID.randomUUID()
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
-    private val strategy = Oppdrag.UtbetalingStrategy.Stans(behandler = saksbehandler)
 
     private val sak: Sak = Sak(
         id = sakId,
@@ -323,11 +315,6 @@ internal class StansUtbetalingServiceTest {
         type = Utbetaling.UtbetalingsType.STANS,
         oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
-
-    private val utbetalingTilSimulering = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = utbetalingForSimulering,
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 

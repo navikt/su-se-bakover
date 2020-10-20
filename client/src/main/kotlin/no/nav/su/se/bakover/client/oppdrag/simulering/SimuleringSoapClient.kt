@@ -7,7 +7,7 @@ import com.ctc.wstx.exc.WstxEOFException
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -36,13 +36,13 @@ internal class SimuleringSoapClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun simulerUtbetaling(
-        tilSimulering: OversendelseTilOppdrag.TilSimulering
+        utbetaling: Utbetaling
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(tilSimulering).build()
+        val simulerRequest = SimuleringRequestBuilder(utbetaling).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 mapResponseToResultat(it)
-            } ?: mapEmptyResponseToResultat(tilSimulering)
+            } ?: mapEmptyResponseToResultat(utbetaling)
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.error(
@@ -85,20 +85,20 @@ internal class SimuleringSoapClient(
      * Return something with meaning for our domain for cases where simulering returns an empty response.
      * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
      */
-    private fun mapEmptyResponseToResultat(tilSimulering: OversendelseTilOppdrag.TilSimulering): Either<SimuleringFeilet, Simulering> {
-        if (tilSimulering.utbetaling.bruttoBeløp() != 0) {
+    private fun mapEmptyResponseToResultat(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
+        if (utbetaling.bruttoBeløp() != 0) {
             log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
             return SimuleringFeilet.FUNKSJONELL_FEIL.left()
         }
         return Simulering(
-            gjelderId = tilSimulering.utbetaling.fnr,
-            gjelderNavn = tilSimulering.utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
+            gjelderId = utbetaling.fnr,
+            gjelderNavn = utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
             datoBeregnet = LocalDate.now(),
             nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(
-                    fraOgMed = tilSimulering.utbetaling.tidligsteDato(),
-                    tilOgMed = tilSimulering.utbetaling.senesteDato(),
+                    fraOgMed = utbetaling.tidligsteDato(),
+                    tilOgMed = utbetaling.senesteDato(),
                     utbetaling = emptyList()
                 )
             )

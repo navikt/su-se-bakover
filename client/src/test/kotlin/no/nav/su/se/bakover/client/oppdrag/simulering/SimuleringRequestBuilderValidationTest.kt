@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -32,22 +31,20 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            OversendelseTilOppdrag.TilSimulering(
-                utbetaling = Utbetaling.UtbetalingForSimulering(
-                    utbetalingslinjer = listOf(
-                        Utbetalingslinje(
-                            fraOgMed = 1.januar(2020),
-                            tilOgMed = 14.januar(2020),
-                            beløp = 10,
-                            forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
-                        )
-                    ),
-                    fnr = Fnr("12345678910"),
-                    type = Utbetaling.UtbetalingsType.NY,
-                    oppdragId = oppdragId,
-                    behandler = NavIdentBruker.Saksbehandler("Z123"),
-                    avstemmingsnøkkel = Avstemmingsnøkkel()
-                )
+            utbetaling = Utbetaling.UtbetalingForSimulering(
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 14.januar(2020),
+                        beløp = 10,
+                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
+                    )
+                ),
+                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                oppdragId = oppdragId,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel()
             )
         ).build().request
 

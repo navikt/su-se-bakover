@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
@@ -819,7 +819,7 @@ internal class BehandlingRoutesKtTest {
                     testClients.copy(
                         utbetalingPublisher = object : UtbetalingPublisher {
                             override fun publish(
-                                tilUtbetaling: OversendelseTilOppdrag.TilUtbetaling
+                                utbetaling: Utbetaling
                             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
                                 UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                                     Oppdragsmelding("", Avstemmingsnøkkel())

@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.juni
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.OversendelseTilOppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -89,13 +87,10 @@ internal class GjenopptaUtbetalingerServiceTest {
                 fnr = argThat { it shouldBe fnr }
             )
             verify(simuleringClientMock).simulerUtbetaling(
-                argThat { it shouldBe utbetalingTilSimulering }
+                argThat { it shouldBe utbetalingForSimulering }
             )
             verify(utbetalingPublisherMock).publish(
-                argThat {
-                    it.utbetaling shouldBe simulertUtbetaling
-                    it.avstemmingsnøkkel shouldNotBe null // TODO fix when kontrollsimulering in place
-                }
+                argThat { it shouldBe simulertUtbetaling }
             )
 
             verify(utbetalingRepoMock).opprettUtbetaling(
@@ -172,7 +167,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler) },
                 fnr = argThat { it shouldBe fnr }
             )
-            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingTilSimulering })
+            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingForSimulering })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -221,8 +216,8 @@ internal class GjenopptaUtbetalingerServiceTest {
                 strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler) },
                 fnr = argThat { it shouldBe fnr }
             )
-            verify(simuleringClientMock).simulerUtbetaling(argThat { utbetalingTilSimulering })
-            verify(utbetalingPublisherMock).publish(argThat { tilUtbetaling })
+            verify(simuleringClientMock).simulerUtbetaling(argThat { utbetalingForSimulering })
+            verify(utbetalingPublisherMock).publish(argThat { simulertUtbetaling })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -265,11 +260,6 @@ internal class GjenopptaUtbetalingerServiceTest {
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 
-    private val utbetalingTilSimulering = OversendelseTilOppdrag.TilSimulering(
-        utbetaling = utbetalingForSimulering,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
-
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
@@ -283,9 +273,4 @@ internal class GjenopptaUtbetalingerServiceTest {
     )
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-
-    private val tilUtbetaling = OversendelseTilOppdrag.TilUtbetaling(
-        utbetaling = simulertUtbetaling,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
 }
