@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.søknad.LukketSøknadJson
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
@@ -73,7 +73,7 @@ internal fun Route.søknadRoutes(
                         val lukketSøknad = when (lukketSøknadBody.typeLukking) {
                             LukketSøknadJson.TypeLukking.Trukket -> Søknad.Lukket.Trukket(
                                 tidspunkt = Tidspunkt.now(),
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent()),
                                 datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad
                             )
                         }
@@ -116,7 +116,7 @@ internal fun Route.søknadRoutes(
                         val lukketSøknad = when (lukketSøknadBody.typeLukking) {
                             LukketSøknadJson.TypeLukking.Trukket -> Søknad.Lukket.Trukket(
                                 tidspunkt = Tidspunkt.now(),
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent()),
                                 datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad
                             )
                         }

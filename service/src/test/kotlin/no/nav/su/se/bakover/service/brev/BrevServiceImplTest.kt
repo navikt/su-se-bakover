@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Telefonnummer
@@ -57,7 +57,7 @@ internal class BrevServiceImplTest {
     )
     private val lukketSøknad = Søknad.Lukket.Trukket(
         tidspunkt = Tidspunkt.now(),
-        saksbehandler = Saksbehandler(navIdent = "12345"),
+        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "12345"),
         datoSøkerTrakkSøknad = LocalDate.now()
     )
 

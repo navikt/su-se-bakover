@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
@@ -41,11 +41,7 @@ internal class SimuleringSoapClientTest {
 
     private val FNR = Fnr("12345678910")
 
-    private val nyUtbetaling = NyUtbetaling(
-        oppdrag = createOppdrag(),
-        utbetaling = createUtbetaling(),
-        attestant = Attestant("A123456")
-    )
+    private val nyUtbetaling = createUtbetaling()
 
     @Test
     fun `should return ok simulering`() {
@@ -180,20 +176,20 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val utenBeløp = NyUtbetaling(
-            oppdrag = createOppdrag(),
-            utbetaling = Utbetaling.Ny(
-                fnr = FNR,
-                utbetalingslinjer = listOf(
-                    Utbetalingslinje(
-                        fraOgMed = 1.oktober(2020),
-                        tilOgMed = 31.desember(2020),
-                        forrigeUtbetalingslinjeId = null,
-                        beløp = 0
-                    )
+        val utenBeløp = Utbetaling.UtbetalingForSimulering(
+            fnr = FNR,
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    fraOgMed = 1.oktober(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 0
                 )
             ),
-            attestant = Attestant("SU")
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
@@ -236,7 +232,7 @@ internal class SimuleringSoapClientTest {
         utbetalinger = mutableListOf()
     )
 
-    private fun createUtbetaling() = Utbetaling.Ny(
+    private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(
             Utbetalingslinje(
                 id = UUID30.randomUUID(),
@@ -246,7 +242,11 @@ internal class SimuleringSoapClientTest {
                 forrigeUtbetalingslinjeId = null
             )
         ),
-        fnr = Fnr("12345678910")
+        fnr = Fnr("12345678910"),
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
+        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

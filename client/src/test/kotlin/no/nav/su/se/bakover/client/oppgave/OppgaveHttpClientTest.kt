@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.verify
 import io.kotest.assertions.arrow.either.shouldBeLeft
@@ -233,7 +232,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 )
         )
 
-        val nesteVersjon = client.ferdigstillFørstegangsOppgave(AktørId(aktørId))
+        val nesteVersjon = client.ferdigstillFørstegangsoppgave(AktørId(aktørId))
 
         nesteVersjon shouldBe (versjon + 1).right()
 

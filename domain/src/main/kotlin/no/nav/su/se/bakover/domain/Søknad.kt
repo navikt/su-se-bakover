@@ -14,11 +14,11 @@ data class Søknad(
 ) {
     sealed class Lukket {
         abstract val tidspunkt: Tidspunkt
-        abstract val saksbehandler: Saksbehandler
+        abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
         data class Trukket(
             override val tidspunkt: Tidspunkt,
-            override val saksbehandler: Saksbehandler,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
             val datoSøkerTrakkSøknad: LocalDate
         ) : Lukket()
     }

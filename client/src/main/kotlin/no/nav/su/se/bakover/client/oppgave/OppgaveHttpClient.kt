@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstema.SU_UFØRE_FLYKNING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstype.FØRSTEGANGSSØKNAD
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.BEHANDLE_SAK
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.TIL_ATTESTERING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -71,21 +72,33 @@ internal class OppgaveHttpClient(
         )
     }
 
-    override fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
         return søkEtterOppgave(
             BEHANDLE_SAK.value,
             FØRSTEGANGSSØKNAD.value,
             SU_UFØRE_FLYKNING.value,
             aktørId
-        ).fold(
-            { KunneIkkeFerdigstilleOppgave.left() },
-            { ferdigstillOppgave(it.id, it.versjon) }
-        )
+        ).mapLeft {
+            KunneIkkeFerdigstilleOppgave
+        }.flatMap {
+            ferdigstillOppgave(it.id, it.versjon)
+        }
+    }
+
+    override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+        return søkEtterOppgave(
+            TIL_ATTESTERING.value,
+            FØRSTEGANGSSØKNAD.value,
+            SU_UFØRE_FLYKNING.value,
+            aktørId
+        ).mapLeft {
+            KunneIkkeFerdigstilleOppgave
+        }.flatMap {
+            ferdigstillOppgave(it.id, it.versjon)
+        }
     }
 
     private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, Int> {
-        // https://fuel.gitbook.io/documentation/core/fuel
-        FuelManager.instance.forceMethods = true
         val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")

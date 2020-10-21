@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
@@ -45,7 +45,7 @@ internal class DokArkivClientTest : WiremockBase {
         ),
         lukketSøknad = Søknad.Lukket.Trukket(
             tidspunkt = Tidspunkt.now(),
-            saksbehandler = Saksbehandler(navIdent = "123456"),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "123456"),
             datoSøkerTrakkSøknad = LocalDate.now()
         )
     )

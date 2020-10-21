@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import javax.sql.DataSource
@@ -72,24 +71,23 @@ internal class AvstemmingPostgresRepo(
             }
         }
 
-    override fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling> =
+    override fun hentUtbetalingerForAvstemming(
+        fraOgMed: Tidspunkt,
+        tilOgMed: Tidspunkt
+    ): List<Utbetaling.OversendtUtbetaling> =
         dataSource.withSession { session ->
-            // Bakoverkompatibel med gammel json-modell
-            val fraOgMedCondition =
-                """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz >= :fom or (oppdragsmelding ->> 'tidspunkt')::timestamptz >= :fom)"""
-            val tilOgMedCondition =
-                """((oppdragsmelding -> 'avstemmingsnøkkel' ->> 'opprettet')::timestamptz <= :tom or (oppdragsmelding ->> 'tidspunkt')::timestamptz <= :tom)"""
-            """select * from utbetaling where oppdragsmelding is not null and $fraOgMedCondition and $tilOgMedCondition and oppdragsmelding ->> 'status' = :status"""
+            val fraOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
+            val tilOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
+            """select * from utbetaling where $fraOgMedCondition and $tilOgMedCondition"""
                 .hentListe(
                     mapOf(
                         "fom" to fraOgMed,
-                        "tom" to tilOgMed,
-                        "status" to Oppdragsmelding.Oppdragsmeldingstatus.SENDT.name
+                        "tom" to tilOgMed
                     ),
                     session
                 ) {
                     it.toUtbetaling(session)
-                }
+                }.filterIsInstance<Utbetaling.OversendtUtbetaling>()
         }
 }
 
@@ -100,7 +98,10 @@ private fun Row.toAvstemming(session: Session) = Avstemming(
     tilOgMed = tidspunkt("tom"),
     utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
-            UtbetalingInternalRepo.hentUtbetalingInternal(UUID30(utbetalingId as String), session)!!
+            UtbetalingInternalRepo.hentUtbetalingInternal(
+                UUID30(utbetalingId as String),
+                session
+            )!! as Utbetaling.OversendtUtbetaling
         }
     }!!,
     avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
