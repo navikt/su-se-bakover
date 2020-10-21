@@ -15,7 +15,8 @@ data class SøknadInnhold(
     val oppholdstillatelse: Oppholdstillatelse,
     val inntektOgPensjon: InntektOgPensjon,
     val formue: Formue,
-    val forNav: ForNav
+    val forNav: ForNav,
+    val ektefelle: Ektefelle?
 )
 
 data class Uførevedtak(
@@ -101,6 +102,8 @@ data class ForNav(
         VERGE;
     }
 }
+
+data class Ektefelle(val formue: Formue)
 
 data class InntektOgPensjon(
     val forventetInntekt: Number? = null,
