@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.service.behandling
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.capture
-import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
@@ -13,7 +12,6 @@ import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -22,6 +20,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
@@ -40,13 +39,11 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
 import java.util.UUID
 
@@ -161,29 +158,17 @@ internal class BehandlingServiceImplTest {
         val utbetalingPublisherMock = mock<UtbetalingPublisher>() {
             on {
                 publish(
-                    argThat {
-                        it.oppdrag shouldBe oppdrag
-                        it.utbetaling shouldBe utbetaling
-                        it.attestant shouldBe Attestant("Z123456")
-                        it.avstemmingsnøkkel shouldNotBe null
-                    }
+                    any()
                 )
             } doReturn oppdragsmelding.right()
         }
 
         val oppdragRepoMock = mock<OppdragRepo>() {
-            on { hentOppdrag(sak.id) } doReturn oppdrag
-        }
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId) } doReturn sak.right()
+            on { hentOppdrag(any()) } doReturn oppdrag
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            val fnrCaptor = ArgumentCaptor.forClass(Fnr::class.java)
-            val aktørIdCaptor = ArgumentCaptor.forClass(Fnr::class.java)
-            on { person(capture<Fnr>(fnrCaptor)) } doAnswer { PersonOppslagStub.person(fnrCaptor.value) }
-            on { aktørId(capture<Fnr>(aktørIdCaptor)) } doAnswer { PersonOppslagStub.aktørId(aktørIdCaptor.value) }
+            on { aktørId(any()) } doReturn AktørId("12345").right()
         }
 
         val response = createService(
@@ -193,22 +178,47 @@ internal class BehandlingServiceImplTest {
             utbetalingPublisher = utbetalingPublisherMock,
             oppdragRepo = oppdragRepoMock,
             personOppslag = personOppslagMock,
-            sakService = sakServiceMock
         ).iverksett(behandling.id, Attestant("Z123456"))
 
         response shouldBe behandling.right()
-        verify(behandlingRepoMock).hentBehandling(behandling.id)
-        verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
-        verify(simuleringClientMock).simulerUtbetaling(nyUtbetaling)
-        verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
-        verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
-        verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetaling.id)
-        verify(utbetalingPublisherMock).publish(any())
-        verify(utbetalingServiceMock).addOppdragsmelding(utbetaling.id, oppdragsmelding)
-        verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
-        verify(behandlingRepoMock).oppdaterBehandlingStatus(
-            behandling.id,
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+        inOrder(
+            behandlingRepoMock,
+            utbetalingPublisherMock,
+            simuleringClientMock,
+            utbetalingServiceMock,
+            personOppslagMock,
+            oppdragRepoMock
+        ) {
+            verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(utbetalingServiceMock).lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
+            verify(simuleringClientMock).simulerUtbetaling(nyUtbetaling)
+            verify(utbetalingServiceMock).opprettUtbetaling(sak.oppdrag.id, utbetaling)
+            verify(utbetalingServiceMock).addSimulering(utbetaling.id, simulering)
+            verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetaling.id)
+            verify(oppdragRepoMock).hentOppdrag(argThat { it shouldBe sak.id })
+            verify(utbetalingPublisherMock).publish(
+                argThat {
+                    it.oppdrag shouldBe oppdrag
+                    it.utbetaling shouldBe utbetaling
+                    it.attestant shouldBe Attestant("Z123456")
+                    it.avstemmingsnøkkel shouldNotBe null
+                }
+            )
+            verify(utbetalingServiceMock).addOppdragsmelding(utbetaling.id, oppdragsmelding)
+            verify(behandlingRepoMock).attester(behandling.id, Attestant("Z123456"))
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(
+                behandling.id,
+                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            )
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+        }
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            utbetalingPublisherMock,
+            simuleringClientMock,
+            utbetalingServiceMock,
+            personOppslagMock,
+            oppdragRepoMock
         )
     }
 
@@ -289,7 +299,7 @@ internal class BehandlingServiceImplTest {
         søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
-        fnr = FnrGenerator.random()
+        fnr = fnr
     )
 
     private fun behandlingTilAttestering(status: Behandling.BehandlingsStatus) = beregnetBehandling().copy(
