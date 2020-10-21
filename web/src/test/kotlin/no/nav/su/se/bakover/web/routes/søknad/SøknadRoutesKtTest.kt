@@ -191,7 +191,8 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe Created
                 verify(pdfGenerator, Times(1)).genererPdf(any<SøknadInnhold>())
                 verify(dokArkiv, Times(1)).opprettJournalpost(any())
-                verify(personOppslag, Times(1)).person(any())
+                // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
+                verify(personOppslag, Times(2)).person(any())
                 verify(oppgaveClient, Times(1)).opprettOppgave(any())
             }
         }

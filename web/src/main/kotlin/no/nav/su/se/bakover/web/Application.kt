@@ -36,6 +36,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
@@ -129,6 +131,21 @@ internal fun Application.susebakover(
     }
 
     install(StatusPages) {
+        exception<Tilgangssjekkfeil> {
+            when (it.pdlFeil) {
+                is PdlFeil.IkkeTilgangTilPerson -> {
+                    call.audit("[Tilgangssjekk] Bruker har ikke tilgang til person ${it.fnr}")
+                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person. Melding: ${it.message}", it.pdlFeil)
+                    call.respond(HttpStatusCode.Forbidden, ErrorJson(it.pdlFeil.message))
+                }
+                is PdlFeil.FantIkkePerson,
+                is PdlFeil.Ukjent -> {
+                    log.warn("[Tilgangssjekk] Fikk feil fra PDL", it.message)
+                    call.respond(HttpStatusCode.fromValue(it.pdlFeil.httpCode), ErrorJson(it.pdlFeil.message))
+                }
+            }
+        }
+
         exception<SuUserFeaturefeil> {
             log.error("Got SuUserFeaturefeil with message=${it.message}", it)
             call.respond(

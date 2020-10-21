@@ -23,6 +23,8 @@ class ServiceBuilder(
     private val clients: Clients
 ) {
     fun build(): Services {
+        val accessCheckProxy = AccessCheckProxy(databaseRepos.person, clients)
+
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak
         )
@@ -47,29 +49,31 @@ class ServiceBuilder(
             dokArkiv = clients.dokArkiv,
             dokDistFordeling = clients.dokDistFordeling
         )
-        return Services(
-            avstemming = AvstemmingServiceImpl(
-                repo = databaseRepos.avstemming,
-                publisher = clients.avstemmingPublisher
-            ),
-            utbetaling = utbetalingService,
-            oppdrag = OppdragServiceImpl(
-                repo = databaseRepos.oppdrag
-            ),
-            behandling = BehandlingServiceImpl(
-                behandlingRepo = databaseRepos.behandling,
-                hendelsesloggRepo = databaseRepos.hendelseslogg,
-                beregningRepo = databaseRepos.beregning,
-                utbetalingService = utbetalingService,
-                oppgaveClient = clients.oppgaveClient,
-                søknadService = søknadService,
-                sakService = sakService,
-                personOppslag = clients.personOppslag,
-                brevService = brevService
-            ),
-            sak = sakService,
-            søknad = søknadService,
-            brev = brevService
+        return accessCheckProxy.proxy(
+            Services(
+                avstemming = AvstemmingServiceImpl(
+                    repo = databaseRepos.avstemming,
+                    publisher = clients.avstemmingPublisher
+                ),
+                utbetaling = utbetalingService,
+                oppdrag = OppdragServiceImpl(
+                    repo = databaseRepos.oppdrag
+                ),
+                behandling = BehandlingServiceImpl(
+                    behandlingRepo = databaseRepos.behandling,
+                    hendelsesloggRepo = databaseRepos.hendelseslogg,
+                    beregningRepo = databaseRepos.beregning,
+                    utbetalingService = utbetalingService,
+                    oppgaveClient = clients.oppgaveClient,
+                    søknadService = søknadService,
+                    sakService = sakService,
+                    personOppslag = clients.personOppslag,
+                    brevService = brevService
+                ),
+                sak = sakService,
+                søknad = søknadService,
+                brev = brevService
+            )
         )
     }
 }
