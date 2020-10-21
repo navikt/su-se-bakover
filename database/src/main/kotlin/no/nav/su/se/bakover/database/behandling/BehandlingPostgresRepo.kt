@@ -5,9 +5,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.behandling.BehandlingRepoInternal.hentBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -81,7 +80,7 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: Saksbehandler): Behandling {
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Behandling {
         dataSource.withSession { session ->
             "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
                 mapOf(
@@ -94,7 +93,7 @@ internal class BehandlingPostgresRepo(
         return hentBehandling(behandlingId)!!
     }
 
-    override fun attester(behandlingId: UUID, attestant: Attestant): Behandling {
+    override fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Behandling {
         dataSource.withSession { session ->
             "update behandling set attestant = :attestant where id=:id".oppdatering(
                 mapOf(

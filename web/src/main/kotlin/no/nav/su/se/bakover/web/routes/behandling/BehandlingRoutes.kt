@@ -17,11 +17,11 @@ import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -157,7 +157,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/simuler") {
             call.withBehandling(behandlingService) { behandling ->
-                behandlingService.simuler(behandling.id).fold(
+                behandlingService.simuler(behandling.id, Saksbehandler(call.suUserContext.getNAVIdent())).fold(
                     {
                         log.info("Feil ved simulering: ", it)
                         call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
@@ -206,17 +206,15 @@ internal fun Route.behandlingRoutes(
                                 ).fold(
                                     {
                                         when (it) {
-                                            is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message(it.msg))
-                                            is Behandling.IverksettFeil.Utbetaling -> call.svar(
-                                                InternalServerError.message(
-                                                    it.msg
-                                                )
+                                            is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message("Attestant og saksbehandler kan ikke være samme person"))
+                                            is Behandling.IverksettFeil.KunneIkkeUtbetale -> call.svar(
+                                                InternalServerError.message("Kunne ikke utføre utbetaling")
                                             )
-                                            is Behandling.IverksettFeil.KunneIkkeSimulere -> call.svar(
-                                                InternalServerError.message(it.msg)
+                                            is Behandling.IverksettFeil.KunneIkkeKontrollSimulere -> call.svar(
+                                                InternalServerError.message("Kunne ikke utføre kontrollsimulering")
                                             )
-                                            is Behandling.IverksettFeil.InkonsistentSimuleringsResultat -> call.svar(
-                                                InternalServerError.message(it.msg)
+                                            is Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> call.svar(
+                                                InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
                                             )
                                         }
                                     },

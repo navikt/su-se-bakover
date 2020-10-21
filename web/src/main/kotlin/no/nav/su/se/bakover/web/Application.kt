@@ -67,8 +67,8 @@ import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
-import no.nav.su.se.bakover.web.routes.utbetaling.start.startutbetalingRoutes
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.AvstemmingKvitteringIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
@@ -247,10 +247,8 @@ internal fun Application.susebakover(
                     sakService = services.sak
                 )
                 avstemmingRoutes(services.avstemming)
-                stansutbetalingRoutes(
-                    stansUtbetalingService = services.stansUtbetaling
-                )
-                startutbetalingRoutes(services.startUtbetalinger)
+                stansutbetalingRoutes(services.utbetaling)
+                gjenopptaUtbetalingRoutes(services.utbetaling)
                 meRoutes()
             }
         }

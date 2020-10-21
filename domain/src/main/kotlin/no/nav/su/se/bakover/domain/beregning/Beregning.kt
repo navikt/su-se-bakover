@@ -45,12 +45,6 @@ data class Beregning(
         }
     }
 
-    object Opprettet : Comparator<Beregning> {
-        override fun compare(o1: Beregning?, o2: Beregning?): Int {
-            return o1!!.opprettet.toEpochMilli().compareTo(o2!!.opprettet.toEpochMilli())
-        }
-    }
-
     fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
         val minstebeløp = månedsberegninger.map {
             BigDecimal(Sats.HØY.fraDato(it.fraOgMed))

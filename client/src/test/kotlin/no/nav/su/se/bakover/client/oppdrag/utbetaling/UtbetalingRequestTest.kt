@@ -5,17 +5,18 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -41,7 +42,7 @@ internal class UtbetalingRequestTest {
 
         val nyOppdragslinjeId1 = UUID30.randomUUID()
         val nyOppdragslinjeId2 = UUID30.randomUUID()
-        val nyUtbetaling = Utbetaling.Ny(
+        val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -58,7 +59,11 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
             ),
-            fnr = FNR
+            fnr = FNR,
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = oppdragId,
+            behandler = NavIdentBruker.Attestant("A123456"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -124,12 +129,7 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            nyUtbetaling = NyUtbetaling(
-                oppdrag = oppdrag,
-                utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
-            ),
+            utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()))
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -139,11 +139,16 @@ internal class UtbetalingRequestTest {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val eksisterendeOppdrag = oppdrag.copy(
             utbetalinger = mutableListOf(
-                Utbetaling.Ny(
-                    oppdragsmelding = Oppdragsmelding(
-                        status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-                        originalMelding = "",
-                        avstemmingsnøkkel = Avstemmingsnøkkel()
+                Utbetaling.OversendtUtbetaling.MedKvittering(
+                    utbetalingsrequest = Utbetalingsrequest(
+                        value = ""
+                    ),
+                    simulering = Simulering(
+                        gjelderId = FNR,
+                        gjelderNavn = "",
+                        datoBeregnet = idag(),
+                        nettoBeløp = 0,
+                        periodeList = listOf()
                     ),
                     kvittering = Kvittering(
                         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -159,14 +164,17 @@ internal class UtbetalingRequestTest {
                             forrigeUtbetalingslinjeId = null,
                         )
                     ),
-                    fnr = FNR
+                    fnr = FNR,
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = UUID30.randomUUID(),
+                    behandler = NavIdentBruker.Saksbehandler("Z123")
                 )
             )
         )
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
-        val nyUtbetaling = Utbetaling.Ny(
+        val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
@@ -183,16 +191,13 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )
             ),
-            fnr = FNR
+            fnr = FNR,
+            type = Utbetaling.UtbetalingsType.NY,
+            oppdragId = eksisterendeOppdrag.id,
+            behandler = NavIdentBruker.Attestant("A123456"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
         )
-        val utbetalingRequest = toUtbetalingRequest(
-            nyUtbetaling = NyUtbetaling(
-                oppdrag = eksisterendeOppdrag,
-                utbetaling = nyUtbetaling,
-                attestant = Attestant("A123456"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
-            ),
-        )
+        val utbetalingRequest = toUtbetalingRequest(utbetaling = nyUtbetaling)
 
         utbetalingRequest shouldBe UtbetalingRequest(
             oppdragRequest = UtbetalingRequest.OppdragRequest(

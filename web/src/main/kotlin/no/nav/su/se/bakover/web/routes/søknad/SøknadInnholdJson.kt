@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.Ektefelle
 import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.Utenlandsopphold
 import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.EktefelleJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.ForNavJson.Companion.toForNavJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FormueJson.Companion.toFormueJson
@@ -42,7 +44,8 @@ data class SøknadInnholdJson(
     val oppholdstillatelse: OppholdstillatelseJson,
     val inntektOgPensjon: InntektOgPensjonJson,
     val formue: FormueJson,
-    val forNav: ForNavJson
+    val forNav: ForNavJson,
+    val ektefelle: EktefelleJson?,
 ) {
 
     data class UførevedtakJson(
@@ -231,6 +234,14 @@ data class SøknadInnholdJson(
         }
     }
 
+    data class EktefelleJson(val formue: FormueJson) {
+        fun toEktefelle() = Ektefelle(formue.toFormue())
+
+        companion object {
+            fun Ektefelle.toJson() = EktefelleJson(formue.toFormueJson())
+        }
+    }
+
     data class InntektOgPensjonJson(
         val forventetInntekt: Number? = null,
         val tjenerPengerIUtlandetBeløp: Number? = null,
@@ -401,7 +412,8 @@ data class SøknadInnholdJson(
         oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse(),
         inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
         formue = formue.toFormue(),
-        forNav = forNav.toForNav()
+        forNav = forNav.toForNav(),
+        ektefelle = ektefelle?.toEktefelle(),
     )
 
     companion object {
@@ -415,7 +427,8 @@ data class SøknadInnholdJson(
                 oppholdstillatelse = oppholdstillatelse.toOppholdstillatelseJson(),
                 inntektOgPensjon = inntektOgPensjon.toInntektOgPensjonJson(),
                 formue = formue.toFormueJson(),
-                forNav = forNav.toForNavJson()
+                forNav = forNav.toForNavJson(),
+                ektefelle = ektefelle?.let { it.toJson() }
             )
     }
 }

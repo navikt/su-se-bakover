@@ -39,8 +39,8 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
@@ -217,9 +217,7 @@ internal class SøknadRoutesKtTest {
                     oppdrag = mock(),
                     behandling = mock(),
                     sak = mock(),
-                    søknad = søknadServiceMock,
-                    stansUtbetaling = mock(),
-                    startUtbetalinger = mock()
+                    søknad = søknadServiceMock
                 )
             )
         }) {
@@ -255,9 +253,7 @@ internal class SøknadRoutesKtTest {
                     oppdrag = mock(),
                     behandling = mock(),
                     sak = mock(),
-                    søknad = søknadServiceMock,
-                    stansUtbetaling = mock(),
-                    startUtbetalinger = mock()
+                    søknad = søknadServiceMock
                 )
             )
         }) {

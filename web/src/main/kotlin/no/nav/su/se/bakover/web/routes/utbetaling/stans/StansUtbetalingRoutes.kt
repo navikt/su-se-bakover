@@ -2,42 +2,53 @@ package no.nav.su.se.bakover.web.routes.utbetaling.stans
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Saksbehandler
-import no.nav.su.se.bakover.service.utbetaling.StansUtbetalingService
-import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.stansutbetalingRoutes(
-    stansUtbetalingService: StansUtbetalingService
+    utbetalingService: UtbetalingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/stans") {
             call.withSakId { sakId ->
-                call.svar(
-                    stansUtbetalingService.stansUtbetalinger(
-                        sakId = sakId,
-                        saksbehandler = call.suUserContext.getNAVIdent().let { Saksbehandler(it) }
-                    ).fold(
-                        {
-                            InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
-                        },
-                        {
-                            Resultat.json(OK, serialize(it.toJson()))
+                utbetalingService.stansUtbetalinger(
+                    sakId = sakId,
+                    saksbehandler = call.suUserContext.getNAVIdent().let { Saksbehandler(it) }
+                ).fold(
+                    {
+                        when (it) {
+                            KunneIkkeStanseUtbetalinger.FantIkkeSak ->
+                                call.respond(NotFound, "Fant ikke sak")
+                            KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet ->
+                                call.respond(InternalServerError, "Simulering av stans feilet")
+                            KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet ->
+                                call.respond(InternalServerError, "Oversendelse til oppdrag feilet")
+                            KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0 ->
+                                call.respond(
+                                    InternalServerError,
+                                    "Simulering av stans inneholdt beløp for utbetaling ulikt 0"
+                                )
                         }
-                    )
+                        InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
+                    },
+                    {
+                        call.respond(serialize(it.toJson()))
+                    }
                 )
             }
         }

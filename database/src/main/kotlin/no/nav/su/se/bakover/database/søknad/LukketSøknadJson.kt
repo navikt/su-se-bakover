@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.toTidspunkt
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import java.time.Instant
 import java.time.format.DateTimeFormatter

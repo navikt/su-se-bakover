@@ -3,9 +3,8 @@ package no.nav.su.se.bakover.web.routes.behandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
@@ -74,8 +73,8 @@ internal class BehandlingJsonTest {
             ),
             søknad = søknad,
             beregning = beregning,
-            attestant = Attestant("kjella"),
-            saksbehandler = Saksbehandler("pro-saksbehandler"),
+            attestant = NavIdentBruker.Attestant("kjella"),
+            saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
             sakId = sakId,
             fnr = FnrGenerator.random()
         )

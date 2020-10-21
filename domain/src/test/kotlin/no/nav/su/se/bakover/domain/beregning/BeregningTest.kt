@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -91,38 +90,6 @@ internal class BeregningTest {
             )
         )
         beregning.månedsberegninger shouldHaveSize 1
-    }
-
-    @Test
-    fun `sort by opprettet`() {
-        val first = Beregning(
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 1, 1).toTidspunkt(),
-            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
-            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
-            sats = Sats.HØY,
-            fradrag = emptyList()
-        )
-        val second = Beregning(
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 2, 15).toTidspunkt(),
-            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
-            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
-            sats = Sats.HØY,
-            fradrag = emptyList()
-        )
-        val third = Beregning(
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 11, 59, 55).toTidspunkt(),
-            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
-            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
-            sats = Sats.HØY,
-            fradrag = emptyList()
-        )
-        val beregninger = listOf(
-            first,
-            second,
-            third
-        )
-        val sorted = beregninger.sortedWith(Beregning.Opprettet)
-        sorted shouldContainInOrder listOf(third, first, second)
     }
 
     @Test

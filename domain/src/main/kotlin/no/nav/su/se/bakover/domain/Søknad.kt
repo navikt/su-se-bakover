@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import java.util.UUID
 
 data class Søknad(

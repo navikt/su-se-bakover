@@ -23,8 +23,8 @@ data class Behandling(
     private var beregning: Beregning? = null,
     internal var simulering: Simulering? = null,
     private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
-    private var saksbehandler: Saksbehandler? = null,
-    private var attestant: Attestant? = null,
+    private var saksbehandler: NavIdentBruker.Saksbehandler? = null,
+    private var attestant: NavIdentBruker.Attestant? = null,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
     val fnr: Fnr
@@ -88,18 +88,18 @@ data class Behandling(
     }
 
     fun sendTilAttestering(
-        saksbehandler: Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler
     ): Behandling {
         return tilstand.sendTilAttestering(saksbehandler)
     }
 
     fun iverksett(
-        attestant: Attestant
+        attestant: NavIdentBruker.Attestant
     ): Either<IverksettFeil, Behandling> {
         return tilstand.iverksett(attestant)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -126,18 +126,18 @@ data class Behandling(
         }
 
         fun sendTilAttestering(
-            saksbehandler: Saksbehandler
+            saksbehandler: NavIdentBruker.Saksbehandler
         ): Behandling {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
         fun iverksett(
-            attestant: Attestant
+            attestant: NavIdentBruker.Attestant
         ): Either<IverksettFeil, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
 
-        fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+        fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -207,7 +207,7 @@ data class Behandling(
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override fun sendTilAttestering(
-                saksbehandler: Saksbehandler,
+                saksbehandler: NavIdentBruker.Saksbehandler,
             ): Behandling {
                 this@Behandling.saksbehandler = saksbehandler
                 nyTilstand(TilAttestering().Avslag())
@@ -240,7 +240,7 @@ data class Behandling(
             }
 
             override fun sendTilAttestering(
-                saksbehandler: Saksbehandler,
+                saksbehandler: NavIdentBruker.Saksbehandler,
             ): Behandling {
                 this@Behandling.saksbehandler = saksbehandler
                 nyTilstand(TilAttestering().Avslag())
@@ -253,7 +253,7 @@ data class Behandling(
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
-            saksbehandler: Saksbehandler
+            saksbehandler: NavIdentBruker.Saksbehandler
         ): Behandling {
             this@Behandling.saksbehandler = saksbehandler
             nyTilstand(TilAttestering().Innvilget())
@@ -278,10 +278,10 @@ data class Behandling(
 
         inner class Innvilget : TilAttestering() {
             override fun iverksett(
-                attestant: Attestant
+                attestant: NavIdentBruker.Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Innvilget())
@@ -292,10 +292,10 @@ data class Behandling(
         inner class Avslag : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             override fun iverksett(
-                attestant: Attestant
+                attestant: NavIdentBruker.Attestant
             ): Either<IverksettFeil, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik().left()
+                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Avslag())
@@ -303,7 +303,7 @@ data class Behandling(
             }
         }
 
-        override fun underkjenn(begrunnelse: String, attestant: Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+        override fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return KunneIkkeUnderkjenne().left()
             }
@@ -344,10 +344,10 @@ data class Behandling(
         RuntimeException(msg)
 
     sealed class IverksettFeil {
-        data class AttestantOgSaksbehandlerErLik(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!") : IverksettFeil()
-        data class Utbetaling(val msg: String = "Feil ved oversendelse av utbetaling til oppdrag!") : IverksettFeil()
-        data class KunneIkkeSimulere(val msg: String = "Kunne ikke gjennomføre kontrollsimulering av utbtaling") : IverksettFeil()
-        data class InkonsistentSimuleringsResultat(val msg: String = "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres") : IverksettFeil()
+        object AttestantOgSaksbehandlerErLik : IverksettFeil()
+        object KunneIkkeUtbetale : IverksettFeil()
+        object KunneIkkeKontrollSimulere : IverksettFeil()
+        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : IverksettFeil()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")

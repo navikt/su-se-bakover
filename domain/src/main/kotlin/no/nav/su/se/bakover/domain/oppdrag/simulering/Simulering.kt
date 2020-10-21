@@ -11,8 +11,29 @@ data class Simulering(
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>
 ) {
+    init {
+        listOf(
+            SimuleringValidering.SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(this),
+        ).forEach { require(it.isValid()) { it.message } }
+    }
+
     fun bruttoYtelse() = periodeList
         .sumBy { it.bruttoYtelse() }
+
+    override fun equals(other: Any?) = other is Simulering &&
+        other.gjelderId == this.gjelderId &&
+        other.gjelderNavn == this.gjelderNavn &&
+        other.nettoBeløp == this.nettoBeløp &&
+        other.periodeList == this.periodeList &&
+        other.bruttoYtelse() == this.bruttoYtelse()
+
+    override fun hashCode(): Int {
+        var result = gjelderId.hashCode()
+        result = 31 * result + gjelderNavn.hashCode()
+        result = 31 * result + nettoBeløp
+        result = 31 * result + periodeList.hashCode()
+        return result
+    }
 }
 
 data class SimulertPeriode(
@@ -68,4 +89,19 @@ enum class SimuleringFeilet {
 enum class KlasseType {
     YTEL,
     SKAT
+}
+
+internal abstract class SimuleringValidering {
+    abstract val simulering: Simulering
+    abstract val message: String
+    abstract fun isValid(): Boolean
+
+    class SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
+        override val simulering: Simulering,
+        override val message: String = "Simulerte utbetalinger med flere detaljer av typen ${KlasseType.YTEL} indikerer endring av utbetalinger tilbake i tid. Systemet mangler støtte for håndtering av slike tilfeller."
+    ) : SimuleringValidering() {
+        override fun isValid() = simulering.periodeList
+            .flatMap { it.utbetaling }
+            .all { it.detaljer.count { it.isYtelse() } == 1 }
+    }
 }
