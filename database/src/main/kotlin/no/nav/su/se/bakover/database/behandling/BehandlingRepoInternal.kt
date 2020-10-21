@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -20,12 +21,12 @@ import java.util.UUID
 
 internal object BehandlingRepoInternal {
     fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
-        "select * from behandling where id=:id"
+        "select b.*, s.fnr from behandling b left outer join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
                 row.toBehandling(session)
             }
 
-    fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select * from behandling where sakId=:sakId"
+    fun hentBehandlingerForSak(sakId: UUID, session: Session) = "select b.*, s.fnr from behandling b left outer join sak s on s.id = b.sakId where b.sakId=:sakId"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toBehandling(session)
         }.toMutableList()
@@ -46,6 +47,7 @@ internal fun Row.toBehandling(session: Session): Behandling {
         sakId = uuid("sakId"),
         hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session) ?: Hendelseslogg(
             behandlingId.toString()
-        )
+        ),
+        fnr = Fnr(string("fnr"))
     )
 }

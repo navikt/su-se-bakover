@@ -27,10 +27,10 @@ internal class BeregningPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
-            val beregning = testDataHelper.insertBeregning(behandling.id)
+            val nySøknadsbehandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val beregning = testDataHelper.insertBeregning(nySøknadsbehandling.id)
 
-            val hentet = repo.hentBeregningForBehandling(behandling.id)
+            val hentet = repo.hentBeregningForBehandling(nySøknadsbehandling.id)
 
             hentet shouldBe beregning
         }
@@ -41,13 +41,13 @@ internal class BeregningPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
-            testDataHelper.insertBeregning(behandling.id)
+            val nySøknadsbehandling = testDataHelper.insertBehandling(sak.id, søknad)
+            testDataHelper.insertBeregning(nySøknadsbehandling.id)
 
-            val before = repo.hentBeregningForBehandling(behandling.id)
-            repo.slettBeregningForBehandling(behandling.id)
+            val before = repo.hentBeregningForBehandling(nySøknadsbehandling.id)
+            repo.slettBeregningForBehandling(nySøknadsbehandling.id)
 
-            val after = repo.hentBeregningForBehandling(behandling.id)
+            val after = repo.hentBeregningForBehandling(nySøknadsbehandling.id)
             before shouldNotBe null
             after shouldBe null
         }
@@ -58,9 +58,9 @@ internal class BeregningPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = testDataHelper.insertBehandling(sak.id, søknad)
             val gammelBeregning = repo.opprettBeregningForBehandling(
-                behandling.id,
+                nySøknadsbehandling.id,
                 Beregning(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
@@ -76,7 +76,7 @@ internal class BeregningPostgresRepoTest {
                 )
             )
 
-            selectCount(from = "beregning", where = "behandlingId", id = behandling.id.toString()) shouldBe 1
+            selectCount(from = "beregning", where = "behandlingId", id = nySøknadsbehandling.id.toString()) shouldBe 1
             selectCount(from = "beregning", where = "id", id = gammelBeregning.id.toString()) shouldBe 1
             selectCount(from = "månedsberegning", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 12
             selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id.toString()) shouldBe 1
@@ -87,9 +87,9 @@ internal class BeregningPostgresRepoTest {
                 sats = Sats.HØY,
                 fradrag = emptyList()
             )
-            repo.opprettBeregningForBehandling(behandling.id, nyBeregning)
+            repo.opprettBeregningForBehandling(nySøknadsbehandling.id, nyBeregning)
 
-            selectCount(from = "beregning", where = "behandlingId", id = behandling.id.toString()) shouldBe 1
+            selectCount(from = "beregning", where = "behandlingId", id = nySøknadsbehandling.id.toString()) shouldBe 1
 
             selectCount(from = "beregning", where = "id", id = nyBeregning.id.toString()) shouldBe 1
             selectCount(from = "månedsberegning", where = "beregningId", id = nyBeregning.id.toString()) shouldBe 12

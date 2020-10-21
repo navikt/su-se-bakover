@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -47,7 +49,7 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
     }
 
-    val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun underkjenn(
         begrunnelse: String,
@@ -143,7 +145,7 @@ internal class BehandlingServiceImpl(
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
-        oppgaveClient.ferdigstillFørstegangsOppgave(
+        oppgaveClient.ferdigstillFørstegangsoppgave(
             aktørId = aktørId
         )
         return behandling.right()
@@ -168,7 +170,8 @@ internal class BehandlingServiceImpl(
                         return simuleringClient.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
                             .map { simulering ->
-                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
+                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
+                                    .left()
 
                                 utbetalingService.opprettUtbetaling(
                                     oppdragId = utbetaling.oppdrag.id,
@@ -203,23 +206,7 @@ internal class BehandlingServiceImpl(
                                     behandlingRepo.attester(behandlingId, attestant)
                                     behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
-                                    sakService.hentSak(behandling.sakId).fold(
-                                        {
-                                            log.warn("Fant ikke sak med sakId : ${behandling.sakId}")
-                                        },
-                                        { sak ->
-                                            personOppslag.aktørId(sak.fnr).fold(
-                                                {
-                                                    log.warn("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
-                                                },
-                                                { aktørId ->
-                                                    oppgaveClient.ferdigstillAttesteringsOppgave(
-                                                        aktørId = aktørId
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    )
+                                    lukkAttesteringsoppgave(behandling)
 
                                     return behandling.right()
                                 }
@@ -233,19 +220,38 @@ internal class BehandlingServiceImpl(
             }
     }
 
+    private fun lukkAttesteringsoppgave(behandling: Behandling) {
+        personOppslag.aktørId(behandling.fnr).fold(
+            {
+                log.warn("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
+            },
+            { aktørId ->
+                oppgaveClient.ferdigstillAttesteringsoppgave(
+                    aktørId = aktørId
+                )
+            }
+        )
+    }
+
     // TODO need to define responsibilities for domain and services.
-    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
+    override fun opprettSøknadsbehandling(
+        sakId: UUID,
+        søknadId: UUID
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
         return søknadService.hentSøknad(søknadId)
             .map {
-                behandlingRepo.opprettSøknadsbehandling(
-                    sakId,
-                    Behandling(
-                        sakId = sakId,
-                        søknad = it
-                    )
+                val nySøknadsbehandling = NySøknadsbehandling(
+                    id = UUID.randomUUID(),
+                    opprettet = now(),
+                    sakId = sakId,
+                    søknadId = søknadId
                 )
+                behandlingRepo.opprettSøknadsbehandling(
+                    nySøknadsbehandling
+                )
+                behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!
             }.mapLeft {
                 KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
             }

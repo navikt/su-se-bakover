@@ -242,4 +242,17 @@ data class Behandlingsinformasjon(
 
         override fun isComplete(): Boolean = true
     }
+
+    companion object {
+        fun lagTomBehandlingsinformasjon() = Behandlingsinformasjon(
+            uførhet = null,
+            flyktning = null,
+            lovligOpphold = null,
+            fastOppholdINorge = null,
+            oppholdIUtlandet = null,
+            formue = null,
+            personligOppmøte = null,
+            bosituasjon = null
+        )
+    }
 }

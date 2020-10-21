@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 import javax.sql.DataSource
@@ -107,9 +108,8 @@ internal class BehandlingPostgresRepo(
     }
 
     override fun opprettSøknadsbehandling(
-        sakId: UUID,
-        behandling: Behandling
-    ): Behandling {
+        nySøknadsbehandling: NySøknadsbehandling
+    ) {
         dataSource.withSession { session ->
             """
             insert into behandling
@@ -118,16 +118,15 @@ internal class BehandlingPostgresRepo(
                 (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
             """.oppdatering(
                 mapOf(
-                    "id" to behandling.id,
-                    "sakId" to sakId,
-                    "soknadId" to behandling.søknad.id,
-                    "opprettet" to behandling.opprettet,
-                    "status" to behandling.status().name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(behandling.behandlingsinformasjon())
+                    "id" to nySøknadsbehandling.id,
+                    "sakId" to nySøknadsbehandling.sakId,
+                    "soknadId" to nySøknadsbehandling.søknadId,
+                    "opprettet" to nySøknadsbehandling.opprettet,
+                    "status" to nySøknadsbehandling.status.name,
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(nySøknadsbehandling.behandlingsinformasjon)
                 ),
                 session
             )
         }
-        return hentBehandling(behandling.id)!!
     }
 }

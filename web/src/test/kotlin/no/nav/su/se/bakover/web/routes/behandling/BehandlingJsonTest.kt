@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknad
@@ -75,7 +76,8 @@ internal class BehandlingJsonTest {
             beregning = beregning,
             attestant = Attestant("kjella"),
             saksbehandler = Saksbehandler("pro-saksbehandler"),
-            sakId = sakId
+            sakId = sakId,
+            fnr = FnrGenerator.random()
         )
 
         //language=JSON
@@ -158,7 +160,8 @@ internal class BehandlingJsonTest {
             id = behandlingId,
             behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = søknad,
-            sakId = sakId
+            sakId = sakId,
+            fnr = FnrGenerator.random()
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

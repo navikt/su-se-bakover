@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import com.github.kittinunf.fuel.core.FuelManager
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import org.junit.jupiter.api.BeforeEach
@@ -15,6 +16,8 @@ interface WiremockBase {
                 it.start()
                 // Denne kan da ikke overskrives fra testene.
                 MDC.put("X-Correlation-ID", "correlationId")
+                // https://fuel.gitbook.io/documentation/core/fuel
+                FuelManager.instance.forceMethods = true
             }
         }
     }
