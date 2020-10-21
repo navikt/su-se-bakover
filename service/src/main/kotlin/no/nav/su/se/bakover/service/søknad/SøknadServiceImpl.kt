@@ -3,10 +3,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -30,22 +28,19 @@ internal class SøknadServiceImpl(
 
     override fun lukkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         return trekkSøknad(
             søknadId = søknadId,
-            saksbehandler = saksbehandler,
             loggtema = "Trekking av søknad",
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         )
     }
 
     private fun trekkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler,
         loggtema: String,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(søknadId).getOrElse {
             log.error("$loggtema: Fant ikke søknad")
@@ -63,7 +58,7 @@ internal class SøknadServiceImpl(
         return brevService.journalførLukketSøknadOgSendBrev(
             sakId = søknad.sakId,
             søknad = søknad,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ).fold(
             ifLeft = {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
@@ -73,11 +68,7 @@ internal class SøknadServiceImpl(
                 log.info("Bestilt distribusjon av brev for trukket søknad. Bestillings-id: $it")
                 søknadRepo.lukkSøknad(
                     søknadId = søknadId,
-                    lukket = Søknad.Lukket.Trukket(
-                        tidspunkt = Tidspunkt.now(),
-                        saksbehandler = saksbehandler,
-                        typeLukking = Søknad.TypeLukking.Trukket
-                    )
+                    lukket = lukketSøknad
                 )
                 log.info("Trukket søknad $søknadId")
                 return sakService.hentSak(søknad.sakId).mapLeft {
@@ -89,7 +80,7 @@ internal class SøknadServiceImpl(
 
     override fun lagLukketSøknadBrevutkast(
         søknadId: UUID,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         val søknad = hentSøknad(søknadId).getOrElse {
             log.error("Lukket brevutkast: Fant ikke søknad")
@@ -97,9 +88,8 @@ internal class SøknadServiceImpl(
         }
 
         return brevService.lagLukketSøknadBrevutkast(
-            sakId = søknad.sakId,
             søknad = søknad,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ).mapLeft {
             log.error("Lukket brevutkast: feil ved generering av brevutkast")
             KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast

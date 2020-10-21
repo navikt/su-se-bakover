@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
+import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
@@ -7,6 +8,8 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import java.util.Base64
 import java.util.UUID
+
+internal const val ENHET_ÅLESUND = "4815"
 
 sealed class Journalpost {
     val tema: String = "SUP"
@@ -70,7 +73,7 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
-        override val journalfoerendeEnhet: String = "4815"
+        override val journalfoerendeEnhet: String = ENHET_ÅLESUND
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = tittel,
@@ -86,13 +89,18 @@ sealed class Journalpost {
         )
     }
 
-    data class lukketSøknadJournalpostRequest(
+    data class LukketSøknadJournalpostRequest(
         val person: Person,
         val pdf: ByteArray,
         val sakId: UUID,
         val lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
     ) : Journalpost() {
-        override val tittel: String = "Bekrefter at søknad er trukket"
+        override val tittel: String = when (lukketSøknadBrevinnhold) {
+            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> "Bekrefter at søknad er trukket"
+            else -> throw java.lang.RuntimeException(
+                "template kan bare være trukket"
+            )
+        }
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
@@ -101,11 +109,11 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
-        override val journalfoerendeEnhet: String = "4815"
+        override val journalfoerendeEnhet: String = ENHET_ÅLESUND
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = tittel,
-                dokumentKategori = DokumentKategori.IB,
+                dokumentKategori = DokumentKategori.Infobrev,
                 dokumentvarianter = listOf(
                     DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
@@ -172,8 +180,8 @@ enum class JournalPostType(val type: String) {
     UTGAAENDE("UTGAAENDE")
 }
 
-enum class DokumentKategori(val type: String) {
+enum class DokumentKategori(@JsonValue val type: String) {
     SOK("SOK"),
     VB("VB"),
-    IB("IB")
+    Infobrev("IB")
 }

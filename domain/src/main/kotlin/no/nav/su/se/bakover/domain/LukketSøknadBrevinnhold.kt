@@ -17,7 +17,6 @@ sealed class LukketSøknadBrevinnhold {
     abstract val bruksenhet: String?
     abstract val postnummer: String?
     abstract val poststed: String
-    abstract val typeLukking: String
 
     data class TrukketSøknadBrevinnhold(
         override val dato: String,
@@ -32,21 +31,19 @@ sealed class LukketSøknadBrevinnhold {
         override val bruksenhet: String?,
         override val postnummer: String?,
         override val poststed: String,
-        override val typeLukking: String = Søknad.TypeLukking.Trukket.value
     ) : LukketSøknadBrevinnhold() {
 
         companion object {
             fun lagTrukketSøknadBrevinnhold(
                 person: Person,
                 søknad: Søknad,
-                lukketSøknadBody: Søknad.LukketSøknadBody
+                lukketSøknad: Søknad.Lukket.Trukket
             ): TrukketSøknadBrevinnhold {
                 return TrukketSøknadBrevinnhold(
-                    dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
+                    dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                     datoSøknadOpprettet = LocalDate.ofInstant(søknad.opprettet.instant, ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                    datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-                        .toString(),
+                        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    datoSøkerTrakkSøknad = lukketSøknad.datoSøkerTrakkSøknad.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                     fødselsnummer = person.ident.fnr,
                     fornavn = person.navn.fornavn,
                     mellomnavn = person.navn.mellomnavn,
@@ -65,19 +62,13 @@ sealed class LukketSøknadBrevinnhold {
         fun lagLukketSøknadBrevinnhold(
             person: Person,
             søknad: Søknad,
-            lukketSøknadBody: Søknad.LukketSøknadBody
+            lukketSøknad: Søknad.Lukket
         ): LukketSøknadBrevinnhold =
-            when {
-                erTrukket(lukketSøknadBody.typeLukking) -> lagTrukketSøknadBrevinnhold(
-                    person = person, søknad = søknad, lukketSøknadBody = lukketSøknadBody
-                )
-                else -> throw java.lang.RuntimeException(
-                    "Kan ikke lage brevinnhold for å lukke søknad som ikke er trukket eller avvist"
-                )
+            when (lukketSøknad) {
+                is Søknad.Lukket.Trukket ->
+                    lagTrukketSøknadBrevinnhold(
+                        person = person, søknad = søknad, lukketSøknad = lukketSøknad
+                    )
             }
-
-        private fun erTrukket(typeLukking: Søknad.TypeLukking): Boolean {
-            return typeLukking == Søknad.TypeLukking.Trukket
-        }
     }
 }

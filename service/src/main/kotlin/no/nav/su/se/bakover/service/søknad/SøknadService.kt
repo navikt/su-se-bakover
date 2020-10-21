@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 
@@ -11,13 +10,12 @@ interface SøknadService {
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
     fun lukkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLukkeSøknad, Sak>
 
     fun lagLukketSøknadBrevutkast(
         søknadId: UUID,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadPostgresRepoTest {
@@ -75,15 +76,15 @@ internal class SøknadPostgresRepoTest {
                 lukket = Søknad.Lukket.Trukket(
                     tidspunkt = Tidspunkt.now(),
                     saksbehandler = saksbehandler,
-                    typeLukking = Søknad.TypeLukking.Trukket
+                    datoSøkerTrakkSøknad = LocalDate.now()
                 )
             )
             val hentetSøknad = repo.hentSøknad(søknad.id)
             hentetSøknad!!.id shouldBe søknad.id
             hentetSøknad.lukket shouldBe Søknad.Lukket.Trukket(
-                hentetSøknad.lukket!!.tidspunkt,
-                saksbehandler,
-                Søknad.TypeLukking.Trukket
+                tidspunkt = hentetSøknad.lukket!!.tidspunkt,
+                saksbehandler = saksbehandler,
+                datoSøkerTrakkSøknad = LocalDate.now()
             )
         }
     }

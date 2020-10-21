@@ -10,9 +10,11 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
@@ -41,10 +43,10 @@ internal class DokArkivClientTest : WiremockBase {
             id = UUID.randomUUID(),
             søknadInnhold = søknadInnhold
         ),
-        lukketSøknadBody = Søknad.LukketSøknadBody(
-            datoSøkerTrakkSøknad = LocalDate.now(),
-            typeLukking = Søknad.TypeLukking.Trukket
-
+        lukketSøknad = Søknad.Lukket.Trukket(
+            tidspunkt = Tidspunkt.now(),
+            saksbehandler = Saksbehandler(navIdent = "123456"),
+            datoSøkerTrakkSøknad = LocalDate.now()
         )
     )
 
@@ -308,7 +310,7 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.lukketSøknadJournalpostRequest(
+            Journalpost.LukketSøknadJournalpostRequest(
                 person = person,
                 pdf = pdf,
                 sakId = uuidSakId,

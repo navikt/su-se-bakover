@@ -50,17 +50,16 @@ class BrevServiceImpl(
     }
 
     override fun lagLukketSøknadBrevutkast(
-        sakId: UUID,
         søknad: Søknad,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLageBrev, ByteArray> {
-        return sakService.hentSak(sakId)
+        return sakService.hentSak(sakId = søknad.sakId)
             .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
             .flatMap { sak ->
                 hentPersonFraFnr(sak.fnr)
                     .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
                     .flatMap { person ->
-                        genererLukketSøknadBrevPdf(person, søknad, lukketSøknadBody)
+                        genererLukketSøknadBrevPdf(person, søknad, lukketSøknad)
                             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
                             .map { it }
                     }
@@ -146,7 +145,7 @@ class BrevServiceImpl(
     override fun journalførLukketSøknadOgSendBrev(
         sakId: UUID,
         søknad: Søknad,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
         val loggtema = "Journalføring og lukking av søknad"
         val person = sakService.hentSak(sakId).fold(
@@ -171,7 +170,7 @@ class BrevServiceImpl(
         val lukketSøknadBrevPdf = genererLukketSøknadBrevPdf(
             person = person,
             søknad = søknad,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ).fold(
             ifLeft = {
                 log.error("$loggtema: kunne ikke generere pdf for å lukke søknad")
@@ -184,13 +183,13 @@ class BrevServiceImpl(
         )
 
         val journalPostId = dokArkiv.opprettJournalpost(
-            Journalpost.lukketSøknadJournalpostRequest(
+            Journalpost.LukketSøknadJournalpostRequest(
                 person = person,
                 sakId = sakId,
                 lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(
                     person = person,
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 ),
                 pdf = lukketSøknadBrevPdf
             )
@@ -211,13 +210,13 @@ class BrevServiceImpl(
     private fun genererLukketSøknadBrevPdf(
         person: Person,
         søknad: Søknad,
-        lukketSøknadBody: Søknad.LukketSøknadBody
+        lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeGenererePdf, ByteArray> {
         val lukketSøknadBrevinnhold =
             lagLukketSøknadBrevinnhold(
                 person = person,
                 søknad = søknad,
-                lukketSøknadBody = lukketSøknadBody
+                lukketSøknad = lukketSøknad
             )
         val pdfTemplate = when (lukketSøknadBrevinnhold) {
             is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> PdfTemplate.TrukketSøknad

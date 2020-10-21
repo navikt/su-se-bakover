@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Telefonnummer
@@ -54,9 +55,10 @@ internal class BrevServiceImplTest {
         id = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build()
     )
-    private val lukketSøknadBody = Søknad.LukketSøknadBody(
-        datoSøkerTrakkSøknad = LocalDate.now(),
-        typeLukking = Søknad.TypeLukking.Trukket
+    private val lukketSøknad = Søknad.Lukket.Trukket(
+        tidspunkt = Tidspunkt.now(),
+        saksbehandler = Saksbehandler(navIdent = "12345"),
+        datoSøkerTrakkSøknad = LocalDate.now()
     )
 
     private val person = Person(
@@ -85,12 +87,12 @@ internal class BrevServiceImplTest {
         LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
             person = person,
             søknad = søknad,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         )
     )
 
     @Test
-    fun `journalfører en lukket søknad, og sender brev`() {
+    fun `journalfører en trukket søknad, og sender brev`() {
         val person = PersonOppslagStub.person(sak.fnr).getOrElse {
             throw Exception("Fikk ikke person")
         }
@@ -111,14 +113,14 @@ internal class BrevServiceImplTest {
         val dokArkivMock = mock<DokArkiv> {
             on {
                 it.opprettJournalpost(
-                    Journalpost.lukketSøknadJournalpostRequest(
+                    Journalpost.LukketSøknadJournalpostRequest(
                         person = person,
                         pdf = pdf,
                         sakId = sakId,
                         lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
                             person = person,
                             søknad = søknad,
-                            lukketSøknadBody = lukketSøknadBody
+                            lukketSøknad = lukketSøknad
                         )
                     )
                 )
@@ -137,7 +139,7 @@ internal class BrevServiceImplTest {
             dokArkiv = dokArkivMock,
             dokDistFordeling = dokdistFordelingMock,
             sakService = sakServiceMock
-        ).journalførLukketSøknadOgSendBrev(sakId, søknad, lukketSøknadBody) shouldBe "en bestillings id".right()
+        ).journalførLukketSøknadOgSendBrev(sakId, søknad, lukketSøknad) shouldBe "en bestillings id".right()
 
         verify(sakServiceMock).hentSak(
             argThat<UUID> { it shouldBe sakId }
@@ -151,14 +153,14 @@ internal class BrevServiceImplTest {
         )
         verify(dokArkivMock).opprettJournalpost(
             argThat {
-                it shouldBe Journalpost.lukketSøknadJournalpostRequest(
+                it shouldBe Journalpost.LukketSøknadJournalpostRequest(
                     person = person,
                     pdf = pdf,
                     sakId = sakId,
                     lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
                         person = person,
                         søknad = søknad,
-                        lukketSøknadBody = lukketSøknadBody
+                        lukketSøknad = lukketSøknad
                     )
                 )
             }
@@ -192,9 +194,8 @@ internal class BrevServiceImplTest {
             dokDistFordeling = dokdistFordelingMock,
             sakService = sakServiceMock
         ).lagLukketSøknadBrevutkast(
-            sakId = sakId,
             søknad = søknad,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ) shouldBe pdf.right()
 
         verify(sakServiceMock).hentSak(

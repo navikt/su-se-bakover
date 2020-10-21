@@ -88,7 +88,14 @@ internal class SøknadRoutesKtTest {
             sakId = sakId
         )
     )
-    private val lukketSøknadBody = Søknad.LukketSøknadBody(LocalDate.now(), Søknad.TypeLukking.Trukket)
+    private val lukketSøknad = Søknad.Lukket.Trukket(
+        tidspunkt = tidspunkt,
+        saksbehandler = Saksbehandler(navIdent = "navident"),
+        datoSøkerTrakkSøknad = LocalDate.now()
+    )
+    private val lukketSøknadBody =
+        LukketSøknadBody(typeLukking = LukketSøknadJson.TypeLukking.Trukket, datoSøkerTrakkSøknad = LocalDate.now())
+
     private val lukketSøknadBodyJson = objectMapper.writeValueAsString(lukketSøknadBody)
 
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
@@ -211,9 +218,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lager en søknad, så trekker søknaden`() {
         val søknadId = UUID.randomUUID()
-        val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any(), any()) } doReturn sak.right()
+            on { lukkSøknad(any(), any()) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -238,10 +244,15 @@ internal class SøknadRoutesKtTest {
                 setBody(lukketSøknadBodyJson)
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock, times(1)).lukkSøknad(
+                verify(søknadServiceMock).lukkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) },
-                    argThat { it shouldBe lukketSøknadBody }
+                    argThat {
+                        it shouldBe Søknad.Lukket.Trukket(
+                            tidspunkt = it.tidspunkt,
+                            saksbehandler = Saksbehandler(navIdent = "navident"),
+                            datoSøkerTrakkSøknad = LocalDate.now()
+                        )
+                    }
                 )
             }.response
         }
@@ -250,9 +261,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `ugyldig body på lukk gir 400`() {
         val søknadId = UUID.randomUUID()
-        val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any(), any()) } doReturn sak.right()
+            on { lukkSøknad(any(), any()) } doReturn sak.right()
         }
         withTestApplication({
             testSusebakover(
@@ -278,8 +288,14 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(0)).lukkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) },
-                    argThat { it shouldBe lukketSøknadBody }
+                    argThat {
+                        it shouldBe Søknad.Lukket.Trukket(
+                            tidspunkt = it.tidspunkt,
+                            saksbehandler = Saksbehandler(navIdent = "navident"),
+                            datoSøkerTrakkSøknad = LocalDate.now()
+                        )
+                    }
+
                 )
             }.response
         }
@@ -288,9 +304,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
         val søknadId = UUID.randomUUID()
-        val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
         withTestApplication({
             testSusebakover(
@@ -317,8 +332,13 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(1)).lukkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) },
-                    argThat { it shouldBe lukketSøknadBody }
+                    argThat {
+                        it shouldBe Søknad.Lukket.Trukket(
+                            tidspunkt = it.tidspunkt,
+                            saksbehandler = Saksbehandler(navIdent = "navident"),
+                            datoSøkerTrakkSøknad = LocalDate.now()
+                        )
+                    }
                 )
             }.response
         }
@@ -330,7 +350,16 @@ internal class SøknadRoutesKtTest {
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
+            on {
+                lagLukketSøknadBrevutkast(
+                    argThat {
+                        it shouldBe søknadId
+                    },
+                    argThat {
+                        it.saksbehandler shouldBe lukketSøknad.saksbehandler
+                    }
+                )
+            } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -355,9 +384,16 @@ internal class SøknadRoutesKtTest {
                 setBody(lukketSøknadBodyJson)
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock, times(1)).lagLukketSøknadBrevutkast(
+                verify(søknadServiceMock).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe lukketSøknadBody }
+                    argThat {
+                        it shouldBe Søknad.Lukket.Trukket(
+                            tidspunkt = it.tidspunkt,
+                            saksbehandler = Saksbehandler(navIdent = "navident"),
+                            datoSøkerTrakkSøknad = LocalDate.now()
+                        )
+                    }
+
                 )
             }.response
         }
@@ -369,7 +405,7 @@ internal class SøknadRoutesKtTest {
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
+            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknad) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -395,7 +431,14 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe lukketSøknadBody }
+                    argThat {
+                        it shouldBe Søknad.Lukket.Trukket(
+                            tidspunkt = it.tidspunkt,
+                            saksbehandler = Saksbehandler(navIdent = "navident"),
+                            datoSøkerTrakkSøknad = LocalDate.now()
+                        )
+                    }
+
                 )
             }.response
         }
@@ -407,7 +450,7 @@ internal class SøknadRoutesKtTest {
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknadBody) } doReturn pdf.right()
+            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknad) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -434,7 +477,7 @@ internal class SøknadRoutesKtTest {
                         LukketSøknadJson(
                             Tidspunkt.now().toString(),
                             Saksbehandler("12345").toString(),
-                            Søknad.TypeLukking.Trukket
+                            LukketSøknadJson.TypeLukking.Trukket
                         )
                     )
                 )
@@ -442,7 +485,7 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Søknad.TypeLukking.Trukket }
+                    argThat { it shouldBe LukketSøknadJson.TypeLukking.Trukket }
                 )
             }.response
         }

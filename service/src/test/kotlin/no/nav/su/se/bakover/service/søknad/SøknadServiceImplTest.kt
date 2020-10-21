@@ -38,9 +38,10 @@ internal class SøknadServiceImplTest {
             utbetalinger = emptyList()
         )
     )
-    private val lukketSøknadBody = Søknad.LukketSøknadBody(
-        datoSøkerTrakkSøknad = LocalDate.now(),
-        typeLukking = Søknad.TypeLukking.Trukket
+    private val lukketSøknad = Søknad.Lukket.Trukket(
+        tidspunkt = Tidspunkt.now(),
+        saksbehandler = Saksbehandler(navIdent = "12345"),
+        datoSøkerTrakkSøknad = LocalDate.now()
     )
 
     @Test
@@ -56,7 +57,16 @@ internal class SøknadServiceImplTest {
         val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket.Trukket(
+                        tidspunkt = now(),
+                        saksbehandler = saksbehandler,
+                        datoSøkerTrakkSøknad = LocalDate.now()
+                    )
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -67,7 +77,7 @@ internal class SøknadServiceImplTest {
                 journalførLukketSøknadOgSendBrev(
                     sakId = sakId,
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -78,8 +88,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lukkSøknad(
             søknadId = søknad.id,
-            saksbehandler = saksbehandler,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ) shouldBe sak.right()
     }
 
@@ -93,7 +102,6 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = null
         )
-        val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn true
@@ -106,7 +114,7 @@ internal class SøknadServiceImplTest {
                 journalførLukketSøknadOgSendBrev(
                     sakId = UUID.randomUUID(),
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -117,8 +125,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lukkSøknad(
             søknadId = søknad.id,
-            saksbehandler = saksbehandler,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
@@ -133,12 +140,22 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                datoSøkerTrakkSøknad = LocalDate.now()
             )
         )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket.Trukket(
+                        tidspunkt = now(),
+                        saksbehandler = saksbehandler,
+                        datoSøkerTrakkSøknad = LocalDate.now()
+                    )
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -149,7 +166,7 @@ internal class SøknadServiceImplTest {
                 journalførLukketSøknadOgSendBrev(
                     sakId = UUID.randomUUID(),
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 )
             } doReturn "en bestillingsid".right()
         }
@@ -158,7 +175,10 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).lukkSøknad(søknadId = søknad.id, saksbehandler = saksbehandler, lukketSøknadBody = lukketSøknadBody) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).lukkSøknad(
+            søknadId = søknad.id,
+            lukketSøknad = lukketSøknad
+        ) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 
     @Test
@@ -172,14 +192,15 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                datoSøkerTrakkSøknad = LocalDate.now()
             )
         )
         val brevPdf = "some-pdf-document".toByteArray()
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, datoSøkerTrakkSøknad = LocalDate.now())) }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -188,9 +209,8 @@ internal class SøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 lagLukketSøknadBrevutkast(
-                    sakId = søknad.sakId,
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 )
             } doReturn brevPdf.right()
         }
@@ -200,7 +220,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ) shouldBe brevPdf.right()
     }
 
@@ -215,13 +235,23 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                datoSøkerTrakkSøknad = LocalDate.now()
             )
         )
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket.Trukket(
+                        tidspunkt = now(),
+                        saksbehandler = saksbehandler,
+                        datoSøkerTrakkSøknad = LocalDate.now()
+                    )
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -230,9 +260,8 @@ internal class SøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 lagLukketSøknadBrevutkast(
-                    sakId = søknad.sakId,
                     søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
+                    lukketSøknad = lukketSøknad
                 )
             } doReturn KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
         }
@@ -242,7 +271,7 @@ internal class SøknadServiceImplTest {
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
-            lukketSøknadBody = lukketSøknadBody
+            lukketSøknad = lukketSøknad
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast.left()
     }
 }

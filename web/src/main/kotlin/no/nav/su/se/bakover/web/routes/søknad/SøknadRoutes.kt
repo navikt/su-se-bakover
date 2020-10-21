@@ -12,7 +12,9 @@ import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.søknad.LukketSøknadJson
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
@@ -28,8 +30,14 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSøknadId
+import java.time.LocalDate
 
 internal const val søknadPath = "/soknad"
+
+data class LukketSøknadBody(
+    val typeLukking: LukketSøknadJson.TypeLukking,
+    val datoSøkerTrakkSøknad: LocalDate
+)
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
@@ -57,15 +65,22 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk") {
             call.withSøknadId { søknadId ->
-                Either.catch { deserialize<Søknad.LukketSøknadBody>(call) }.fold(
+                Either.catch { deserialize<LukketSøknadBody>(call) }.fold(
                     ifLeft = {
                         call.svar(BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { lukketSøknadBody ->
+                        val lukketSøknad = when (lukketSøknadBody.typeLukking) {
+                            LukketSøknadJson.TypeLukking.Trukket -> Søknad.Lukket.Trukket(
+                                tidspunkt = Tidspunkt.now(),
+                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad
+                            )
+                        }
+
                         søknadService.lukkSøknad(
                             søknadId = søknadId,
-                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                            lukketSøknadBody = lukketSøknadBody
+                            lukketSøknad = lukketSøknad
                         ).fold(
                             ifLeft = {
                                 when (it) {
@@ -93,14 +108,21 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk/brevutkast") {
             call.withSøknadId { søknadId ->
-                Either.catch { deserialize<Søknad.LukketSøknadBody>(call) }.fold(
+                Either.catch { deserialize<LukketSøknadBody>(call) }.fold(
                     ifLeft = {
                         call.svar(BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { lukketSøknadBody ->
+                        val lukketSøknad = when (lukketSøknadBody.typeLukking) {
+                            LukketSøknadJson.TypeLukking.Trukket -> Søknad.Lukket.Trukket(
+                                tidspunkt = Tidspunkt.now(),
+                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad
+                            )
+                        }
                         søknadService.lagLukketSøknadBrevutkast(
                             søknadId = søknadId,
-                            lukketSøknadBody = lukketSøknadBody
+                            lukketSøknad = lukketSøknad
                         ).fold(
                             ifLeft = {
                                 when (it) {
