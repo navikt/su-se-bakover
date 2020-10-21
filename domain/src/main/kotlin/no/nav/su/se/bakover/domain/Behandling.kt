@@ -18,16 +18,7 @@ import java.util.UUID
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
-    private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon(
-        uførhet = null,
-        flyktning = null,
-        lovligOpphold = null,
-        fastOppholdINorge = null,
-        oppholdIUtlandet = null,
-        formue = null,
-        personligOppmøte = null,
-        bosituasjon = null
-    ),
+    private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
     val søknad: Søknad,
     private var beregning: Beregning? = null,
     internal var simulering: Simulering? = null,
@@ -36,6 +27,7 @@ data class Behandling(
     private var attestant: NavIdentBruker.Attestant? = null,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
+    val fnr: Fnr
 ) {
 
     private var tilstand: Tilstand = resolve(status)

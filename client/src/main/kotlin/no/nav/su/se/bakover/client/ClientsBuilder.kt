@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import com.github.kittinunf.fuel.core.FuelManager
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
@@ -32,4 +33,9 @@ data class Clients(
     val dokDistFordeling: DokDistFordeling,
     val avstemmingPublisher: AvstemmingPublisher,
     val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
-)
+) {
+    init {
+        // https://fuel.gitbook.io/documentation/core/fuel
+        FuelManager.instance.forceMethods = true
+    }
+}

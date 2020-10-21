@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class BehandlingPostgresRepoTest {
@@ -22,11 +23,21 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id
+            )
 
-            val hentet = repo.hentBehandling(behandling.id)
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)
 
-            behandling shouldBe hentet
+            hentet shouldBe Behandling(
+                id = nySøknadsbehandling.id,
+                opprettet = nySøknadsbehandling.opprettet,
+                fnr = FNR,
+                søknad = søknad,
+                sakId = sak.id
+            )
         }
     }
 
@@ -35,10 +46,15 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id
+            )
+
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val oppdatert = repo.oppdaterBehandlingsinformasjon(
-                behandling.id,
+                nySøknadsbehandling.id,
                 Behandlingsinformasjon(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
@@ -48,10 +64,10 @@ internal class BehandlingPostgresRepoTest {
                 )
             )
 
-            val hentet = repo.hentBehandling(behandling.id)!!
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             oppdatert.behandlingsinformasjon() shouldBe hentet.behandlingsinformasjon()
-            behandling.behandlingsinformasjon() shouldNotBe hentet.behandlingsinformasjon()
+            nySøknadsbehandling.behandlingsinformasjon shouldNotBe hentet.behandlingsinformasjon()
         }
     }
 
@@ -60,10 +76,15 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id
+            )
 
-            val saksbehandler = repo.settSaksbehandler(behandling.id, NavIdentBruker.Saksbehandler("Per"))
-            val hentet = repo.hentBehandling(behandling.id)!!
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            val saksbehandler = repo.settSaksbehandler(nySøknadsbehandling.id, NavIdentBruker.Saksbehandler("Per"))
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler.saksbehandler()
         }
@@ -74,10 +95,15 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id
+            )
 
-            val attestant = repo.attester(behandling.id, NavIdentBruker.Attestant("kjella"))
-            val hentet = repo.hentBehandling(behandling.id)!!
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            val attestant = repo.attester(nySøknadsbehandling.id, NavIdentBruker.Attestant("kjella"))
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.attestant() shouldBe attestant.attestant()
         }
@@ -88,13 +114,18 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
             val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id
+            )
 
-            behandling.status() shouldBe Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            nySøknadsbehandling.status shouldBe Behandling.BehandlingsStatus.OPPRETTET
 
             val oppdatertStatus =
-                repo.oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.BEREGNET_INNVILGET)
-            val hentet = repo.hentBehandling(behandling.id)
+                repo.oppdaterBehandlingStatus(nySøknadsbehandling.id, Behandling.BehandlingsStatus.BEREGNET_INNVILGET)
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus.status()
         }

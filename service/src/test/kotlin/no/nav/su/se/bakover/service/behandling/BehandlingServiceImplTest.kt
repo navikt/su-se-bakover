@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -141,33 +142,44 @@ internal class BehandlingServiceImplTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 utbetal(
-                    sakId = argThat { it shouldBe behandling.sakId },
-                    attestant = argThat { it shouldBe attestant },
-                    beregning = argThat { it shouldBe beregning },
-                    simulering = argThat { it shouldBe simulering }
+                    any(), any(), any(), any()
                 )
             } doReturn oversendtUtbetaling.right()
         }
 
+        val personOppslagMock: PersonOppslag = mock {
+            on { aktørId(any()) } doReturn AktørId("12345").right()
+        }
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            personOppslag = personOppslagMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
 
         inOrder(
-            behandlingRepoMock, utbetalingServiceMock, behandlingRepoMock
+            behandlingRepoMock, utbetalingServiceMock, personOppslagMock
         ) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
-            verify(utbetalingServiceMock).utbetal(any(), any(), any(), any())
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe behandling.sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe beregning },
+                simulering = argThat { it shouldBe simulering }
+            )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
         }
+        verifyNoMoreInteractions(
+            behandlingRepoMock, utbetalingServiceMock, personOppslagMock
+        )
     }
 
     @Test
@@ -233,7 +245,8 @@ internal class BehandlingServiceImplTest {
         sakId = sakId,
         søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-        beregning = beregning
+        beregning = beregning,
+        fnr = fnr
     )
 
     private fun behandlingTilAttestering(status: Behandling.BehandlingsStatus) = beregnetBehandling().copy(

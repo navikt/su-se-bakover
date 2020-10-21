@@ -9,10 +9,10 @@ import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
@@ -39,14 +39,12 @@ internal class TestDataHelper(
         )
     )
 
-    fun insertBehandling(sakId: UUID, søknad: Søknad) = behandlingRepo.opprettSøknadsbehandling(
+    fun insertBehandling(sakId: UUID, søknad: Søknad): NySøknadsbehandling = NySøknadsbehandling(
         sakId = sakId,
-        behandling = Behandling(
-            søknad = søknad,
-            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
-            sakId = sakId
-        )
-    )
+        søknadId = søknad.id
+    ).also {
+        behandlingRepo.opprettSøknadsbehandling(it)
+    }
 
     fun insertBeregning(behandlingId: UUID) = beregningRepo.opprettBeregningForBehandling(
         behandlingId = behandlingId,

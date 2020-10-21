@@ -5,7 +5,8 @@ import no.nav.su.se.bakover.domain.AktørId
 
 interface OppgaveClient {
     fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long>
-    fun ferdigstillFørstegangsOppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int>
+    fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int>
+    fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int>
 }
 
 object KunneIkkeOppretteOppgave

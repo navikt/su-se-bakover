@@ -70,7 +70,8 @@ internal class BehandlingTest {
             id1,
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1
+            sakId = id1,
+            fnr = FnrGenerator.random()
         )
         val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
         assertEquals(a, b)
@@ -87,7 +88,8 @@ internal class BehandlingTest {
             id1,
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1
+            sakId = id1,
+            fnr = FnrGenerator.random()
         )
         val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
         assertEquals(a.hashCode(), b.hashCode())
@@ -670,7 +672,8 @@ internal class BehandlingTest {
         id = id,
         søknad = søknad,
         status = status,
-        sakId = id1
+        sakId = id1,
+        fnr = FnrGenerator.random()
     )
 
     private fun defaultSimulering() = Simulering(

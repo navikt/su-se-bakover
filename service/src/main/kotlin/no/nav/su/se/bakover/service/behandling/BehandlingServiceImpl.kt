@@ -5,12 +5,14 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -40,7 +42,7 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
     }
 
-    val log = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun underkjenn(
         begrunnelse: String,
@@ -135,7 +137,7 @@ internal class BehandlingServiceImpl(
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
-        oppgaveClient.ferdigstillFørstegangsOppgave(
+        oppgaveClient.ferdigstillFørstegangsoppgave(
             aktørId = aktørId
         )
         return behandling.right()
@@ -171,9 +173,13 @@ internal class BehandlingServiceImpl(
                             behandlingRepo.leggTilUtbetaling(
                                 behandlingId = behandlingId,
                                 utbetalingId = oversendtUtbetaling.id
+
                             )
                             behandlingRepo.attester(behandlingId, attestant)
                             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+
+                            lukkAttesteringsoppgave(behandling)
+
                             behandling
                         }
                     }
@@ -185,6 +191,19 @@ internal class BehandlingServiceImpl(
             }
     }
 
+    private fun lukkAttesteringsoppgave(behandling: Behandling) {
+        personOppslag.aktørId(behandling.fnr).fold(
+            {
+                log.warn("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
+            },
+            { aktørId ->
+                oppgaveClient.ferdigstillAttesteringsoppgave(
+                    aktørId = aktørId
+                )
+            }
+        )
+    }
+
     // TODO need to define responsibilities for domain and services.
     override fun opprettSøknadsbehandling(
         sakId: UUID,
@@ -194,13 +213,16 @@ internal class BehandlingServiceImpl(
         // TODO: + sjekk at søknad ikke er lukket
         return søknadService.hentSøknad(søknadId)
             .map {
-                behandlingRepo.opprettSøknadsbehandling(
-                    sakId,
-                    Behandling(
-                        sakId = sakId,
-                        søknad = it
-                    )
+                val nySøknadsbehandling = NySøknadsbehandling(
+                    id = UUID.randomUUID(),
+                    opprettet = now(),
+                    sakId = sakId,
+                    søknadId = søknadId
                 )
+                behandlingRepo.opprettSøknadsbehandling(
+                    nySøknadsbehandling
+                )
+                behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!
             }.mapLeft {
                 KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
             }
