@@ -8,7 +8,7 @@ import java.util.UUID
 interface SakService {
     fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak>
     fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak>
-    fun opprettSak(fnr: Fnr): Sak
+    fun opprettSak(sak: Sak)
 }
 
 object FantIkkeSak

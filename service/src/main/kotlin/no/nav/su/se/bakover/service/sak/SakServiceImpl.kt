@@ -19,7 +19,7 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun opprettSak(fnr: Fnr): Sak {
-        return sakRepo.opprettSak(fnr)
+    override fun opprettSak(sak: Sak) {
+        return sakRepo.opprettSak(sak)
     }
 }

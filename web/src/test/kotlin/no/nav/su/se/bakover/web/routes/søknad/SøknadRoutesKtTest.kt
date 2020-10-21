@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -65,34 +66,24 @@ import java.util.UUID
 import kotlin.test.assertEquals
 
 internal class SøknadRoutesKtTest {
-    private val fnr = Fnr("01010100001")
 
-    private val søknadInnhold: SøknadInnhold = build(
+    private fun søknadInnhold(fnr: Fnr): SøknadInnhold = build(
         personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
             fnr = fnr.toString()
         )
     )
+
     private val sakId: UUID = UUID.randomUUID()
     private val tidspunkt = Tidspunkt.EPOCH
-    private val sak: Sak = Sak(
-        id = sakId,
-        opprettet = tidspunkt,
-        fnr = fnr,
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = tidspunkt,
-            sakId = sakId
-        )
-    )
 
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-
-    private val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
     private val sakRepo = databaseRepos.sak
-    private val søknadRepo = databaseRepos.søknad
 
     @Test
     fun `lagrer og henter søknad`() {
+        val fnr = FnrGenerator.random()
+        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
         withTestApplication({
             testSusebakover()
         }) {
@@ -121,6 +112,9 @@ internal class SøknadRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
+            val fnr = FnrGenerator.random()
+            val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
+            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
             defaultRequest(Post, søknadPath, listOf(Brukerrolle.Veileder)) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
@@ -178,6 +172,10 @@ internal class SøknadRoutesKtTest {
             clients = clients
         ).build()
 
+        val fnr = FnrGenerator.random()
+        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+
         withTestApplication({
             testSusebakover(
                 clients = clients,
@@ -206,6 +204,16 @@ internal class SøknadRoutesKtTest {
     fun `lager en søknad, så trekker søknaden`() {
         val søknadId = UUID.randomUUID()
         val navIdent = "navident"
+        val sak = Sak(
+            id = sakId,
+            opprettet = tidspunkt,
+            fnr = FnrGenerator.random(),
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = tidspunkt,
+                sakId = sakId
+            )
+        )
         val søknadServiceMock = mock<SøknadService> {
             on { trekkSøknad(any(), any(), any()) } doReturn sak.right()
         }

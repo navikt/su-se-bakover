@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Sak
 import org.junit.jupiter.api.Test
 import org.postgresql.util.PSQLException
 
@@ -22,7 +23,7 @@ internal class SakPostgresRepoTest {
     @Test
     fun `opprett og hent sak`() {
         withMigratedDb {
-            val opprettet = testDataHelper.insertSak(FNR)
+            val opprettet: Sak = testDataHelper.insertSak(FNR)
             val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(FNR)!!
 
@@ -36,7 +37,7 @@ internal class SakPostgresRepoTest {
     @Test
     fun `combination of oppdragId and SakId should be unique`() {
         withMigratedDb {
-            val sak = repo.opprettSak(FNR)
+            val sak: Sak = testDataHelper.insertSak(FNR)
             shouldThrowExactly<PSQLException> {
                 EmbeddedDatabase.instance().withSession {
                     val oppdragId = UUID30.randomUUID()

@@ -4,10 +4,11 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import java.util.UUID
 
 interface SøknadService {
-    fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad
+    fun nySøknad(søknadInnhold: SøknadInnhold): Sak
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
     fun trekkSøknad(søknadId: UUID, saksbehandler: Saksbehandler, begrunnelse: String): Either<KunneIkkeLukkeSøknad, Sak>
 }

@@ -28,7 +28,6 @@ internal const val søknadPath = "/soknad"
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
-    mediator: SøknadRouteMediator,
     søknadService: SøknadService
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
@@ -42,7 +41,7 @@ internal fun Route.søknadRoutes(
                     SuMetrics.Counter.Søknad.increment()
                     call.audit("Lagrer søknad for person: $it")
                     call.svar(
-                        Resultat.json(Created, serialize((mediator.nySøknad(it.toSøknadInnhold()).toJson())))
+                        Resultat.json(Created, serialize((søknadService.nySøknad(it.toSøknadInnhold()).toJson())))
                     )
                 }
             )

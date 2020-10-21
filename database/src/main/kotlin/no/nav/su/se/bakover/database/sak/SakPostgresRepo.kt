@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.database.sak
 
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.sak.SakRepoInternal.hentSakInternal
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
@@ -20,19 +18,7 @@ internal class SakPostgresRepo(
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
 
-    override fun opprettSak(fnr: Fnr): Sak {
-        val opprettet = now(clock)
-        val sakId = UUID.randomUUID()
-        val sak = Sak(
-            id = sakId,
-            fnr = fnr,
-            opprettet = opprettet,
-            oppdrag = Oppdrag(
-                id = uuidFactory.newUUID30(),
-                opprettet = opprettet,
-                sakId = sakId
-            )
-        )
+    override fun opprettSak(sak: Sak) {
         dataSource.withSession { session ->
             """
             with inserted_sak as(insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
@@ -40,13 +26,12 @@ internal class SakPostgresRepo(
         """.oppdatering(
                 mapOf(
                     "sakId" to sak.id,
-                    "fnr" to fnr,
+                    "fnr" to sak.fnr,
                     "opprettet" to sak.opprettet,
                     "oppdragId" to sak.oppdrag.id
                 ),
                 session
             )
         }
-        return hentSak(fnr)!!
     }
 }
