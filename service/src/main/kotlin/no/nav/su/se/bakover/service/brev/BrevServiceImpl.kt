@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold.Companion.lagVedtaksinnhold
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
 import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -33,6 +34,10 @@ class BrevServiceImpl(
 ) : BrevService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    override fun lagBrev(brevinnhold: Brevinnhold): Either<KunneIkkeLageBrev, ByteArray> =
+        pdfGenerator.genererPdf(brevinnhold.toJson(), brevinnhold.pdfTemplate())
+            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
+
     override fun lagUtkastTilBrev(
         behandling: Behandling
     ): Either<KunneIkkeLageBrev, ByteArray> {
@@ -43,23 +48,6 @@ class BrevServiceImpl(
                     .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
                     .flatMap { person ->
                         lagBrevPdf(behandling, person)
-                            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
-                            .map { it }
-                    }
-            }
-    }
-
-    override fun lagLukketSøknadBrevutkast(
-        søknad: Søknad,
-        lukketSøknad: Søknad.Lukket
-    ): Either<KunneIkkeLageBrev, ByteArray> {
-        return sakService.hentSak(sakId = søknad.sakId)
-            .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
-            .flatMap { sak ->
-                hentPersonFraFnr(sak.fnr)
-                    .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
-                    .flatMap { person ->
-                        genererLukketSøknadBrevPdf(person, søknad, lukketSøknad)
                             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
                             .map { it }
                     }

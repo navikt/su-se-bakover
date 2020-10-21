@@ -39,7 +39,8 @@ class ServiceBuilder(
                 dokArkiv = clients.dokArkiv,
                 dokDistFordeling = clients.dokDistFordeling,
                 sakService = sakService
-            )
+            ),
+            personOppslag = clients.personOppslag
         )
         return Services(
             avstemming = AvstemmingServiceImpl(

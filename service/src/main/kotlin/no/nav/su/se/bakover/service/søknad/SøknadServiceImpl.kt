@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.service.søknad
+
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -15,6 +19,7 @@ internal class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
     private val sakService: SakService,
     private val brevService: BrevService,
+    private val personOppslag: PersonOppslag,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -87,12 +92,26 @@ internal class SøknadServiceImpl(
             return KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
         }
 
-        return brevService.lagLukketSøknadBrevutkast(
+        val person = hentPersonFraFnr(søknad.søknadInnhold.personopplysninger.fnr).fold(
+            { return KunneIkkeLageBrevutkast.FeilVedHentingAvPerson.left() },
+            { it }
+        )
+
+        val lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+            person = person,
             søknad = søknad,
             lukketSøknad = lukketSøknad
-        ).mapLeft {
-            log.error("Lukket brevutkast: feil ved generering av brevutkast")
-            KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast
-        }
+        )
+        return brevService.lagBrev(lukketSøknadBrevinnhold)
+            .mapLeft { KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast }
     }
+
+    private fun hentPersonFraFnr(fnr: Fnr) = personOppslag.person(fnr)
+        .mapLeft {
+            log.error("Fant ikke person i eksternt system basert på sakens fødselsnummer.")
+            it
+        }.map {
+            log.info("Hentet person fra eksternt system OK")
+            it
+        }
 }

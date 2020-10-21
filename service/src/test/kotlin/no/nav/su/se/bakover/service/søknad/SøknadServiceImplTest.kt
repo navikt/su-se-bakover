@@ -5,11 +5,16 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
+import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
@@ -25,10 +30,11 @@ import java.util.UUID
 
 internal class SøknadServiceImplTest {
     private val sakId = UUID.randomUUID()
+    private val fnr = Fnr("12345678910")
     private val sak = Sak(
         id = sakId,
         opprettet = Tidspunkt.now(),
-        fnr = Fnr("12345678901"),
+        fnr = fnr,
         søknader = mutableListOf(),
         behandlinger = mutableListOf(),
         oppdrag = Oppdrag(
@@ -38,6 +44,18 @@ internal class SøknadServiceImplTest {
             utbetalinger = emptyList()
         )
     )
+
+    private val person = Person(
+        ident = Ident(fnr = fnr, aktørId = AktørId(aktørId = "1234")),
+        navn = Person.Navn(fornavn = "navn", mellomnavn = null, etternavn = "navnesen"),
+        telefonnummer = null,
+        adresse = null,
+        statsborgerskap = null,
+        kjønn = null,
+        adressebeskyttelse = null,
+        skjermet = null
+    )
+
     private val lukketSøknad = Søknad.Lukket.Trukket(
         tidspunkt = Tidspunkt.now(),
         saksbehandler = Saksbehandler(navIdent = "12345"),
@@ -85,7 +103,8 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -122,7 +141,8 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -174,7 +194,8 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -200,24 +221,29 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, datoSøkerTrakkSøknad = LocalDate.now())) }.doNothing()
-            on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
             on {
-                lagLukketSøknadBrevutkast(
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
+                lagBrev(
+                    LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.lagTrukketSøknadBrevinnhold(
+                        søknad = søknad,
+                        person = person,
+                        lukketSøknad = lukketSøknad
+                    )
                 )
             } doReturn brevPdf.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn person.right()
         }
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -259,16 +285,23 @@ internal class SøknadServiceImplTest {
         }
         val brevServiceMock = mock<BrevService> {
             on {
-                lagLukketSøknadBrevutkast(
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
+                lagBrev(
+                    LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.lagTrukketSøknadBrevinnhold(
+                        søknad = søknad,
+                        person = person,
+                        lukketSøknad = lukketSøknad
+                    )
                 )
             } doReturn KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn person.right()
         }
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad

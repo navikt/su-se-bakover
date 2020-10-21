@@ -4,9 +4,13 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
 import java.util.UUID
 
 interface BrevService {
+
+    fun lagBrev(brevinnhold: Brevinnhold): Either<KunneIkkeLageBrev, ByteArray>
+
     fun lagUtkastTilBrev(behandling: Behandling): Either<KunneIkkeLageBrev, ByteArray>
     fun journalførVedtakOgSendBrev(
         sak: Sak,
@@ -18,11 +22,6 @@ interface BrevService {
         søknad: Søknad,
         lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String>
-
-    fun lagLukketSøknadBrevutkast(
-        søknad: Søknad,
-        lukketSøknad: Søknad.Lukket
-    ): Either<KunneIkkeLageBrev, ByteArray>
 }
 
 sealed class KunneIkkeLageBrev {

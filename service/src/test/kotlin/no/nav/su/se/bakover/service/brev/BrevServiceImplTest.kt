@@ -173,12 +173,6 @@ internal class BrevServiceImplTest {
 
     @Test
     fun `lager et brevutkast for lukket søknad`() {
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(fnr) } doReturn person.right()
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = sakId) } doReturn sak.right()
-        }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on {
                 genererPdf(innholdJson = innholdJson, pdfTemplate = PdfTemplate.TrukketSøknad)
@@ -189,21 +183,18 @@ internal class BrevServiceImplTest {
 
         BrevServiceImpl(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = personOppslagMock,
+            personOppslag = mock(),
             dokArkiv = dokArkivMock,
             dokDistFordeling = dokdistFordelingMock,
-            sakService = sakServiceMock
-        ).lagLukketSøknadBrevutkast(
-            søknad = søknad,
-            lukketSøknad = lukketSøknad
+            sakService = mock()
+        ).lagBrev(
+            LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.lagTrukketSøknadBrevinnhold(
+                søknad = søknad,
+                person = person,
+                lukketSøknad = lukketSøknad
+            )
         ) shouldBe pdf.right()
 
-        verify(sakServiceMock).hentSak(
-            argThat<UUID> { it shouldBe sakId }
-        )
-        verify(personOppslagMock).person(
-            argThat { it shouldBe sak.fnr },
-        )
         verify(pdfGeneratorMock).genererPdf(
             argThat { it shouldBe innholdJson },
             argThat { it shouldBe PdfTemplate.TrukketSøknad }

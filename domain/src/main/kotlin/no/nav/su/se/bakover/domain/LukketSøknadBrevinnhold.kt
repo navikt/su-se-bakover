@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.Companion.lagTrukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-sealed class LukketSøknadBrevinnhold {
+sealed class LukketSøknadBrevinnhold : Brevinnhold() {
     abstract val dato: String
     abstract val datoSøknadOpprettet: String
     abstract val fødselsnummer: Fnr
@@ -16,7 +19,7 @@ sealed class LukketSøknadBrevinnhold {
     abstract val husnummer: String?
     abstract val bruksenhet: String?
     abstract val postnummer: String?
-    abstract val poststed: String
+    abstract val poststed: String?
 
     data class TrukketSøknadBrevinnhold(
         override val dato: String,
@@ -30,7 +33,7 @@ sealed class LukketSøknadBrevinnhold {
         override val husnummer: String?,
         override val bruksenhet: String?,
         override val postnummer: String?,
-        override val poststed: String,
+        override val poststed: String?,
     ) : LukketSøknadBrevinnhold() {
 
         companion object {
@@ -52,10 +55,13 @@ sealed class LukketSøknadBrevinnhold {
                     bruksenhet = person.adresse?.bruksenhet,
                     husnummer = person.adresse?.husnummer,
                     postnummer = person.adresse?.poststed?.postnummer,
-                    poststed = person.adresse?.poststed?.poststed!!,
+                    poststed = person.adresse?.poststed?.poststed,
                 )
             }
         }
+
+        override fun toJson() = objectMapper.writeValueAsString(this)
+        override fun pdfTemplate(): PdfTemplate = PdfTemplate.TrukketSøknad
     }
 
     companion object {
