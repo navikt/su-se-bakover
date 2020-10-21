@@ -24,7 +24,7 @@ internal class SøknadPostgresRepoTest {
     fun `opprett og hent søknad`() {
         withMigratedDb {
             EmbeddedDatabase.instance().withSession {
-                val sak: Sak = testDataHelper.insertSak(FNR)
+                val sak: Sak = testDataHelper.insertSak(FNR).toSak()
                 val søknad: Søknad = Søknad(
                     sakId = sak.id,
                     id = UUID.randomUUID(),
@@ -40,7 +40,7 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `søknader som ikke er trukket skal ikke være trukket`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR)
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
             val søknad: Søknad = Søknad(
                 sakId = sak.id,
                 id = UUID.randomUUID(),
@@ -55,7 +55,7 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `trukket søknad skal bli hentet med saksbehandler som har trekt søknaden`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR)
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
             val søknad: Søknad = Søknad(
                 sakId = sak.id,
                 id = UUID.randomUUID(),

@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import java.util.UUID
 
@@ -19,7 +20,7 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun opprettSak(sak: Sak) {
+    override fun opprettSak(sak: NySak) {
         return sakRepo.opprettSak(sak)
     }
 }

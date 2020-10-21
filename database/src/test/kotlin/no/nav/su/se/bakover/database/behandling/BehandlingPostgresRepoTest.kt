@@ -23,7 +23,7 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `opprett og hent behandling`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR)
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
             val søknad: Søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,

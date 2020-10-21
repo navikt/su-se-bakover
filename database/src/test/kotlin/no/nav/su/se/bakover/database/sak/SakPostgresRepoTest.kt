@@ -23,7 +23,7 @@ internal class SakPostgresRepoTest {
     @Test
     fun `opprett og hent sak`() {
         withMigratedDb {
-            val opprettet: Sak = testDataHelper.insertSak(FNR)
+            val opprettet: Sak = testDataHelper.insertSak(FNR).toSak()
             val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(FNR)!!
 
@@ -37,7 +37,7 @@ internal class SakPostgresRepoTest {
     @Test
     fun `combination of oppdragId and SakId should be unique`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR)
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
             shouldThrowExactly<PSQLException> {
                 EmbeddedDatabase.instance().withSession {
                     val oppdragId = UUID30.randomUUID()

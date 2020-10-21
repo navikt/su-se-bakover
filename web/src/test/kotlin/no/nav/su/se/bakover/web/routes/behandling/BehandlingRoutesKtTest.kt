@@ -875,10 +875,11 @@ internal class BehandlingRoutesKtTest {
     )
 
     private fun setup(): Objects {
-        val sak: Sak = SakFactory().nySak(FnrGenerator.random()).also {
+        val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        val sak: Sak = SakFactory().nySak(FnrGenerator.random(), søknadInnhold).also {
             repos.sak.opprettSak(it)
-        }
-        val søknad: Søknad = Søknad(sakId = sak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()).also {
+        }.toSak()
+        val søknad: Søknad = Søknad(sakId = sak.id, søknadInnhold = søknadInnhold).also {
             repos.søknad.opprettSøknad(it)
         }
         val nySøknadsbehandling = NySøknadsbehandling(

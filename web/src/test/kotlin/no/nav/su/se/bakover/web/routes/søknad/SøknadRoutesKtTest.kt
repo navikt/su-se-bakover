@@ -147,9 +147,7 @@ internal class SøknadRoutesKtTest {
         }
         val personOppslag: PersonOppslag = mock {
             val fnrCaptor = ArgumentCaptor.forClass(Fnr::class.java)
-            val aktørIdCaptor = ArgumentCaptor.forClass(Fnr::class.java)
             on { person(capture<Fnr>(fnrCaptor)) } doAnswer { PersonOppslagStub.person(fnrCaptor.value) }
-            on { aktørId(capture<Fnr>(aktørIdCaptor)) } doAnswer { PersonOppslagStub.aktørId(aktørIdCaptor.value) }
         }
         val oppgaveClient: OppgaveClient = mock {
             val captor = ArgumentCaptor.forClass(OppgaveConfig.Saksbehandling::class.java)
@@ -194,7 +192,6 @@ internal class SøknadRoutesKtTest {
                 verify(pdfGenerator, Times(1)).genererPdf(any())
                 verify(dokArkiv, Times(1)).opprettJournalpost(any())
                 verify(personOppslag, Times(1)).person(any())
-                verify(personOppslag, Times(1)).aktørId(any())
                 verify(oppgaveClient, Times(1)).opprettOppgave(any())
             }
         }

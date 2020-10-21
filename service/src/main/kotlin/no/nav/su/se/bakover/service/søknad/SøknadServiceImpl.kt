@@ -10,8 +10,9 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
@@ -33,55 +34,75 @@ internal class SøknadServiceImpl(
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold): Sak {
-        val sak: Sak = sakService.hentSak(søknadInnhold.personopplysninger.fnr).getOrHandle {
-            log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny sak.")
-            sakFactory.nySak(søknadInnhold.personopplysninger.fnr)
+    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak> {
+
+        val fnr: Fnr = søknadInnhold.personopplysninger.fnr
+
+        val person = personOppslag.person(fnr).getOrHandle {
+            // Dette bør ikke skje i normal flyt, siden vi allerede har slått opp personen i PDL før vi begynte søknaden.
+            log.error("Ny søknad: Fant ikke person med gitt fødselsnummer. Originalfeil: $it")
+            return KunneIkkeOppretteSøknad.FantIkkePerson.left()
         }
-        val søknad = Søknad(
-            sakId = sak.id,
-            søknadInnhold = søknadInnhold
+
+        if (person.ident.fnr != fnr) {
+            log.error("Personen har et nyere fødselsnummer i PDL enn det som var oppgitt.")
+        }
+
+        val sak: Sak = sakService.hentSak(fnr).fold(
+            {
+                log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+                val nySak = sakFactory.nySak(fnr, søknadInnhold).also {
+                    sakService.opprettSak(it)
+                }
+                nySak.toSak()
+            },
+            {
+                log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
+                val søknad = Søknad(
+                    sakId = it.id,
+                    søknadInnhold = søknadInnhold
+                )
+                søknadRepo.opprettSøknad(søknad)
+                it
+            }
         )
-        opprettJournalpostOgOppgave(sak.id, søknad)
-        sakService.opprettSak(sak)
-        søknadRepo.opprettSøknad(søknad) // TODO: Denne kan merges inn i sakService.opprettSak så vi kan gjøre det i en transaksjon som med oppdrag
-        return sak
+        opprettJournalpostOgOppgave(sak.id, person, søknadInnhold)
+        return sak.right()
     }
 
-    private fun opprettJournalpostOgOppgave(sakId: UUID, søknad: Søknad) {
-        pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
+    private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknadInnhold: SøknadInnhold) {
+        // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
+        // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
+        pdfGenerator.genererPdf(søknadInnhold).fold(
             {
-                log.error("$it")
+                log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             },
             { pdfByteArray ->
-                val fnr = søknad.søknadInnhold.personopplysninger.fnr
+                log.info("Ny søknad: Generert PDF ok.")
                 dokArkiv.opprettJournalpost(
                     Journalpost.Søknadspost(
-                        person = personOppslag.person(fnr).getOrElse {
-                            log.error("Fant ikke person med gitt fødselsnummer")
-                            throw RuntimeException("Kunne ikke finne person")
-                        },
-                        søknadInnhold = søknad.søknadInnhold,
+                        søknadInnhold = søknadInnhold,
                         pdf = pdfByteArray,
-                        sakId = sakId.toString()
+                        sakId = sakId.toString(),
+                        person = person
                     )
                 ).fold(
                     {
-                        log.error("$it")
+                        log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
                     },
                     { journalpostId ->
-                        val aktørId: AktørId = personOppslag.aktørId(fnr).getOrElse {
-                            log.error("Fant ikke aktør-id med gitt fødselsnummer")
-                            throw RuntimeException("Kunne ikke finne aktørid")
-                        }
+                        log.info("Ny søknad: Opprettet journalpost ok.")
                         oppgaveClient.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
                                 sakId = sakId.toString(),
-                                aktørId = aktørId
+                                aktørId = person.ident.aktørId
                             )
+
                         ).mapLeft {
-                            log.error("$it")
+                            log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
+                        }.map {
+                            log.info("Ny søknad: Opprettet oppgave ok.")
                         }
                     }
                 )

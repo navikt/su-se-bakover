@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import java.util.UUID
 
 interface SøknadService {
-    fun nySøknad(søknadInnhold: SøknadInnhold): Sak
+    fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak>
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
     fun trekkSøknad(søknadId: UUID, saksbehandler: Saksbehandler, begrunnelse: String): Either<KunneIkkeLukkeSøknad, Sak>
 }
@@ -17,4 +17,8 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
+}
+
+sealed class KunneIkkeOppretteSøknad {
+    object FantIkkePerson : KunneIkkeOppretteSøknad()
 }
