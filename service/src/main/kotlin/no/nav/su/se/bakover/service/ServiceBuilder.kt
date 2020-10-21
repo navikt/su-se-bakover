@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -40,8 +41,12 @@ class ServiceBuilder(
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
-            brevService = brevService,
-            personOppslag = clients.personOppslag
+            sakFactory = SakFactory(),
+            pdfGenerator = clients.pdfGenerator,
+            dokArkiv = clients.dokArkiv,
+            personOppslag = clients.personOppslag,
+            oppgaveClient = clients.oppgaveClient,
+            brevService = brevService
         )
         return Services(
             avstemming = AvstemmingServiceImpl(

@@ -8,7 +8,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -25,10 +27,14 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class SøknadServiceImplTest {
+    private val fixedClock = Clock.fixed(1.januar(2020).plusDays(9).startOfDay().instant, ZoneOffset.UTC)
+
     private val sakId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
     private val sak = Sak(
@@ -103,8 +109,12 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
             brevService = brevServiceMock,
-            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -141,8 +151,12 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
             brevService = brevServiceMock,
-            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -194,8 +208,12 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
             brevService = brevServiceMock,
-            personOppslag = mock()
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -242,8 +260,12 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            personOppslag = personOppslagMock
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = personOppslagMock,
+            oppgaveClient = mock(),
+            brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -300,8 +322,12 @@ internal class SøknadServiceImplTest {
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            personOppslag = personOppslagMock
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = personOppslagMock,
+            oppgaveClient = mock(),
+            brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad

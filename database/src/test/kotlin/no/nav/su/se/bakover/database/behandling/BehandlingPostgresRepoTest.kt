@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -21,8 +23,8 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `opprett og hent behandling`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+            val søknad: Søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = søknad.id

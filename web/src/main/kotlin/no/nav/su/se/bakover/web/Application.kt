@@ -65,7 +65,6 @@ import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
 import no.nav.su.se.bakover.web.routes.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
-import no.nav.su.se.bakover.web.routes.søknad.SøknadRouteMediator
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
@@ -116,15 +115,6 @@ internal fun Application.susebakover(
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
-
-    val søknadRoutesMediator = SøknadRouteMediator(
-        pdfGenerator = clients.pdfGenerator,
-        dokArkiv = clients.dokArkiv,
-        oppgaveClient = clients.oppgaveClient,
-        personOppslag = clients.personOppslag,
-        søknadService = services.søknad,
-        sakService = services.sak
-    )
 
     install(CORS) {
         method(Options)
@@ -234,7 +224,7 @@ internal fun Application.susebakover(
                     behandlingService = services.behandling,
                     sakService = services.sak
                 )
-                søknadRoutes(søknadRoutesMediator, services.søknad)
+                søknadRoutes(services.søknad)
                 behandlingRoutes(
                     brevService = BrevServiceImpl(
                         pdfGenerator = clients.pdfGenerator,
