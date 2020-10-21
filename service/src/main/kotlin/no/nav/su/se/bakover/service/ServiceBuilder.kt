@@ -30,16 +30,17 @@ class ServiceBuilder(
             utbetalingRepo = databaseRepos.utbetaling,
             sakRepo = databaseRepos.sak
         )
+        val brevService = BrevServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokArkiv = clients.dokArkiv,
+            dokDistFordeling = clients.dokDistFordeling,
+            sakService = sakService
+        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
-            brevService = BrevServiceImpl(
-                pdfGenerator = clients.pdfGenerator,
-                personOppslag = clients.personOppslag,
-                dokArkiv = clients.dokArkiv,
-                dokDistFordeling = clients.dokDistFordeling,
-                sakService = sakService
-            ),
+            brevService = brevService,
             personOppslag = clients.personOppslag
         )
         return Services(
@@ -62,7 +63,8 @@ class ServiceBuilder(
                 utbetalingPublisher = clients.utbetalingPublisher,
                 søknadService = søknadService,
                 sakService = sakService,
-                personOppslag = clients.personOppslag
+                personOppslag = clients.personOppslag,
+                brevService = brevService
             ),
             sak = sakService,
             søknad = søknadService,

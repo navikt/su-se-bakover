@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -41,7 +44,8 @@ internal class BehandlingServiceImpl(
     private val utbetalingPublisher: UtbetalingPublisher,
     private val søknadService: SøknadService,
     private val sakService: SakService,
-    private val personOppslag: PersonOppslag
+    private val personOppslag: PersonOppslag,
+    private val brevService: BrevService
 ) : BehandlingService {
     override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
@@ -168,7 +172,8 @@ internal class BehandlingServiceImpl(
                         return simuleringClient.simulerUtbetaling(utbetaling)
                             .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
                             .map { simulering ->
-                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
+                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat()
+                                    .left()
 
                                 utbetalingService.opprettUtbetaling(
                                     oppdragId = utbetaling.oppdrag.id,
@@ -215,7 +220,10 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
+    override fun opprettSøknadsbehandling(
+        sakId: UUID,
+        søknadId: UUID
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
         return søknadService.hentSøknad(søknadId)
@@ -229,6 +237,20 @@ internal class BehandlingServiceImpl(
                 )
             }.mapLeft {
                 KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
+            }
+    }
+
+    override fun lagBrev(behandling: Behandling): Either<KunneIkkeLageBrev, ByteArray> {
+        return sakService.hentSak(behandling.sakId)
+            .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
+            .flatMap { sak ->
+                personOppslag.person(sak.fnr)
+                    .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
+                    .flatMap { person ->
+                        brevService.lagBrev(VedtakInnhold.lagVedtaksinnhold(person, behandling))
+                            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
+                            .map { it }
+                    }
             }
     }
 }

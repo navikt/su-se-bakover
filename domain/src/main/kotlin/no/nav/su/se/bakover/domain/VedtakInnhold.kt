@@ -1,15 +1,18 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.VedtakInnhold.Avslagsvedtak.Companion.lagAvslagsvedtak
 import no.nav.su.se.bakover.domain.VedtakInnhold.Innvilgelsesvedtak.Companion.lagInnvilgelsesvedtak
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-sealed class VedtakInnhold {
+sealed class VedtakInnhold : Brevinnhold() {
     abstract val dato: String
     abstract val fødselsnummer: Fnr
     abstract val fornavn: String
@@ -18,7 +21,7 @@ sealed class VedtakInnhold {
     abstract val husnummer: String?
     abstract val bruksenhet: String?
     abstract val postnummer: String?
-    abstract val poststed: String
+    abstract val poststed: String?
     abstract val satsbeløp: Int
     abstract val fradragSum: Int
 
@@ -31,7 +34,7 @@ sealed class VedtakInnhold {
         override val husnummer: String?,
         override val bruksenhet: String?,
         override val postnummer: String?,
-        override val poststed: String,
+        override val poststed: String?,
         override val satsbeløp: Int,
         override val fradragSum: Int,
         val månedsbeløp: Int,
@@ -57,7 +60,7 @@ sealed class VedtakInnhold {
                     bruksenhet = person.adresse?.bruksenhet,
                     husnummer = person.adresse?.husnummer,
                     postnummer = person.adresse?.poststed?.postnummer,
-                    poststed = person.adresse?.poststed?.poststed!!,
+                    poststed = person.adresse?.poststed?.poststed,
                     månedsbeløp = førsteMånedsberegning.beløp,
                     fradato = behandling.beregning()!!.fraOgMed.formatMonthYear(),
                     tildato = behandling.beregning()!!.tilOgMed.formatMonthYear(),
@@ -67,10 +70,14 @@ sealed class VedtakInnhold {
                     redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
                     harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                     fradrag = behandling.beregning()!!.fradrag.toFradragPerMåned(),
-                    fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned().sumBy { fradrag -> fradrag.beløp },
+                    fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned()
+                        .sumBy { fradrag -> fradrag.beløp },
                 )
             }
         }
+
+        override fun toJson(): String = objectMapper.writeValueAsString(this)
+        override fun pdfTemplate(): PdfTemplate = PdfTemplate.VedtakInnvilget
     }
 
     data class Avslagsvedtak(
@@ -101,11 +108,15 @@ sealed class VedtakInnhold {
                     postnummer = person.adresse?.poststed?.postnummer,
                     poststed = person.adresse?.poststed?.poststed!!,
                     satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
-                    fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp } ?: 0,
+                    fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
+                        ?.sumBy { fradrag -> fradrag.beløp } ?: 0,
                     avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
                     halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
                 )
         }
+
+        override fun toJson(): String = objectMapper.writeValueAsString(this)
+        override fun pdfTemplate(): PdfTemplate = PdfTemplate.VedtakAvslag
     }
 
     companion object {

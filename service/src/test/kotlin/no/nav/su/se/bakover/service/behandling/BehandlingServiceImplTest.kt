@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -22,9 +23,11 @@ import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
@@ -38,6 +41,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -266,11 +271,97 @@ internal class BehandlingServiceImplTest {
         response shouldBe Behandling.IverksettFeil.Utbetaling().left()
     }
 
+    @Test
+    fun `lag brev`() {
+        val pdfDocument = "some-pdf-document".toByteArray()
+        val personMock = mock<Person>() {
+            on { navn } doReturn Person.Navn("fornavn", null, "etternavn")
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn personMock.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(any()) } doReturn pdfDocument.right()
+        }
+
+        val response = createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock,
+            brevService = brevServiceMock
+        ).lagBrev(beregnetBehandling())
+
+        response shouldBe pdfDocument.right()
+    }
+
+    @Test
+    fun `lag brev hente sak feiler`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn FantIkkeSak.left()
+        }
+        val response = createService(
+            sakService = sakServiceMock,
+        ).lagBrev(beregnetBehandling())
+
+        response shouldBe KunneIkkeLageBrev.FantIkkeSak.left()
+    }
+
+    @Test
+    fun `lag brev hente person feiler`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn PdlFeil.FantIkkePerson.left()
+        }
+        val response = createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock
+        ).lagBrev(beregnetBehandling())
+
+        response shouldBe KunneIkkeLageBrev.FantIkkePerson.left()
+    }
+
+    @Test
+    fun `lag brev generering av pdf feiler`() {
+        val personMock = mock<Person>() {
+            on { navn } doReturn Person.Navn("fornavn", null, "etternavn")
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn personMock.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(any()) } doReturn no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
+        }
+
+        val response = createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock,
+            brevService = brevServiceMock
+        ).lagBrev(beregnetBehandling())
+
+        response shouldBe KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
+    }
+
     private fun beregnetBehandling() = Behandling(
         sakId = sakId,
         søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-        beregning = beregning
+        beregning = beregning,
+        behandlingsinformasjon = Behandlingsinformasjon(
+            bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                delerBolig = false,
+                delerBoligMed = null,
+                ektemakeEllerSamboerUnder67År = null,
+                ektemakeEllerSamboerUførFlyktning = null,
+                begrunnelse = null
+            )
+        )
     )
 
     private fun behandlingTilAttestering(status: Behandling.BehandlingsStatus) = beregnetBehandling().copy(
@@ -335,7 +426,8 @@ internal class BehandlingServiceImplTest {
         utbetalingPublisher: UtbetalingPublisher = mock(),
         søknadService: SøknadService = mock(),
         sakService: SakService = mock(),
-        personOppslag: PersonOppslag = mock()
+        personOppslag: PersonOppslag = mock(),
+        brevService: BrevService = mock()
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -347,6 +439,7 @@ internal class BehandlingServiceImplTest {
         utbetalingPublisher = utbetalingPublisher,
         søknadService = søknadService,
         sakService = sakService,
-        personOppslag = personOppslag
+        personOppslag = personOppslag,
+        brevService = brevService
     )
 }

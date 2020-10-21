@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -147,7 +147,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandling(behandlingService) { behandling ->
-                brevService.lagUtkastTilBrev(behandling).fold(
+                behandlingService.lagBrev(behandling).fold(
                     {
                         when (it) {
                             KunneIkkeLageBrev.FantIkkePerson -> call.svar(NotFound.message("Fant ikke person"))

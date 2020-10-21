@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.left
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
@@ -37,22 +36,6 @@ class BrevServiceImpl(
     override fun lagBrev(brevinnhold: Brevinnhold): Either<KunneIkkeLageBrev, ByteArray> =
         pdfGenerator.genererPdf(brevinnhold.toJson(), brevinnhold.pdfTemplate())
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
-
-    override fun lagUtkastTilBrev(
-        behandling: Behandling
-    ): Either<KunneIkkeLageBrev, ByteArray> {
-        return sakService.hentSak(behandling.sakId)
-            .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
-            .flatMap { sak ->
-                hentPersonFraFnr(sak.fnr)
-                    .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
-                    .flatMap { person ->
-                        lagBrevPdf(behandling, person)
-                            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
-                            .map { it }
-                    }
-            }
-    }
 
     private fun lagBrevPdf(
         behandling: Behandling,

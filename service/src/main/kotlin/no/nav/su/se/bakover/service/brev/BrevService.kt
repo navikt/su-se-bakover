@@ -11,7 +11,6 @@ interface BrevService {
 
     fun lagBrev(brevinnhold: Brevinnhold): Either<KunneIkkeLageBrev, ByteArray>
 
-    fun lagUtkastTilBrev(behandling: Behandling): Either<KunneIkkeLageBrev, ByteArray>
     fun journalførVedtakOgSendBrev(
         sak: Sak,
         behandling: Behandling
