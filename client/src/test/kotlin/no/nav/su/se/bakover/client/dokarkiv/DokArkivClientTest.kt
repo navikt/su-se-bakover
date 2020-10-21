@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.objectMapper
@@ -30,7 +29,7 @@ internal class DokArkivClientTest : WiremockBase {
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
 
-    private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
+    private val pdf = "some-pdf-document".toByteArray()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")

@@ -5,10 +5,12 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.sak.SakService
@@ -40,7 +42,10 @@ internal class SøknadRouteMediator(
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, søknad: Søknad) {
-        pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
+        pdfGenerator.genererPdf(
+            innholdJson = objectMapper.writeValueAsString(søknad.søknadInnhold),
+            pdfTemplate = PdfTemplate.Søknad
+        ).fold(
             {
                 log.error("$it")
             },

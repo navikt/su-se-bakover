@@ -4,50 +4,31 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
-import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen"
-internal const val SOKNAD_TEMPLATE = "soknad"
 
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun genererPdf(søknad: SøknadInnhold): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(søknad), SOKNAD_TEMPLATE)
-    }
-
-    override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(vedtak), vedtakstype.template)
-    }
-
-    override fun genererPdf(
-        lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
-        lukketSøknadPdfTemplate: LukketSøknadPdfTemplate
-    ): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(lukketSøknadBrevinnhold), lukketSøknadPdfTemplate.template)
-    }
-
-    private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {
-        val (_, response, result) = "$baseUrl$suPdfGenPath/$template".httpPost()
+    override fun genererPdf(innholdJson: String, pdfTemplate: PdfTemplate): Either<KunneIkkeGenererePdf, ByteArray> {
+        val (_, _, result) = "$baseUrl$suPdfGenPath/$pdfTemplate".httpPost()
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
-            .body(input).response()
-
+            .body(innholdJson).response()
         return result.fold(
+            { it.right() },
             {
-                it.right()
-            },
-            {
-                log.warn("Kall mot PdfClient feilet", it)
-                ClientError(response.statusCode, "Kall mot PdfClient feilet").left()
+                log.warn(
+                    "Feil ved generering av PDF, status:{}, melding:{}",
+                    it.response.statusCode,
+                    it.response.responseMessage
+                )
+                KunneIkkeGenererePdf.left()
             }
         )
     }

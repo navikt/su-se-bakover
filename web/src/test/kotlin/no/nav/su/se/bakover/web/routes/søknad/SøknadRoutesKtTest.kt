@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.capture
 import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -63,7 +64,6 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toS�
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.internal.verification.Times
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -145,8 +145,9 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
         val pdfGenerator: PdfGenerator = mock {
-            val captor = ArgumentCaptor.forClass(SøknadInnhold::class.java)
-            on { genererPdf(capture<SøknadInnhold>(captor)) } doAnswer { PdfGeneratorStub.genererPdf(captor.value) }
+            on {
+                genererPdf(innholdJson = any(), pdfTemplate = argThat { it shouldBe PdfTemplate.Søknad })
+            } doReturn "some-pdf-document".toByteArray().right()
         }
         val dokArkiv: DokArkiv = mock {
             val captor = ArgumentCaptor.forClass(Journalpost.Søknadspost::class.java)
@@ -198,11 +199,11 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 response.status() shouldBe Created
-                verify(pdfGenerator, Times(1)).genererPdf(any())
-                verify(dokArkiv, Times(1)).opprettJournalpost(any())
-                verify(personOppslag, Times(1)).person(any())
-                verify(personOppslag, Times(1)).aktørId(any())
-                verify(oppgaveClient, Times(1)).opprettOppgave(any())
+                verify(pdfGenerator).genererPdf(any(), eq(PdfTemplate.Søknad))
+                verify(dokArkiv).opprettJournalpost(any())
+                verify(personOppslag).person(any())
+                verify(personOppslag).aktørId(any())
+                verify(oppgaveClient).opprettOppgave(any())
             }
         }
     }
@@ -325,7 +326,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `kall mot brevutkast skal gi status 200 OK`() {
-        val pdf = PdfGeneratorStub.pdf.toByteArray()
+        val pdf = "some-pdf-document".toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
@@ -364,7 +365,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `ingen body på brevutkast gir 400`() {
-        val pdf = PdfGeneratorStub.pdf.toByteArray()
+        val pdf = "some-pdf-document".toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
@@ -402,7 +403,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `ugyldig body på brevutkast gir 400`() {
-        val pdf = PdfGeneratorStub.pdf.toByteArray()
+        val pdf = "some-pdf-document".toByteArray()
 
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {

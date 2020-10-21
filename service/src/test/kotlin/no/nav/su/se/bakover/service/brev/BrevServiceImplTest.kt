@@ -9,33 +9,37 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.pdf.LukketSøknadPdfTemplate
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Telefonnummer
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import java.time.LocalDate
 import java.util.UUID
 
 internal class BrevServiceImplTest {
     private val sakId = UUID.randomUUID()
-    private val pdf = PdfGeneratorStub.pdf.toByteArray()
+    private val pdf = "some-pdf-document".toByteArray()
+    private val fnr = Fnr("12345678901")
     private val sak = Sak(
         id = sakId,
         opprettet = Tidspunkt.now(),
-        fnr = Fnr("12345678901"),
+        fnr = fnr,
         søknader = mutableListOf(),
         behandlinger = mutableListOf(),
         oppdrag = Oppdrag(
@@ -55,6 +59,36 @@ internal class BrevServiceImplTest {
         typeLukking = Søknad.TypeLukking.Trukket
     )
 
+    private val person = Person(
+        ident = Ident(fnr, AktørId("2437280977705")),
+        navn = Person.Navn(
+            fornavn = "Tore",
+            mellomnavn = "Johnas",
+            etternavn = "Strømøy"
+        ),
+        telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
+        adresse = Person.Adresse(
+            adressenavn = "Oslogata",
+            husnummer = "12",
+            husbokstav = null,
+            bruksenhet = "U1H20",
+            poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
+            kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO")
+        ),
+        statsborgerskap = "NOR",
+        kjønn = "MANN",
+        adressebeskyttelse = null,
+        skjermet = false
+    )
+
+    private val innholdJson = objectMapper.writeValueAsString(
+        LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+            person = person,
+            søknad = søknad,
+            lukketSøknadBody = lukketSøknadBody
+        )
+    )
+
     @Test
     fun `journalfører en lukket søknad, og sender brev`() {
         val person = PersonOppslagStub.person(sak.fnr).getOrElse {
@@ -70,14 +104,7 @@ internal class BrevServiceImplTest {
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on {
-                genererPdf(
-                    lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                        person = person,
-                        søknad = søknad,
-                        lukketSøknadBody = lukketSøknadBody
-                    ),
-                    lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
-                )
+                genererPdf(innholdJson = innholdJson, pdfTemplate = PdfTemplate.TrukketSøknad)
             } doReturn pdf.right()
         }
 
@@ -112,23 +139,17 @@ internal class BrevServiceImplTest {
             sakService = sakServiceMock
         ).journalførLukketSøknadOgSendBrev(sakId, søknad, lukketSøknadBody) shouldBe "en bestillings id".right()
 
-        verify(sakServiceMock, Times(1)).hentSak(
+        verify(sakServiceMock).hentSak(
             argThat<UUID> { it shouldBe sakId }
         )
-        verify(personOppslagMock, Times(1)).person(
+        verify(personOppslagMock).person(
             argThat { it shouldBe sak.fnr },
         )
-        verify(pdfGeneratorMock, Times(1)).genererPdf(
-            argThat<LukketSøknadBrevinnhold> {
-                it shouldBe LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                    person = person,
-                    søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
-                )
-            },
-            argThat { it shouldBe LukketSøknadPdfTemplate.TRUKKET }
+        verify(pdfGeneratorMock).genererPdf(
+            argThat { it shouldBe innholdJson },
+            argThat { it shouldBe PdfTemplate.TrukketSøknad }
         )
-        verify(dokArkivMock, Times(1)).opprettJournalpost(
+        verify(dokArkivMock).opprettJournalpost(
             argThat {
                 it shouldBe Journalpost.lukketSøknadJournalpostRequest(
                     person = person,
@@ -143,34 +164,22 @@ internal class BrevServiceImplTest {
             }
         )
 
-        verify(dokdistFordelingMock, Times(1)).bestillDistribusjon(
+        verify(dokdistFordelingMock).bestillDistribusjon(
             argThat { it shouldBe "en journalpost id" }
         )
     }
 
     @Test
     fun `lager et brevutkast for lukket søknad`() {
-        val person = PersonOppslagStub.person(sak.fnr).getOrElse {
-            throw RuntimeException("Fant ikke person for fnr ${sak.fnr}")
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn person.right()
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId = sakId) } doReturn sak.right()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on {
-                it.person(sak.fnr)
-            } doReturn person.right()
-        }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on {
-                genererPdf(
-                    lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                        person = person,
-                        søknad = søknad,
-                        lukketSøknadBody = lukketSøknadBody
-                    ),
-                    lukketSøknadPdfTemplate = LukketSøknadPdfTemplate.TRUKKET
-                )
+                genererPdf(innholdJson = innholdJson, pdfTemplate = PdfTemplate.TrukketSøknad)
             } doReturn pdf.right()
         }
         val dokArkivMock = mock<DokArkiv> {}
@@ -188,21 +197,15 @@ internal class BrevServiceImplTest {
             lukketSøknadBody = lukketSøknadBody
         ) shouldBe pdf.right()
 
-        verify(sakServiceMock, Times(1)).hentSak(
+        verify(sakServiceMock).hentSak(
             argThat<UUID> { it shouldBe sakId }
         )
-        verify(personOppslagMock, Times(1)).person(
+        verify(personOppslagMock).person(
             argThat { it shouldBe sak.fnr },
         )
-        verify(pdfGeneratorMock, Times(1)).genererPdf(
-            argThat<LukketSøknadBrevinnhold> {
-                it shouldBe LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                    person = person,
-                    søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
-                )
-            },
-            argThat { it shouldBe LukketSøknadPdfTemplate.TRUKKET }
+        verify(pdfGeneratorMock).genererPdf(
+            argThat { it shouldBe innholdJson },
+            argThat { it shouldBe PdfTemplate.TrukketSøknad }
         )
     }
 }

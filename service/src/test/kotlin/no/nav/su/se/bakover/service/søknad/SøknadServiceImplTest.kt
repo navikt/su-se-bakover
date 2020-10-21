@@ -5,8 +5,6 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.now
@@ -18,6 +16,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -176,7 +175,7 @@ internal class SøknadServiceImplTest {
                 saksbehandler = saksbehandler
             )
         )
-        val brevPdf = PdfGeneratorStub.pdf.toByteArray()
+        val brevPdf = "some-pdf-document".toByteArray()
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
@@ -235,10 +234,7 @@ internal class SøknadServiceImplTest {
                     søknad = søknad,
                     lukketSøknadBody = lukketSøknadBody
                 )
-            } doReturn ClientError(
-                httpStatus = 400,
-                message = "Noe gikk galt og jeg gir deg ikke et brev"
-            ).left()
+            } doReturn KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
         }
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,

@@ -1,15 +1,15 @@
 package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.pdf.LukketSøknadPdfTemplate
+import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold.Companion.lagVedtaksinnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -34,15 +35,17 @@ class BrevServiceImpl(
 
     override fun lagUtkastTilBrev(
         behandling: Behandling
-    ): Either<ClientError, ByteArray> {
+    ): Either<KunneIkkeLageBrev, ByteArray> {
         return sakService.hentSak(behandling.sakId)
-            .mapLeft { throw RuntimeException("Fant ikke sak") }
-            .map {
-                val person = hentPersonFraFnr(it.fnr).fold(
-                    { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
-                    { it }
-                )
-                return lagBrevPdf(behandling, person)
+            .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
+            .flatMap { sak ->
+                hentPersonFraFnr(sak.fnr)
+                    .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
+                    .flatMap { person ->
+                        lagBrevPdf(behandling, person)
+                            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
+                            .map { it }
+                    }
             }
     }
 
@@ -50,33 +53,32 @@ class BrevServiceImpl(
         sakId: UUID,
         søknad: Søknad,
         lukketSøknadBody: Søknad.LukketSøknadBody
-    ): Either<ClientError, ByteArray> {
-        return sakService.hentSak(sakId = sakId)
-            .mapLeft { throw RuntimeException("Fant ikke sak") }
-            .map {
-                val person = hentPersonFraFnr(it.fnr).fold(
-                    { return ClientError(httpStatus = it.httpCode, message = it.message).left() },
-                    { it }
-                )
-                return genererLukketSøknadBrevPdf(
-                    person = person,
-                    søknad = søknad,
-                    lukketSøknadBody = lukketSøknadBody
-                )
+    ): Either<KunneIkkeLageBrev, ByteArray> {
+        return sakService.hentSak(sakId)
+            .mapLeft { KunneIkkeLageBrev.FantIkkeSak }
+            .flatMap { sak ->
+                hentPersonFraFnr(sak.fnr)
+                    .mapLeft { KunneIkkeLageBrev.FantIkkePerson }
+                    .flatMap { person ->
+                        genererLukketSøknadBrevPdf(person, søknad, lukketSøknadBody)
+                            .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
+                            .map { it }
+                    }
             }
     }
 
     private fun lagBrevPdf(
         behandling: Behandling,
         person: Person
-    ): Either<ClientError, ByteArray> {
+    ): Either<KunneIkkeGenererePdf, ByteArray> {
         val vedtakinnhold = lagVedtaksinnhold(person, behandling)
-        val template = when (vedtakinnhold) {
-            is VedtakInnhold.Innvilgelsesvedtak -> Vedtakstype.INNVILGELSE
-            is VedtakInnhold.Avslagsvedtak -> Vedtakstype.AVSLAG
+
+        val pdfTemplate = when (vedtakinnhold) {
+            is VedtakInnhold.Innvilgelsesvedtak -> PdfTemplate.VedtakInnvilget
+            is VedtakInnhold.Avslagsvedtak -> PdfTemplate.VedtakAvslag
         }
 
-        return pdfGenerator.genererPdf(vedtakinnhold, template)
+        return pdfGenerator.genererPdf(objectMapper.writeValueAsString(vedtakinnhold), pdfTemplate)
             .mapLeft {
                 log.error("Kunne ikke generere brevinnhold")
                 it
@@ -107,8 +109,10 @@ class BrevServiceImpl(
         val loggtema = "Journalføring og sending av vedtaksbrev"
 
         val person = hentPersonFraFnr(sak.fnr).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
-        val brevInnhold =
-            lagBrevPdf(behandling, person).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
+        val brevInnhold = lagBrevPdf(behandling, person).fold(
+            { return KunneIkkeOppretteJournalpostOgSendeBrev.left() },
+            { it }
+        )
 
         val journalPostId = dokArkiv.opprettJournalpost(
             Journalpost.Vedtakspost(
@@ -208,7 +212,7 @@ class BrevServiceImpl(
         person: Person,
         søknad: Søknad,
         lukketSøknadBody: Søknad.LukketSøknadBody
-    ): Either<ClientError, ByteArray> {
+    ): Either<KunneIkkeGenererePdf, ByteArray> {
         val lukketSøknadBrevinnhold =
             lagLukketSøknadBrevinnhold(
                 person = person,
@@ -216,15 +220,13 @@ class BrevServiceImpl(
                 lukketSøknadBody = lukketSøknadBody
             )
         val pdfTemplate = when (lukketSøknadBrevinnhold) {
-            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> LukketSøknadPdfTemplate.TRUKKET
-            else -> throw java.lang.RuntimeException(
-                "template kan bare være trukket"
-            )
+            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> PdfTemplate.TrukketSøknad
+            else -> throw java.lang.RuntimeException("template kan bare være trukket")
         }
 
         return pdfGenerator.genererPdf(
-            lukketSøknadBrevinnhold = lukketSøknadBrevinnhold,
-            lukketSøknadPdfTemplate = pdfTemplate
+            innholdJson = objectMapper.writeValueAsString(lukketSøknadBrevinnhold),
+            pdfTemplate = pdfTemplate
         )
             .mapLeft {
                 log.error("Kunne ikke generere brevinnhold")

@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -147,8 +148,14 @@ internal fun Route.behandlingRoutes(
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandling(behandlingService) { behandling ->
                 brevService.lagUtkastTilBrev(behandling).fold(
-                    ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
-                    ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
+                    {
+                        when (it) {
+                            KunneIkkeLageBrev.FantIkkePerson -> call.svar(NotFound.message("Fant ikke person"))
+                            KunneIkkeLageBrev.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
+                            KunneIkkeLageBrev.KunneIkkeGenererePdf -> call.svar(InternalServerError.message("Feil ved generering av PDF dokument"))
+                        }
+                    },
+                    { call.respondBytes(it, ContentType.Application.Pdf) }
                 )
             }
         }

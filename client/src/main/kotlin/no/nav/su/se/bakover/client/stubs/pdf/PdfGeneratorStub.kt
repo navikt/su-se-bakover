@@ -2,17 +2,12 @@ package no.nav.su.se.bakover.client.stubs.pdf
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.pdf.LukketSøknadPdfTemplate
+import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.pdf.Vedtakstype
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
-import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 
 object PdfGeneratorStub : PdfGenerator {
-
-    val pdf =
+    private val pdf =
         """%PDF-1.0
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj
                 xref
@@ -27,18 +22,6 @@ object PdfGeneratorStub : PdfGenerator {
                 %EOF
         """.trimIndent()
 
-    override fun genererPdf(søknad: SøknadInnhold): Either<ClientError, ByteArray> {
-        return pdf.toByteArray().right()
-    }
-
-    override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
-        return pdf.toByteArray().right()
-    }
-
-    override fun genererPdf(
-        lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
-        lukketSøknadPdfTemplate: LukketSøknadPdfTemplate
-    ): Either<ClientError, ByteArray> {
-        return pdf.toByteArray().right()
-    }
+    override fun genererPdf(innholdJson: String, pdfTemplate: PdfTemplate): Either<KunneIkkeGenererePdf, ByteArray> =
+        pdf.toByteArray().right()
 }
