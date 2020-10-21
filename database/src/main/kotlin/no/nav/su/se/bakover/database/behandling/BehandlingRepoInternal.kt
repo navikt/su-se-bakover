@@ -11,9 +11,8 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
@@ -41,8 +40,8 @@ internal fun Row.toBehandling(session: Session): Behandling {
         beregning = BeregningRepoInternal.hentBeregningForBehandling(behandlingId, session),
         simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
         status = Behandling.BehandlingsStatus.valueOf(string("status")),
-        attestant = stringOrNull("attestant")?.let { Attestant(it) },
-        saksbehandler = stringOrNull("saksbehandler")?.let { Saksbehandler(it) },
+        attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) },
+        saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) },
         sakId = uuid("sakId"),
         hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session) ?: Hendelseslogg(
             behandlingId.toString()

@@ -5,18 +5,21 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -39,10 +42,17 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
         )
 
-        val stans = createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
+        val stans = createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+            Stans(
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock
+            ),
+            fnr = fnr
+        )
 
         stans.utbetalingslinjer[0].assert(
             fraOgMed = 1.juli(2020),
@@ -62,11 +72,18 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
+            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+                Stans(
+                    behandler = NavIdentBruker.Saksbehandler("Z123"),
+                    clock = fixedClock
+                ),
+                fnr = fnr
+            )
         }.also {
             it.message shouldContain "${1.juli(2020)}"
         }
@@ -74,7 +91,7 @@ internal class OppdragStansTest {
 
     @Test
     fun `siste utbetaling er en 'stans utbetaling'`() {
-        val utbetaling = createStansUtbetaling(
+        val utbetaling = createUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -82,46 +99,49 @@ internal class OppdragStansTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(Stans(clock = fixedClock), fnr)
+            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+                Stans(
+                    behandler = NavIdentBruker.Saksbehandler("Z123"),
+                    clock = fixedClock
+                ),
+                fnr = fnr
+            )
         }.also {
             it.message shouldContain "allerede er stanset"
         }
     }
 
-    fun createOppdrag(utbetalinger: MutableList<Utbetaling>) = Oppdrag(
+    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
         utbetalinger = utbetalinger
     )
 
-    fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
+    private fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
+        Utbetaling.OversendtUtbetaling.MedKvittering(
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = idag(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            utbetalingsrequest = Utbetalingsrequest(
+                value = ""
+            ),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
+            utbetalingslinjer = utbetalingslinjer,
+            fnr = fnr,
+            type = type,
+            oppdragId = UUID30.randomUUID(),
+            behandler = NavIdentBruker.Saksbehandler("Z123")
+        )
 }
 
 fun Utbetalingslinje.assert(fraOgMed: LocalDate, tilOgMed: LocalDate, forrigeUtbetalingslinje: UUID30, beløp: Int) {

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import java.util.UUID
 

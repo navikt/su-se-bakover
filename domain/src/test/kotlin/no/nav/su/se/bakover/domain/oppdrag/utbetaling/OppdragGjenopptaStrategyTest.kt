@@ -5,18 +5,20 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Gjenoppta
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -27,7 +29,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig = createNyUtbetaling(
+        val opprinnelig = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -35,10 +37,11 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
         )
 
-        val stans = createStansUtbetaling(
+        val stans = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -46,11 +49,14 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
 
         createOppdrag(mutableListOf(opprinnelig, stans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).utbetalingslinjer[0].assert(
             fraOgMed = 1.oktober(2020),
@@ -64,7 +70,9 @@ internal class OppdragGjenopptaStrategyTest {
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
         assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf()).genererUtbetaling(
-                Gjenoppta,
+                Gjenoppta(
+                    NavIdentBruker.Attestant("Z123")
+                ),
                 fnr
             )
         }.also {
@@ -74,7 +82,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
-        val første = createNyUtbetaling(
+        val første = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -82,55 +90,63 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
+
         )
 
-        val førsteStans = createStansUtbetaling(
+        val førsteStans = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                element = Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
-        val førsteGjenopptak = createGjenopptaUtbetaling(
+        val førsteGjenopptak = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                element = Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
 
-        val andre = createNyUtbetaling(
-            listOf(
+        val andre = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
                     beløp = 5100
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
         )
 
-        val andreStans = createStansUtbetaling(
-            listOf(
+        val andreStans = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         createOppdrag(mutableListOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).utbetalingslinjer[0].assert(
             fraOgMed = 1.mai(2021),
@@ -142,7 +158,7 @@ internal class OppdragGjenopptaStrategyTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
-        val første = createNyUtbetaling(
+        val første = createOversendtUtbetaling(
             listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.januar(2020),
@@ -150,12 +166,15 @@ internal class OppdragGjenopptaStrategyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
         )
 
         assertThrows<UtbetalingStrategyException> {
             createOppdrag(mutableListOf(første)).genererUtbetaling(
-                strategy = Gjenoppta,
+                strategy = Gjenoppta(
+                    NavIdentBruker.Attestant("Z123")
+                ),
                 fnr = fnr
             )
         }.also {
@@ -177,23 +196,26 @@ internal class OppdragGjenopptaStrategyTest {
             forrigeUtbetalingslinjeId = l1.id,
             beløp = 5100
         )
-        val første = createNyUtbetaling(
-            listOf(l1, l2)
+        val første = createOversendtUtbetaling(
+            listOf(l1, l2), Utbetaling.UtbetalingsType.NY
         )
 
-        val stans = createStansUtbetaling(
-            listOf(
+        val stans = createOversendtUtbetaling(
+            utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.april(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[1].id,
                     beløp = 0
                 )
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.STANS
         )
 
         createOppdrag(mutableListOf(første, stans)).genererUtbetaling(
-            strategy = Gjenoppta,
+            strategy = Gjenoppta(
+                NavIdentBruker.Attestant("Z123")
+            ),
             fnr = fnr
         ).also {
             it.utbetalingslinjer[0].assert(
@@ -211,46 +233,88 @@ internal class OppdragGjenopptaStrategyTest {
         }
     }
 
-    fun createOppdrag(utbetalinger: MutableList<Utbetaling>) = Oppdrag(
+    // TODO consider for test - moved from gjenoppta utbetaling service
+    //
+    // @Test
+    // fun `Har ingen oversendte utbetalinger`() {
+    //     val setup = Setup()
+    //
+    //     val sak = setup.eksisterendeSak.copy(
+    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
+    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger()
+    //                 .map { Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = setup.fnr) }.toMutableList()
+    //         )
+    //     )
+    //     val repoMock = mock<SakService> {
+    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
+    //     }
+    //
+    //     val service = StartUtbetalingerService(
+    //         utbetalingPublisher = mock(),
+    //         utbetalingService = mock(),
+    //         sakService = repoMock,
+    //         clock = setup.clock
+    //     )
+    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
+    //
+    //     actualResponse shouldBe StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
+    //
+    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
+    //     verifyNoMoreInteractions(repoMock)
+    // }
+    //
+    // @Test
+    // fun `Siste utbetaling er ikke en stansutbetaling`() {
+    //     val setup = Setup()
+    //
+    //     val sak = setup.eksisterendeSak.copy(
+    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
+    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger().toMutableList().also {
+    //                 it.removeLast()
+    //             }
+    //         )
+    //     )
+    //     val repoMock = mock<SakService> {
+    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
+    //     }
+    //
+    //     val service = StartUtbetalingerService(
+    //         utbetalingPublisher = mock(),
+    //         utbetalingService = mock(),
+    //         sakService = repoMock,
+    //         clock = setup.clock
+    //     )
+    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
+    //
+    //     actualResponse shouldBe StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
+    //
+    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
+    //
+    //     verifyNoMoreInteractions(repoMock)
+    // }
+
+    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
         utbetalinger = utbetalinger
     )
 
-    fun createNyUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Ny(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
+    private fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) = Utbetaling.OversendtUtbetaling.UtenKvittering(
+        utbetalingsrequest = Utbetalingsrequest(
+            value = ""
         ),
         utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createStansUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Stans(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
+        fnr = fnr,
+        type = type,
+        simulering = Simulering(
+            gjelderId = Fnr(fnr = fnr.toString()),
+            gjelderNavn = "navn",
+            datoBeregnet = idag(),
+            nettoBeløp = 0,
+            periodeList = listOf()
         ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
-    )
-
-    fun createGjenopptaUtbetaling(utbetalingslinjer: List<Utbetalingslinje>) = Utbetaling.Gjenoppta(
-        oppdragsmelding = Oppdragsmelding(
-            status = Oppdragsmelding.Oppdragsmeldingstatus.SENDT,
-            originalMelding = "",
-            avstemmingsnøkkel = Avstemmingsnøkkel(
-                opprettet = Tidspunkt.now()
-            )
-        ),
-        utbetalingslinjer = utbetalingslinjer,
-        fnr = fnr
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }

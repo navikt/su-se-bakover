@@ -1,18 +1,21 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.oppdrag.OppdragsmeldingJson
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 internal object UtbetalingInternalRepo {
@@ -24,13 +27,13 @@ internal object UtbetalingInternalRepo {
             session
         ) { it.toUtbetaling(session) }
 
-    fun hentUtbetalinger(oppdragId: UUID30, session: Session) =
+    fun hentUtbetalinger(oppdragId: UUID30, session: Session): List<Utbetaling.OversendtUtbetaling> =
         "select * from utbetaling where oppdragId=:oppdragId".hentListe(
             mapOf("oppdragId" to oppdragId.toString()),
             session
         ) {
             it.toUtbetaling(session)
-        }.toMutableList()
+        }
 
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
         "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
@@ -41,55 +44,37 @@ internal object UtbetalingInternalRepo {
         }
 }
 
-internal fun Row.toUtbetaling(session: Session): Utbetaling {
+internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
     val utbetalingId = uuid30("id")
-    val id = utbetalingId
     val opprettet = tidspunkt("opprettet")
-    val simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) }
+    val simulering = string("simulering").let { objectMapper.readValue(it, Simulering::class.java) }
     val kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) }
-    val oppdragsmelding = stringOrNull("oppdragsmelding")?.let {
-        objectMapper.readValue(
-            it,
-            OppdragsmeldingJson::class.java
-        ).toOppdragsmelding() // TODO should probably find a better solution to this
+    val utbetalingsrequest = string("utbetalingsrequest").let {
+        objectMapper.readValue<Utbetalingsrequest>(it)
     }
     val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
     val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
     val fnr = Fnr(string("fnr"))
-    val type = Utbetaling.UtbetalingType.valueOf(string("type"))
+    val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
+    val oppdragId = uuid30("oppdragId")
+    val behandler = NavIdentBruker.Attestant(string("behandler"))
+    val avstemmingsnøkkel =
+        string("avstemmingsnøkkel").let { objectMapper.readValue(it, Avstemmingsnøkkel::class.java) }
 
-    return when (type) {
-        Utbetaling.UtbetalingType.NY -> Utbetaling.Ny(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-        Utbetaling.UtbetalingType.STANS -> Utbetaling.Stans(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-        Utbetaling.UtbetalingType.GJENOPPTA -> Utbetaling.Gjenoppta(
-            id,
-            opprettet,
-            simulering,
-            kvittering,
-            oppdragsmelding,
-            utbetalingslinjer,
-            avstemmingId,
-            fnr
-        )
-    }
+    return UtbetalingMapper(
+        id = utbetalingId,
+        opprettet = opprettet,
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+        simulering = simulering,
+        utbetalingsrequest = utbetalingsrequest,
+        kvittering = kvittering,
+        avstemmingId = avstemmingId,
+        oppdragId = oppdragId,
+        behandler = behandler
+    ).map()
 }
 
 internal fun Row.toUtbetalingslinje(): Utbetalingslinje {

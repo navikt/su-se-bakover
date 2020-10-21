@@ -1,19 +1,16 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
-import java.util.UUID
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.JAXBElement
@@ -34,26 +31,20 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
-            NyUtbetaling(
-                oppdrag = Oppdrag(
-                    id = oppdragId,
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID(),
-                    utbetalinger = mutableListOf()
-
+            utbetaling = Utbetaling.UtbetalingForSimulering(
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 14.januar(2020),
+                        beløp = 10,
+                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
+                    )
                 ),
-                utbetaling = Utbetaling.Ny(
-                    utbetalingslinjer = listOf(
-                        Utbetalingslinje(
-                            fraOgMed = 1.januar(2020),
-                            tilOgMed = 14.januar(2020),
-                            beløp = 10,
-                            forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
-                        )
-                    ),
-                    fnr = Fnr("12345678910")
-                ),
-                attestant = Attestant("A123456")
+                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                oppdragId = oppdragId,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel()
             )
         ).build().request
 

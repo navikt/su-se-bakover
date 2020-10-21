@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 interface SimuleringClient {
-    fun simulerUtbetaling(nyUtbetaling: NyUtbetaling): Either<SimuleringFeilet, Simulering>
+    fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering>
 }

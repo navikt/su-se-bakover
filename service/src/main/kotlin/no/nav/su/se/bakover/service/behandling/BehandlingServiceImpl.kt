@@ -8,16 +8,11 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
@@ -25,6 +20,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.Kunn
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -34,12 +30,9 @@ internal class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
-    private val oppdragRepo: OppdragRepo,
-    private val simuleringClient: SimuleringClient,
-    private val utbetalingService: UtbetalingService, // TODO use services or repos? probably services
+    private val utbetalingService: UtbetalingService,
     private val oppgaveClient: OppgaveClient,
-    private val utbetalingPublisher: UtbetalingPublisher,
-    private val søknadService: SøknadService,
+    private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val sakService: SakService,
     private val personOppslag: PersonOppslag
 ) : BehandlingService {
@@ -51,7 +44,7 @@ internal class BehandlingServiceImpl(
 
     override fun underkjenn(
         begrunnelse: String,
-        attestant: Attestant,
+        attestant: NavIdentBruker.Attestant,
         behandling: Behandling
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
@@ -95,14 +88,13 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun simuler(behandlingId: UUID): Either<SimuleringFeilet, Behandling> {
+    override fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)!!
-        val utbetalingTilSimulering =
-            utbetalingService.lagUtbetalingForSimulering(behandling.sakId, behandling.beregning()!!)
-        return simuleringClient.simulerUtbetaling(utbetalingTilSimulering)
-            .map { simulering ->
-                behandling.leggTilSimulering(simulering)
-                behandlingRepo.leggTilSimulering(behandlingId, simulering)
+
+        return utbetalingService.simulerUtbetaling(behandling.sakId, saksbehandler, behandling.beregning()!!)
+            .map { simulertUtbetaling ->
+                behandling.leggTilSimulering(simulertUtbetaling.simulering)
+                behandlingRepo.leggTilSimulering(behandlingId, simulertUtbetaling.simulering)
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
                 behandlingRepo.hentBehandling(behandlingId)!!
             }
@@ -112,7 +104,7 @@ internal class BehandlingServiceImpl(
     override fun sendTilAttestering(
         sakId: UUID,
         behandlingId: UUID,
-        saksbehandler: Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
         val sak = sakService.hentSak(sakId).getOrElse {
             log.info("Fant ikke sak med sakId : $sakId")
@@ -151,7 +143,10 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     // TODO refactor the beast
-    override fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling> {
+    override fun iverksett(
+        behandlingId: UUID,
+        attestant: NavIdentBruker.Attestant
+    ): Either<Behandling.IverksettFeil, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
                 return when (behandling.status()) {
@@ -161,50 +156,26 @@ internal class BehandlingServiceImpl(
                         behandling.right()
                     }
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                        val utbetaling = utbetalingService.lagUtbetalingForSimulering(
-                            sakId = behandling.sakId,
-                            beregning = behandling.beregning()!!
-                        )
-                        return simuleringClient.simulerUtbetaling(utbetaling)
-                            .mapLeft { return Behandling.IverksettFeil.KunneIkkeSimulere().left() }
-                            .map { simulering ->
-                                if (simulering != behandling.simulering()!!) return Behandling.IverksettFeil.InkonsistentSimuleringsResultat().left()
-
-                                utbetalingService.opprettUtbetaling(
-                                    oppdragId = utbetaling.oppdrag.id,
-                                    utbetaling = utbetaling.utbetaling
-                                )
-                                utbetalingService.addSimulering(
-                                    utbetalingId = utbetaling.utbetaling.id,
-                                    simulering = simulering
-                                )
-                                behandlingRepo.leggTilUtbetaling(
-                                    behandlingId = behandlingId,
-                                    utbetalingId = utbetaling.utbetaling.id
-                                )
-
-                                return utbetalingPublisher.publish(
-                                    NyUtbetaling(
-                                        oppdrag = oppdragRepo.hentOppdrag(behandling.sakId)!!,
-                                        utbetaling = utbetaling.utbetaling,
-                                        attestant = attestant
-                                    )
-                                ).mapLeft {
-                                    utbetalingService.addOppdragsmelding(
-                                        utbetalingId = utbetaling.utbetaling.id,
-                                        oppdragsmelding = it.oppdragsmelding
-                                    )
-                                    return Behandling.IverksettFeil.Utbetaling().left()
-                                }.map { oppdragsmelding ->
-                                    utbetalingService.addOppdragsmelding(
-                                        utbetalingId = utbetaling.utbetaling.id,
-                                        oppdragsmelding = oppdragsmelding
-                                    )
-                                    behandlingRepo.attester(behandlingId, attestant)
-                                    behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                                    return behandling.right()
-                                }
+                        utbetalingService.utbetal(
+                            behandling.sakId,
+                            attestant,
+                            behandling.beregning()!!,
+                            behandling.simulering()!!
+                        ).mapLeft {
+                            when (it) {
+                                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                                KunneIkkeUtbetale.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
+                                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
                             }
+                        }.map { oversendtUtbetaling ->
+                            behandlingRepo.leggTilUtbetaling(
+                                behandlingId = behandlingId,
+                                utbetalingId = oversendtUtbetaling.id
+                            )
+                            behandlingRepo.attester(behandlingId, attestant)
+                            behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                            behandling
+                        }
                     }
                     else -> throw Behandling.TilstandException(
                         state = behandling.status(),
@@ -215,7 +186,10 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
+    override fun opprettSøknadsbehandling(
+        sakId: UUID,
+        søknadId: UUID
+    ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
         return søknadService.hentSøknad(søknadId)

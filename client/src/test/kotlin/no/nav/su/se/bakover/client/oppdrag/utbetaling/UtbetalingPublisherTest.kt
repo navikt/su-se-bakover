@@ -6,16 +6,13 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.Attestant
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class UtbetalingPublisherTest {
 
@@ -24,23 +21,10 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(
-            nyUtbetaling = NyUtbetaling(
-                oppdrag = Oppdrag(
-                    id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID()
-                ),
-                utbetaling = Utbetaling.Ny(
-                    utbetalingslinjer = emptyList(),
-                    fnr = Fnr("12345678910")
-                ),
-                attestant = Attestant("id")
-            )
-        )
+        val res = client.publish(utbetaling = simulertUtbetaling)
         mqClient.count shouldBe 1
         res.isLeft() shouldBe true
-        res.mapLeft { it.oppdragsmelding.originalMelding shouldBe mqClient.messages.first() }
+        res.mapLeft { it.oppdragsmelding.value shouldBe mqClient.messages.first() }
     }
 
     @Test
@@ -48,25 +32,11 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(Unit.right())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(
-            nyUtbetaling = NyUtbetaling(
-                oppdrag = Oppdrag(
-                    id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID()
-                ),
-                utbetaling = Utbetaling.Ny(
-                    utbetalingslinjer = emptyList(),
-                    fnr = Fnr("12345678910")
-                ),
-                attestant = Attestant("id")
-            )
-        )
+        val res = client.publish(utbetaling = simulertUtbetaling)
         mqClient.count shouldBe 1
         res.isRight() shouldBe true
         res.map {
-            it.originalMelding shouldBe mqClient.messages.first()
-            it.status shouldBe Oppdragsmelding.Oppdragsmeldingstatus.SENDT
+            it.value shouldBe mqClient.messages.first()
         }
     }
 
@@ -80,4 +50,18 @@ internal class UtbetalingPublisherTest {
             return response
         }
     }
+
+    private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
+        fnr = Fnr("12345678910"),
+        utbetalingslinjer = listOf(),
+        type = Utbetaling.UtbetalingsType.NY,
+        simulering = Simulering(
+            gjelderId = Fnr(
+                fnr = "12345678910"
+            ),
+            gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
+        ),
+        oppdragId = UUID30.randomUUID(),
+        behandler = NavIdentBruker.Saksbehandler("Z123")
+    )
 }

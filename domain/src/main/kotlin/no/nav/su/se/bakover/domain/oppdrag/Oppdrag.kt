@@ -4,8 +4,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
@@ -15,58 +18,78 @@ data class Oppdrag(
     val id: UUID30,
     val opprettet: Tidspunkt,
     val sakId: UUID,
-    private val utbetalinger: List<Utbetaling> = listOf()
+    private val utbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList()
 ) {
-    fun sisteOversendteUtbetaling(): Utbetaling? = oversendteUtbetalinger().lastOrNull()
-
-    /**
-     * Returnerer alle utbetalinger som tilhører oppdraget i den rekkefølgen de er opprettet.
-     *
-     * Uavhengig om de er oversendt/prøvd oversendt/kvitter ok eller kvittert feil.
-     */
-    fun hentUtbetalinger(): List<Utbetaling> = utbetalinger
-        .sortedBy { it.opprettet.instant }
+    private fun sisteOversendteUtbetaling(): Utbetaling? = hentOversendteUtbetalingerUtenFeil().lastOrNull()
 
     /**
      * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
      * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
      */
-    fun oversendteUtbetalinger(): List<Utbetaling> = utbetalinger.filter {
-        // Vi ønsker ikke å filtrere bort de som ikke har kvittering, men vi ønsker å filtrere bort de kvitteringene som har feil i seg.
-        it.erOversendt() && !it.erKvittertFeil()
-    }.sortedBy { it.oppdragsmelding!!.avstemmingsnøkkel }
+    fun hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+            .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
 
-    fun harOversendteUtbetalingerEtter(value: LocalDate) = oversendteUtbetalinger()
+    private fun harOversendteUtbetalingerEtter(value: LocalDate) = hentOversendteUtbetalingerUtenFeil()
         .flatMap { it.utbetalingslinjer }
         .any {
             it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
         }
 
-    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling = when (strategy) {
-        is UtbetalingStrategy.Stans -> Strategy().Stans(strategy.clock).generate(fnr)
-        is UtbetalingStrategy.Ny -> Strategy().Ny().generate(strategy.beregning, fnr)
-        is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta().generate(fnr)
-    }
+    // TODO: Returner Either istedet for å kaste?
+    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling.UtbetalingForSimulering =
+        when (strategy) {
+            is UtbetalingStrategy.Stans -> Strategy().Stans(
+                behandler = strategy.behandler,
+                clock = strategy.clock
+            ).generate(fnr)
+            is UtbetalingStrategy.Ny -> Strategy().Ny(
+                behandler = strategy.behandler,
+                beregning = strategy.beregning,
+                clock = strategy.clock
+            ).generate(fnr)
+            is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta(
+                behandler = strategy.behandler,
+                clock = strategy.clock
+            ).generate(fnr)
+        }
 
     sealed class UtbetalingStrategy {
-        class Stans(val clock: Clock = Clock.systemUTC()) : UtbetalingStrategy()
-        class Ny(val beregning: Beregning) : UtbetalingStrategy()
-        object Gjenoppta : UtbetalingStrategy()
+        abstract val behandler: NavIdentBruker
+
+        data class Stans(
+            override val behandler: NavIdentBruker,
+            val clock: Clock = Clock.systemUTC()
+        ) : UtbetalingStrategy()
+
+        data class Ny(
+            override val behandler: NavIdentBruker,
+            val beregning: Beregning,
+            val clock: Clock = Clock.systemUTC()
+        ) : UtbetalingStrategy()
+
+        data class Gjenoppta(
+            override val behandler: NavIdentBruker,
+            val clock: Clock = Clock.systemUTC()
+        ) : UtbetalingStrategy()
     }
 
     private open inner class Strategy {
-        inner class Stans(private val clock: Clock = Clock.systemUTC()) : Strategy() {
-            fun generate(fnr: Fnr): Utbetaling {
+        inner class Stans(
+            private val behandler: NavIdentBruker,
+            private val clock: Clock = Clock.systemUTC()
+        ) : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // neste mnd eller umiddelbart?
 
                 validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
-                validate(sisteOversendteUtbetaling() !is Utbetaling.Stans) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+                validate(Utbetaling.UtbetalingsType.STANS != sisteOversendteUtbetaling()?.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
 
                 val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                     ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
                 val stansesTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
-                return Utbetaling.Stans(
+                return Utbetaling.UtbetalingForSimulering(
                     utbetalingslinjer = listOf(
                         Utbetalingslinje(
                             fraOgMed = stansesFraOgMed,
@@ -75,14 +98,22 @@ data class Oppdrag(
                             beløp = 0
                         )
                     ),
-                    fnr = fnr
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.STANS,
+                    oppdragId = id,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
         }
 
-        inner class Ny : Strategy() {
-            fun generate(beregning: Beregning, fnr: Fnr): Utbetaling {
-                return Utbetaling.Ny(
+        inner class Ny(
+            private val behandler: NavIdentBruker,
+            private val beregning: Beregning,
+            private val clock: Clock = Clock.systemUTC()
+        ) : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
+                return Utbetaling.UtbetalingForSimulering(
                     utbetalingslinjer = createUtbetalingsperioder(beregning).map {
                         Utbetalingslinje(
                             fraOgMed = it.fraOgMed,
@@ -93,7 +124,11 @@ data class Oppdrag(
                     }.also {
                         it.zipWithNext { a, b -> b.link(a) }
                     },
-                    fnr = fnr
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.NY,
+                    oppdragId = id,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
 
@@ -108,8 +143,11 @@ data class Oppdrag(
                 }
         }
 
-        inner class Gjenoppta : Strategy() {
-            fun generate(fnr: Fnr): Utbetaling {
+        inner class Gjenoppta(
+            private val behandler: NavIdentBruker,
+            private val clock: Clock = Clock.systemUTC()
+        ) : Strategy() {
+            fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
                 val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                     ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
 
@@ -117,14 +155,14 @@ data class Oppdrag(
                 val stansetTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
                 // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
-                val startIndeks = oversendteUtbetalinger().dropLast(1).indexOfLast {
-                    it is Utbetaling.Stans
+                val startIndeks = hentOversendteUtbetalingerUtenFeil().dropLast(1).indexOfLast {
+                    it.type == Utbetaling.UtbetalingsType.STANS
                 }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
-                val stansetEllerDelvisStansetUtbetalingslinjer = oversendteUtbetalinger()
+                val stansetEllerDelvisStansetUtbetalingslinjer = hentOversendteUtbetalingerUtenFeil()
                     .subList(
                         startIndeks,
-                        oversendteUtbetalinger().size - 1
+                        hentOversendteUtbetalingerUtenFeil().size - 1
                     ) // Ekskluderer den siste stopp-utbetalingen
                     .flatMap {
                         it.utbetalingslinjer
@@ -144,7 +182,7 @@ data class Oppdrag(
                     "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
                 }
 
-                return Utbetaling.Gjenoppta(
+                return Utbetaling.UtbetalingForSimulering(
                     utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
                         (
                             acc + Utbetalingslinje(
@@ -155,7 +193,11 @@ data class Oppdrag(
                             )
                             )
                     },
-                    fnr = fnr
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                    oppdragId = id,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
                 )
             }
         }

@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
@@ -35,10 +35,8 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding
-import no.nav.su.se.bakover.domain.oppdrag.Oppdragsmelding.Oppdragsmeldingstatus.FEIL
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
@@ -61,6 +59,8 @@ import java.util.UUID
 import kotlin.random.Random
 
 internal class BehandlingRoutesKtTest {
+
+    private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ServiceBuilder(
@@ -143,7 +143,7 @@ internal class BehandlingRoutesKtTest {
                 31.desember(2020),
                 emptyList()
             )
-            services.behandling.simuler(objects.behandling.id)
+            services.behandling.simuler(objects.behandling.id, saksbehandler)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
@@ -185,7 +185,7 @@ internal class BehandlingRoutesKtTest {
                 31.desember(2020),
                 emptyList()
             )
-            services.behandling.simuler(objects.behandling.id)
+            services.behandling.simuler(objects.behandling.id, saksbehandler)
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/tilAttestering",
@@ -549,12 +549,12 @@ internal class BehandlingRoutesKtTest {
                         31.desember(2020),
                         emptyList()
                     )
-                    services.behandling.simuler(behandling.id)
+                    services.behandling.simuler(behandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
                                 behandling.id,
-                                Saksbehandler(navIdentSaksbehandler)
+                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
                         }
                 }
@@ -667,12 +667,12 @@ internal class BehandlingRoutesKtTest {
                         31.desember(2020),
                         emptyList()
                     )
-                    services.behandling.simuler(behandling.id)
+                    services.behandling.simuler(behandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
                                 behandling.sakId,
                                 behandling.id,
-                                Saksbehandler(navIdentSaksbehandler)
+                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
                         }
                 }
@@ -818,10 +818,10 @@ internal class BehandlingRoutesKtTest {
                     testClients.copy(
                         utbetalingPublisher = object : UtbetalingPublisher {
                             override fun publish(
-                                nyUtbetaling: NyUtbetaling
-                            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Oppdragsmelding> =
+                                utbetaling: Utbetaling
+                            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
                                 UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                    Oppdragsmelding(FEIL, "", Avstemmingsnøkkel())
+                                    Utbetalingsrequest("")
                                 ).left()
                         },
                         microsoftGraphApiClient = graphApiClientForNavIdent(navIdentAttestant)
@@ -839,15 +839,14 @@ internal class BehandlingRoutesKtTest {
                     31.desember(2020),
                     emptyList()
                 )
-                services.behandling.simuler(objects.behandling.id).fold(
+                services.behandling.simuler(objects.behandling.id, saksbehandler).fold(
                     { it },
                     {
 
                         services.behandling.sendTilAttestering(
                             objects.sak.id,
                             objects.behandling.id,
-
-                            Saksbehandler("S123456")
+                            saksbehandler
                         )
                     }
                 )

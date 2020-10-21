@@ -6,9 +6,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Attestant
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.NyUtbetaling
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -27,11 +26,7 @@ class UtbetalingXmlMappingTest {
     @Test
     fun `mapper utbetaling til xml request`() {
         assertThat(
-            XmlMapper.writeValueAsString(
-                toUtbetalingRequest(
-                    nyUtbetaling = nyUtbetaling
-                )
-            ),
+            XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
             isSimilarTo(expected).withNodeMatcher(nodeMatcher)
         )
     }
@@ -55,17 +50,15 @@ class UtbetalingXmlMappingTest {
         utbetalinger = mutableListOf()
     )
     private val fnr = Fnr("12345678910")
-    private val utbetaling = Utbetaling.Ny(
+    private val utbetaling = Utbetaling.UtbetalingForSimulering(
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
         ),
-        fnr = fnr
-    )
-    private val nyUtbetaling = NyUtbetaling(
-        oppdrag = oppdrag,
-        utbetaling = utbetaling,
-        attestant = Attestant("A123456"),
+        fnr = fnr,
+        type = Utbetaling.UtbetalingsType.NY,
+        oppdragId = oppdrag.id,
+        behandler = NavIdentBruker.Attestant("A123456"),
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 

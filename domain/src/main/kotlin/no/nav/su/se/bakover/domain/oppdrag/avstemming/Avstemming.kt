@@ -10,6 +10,6 @@ data class Avstemming(
     val opprettet: Tidspunkt = now(),
     val fraOgMed: Tidspunkt,
     val tilOgMed: Tidspunkt,
-    val utbetalinger: List<Utbetaling>,
+    val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
     val avstemmingXmlRequest: String? = null
 )
