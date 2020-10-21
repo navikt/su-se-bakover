@@ -234,11 +234,17 @@ data class SøknadInnholdJson(
         }
     }
 
-    data class EktefelleJson(val formue: FormueJson) {
-        fun toEktefelle() = Ektefelle(formue.toFormue())
+    data class EktefelleJson(val formue: FormueJson, val inntektOgPensjon: InntektOgPensjonJson) {
+        fun toEktefelle() = Ektefelle(
+            formue = formue.toFormue(),
+            inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon()
+        )
 
         companion object {
-            fun Ektefelle.toJson() = EktefelleJson(formue.toFormueJson())
+            fun Ektefelle.toJson() = EktefelleJson(
+                formue = formue.toFormueJson(),
+                inntektOgPensjon = inntektOgPensjon.toInntektOgPensjonJson()
+            )
         }
     }
 

@@ -103,7 +103,7 @@ data class ForNav(
     }
 }
 
-data class Ektefelle(val formue: Formue)
+data class Ektefelle(val formue: Formue, val inntektOgPensjon: InntektOgPensjon)
 
 data class InntektOgPensjon(
     val forventetInntekt: Number? = null,
