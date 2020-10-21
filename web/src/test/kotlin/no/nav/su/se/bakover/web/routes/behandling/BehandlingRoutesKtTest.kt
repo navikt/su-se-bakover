@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
@@ -874,9 +875,13 @@ internal class BehandlingRoutesKtTest {
     )
 
     private fun setup(): Objects {
-        val sak = repos.sak.opprettSak(FnrGenerator.random())
-        val søknad =
-            repos.søknad.opprettSøknad(sakId = sak.id, Søknad(sakId = sak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+        val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        val sak: Sak = SakFactory().nySak(FnrGenerator.random(), søknadInnhold).also {
+            repos.sak.opprettSak(it)
+        }.toSak()
+        val søknad: Søknad = Søknad(sakId = sak.id, søknadInnhold = søknadInnhold).also {
+            repos.søknad.opprettSøknad(it)
+        }
         val nySøknadsbehandling = NySøknadsbehandling(
             sakId = sak.id,
             søknadId = søknad.id

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import org.junit.jupiter.api.Test
@@ -23,15 +24,12 @@ internal class SøknadPostgresRepoTest {
     fun `opprett og hent søknad`() {
         withMigratedDb {
             EmbeddedDatabase.instance().withSession {
-                val sak = testDataHelper.insertSak(FNR)
-                val søknad = repo.opprettSøknad(
+                val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+                val søknad: Søknad = Søknad(
                     sakId = sak.id,
-                    søknad = Søknad(
-                        sakId = sak.id,
-                        id = UUID.randomUUID(),
-                        søknadInnhold = SøknadInnholdTestdataBuilder.build()
-                    )
-                )
+                    id = UUID.randomUUID(),
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build()
+                ).also { repo.opprettSøknad(it) }
                 val hentet = repo.hentSøknad(søknad.id)
 
                 søknad shouldBe hentet
@@ -42,17 +40,14 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `søknader som ikke er trukket skal ikke være trukket`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = repo.opprettSøknad(
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+            val søknad: Søknad = Søknad(
                 sakId = sak.id,
-                søknad = Søknad(
-                    sakId = sak.id,
-                    id = UUID.randomUUID(),
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                )
-            )
-            val hentetSøknad = repo.hentSøknad(søknad.id)
-            hentetSøknad!!.id shouldBe søknad.id
+                id = UUID.randomUUID(),
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            ).also { repo.opprettSøknad(it) }
+            val hentetSøknad: Søknad = repo.hentSøknad(søknad.id)!!
+            hentetSøknad.id shouldBe søknad.id
             hentetSøknad.lukket shouldBe null
         }
     }
@@ -60,15 +55,12 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `trukket søknad skal bli hentet med saksbehandler som har trekt søknaden`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = repo.opprettSøknad(
+            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+            val søknad: Søknad = Søknad(
                 sakId = sak.id,
-                søknad = Søknad(
-                    sakId = sak.id,
-                    id = UUID.randomUUID(),
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                )
-            )
+                id = UUID.randomUUID(),
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            ).also { repo.opprettSøknad(it) }
             val saksbehandler = Saksbehandler("Z993156")
             repo.lukkSøknad(
                 søknadId = søknad.id,

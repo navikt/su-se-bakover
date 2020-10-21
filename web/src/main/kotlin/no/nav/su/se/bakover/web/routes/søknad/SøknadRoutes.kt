@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -28,7 +29,6 @@ internal const val søknadPath = "/soknad"
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
-    mediator: SøknadRouteMediator,
     søknadService: SøknadService
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
@@ -36,13 +36,24 @@ internal fun Route.søknadRoutes(
             Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
                 ifLeft = {
                     call.application.environment.log.info(it.message, it)
-                    call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+                    call.svar(BadRequest.message("Ugyldig body"))
                 },
                 ifRight = {
-                    SuMetrics.Counter.Søknad.increment()
-                    call.audit("Lagrer søknad for person: $it")
-                    call.svar(
-                        Resultat.json(Created, serialize((mediator.nySøknad(it.toSøknadInnhold()).toJson())))
+                    søknadService.nySøknad(it.toSøknadInnhold()).fold(
+                        { kunneIkkeOppretteSøknad ->
+                            call.svar(
+                                when (kunneIkkeOppretteSøknad) {
+                                    KunneIkkeOppretteSøknad.FantIkkePerson -> HttpStatusCode.NotFound.message("Fant ikke person")
+                                }
+                            )
+                        },
+                        { sak ->
+                            SuMetrics.Counter.Søknad.increment()
+                            call.audit("Lagrer søknad for person: $sak")
+                            call.svar(
+                                Resultat.json(Created, serialize((sak.toJson())))
+                            )
+                        }
                     )
                 }
             )

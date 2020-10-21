@@ -13,21 +13,20 @@ import javax.sql.DataSource
 internal class SøknadPostgresRepo(
     private val dataSource: DataSource
 ) : SøknadRepo {
-    override fun hentSøknad(søknadId: UUID) = dataSource.withSession { hentSøknadInternal(søknadId, it) }
+    override fun hentSøknad(søknadId: UUID): Søknad? = dataSource.withSession { hentSøknadInternal(søknadId, it) }
 
-    override fun opprettSøknad(sakId: UUID, søknad: Søknad): Søknad {
+    override fun opprettSøknad(søknad: Søknad) {
         dataSource.withSession { session ->
             "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
                 mapOf(
                     "id" to søknad.id,
-                    "sakId" to sakId,
+                    "sakId" to søknad.sakId,
                     "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
                     "opprettet" to søknad.opprettet
                 ),
                 session
             )
         }
-        return hentSøknad(søknad.id)!!
     }
 
     override fun lukkSøknad(søknadId: UUID, lukket: Søknad.Lukket) {

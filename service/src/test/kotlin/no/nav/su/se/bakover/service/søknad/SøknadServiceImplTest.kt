@@ -7,7 +7,9 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -18,9 +20,13 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class SøknadServiceImplTest {
+    private val fixedClock = Clock.fixed(1.januar(2020).plusDays(9).startOfDay().instant, ZoneOffset.UTC)
+
     private val sakId = UUID.randomUUID()
     private val sak = Sak(
         id = sakId,
@@ -58,7 +64,13 @@ internal class SøknadServiceImplTest {
 
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakServiceMock
+            sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
+
         ).trekkSøknad(søknad.id, saksbehandler, "") shouldBe sak.right()
     }
     @Test
@@ -82,7 +94,12 @@ internal class SøknadServiceImplTest {
         }
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock
+            sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
         ).trekkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
     @Test
@@ -110,7 +127,12 @@ internal class SøknadServiceImplTest {
         }
         SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock
+            sakService = sakServiceMock,
+            sakFactory = mock(),
+            pdfGenerator = mock(),
+            dokArkiv = mock(),
+            personOppslag = mock(),
+            oppgaveClient = mock(),
         ).trekkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 }

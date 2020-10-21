@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -31,6 +33,7 @@ internal class SakRoutesKtTest {
     val fnr = Fnr(sakFnr01)
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val søknadRepo = repos.søknad
+    val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test
     fun `henter sak for sak id`() {
@@ -41,11 +44,13 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId = repos.sak.opprettSak(Fnr(sakFnr01)).id
+            val opprettetSakId: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
+                repos.sak.opprettSak(it)
+            }.toSak()
 
             defaultRequest(
                 Get,
-                "$sakPath/$opprettetSakId",
+                "$sakPath/${opprettetSakId.id}",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 assertEquals(OK, response.status())
@@ -63,7 +68,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            repos.sak.opprettSak(Fnr(sakFnr01))
+            repos.sak.opprettSak(SakFactory().nySak(Fnr(sakFnr01), søknadInnhold))
 
             defaultRequest(
                 Get,
@@ -122,8 +127,12 @@ internal class SakRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
 
-        val nySak = repos.sak.opprettSak(fnr)
-        val nySøknad = søknadRepo.opprettSøknad(nySak.id, Søknad(sakId = nySak.id, søknadInnhold = SøknadInnholdTestdataBuilder.build()))
+        val nySak: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
+            repos.sak.opprettSak(it)
+        }.toSak()
+        val nySøknad: Søknad = Søknad(sakId = nySak.id, søknadInnhold = søknadInnhold).also {
+            søknadRepo.opprettSøknad(it)
+        }
 
         withTestApplication({
             testSusebakover()
