@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
@@ -11,13 +10,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.verify
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -29,7 +29,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     )
 
     private val aktørId = "333"
-    private val journalId = "444"
+    private val journalpostId = JournalpostId("444")
     private val sakId = "222"
 
     @Test
@@ -38,7 +38,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val expectedSaksbehandlingRequest =
             """
                 {
-                    "journalpostId": "$journalId",
+                    "journalpostId": "$journalpostId",
                     "saksreferanse": "$sakId",
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
@@ -60,7 +60,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                     {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
-                                                      "journalpostId": "$journalId",
+                                                      "journalpostId": "$journalpostId",
                                                       "saksreferanse": "$sakId",
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
@@ -84,11 +84,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
-                journalId,
+                journalpostId,
                 sakId,
                 AktørId(aktørId)
             )
-        ) shouldBeRight 111
+        ) shouldBeRight OppgaveId("111")
     }
 
     @Test
@@ -145,7 +145,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 sakId = sakId,
                 aktørId = AktørId(aktørId)
             )
-        ) shouldBeRight 111
+        ) shouldBeRight OppgaveId("111")
     }
 
     @Test
@@ -154,7 +154,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
-                journalId,
+                journalpostId,
                 sakId,
                 AktørId(aktørId)
             )
@@ -167,7 +167,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         val versjon = 2
 
         wireMockServer.stubFor(
-            get(urlPathEqualTo("$oppgavePath"))
+            get(urlPathEqualTo(oppgavePath))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
                 .withHeader("Content-Type", WireMock.equalTo("application/json"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))
@@ -191,7 +191,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
                                       "behandlingstype": "ae0245",
-                                      "versjon": 2,
+                                      "versjon": $versjon,
                                       "opprettetAv": "supstonad",
                                       "endretAv": "supstonad",
                                       "prioritet": "NORM",
@@ -232,11 +232,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 )
         )
 
-        val nesteVersjon = client.ferdigstillFørstegangsoppgave(AktørId(aktørId))
+        client.ferdigstillFørstegangsoppgave(AktørId(aktørId))
 
-        nesteVersjon shouldBe (versjon + 1).right()
-
-        WireMock.configureFor(WiremockBase.wireMockServer.port())
+        WireMock.configureFor(wireMockServer.port())
         verify(
             1,
             patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))

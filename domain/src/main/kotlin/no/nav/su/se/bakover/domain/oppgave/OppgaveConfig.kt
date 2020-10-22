@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 
 /**
  * https://jira.adeo.no/browse/OH-580
  */
 sealed class OppgaveConfig {
-    abstract val journalpostId: String?
+    abstract val journalpostId: JournalpostId?
     abstract val sakId: String
     abstract val aktørId: AktørId
     abstract val behandlingstema: Behandlingstema?
@@ -14,7 +15,7 @@ sealed class OppgaveConfig {
     abstract val behandlingstype: Behandlingstype
 
     data class Saksbehandling(
-        override val journalpostId: String,
+        override val journalpostId: JournalpostId,
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {
@@ -27,7 +28,7 @@ sealed class OppgaveConfig {
         override val sakId: String,
         override val aktørId: AktørId
     ) : OppgaveConfig() {
-        override val journalpostId = null
+        override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.TIL_ATTESTERING

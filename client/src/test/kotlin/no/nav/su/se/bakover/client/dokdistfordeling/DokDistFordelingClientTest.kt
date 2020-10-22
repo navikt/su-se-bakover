@@ -1,18 +1,20 @@
 package no.nav.su.se.bakover.client.dokdistfordeling
 
 import arrow.core.right
+import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Test
 
 internal class DokDistFordelingClientTest : WiremockBase {
-    val journalId = "1"
-    val client = DokDistFordelingClient(wireMockServer.baseUrl(), TokenOppslagStub)
+    private val journalpostId = JournalpostId("1")
+    private val client = DokDistFordelingClient(wireMockServer.baseUrl(), TokenOppslagStub)
 
-    val requestBody = client.byggDistribusjonPostJson(journalId)
+    private val requestBody = client.byggDistribusjonPostJson(journalpostId)
 
     @Test
     fun `should complete order for distribution`() {
@@ -29,9 +31,9 @@ internal class DokDistFordelingClientTest : WiremockBase {
                     )
                 )
         )
-        client.bestillDistribusjon(journalId) shouldBe "id på tingen".right()
+        client.bestillDistribusjon(journalpostId) shouldBe "id på tingen".right()
     }
-    val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokDistFordelingPath))
+    private val wiremockBuilder: MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(dokDistFordelingPath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))

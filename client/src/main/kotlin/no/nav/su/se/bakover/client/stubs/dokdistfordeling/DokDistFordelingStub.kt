@@ -4,10 +4,11 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 
 object DokDistFordelingStub : DokDistFordeling {
     override fun bestillDistribusjon(
-        journalPostId: String
+        journalPostId: JournalpostId
     ): Either<ClientError, String> =
         """
         {

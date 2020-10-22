@@ -8,6 +8,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -23,7 +24,7 @@ class DokArkivClient(
 
     override fun opprettJournalpost(
         dokumentInnhold: Journalpost,
-    ): Either<ClientError, String> {
+    ): Either<ClientError, JournalpostId> {
         val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
@@ -57,7 +58,7 @@ class DokArkivClient(
 
                     if (journalpostId != null) {
                         log.info("Opprettet journalpost med id $journalpostId")
-                        journalpostId.right()
+                        JournalpostId(journalpostId).right()
                     } else {
                         log.warn("Kunne ikke ferdigstille journalføring, fant ingen journalpostId. body=$json")
                         ClientError(response.statusCode, "Feil ved journalføring.").left()

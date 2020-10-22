@@ -114,8 +114,7 @@ internal class BehandlingServiceImpl(
         }
 
         val behandling = sak.behandlinger()
-            .firstOrNull { it.id == behandlingId }
-            ?.let { it.sendTilAttestering(saksbehandler) }
+            .firstOrNull { it.id == behandlingId }?.sendTilAttestering(saksbehandler)
             ?: return UgyldigKombinasjonSakOgBehandling.left()
                 .also { log.info("Fant ikke behandling $behandlingId på sak med id $sakId") }
 

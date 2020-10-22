@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstema.SU_UFØ
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstype.FØRSTEGANGSSØKNAD
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.BEHANDLE_SAK
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.TIL_ATTESTERING
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +36,7 @@ internal class OppgaveHttpClient(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
+    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         val aktivDato = LocalDate.now()
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
@@ -45,7 +46,7 @@ internal class OppgaveHttpClient(
             .body(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
-                        journalpostId = config.journalpostId,
+                        journalpostId = config.journalpostId?.toString(),
                         saksreferanse = config.sakId,
                         aktoerId = config.aktørId.toString(),
                         tema = "SUP",
@@ -63,7 +64,7 @@ internal class OppgaveHttpClient(
         return result.fold(
             { json ->
                 log.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
-                objectMapper.readValue(json, OppgaveResponse::class.java).id.right()
+                objectMapper.readValue(json, OppgaveResponse::class.java).getOppgaveId().right()
             },
             {
                 log.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
@@ -72,7 +73,7 @@ internal class OppgaveHttpClient(
         )
     }
 
-    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
         return søkEtterOppgave(
             BEHANDLE_SAK.value,
             FØRSTEGANGSSØKNAD.value,
@@ -82,10 +83,11 @@ internal class OppgaveHttpClient(
             KunneIkkeFerdigstilleOppgave
         }.flatMap {
             ferdigstillOppgave(it.id, it.versjon)
+            Unit.right()
         }
     }
 
-    override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
+    override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
         return søkEtterOppgave(
             TIL_ATTESTERING.value,
             FØRSTEGANGSSØKNAD.value,
@@ -95,10 +97,11 @@ internal class OppgaveHttpClient(
             KunneIkkeFerdigstilleOppgave
         }.flatMap {
             ferdigstillOppgave(it.id, it.versjon)
+            Unit.right()
         }
     }
 
-    private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, Int> {
+    private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, FerdigstillResponse> {
         val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -117,7 +120,7 @@ internal class OppgaveHttpClient(
         return result.fold(
             { json ->
                 log.info("Endret oppgave i oppgave. status=${response.statusCode} body=$json")
-                objectMapper.readValue(json, FerdigstillResponse::class.java).versjon.right()
+                objectMapper.readValue(json, FerdigstillResponse::class.java).right()
             },
             {
                 log.warn("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
