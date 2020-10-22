@@ -7,6 +7,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -17,7 +18,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(
-        journalPostId: String
+        journalPostId: JournalpostId
     ): Either<ClientError, String> {
         val body = byggDistribusjonPostJson(journalPostId)
         val (_, response, result) = "$baseUrl$dokDistFordelingPath".httpPost()
@@ -45,7 +46,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
         )
     }
 
-    fun byggDistribusjonPostJson(journalPostId: String): String {
+    fun byggDistribusjonPostJson(journalPostId: JournalpostId): String {
         return """
                     {
                         "journalpostId": "$journalPostId",

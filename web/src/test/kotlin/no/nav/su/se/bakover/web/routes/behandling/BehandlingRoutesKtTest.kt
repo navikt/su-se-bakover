@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.Jwt
@@ -58,7 +59,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.Month
 import java.util.UUID
-import kotlin.random.Random
 
 internal class BehandlingRoutesKtTest {
 
@@ -165,16 +165,16 @@ internal class BehandlingRoutesKtTest {
             testSusebakover(
                 clients = testClients.copy(
                     oppgaveClient = object : OppgaveClient {
-                        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, Long> {
+                        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                             return Either.left(KunneIkkeOppretteOppgave)
                         }
 
-                        override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
-                            return Random.nextInt().right()
+                        override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                            return Unit.right()
                         }
 
-                        override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Int> {
-                            return Random.nextInt().right()
+                        override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                            return Unit.right()
                         }
                     }
                 )

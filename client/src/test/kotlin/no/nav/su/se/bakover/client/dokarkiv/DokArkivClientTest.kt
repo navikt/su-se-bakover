@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.orNull
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Test
 import java.util.Base64
 
@@ -32,7 +32,7 @@ internal class DokArkivClientTest : WiremockBase {
         throw RuntimeException("fnr fants ikke")
     }
 
-    val client = DokArkivClient(
+    private val client = DokArkivClient(
         wireMockServer.baseUrl(),
         TokenOppslagStub
     )
@@ -84,7 +84,7 @@ internal class DokArkivClientTest : WiremockBase {
                     }
         """.trimIndent()
 
-    val forventetVedtaksRequest =
+    private val forventetVedtaksRequest =
         """
                     {
                       "tittel": "Vedtaksbrev for soknad om supplerende stønad",
@@ -161,7 +161,7 @@ internal class DokArkivClientTest : WiremockBase {
                 pdf = pdf
             )
         ).shouldBe(
-            "1".right()
+            JournalpostId("1").right()
         )
     }
 
@@ -216,11 +216,11 @@ internal class DokArkivClientTest : WiremockBase {
                 sakId = sakId
             )
         ) shouldBe(
-            "1".right()
+            JournalpostId("1").right()
             )
     }
 
-    val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokArkivPath))
+    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo(dokArkivPath))
         .withQueryParam("forsoekFerdigstill", WireMock.equalTo("true"))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

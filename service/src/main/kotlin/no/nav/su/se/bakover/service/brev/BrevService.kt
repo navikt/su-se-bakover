@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtl
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -125,7 +126,7 @@ class BrevService(
         val brevInnhold =
             lagBrevPdf(behandling, person).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
 
-        val journalPostId = dokArkiv.opprettJournalpost(
+        val journalpostId = dokArkiv.opprettJournalpost(
             Journalpost.Vedtakspost(
                 person = person,
                 sakId = sak.id.toString(),
@@ -143,7 +144,7 @@ class BrevService(
             }
         )
 
-        return sendBrev(journalPostId)
+        return sendBrev(journalpostId)
             .mapLeft {
                 log.error("$loggtema: Kunne sende brev via ekternt system")
                 KunneIkkeOppretteJournalpostOgSendeBrev
@@ -198,8 +199,8 @@ class BrevService(
             it
         }
 
-    private fun sendBrev(journalPostId: String): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
-        return dokDistFordeling.bestillDistribusjon(journalPostId).mapLeft { KunneIkkeOppretteJournalpostOgSendeBrev }
+    private fun sendBrev(journalpostId: JournalpostId): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
+        return dokDistFordeling.bestillDistribusjon(journalpostId).mapLeft { KunneIkkeOppretteJournalpostOgSendeBrev }
     }
 
     object KunneIkkeOppretteJournalpostOgSendeBrev

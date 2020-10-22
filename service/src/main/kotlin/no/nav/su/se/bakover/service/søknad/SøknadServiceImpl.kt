@@ -45,16 +45,18 @@ internal class SøknadServiceImpl(
         }
 
         if (person.ident.fnr != fnr) {
+            // TODO jah: Dersom disse ikke er like, bruker vi søknadens fnr alle steder bortsett fra i journalføringa, som bruker fnr fra PDL.
+            // Bør vi returnere Left her? Og heller sjekke dette bedre når man slår opp fødselsnummer ved starten av søknaden?
             log.error("Personen har et nyere fødselsnummer i PDL enn det som var oppgitt.")
         }
 
-        val sak: Sak = sakService.hentSak(fnr).fold(
+        val (sak: Sak, søknad: Søknad) = sakService.hentSak(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
                 val nySak = sakFactory.nySak(fnr, søknadInnhold).also {
                     sakService.opprettSak(it)
                 }
-                nySak.toSak()
+                Pair(nySak.toSak(), nySak.søknad)
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
@@ -63,17 +65,18 @@ internal class SøknadServiceImpl(
                     søknadInnhold = søknadInnhold
                 )
                 søknadRepo.opprettSøknad(søknad)
-                it
+
+                Pair(it.copy(søknader = (it.søknader() + søknad).toMutableList()), søknad)
             }
         )
-        opprettJournalpostOgOppgave(sak.id, person, søknadInnhold)
+        opprettJournalpostOgOppgave(sak.id, person, søknad)
         return sak.right()
     }
 
-    private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknadInnhold: SøknadInnhold) {
+    private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {
         // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        pdfGenerator.genererPdf(søknadInnhold).fold(
+        pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
             {
                 log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             },
@@ -81,7 +84,7 @@ internal class SøknadServiceImpl(
                 log.info("Ny søknad: Generert PDF ok.")
                 dokArkiv.opprettJournalpost(
                     Journalpost.Søknadspost(
-                        søknadInnhold = søknadInnhold,
+                        søknadInnhold = søknad.søknadInnhold,
                         pdf = pdfByteArray,
                         sakId = sakId.toString(),
                         person = person
@@ -92,17 +95,18 @@ internal class SøknadServiceImpl(
                     },
                     { journalpostId ->
                         log.info("Ny søknad: Opprettet journalpost ok.")
+                        søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
                         oppgaveClient.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
                                 sakId = sakId.toString(),
                                 aktørId = person.ident.aktørId
                             )
-
                         ).mapLeft {
                             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
                         }.map {
                             log.info("Ny søknad: Opprettet oppgave ok.")
+                            søknadRepo.oppdaterOppgaveId(søknad.id, it)
                         }
                     }
                 )
