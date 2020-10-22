@@ -43,10 +43,10 @@ sealed class LukketSøknadBrevinnhold : Brevinnhold() {
                 lukketSøknad: Søknad.Lukket.Trukket
             ): TrukketSøknadBrevinnhold {
                 return TrukketSøknadBrevinnhold(
-                    dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    dato = LocalDate.now().datoFormatForBrev(),
                     datoSøknadOpprettet = LocalDate.ofInstant(søknad.opprettet.instant, ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                    datoSøkerTrakkSøknad = lukketSøknad.datoSøkerTrakkSøknad.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                        .datoFormatForBrev(),
+                    datoSøkerTrakkSøknad = lukketSøknad.datoSøkerTrakkSøknad.datoFormatForBrev(),
                     fødselsnummer = person.ident.fnr,
                     fornavn = person.navn.fornavn,
                     mellomnavn = person.navn.mellomnavn,
@@ -59,7 +59,6 @@ sealed class LukketSøknadBrevinnhold : Brevinnhold() {
                 )
             }
         }
-
         override fun toJson() = objectMapper.writeValueAsString(this)
         override fun pdfTemplate(): PdfTemplate = PdfTemplate.TrukketSøknad
     }
@@ -78,3 +77,5 @@ sealed class LukketSøknadBrevinnhold : Brevinnhold() {
             }
     }
 }
+
+fun LocalDate.datoFormatForBrev() = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))

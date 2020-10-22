@@ -41,7 +41,7 @@ sealed class Journalpost {
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = tittel,
-                dokumentKategori = DokumentKategori.SOK,
+                dokumentKategori = DokumentKategori.Søknad,
                 dokumentvarianter = listOf(
                     DokumentVariant.Arkiv(
                         fysiskDokument = Base64.getEncoder().encodeToString(pdf)
@@ -74,7 +74,7 @@ sealed class Journalpost {
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = tittel,
-                dokumentKategori = DokumentKategori.VB,
+                dokumentKategori = DokumentKategori.Vedtaksbrev,
                 dokumentvarianter = listOf(
                     DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
@@ -102,7 +102,7 @@ sealed class Journalpost {
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
-        override val sak: Fagsak = Fagsak(sakId.toString())
+        override val sak: Fagsak = Fagsak(sakId)
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -180,7 +180,7 @@ enum class JournalPostType(val type: String) {
 }
 
 enum class DokumentKategori(@JsonValue val type: String) {
-    SOK("SOK"),
-    VB("VB"),
+    Søknad("SOK"),
+    Vedtaksbrev("VB"),
     Infobrev("IB")
 }

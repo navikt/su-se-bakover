@@ -92,7 +92,6 @@ internal fun Route.søknadRoutes(
                                 datoSøkerTrakkSøknad = lukketSøknadBody.datoSøkerTrakkSøknad
                             )
                         }
-
                         søknadService.lukkSøknad(
                             søknadId = søknadId,
                             lukketSøknad = lukketSøknad
@@ -107,6 +106,10 @@ internal fun Route.søknadRoutes(
                                         call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
                                     is KunneIkkeLukkeSøknad.KunneIkkeSendeBrev ->
                                         call.svar(InternalServerError.message("Kunne ikke sende brev for $søknadId"))
+                                    KunneIkkeLukkeSøknad.FantIkkePerson ->
+                                        call.svar(NotFound.message("Fan ikke person"))
+                                    KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
+                                        call.svar(InternalServerError.message("Kunne ikke journalføre brev"))
                                 }
                             },
                             ifRight = {

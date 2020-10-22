@@ -14,8 +14,8 @@ data class LukketSøknadJson(
     val datoSøkerTrakkSøknad: LocalDate? = null
 ) {
 
-    enum class TypeLukking(val value: String) {
-        Trukket("Trukket")
+    enum class TypeLukking() {
+        Trukket
     }
 
     companion object {
