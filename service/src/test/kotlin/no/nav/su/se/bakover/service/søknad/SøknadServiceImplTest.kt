@@ -2,9 +2,13 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -19,9 +23,11 @@ import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
@@ -68,17 +74,18 @@ internal class SøknadServiceImplTest {
         datoSøkerTrakkSøknad = LocalDate.now()
     )
 
+    private val søknad = Søknad(
+        sakId = sakId,
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        lukket = null
+    )
+
+    private val saksbehandler = Saksbehandler("Z993156")
+
     @Test
     fun `trekker en søknad`() {
-        val sakId = UUID.randomUUID()
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            lukket = null
-        )
-        val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on {
@@ -93,70 +100,51 @@ internal class SøknadServiceImplTest {
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(fnr) } doReturn person.right()
+        }
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on {
-                journalførLukketSøknadOgSendBrev(
-                    sakId = sakId,
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
-                )
-            } doReturn "en bestillingsid".right()
+            on { journalførBrev(any(), any()) } doReturn "journalpostId".right()
+            on { distribuerBrev(any()) } doReturn "bestillingsId".right()
         }
 
-        SøknadServiceImpl(
+        createService(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
             brevService = brevServiceMock,
+            personOppslag = personOppslagMock
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
         ) shouldBe sak.right()
+
+        verify(søknadRepoMock).hentSøknad(søknad.id)
+        verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+        verify(personOppslagMock).person(fnr)
+        verify(brevServiceMock).journalførBrev(
+            LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+                person,
+                søknad,
+                lukketSøknad
+            ),
+            sak.id
+        )
+        verify(brevServiceMock).distribuerBrev("journalpostId")
+        verify(søknadRepoMock).lukkSøknad(søknad.id, lukketSøknad)
+        verify(sakServiceMock).hentSak(sak.id)
     }
 
     @Test
     fun `en søknad med behandling skal ikke bli trukket`() {
-        val sakId = UUID.randomUUID()
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            lukket = null
-        )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn true
         }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
-        }
-        val brevServiceMock = mock<BrevService> {
-            on {
-                journalførLukketSøknadOgSendBrev(
-                    sakId = UUID.randomUUID(),
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
-                )
-            } doReturn "en bestillingsid".right()
-        }
-
-        SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
-            brevService = brevServiceMock,
+        createService(
+            søknadRepo = søknadRepoMock
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -165,13 +153,8 @@ internal class SøknadServiceImplTest {
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
-        val sakId = UUID.randomUUID()
         val saksbehandler = Saksbehandler("Z993156")
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        val søknad = søknad.copy(
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = saksbehandler,
@@ -180,40 +163,9 @@ internal class SøknadServiceImplTest {
         )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on {
-                lukkSøknad(
-                    søknad.id,
-                    Søknad.Lukket.Trukket(
-                        tidspunkt = now(),
-                        saksbehandler = saksbehandler,
-                        datoSøkerTrakkSøknad = LocalDate.now()
-                    )
-                )
-            }.doNothing()
-            on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
-        }
-        val brevServiceMock = mock<BrevService> {
-            on {
-                journalførLukketSøknadOgSendBrev(
-                    sakId = UUID.randomUUID(),
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
-                )
-            } doReturn "en bestillingsid".right()
-        }
-
-        SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
-            brevService = brevServiceMock,
+        createService(
+            søknadRepo = søknadRepoMock
         ).lukkSøknad(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
@@ -222,13 +174,8 @@ internal class SøknadServiceImplTest {
 
     @Test
     fun `generer et brevutkast for en lukket søknad`() {
-        val sakId = UUID.randomUUID()
         val saksbehandler = Saksbehandler("Z993156")
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        val søknad = søknad.copy(
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = saksbehandler,
@@ -239,9 +186,6 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
             on {
@@ -257,14 +201,9 @@ internal class SøknadServiceImplTest {
         val personOppslagMock = mock<PersonOppslag> {
             on { person(fnr) } doReturn person.right()
         }
-        SøknadServiceImpl(
+        createService(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
             personOppslag = personOppslagMock,
-            oppgaveClient = mock(),
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
@@ -273,14 +212,8 @@ internal class SøknadServiceImplTest {
     }
 
     @Test
-    fun `får ikke brevutkast hvis brevService returnere clientError`() {
-        val sakId = UUID.randomUUID()
-        val saksbehandler = Saksbehandler("Z993156")
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+    fun `får ikke brevutkast hvis brevService returnere feil`() {
+        val søknad = søknad.copy(
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = saksbehandler,
@@ -290,20 +223,6 @@ internal class SøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on {
-                lukkSøknad(
-                    søknad.id,
-                    Søknad.Lukket.Trukket(
-                        tidspunkt = now(),
-                        saksbehandler = saksbehandler,
-                        datoSøkerTrakkSøknad = LocalDate.now()
-                    )
-                )
-            }.doNothing()
-            on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
             on {
@@ -319,18 +238,33 @@ internal class SøknadServiceImplTest {
         val personOppslagMock = mock<PersonOppslag> {
             on { person(fnr) } doReturn person.right()
         }
-        SøknadServiceImpl(
+        createService(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
             personOppslag = personOppslagMock,
-            oppgaveClient = mock(),
             brevService = brevServiceMock
         ).lagLukketSøknadBrevutkast(
             søknadId = søknad.id,
             lukketSøknad = lukketSøknad
         ) shouldBe KunneIkkeLageBrevutkast.FeilVedGenereringAvBrevutkast.left()
     }
+
+    private fun createService(
+        søknadRepo: SøknadRepo = mock(),
+        sakService: SakService = mock(),
+        sakFactory: SakFactory = mock(),
+        pdfGenerator: PdfGenerator = mock(),
+        dokArkiv: DokArkiv = mock(),
+        personOppslag: PersonOppslag = mock(),
+        oppgaveClient: OppgaveClient = mock(),
+        brevService: BrevService = mock()
+    ) = SøknadServiceImpl(
+        søknadRepo = søknadRepo,
+        sakService = sakService,
+        sakFactory = sakFactory,
+        pdfGenerator = pdfGenerator,
+        dokArkiv = dokArkiv,
+        personOppslag = personOppslag,
+        oppgaveClient = oppgaveClient,
+        brevService = brevService,
+    )
 }

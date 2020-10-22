@@ -122,47 +122,50 @@ internal class SøknadServiceImpl(
         søknadId: UUID,
         lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLukkeSøknad, Sak> {
+        val søknad = SøknadKanLukkes(søknadRepo).kanLukkes(søknadId).fold(
+            { return it.left() },
+            { it }
+        )
         return trekkSøknad(
-            søknadId = søknadId,
+            søknad = søknad,
             loggtema = "Trekking av søknad",
             lukketSøknad = lukketSøknad
         )
     }
 
     private fun trekkSøknad(
-        søknadId: UUID,
+        søknad: Søknad,
         loggtema: String,
         lukketSøknad: Søknad.Lukket
     ): Either<KunneIkkeLukkeSøknad, Sak> {
-        val søknad = hentSøknad(søknadId).getOrElse {
-            log.error("$loggtema: Fant ikke søknad")
-            return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
-        }
-        if (søknad.lukket != null) {
-            log.error("$loggtema: Prøver å lukke en allerede trukket søknad")
-            return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
-        }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknadId)) {
-            log.error("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
-            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
-        }
+        val person = hentPersonFraFnr(søknad.søknadInnhold.personopplysninger.fnr).fold(
+            { return KunneIkkeLukkeSøknad.FantIkkePerson.left() },
+            { it }
+        )
 
-        return brevService.journalførLukketSøknadOgSendBrev(
-            sakId = søknad.sakId,
-            søknad = søknad,
-            lukketSøknad = lukketSøknad
-        ).fold(
-            ifLeft = {
+        val brevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
+            person,
+            søknad,
+            lukketSøknad
+        )
+
+        val journalpostId = brevService.journalførBrev(brevinnhold, søknad.sakId).fold(
+            { return KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left() },
+            { it }
+        )
+
+        return brevService.distribuerBrev(journalpostId).fold(
+            {
                 log.error("$loggtema: Kunne ikke sende brev for å lukke søknad")
                 KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
             },
-            ifRight = {
+            {
                 log.info("Bestilt distribusjon av brev for trukket søknad. Bestillings-id: $it")
                 søknadRepo.lukkSøknad(
-                    søknadId = søknadId,
+                    søknadId = søknad.id,
                     lukket = lukketSøknad
                 )
-                log.info("Trukket søknad $søknadId")
+                log.info("Trukket søknad $søknad")
                 return sakService.hentSak(søknad.sakId).mapLeft {
                     return KunneIkkeLukkeSøknad.KunneIkkeSendeBrev.left()
                 }

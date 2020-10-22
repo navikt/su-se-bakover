@@ -12,6 +12,8 @@ data class Søknad(
     val søknadInnhold: SøknadInnhold,
     val lukket: Lukket? = null,
 ) {
+    fun erLukket() = lukket != null
+
     sealed class Lukket {
         abstract val tidspunkt: Tidspunkt
         abstract val saksbehandler: NavIdentBruker.Saksbehandler

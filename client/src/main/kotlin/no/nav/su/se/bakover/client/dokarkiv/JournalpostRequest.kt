@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
 import java.util.Base64
 import java.util.UUID
 
@@ -93,7 +94,7 @@ sealed class Journalpost {
         val person: Person,
         val pdf: ByteArray,
         val sakId: UUID,
-        val lukketSøknadBrevinnhold: LukketSøknadBrevinnhold,
+        val lukketSøknadBrevinnhold: Brevinnhold,
     ) : Journalpost() {
         override val tittel: String = when (lukketSøknadBrevinnhold) {
             is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> "Bekrefter at søknad er trukket"
@@ -118,7 +119,7 @@ sealed class Journalpost {
                     DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
                         fysiskDokument =
-                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(lukketSøknadBrevinnhold).toByteArray())
+                            Base64.getEncoder().encodeToString(lukketSøknadBrevinnhold.toJson().toByteArray())
                     )
                 )
             )

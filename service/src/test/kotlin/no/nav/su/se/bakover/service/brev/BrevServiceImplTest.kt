@@ -1,17 +1,20 @@
 package no.nav.su.se.bakover.service.brev
 
-import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
@@ -25,9 +28,11 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.Telefonnummer
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
 import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -92,112 +97,223 @@ internal class BrevServiceImplTest {
     )
 
     @Test
-    fun `journalfører en trukket søknad, og sender brev`() {
-        val person = PersonOppslagStub.person(sak.fnr).getOrElse {
-            throw Exception("Fikk ikke person")
+    fun `genererer brev-pdf for tilsendt brevinnhold`() {
+        val brevinnholdMock = mock<Brevinnhold>() {
+            on { toJson() } doReturn innholdJson
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
         }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = sakId) } doReturn sak.right()
-        }
-        val personOppslagMock = mock<PersonOppslag> {
-            on {
-                it.person(sak.fnr)
-            } doReturn person.right()
-        }
+
         val pdfGeneratorMock = mock<PdfGenerator> {
             on {
                 genererPdf(innholdJson = innholdJson, pdfTemplate = PdfTemplate.TrukketSøknad)
             } doReturn pdf.right()
         }
 
-        val dokArkivMock = mock<DokArkiv> {
-            on {
-                it.opprettJournalpost(
-                    Journalpost.LukketSøknadJournalpostRequest(
-                        person = person,
-                        pdf = pdf,
-                        sakId = sakId,
-                        lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                            person = person,
-                            søknad = søknad,
-                            lukketSøknad = lukketSøknad
-                        )
-                    )
-                )
-            } doReturn "en journalpost id".right()
-        }
+        createService(pdfGenerator = pdfGeneratorMock).lagBrev(brevinnholdMock) shouldBe pdf.right()
 
-        val dokdistFordelingMock = mock<DokDistFordeling> {
-            on {
-                it.bestillDistribusjon("en journalpost id")
-            } doReturn "en bestillings id".right()
-        }
-
-        BrevServiceImpl(
-            pdfGenerator = pdfGeneratorMock,
-            personOppslag = personOppslagMock,
-            dokArkiv = dokArkivMock,
-            dokDistFordeling = dokdistFordelingMock,
-            sakService = sakServiceMock
-        ).journalførLukketSøknadOgSendBrev(sakId, søknad, lukketSøknad) shouldBe "en bestillings id".right()
-
-        verify(sakServiceMock).hentSak(
-            argThat<UUID> { it shouldBe sakId }
-        )
-        verify(personOppslagMock).person(
-            argThat { it shouldBe sak.fnr },
-        )
         verify(pdfGeneratorMock).genererPdf(
             argThat { it shouldBe innholdJson },
             argThat { it shouldBe PdfTemplate.TrukketSøknad }
-        )
-        verify(dokArkivMock).opprettJournalpost(
-            argThat {
-                it shouldBe Journalpost.LukketSøknadJournalpostRequest(
-                    person = person,
-                    pdf = pdf,
-                    sakId = sakId,
-                    lukketSøknadBrevinnhold = LukketSøknadBrevinnhold.lagLukketSøknadBrevinnhold(
-                        person = person,
-                        søknad = søknad,
-                        lukketSøknad = lukketSøknad
-                    )
-                )
-            }
-        )
-
-        verify(dokdistFordelingMock).bestillDistribusjon(
-            argThat { it shouldBe "en journalpost id" }
         )
     }
 
     @Test
-    fun `lager et brevutkast for lukket søknad`() {
+    fun `generering av brev-pdf feiler`() {
+        val brevinnholdMock = mock<Brevinnhold>() {
+            on { toJson() } doReturn innholdJson
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on {
                 genererPdf(innholdJson = innholdJson, pdfTemplate = PdfTemplate.TrukketSøknad)
-            } doReturn pdf.right()
+            } doReturn KunneIkkeGenererePdf.left()
         }
-        val dokArkivMock = mock<DokArkiv> {}
-        val dokdistFordelingMock = mock<DokDistFordeling> {}
 
-        BrevServiceImpl(
+        createService(pdfGenerator = pdfGeneratorMock).lagBrev(brevinnholdMock) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePdf.left()
+    }
+
+    @Test
+    fun `journalfører brev`() {
+        val brevinnholdMock = mock<LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold>() {
+            on { toJson() } doReturn "{}"
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId = any()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { it.person(any()) } doReturn person.right()
+        }
+
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any(), any()) } doReturn pdf.right()
+        }
+
+        val dokArkivMock = mock<DokArkiv> {
+            on { opprettJournalpost(any()) } doReturn "journalpostId".right()
+        }
+
+        createService(
             pdfGenerator = pdfGeneratorMock,
-            personOppslag = mock(),
+            personOppslag = personOppslagMock,
             dokArkiv = dokArkivMock,
-            dokDistFordeling = dokdistFordelingMock,
-            sakService = mock()
-        ).lagBrev(
-            LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold.lagTrukketSøknadBrevinnhold(
-                søknad = søknad,
-                person = person,
-                lukketSøknad = lukketSøknad
-            )
-        ) shouldBe pdf.right()
+            sakService = sakServiceMock
+        ).journalførBrev(brevinnholdMock, sakId) shouldBe "journalpostId".right()
 
-        verify(pdfGeneratorMock).genererPdf(
-            argThat { it shouldBe innholdJson },
-            argThat { it shouldBe PdfTemplate.TrukketSøknad }
+        verify(sakServiceMock).hentSak(sakId)
+        verify(personOppslagMock).person(fnr)
+        verify(pdfGeneratorMock).genererPdf(brevinnholdMock.toJson(), brevinnholdMock.pdfTemplate())
+        verify(dokArkivMock).opprettJournalpost(
+            Journalpost.LukketSøknadJournalpostRequest(
+                person = person,
+                sakId = sakId,
+                lukketSøknadBrevinnhold = brevinnholdMock,
+                pdf = pdf
+            )
         )
     }
+
+    @Test
+    fun `journalføring av brev feiler - sak ikke funnet`() {
+        val brevinnholdMock = mock<LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold>() {
+            on { toJson() } doReturn "{}"
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId = any()) } doReturn FantIkkeSak.left()
+        }
+
+        createService(sakService = sakServiceMock).journalførBrev(
+            brevinnholdMock,
+            sakId
+        ) shouldBe KunneIkkeJournalføreBrev.FantIkkeSak.left()
+
+        verify(sakServiceMock).hentSak(sakId)
+    }
+
+    @Test
+    fun `journalføring av brev feiler - person ikke funnet`() {
+        val brevinnholdMock = mock<LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold>() {
+            on { toJson() } doReturn "{}"
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId = any()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { it.person(any()) } doReturn PdlFeil.FantIkkePerson.left()
+        }
+
+        createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock
+        ).journalførBrev(
+            brevinnholdMock,
+            sakId
+        ) shouldBe KunneIkkeJournalføreBrev.FantIkkePerson.left()
+
+        verify(sakServiceMock).hentSak(sakId)
+    }
+
+    @Test
+    fun `journalføring av brev feiler - lag pdf feiler`() {
+        val brevinnholdMock = mock<LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold>() {
+            on { toJson() } doReturn "{}"
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId = any()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { it.person(any()) } doReturn person.right()
+        }
+
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any(), any()) } doReturn KunneIkkeGenererePdf.left()
+        }
+        createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock,
+            pdfGenerator = pdfGeneratorMock
+        ).journalførBrev(
+            brevinnholdMock,
+            sakId
+        ) shouldBe KunneIkkeJournalføreBrev.KunneIkkeGenererePdf.left()
+
+        verify(sakServiceMock).hentSak(sakId)
+    }
+
+    @Test
+    fun `journalføring av brev feiler - opprett journalpost feiler`() {
+        val brevinnholdMock = mock<LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold>() {
+            on { toJson() } doReturn "{}"
+            on { pdfTemplate() } doReturn PdfTemplate.TrukketSøknad
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId = any()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { it.person(any()) } doReturn person.right()
+        }
+
+        val pdfGeneratorMock = mock<PdfGenerator> {
+            on { genererPdf(any(), any()) } doReturn pdf.right()
+        }
+
+        val dokArkivMock = mock<DokArkiv> {
+            on { opprettJournalpost(any()) } doReturn ClientError(500, "").left()
+        }
+
+        createService(
+            sakService = sakServiceMock,
+            personOppslag = personOppslagMock,
+            pdfGenerator = pdfGeneratorMock,
+            dokArkiv = dokArkivMock
+        ).journalførBrev(
+            brevinnholdMock,
+            sakId
+        ) shouldBe KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+
+        verify(sakServiceMock).hentSak(sakId)
+    }
+
+    @Test
+    fun `distribuerer brev`() {
+        val dokumentDistribusjonMock = mock<DokDistFordeling> {
+            on { bestillDistribusjon(any()) } doReturn "bestillingsId".right()
+        }
+
+        createService(
+            dokDistFordeling = dokumentDistribusjonMock
+        ).distribuerBrev("journalpostId") shouldBe "bestillingsId".right()
+
+        verify(dokumentDistribusjonMock).bestillDistribusjon("journalpostId")
+    }
+
+    @Test
+    fun `distribuerer brev feiler`() {
+        val dokumentDistribusjonMock = mock<DokDistFordeling> {
+            on { bestillDistribusjon(any()) } doReturn ClientError(500, "").left()
+        }
+
+        createService(
+            dokDistFordeling = dokumentDistribusjonMock
+        ).distribuerBrev("journalpostId") shouldBe KunneIkkeDistribuereBrev.left()
+
+        verify(dokumentDistribusjonMock).bestillDistribusjon("journalpostId")
+    }
+
+    private fun createService(
+        pdfGenerator: PdfGenerator = mock(),
+        personOppslag: PersonOppslag = mock(),
+        dokArkiv: DokArkiv = mock(),
+        dokDistFordeling: DokDistFordeling = mock(),
+        sakService: SakService = mock()
+    ) = BrevServiceImpl(
+        pdfGenerator = pdfGenerator,
+        personOppslag = personOppslag,
+        dokArkiv = dokArkiv,
+        dokDistFordeling = dokDistFordeling,
+        sakService = sakService
+    )
 }

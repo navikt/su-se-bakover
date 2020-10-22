@@ -11,11 +11,8 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
-import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold.Companion.lagLukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.VedtakInnhold.Companion.lagVedtaksinnhold
 import no.nav.su.se.bakover.domain.brev.Brevinnhold
@@ -36,6 +33,41 @@ class BrevServiceImpl(
     override fun lagBrev(brevinnhold: Brevinnhold): Either<KunneIkkeLageBrev, ByteArray> =
         pdfGenerator.genererPdf(brevinnhold.toJson(), brevinnhold.pdfTemplate())
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePdf }
+
+    // TODO could probably refactor away from having to retrieve sak/fnr and stuff.
+    override fun journalførBrev(brevinnhold: Brevinnhold, sakId: UUID): Either<KunneIkkeJournalføreBrev, String> {
+        val sak = sakService.hentSak(sakId).fold(
+            { return KunneIkkeJournalføreBrev.FantIkkeSak.left() },
+            { it }
+        )
+        val person = hentPersonFraFnr(sak.fnr).fold(
+            { return KunneIkkeJournalføreBrev.FantIkkePerson.left() },
+            { it }
+        )
+
+        val pdf = lagBrev(brevinnhold).fold(
+            { return KunneIkkeJournalføreBrev.KunneIkkeGenererePdf.left() },
+            { it }
+        )
+        // TODO fix for all kinds of journalpost, or pass actual as input.
+        return dokArkiv.opprettJournalpost(
+            Journalpost.LukketSøknadJournalpostRequest(
+                person = person,
+                sakId = sak.id,
+                lukketSøknadBrevinnhold = brevinnhold,
+                pdf = pdf
+            )
+        ).mapLeft {
+            KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
+        }.map {
+            it
+        }
+    }
+
+    override fun distribuerBrev(journalPostId: String): Either<KunneIkkeDistribuereBrev, String> {
+        return dokDistFordeling.bestillDistribusjon(journalPostId)
+            .mapLeft { KunneIkkeDistribuereBrev }
+    }
 
     private fun lagBrevPdf(
         behandling: Behandling,
@@ -109,101 +141,6 @@ class BrevServiceImpl(
             }
             .map {
                 log.error("$loggtema: Brev sendt OK via ekstern system")
-                it
-            }
-    }
-
-    override fun journalførLukketSøknadOgSendBrev(
-        sakId: UUID,
-        søknad: Søknad,
-        lukketSøknad: Søknad.Lukket
-    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
-        val loggtema = "Journalføring og lukking av søknad"
-        val person = sakService.hentSak(sakId).fold(
-            ifLeft = {
-                log.error("$loggtema: fant ikke sak for sakId: $sakId")
-                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
-            },
-            ifRight = { sak ->
-                hentPersonFraFnr(sak.fnr).fold(
-                    ifLeft = {
-                        log.error("$loggtema: kunne ikke hente person for sakId: $sakId")
-                        return KunneIkkeOppretteJournalpostOgSendeBrev.left()
-                    },
-                    ifRight = { person ->
-                        log.info("Hentet Person for lukking av søknad OK")
-                        person
-                    }
-                )
-            }
-        )
-
-        val lukketSøknadBrevPdf = genererLukketSøknadBrevPdf(
-            person = person,
-            søknad = søknad,
-            lukketSøknad = lukketSøknad
-        ).fold(
-            ifLeft = {
-                log.error("$loggtema: kunne ikke generere pdf for å lukke søknad")
-                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
-            },
-            ifRight = {
-                log.info("Generert brev for lukke av søknad OK")
-                it
-            }
-        )
-
-        val journalPostId = dokArkiv.opprettJournalpost(
-            Journalpost.LukketSøknadJournalpostRequest(
-                person = person,
-                sakId = sakId,
-                lukketSøknadBrevinnhold = lagLukketSøknadBrevinnhold(
-                    person = person,
-                    søknad = søknad,
-                    lukketSøknad = lukketSøknad
-                ),
-                pdf = lukketSøknadBrevPdf
-            )
-        ).fold(
-            ifLeft = {
-                log.error("$loggtema: kunne ikke få journalpost id")
-                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
-            },
-            ifRight = {
-                log.info("Journalpost id for lukking av søknad OK. Journalpost-id: $it")
-                it
-            }
-        )
-
-        return sendBrev(journalPostId)
-    }
-
-    private fun genererLukketSøknadBrevPdf(
-        person: Person,
-        søknad: Søknad,
-        lukketSøknad: Søknad.Lukket
-    ): Either<KunneIkkeGenererePdf, ByteArray> {
-        val lukketSøknadBrevinnhold =
-            lagLukketSøknadBrevinnhold(
-                person = person,
-                søknad = søknad,
-                lukketSøknad = lukketSøknad
-            )
-        val pdfTemplate = when (lukketSøknadBrevinnhold) {
-            is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> PdfTemplate.TrukketSøknad
-            else -> throw java.lang.RuntimeException("template kan bare være trukket")
-        }
-
-        return pdfGenerator.genererPdf(
-            innholdJson = objectMapper.writeValueAsString(lukketSøknadBrevinnhold),
-            pdfTemplate = pdfTemplate
-        )
-            .mapLeft {
-                log.error("Kunne ikke generere brevinnhold")
-                it
-            }
-            .map {
-                log.info("Generert brevinnhold OK")
                 it
             }
     }

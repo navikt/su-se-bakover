@@ -25,6 +25,8 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object KunneIkkeSendeBrev : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
+    object FantIkkePerson : KunneIkkeLukkeSøknad()
+    object KunneIkkeJournalføreBrev : KunneIkkeLukkeSøknad()
 }
 
 sealed class KunneIkkeLageBrevutkast {
