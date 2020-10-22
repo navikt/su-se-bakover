@@ -7,8 +7,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -252,8 +250,6 @@ internal class SøknadServiceImplTest {
         søknadRepo: SøknadRepo = mock(),
         sakService: SakService = mock(),
         sakFactory: SakFactory = mock(),
-        pdfGenerator: PdfGenerator = mock(),
-        dokArkiv: DokArkiv = mock(),
         personOppslag: PersonOppslag = mock(),
         oppgaveClient: OppgaveClient = mock(),
         brevService: BrevService = mock()
@@ -261,8 +257,6 @@ internal class SøknadServiceImplTest {
         søknadRepo = søknadRepo,
         sakService = sakService,
         sakFactory = sakFactory,
-        pdfGenerator = pdfGenerator,
-        dokArkiv = dokArkiv,
         personOppslag = personOppslag,
         oppgaveClient = oppgaveClient,
         brevService = brevService,

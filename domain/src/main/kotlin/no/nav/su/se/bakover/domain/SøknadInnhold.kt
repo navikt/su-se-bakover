@@ -2,8 +2,11 @@ package no.nav.su.se.bakover.domain
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerUtenFnr
+import no.nav.su.se.bakover.domain.brev.Brevinnhold
+import no.nav.su.se.bakover.domain.brev.PdfTemplate
 import java.time.LocalDate
 
 data class SøknadInnhold(
@@ -17,7 +20,10 @@ data class SøknadInnhold(
     val formue: Formue,
     val forNav: ForNav,
     val ektefelle: Ektefelle?
-)
+) : Brevinnhold() {
+    override fun toJson(): String = objectMapper.writeValueAsString(this)
+    override fun pdfTemplate(): PdfTemplate = PdfTemplate.Søknad
+}
 
 data class Uførevedtak(
     val harUførevedtak: Boolean

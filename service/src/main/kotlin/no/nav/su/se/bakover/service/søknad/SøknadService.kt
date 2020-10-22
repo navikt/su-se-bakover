@@ -37,4 +37,5 @@ sealed class KunneIkkeLageBrevutkast {
 
 sealed class KunneIkkeOppretteSøknad {
     object FantIkkePerson : KunneIkkeOppretteSøknad()
+    object KunneIkkeJournalføreSøknad : KunneIkkeOppretteSøknad()
 }

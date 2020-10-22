@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import com.fasterxml.jackson.annotation.JsonValue
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.LukketSøknadBrevinnhold
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.brev.Brevinnhold
 import java.util.Base64
-import java.util.UUID
 
 internal const val ENHET_ÅLESUND = "4815"
 
@@ -29,7 +25,7 @@ sealed class Journalpost {
     data class Søknadspost(
         val person: Person,
         val sakId: String,
-        val søknadInnhold: SøknadInnhold,
+        val brevinnhold: Brevinnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
         override val tittel: String = "Søknad om supplerende stønad for uføre flyktninger"
@@ -52,7 +48,7 @@ sealed class Journalpost {
                     ),
                     DokumentVariant.OriginalJson(
                         fysiskDokument =
-                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
+                            Base64.getEncoder().encodeToString(brevinnhold.toJson().toByteArray())
                     )
                 )
             )
@@ -62,7 +58,7 @@ sealed class Journalpost {
     data class Vedtakspost(
         val person: Person,
         val sakId: String,
-        val vedtakInnhold: VedtakInnhold,
+        val brevinnhold: Brevinnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
         override val tittel: String = "Vedtaksbrev for soknad om supplerende stønad"
@@ -83,20 +79,20 @@ sealed class Journalpost {
                     DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
                         fysiskDokument =
-                            Base64.getEncoder().encodeToString(objectMapper.writeValueAsString(vedtakInnhold).toByteArray())
+                            Base64.getEncoder().encodeToString(brevinnhold.toJson().toByteArray())
                     )
                 )
             )
         )
     }
 
-    data class LukketSøknadJournalpostRequest(
+    data class LukkSøknad(
         val person: Person,
+        val sakId: String,
+        val brevinnhold: Brevinnhold,
         val pdf: ByteArray,
-        val sakId: UUID,
-        val lukketSøknadBrevinnhold: Brevinnhold,
     ) : Journalpost() {
-        override val tittel: String = when (lukketSøknadBrevinnhold) {
+        override val tittel: String = when (brevinnhold) {
             is LukketSøknadBrevinnhold.TrukketSøknadBrevinnhold -> "Bekrefter at søknad er trukket"
             else -> throw java.lang.RuntimeException(
                 "template kan bare være trukket"
@@ -119,7 +115,7 @@ sealed class Journalpost {
                     DokumentVariant.Arkiv(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
                         fysiskDokument =
-                            Base64.getEncoder().encodeToString(lukketSøknadBrevinnhold.toJson().toByteArray())
+                            Base64.getEncoder().encodeToString(brevinnhold.toJson().toByteArray())
                     )
                 )
             )
@@ -145,10 +141,12 @@ data class AvsenderMottaker(
     val idType: String = "FNR",
     val navn: String
 )
+
 data class Bruker(
     val id: String,
     val idType: String = "FNR"
 )
+
 data class Fagsak(
     val fagsakId: String,
     val fagsaksystem: String = "SUPSTONAD",

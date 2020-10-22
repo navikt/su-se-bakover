@@ -42,8 +42,6 @@ class ServiceBuilder(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
             sakFactory = SakFactory(),
-            pdfGenerator = clients.pdfGenerator,
-            dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
             oppgaveClient = clients.oppgaveClient,
             brevService = brevService

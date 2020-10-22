@@ -222,7 +222,7 @@ internal class DokArkivClientTest : WiremockBase {
             Journalpost.Søknadspost(
                 sakId = "1",
                 person = person,
-                søknadInnhold = søknadInnhold,
+                brevinnhold = søknadInnhold,
                 pdf = pdf
             )
         ).shouldBe(
@@ -242,7 +242,7 @@ internal class DokArkivClientTest : WiremockBase {
             Journalpost.Søknadspost(
                 sakId = "1",
                 person = person,
-                søknadInnhold = søknadInnhold,
+                brevinnhold = søknadInnhold,
                 pdf = pdf
             )
         ) shouldBe
@@ -275,7 +275,7 @@ internal class DokArkivClientTest : WiremockBase {
 
         client.opprettJournalpost(
             Journalpost.Vedtakspost(
-                vedtakInnhold = VedtakInnholdTestdataBuilder.build(),
+                brevinnhold = VedtakInnholdTestdataBuilder.build(),
                 person = person,
                 pdf = pdf,
                 sakId = sakId
@@ -310,11 +310,11 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.LukketSøknadJournalpostRequest(
+            Journalpost.LukkSøknad(
                 person = person,
-                pdf = pdf,
-                sakId = uuidSakId,
-                lukketSøknadBrevinnhold = trukketSøknadBrevinnhold
+                sakId = uuidSakId.toString(),
+                brevinnhold = trukketSøknadBrevinnhold,
+                pdf = pdf
             )
         ) shouldBe(
             "1".right()

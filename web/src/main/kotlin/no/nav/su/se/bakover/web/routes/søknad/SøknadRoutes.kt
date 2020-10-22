@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -56,7 +57,10 @@ internal fun Route.søknadRoutes(
                         { kunneIkkeOppretteSøknad ->
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {
-                                    KunneIkkeOppretteSøknad.FantIkkePerson -> HttpStatusCode.NotFound.message("Fant ikke person")
+                                    KunneIkkeOppretteSøknad.FantIkkePerson ->
+                                        NotFound.message("Fant ikke person")
+                                    KunneIkkeOppretteSøknad.KunneIkkeJournalføreSøknad ->
+                                        InternalServerError.message("Kunne ikke journalføre søknad")
                                 }
                             )
                         },

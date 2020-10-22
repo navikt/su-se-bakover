@@ -164,10 +164,10 @@ internal class BrevServiceImplTest {
         verify(personOppslagMock).person(fnr)
         verify(pdfGeneratorMock).genererPdf(brevinnholdMock.toJson(), brevinnholdMock.pdfTemplate())
         verify(dokArkivMock).opprettJournalpost(
-            Journalpost.LukketSøknadJournalpostRequest(
+            Journalpost.LukkSøknad(
                 person = person,
-                sakId = sakId,
-                lukketSøknadBrevinnhold = brevinnholdMock,
+                sakId = sakId.toString(),
+                brevinnhold = brevinnholdMock,
                 pdf = pdf
             )
         )

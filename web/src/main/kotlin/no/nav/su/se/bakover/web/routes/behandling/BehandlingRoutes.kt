@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -45,7 +44,6 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    brevService: BrevService,
     behandlingService: BehandlingService,
     sakService: SakService,
 ) {
@@ -202,32 +200,40 @@ internal fun Route.behandlingRoutes(
 
                 sakService.hentSak(behandling.sakId)
                     .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-                    .map { sak ->
-                        // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
-                        brevService.journalførVedtakOgSendBrev(sak, behandling).fold(
-                            ifLeft = { call.svar(InternalServerError.message("Feilet ved attestering")) },
-                            ifRight = {
-                                behandlingService.iverksett(
-                                    behandlingId = behandling.id,
-                                    attestant = Attestant(navIdent)
-                                ).fold(
-                                    {
-                                        when (it) {
-                                            is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message("Attestant og saksbehandler kan ikke være samme person"))
-                                            is Behandling.IverksettFeil.KunneIkkeUtbetale -> call.svar(
-                                                InternalServerError.message("Kunne ikke utføre utbetaling")
-                                            )
-                                            is Behandling.IverksettFeil.KunneIkkeKontrollSimulere -> call.svar(
-                                                InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                                            )
-                                            is Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> call.svar(
-                                                InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
-                                            )
-                                        }
-                                    },
-                                    { call.svar(OK.jsonBody(it)) }
-                                )
-                            }
+                    .map {
+                        behandlingService.iverksett(
+                            behandlingId = behandling.id,
+                            attestant = Attestant(navIdent)
+                        ).fold(
+                            {
+                                when (it) {
+                                    is AttestantOgSaksbehandlerErLik ->
+                                        call.svar(Forbidden.message("Attestant og saksbehandler kan ikke være samme person"))
+                                    is Behandling.IverksettFeil.KunneIkkeUtbetale ->
+                                        call.svar(
+                                            InternalServerError.message("Kunne ikke utføre utbetaling")
+                                        )
+                                    is Behandling.IverksettFeil.KunneIkkeKontrollSimulere ->
+                                        call.svar(
+                                            InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                                        )
+                                    is Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte ->
+                                        call.svar(
+                                            InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
+                                        )
+                                    is Behandling.IverksettFeil.FantIkkePerson ->
+                                        call.svar(NotFound.message("Feil ved henting av person"))
+                                    is Behandling.IverksettFeil.KunneIkkeJournalføreBrev ->
+                                        call.svar(
+                                            InternalServerError.message("Feil ved journalføring av brev")
+                                        )
+                                    is Behandling.IverksettFeil.KunneIkkeDistribuereBrev ->
+                                        call.svar(
+                                            InternalServerError.message("Feil ved distribusjon av brev")
+                                        )
+                                }
+                            },
+                            { call.svar(OK.jsonBody(it)) }
                         )
                     }
             }

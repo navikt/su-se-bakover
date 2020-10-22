@@ -11,6 +11,7 @@ import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
@@ -65,6 +66,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toS�
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
+import org.mockito.internal.verification.Times
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -218,7 +220,7 @@ internal class SøknadRoutesKtTest {
                 response.status() shouldBe Created
                 verify(pdfGenerator).genererPdf(any(), eq(PdfTemplate.Søknad))
                 verify(dokArkiv).opprettJournalpost(any())
-                verify(personOppslag).person(any())
+                verify(personOppslag, Times(2)).person(any()) // søknadservice + brevservice
                 verify(oppgaveClient).opprettOppgave(any())
             }
         }
@@ -271,16 +273,14 @@ internal class SøknadRoutesKtTest {
                         )
                     }
                 )
-            }.response
+            }
         }
     }
 
     @Test
     fun `ugyldig body på lukk gir 400`() {
         val søknadId = UUID.randomUUID()
-        val søknadServiceMock = mock<SøknadService> {
-            on { lukkSøknad(any(), any()) } doReturn sak.right()
-        }
+        val søknadServiceMock = mock<SøknadService>()
         withTestApplication({
             testSusebakover(
                 services = Services(
@@ -301,23 +301,13 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(0)).lukkSøknad(
-                    argThat { it shouldBe søknadId },
-                    argThat {
-                        it shouldBe Søknad.Lukket.Trukket(
-                            tidspunkt = it.tidspunkt,
-                            saksbehandler = Saksbehandler(navIdent = "navident"),
-                            datoSøkerTrakkSøknad = LocalDate.now()
-                        )
-                    }
-
-                )
-            }.response
+                verifyZeroInteractions(søknadServiceMock)
+            }
         }
     }
 
     @Test
-    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
+    fun `søknad som allerede er lukket returnerer 400`() {
         val søknadId = UUID.randomUUID()
         val søknadServiceMock = mock<SøknadService> {
             on { lukkSøknad(any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
@@ -353,7 +343,7 @@ internal class SøknadRoutesKtTest {
                         )
                     }
                 )
-            }.response
+            }
         }
     }
 
@@ -406,18 +396,14 @@ internal class SøknadRoutesKtTest {
                     }
 
                 )
-            }.response
+            }
         }
     }
 
     @Test
     fun `ingen body på brevutkast gir 400`() {
-        val pdf = "some-pdf-document".toByteArray()
-
         val søknadId = UUID.randomUUID()
-        val søknadServiceMock = mock<SøknadService> {
-            on { lagLukketSøknadBrevutkast(søknadId, lukketSøknad) } doReturn pdf.right()
-        }
+        val søknadServiceMock = mock<SøknadService>()
         withTestApplication({
             testSusebakover(
                 services = Services(
@@ -438,18 +424,8 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Pdf.contentType)
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(0)).lagLukketSøknadBrevutkast(
-                    argThat { it shouldBe søknadId },
-                    argThat {
-                        it shouldBe Søknad.Lukket.Trukket(
-                            tidspunkt = it.tidspunkt,
-                            saksbehandler = Saksbehandler(navIdent = "navident"),
-                            datoSøkerTrakkSøknad = LocalDate.now()
-                        )
-                    }
-
-                )
-            }.response
+                verifyZeroInteractions(søknadServiceMock)
+            }
         }
     }
 

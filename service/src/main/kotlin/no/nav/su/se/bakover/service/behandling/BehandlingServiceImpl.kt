@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.VedtakInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
@@ -155,6 +156,15 @@ internal class BehandlingServiceImpl(
     ): Either<Behandling.IverksettFeil, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
+                val person = personOppslag.person(behandling.fnr).fold(
+                    { return Behandling.IverksettFeil.FantIkkePerson.left() },
+                    { it }
+                )
+
+                // TODO fix ordering of stuff?
+                journalførOgDistribuerVedtaksbrev(person, behandling)
+                    .mapLeft { return it.left() }
+
                 return when (behandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> {
                         behandlingRepo.attester(behandlingId, attestant)
@@ -182,7 +192,7 @@ internal class BehandlingServiceImpl(
                             behandlingRepo.attester(behandlingId, attestant)
                             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
-                            lukkAttesteringsoppgave(behandling)
+                            lukkAttesteringsoppgave(person)
 
                             behandling
                         }
@@ -195,16 +205,23 @@ internal class BehandlingServiceImpl(
             }
     }
 
-    private fun lukkAttesteringsoppgave(behandling: Behandling) {
-        personOppslag.aktørId(behandling.fnr).fold(
-            {
-                log.warn("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
-            },
-            { aktørId ->
-                oppgaveClient.ferdigstillAttesteringsoppgave(
-                    aktørId = aktørId
-                )
+    private fun journalførOgDistribuerVedtaksbrev(
+        person: Person,
+        behandling: Behandling
+    ): Either<Behandling.IverksettFeil, Unit> {
+        val brevInnhold = VedtakInnhold.lagVedtaksinnhold(person, behandling)
+        return brevService.journalførBrev(brevInnhold, behandling.sakId)
+            .mapLeft { Behandling.IverksettFeil.KunneIkkeJournalføreBrev }
+            .map {
+                return brevService.distribuerBrev(it)
+                    .mapLeft { Behandling.IverksettFeil.KunneIkkeDistribuereBrev }
+                    .map { Unit }
             }
+    }
+
+    private fun lukkAttesteringsoppgave(person: Person) {
+        oppgaveClient.ferdigstillAttesteringsoppgave(
+            aktørId = person.ident.aktørId
         )
     }
 

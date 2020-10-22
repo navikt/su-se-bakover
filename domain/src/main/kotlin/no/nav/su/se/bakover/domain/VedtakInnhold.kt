@@ -89,7 +89,7 @@ sealed class VedtakInnhold : Brevinnhold() {
         override val husnummer: String?,
         override val bruksenhet: String?,
         override val postnummer: String?,
-        override val poststed: String,
+        override val poststed: String?,
         override val satsbeløp: Int,
         override val fradragSum: Int,
         val avslagsgrunn: Avslagsgrunn,
@@ -106,7 +106,7 @@ sealed class VedtakInnhold : Brevinnhold() {
                     bruksenhet = person.adresse?.bruksenhet,
                     husnummer = person.adresse?.husnummer,
                     postnummer = person.adresse?.poststed?.postnummer,
-                    poststed = person.adresse?.poststed?.poststed!!,
+                    poststed = person.adresse?.poststed?.poststed,
                     satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
                     fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()
                         ?.sumBy { fradrag -> fradrag.beløp } ?: 0,
