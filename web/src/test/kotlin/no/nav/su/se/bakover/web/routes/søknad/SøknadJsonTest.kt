@@ -142,7 +142,17 @@ internal class SøknadJsonTest {
                 "verdipapirBeløp": 0,
                 "skylderNoenMegPengerBeløp": 0,
                 "kontanterBeløp": 0
-                }
+                },
+              "inntektOgPensjon": {
+                  "forventetInntekt": null,
+                  "tjenerPengerIUtlandetBeløp": null,
+                  "andreYtelserINav": null,
+                  "andreYtelserINavBeløp": null,
+                  "søktAndreYtelserIkkeBehandletBegrunnelse": null,
+                  "sosialstønadBeløp": null,
+                  "trygdeytelseIUtlandet": null,
+                  "pensjon": null
+              }
             }
           },
           "lukket": null

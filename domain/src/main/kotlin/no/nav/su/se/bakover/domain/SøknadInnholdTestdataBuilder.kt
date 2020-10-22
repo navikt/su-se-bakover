@@ -130,6 +130,16 @@ object SøknadInnholdTestdataBuilder {
                 verdipapirBeløp = 0,
                 skylderNoenMegPengerBeløp = 0,
                 kontanterBeløp = 0
+            ),
+            inntektOgPensjon = InntektOgPensjon(
+                forventetInntekt = null,
+                tjenerPengerIUtlandetBeløp = null,
+                andreYtelserINav = null,
+                andreYtelserINavBeløp = null,
+                søktAndreYtelserIkkeBehandletBegrunnelse = null,
+                sosialstønadBeløp = null,
+                trygdeytelseIUtlandet = null,
+                pensjon = null
             )
         )
     ) = SøknadInnhold(
