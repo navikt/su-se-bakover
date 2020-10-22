@@ -53,7 +53,7 @@ internal class UtbetalingPostgresRepoTest {
                     mottattTidspunkt = Tidspunkt.EPOCH
                 )
             )
-            val hentet = repo.hentUtbetaling(oversendtUtbetaling.id) as Utbetaling.OversendtUtbetaling.MedKvittering
+            val hentet = repo.hentUtbetaling(oversendtUtbetaling.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
             kvittert shouldBe hentet
         }
     }

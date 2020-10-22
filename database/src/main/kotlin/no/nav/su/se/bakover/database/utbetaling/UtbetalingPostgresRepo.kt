@@ -19,7 +19,7 @@ internal class UtbetalingPostgresRepo(
 
     override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling? =
         dataSource.withSession { session ->
-            "select * from utbetaling where avstemmingsnøkkel -> 'nøkkel' = :nokkel".hent(
+            "select * from utbetaling where avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
                 mapOf(
                     "nokkel" to avstemmingsnøkkel.toString()
                 ),
