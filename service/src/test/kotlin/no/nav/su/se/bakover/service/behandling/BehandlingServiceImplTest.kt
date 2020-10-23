@@ -9,6 +9,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
+import io.kotest.matchers.beOfType
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -27,6 +29,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -35,6 +38,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
@@ -241,6 +246,79 @@ internal class BehandlingServiceImplTest {
         response shouldBe Behandling.IverksettFeil.KunneIkkeUtbetale.left()
     }
 
+    @Test
+    fun `lager brevutkast for avslag`() {
+        val pdf = "pdf-doc".toByteArray()
+        val behandlingMock = mock<Behandling>() {
+            on { erInnvilget() } doReturn false
+        }
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandlingMock
+        }
+        val brevServiceMock = mock<BrevService>() {
+            on { lagBrev(any()) } doReturn pdf.right()
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock
+        ).lagBrevutkast(UUID.randomUUID())
+
+        response shouldBe pdf.right()
+        verify(brevServiceMock).lagBrev(argThat { it should beOfType<LagBrevRequest.AvslagsVedtak>() })
+    }
+
+    @Test
+    fun `lager brevutkast for innvilgelse`() {
+        val pdf = "pdf-doc".toByteArray()
+        val behandlingMock = mock<Behandling>() {
+            on { erInnvilget() } doReturn true
+        }
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandlingMock
+        }
+        val brevServiceMock = mock<BrevService>() {
+            on { lagBrev(any()) } doReturn pdf.right()
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock
+        ).lagBrevutkast(UUID.randomUUID())
+
+        response shouldBe pdf.right()
+        verify(brevServiceMock).lagBrev(argThat { it should beOfType<LagBrevRequest.InnvilgetVedtak>() })
+    }
+
+    @Test
+    fun `svarer med feil dersom behandling ikke finnes`() {
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn null
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+        ).lagBrevutkast(UUID.randomUUID())
+
+        response shouldBe KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
+    }
+
+    @Test
+    fun `svarer med feil dersom laging av brev feiler`() {
+        val behandlingMock = mock<Behandling>() {
+            on { erInnvilget() } doReturn true
+        }
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandlingMock
+        }
+        val brevServiceMock = mock<BrevService>() {
+            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock
+        ).lagBrevutkast(UUID.randomUUID())
+
+        response shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+    }
+
     private fun beregnetBehandling() = Behandling(
         sakId = sakId,
         søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
@@ -254,7 +332,6 @@ internal class BehandlingServiceImplTest {
         status = status
     )
 
-    private val avstemmingsnøkkel = Avstemmingsnøkkel()
     private val attestant = Attestant("SU")
 
     private val oppdragsmelding = Utbetalingsrequest(
@@ -266,11 +343,6 @@ internal class BehandlingServiceImplTest {
         tilOgMed = 31.januar(2020),
         sats = Sats.HØY,
         fradrag = listOf()
-    )
-
-    private val strategy = Oppdrag.UtbetalingStrategy.Ny(
-        behandler = attestant,
-        beregning = beregning
     )
 
     private val oppdrag = Oppdrag(
@@ -307,7 +379,8 @@ internal class BehandlingServiceImplTest {
         oppgaveClient: OppgaveClient = mock(),
         søknadService: SøknadService = mock(),
         sakService: SakService = mock(),
-        personOppslag: PersonOppslag = mock()
+        personOppslag: PersonOppslag = mock(),
+        brevService: BrevService = mock()
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -316,6 +389,7 @@ internal class BehandlingServiceImplTest {
         oppgaveClient = oppgaveClient,
         søknadService = søknadService,
         sakService = sakService,
-        personOppslag = personOppslag
+        personOppslag = personOppslag,
+        brevService = brevService
     )
 }

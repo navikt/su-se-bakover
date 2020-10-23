@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -14,12 +15,14 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
@@ -36,7 +39,8 @@ internal class BehandlingServiceImpl(
     private val oppgaveClient: OppgaveClient,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val sakService: SakService,
-    private val personOppslag: PersonOppslag
+    private val personOppslag: PersonOppslag,
+    private val brevService: BrevService
 ) : BehandlingService {
     override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
@@ -225,5 +229,20 @@ internal class BehandlingServiceImpl(
             }.mapLeft {
                 KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
             }
+    }
+
+    override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        return hentBehandling(behandlingId)
+            .mapLeft { KunneIkkeLageBrevutkast.FantIkkeBehandling }
+            .flatMap { behandling ->
+                brevService.lagBrev(lagBrevRequest(behandling))
+                    .mapLeft { KunneIkkeLageBrevutkast.KunneIkkeLageBrev }
+                    .map { it }
+            }
+    }
+
+    private fun lagBrevRequest(behandling: Behandling) = when (behandling.erInnvilget()) {
+        true -> LagBrevRequest.InnvilgetVedtak(behandling)
+        false -> LagBrevRequest.AvslagsVedtak(behandling)
     }
 }

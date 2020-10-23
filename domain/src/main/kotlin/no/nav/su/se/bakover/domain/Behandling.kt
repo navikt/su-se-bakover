@@ -69,6 +69,13 @@ data class Behandling(
         BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
 
+    fun erInnvilget() = listOf(
+        BehandlingsStatus.SIMULERT,
+        BehandlingsStatus.BEREGNET_INNVILGET,
+        BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+        BehandlingsStatus.IVERKSATT_INNVILGET
+    ).contains(status)
+
     fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon): Behandling {
         tilstand.oppdaterBehandlingsinformasjon(oppdatert)
         return this
@@ -137,7 +144,10 @@ data class Behandling(
             throw TilstandException(status, this::iverksett.toString())
         }
 
-        fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+        fun underkjenn(
+            begrunnelse: String,
+            attestant: NavIdentBruker.Attestant
+        ): Either<KunneIkkeUnderkjenne, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -303,7 +313,10 @@ data class Behandling(
             }
         }
 
-        override fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+        override fun underkjenn(
+            begrunnelse: String,
+            attestant: NavIdentBruker.Attestant
+        ): Either<KunneIkkeUnderkjenne, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return KunneIkkeUnderkjenne().left()
             }

@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppdrag.OppdragServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
@@ -38,7 +40,12 @@ class ServiceBuilder(
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
             oppgaveClient = clients.oppgaveClient,
-
+        )
+        val brevService = BrevServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokArkiv = clients.dokArkiv,
+            dokDistFordeling = clients.dokDistFordeling
         )
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -57,10 +64,12 @@ class ServiceBuilder(
                 oppgaveClient = clients.oppgaveClient,
                 søknadService = søknadService,
                 sakService = sakService,
-                personOppslag = clients.personOppslag
+                personOppslag = clients.personOppslag,
+                brevService = brevService
             ),
             sak = sakService,
-            søknad = søknadService
+            søknad = søknadService,
+            brev = brevService
         )
     }
 }
@@ -71,5 +80,6 @@ data class Services(
     val oppdrag: OppdragService,
     val behandling: BehandlingService,
     val sak: SakService,
-    val søknad: SøknadService
+    val søknad: SøknadService,
+    val brev: BrevService
 )

@@ -35,6 +35,12 @@ interface BehandlingService {
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
     fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
     fun opprettSøknadsbehandling(sakId: UUID, søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
+    fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
+}
+
+sealed class KunneIkkeLageBrevutkast {
+    object FantIkkeBehandling : KunneIkkeLageBrevutkast()
+    object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
 }
 
 object FantIkkeBehandling

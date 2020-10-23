@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class BrevServiceImpl(
+internal class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val personOppslag: PersonOppslag,
     private val dokArkiv: DokArkiv,
@@ -105,27 +105,14 @@ class BrevServiceImpl(
             }
     }
 
-    override fun lagUtkastTilBrev(
-        behandling: Behandling
-    ): Either<KunneIkkeLageBrev, ByteArray> {
-        return lagBrevPdf(behandling)
+    override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
+        return lagPdf(lagBrevInnhold(request))
     }
 
     private fun lagPdf(brevdata: Brevdata): Either<KunneIkkeLageBrev, ByteArray> {
         return pdfGenerator.genererPdf(brevdata)
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }
             .map { it }
-    }
-
-    private fun lagBrevPdf(
-        behandling: Behandling
-    ): Either<KunneIkkeLageBrev, ByteArray> {
-        // TODO temporary redirection - let clients provide the correct request later on
-        val innholdeRequest = if (erInnvilget(behandling)) LagBrevRequest.InnvilgetVedtak(behandling)
-        else LagBrevRequest.AvslagsVedtak(behandling)
-
-        val brevInnhold = lagBrevInnhold(innholdeRequest)
-        return lagPdf(brevInnhold)
     }
 
     private fun hentPersonFraFnr(fnr: Fnr) = personOppslag.person(fnr)

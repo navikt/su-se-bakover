@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import java.time.LocalDate
@@ -29,26 +28,15 @@ sealed class LagBrevRequest {
         )
 
         private fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
-            if (behandling.beregning()?.beløpErNull() == true) {
-                return Avslagsgrunn.FOR_HØY_INNTEKT
-            }
-            if (behandling.beregning()?.beløpErOverNullMenUnderMinstebeløp() == true) {
-                return Avslagsgrunn.SU_UNDER_MINSTEGRENSE
-            }
-
-            return behandling.behandlingsinformasjon().let {
-                when {
-                    it.uførhet?.status == Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Avslagsgrunn.UFØRHET
-                    it.flyktning?.status == Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FLYKTNING
-                    it.lovligOpphold?.status == Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt -> Avslagsgrunn.OPPHOLDSTILLATELSE
-                    it.fastOppholdINorge?.status == Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-                    it.oppholdIUtlandet?.status == Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
-                    it.formue?.status == Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FORMUE
-                    it.personligOppmøte?.status.let { s ->
-                        s == Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttOpp ||
-                            s == Behandlingsinformasjon.PersonligOppmøte.Status.FullmektigUtenLegeattest
-                    } -> Avslagsgrunn.PERSONLIG_OPPMØTE
-                    else -> null
+            return when {
+                behandling.beregning()?.beløpErNull() == true -> {
+                    Avslagsgrunn.FOR_HØY_INNTEKT
+                }
+                behandling.beregning()?.beløpErOverNullMenUnderMinstebeløp() == true -> {
+                    Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+                }
+                else -> {
+                    behandling.behandlingsinformasjon().getAvslagsgrunn()
                 }
             }
         }
@@ -68,29 +56,12 @@ sealed class LagBrevRequest {
                 tildato = behandling.beregning()!!.tilOgMed.formatMonthYear(),
                 sats = behandling.beregning()?.sats.toString().toLowerCase(),
                 satsbeløp = førsteMånedsberegning.satsBeløp,
-                satsGrunn = satsgrunnForBehandling(behandling)!!,
+                satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
                 redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
                 harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                 fradrag = behandling.beregning()!!.fradrag.toFradragPerMåned(),
                 fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned().sumBy { fradrag -> fradrag.beløp },
             )
-        }
-
-        private fun satsgrunnForBehandling(behandling: Behandling): Satsgrunn? {
-            return behandling.behandlingsinformasjon().bosituasjon?.let {
-                when {
-                    !it.delerBolig -> Satsgrunn.ENSLIG
-                    it.delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                    it.delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN -> Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                    it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
-                        && it.ektemakeEllerSamboerUnder67År == false -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
-                    it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER &&
-                        it.ektemakeEllerSamboerUnder67År == true && it.ektemakeEllerSamboerUførFlyktning == false -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-                    it.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER
-                        && it.ektemakeEllerSamboerUførFlyktning == true -> Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-                    else -> null
-                }
-            }
         }
     }
 }

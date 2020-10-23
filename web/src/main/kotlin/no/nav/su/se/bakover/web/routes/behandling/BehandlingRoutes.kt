@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
@@ -145,10 +147,15 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
-            call.withBehandling(behandlingService) { behandling ->
-                brevService.lagUtkastTilBrev(behandling).fold(
-                    ifLeft = { call.svar(InternalServerError.message("Kunne ikke generere vedtaksbrevutkast")) },
-                    ifRight = { call.respondBytes(it, ContentType.Application.Pdf) }
+            call.withBehandlingId { behandlingId ->
+                behandlingService.lagBrevutkast(behandlingId).fold(
+                    {
+                        when (it) {
+                            KunneIkkeLageBrevutkast.FantIkkeBehandling -> call.respond(InternalServerError.message("Fant ikke behandling"))
+                            KunneIkkeLageBrevutkast.KunneIkkeLageBrev -> call.respond(InternalServerError.message("Kunne ikke lage brev"))
+                        }
+                    },
+                    { call.respondBytes(it, ContentType.Application.Pdf) }
                 )
             }
         }

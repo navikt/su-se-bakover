@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 
 interface BrevService {
     fun journalførVedtakOgSendBrev(
@@ -10,9 +11,7 @@ interface BrevService {
         behandling: Behandling
     ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String>
 
-    fun lagUtkastTilBrev(
-        behandling: Behandling
-    ): Either<KunneIkkeLageBrev, ByteArray>
+    fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray>
 }
 
 sealed class KunneIkkeLageBrev {

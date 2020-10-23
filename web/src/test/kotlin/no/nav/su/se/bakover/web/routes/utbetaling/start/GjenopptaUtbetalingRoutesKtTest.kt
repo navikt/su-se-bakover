@@ -45,7 +45,8 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
-        søknad = mock()
+        søknad = mock(),
+        brev = mock()
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("navident")
 
