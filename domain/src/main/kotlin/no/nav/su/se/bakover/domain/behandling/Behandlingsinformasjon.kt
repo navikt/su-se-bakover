@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsgrunn
@@ -13,7 +14,8 @@ data class Behandlingsinformasjon(
     val oppholdIUtlandet: OppholdIUtlandet? = null,
     val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
-    val bosituasjon: Bosituasjon? = null
+    val bosituasjon: Bosituasjon? = null,
+    val ektefelle: Ektefelle? = null,
 ) {
     fun patch(
         b: Behandlingsinformasjon
@@ -25,7 +27,8 @@ data class Behandlingsinformasjon(
         oppholdIUtlandet = b.oppholdIUtlandet ?: this.oppholdIUtlandet,
         formue = b.formue ?: this.formue,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
-        bosituasjon = b.bosituasjon ?: this.bosituasjon
+        bosituasjon = b.bosituasjon ?: this.bosituasjon,
+        ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
     private fun erFerdigbehandlet() =
@@ -37,7 +40,8 @@ data class Behandlingsinformasjon(
             oppholdIUtlandet,
             formue,
             personligOppmøte,
-            bosituasjon
+            bosituasjon,
+            ektefelle
         ).all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
 
     fun erInnvilget() =
@@ -48,7 +52,8 @@ data class Behandlingsinformasjon(
             fastOppholdINorge?.erVilkårOppfylt(),
             oppholdIUtlandet?.erVilkårOppfylt(),
             formue?.erVilkårOppfylt(),
-            personligOppmøte?.erVilkårOppfylt()
+            personligOppmøte?.erVilkårOppfylt(),
+            ektefelle?.erVilkårOppfylt()
         ).all { it ?: false }
 
     fun erAvslag() = erFerdigbehandlet() && !erInnvilget()
@@ -280,6 +285,21 @@ data class Behandlingsinformasjon(
         override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
+    data class Ektefelle(val harEktefellePartnerSamboer: Boolean, val fnr: Fnr?) : Base() {
+        override fun erGyldig(): Boolean {
+            if (harEktefellePartnerSamboer) {
+                return fnr != null
+            }
+            return true
+        }
+
+        override fun erFerdigbehandlet() = true
+        override fun erVilkårOppfylt() =
+            if (harEktefellePartnerSamboer) fnr != null else true
+
+        override fun avslagsgrunn() = null
+    }
+
     companion object {
         fun lagTomBehandlingsinformasjon() = Behandlingsinformasjon(
             uførhet = null,
@@ -289,7 +309,8 @@ data class Behandlingsinformasjon(
             oppholdIUtlandet = null,
             formue = null,
             personligOppmøte = null,
-            bosituasjon = null
+            bosituasjon = null,
+            ektefelle = null
         )
     }
 }

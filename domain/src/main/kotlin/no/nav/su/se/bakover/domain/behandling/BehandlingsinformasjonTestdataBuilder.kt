@@ -51,7 +51,8 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             ektemakeEllerSamboerUnder67År = bosituasjon?.ektemakeEllerSamboerUnder67År,
             ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
             begrunnelse = bosituasjon?.begrunnelse
-        )
+        ),
+        ektefelle = Behandlingsinformasjon.Ektefelle(harEktefellePartnerSamboer = false, fnr = null)
     )
 
 fun Behandlingsinformasjon.withVilkårAvslått() =
@@ -74,7 +75,8 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
         oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,
-        bosituasjon = null
+        bosituasjon = null,
+        ektefelle = null
     )
 
 fun extractBehandlingsinformasjon(behandling: Behandling) =
