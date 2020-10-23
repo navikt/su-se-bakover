@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
+import no.nav.su.se.bakover.domain.brev.Satsgrunn
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -67,6 +69,20 @@ data class Behandlingsinformasjon(
                     it == PersonligOppmøte.Status.IkkeMøttOpp
             }
         ).any { it }
+
+    fun getAvslagsgrunn() = when {
+        uførhet?.status == Uførhet.Status.VilkårIkkeOppfylt -> Avslagsgrunn.UFØRHET
+        flyktning?.status == Flyktning.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FLYKTNING
+        lovligOpphold?.status == LovligOpphold.Status.VilkårIkkeOppfylt -> Avslagsgrunn.OPPHOLDSTILLATELSE
+        fastOppholdINorge?.status == FastOppholdINorge.Status.VilkårIkkeOppfylt -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+        oppholdIUtlandet?.status == OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+        formue?.status == Formue.Status.VilkårIkkeOppfylt -> Avslagsgrunn.FORMUE
+        personligOppmøte?.status.let { s ->
+            s == PersonligOppmøte.Status.IkkeMøttOpp ||
+                s == PersonligOppmøte.Status.FullmektigUtenLegeattest
+        } -> Avslagsgrunn.PERSONLIG_OPPMØTE
+        else -> null
+    }
 
     abstract class Base {
         abstract fun isValid(): Boolean
@@ -239,6 +255,21 @@ data class Behandlingsinformasjon(
             } else {
                 true
             }
+
+        fun getSatsgrunn() = when {
+            !delerBolig -> Satsgrunn.ENSLIG
+            delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN ->
+                Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+            delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
+                Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUnder67År == false ->
+                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUnder67År == true && ektemakeEllerSamboerUførFlyktning == false ->
+                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUførFlyktning == true ->
+                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+            else -> null
+        }
 
         override fun isComplete(): Boolean = true
     }
