@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 internal class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
@@ -26,11 +27,7 @@ internal class BrevServiceImpl(
 ) : BrevService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private fun lagBrevInnhold(request: LagBrevRequest): Brevdata {
-        val person = personOppslag.person(request.getFnr()).fold(
-            { throw RuntimeException("TODO") },
-            { it }
-        )
+    private fun lagBrevInnhold(request: LagBrevRequest, person: Person): Brevdata {
         val personalia = lagPersonalia(person)
         return request.lagBrevdata(personalia)
     }
@@ -70,7 +67,7 @@ internal class BrevServiceImpl(
         val innholdeRequest = if (erInnvilget(behandling)) LagBrevRequest.InnvilgetVedtak(behandling)
         else LagBrevRequest.AvslagsVedtak(behandling)
 
-        val brevInnhold = lagBrevInnhold(innholdeRequest)
+        val brevInnhold = lagBrevInnhold(innholdeRequest, person)
         val brevPdf = lagPdf(brevInnhold).fold(
             { return KunneIkkeOppretteJournalpostOgSendeBrev.left() },
             { it }
@@ -106,7 +103,40 @@ internal class BrevServiceImpl(
     }
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-        return lagPdf(lagBrevInnhold(request))
+        val person = hentPersonFraFnr(request.getFnr()).fold(
+            { return KunneIkkeLageBrev.FantIkkePerson.left() },
+            { it }
+        )
+        return lagPdf(lagBrevInnhold(request, person))
+    }
+
+    override fun journalførBrev(request: LagBrevRequest, sakId: UUID): Either<KunneIkkeJournalføreBrev, JournalpostId> {
+        val person = hentPersonFraFnr(request.getFnr()).fold(
+            { return KunneIkkeJournalføreBrev.FantIkkePerson.left() },
+            { it }
+        )
+        val brevInnhold = lagBrevInnhold(request, person)
+        val brevPdf = lagPdf(brevInnhold).fold(
+            { return KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left() },
+            { it }
+        )
+
+        return dokArkiv.opprettJournalpost(
+            Journalpost.Vedtakspost(
+                person = person,
+                sakId = sakId.toString(),
+                brevdata = brevInnhold,
+                pdf = brevPdf
+            )
+        ).mapLeft {
+            log.error("Journalføring: Kunne ikke journalføre i ekstern system (joark/dokarkiv)")
+            KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
+        }.map { it }
+    }
+
+    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeSendeBrev, String> {
+        return dokDistFordeling.bestillDistribusjon(journalpostId)
+            .mapLeft { KunneIkkeSendeBrev }
     }
 
     private fun lagPdf(brevdata: Brevdata): Either<KunneIkkeLageBrev, ByteArray> {

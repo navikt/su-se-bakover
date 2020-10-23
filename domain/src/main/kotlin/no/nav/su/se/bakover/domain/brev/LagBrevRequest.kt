@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-sealed class LagBrevRequest {
+abstract class LagBrevRequest {
     abstract fun getFnr(): Fnr
     abstract fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata
 
