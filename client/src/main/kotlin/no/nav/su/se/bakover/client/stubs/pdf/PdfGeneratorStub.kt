@@ -3,14 +3,14 @@ package no.nav.su.se.bakover.client.stubs.pdf
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.pdf.Vedtakstype
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.Brevdata
 
 object PdfGeneratorStub : PdfGenerator {
 
-    val pdf =
+    private val pdf =
         """%PDF-1.0
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 3 3]>>endobj
                 xref
@@ -29,7 +29,7 @@ object PdfGeneratorStub : PdfGenerator {
         return pdf.toByteArray().right()
     }
 
-    override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
+    override fun genererPdf(brevdata: Brevdata): Either<KunneIkkeGenererePdf, ByteArray> {
         return pdf.toByteArray().right()
     }
 }

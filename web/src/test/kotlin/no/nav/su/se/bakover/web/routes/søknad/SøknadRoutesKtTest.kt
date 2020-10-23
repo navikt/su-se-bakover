@@ -189,7 +189,7 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 response.status() shouldBe Created
-                verify(pdfGenerator, Times(1)).genererPdf(any())
+                verify(pdfGenerator, Times(1)).genererPdf(any<SøknadInnhold>())
                 verify(dokArkiv, Times(1)).opprettJournalpost(any())
                 verify(personOppslag, Times(1)).person(any())
                 verify(oppgaveClient, Times(1)).opprettOppgave(any())

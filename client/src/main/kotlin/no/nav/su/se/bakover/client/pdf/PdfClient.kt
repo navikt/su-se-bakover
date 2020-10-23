@@ -7,7 +7,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.Brevdata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -23,8 +23,9 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
         return genererPdf(objectMapper.writeValueAsString(søknad), SOKNAD_TEMPLATE)
     }
 
-    override fun genererPdf(vedtak: VedtakInnhold, vedtakstype: Vedtakstype): Either<ClientError, ByteArray> {
-        return genererPdf(objectMapper.writeValueAsString(vedtak), vedtakstype.template)
+    override fun genererPdf(brevdata: Brevdata): Either<KunneIkkeGenererePdf, ByteArray> {
+        return genererPdf(brevdata.toJson(), brevdata.pdfTemplate().name())
+            .mapLeft { KunneIkkeGenererePdf }
     }
 
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {

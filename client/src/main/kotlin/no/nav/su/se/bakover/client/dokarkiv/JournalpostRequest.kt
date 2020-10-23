@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.dokarkiv
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.VedtakInnhold
+import no.nav.su.se.bakover.domain.brev.Brevdata
 import java.util.Base64
 
 sealed class Journalpost {
@@ -62,7 +62,7 @@ sealed class Journalpost {
     data class Vedtakspost(
         val person: Person,
         val sakId: String,
-        val vedtakInnhold: VedtakInnhold,
+        val brevdata: Brevdata,
         val pdf: ByteArray,
     ) : Journalpost() {
         override val tittel: String = "Vedtaksbrev for soknad om supplerende stønad"
@@ -75,9 +75,7 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: String = "4815"
-        override val dokumenter: List<JournalpostDokument> = vedtakInnhold.toJournalpostDokument()
-
-        private fun VedtakInnhold.toJournalpostDokument() = listOf(
+        override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
                 tittel = "Vedtaksbrev for soknad om supplerende stønad",
                 dokumentKategori = DokumentKategori.VB,
@@ -89,8 +87,7 @@ sealed class Journalpost {
                     ),
                     DokumentVariant(
                         filtype = "JSON",
-                        fysiskDokument = Base64.getEncoder()
-                            .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
+                        fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
                         variantformat = "ORIGINAL"
                     )
                 )
@@ -117,10 +114,12 @@ data class AvsenderMottaker(
     val idType: String = "FNR",
     val navn: String
 )
+
 data class Bruker(
     val id: String,
     val idType: String = "FNR"
 )
+
 data class Fagsak(
     val fagsakId: String,
     val fagsaksystem: String = "SUPSTONAD",
