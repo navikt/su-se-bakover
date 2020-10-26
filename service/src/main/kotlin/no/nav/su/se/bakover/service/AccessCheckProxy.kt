@@ -70,11 +70,16 @@ class AccessCheckProxy(
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
+                /**
+                 * Denne skal kun brukes fra en annen service.
+                 * Når en service bruker en annen service, vil den ha den ikke-proxyede versjonen.
+                 * Vi kaster derfor her for å unngå at noen bruker metoden fra feil plass (som ville ha omgått tilgangssjekk).
+                 */
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering
                 ): Either<FantIkkeUtbetaling, Utbetaling> {
-                    return services.utbetaling.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
+                    throw IllegalStateException("This should only be calld from another service")
                 }
 
                 override fun simulerUtbetaling(
