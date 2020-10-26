@@ -169,9 +169,9 @@ data class Behandling(
 
             behandlingsinformasjon =
                 behandlingsinformasjon.patch(oppdatert) // TODO we need to discuss how to divide responsibility between service and domain.
-            if (behandlingsinformasjon.isInnvilget()) {
+            if (behandlingsinformasjon.erInnvilget()) {
                 nyTilstand(Vilkårsvurdert().Innvilget())
-            } else if (behandlingsinformasjon.isAvslag()) {
+            } else if (behandlingsinformasjon.erAvslag()) {
                 nyTilstand(Vilkårsvurdert().Avslag())
             }
         }

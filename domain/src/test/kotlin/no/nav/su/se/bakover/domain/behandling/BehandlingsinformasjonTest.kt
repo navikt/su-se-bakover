@@ -96,14 +96,7 @@ internal class BehandlingsinformasjonTest {
     @Test
     fun `personlig oppmøte ikke møtt`() {
         behandlingsinformasjon.copy(
-            personligOppmøte = behandlingsinformasjon.personligOppmøte!!.copy(status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttOpp)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.PERSONLIG_OPPMØTE
-    }
-
-    @Test
-    fun `personlig oppmøte fullmektig uten legeattest`() {
-        behandlingsinformasjon.copy(
-            personligOppmøte = behandlingsinformasjon.personligOppmøte!!.copy(status = Behandlingsinformasjon.PersonligOppmøte.Status.FullmektigUtenLegeattest)
+            personligOppmøte = behandlingsinformasjon.personligOppmøte!!.copy(status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig)
         ).getAvslagsgrunn() shouldBe Avslagsgrunn.PERSONLIG_OPPMØTE
     }
 }
