@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import SuMetrics
+import no.nav.su.se.bakover.web.SuMetrics
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode

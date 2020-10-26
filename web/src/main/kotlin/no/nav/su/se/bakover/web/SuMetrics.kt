@@ -1,3 +1,5 @@
+package no.nav.su.se.bakover.web
+
 import io.micrometer.core.instrument.Clock
 import io.micrometer.core.instrument.Metrics.addRegistry
 import io.micrometer.core.instrument.Metrics.counter

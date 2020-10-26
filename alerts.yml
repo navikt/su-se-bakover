@@ -8,7 +8,7 @@ metadata:
 spec:
   receivers:
     slack:
-      channel: '#supplerende_stonad_alerts'
+      channel: '{{SLACK_ALERTS_CHANNEL}}'
       prependText: 'alerts.yml: '
   alerts:
     - alert: su-se-bakover-applikasjon-nede

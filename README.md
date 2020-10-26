@@ -55,6 +55,14 @@ Hvordan kjøre Ktlint:
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
 * `./gradlew ktlintApplyToIdea`
 
+## Metrics
+Vi bruker Prometheus for å samle inn metrikker.
+Se https://doc.nais.io/observability/metrics.
+
+## Alerts
+`alerts.yml` deployes automatisk vha. `.github/workflows/alerts-deploy.yml` og benytter [Prometheus Query Language](https://prometheus.io/docs/prometheus/latest/querying/basics/) for å sette opp alerts basert på metrikker.
+Se https://doc.nais.io/observability/alerts.
+
 ## Upgrade versions
 * Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
 * Automatically use newest versions: `./gradlew useLatestVersions --refresh-dependencies`

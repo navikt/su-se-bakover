@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import SuMetrics
 import ch.qos.logback.classic.util.ContextInitializer
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
