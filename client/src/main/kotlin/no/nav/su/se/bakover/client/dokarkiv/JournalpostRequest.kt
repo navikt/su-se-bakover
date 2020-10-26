@@ -43,16 +43,10 @@ sealed class Journalpost {
                 tittel = "Søknad om supplerende stønad for uføre flyktninger",
                 dokumentKategori = DokumentKategori.SOK,
                 dokumentvarianter = listOf(
-                    DokumentVariant(
-                        filtype = "PDFA",
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdf),
-                        variantformat = "ARKIV"
-                    ),
-                    DokumentVariant(
-                        filtype = "JSON",
+                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                    DokumentVariant.OriginalJson(
                         fysiskDokument = Base64.getEncoder()
                             .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
-                        variantformat = "ORIGINAL"
                     )
                 )
             )
@@ -80,15 +74,9 @@ sealed class Journalpost {
                 tittel = "Vedtaksbrev for soknad om supplerende stønad",
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
-                    DokumentVariant(
-                        filtype = "PDFA",
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdf),
-                        variantformat = "ARKIV"
-                    ),
-                    DokumentVariant(
-                        filtype = "JSON",
+                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                    DokumentVariant.OriginalJson(
                         fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
-                        variantformat = "ORIGINAL"
                     )
                 )
             )
@@ -133,11 +121,25 @@ data class JournalpostDokument(
     val dokumentvarianter: List<DokumentVariant>
 )
 
-data class DokumentVariant(
-    val filtype: String,
-    val fysiskDokument: String,
-    val variantformat: String
-)
+sealed class DokumentVariant {
+    abstract val filtype: String
+    abstract val fysiskDokument: String
+    abstract val variantformat: String
+
+    data class ArkivPDF(
+        override val fysiskDokument: String,
+    ) : DokumentVariant() {
+        override val filtype: String = "PDFA"
+        override val variantformat: String = "ARKIV"
+    }
+
+    data class OriginalJson(
+        override val fysiskDokument: String,
+    ) : DokumentVariant() {
+        override val filtype: String = "JSON"
+        override val variantformat: String = "ORIGINAL"
+    }
+}
 
 enum class JournalPostType(val type: String) {
     INNGAAENDE("INNGAAENDE"),

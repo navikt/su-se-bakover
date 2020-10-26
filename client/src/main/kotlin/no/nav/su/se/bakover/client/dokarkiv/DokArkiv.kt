@@ -5,7 +5,5 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 
 interface DokArkiv {
-    fun opprettJournalpost(
-        dokumentInnhold: Journalpost,
-    ): Either<ClientError, JournalpostId>
+    fun opprettJournalpost(dokumentInnhold: Journalpost): Either<ClientError, JournalpostId>
 }

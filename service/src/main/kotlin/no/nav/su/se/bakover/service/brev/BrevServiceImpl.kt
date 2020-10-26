@@ -76,8 +76,10 @@ internal class BrevServiceImpl(
 
     override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> =
         dokDistFordeling.bestillDistribusjon(journalpostId)
-            .mapLeft { KunneIkkeDistribuereBrev }
-            .also { log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId") }
+            .mapLeft {
+                log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
+                KunneIkkeDistribuereBrev
+            }
 
     private fun lagPdf(brevdata: Brevdata): Either<KunneIkkeLageBrev, ByteArray> {
         return pdfGenerator.genererPdf(brevdata)
