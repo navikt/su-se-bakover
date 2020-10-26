@@ -158,6 +158,10 @@ internal class BehandlingServiceImpl(
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> {
                         behandlingRepo.attester(behandlingId, attestant)
                         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+                        journalførOgDistribuerBrev(
+                            LagBrevRequest.AvslagsVedtak(behandling = behandling),
+                            sakId = behandling.sakId
+                        ).fold({ return it.left() }, { })
                         behandling.right()
                     }
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
@@ -183,6 +187,11 @@ internal class BehandlingServiceImpl(
 
                             lukkAttesteringsoppgave(behandling)
 
+                            journalførOgDistribuerBrev(
+                                LagBrevRequest.InnvilgetVedtak(behandling = behandling),
+                                sakId = behandling.sakId
+                            ).fold({ return it.left() }, { })
+
                             behandling
                         }
                     }
@@ -206,6 +215,18 @@ internal class BehandlingServiceImpl(
             }
         )
     }
+
+    private fun journalførOgDistribuerBrev(
+        request: LagBrevRequest,
+        sakId: UUID
+    ): Either<Behandling.IverksettFeil, Unit> =
+        brevService.journalførBrev(request, sakId)
+            .mapLeft { Behandling.IverksettFeil.KunneIkkeJournalføreBrev }
+            .flatMap {
+                brevService.distribuerBrev(it)
+                    .mapLeft { Behandling.IverksettFeil.KunneIkkeDistribuereBrev }
+                    .map { Unit }
+            }
 
     // TODO need to define responsibilities for domain and services.
     override fun opprettSøknadsbehandling(

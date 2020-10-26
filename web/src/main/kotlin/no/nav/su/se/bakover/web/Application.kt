@@ -225,7 +225,6 @@ internal fun Application.susebakover(
                 )
                 søknadRoutes(services.søknad)
                 behandlingRoutes(
-                    brevService = services.brev,
                     behandlingService = services.behandling,
                     sakService = services.sak
                 )

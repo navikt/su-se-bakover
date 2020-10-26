@@ -7,10 +7,8 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.Brevdata
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -44,64 +42,6 @@ internal class BrevServiceImpl(
         poststed = person.adresse?.poststed?.poststed
     )
 
-    private fun erInnvilget(behandling: Behandling): Boolean {
-        val innvilget = listOf(
-            Behandling.BehandlingsStatus.SIMULERT,
-            Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
-        )
-
-        return innvilget.contains(behandling.status())
-    }
-
-    override fun journalførVedtakOgSendBrev(
-        sak: Sak,
-        behandling: Behandling
-    ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
-        val loggtema = "Journalføring og sending av vedtaksbrev"
-
-        val person = hentPersonFraFnr(sak.fnr).fold({ return KunneIkkeOppretteJournalpostOgSendeBrev.left() }, { it })
-
-        // TODO temporary redirection - let clients provide the correct request later on
-        val innholdeRequest = if (erInnvilget(behandling)) LagBrevRequest.InnvilgetVedtak(behandling)
-        else LagBrevRequest.AvslagsVedtak(behandling)
-
-        val brevInnhold = lagBrevInnhold(innholdeRequest, person)
-        val brevPdf = lagPdf(brevInnhold).fold(
-            { return KunneIkkeOppretteJournalpostOgSendeBrev.left() },
-            { it }
-        )
-
-        val journalpostId = dokArkiv.opprettJournalpost(
-            Journalpost.Vedtakspost(
-                person = person,
-                sakId = sak.id.toString(),
-                brevdata = brevInnhold,
-                pdf = brevPdf
-            )
-        ).fold(
-            {
-                log.error("$loggtema: Kunne ikke journalføre i ekstern system (joark/dokarkiv)")
-                return KunneIkkeOppretteJournalpostOgSendeBrev.left()
-            },
-            {
-                log.error("$loggtema: Journalført i ekstern system (joark/dokarkiv) OK")
-                it
-            }
-        )
-
-        return sendBrev(journalpostId)
-            .mapLeft {
-                log.error("$loggtema: Kunne sende brev via ekternt system")
-                KunneIkkeOppretteJournalpostOgSendeBrev
-            }
-            .map {
-                log.error("$loggtema: Brev sendt OK via ekstern system")
-                it
-            }
-    }
-
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
         val person = hentPersonFraFnr(request.getFnr()).fold(
             { return KunneIkkeLageBrev.FantIkkePerson.left() },
@@ -134,10 +74,10 @@ internal class BrevServiceImpl(
         }.map { it }
     }
 
-    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeSendeBrev, String> {
-        return dokDistFordeling.bestillDistribusjon(journalpostId)
-            .mapLeft { KunneIkkeSendeBrev }
-    }
+    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> =
+        dokDistFordeling.bestillDistribusjon(journalpostId)
+            .mapLeft { KunneIkkeDistribuereBrev }
+            .also { log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId") }
 
     private fun lagPdf(brevdata: Brevdata): Either<KunneIkkeLageBrev, ByteArray> {
         return pdfGenerator.genererPdf(brevdata)
@@ -153,8 +93,4 @@ internal class BrevServiceImpl(
             log.info("Hentet person fra eksternt system OK")
             it
         }
-
-    private fun sendBrev(journalpostId: JournalpostId): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
-        return dokDistFordeling.bestillDistribusjon(journalpostId).mapLeft { KunneIkkeOppretteJournalpostOgSendeBrev }
-    }
 }
