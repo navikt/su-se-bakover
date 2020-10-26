@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.SuMetrics
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
@@ -58,7 +57,6 @@ internal fun Route.søknadRoutes(
                             )
                         },
                         { sak ->
-                            SuMetrics.Counter.Søknad.increment()
                             call.audit("Lagrer søknad for person: $sak")
                             call.svar(
                                 Resultat.json(Created, serialize((sak.toJson())))

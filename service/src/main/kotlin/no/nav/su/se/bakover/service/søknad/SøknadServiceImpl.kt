@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -37,7 +39,20 @@ internal class SøknadServiceImpl(
     private val oppgaveClient: OppgaveClient,
     private val brevService: BrevService
 ) : SøknadService {
+
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private val nySøknadCounter = Counter.builder("ny_soknad_counter")
+        .tag("type", "PERSISTERT")
+        .register(Metrics.globalRegistry)
+
+    private val nySøknadOpprettetJournalpostCounter = Counter.builder("ny_soknad_counter")
+        .tag("type", "JOURNALFØRT")
+        .register(Metrics.globalRegistry)
+
+    private val nySøknadOpprettetOppgaveCounter = Counter.builder("ny_soknad_counter")
+        .tag("type", "OPPGAVE")
+        .register(Metrics.globalRegistry)
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak> {
 
@@ -74,6 +89,8 @@ internal class SøknadServiceImpl(
                 Pair(it.copy(søknader = (it.søknader() + søknad).toMutableList()), søknad)
             }
         )
+        // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
+        nySøknadCounter.increment()
         opprettJournalpostOgOppgave(sak.id, person, søknad)
         return sak.right()
     }
@@ -99,8 +116,9 @@ internal class SøknadServiceImpl(
                         log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
                     },
                     { journalpostId ->
-                        log.info("Ny søknad: Opprettet journalpost ok.")
+                        log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
                         søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
+                        nySøknadOpprettetJournalpostCounter.increment()
                         oppgaveClient.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
@@ -109,9 +127,10 @@ internal class SøknadServiceImpl(
                             )
                         ).mapLeft {
                             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
-                        }.map {
-                            log.info("Ny søknad: Opprettet oppgave ok.")
-                            søknadRepo.oppdaterOppgaveId(søknad.id, it)
+                        }.map { oppgaveId ->
+                            log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
+                            søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
+                            nySøknadOpprettetOppgaveCounter.increment()
                         }
                     }
                 )
