@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -57,6 +58,8 @@ internal class TestDataHelper(
     )
 
     fun hentUtbetaling(utbetalingId: UUID30) = utbetalingRepo.hentUtbetaling(utbetalingId)
+
+    fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) = utbetalingRepo.opprettUtbetaling(utbetaling)
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 }
