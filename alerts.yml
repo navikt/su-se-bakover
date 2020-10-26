@@ -25,7 +25,7 @@ spec:
       description: "App {{ $labels.app }}  har en error loggmelding siste 5 min"
       action: "Det er logget en melding i kibana. Sjekk logger her : `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
     - alert: su-se-bakover-ny-søknad-feilet
-      expr: '(2 * sum(ny_soknad_counter_total{type=“PERSISTERT”}) - sum(ny_soknad_counter_total{type=“OPPGAVE”}) - sum(ny_soknad_counter_total{type=“JOURNALFØRT”})) > 0'
+      expr: '(2 * sum(ny_soknad_counter_total{type="PERSISTERT"}) - sum(ny_soknad_counter_total{type="OPPGAVE"}) - sum(ny_soknad_counter_total{type="JOURNALFØRT"})) > 0'
       for: 1m
       description: "Vi har sannsynligvis ikke klart å journalføre / lage oppgave for ny søknad."
       action: "`Se: `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
