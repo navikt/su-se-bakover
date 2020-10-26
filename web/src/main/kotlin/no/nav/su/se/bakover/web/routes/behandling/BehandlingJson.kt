@@ -38,7 +38,7 @@ internal fun Behandling.toJson() = BehandlingJson(
     attestant = attestant()?.navIdent,
     saksbehandler = saksbehandler()?.navIdent,
     sakId = sakId,
-    hendelser = hendelser().toJson()
+    hendelser = hendelser().toJson(),
 )
 
 internal fun HttpStatusCode.jsonBody(behandling: Behandling) =

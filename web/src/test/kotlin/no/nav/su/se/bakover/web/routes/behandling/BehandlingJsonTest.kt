@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Behandling
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -69,6 +70,10 @@ internal class BehandlingJsonTest {
                     ektemakeEllerSamboerUnder67År = false,
                     ektemakeEllerSamboerUførFlyktning = false,
                     begrunnelse = null
+                ),
+                ektefelle = Behandlingsinformasjon.Ektefelle(
+                    harEktefellePartnerSamboer = true,
+                    fnr = Fnr("17087524256")
                 )
             ),
             søknad = søknad,
@@ -129,6 +134,10 @@ internal class BehandlingJsonTest {
                     "ektemakeEllerSamboerUførFlyktning": false,
                     "begrunnelse": null
                 },
+                "ektefelle": {
+                  "harEktefellePartnerSamboer": true,
+                  "fnr": "17087524256"
+                },
                 "utledetSats": "HØY"
           },
           "søknad": $søknadJsonString,
@@ -178,7 +187,8 @@ internal class BehandlingJsonTest {
             "formue": null,
             "personligOppmøte": null,
             "bosituasjon": null,
-            "utledetSats": null
+            "utledetSats": null,
+            "ektefelle": null
           },
           "søknad": $søknadJsonString,
           "beregning": null,
