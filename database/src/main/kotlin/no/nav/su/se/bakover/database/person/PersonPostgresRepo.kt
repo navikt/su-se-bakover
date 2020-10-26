@@ -13,9 +13,9 @@ internal class PersonPostgresRepo(
     override fun hentFnrForSak(sakId: UUID): Fnr? {
         return dataSource.withSession { session ->
             """
-               select fnr
-               from sak
-               where id=:sakId
+               SELECT fnr
+               FROM sak
+               WHERE id=:sakId
 |           """
                 .trimMargin()
                 .hent(mapOf("sakId" to sakId), session) {
@@ -27,13 +27,13 @@ internal class PersonPostgresRepo(
     override fun hentFnrForSøknad(søknadId: UUID): Fnr? {
         return dataSource.withSession { session ->
             """
-               SELECT sak.fnr
-               FROM søknad
-               INNER JOIN sak ON søknad.sakid = sak.id
-               WHERE søknad.id=:søknadId
+                SELECT sak.fnr
+                FROM søknad
+                INNER JOIN sak ON søknad.sakid = sak.id
+                WHERE søknad.id=:soknadId
             """
                 .trimMargin()
-                .hent(mapOf("søknadId" to søknadId), session) {
+                .hent(mapOf("soknadId" to søknadId), session) {
                     Fnr(it.string("fnr"))
                 }
         }
@@ -57,9 +57,11 @@ internal class PersonPostgresRepo(
     override fun hentFnrForUtbetaling(utbetalingId: UUID30): Fnr? {
         return dataSource.withSession { session ->
             """
-               SELECT fnr
-               FROM utbetaling
-               WHERE id=:utbetalingId
+               SELECT s.fnr
+               FROM utbetaling u
+               INNER JOIN oppdrag o ON u.oppdragid = o.id
+               INNER JOIN sak s ON o.sakid = s.id
+               WHERE u.id=:utbetalingId
             """
                 .trimMargin()
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
