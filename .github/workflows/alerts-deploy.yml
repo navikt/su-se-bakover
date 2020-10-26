@@ -20,10 +20,10 @@ jobs:
           CLUSTER: dev-fss
           RESOURCE: alerts.yml
           VAR: SLACK_ALERTS_CHANNEL=#supplerende_stonad_alerts_dev
-      - name: deploy to prod
-        uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-fss
-          RESOURCE: alerts.yml
-          VAR: SLACK_ALERTS_CHANNEL=#supplerende_stonad_alerts
+#      - name: deploy to prod
+#        uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-fss
+#          RESOURCE: alerts.yml
+#          VAR: SLACK_ALERTS_CHANNEL=#supplerende_stonad_alerts
