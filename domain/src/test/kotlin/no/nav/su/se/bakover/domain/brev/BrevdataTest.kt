@@ -147,6 +147,4 @@ internal class BrevdataTest {
         """.trimIndent()
         JSONAssert.assertEquals(serialized, expectedJson, true)
     }
-
-
 }
