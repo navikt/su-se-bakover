@@ -33,10 +33,9 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeOppretteJournalpostOgSendeBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeSendeBrev
 import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -251,15 +250,6 @@ class AccessCheckProxy(
                 }
             },
             brev = object : BrevService {
-                override fun journalførVedtakOgSendBrev(
-                    sak: Sak,
-                    behandling: Behandling
-                ): Either<KunneIkkeOppretteJournalpostOgSendeBrev, String> {
-                    assertHarTilgangTilPerson(sak.fnr)
-
-                    return services.brev.journalførVedtakOgSendBrev(sak, behandling)
-                }
-
                 override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
                     assertHarTilgangTilPerson(request.getFnr())
 
@@ -275,7 +265,7 @@ class AccessCheckProxy(
                     return services.brev.journalførBrev(request, sakId)
                 }
 
-                override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeSendeBrev, String> {
+                override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> {
                     return services.brev.distribuerBrev(journalpostId)
                 }
             }
