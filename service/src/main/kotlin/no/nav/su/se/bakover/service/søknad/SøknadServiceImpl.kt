@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -17,10 +18,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadServiceImpl(
@@ -30,7 +34,8 @@ internal class SøknadServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
     private val personOppslag: PersonOppslag,
-    private val oppgaveClient: OppgaveClient
+    private val oppgaveClient: OppgaveClient,
+    private val brevService: BrevService
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -159,5 +164,23 @@ internal class SøknadServiceImpl(
             begrunnelse = begrunnelse,
             loggtema = "Trekking av søknad"
         )
+    }
+
+    override fun lagBrevutkastForTrukketSøknad(
+        søknadId: UUID,
+        trukketDato: LocalDate
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        return hentSøknad(søknadId).mapLeft {
+            KunneIkkeLageBrevutkast.FantIkkeSøknad
+        }.flatMap {
+            brevService.lagBrev(
+                LagBrevRequest.TrukketSøknad(
+                    søknad = it,
+                    trukketDato = trukketDato
+                )
+            ).mapLeft {
+                KunneIkkeLageBrevutkast.KunneIkkeLageBrev
+            }
+        }
     }
 }

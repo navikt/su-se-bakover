@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -279,6 +280,42 @@ internal class SøknadRoutesKtTest {
                     argThat { it shouldBe "" }
                 )
             }.response
+        }
+    }
+
+    @Test
+    fun `kan lage brevutkast av trukket søknad`() {
+        val pdf = "".toByteArray()
+        val søknadServiceMock = mock<SøknadService> {
+            on { lagBrevutkastForTrukketSøknad(any(), any()) } doReturn pdf.right()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = Services(
+                    avstemming = mock(),
+                    utbetaling = mock(),
+                    oppdrag = mock(),
+                    behandling = mock(),
+                    sak = mock(),
+                    søknad = søknadServiceMock,
+                    brev = mock()
+                )
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/${UUID.randomUUID()}/lukk/brevutkast",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                setBody(
+                    objectMapper.writeValueAsString(
+                        TrekkSøknadJson(1.januar(2020))
+                    )
+                )
+            }.apply {
+                response.status() shouldBe OK
+                verify(søknadServiceMock).lagBrevutkastForTrukketSøknad(any(), any())
+            }
         }
     }
 }

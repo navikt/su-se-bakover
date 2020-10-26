@@ -2,15 +2,20 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import arrow.core.Either
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -24,8 +29,13 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSøknadId
+import java.time.LocalDate
 
 internal const val søknadPath = "/soknad"
+
+data class TrekkSøknadJson(
+    val datoSøkerTrakkSøknad: LocalDate
+)
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
@@ -43,7 +53,7 @@ internal fun Route.søknadRoutes(
                         { kunneIkkeOppretteSøknad ->
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {
-                                    KunneIkkeOppretteSøknad.FantIkkePerson -> HttpStatusCode.NotFound.message("Fant ikke person")
+                                    KunneIkkeOppretteSøknad.FantIkkePerson -> NotFound.message("Fant ikke person")
                                 }
                             )
                         },
@@ -59,6 +69,7 @@ internal fun Route.søknadRoutes(
             )
         }
     }
+
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/trekk") {
             call.withSøknadId { søknadId ->
@@ -80,6 +91,34 @@ internal fun Route.søknadRoutes(
                     ifRight = {
                         call.audit("Lukket søknad for søknad: $søknadId")
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                    }
+                )
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$søknadPath/{søknadId}/lukk/brevutkast") {
+            call.withSøknadId { søknadId ->
+                Either.catch { deserialize<TrekkSøknadJson>(call) }.fold(
+                    {
+                        call.svar(BadRequest.message("Ugyldig body"))
+                    },
+                    { trekkSøknadJson ->
+                        søknadService.lagBrevutkastForTrukketSøknad(
+                            søknadId = søknadId,
+                            trukketDato = trekkSøknadJson.datoSøkerTrakkSøknad
+                        ).fold(
+                            {
+                                when (it) {
+                                    KunneIkkeLageBrevutkast.FantIkkeSøknad ->
+                                        call.svar(NotFound.message("Fant Ikke Søknad"))
+                                    KunneIkkeLageBrevutkast.KunneIkkeLageBrev ->
+                                        call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
+                                }
+                            },
+                            { call.respondBytes(it, ContentType.Application.Pdf) }
+                        )
                     }
                 )
             }

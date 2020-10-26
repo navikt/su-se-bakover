@@ -34,6 +34,12 @@ class ServiceBuilder(
             simuleringClient = clients.simuleringClient,
             utbetalingPublisher = clients.utbetalingPublisher
         )
+        val brevService = BrevServiceImpl(
+            pdfGenerator = clients.pdfGenerator,
+            personOppslag = clients.personOppslag,
+            dokArkiv = clients.dokArkiv,
+            dokDistFordeling = clients.dokDistFordeling
+        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
@@ -42,12 +48,7 @@ class ServiceBuilder(
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
             oppgaveClient = clients.oppgaveClient,
-        )
-        val brevService = BrevServiceImpl(
-            pdfGenerator = clients.pdfGenerator,
-            personOppslag = clients.personOppslag,
-            dokArkiv = clients.dokArkiv,
-            dokDistFordeling = clients.dokDistFordeling
+            brevService = brevService
         )
         return accessCheckProxy.proxy(
             Services(

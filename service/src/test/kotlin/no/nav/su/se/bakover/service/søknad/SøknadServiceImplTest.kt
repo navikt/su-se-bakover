@@ -5,16 +5,24 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
+import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -23,7 +31,7 @@ import java.util.UUID
 internal class SøknadServiceImplTest {
 
     private val sakId = UUID.randomUUID()
-
+    private val saksbehandler = Saksbehandler("Z993156")
     private val sak = Sak(
         id = sakId,
         opprettet = Tidspunkt.now(),
@@ -37,18 +45,16 @@ internal class SøknadServiceImplTest {
             utbetalinger = emptyList()
         )
     )
+    private val søknad = Søknad(
+        sakId = sakId,
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        lukket = null
+    )
 
     @Test
     fun `trekker en søknad`() {
-        val sakId = UUID.randomUUID()
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            lukket = null
-        )
-        val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
@@ -58,29 +64,14 @@ internal class SøknadServiceImplTest {
             on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
 
-        SøknadServiceImpl(
+        createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
-
+            sakService = sakServiceMock
         ).trekkSøknad(søknad.id, saksbehandler, "") shouldBe sak.right()
     }
 
     @Test
     fun `en søknad med behandling skal ikke bli trukket`() {
-        val sakId = UUID.randomUUID()
-        val søknad = Søknad(
-            sakId = sakId,
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            lukket = null
-        )
-        val saksbehandler = Saksbehandler("Z993156")
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
@@ -89,21 +80,14 @@ internal class SøknadServiceImplTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
-        SøknadServiceImpl(
+        createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
         ).trekkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
-        val sakId = UUID.randomUUID()
-        val saksbehandler = Saksbehandler("Z993156")
         val søknad = Søknad(
             sakId = sakId,
             id = UUID.randomUUID(),
@@ -123,14 +107,52 @@ internal class SøknadServiceImplTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
         }
-        SøknadServiceImpl(
+        createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = mock(),
-            dokArkiv = mock(),
-            personOppslag = mock(),
-            oppgaveClient = mock(),
-        ).trekkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).trekkSøknad(
+            søknadId = søknad.id,
+            saksbehandler,
+            ""
+        ) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
+
+    @Test
+    fun `lager brevutkast`() {
+        val pdf = "".toByteArray()
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(søknad.id) } doReturn søknad
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020))) } doReturn pdf.right()
+        }
+
+        createSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            brevService = brevServiceMock
+        ).lagBrevutkastForTrukketSøknad(
+            søknad.id,
+            1.januar(2020)
+        ) shouldBe pdf.right()
+    }
+
+    private fun createSøknadServiceImpl(
+        søknadRepo: SøknadRepo = mock(),
+        sakService: SakService = mock(),
+        sakFactory: SakFactory = mock(),
+        pdfGenerator: PdfGenerator = mock(),
+        dokArkiv: DokArkiv = mock(),
+        personOppslag: PersonOppslag = mock(),
+        oppgaveClient: OppgaveClient = mock(),
+        brevService: BrevService = mock()
+    ) = SøknadServiceImpl(
+        søknadRepo = søknadRepo,
+        sakService = sakService,
+        sakFactory = sakFactory,
+        pdfGenerator = pdfGenerator,
+        dokArkiv = dokArkiv,
+        personOppslag = personOppslag,
+        oppgaveClient = oppgaveClient,
+        brevService = brevService
+    )
 }
