@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
+import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
@@ -62,9 +62,9 @@ internal class BrevServiceImpl(
         )
 
         return dokArkiv.opprettJournalpost(
-            Journalpost.Vedtakspost(
+            JournalpostFactory.lagJournalpost(
                 person = person,
-                sakId = sakId.toString(),
+                sakId = sakId,
                 brevdata = brevInnhold,
                 pdf = brevPdf
             )

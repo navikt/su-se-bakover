@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Fnr
 
 abstract class Brevdata {
     fun toJson() = objectMapper.writeValueAsString(this)
-    abstract fun pdfTemplate(): PdfTemplate
+    abstract fun brevtype(): Brevtype
     data class Personalia(
         val dato: String,
         val fødselsnummer: Fnr,
@@ -25,7 +25,7 @@ abstract class Brevdata {
         val avslagsgrunn: Avslagsgrunn,
         val halvGrunnbeløp: Int,
     ) : Brevdata() {
-        override fun pdfTemplate(): PdfTemplate = PdfTemplate.AvslagVedtak
+        override fun brevtype(): Brevtype = Brevtype.AvslagsVedtak
     }
 
     data class InnvilgetVedtak(
@@ -41,15 +41,27 @@ abstract class Brevdata {
         val harEktefelle: Boolean,
         val fradrag: List<FradragPerMåned>,
     ) : Brevdata() {
-        override fun pdfTemplate(): PdfTemplate = PdfTemplate.InnvilgetVedtak
+        override fun brevtype(): Brevtype = Brevtype.InnvilgetVedtak
     }
 }
 
+sealed class Brevtype(
+    private val pdfTemplate: PdfTemplate
+) {
+    fun template() = pdfTemplate.name()
+
+    object InnvilgetVedtak : Brevtype(pdfTemplate = PdfTemplate.InnvilgetVedtak)
+    object AvslagsVedtak : Brevtype(pdfTemplate = PdfTemplate.AvslagsVedtak)
+}
+
+/**
+ * 1-1 mapping to templates defined by pdf-generator.
+ */
 sealed class PdfTemplate(
     private val templateName: String
 ) {
     fun name() = templateName
 
     object InnvilgetVedtak : PdfTemplate("vedtakInnvilgelse")
-    object AvslagVedtak : PdfTemplate("vedtakAvslag")
+    object AvslagsVedtak : PdfTemplate("vedtakAvslag")
 }
