@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.se.bakover.web.SuMetrics
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.SuMetrics
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
