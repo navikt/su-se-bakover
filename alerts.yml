@@ -8,7 +8,7 @@ metadata:
 spec:
   receivers:
     slack:
-      channel: '#supplerende_stønad_alerts'
+      channel: '#supplerende_stonad_alerts'
       prependText: 'alerts.yml: '
   alerts:
     - alert: su-se-bakover-applikasjon-nede
@@ -16,3 +16,8 @@ spec:
       for: 1m
       description: "App {{ $labels.app }} er nede i namespace {{ $labels.kubernetes_namespace }}"
       action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
+    - alert: logg melding
+      expr: 'count(rate(logd_messages_total{log_app="su-se-bakover"}[5m]) > 0.000001) > 0'
+      for: 5m
+      description: "App {{ $labels.app }}  har en loggmelding siste 5 min"
+      action: "Det er logget en melding i kibana. Sjekk logger her : `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
