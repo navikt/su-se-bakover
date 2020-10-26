@@ -248,6 +248,15 @@ class AccessCheckProxy(
 
                     return services.søknad.trekkSøknad(søknadId, saksbehandler, begrunnelse)
                 }
+
+                override fun lagBrevutkastForTrukketSøknad(
+                    søknadId: UUID,
+                    trukketDato: LocalDate
+                ): Either<no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast, ByteArray> {
+                    assertHarTilgangTilSøknad(søknadId)
+
+                    return services.søknad.lagBrevutkastForTrukketSøknad(søknadId, trukketDato)
+                }
             },
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
