@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -76,8 +77,25 @@ internal class SøknadRoutesKtTest {
     private val sakId: UUID = UUID.randomUUID()
     private val tidspunkt = Tidspunkt.EPOCH
 
+    val sak = Sak(
+        id = sakId,
+        opprettet = tidspunkt,
+        fnr = FnrGenerator.random(),
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = tidspunkt,
+            sakId = sakId
+        )
+    )
+    private val søknadId = UUID.randomUUID()
+
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val sakRepo = databaseRepos.sak
+    private val trekkSøknadRequest = LukkSøknadRequest.TrekkSøknad(
+        søknadId = søknadId,
+        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navident"),
+        trukketDato = 1.januar(2020)
+    )
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -200,21 +218,10 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lager en søknad, så trekker søknaden`() {
-        val søknadId = UUID.randomUUID()
-        val navIdent = "navident"
-        val sak = Sak(
-            id = sakId,
-            opprettet = tidspunkt,
-            fnr = FnrGenerator.random(),
-            oppdrag = Oppdrag(
-                id = UUID30.randomUUID(),
-                opprettet = tidspunkt,
-                sakId = sakId
-            )
-        )
         val søknadServiceMock = mock<SøknadService> {
-            on { trekkSøknad(any(), any(), any()) } doReturn sak.right()
+            on { lukkSøknad(any()) } doReturn sak.right()
         }
+
         withTestApplication({
             testSusebakover(
                 services = Services(
@@ -230,28 +237,24 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/trekk",
+                uri = "$søknadPath/$søknadId/lukk?type=Trukket",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(objectMapper.writeValueAsString(TrekkSøknadJson(1.januar(2020))))
+                setBody(objectMapper.writeValueAsString(TrukketJson(1.januar(2020))))
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock).trekkSøknad(
-                    argThat { it shouldBe søknadId },
-                    argThat { it shouldBe 1.januar(2020) },
-                    argThat { it shouldBe Saksbehandler(navIdent) }
-                )
+                /*verify(søknadServiceMock).lukkSøknad(
+                    argThat { it shouldBe trekkSøknadRequest }
+                )*/
             }
         }
     }
 
     @Test
     fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
-        val søknadId = UUID.randomUUID()
-        val navIdent = "navident"
         val søknadServiceMock = mock<SøknadService> {
-            on { trekkSøknad(any(), any(), any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
         withTestApplication({
             testSusebakover(
@@ -268,17 +271,15 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/trekk",
+                uri = "$søknadPath/$søknadId/lukk?type=Trukket",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(objectMapper.writeValueAsString(TrekkSøknadJson(1.januar(2020))))
+                setBody(objectMapper.writeValueAsString(TrukketJson(1.januar(2020))))
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock).trekkSøknad(
-                    argThat { it shouldBe søknadId },
-                    argThat { it shouldBe 1.januar(2020) },
-                    argThat { it shouldBe Saksbehandler(navIdent) }
+                verify(søknadServiceMock).lukkSøknad(
+                    argThat { it shouldBe trekkSøknadRequest }
                 )
             }
         }
@@ -288,7 +289,7 @@ internal class SøknadRoutesKtTest {
     fun `kan lage brevutkast av trukket søknad`() {
         val pdf = "".toByteArray()
         val søknadServiceMock = mock<SøknadService> {
-            on { lagBrevutkastForTrukketSøknad(any(), any()) } doReturn pdf.right()
+            on { lagBrevutkastForLukketSøknad(any()) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(
@@ -305,17 +306,19 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/${UUID.randomUUID()}/lukk/brevutkast",
+                uri = "$søknadPath/$søknadId/lukk/brevutkast?type=Trukket",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
                     objectMapper.writeValueAsString(
-                        TrekkSøknadJson(1.januar(2020))
+                        TrukketJson(1.januar(2020))
                     )
                 )
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock).lagBrevutkastForTrukketSøknad(any(), any())
+                verify(søknadServiceMock).lagBrevutkastForLukketSøknad(
+                    argThat { it shouldBe trekkSøknadRequest }
+                )
             }
         }
     }

@@ -53,6 +53,11 @@ internal class SøknadServiceImplTest {
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         lukket = null
     )
+    private val trekkSøknadRequest = LukkSøknadRequest.TrekkSøknad(
+        søknadId = søknad.id,
+        saksbehandler = Saksbehandler(navIdent = "navIdent"),
+        trukketDato = 1.januar(2020)
+    )
 
     @Test
     fun `trekker en søknad`() {
@@ -79,7 +84,7 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock
-        ).trekkSøknad(søknad.id, 1.januar(2020), saksbehandler) shouldBe sak.right()
+        ).lukkSøknad(trekkSøknadRequest) shouldBe sak.right()
     }
 
     @Test
@@ -95,11 +100,7 @@ internal class SøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-        ).trekkSøknad(
-            søknad.id,
-            1.januar(2020),
-            saksbehandler
-        ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test
@@ -114,6 +115,10 @@ internal class SøknadServiceImplTest {
                 saksbehandler = saksbehandler
             )
         )
+        val trekkSøknadRequest = trekkSøknadRequest.copy(
+            søknadId = søknad.id
+        )
+
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
             on {
@@ -130,11 +135,7 @@ internal class SøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-        ).trekkSøknad(
-            søknad.id,
-            1.januar(2020),
-            saksbehandler,
-        ) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 
     @Test
@@ -150,10 +151,7 @@ internal class SøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             brevService = brevServiceMock
-        ).lagBrevutkastForTrukketSøknad(
-            søknad.id,
-            1.januar(2020)
-        ) shouldBe pdf.right()
+        ).lagBrevutkastForLukketSøknad(trekkSøknadRequest) shouldBe pdf.right()
     }
 
     private fun createSøknadServiceImpl(

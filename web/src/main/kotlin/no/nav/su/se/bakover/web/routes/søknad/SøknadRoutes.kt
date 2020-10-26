@@ -14,7 +14,7 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -25,16 +25,12 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSøknadId
-import java.time.LocalDate
 
 internal const val søknadPath = "/soknad"
-
-data class TrekkSøknadJson(
-    val datoSøkerTrakkSøknad: LocalDate
-)
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
@@ -69,17 +65,20 @@ internal fun Route.søknadRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$søknadPath/{søknadId}/trekk") {
+        post("$søknadPath/{søknadId}/lukk") {
             call.withSøknadId { søknadId ->
-                Either.catch { deserialize<TrekkSøknadJson>(call) }.fold(
-                    {
-                        call.svar(BadRequest.message("Ugyldig body"))
-                    },
-                    { trekkSøknadJson ->
-                        søknadService.trekkSøknad(
-                            søknadId = søknadId,
-                            trukketDato = trekkSøknadJson.datoSøkerTrakkSøknad,
-                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                val type = call.parameters["type"]
+                LukkSøknadInputResolver(
+                    type,
+                    call.receiveTextUTF8(),
+                    søknadId,
+                    NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                ).resolve()
+                    .mapLeft {
+                        call.svar(BadRequest.message("Ugyldig input"))
+                    }.map { lukketSøknadRequest ->
+                        søknadService.lukkSøknad(
+                            lukketSøknadRequest
                         ).fold(
                             ifLeft = {
                                 when (it) {
@@ -89,9 +88,9 @@ internal fun Route.søknadRoutes(
                                         call.svar(BadRequest.message("Søknaden har en behandling"))
                                     is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
                                         call.svar(NotFound.message("Fant ikke søknad for $søknadId"))
-                                    KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
+                                    is KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
                                         call.svar(InternalServerError.message("Kunne ikke journalføre brev"))
-                                    KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev ->
+                                    is KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev ->
                                         call.svar(InternalServerError.message("Kunne distribuere brev"))
                                 }
                             },
@@ -101,7 +100,6 @@ internal fun Route.søknadRoutes(
                             }
                         )
                     }
-                )
             }
         }
     }
@@ -109,14 +107,18 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk/brevutkast") {
             call.withSøknadId { søknadId ->
-                Either.catch { deserialize<TrekkSøknadJson>(call) }.fold(
-                    {
-                        call.svar(BadRequest.message("Ugyldig body"))
-                    },
-                    { trekkSøknadJson ->
-                        søknadService.lagBrevutkastForTrukketSøknad(
-                            søknadId = søknadId,
-                            trukketDato = trekkSøknadJson.datoSøkerTrakkSøknad
+                val type = call.parameters["type"]
+                LukkSøknadInputResolver(
+                    type,
+                    call.receiveTextUTF8(),
+                    søknadId,
+                    NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                ).resolve()
+                    .mapLeft {
+                        call.svar(BadRequest.message("Ugyldig input"))
+                    }.map { lukketSøknadRequest ->
+                        søknadService.lagBrevutkastForLukketSøknad(
+                            lukketSøknadRequest
                         ).fold(
                             {
                                 when (it) {
@@ -129,7 +131,6 @@ internal fun Route.søknadRoutes(
                             { call.respondBytes(it, ContentType.Application.Pdf) }
                         )
                     }
-                )
             }
         }
     }

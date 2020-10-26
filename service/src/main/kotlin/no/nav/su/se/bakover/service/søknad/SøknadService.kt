@@ -1,18 +1,16 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import java.time.LocalDate
 import java.util.UUID
 
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak>
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
-    fun trekkSøknad(søknadId: UUID, trukketDato: LocalDate, saksbehandler: Saksbehandler): Either<KunneIkkeLukkeSøknad, Sak>
-    fun lagBrevutkastForTrukketSøknad(søknadId: UUID, trukketDato: LocalDate): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun lukkSøknad(lukketSøknadRequest: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak>
+    fun lagBrevutkastForLukketSøknad(request: LukkSøknadRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
 sealed class KunneIkkeLukkeSøknad {
