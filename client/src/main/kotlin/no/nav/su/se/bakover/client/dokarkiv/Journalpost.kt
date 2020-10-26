@@ -82,6 +82,36 @@ sealed class Journalpost {
             )
         )
     }
+
+    data class TrukketSøknad(
+        val person: Person,
+        val sakId: String,
+        val brevdata: Brevdata,
+        val pdf: ByteArray,
+    ) : Journalpost() {
+        override val tittel = "Bekrefter at søknad er trukket"
+        override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
+            id = person.ident.fnr.toString(),
+            navn = søkersNavn(person)
+        )
+        override val sak: Fagsak = Fagsak(sakId)
+        override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
+        override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
+        override val kanal: String? = null
+        override val journalfoerendeEnhet: String = "4815"
+        override val dokumenter: List<JournalpostDokument> = listOf(
+            JournalpostDokument(
+                tittel = tittel,
+                dokumentKategori = DokumentKategori.IB,
+                dokumentvarianter = listOf(
+                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                    DokumentVariant.OriginalJson(
+                        fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
+                    )
+                )
+            )
+        )
+    }
 }
 
 internal data class JournalpostRequest(
@@ -148,5 +178,6 @@ enum class JournalPostType(val type: String) {
 
 enum class DokumentKategori(val type: String) {
     SOK("SOK"),
-    VB("VB")
+    VB("VB"),
+    IB("IB")
 }

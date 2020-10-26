@@ -9,6 +9,8 @@ import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.Month
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
@@ -89,6 +91,12 @@ internal class TidspunktTest {
         val fixed = Clock.fixed(1.januar(2020).endOfDay().instant, ZoneOffset.UTC)
         val now = Tidspunkt.now(fixed)
         now.toString() shouldBe "2020-01-01T23:59:59.999999Z"
+    }
+
+    @Test
+    fun `konverterer tidspunkt til localDate`() {
+        1.januar(2020).startOfDay().toLocalDate() shouldBe LocalDate.of(2020, Month.JANUARY, 1)
+        1.januar(2020).endOfDay().toLocalDate() shouldBe LocalDate.of(2020, Month.JANUARY, 1)
     }
 
     data class NestedSerialization(

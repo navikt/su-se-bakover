@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.PersonOppslag
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.Brevdata
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class BrevServiceImpl(
@@ -31,7 +31,7 @@ internal class BrevServiceImpl(
     }
 
     private fun lagPersonalia(person: Person) = Brevdata.Personalia(
-        dato = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+        dato = LocalDate.now().ddMMyyyy(),
         fødselsnummer = person.ident.fnr,
         fornavn = person.navn.fornavn,
         etternavn = person.navn.etternavn,

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import java.time.LocalDate
 
 abstract class Brevdata {
     fun toJson() = objectMapper.writeValueAsString(this)
@@ -43,6 +45,20 @@ abstract class Brevdata {
     ) : Brevdata() {
         override fun brevtype(): Brevtype = Brevtype.InnvilgetVedtak
     }
+
+    data class TrukketSøknad private constructor(
+        val personalia: Personalia,
+        val datoSøknadOpprettet: String,
+        val trukketDato: String
+    ) : Brevdata() {
+        override fun brevtype(): Brevtype = Brevtype.TrukketSøknad
+
+        constructor(
+            personalia: Personalia,
+            datoSøknadOpprettet: LocalDate,
+            trukketDato: LocalDate
+        ) : this(personalia, datoSøknadOpprettet.ddMMyyyy(), trukketDato.ddMMyyyy())
+    }
 }
 
 sealed class Brevtype(
@@ -52,6 +68,7 @@ sealed class Brevtype(
 
     object InnvilgetVedtak : Brevtype(pdfTemplate = PdfTemplate.InnvilgetVedtak)
     object AvslagsVedtak : Brevtype(pdfTemplate = PdfTemplate.AvslagsVedtak)
+    object TrukketSøknad : Brevtype(pdfTemplate = PdfTemplate.TrukketSøknad)
 }
 
 /**
@@ -64,4 +81,5 @@ sealed class PdfTemplate(
 
     object InnvilgetVedtak : PdfTemplate("vedtakInnvilgelse")
     object AvslagsVedtak : PdfTemplate("vedtakAvslag")
+    object TrukketSøknad : PdfTemplate("søknadTrukket")
 }

@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
@@ -38,6 +40,10 @@ internal class BrevdataTest {
         harEktefelle = true,
         fradrag = emptyList(),
         fradragSum = 0,
+    )
+
+    val trukketSøknad = Brevdata.TrukketSøknad(
+        personalia, 1.januar(2020), 1.februar(2020)
     )
 
     @Test
@@ -117,4 +123,30 @@ internal class BrevdataTest {
         """.trimIndent()
         JSONAssert.assertEquals(serialized, expectedJson, true)
     }
+
+    @Test
+    fun `jsonformat for trukket søknad stemmer overens med det som forventes av pdfgenerator`() {
+        val serialized = objectMapper.writeValueAsString(trukketSøknad)
+        //language=json
+        val expectedJson = """
+            {
+              "personalia": {
+                  "dato":"01.01.2020",
+                  "fødselsnummer": "12345678901",
+                  "fornavn": "Tore",
+                  "etternavn": "Strømøy",
+                  "adresse": "en Adresse",
+                  "husnummer": "4C",
+                  "bruksenhet": "H102",
+                  "postnummer": "0186",
+                  "poststed": "Oslo"
+              },
+              "datoSøknadOpprettet": "01.01.2020",
+              "trukketDato": "01.02.2020"
+            }
+        """.trimIndent()
+        JSONAssert.assertEquals(serialized, expectedJson, true)
+    }
+
+
 }

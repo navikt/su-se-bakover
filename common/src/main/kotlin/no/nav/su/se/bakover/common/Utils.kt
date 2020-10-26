@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
+import java.time.format.DateTimeFormatter
 
 fun Int.januar(year: Int) = LocalDate.of(year, Month.JANUARY, this)
 fun Int.februar(year: Int) = LocalDate.of(year, Month.FEBRUARY, this)
@@ -27,3 +28,5 @@ fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
 
 fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
+
+fun LocalDate.ddMMyyyy() = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))

@@ -63,4 +63,9 @@ internal class UtilsKtTest {
             tilOgMed = 10.desember(2020).startOfDay()
         ) shouldBe false
     }
+
+    @Test
+    fun `Formatterer dato til format ddMMyyyy`() {
+        1.januar(2020).ddMMyyyy() shouldBe "01.01.2020"
+    }
 }

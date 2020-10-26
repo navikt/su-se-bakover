@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import java.io.Serializable
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -55,6 +56,7 @@ class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
 
     override fun hashCode() = instant.hashCode()
     fun plusSeconds(secondsToAdd: Long) = instant.plusSeconds(secondsToAdd).toTidspunkt()
+    fun toLocalDate() = LocalDate.ofInstant(instant, ZoneOffset.UTC)
 }
 
 fun Instant.toTidspunkt() = Tidspunkt(this)

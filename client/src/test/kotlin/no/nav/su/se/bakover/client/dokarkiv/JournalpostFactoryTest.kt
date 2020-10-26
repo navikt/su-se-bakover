@@ -39,4 +39,13 @@ internal class JournalpostFactoryTest {
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf) should beOfType<Journalpost.Vedtakspost>()
     }
+
+    @Test
+    fun `lager journalpost for en trukket søknad`() {
+        val brevdata = mock<Brevdata>() {
+            on { brevtype() } doReturn Brevtype.TrukketSøknad
+            on { toJson() } doReturn ""
+        }
+        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf) should beOfType<Journalpost.TrukketSøknad>()
+    }
 }
