@@ -71,24 +71,35 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/trekk") {
             call.withSøknadId { søknadId ->
-                søknadService.trekkSøknad(
-                    søknadId = søknadId,
-                    saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                    begrunnelse = ""
-                ).fold(
-                    ifLeft = {
-                        when (it) {
-                            is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
-                                call.svar(BadRequest.message("Søknad er allerede trukket"))
-                            is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
-                                call.svar(BadRequest.message("Søknaden har en behandling"))
-                            is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
-                                call.svar(BadRequest.message("Fant ikke søknad for $søknadId"))
-                        }
+                Either.catch { deserialize<TrekkSøknadJson>(call) }.fold(
+                    {
+                        call.svar(BadRequest.message("Ugyldig body"))
                     },
-                    ifRight = {
-                        call.audit("Lukket søknad for søknad: $søknadId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                    { trekkSøknadJson ->
+                        søknadService.trekkSøknad(
+                            søknadId = søknadId,
+                            trukketDato = trekkSøknadJson.datoSøkerTrakkSøknad,
+                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                        ).fold(
+                            ifLeft = {
+                                when (it) {
+                                    is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
+                                        call.svar(BadRequest.message("Søknad er allerede trukket"))
+                                    is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
+                                        call.svar(BadRequest.message("Søknaden har en behandling"))
+                                    is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
+                                        call.svar(NotFound.message("Fant ikke søknad for $søknadId"))
+                                    KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
+                                        call.svar(InternalServerError.message("Kunne ikke journalføre brev"))
+                                    KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev ->
+                                        call.svar(InternalServerError.message("Kunne distribuere brev"))
+                                }
+                            },
+                            ifRight = {
+                                call.audit("Lukket søknad for søknad: $søknadId")
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                            }
+                        )
                     }
                 )
             }

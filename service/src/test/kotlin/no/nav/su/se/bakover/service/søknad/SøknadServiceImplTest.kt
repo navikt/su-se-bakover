@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -56,25 +57,36 @@ internal class SøknadServiceImplTest {
     @Test
     fun `trekker en søknad`() {
         val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
+            on { hentSøknad(søknad.id) } doReturn søknad
+            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId = søknad.sakId) } doReturn sak.right()
+            on { hentSak(søknad.sakId) } doReturn sak.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on {
+                journalførBrev(
+                    LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)),
+                    sak.id
+                )
+            } doReturn JournalpostId("en id").right()
+
+            on { distribuerBrev(JournalpostId("en id")) } doReturn "en bestillings id".right()
         }
 
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock
-        ).trekkSøknad(søknad.id, saksbehandler, "") shouldBe sak.right()
+            sakService = sakServiceMock,
+            brevService = brevServiceMock
+        ).trekkSøknad(søknad.id, 1.januar(2020), saksbehandler) shouldBe sak.right()
     }
 
     @Test
     fun `en søknad med behandling skal ikke bli trukket`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
+            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn true
         }
         val sakServiceMock = mock<SakService> {
@@ -83,7 +95,11 @@ internal class SøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-        ).trekkSøknad(søknadId = søknad.id, saksbehandler, "") shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).trekkSøknad(
+            søknad.id,
+            1.januar(2020),
+            saksbehandler
+        ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test
@@ -95,13 +111,17 @@ internal class SøknadServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             lukket = Søknad.Lukket.Trukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler,
-                begrunnelse = ""
+                saksbehandler = saksbehandler
             )
         )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler, "")) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler = saksbehandler)
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -111,9 +131,9 @@ internal class SøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
         ).trekkSøknad(
-            søknadId = søknad.id,
+            søknad.id,
+            1.januar(2020),
             saksbehandler,
-            ""
         ) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
     }
 

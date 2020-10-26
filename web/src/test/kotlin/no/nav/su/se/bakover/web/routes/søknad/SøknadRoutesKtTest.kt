@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.capture
 import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -235,14 +234,15 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
+                setBody(objectMapper.writeValueAsString(TrekkSøknadJson(1.januar(2020))))
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock, times(1)).trekkSøknad(
+                verify(søknadServiceMock).trekkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) },
-                    argThat { it shouldBe "" }
+                    argThat { it shouldBe 1.januar(2020) },
+                    argThat { it shouldBe Saksbehandler(navIdent) }
                 )
-            }.response
+            }
         }
     }
 
@@ -272,14 +272,15 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
+                setBody(objectMapper.writeValueAsString(TrekkSøknadJson(1.januar(2020))))
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock, times(1)).trekkSøknad(
+                verify(søknadServiceMock).trekkSøknad(
                     argThat { it shouldBe søknadId },
-                    argThat { it shouldBe Saksbehandler(navIdent) },
-                    argThat { it shouldBe "" }
+                    argThat { it shouldBe 1.januar(2020) },
+                    argThat { it shouldBe Saksbehandler(navIdent) }
                 )
-            }.response
+            }
         }
     }
 

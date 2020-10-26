@@ -11,7 +11,7 @@ import java.util.UUID
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak>
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
-    fun trekkSøknad(søknadId: UUID, saksbehandler: Saksbehandler, begrunnelse: String): Either<KunneIkkeLukkeSøknad, Sak>
+    fun trekkSøknad(søknadId: UUID, trukketDato: LocalDate, saksbehandler: Saksbehandler): Either<KunneIkkeLukkeSøknad, Sak>
     fun lagBrevutkastForTrukketSøknad(søknadId: UUID, trukketDato: LocalDate): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
@@ -19,6 +19,8 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
+    object KunneIkkeJournalføreBrev : KunneIkkeLukkeSøknad()
+    object KunneIkkeDistribuereBrev : KunneIkkeLukkeSøknad()
 }
 
 sealed class KunneIkkeLageBrevutkast {

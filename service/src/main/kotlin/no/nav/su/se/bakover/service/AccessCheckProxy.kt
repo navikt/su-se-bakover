@@ -241,12 +241,12 @@ class AccessCheckProxy(
 
                 override fun trekkSøknad(
                     søknadId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    begrunnelse: String
+                    trukketDato: LocalDate,
+                    saksbehandler: NavIdentBruker.Saksbehandler
                 ): Either<KunneIkkeLukkeSøknad, Sak> {
                     assertHarTilgangTilSøknad(søknadId)
 
-                    return services.søknad.trekkSøknad(søknadId, saksbehandler, begrunnelse)
+                    return services.søknad.trekkSøknad(søknadId, trukketDato, saksbehandler)
                 }
 
                 override fun lagBrevutkastForTrukketSøknad(

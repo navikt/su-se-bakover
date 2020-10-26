@@ -144,8 +144,8 @@ internal class SøknadServiceImpl(
 
     private fun lukkSøknad(
         søknadId: UUID,
+        trukketDato: LocalDate,
         saksbehandler: Saksbehandler,
-        begrunnelse: String,
         loggtema: String
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(søknadId).getOrElse {
@@ -161,26 +161,43 @@ internal class SøknadServiceImpl(
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
 
-        søknadRepo.lukkSøknad(
-            søknadId = søknadId,
-            lukket = Søknad.Lukket.Trukket(
-                tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler,
-                begrunnelse = begrunnelse
-            )
+        val journalpostId = brevService.journalførBrev(
+            LagBrevRequest.TrukketSøknad(
+                søknad,
+                trukketDato
+            ),
+            søknad.sakId
+        ).fold(
+            { return KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left() },
+            { it }
         )
+
+        brevService.distribuerBrev(journalpostId).fold(
+            { return KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev.left() },
+            {
+                log.info("$loggtema: bestillings id $it for søknad ${søknad.id}")
+                søknadRepo.lukkSøknad(
+                    søknadId = søknadId,
+                    lukket = Søknad.Lukket.Trukket(
+                        tidspunkt = Tidspunkt.now(),
+                        saksbehandler = saksbehandler
+                    )
+                )
+            }
+        )
+
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
     override fun trekkSøknad(
         søknadId: UUID,
-        saksbehandler: Saksbehandler,
-        begrunnelse: String
+        trukketDato: LocalDate,
+        saksbehandler: Saksbehandler
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         return lukkSøknad(
             søknadId = søknadId,
+            trukketDato = trukketDato,
             saksbehandler = saksbehandler,
-            begrunnelse = begrunnelse,
             loggtema = "Trekking av søknad"
         )
     }

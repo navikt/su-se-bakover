@@ -15,12 +15,10 @@ data class Søknad(
     sealed class Lukket {
         abstract val tidspunkt: Tidspunkt
         abstract val saksbehandler: Saksbehandler
-        abstract val begrunnelse: String
 
         data class Trukket(
             override val tidspunkt: Tidspunkt,
-            override val saksbehandler: Saksbehandler,
-            override val begrunnelse: String
+            override val saksbehandler: Saksbehandler
         ) : Lukket()
     }
 }
