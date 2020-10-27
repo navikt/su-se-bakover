@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.søknad
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.søknad.LukketSøknadJson.Companion.toJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Søknad
@@ -36,7 +35,7 @@ internal class SøknadPostgresRepo(
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to søknadId,
-                    "lukket" to objectMapper.writeValueAsString(lukket.toJson())
+                    "lukket" to objectMapper.writeValueAsString(lukket)
                 ),
                 session
             )

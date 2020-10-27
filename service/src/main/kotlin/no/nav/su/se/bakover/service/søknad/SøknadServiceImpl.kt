@@ -1,4 +1,5 @@
 package no.nav.su.se.bakover.service.søknad
+
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadServiceImpl(
@@ -142,29 +141,65 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
-    private fun lukkSøknad(
-        søknadId: UUID,
-        trukketDato: LocalDate,
-        saksbehandler: Saksbehandler,
-        loggtema: String
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        val søknad = hentSøknad(søknadId).getOrElse {
-            log.info("$loggtema: Fant ikke søknad")
+    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+        val søknad = hentSøknad(request.søknadId).getOrElse {
             return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
         }
+        return sjekkOmSøknadKanLukkes(søknad)
+            .mapLeft { it }
+            .flatMap {
+                return when (request) {
+                    is LukkSøknadRequest.TrekkSøknad -> trekkSøknad(request, it)
+                    is LukkSøknadRequest.BortfaltSøknad -> bortfaltSøknad(request, it)
+                }
+            }
+    }
+
+    private fun sjekkOmSøknadKanLukkes(søknad: Søknad): Either<KunneIkkeLukkeSøknad, Søknad> {
         if (søknad.lukket != null) {
-            log.info("$loggtema: Prøver å lukke en allerede trukket søknad")
+            log.info("Prøver å lukke en allerede trukket søknad")
             return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknadId)) {
-            log.info("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
+        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
+            log.info("Kan ikke lukke søknad. Finnes en behandling")
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
+        return søknad.right()
+    }
 
+    private fun bortfaltSøknad(
+        request: LukkSøknadRequest.BortfaltSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        søknadRepo.lukkSøknad(
+            søknadId = request.søknadId,
+            lukket = Søknad.Lukket(
+                tidspunkt = Tidspunkt.now(),
+                saksbehandler = request.saksbehandler.navIdent,
+                type = Søknad.LukketType.BORTFALT
+            )
+        )
+        return sakService.hentSak(søknad.sakId).orNull()!!.right()
+    }
+
+    override fun lagBrevutkastForLukketSøknad(
+        request: LukkSøknadRequest
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        return when (request) {
+            is LukkSøknadRequest.TrekkSøknad -> brevutkastForTrukketSøknad(request)
+            is LukkSøknadRequest.BortfaltSøknad -> KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+        }
+    }
+
+    private fun trekkSøknad(
+        request: LukkSøknadRequest.TrekkSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        val loggtema = "Trekking av søknad"
         val journalpostId = brevService.journalførBrev(
             LagBrevRequest.TrukketSøknad(
                 søknad,
-                trukketDato
+                request.trukketDato
             ),
             søknad.sakId
         ).fold(
@@ -177,10 +212,11 @@ internal class SøknadServiceImpl(
             {
                 log.info("$loggtema: bestillings id $it for søknad ${søknad.id}")
                 søknadRepo.lukkSøknad(
-                    søknadId = søknadId,
-                    lukket = Søknad.Lukket.Trukket(
+                    søknadId = request.søknadId,
+                    lukket = Søknad.Lukket(
                         tidspunkt = Tidspunkt.now(),
-                        saksbehandler = saksbehandler
+                        saksbehandler = request.saksbehandler.navIdent,
+                        type = Søknad.LukketType.TRUKKET
                     )
                 )
             }
@@ -189,34 +225,17 @@ internal class SøknadServiceImpl(
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
-    override fun trekkSøknad(
-        søknadId: UUID,
-        trukketDato: LocalDate,
-        saksbehandler: Saksbehandler
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        return lukkSøknad(
-            søknadId = søknadId,
-            trukketDato = trukketDato,
-            saksbehandler = saksbehandler,
-            loggtema = "Trekking av søknad"
-        )
-    }
-
-    override fun lagBrevutkastForTrukketSøknad(
-        søknadId: UUID,
-        trukketDato: LocalDate
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        return hentSøknad(søknadId).mapLeft {
+    private fun brevutkastForTrukketSøknad(request: LukkSøknadRequest.TrekkSøknad): Either<KunneIkkeLageBrevutkast, ByteArray> =
+        hentSøknad(request.søknadId).mapLeft {
             KunneIkkeLageBrevutkast.FantIkkeSøknad
         }.flatMap {
             brevService.lagBrev(
                 LagBrevRequest.TrukketSøknad(
                     søknad = it,
-                    trukketDato = trukketDato
+                    trukketDato = request.trukketDato
                 )
             ).mapLeft {
                 KunneIkkeLageBrevutkast.KunneIkkeLageBrev
             }
         }
-    }
 }

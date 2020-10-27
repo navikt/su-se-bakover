@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
+import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
@@ -239,23 +240,18 @@ class AccessCheckProxy(
                     return services.søknad.hentSøknad(søknadId)
                 }
 
-                override fun trekkSøknad(
-                    søknadId: UUID,
-                    trukketDato: LocalDate,
-                    saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<KunneIkkeLukkeSøknad, Sak> {
-                    assertHarTilgangTilSøknad(søknadId)
+                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+                    assertHarTilgangTilSøknad(request.søknadId)
 
-                    return services.søknad.trekkSøknad(søknadId, trukketDato, saksbehandler)
+                    return services.søknad.lukkSøknad(request)
                 }
 
-                override fun lagBrevutkastForTrukketSøknad(
-                    søknadId: UUID,
-                    trukketDato: LocalDate
+                override fun lagBrevutkastForLukketSøknad(
+                    request: LukkSøknadRequest
                 ): Either<no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast, ByteArray> {
-                    assertHarTilgangTilSøknad(søknadId)
+                    assertHarTilgangTilSøknad(request.søknadId)
 
-                    return services.søknad.lagBrevutkastForTrukketSøknad(søknadId, trukketDato)
+                    return services.søknad.lagBrevutkastForLukketSøknad(request)
                 }
             },
             brev = object : BrevService {

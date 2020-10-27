@@ -29,8 +29,6 @@ internal fun Row.toSøknad(): Søknad {
         id = uuid("id"),
         søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
         opprettet = tidspunkt("opprettet"),
-        lukket = stringOrNull("lukket")?.let {
-            objectMapper.readValue<LukketSøknadJson>(it).toLukket()
-        }
+        lukket = stringOrNull("lukket")?.let { objectMapper.readValue<Søknad.Lukket>(it) }
     )
 }

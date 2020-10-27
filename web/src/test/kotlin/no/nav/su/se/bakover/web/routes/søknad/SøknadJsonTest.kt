@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.web.routes.søknad
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
@@ -168,5 +170,24 @@ internal class SøknadJsonTest {
     @Test
     fun `should deserialize json string`() {
         deserialize<SøknadJson>(søknadJsonString) shouldBe søknad.toJson()
+    }
+
+    @Test
+    fun `serialiserer og deserialiserer lukket`() {
+        val trukket = Søknad.Lukket(
+            tidspunkt = 1.oktober(2020).startOfDay(),
+            saksbehandler = "Z123",
+            type = Søknad.LukketType.TRUKKET
+        )
+        //language=json
+        val expectedJson = """
+            {
+                "tidspunkt":"2020-10-01T00:00:00Z",
+                "saksbehandler":"Z123",
+                "type":"TRUKKET"
+            }
+        """.trimIndent()
+        JSONAssert.assertEquals(expectedJson, serialize(trukket.toJson()), true)
+        deserialize<Søknad.Lukket>(expectedJson) shouldBe trukket
     }
 }
