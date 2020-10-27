@@ -59,7 +59,8 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
-import no.nav.su.se.bakover.web.routes.søknad.lukk.TrukketJson
+import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
+import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketType
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
@@ -242,7 +243,14 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(objectMapper.writeValueAsString(TrukketJson(1.januar(2020))))
+                setBody(
+                    objectMapper.writeValueAsString(
+                        LukketJson.TrukketJson(
+                            datoSøkerTrakkSøknad = 1.januar(2020),
+                            type = LukketType.TRUKKET
+                        )
+                    )
+                )
             }.apply {
                 response.status() shouldBe OK
                 /*verify(søknadServiceMock).lukkSøknad(
@@ -276,7 +284,14 @@ internal class SøknadRoutesKtTest {
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
-                setBody(objectMapper.writeValueAsString(TrukketJson(1.januar(2020))))
+                setBody(
+                    objectMapper.writeValueAsString(
+                        LukketJson.TrukketJson(
+                            datoSøkerTrakkSøknad = 1.januar(2020),
+                            type = LukketType.TRUKKET
+                        )
+                    )
+                )
             }.apply {
                 response.status() shouldBe BadRequest
                 verify(søknadServiceMock).lukkSøknad(
@@ -312,7 +327,10 @@ internal class SøknadRoutesKtTest {
             ) {
                 setBody(
                     objectMapper.writeValueAsString(
-                        TrukketJson(1.januar(2020))
+                        LukketJson.TrukketJson(
+                            datoSøkerTrakkSøknad = 1.januar(2020),
+                            type = LukketType.TRUKKET
+                        )
                     )
                 )
             }.apply {

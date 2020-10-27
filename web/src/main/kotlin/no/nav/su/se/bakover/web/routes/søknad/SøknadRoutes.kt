@@ -69,9 +69,8 @@ internal fun Route.søknadRoutes(
         post("$søknadPath/{søknadId}/lukk") {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
-                    type = call.parameters["type"],
-                    søknadId = søknadId,
                     body = call.receiveTextUTF8(),
+                    søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
@@ -92,15 +91,14 @@ internal fun Route.søknadRoutes(
         post("$søknadPath/{søknadId}/lukk/brevutkast") {
             call.withSøknadId { søknadId ->
                 LukkSøknadInputHandler.handle(
-                    type = call.parameters["type"],
-                    søknadId = søknadId,
                     body = call.receiveTextUTF8(),
+                    søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
-                }.map { lukketSøknadRequest ->
+                }.map { request ->
                     søknadService.lagBrevutkastForLukketSøknad(
-                        lukketSøknadRequest
+                        request
                     ).fold(
                         {
                             when (it) {
@@ -108,6 +106,8 @@ internal fun Route.søknadRoutes(
                                     call.svar(NotFound.message("Fant Ikke Søknad"))
                                 KunneIkkeLageBrevutkast.KunneIkkeLageBrev ->
                                     call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
+                                KunneIkkeLageBrevutkast.UkjentBrevtype ->
+                                    call.svar(BadRequest.message("Kunne ikke lage brev for ukjent brevtype"))
                             }
                         },
                         { call.respondBytes(it, ContentType.Application.Pdf) }

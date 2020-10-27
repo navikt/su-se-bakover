@@ -12,7 +12,8 @@ data class LukketSøknadJson(
     val type: LukketType
 ) {
     enum class LukketType(val value: String) {
-        TRUKKET("TRUKKET")
+        TRUKKET("TRUKKET"),
+        BORTFALT("BORTFALT")
     }
 
     companion object {
@@ -21,12 +22,17 @@ data class LukketSøknadJson(
             saksbehandler = saksbehandler.toString(),
             type = when (this) {
                 is Søknad.Lukket.Trukket -> LukketType.TRUKKET
+                is Søknad.Lukket.Bortfalt -> LukketType.BORTFALT
             }
         )
     }
 
     fun toLukket() = when (type) {
         LukketType.TRUKKET -> Søknad.Lukket.Trukket(
+            tidspunkt = Instant.parse(tidspunkt).toTidspunkt(),
+            saksbehandler = Saksbehandler(saksbehandler)
+        )
+        LukketType.BORTFALT -> Søknad.Lukket.Bortfalt(
             tidspunkt = Instant.parse(tidspunkt).toTidspunkt(),
             saksbehandler = Saksbehandler(saksbehandler)
         )

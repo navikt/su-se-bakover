@@ -240,10 +240,10 @@ class AccessCheckProxy(
                     return services.søknad.hentSøknad(søknadId)
                 }
 
-                override fun lukkSøknad(lukketSøknadRequest: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
-                    assertHarTilgangTilSøknad(lukketSøknadRequest.søknadId)
+                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+                    assertHarTilgangTilSøknad(request.søknadId)
 
-                    return services.søknad.lukkSøknad(lukketSøknadRequest)
+                    return services.søknad.lukkSøknad(request)
                 }
 
                 override fun lagBrevutkastForLukketSøknad(

@@ -9,7 +9,7 @@ import java.util.UUID
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak>
     fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad>
-    fun lukkSøknad(lukketSøknadRequest: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak>
+    fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak>
     fun lagBrevutkastForLukketSøknad(request: LukkSøknadRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
@@ -24,6 +24,7 @@ sealed class KunneIkkeLukkeSøknad {
 sealed class KunneIkkeLageBrevutkast {
     object FantIkkeSøknad : KunneIkkeLageBrevutkast()
     object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
+    object UkjentBrevtype : KunneIkkeLageBrevutkast()
 }
 
 sealed class KunneIkkeOppretteSøknad {

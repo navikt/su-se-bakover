@@ -13,4 +13,9 @@ sealed class LukkSøknadRequest {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         val trukketDato: LocalDate
     ) : LukkSøknadRequest()
+
+    data class BortfaltSøknad(
+        override val søknadId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler
+    ) : LukkSøknadRequest()
 }

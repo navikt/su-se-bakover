@@ -1,4 +1,5 @@
 package no.nav.su.se.bakover.service.søknad
+
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
@@ -140,12 +141,44 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
-    override fun lukkSøknad(
-        lukketSøknadRequest: LukkSøknadRequest
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        return when (lukketSøknadRequest) {
-            is LukkSøknadRequest.TrekkSøknad -> trekkSøknad(lukketSøknadRequest)
+    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+        val søknad = hentSøknad(request.søknadId).getOrElse {
+            return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
         }
+        return sjekkOmSøknadKanLukkes(søknad)
+            .mapLeft { it }
+            .flatMap {
+                return when (request) {
+                    is LukkSøknadRequest.TrekkSøknad -> trekkSøknad(request, it)
+                    is LukkSøknadRequest.BortfaltSøknad -> bortfaltSøknad(request, it)
+                }
+            }
+    }
+
+    private fun sjekkOmSøknadKanLukkes(søknad: Søknad): Either<KunneIkkeLukkeSøknad, Søknad> {
+        if (søknad.lukket != null) {
+            log.info("Prøver å lukke en allerede trukket søknad")
+            return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
+            log.info("Kan ikke lukke søknad. Finnes en behandling")
+            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        }
+        return søknad.right()
+    }
+
+    private fun bortfaltSøknad(
+        request: LukkSøknadRequest.BortfaltSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        søknadRepo.lukkSøknad(
+            søknadId = request.søknadId,
+            lukket = Søknad.Lukket.Bortfalt(
+                tidspunkt = Tidspunkt.now(),
+                saksbehandler = request.saksbehandler
+            )
+        )
+        return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
     override fun lagBrevutkastForLukketSøknad(
@@ -153,26 +186,15 @@ internal class SøknadServiceImpl(
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         return when (request) {
             is LukkSøknadRequest.TrekkSøknad -> brevutkastForTrukketSøknad(request)
+            is LukkSøknadRequest.BortfaltSøknad -> KunneIkkeLageBrevutkast.UkjentBrevtype.left()
         }
     }
 
     private fun trekkSøknad(
-        request: LukkSøknadRequest.TrekkSøknad
+        request: LukkSøknadRequest.TrekkSøknad,
+        søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         val loggtema = "Trekking av søknad"
-        val søknad = hentSøknad(request.søknadId).getOrElse {
-            log.info("$loggtema: Fant ikke søknad")
-            return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
-        }
-        if (søknad.lukket != null) {
-            log.info("$loggtema: Prøver å lukke en allerede trukket søknad")
-            return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
-        }
-        if (søknadRepo.harSøknadPåbegyntBehandling(request.søknadId)) {
-            log.info("$loggtema: Kan ikke lukke søknad. Finnes en behandling")
-            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
-        }
-
         val journalpostId = brevService.journalførBrev(
             LagBrevRequest.TrukketSøknad(
                 søknad,

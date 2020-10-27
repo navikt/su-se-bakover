@@ -20,5 +20,10 @@ data class Søknad(
             override val tidspunkt: Tidspunkt,
             override val saksbehandler: Saksbehandler
         ) : Lukket()
+
+        data class Bortfalt(
+            override val tidspunkt: Tidspunkt,
+            override val saksbehandler: Saksbehandler
+        ) : Lukket()
     }
 }
