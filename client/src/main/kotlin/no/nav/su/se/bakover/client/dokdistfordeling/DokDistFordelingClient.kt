@@ -40,7 +40,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
                 }
             },
             {
-                log.warn("Feil ved bestilling av distribusjon.", it)
+                log.error("Feil ved bestilling av distribusjon.", it)
                 ClientError(response.statusCode, "Feil ved bestilling av distribusjon.").left()
             }
         )

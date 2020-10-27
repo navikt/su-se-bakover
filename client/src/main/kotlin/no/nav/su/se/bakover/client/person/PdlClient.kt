@@ -96,14 +96,14 @@ internal class PdlClient(
             {
                 val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
                 if (pdlResponse.hasErrors()) {
-                    log.warn("Feil i kallet mod PDL: {}", pdlResponse)
+                    log.error("Feil i kallet mod PDL: {}", pdlResponse)
                     PdlFeil.from(pdlResponse.errors!!).left()
                 } else {
                     pdlResponse.data.right()
                 }
             },
             {
-                log.warn(
+                log.error(
                     "Feil i kallet mot PDL, status:{}, body:{}",
                     response.statusCode,
                     response.body().asString("application/json")

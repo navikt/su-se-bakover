@@ -129,7 +129,7 @@ internal class BehandlingServiceImpl(
                 .also { log.info("Fant ikke behandling $behandlingId på sak med id $sakId") }
 
         val aktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-            log.warn("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
+            log.error("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
             return KunneIkkeFinneAktørId.left()
         }
 
@@ -206,7 +206,7 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID
     ): Either<Behandling.IverksettFeil, Behandling> {
         val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-            log.warn("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
+            log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
             return Behandling.IverksettFeil.FantIkkeAktørId.left()
         }
         return utbetalingService.utbetal(

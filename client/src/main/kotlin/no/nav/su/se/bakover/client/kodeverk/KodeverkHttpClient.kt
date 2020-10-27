@@ -42,7 +42,7 @@ class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : Kodeverk
                     .map { it.beskrivelser.nb.tekst }.firstOrNull().right()
             },
             {
-                log.warn(
+                log.error(
                     "Feil i kallet mot kodeverk. status={} body={}",
                     response.statusCode,
                     response.body().asString("application/json"),
