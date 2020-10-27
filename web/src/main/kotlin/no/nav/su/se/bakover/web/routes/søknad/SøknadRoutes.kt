@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.web.Resultat
@@ -27,6 +26,8 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
+import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSøknadId
 
@@ -67,39 +68,22 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk") {
             call.withSøknadId { søknadId ->
-                val type = call.parameters["type"]
-                LukkSøknadInputResolver(
-                    type,
-                    call.receiveTextUTF8(),
-                    søknadId,
-                    NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
-                ).resolve()
-                    .mapLeft {
-                        call.svar(BadRequest.message("Ugyldig input"))
-                    }.map { lukketSøknadRequest ->
-                        søknadService.lukkSøknad(
-                            lukketSøknadRequest
-                        ).fold(
-                            ifLeft = {
-                                when (it) {
-                                    is KunneIkkeLukkeSøknad.SøknadErAlleredeLukket ->
-                                        call.svar(BadRequest.message("Søknad er allerede trukket"))
-                                    is KunneIkkeLukkeSøknad.SøknadHarEnBehandling ->
-                                        call.svar(BadRequest.message("Søknaden har en behandling"))
-                                    is KunneIkkeLukkeSøknad.FantIkkeSøknad ->
-                                        call.svar(NotFound.message("Fant ikke søknad for $søknadId"))
-                                    is KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
-                                        call.svar(InternalServerError.message("Kunne ikke journalføre brev"))
-                                    is KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev ->
-                                        call.svar(InternalServerError.message("Kunne distribuere brev"))
-                                }
-                            },
-                            ifRight = {
-                                call.audit("Lukket søknad for søknad: $søknadId")
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
-                            }
-                        )
-                    }
+                LukkSøknadInputHandler.handle(
+                    type = call.parameters["type"],
+                    søknadId = søknadId,
+                    body = call.receiveTextUTF8(),
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                ).mapLeft {
+                    call.svar(BadRequest.message("Ugyldig input"))
+                }.map { request ->
+                    søknadService.lukkSøknad(request).fold(
+                        { call.svar(LukkSøknadErrorHandler.handle(request, it)) },
+                        {
+                            call.audit("Lukket søknad for søknad: $søknadId")
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                        }
+                    )
+                }
             }
         }
     }
@@ -107,30 +91,28 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$søknadPath/{søknadId}/lukk/brevutkast") {
             call.withSøknadId { søknadId ->
-                val type = call.parameters["type"]
-                LukkSøknadInputResolver(
-                    type,
-                    call.receiveTextUTF8(),
-                    søknadId,
-                    NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
-                ).resolve()
-                    .mapLeft {
-                        call.svar(BadRequest.message("Ugyldig input"))
-                    }.map { lukketSøknadRequest ->
-                        søknadService.lagBrevutkastForLukketSøknad(
-                            lukketSøknadRequest
-                        ).fold(
-                            {
-                                when (it) {
-                                    KunneIkkeLageBrevutkast.FantIkkeSøknad ->
-                                        call.svar(NotFound.message("Fant Ikke Søknad"))
-                                    KunneIkkeLageBrevutkast.KunneIkkeLageBrev ->
-                                        call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
-                                }
-                            },
-                            { call.respondBytes(it, ContentType.Application.Pdf) }
-                        )
-                    }
+                LukkSøknadInputHandler.handle(
+                    type = call.parameters["type"],
+                    søknadId = søknadId,
+                    body = call.receiveTextUTF8(),
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                ).mapLeft {
+                    call.svar(BadRequest.message("Ugyldig input"))
+                }.map { lukketSøknadRequest ->
+                    søknadService.lagBrevutkastForLukketSøknad(
+                        lukketSøknadRequest
+                    ).fold(
+                        {
+                            when (it) {
+                                KunneIkkeLageBrevutkast.FantIkkeSøknad ->
+                                    call.svar(NotFound.message("Fant Ikke Søknad"))
+                                KunneIkkeLageBrevutkast.KunneIkkeLageBrev ->
+                                    call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
+                            }
+                        },
+                        { call.respondBytes(it, ContentType.Application.Pdf) }
+                    )
+                }
             }
         }
     }

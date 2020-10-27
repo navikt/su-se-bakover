@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.søknad
+package no.nav.su.se.bakover.web.routes.søknad.lukk
 
 import arrow.core.Either
 import arrow.core.left
@@ -8,13 +8,21 @@ import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import java.time.LocalDate
 import java.util.UUID
 
-class LukkSøknadInputResolver(
-    private val type: String?,
-    private val body: String?,
-    val søknadId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler
-) {
-    suspend fun resolve(): Either<UgyldigLukkSøknadRequest, LukkSøknadRequest> {
+enum class LukketType {
+    TRUKKET
+}
+
+data class TrukketJson(
+    val datoSøkerTrakkSøknad: LocalDate
+)
+
+object LukkSøknadInputHandler {
+    suspend fun handle(
+        type: String?,
+        body: String?,
+        søknadId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<UgyldigLukkSøknadRequest, LukkSøknadRequest> {
         if (type == null || body == null) {
             return UgyldigLukkSøknadRequest.left()
         }
@@ -40,13 +48,5 @@ class LukkSøknadInputResolver(
 suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
     Either.catch { deserialize<T>(body) }
         .mapLeft { UgyldigLukkSøknadRequest }
-
-enum class LukketType {
-    TRUKKET
-}
-
-data class TrukketJson(
-    val datoSøkerTrakkSøknad: LocalDate
-)
 
 object UgyldigLukkSøknadRequest
