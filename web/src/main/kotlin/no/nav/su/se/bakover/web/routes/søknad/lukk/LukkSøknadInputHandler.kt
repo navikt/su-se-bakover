@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class LukketJson {
+internal sealed class LukketJson {
     abstract val type: Søknad.LukketType
 
     data class TrukketJson(
@@ -32,15 +32,20 @@ sealed class LukketJson {
 
     data class AvvistJson(
         override val type: Søknad.LukketType,
-        val sendBrev: Boolean
+        val brevInfo: BrevInfoJson? = null
     ) : LukketJson() {
         init {
             require(type == Søknad.LukketType.AVVIST)
         }
+
+        data class BrevInfoJson(
+            val typeBrev: LukkSøknadRequest.AvvistSøknad.BrevType,
+            val fritekst: String?,
+        )
     }
 }
 
-object LukkSøknadInputHandler {
+internal object LukkSøknadInputHandler {
     suspend fun handle(
         body: String?,
         søknadId: UUID,
@@ -66,24 +71,33 @@ object LukkSøknadInputHandler {
                 søknadId = søknadId,
                 saksbehandler = saksbehandler
             )
-            is LukketJson.AvvistJson -> LukkSøknadRequest.AvvistSøknad(
-                søknadId = søknadId,
-                saksbehandler = saksbehandler,
-                sendBrev = bodyAsJson.sendBrev
-            )
+            is LukketJson.AvvistJson -> when (bodyAsJson.brevInfo) {
+                null -> LukkSøknadRequest.AvvistSøknad.UtenBrev(
+                    søknadId = søknadId,
+                    saksbehandler = saksbehandler
+                )
+                else -> LukkSøknadRequest.AvvistSøknad.MedBrev(
+                    søknadId = søknadId,
+                    saksbehandler = saksbehandler,
+                    brevInfo = LukkSøknadRequest.AvvistSøknad.BrevInfo(
+                        typeBrev = bodyAsJson.brevInfo.typeBrev,
+                        fritekst = bodyAsJson.brevInfo.fritekst
+                    )
+                )
+            }
         }.right()
     }
 }
 
-suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson>? {
+internal suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson>? {
     val trukketJson = deserializeLukketSøknadRequest<LukketJson.TrukketJson>(body)
     val bortfalt = deserializeLukketSøknadRequest<LukketJson.BortfaltJson>(body)
     val avvist = deserializeLukketSøknadRequest<LukketJson.AvvistJson>(body)
     return listOf(trukketJson, bortfalt, avvist).singleOrNull { it.isRight() }
 }
 
-suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
+internal suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
     Either.catch { deserialize<T>(body) }
         .mapLeft { UgyldigLukkSøknadRequest }
 
-object UgyldigLukkSøknadRequest
+internal object UgyldigLukkSøknadRequest

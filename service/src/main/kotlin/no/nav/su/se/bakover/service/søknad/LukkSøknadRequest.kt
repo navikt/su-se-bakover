@@ -19,9 +19,26 @@ sealed class LukkSøknadRequest {
         override val saksbehandler: NavIdentBruker.Saksbehandler
     ) : LukkSøknadRequest()
 
-    data class AvvistSøknad(
-        override val søknadId: UUID,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        val sendBrev: Boolean
-    ) : LukkSøknadRequest()
+    sealed class AvvistSøknad : LukkSøknadRequest() {
+        data class MedBrev(
+            override val søknadId: UUID,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            private val brevInfo: BrevInfo
+        ) : AvvistSøknad()
+
+        data class UtenBrev(
+            override val søknadId: UUID,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+        ) : AvvistSøknad()
+
+        data class BrevInfo(
+            val typeBrev: BrevType,
+            val fritekst: String?
+        )
+
+        enum class BrevType {
+            VEDTAK,
+            FRITEKST
+        }
+    }
 }

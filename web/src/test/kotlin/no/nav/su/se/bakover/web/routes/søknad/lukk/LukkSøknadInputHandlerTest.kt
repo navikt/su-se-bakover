@@ -76,23 +76,68 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
-    fun `godtar fullstendige requester for avviste søknad`() {
+    fun `godtar fullstendige requester for avviste søknad med brev`() {
         runBlocking {
             val søknadId = UUID.randomUUID()
             LukkSøknadInputHandler.handle(
                 body = """
                     {
                         "type":"AVVIST",
-                        "sendBrev": true
+                        "brevInfo": {
+                            "typeBrev":"VEDTAK",
+                            "fritekst":"kanskje"
+                        }
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.AvvistSøknad(
+            ) shouldBe LukkSøknadRequest.AvvistSøknad.MedBrev(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                sendBrev = true
+                brevInfo = LukkSøknadRequest.AvvistSøknad.BrevInfo(
+                    typeBrev = LukkSøknadRequest.AvvistSøknad.BrevType.VEDTAK,
+                    fritekst = "kanskje"
+                )
             ).right()
+        }
+    }
+
+    @Test
+    fun `godtar fullstendige requester for avviste søknad uten brev`() {
+        runBlocking {
+            val søknadId = UUID.randomUUID()
+            LukkSøknadInputHandler.handle(
+                body = """
+                    {
+                        "type":"AVVIST"
+                    }
+                """.trimIndent(),
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+            ) shouldBe LukkSøknadRequest.AvvistSøknad.UtenBrev(
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
+            ).right()
+        }
+    }
+
+    @Test
+    fun `ugyldig body for avviste søknad med brev`() {
+        runBlocking {
+            val søknadId = UUID.randomUUID()
+            LukkSøknadInputHandler.handle(
+                body = """
+                    {
+                        "type":"AVVIST",
+                        "brevInfo": {
+                            "typeBrev":"FJAS",
+                            "fritekst":"kanskje"
+                        }
+                    }
+                """.trimIndent(),
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+            ) shouldBe UgyldigLukkSøknadRequest.left()
         }
     }
 
