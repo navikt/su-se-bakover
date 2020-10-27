@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class BehandlingsinformasjonJson(
@@ -13,7 +15,8 @@ data class BehandlingsinformasjonJson(
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
     val bosituasjon: BosituasjonJson? = null,
-    val utledetSats: Sats? = null
+    val utledetSats: Sats? = null,
+    val ektefelle: EktefelleJson? = null
 ) {
     companion object {
         fun Behandlingsinformasjon.toJson() =
@@ -26,7 +29,8 @@ data class BehandlingsinformasjonJson(
                 formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
                 bosituasjon = bosituasjon?.toJson(),
-                utledetSats = bosituasjon?.utledSats()
+                utledetSats = bosituasjon?.utledSats(),
+                ektefelle = ektefelle?.toJson(),
             )
     }
 }
@@ -39,7 +43,8 @@ fun BehandlingsinformasjonJson.isValid() =
         oppholdIUtlandet?.isValid() ?: true &&
         formue?.isValid() ?: true &&
         personligOppmøte?.isValid() ?: true &&
-        bosituasjon?.isValid() ?: true
+        bosituasjon?.isValid() ?: true &&
+        ektefelle?.isValid() ?: true
 
 internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     Behandlingsinformasjon(
@@ -101,6 +106,9 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 ektemakeEllerSamboerUførFlyktning = s.ektemakeEllerSamboerUførFlyktning,
                 begrunnelse = s.begrunnelse
             )
+        },
+        ektefelle = b.ektefelle?.let { e ->
+            if (e.fnr != null) EktefellePartnerSamboer.Ektefelle(e.fnr) else EktefellePartnerSamboer.IngenEktefelle
         }
     )
 
@@ -163,6 +171,11 @@ internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
         begrunnelse = begrunnelse
     )
 
+internal fun EktefellePartnerSamboer.toJson() = when (this) {
+    is EktefellePartnerSamboer.Ektefelle -> EktefelleJson(fnr = this.fnr)
+    is EktefellePartnerSamboer.IngenEktefelle -> EktefelleJson(fnr = null)
+}
+
 inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
 internal fun UførhetJson.isValid() =
@@ -181,6 +194,7 @@ internal fun FormueJson.isValid() =
     enumContains<Behandlingsinformasjon.Formue.Status>(status)
 internal fun FastOppholdINorgeJson.isValid() =
     enumContains<Behandlingsinformasjon.FastOppholdINorge.Status>(status)
+internal fun EktefelleJson.isValid() = true
 
 data class UførhetJson(
     val status: String,
@@ -232,3 +246,5 @@ data class BosituasjonJson(
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
     val begrunnelse: String?
 )
+
+data class EktefelleJson(val fnr: Fnr?)
