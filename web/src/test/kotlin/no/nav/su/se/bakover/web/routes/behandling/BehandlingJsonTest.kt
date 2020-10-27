@@ -51,13 +51,24 @@ internal class BehandlingJsonTest {
                 ),
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                    verdiIkkePrimærbolig = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
+                    verdier = Behandlingsinformasjon.Formue.Verdier(
+                        verdiIkkePrimærbolig = 0,
+                        verdiKjøretøy = 0,
+                        innskudd = 0,
+                        verdipapir = 0,
+                        pengerSkyldt = 0,
+                        kontanter = 0,
+                        depositumskonto = 0
+                    ),
+                    ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+                        verdiIkkePrimærbolig = 0,
+                        verdiKjøretøy = 0,
+                        innskudd = 0,
+                        verdipapir = 0,
+                        pengerSkyldt = 0,
+                        kontanter = 0,
+                        depositumskonto = 0
+                    ),
                     begrunnelse = null
                 ),
                 personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
@@ -113,13 +124,24 @@ internal class BehandlingJsonTest {
                 },
                 "formue": {
                     "status": "VilkårOppfylt",
-                    "verdiIkkePrimærbolig": 0,
-                    "verdiKjøretøy": 0,
-                    "innskudd": 0,
-                    "verdipapir": 0,
-                    "pengerSkyldt": 0,
-                    "kontanter": 0,
-                    "depositumskonto": 0,
+                    "verdier": {
+                        "verdiIkkePrimærbolig": 0,
+                        "verdiKjøretøy": 0,
+                        "innskudd": 0,
+                        "verdipapir": 0,
+                        "pengerSkyldt": 0,
+                        "kontanter": 0,
+                        "depositumskonto": 0
+                    },
+                    "ektefellesVerdier": {
+                        "verdiIkkePrimærbolig": 0,
+                        "verdiKjøretøy": 0,
+                        "innskudd": 0,
+                        "verdipapir": 0,
+                        "pengerSkyldt": 0,
+                        "kontanter": 0,
+                        "depositumskonto": 0
+                    },
                     "begrunnelse": null
                 },
                 "personligOppmøte": {

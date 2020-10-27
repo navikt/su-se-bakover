@@ -29,13 +29,24 @@ internal class BehandlingsinformasjonTest {
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdiIkkePrimærbolig = null,
-            verdiKjøretøy = null,
-            innskudd = null,
-            verdipapir = null,
-            pengerSkyldt = null,
-            kontanter = null,
-            depositumskonto = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = null,
+                verdiKjøretøy = null,
+                innskudd = null,
+                verdipapir = null,
+                pengerSkyldt = null,
+                kontanter = null,
+                depositumskonto = null
+            ),
+            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = null,
+                verdiKjøretøy = null,
+                innskudd = null,
+                verdipapir = null,
+                pengerSkyldt = null,
+                kontanter = null,
+                depositumskonto = null,
+            ),
             begrunnelse = null
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(

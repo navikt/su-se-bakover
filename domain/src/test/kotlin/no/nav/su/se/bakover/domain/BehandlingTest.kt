@@ -129,13 +129,16 @@ internal class BehandlingTest {
                 Behandlingsinformasjon(
                     formue = Behandlingsinformasjon.Formue(
                         status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                        verdiIkkePrimærbolig = 52889,
-                        verdiKjøretøy = 8823,
-                        innskudd = 3291,
-                        verdipapir = 291,
-                        pengerSkyldt = 8921,
-                        kontanter = 49,
-                        depositumskonto = 315177,
+                        verdier = Behandlingsinformasjon.Formue.Verdier(
+                            verdiIkkePrimærbolig = 52889,
+                            verdiKjøretøy = 8823,
+                            innskudd = 3291,
+                            verdipapir = 291,
+                            pengerSkyldt = 8921,
+                            kontanter = 49,
+                            depositumskonto = 315177
+                        ),
+                        ektefellesVerdier = null,
                         begrunnelse = null
                     )
                 )
