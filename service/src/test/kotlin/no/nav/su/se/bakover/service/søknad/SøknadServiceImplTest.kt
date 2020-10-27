@@ -99,7 +99,7 @@ internal class SøknadServiceImplTest {
             on {
                 lukkSøknad(
                     søknad.id,
-                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.BORTFALT)
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn true
@@ -110,7 +110,12 @@ internal class SøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).lukkSøknad(
+            LukkSøknadRequest.BortfaltSøknad(
+                søknadId = søknad.id,
+                saksbehandler = saksbehandler
+            )
+        ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
     }
 
     @Test

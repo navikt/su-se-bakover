@@ -29,6 +29,15 @@ sealed class LukketJson {
             require(type == Søknad.LukketType.BORTFALT)
         }
     }
+
+    data class AvvistJson(
+        override val type: Søknad.LukketType,
+        val sendBrev: Boolean
+    ) : LukketJson() {
+        init {
+            require(type == Søknad.LukketType.AVVIST)
+        }
+    }
 }
 
 object LukkSøknadInputHandler {
@@ -51,20 +60,26 @@ object LukkSøknadInputHandler {
                 søknadId = søknadId,
                 saksbehandler = saksbehandler,
                 trukketDato = bodyAsJson.datoSøkerTrakkSøknad
-            ).right()
+            )
 
             is LukketJson.BortfaltJson -> LukkSøknadRequest.BortfaltSøknad(
                 søknadId = søknadId,
                 saksbehandler = saksbehandler
-            ).right()
-        }
+            )
+            is LukketJson.AvvistJson -> LukkSøknadRequest.AvvistSøknad(
+                søknadId = søknadId,
+                saksbehandler = saksbehandler,
+                sendBrev = bodyAsJson.sendBrev
+            )
+        }.right()
     }
 }
 
 suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson>? {
     val trukketJson = deserializeLukketSøknadRequest<LukketJson.TrukketJson>(body)
     val bortfalt = deserializeLukketSøknadRequest<LukketJson.BortfaltJson>(body)
-    return listOf(trukketJson, bortfalt).singleOrNull { it.isRight() }
+    val avvist = deserializeLukketSøknadRequest<LukketJson.AvvistJson>(body)
+    return listOf(trukketJson, bortfalt, avvist).singleOrNull { it.isRight() }
 }
 
 suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =

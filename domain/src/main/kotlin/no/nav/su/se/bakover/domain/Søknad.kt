@@ -19,6 +19,7 @@ data class Søknad(
 
     enum class LukketType(val value: String) {
         TRUKKET("TRUKKET"),
-        BORTFALT("BORTFALT")
+        BORTFALT("BORTFALT"),
+        AVVIST("AVVIST")
     }
 }

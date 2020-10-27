@@ -18,4 +18,10 @@ sealed class LukkSøknadRequest {
         override val søknadId: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler
     ) : LukkSøknadRequest()
+
+    data class AvvistSøknad(
+        override val søknadId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        val sendBrev: Boolean
+    ) : LukkSøknadRequest()
 }

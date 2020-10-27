@@ -76,6 +76,27 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
+    fun `godtar fullstendige requester for avviste søknad`() {
+        runBlocking {
+            val søknadId = UUID.randomUUID()
+            LukkSøknadInputHandler.handle(
+                body = """
+                    {
+                        "type":"AVVIST",
+                        "sendBrev": true
+                    }
+                """.trimIndent(),
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+            ) shouldBe LukkSøknadRequest.AvvistSøknad(
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
+                sendBrev = true
+            ).right()
+        }
+    }
+
+    @Test
     fun `instansiering av input json fungerer bare med korrekt type`() {
         assertThrows<IllegalArgumentException> {
             LukketJson.TrukketJson(

@@ -151,6 +151,7 @@ internal class SøknadServiceImpl(
                 return when (request) {
                     is LukkSøknadRequest.TrekkSøknad -> trekkSøknad(request, it)
                     is LukkSøknadRequest.BortfaltSøknad -> bortfaltSøknad(request, it)
+                    is LukkSøknadRequest.AvvistSøknad -> avvistSøknad(request, it)
                 }
             }
     }
@@ -167,18 +168,34 @@ internal class SøknadServiceImpl(
         return søknad.right()
     }
 
-    private fun bortfaltSøknad(
-        request: LukkSøknadRequest.BortfaltSøknad,
+    private fun avvistSøknad(
+        request: LukkSøknadRequest.AvvistSøknad,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
+        lagreLukketSøknad(request)
+        return sakService.hentSak(søknad.sakId).orNull()!!.right()
+    }
+
+    private fun lagreLukketSøknad(request: LukkSøknadRequest) {
         søknadRepo.lukkSøknad(
             søknadId = request.søknadId,
             lukket = Søknad.Lukket(
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = request.saksbehandler.navIdent,
-                type = Søknad.LukketType.BORTFALT
+                type = when (request) {
+                    is LukkSøknadRequest.TrekkSøknad -> Søknad.LukketType.TRUKKET
+                    is LukkSøknadRequest.BortfaltSøknad -> Søknad.LukketType.BORTFALT
+                    is LukkSøknadRequest.AvvistSøknad -> Søknad.LukketType.AVVIST
+                }
             )
         )
+    }
+
+    private fun bortfaltSøknad(
+        request: LukkSøknadRequest.BortfaltSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        lagreLukketSøknad(request)
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
@@ -188,6 +205,7 @@ internal class SøknadServiceImpl(
         return when (request) {
             is LukkSøknadRequest.TrekkSøknad -> brevutkastForTrukketSøknad(request)
             is LukkSøknadRequest.BortfaltSøknad -> KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+            is LukkSøknadRequest.AvvistSøknad -> throw RuntimeException("NYI")
         }
     }
 
@@ -211,14 +229,7 @@ internal class SøknadServiceImpl(
             { return KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev.left() },
             {
                 log.info("$loggtema: bestillings id $it for søknad ${søknad.id}")
-                søknadRepo.lukkSøknad(
-                    søknadId = request.søknadId,
-                    lukket = Søknad.Lukket(
-                        tidspunkt = Tidspunkt.now(),
-                        saksbehandler = request.saksbehandler.navIdent,
-                        type = Søknad.LukketType.TRUKKET
-                    )
-                )
+                lagreLukketSøknad(request)
             }
         )
 
