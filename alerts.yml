@@ -12,15 +12,20 @@ spec:
       prependText: 'alerts.yml: '
   alerts:
     - alert: su-se-bakover-applikasjon-nede
-      expr: up{app="su-se-bakover", job="kubernetes-pods"} == 0
+      expr: sum(up{app="su-se-bakover", job="kubernetes-pods"}) < 2
       for: 1m
       description: "App {{ $labels.app }} er nede i namespace {{ $labels.kubernetes_namespace }}"
       action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
     - alert: su-se-bakover-error-logg
-      expr: 'sum(max_over_time(logd_messages_total{log_app=“su-se-bakover”,log_level=“Error”}[15m])
+      expr: 'sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m])
               or vector(0)) -
-             sum(max_over_time(logd_messages_total{log_app=“su-se-bakover”,log_level=“Error”}[15m]
+             sum(max_over_time(logd_messages_total{log_app="su-se-bakover",log_level="Error"}[15m]
              offset 15m) or vector(0)) > 0'
       for: 1s
       description: "App {{ $labels.app }}  har en error loggmelding siste 5 min"
       action: "Det er logget en melding i kibana. Sjekk logger her : `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
+    - alert: su-se-bakover-ny-søknad-feilet
+      expr: '(2 * sum(ny_soknad_counter_total{type="PERSISTERT"}) - sum(ny_soknad_counter_total{type="OPPGAVE"}) - sum(ny_soknad_counter_total{type="JOURNALFØRT"})) > 0'
+      for: 1m
+      description: "Vi har sannsynligvis ikke klart å journalføre / lage oppgave for ny søknad."
+      action: "`Se: `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"

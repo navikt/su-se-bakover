@@ -78,6 +78,7 @@ internal fun Route.behandlingRoutes(
                                 )
                             )
                         } else {
+                            // TODO (CHM): Her burde vi prøve å logge ut hvilken del av body som ikke er gyldig
                             call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
                         }
                     }
