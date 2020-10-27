@@ -71,8 +71,7 @@ internal class BehandlingJsonTest {
                     ektemakeEllerSamboerUførFlyktning = false,
                     begrunnelse = null
                 ),
-                ektefelle = Behandlingsinformasjon.Ektefelle(
-                    harEktefellePartnerSamboer = true,
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
                     fnr = Fnr("17087524256")
                 )
             ),
@@ -135,7 +134,6 @@ internal class BehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "ektefelle": {
-                  "harEktefellePartnerSamboer": true,
                   "fnr": "17087524256"
                 },
                 "utledetSats": "HØY"

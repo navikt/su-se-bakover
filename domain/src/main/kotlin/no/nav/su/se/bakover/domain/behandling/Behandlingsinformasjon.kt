@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -15,7 +17,7 @@ data class Behandlingsinformasjon(
     val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
     val bosituasjon: Bosituasjon? = null,
-    val ektefelle: Ektefelle? = null,
+    val ektefelle: EktefellePartnerSamboer? = null,
 ) {
     fun patch(
         b: Behandlingsinformasjon
@@ -53,7 +55,6 @@ data class Behandlingsinformasjon(
             oppholdIUtlandet?.erVilkårOppfylt(),
             formue?.erVilkårOppfylt(),
             personligOppmøte?.erVilkårOppfylt(),
-            ektefelle?.erVilkårOppfylt()
         ).all { it ?: false }
 
     fun erAvslag() = erFerdigbehandlet() && !erInnvilget()
@@ -285,19 +286,23 @@ data class Behandlingsinformasjon(
         override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
-    data class Ektefelle(val harEktefellePartnerSamboer: Boolean, val fnr: Fnr?) : Base() {
-        override fun erGyldig(): Boolean {
-            if (harEktefellePartnerSamboer) {
-                return fnr != null
-            }
-            return true
-        }
-
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = EktefellePartnerSamboer.Ektefelle::class, name = "Ektefelle"),
+        JsonSubTypes.Type(value = EktefellePartnerSamboer.IngenEktefelle::class, name = "IngenEktefelle"),
+    )
+    sealed class EktefellePartnerSamboer : Base() {
+        override fun erGyldig() = true
         override fun erFerdigbehandlet() = true
-        override fun erVilkårOppfylt() =
-            if (harEktefellePartnerSamboer) fnr != null else true
+        override fun erVilkårOppfylt() = true
+        override fun avslagsgrunn(): Avslagsgrunn? = null
 
-        override fun avslagsgrunn() = null
+        data class Ektefelle(val fnr: Fnr) : EktefellePartnerSamboer()
+        object IngenEktefelle : EktefellePartnerSamboer()
     }
 
     companion object {

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class BehandlingsinformasjonJson(
@@ -107,10 +108,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             )
         },
         ektefelle = b.ektefelle?.let { e ->
-            Behandlingsinformasjon.Ektefelle(
-                harEktefellePartnerSamboer = e.harEktefellePartnerSamboer,
-                fnr = e.fnr
-            )
+            if (e.fnr != null) EktefellePartnerSamboer.Ektefelle(e.fnr) else EktefellePartnerSamboer.IngenEktefelle
         }
     )
 
@@ -173,11 +171,10 @@ internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.Ektefelle.toJson() =
-    EktefelleJson(
-        harEktefellePartnerSamboer = harEktefellePartnerSamboer,
-        fnr = fnr
-    )
+internal fun EktefellePartnerSamboer.toJson() = when (this) {
+    is EktefellePartnerSamboer.Ektefelle -> EktefelleJson(fnr = this.fnr)
+    is EktefellePartnerSamboer.IngenEktefelle -> EktefelleJson(fnr = null)
+}
 
 inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
@@ -197,8 +194,7 @@ internal fun FormueJson.isValid() =
     enumContains<Behandlingsinformasjon.Formue.Status>(status)
 internal fun FastOppholdINorgeJson.isValid() =
     enumContains<Behandlingsinformasjon.FastOppholdINorge.Status>(status)
-internal fun EktefelleJson.isValid() =
-    if (harEktefellePartnerSamboer) fnr != null else true
+internal fun EktefelleJson.isValid() = true
 
 data class UførhetJson(
     val status: String,
@@ -251,4 +247,4 @@ data class BosituasjonJson(
     val begrunnelse: String?
 )
 
-data class EktefelleJson(val harEktefellePartnerSamboer: Boolean, val fnr: Fnr?)
+data class EktefelleJson(val fnr: Fnr?)

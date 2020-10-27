@@ -52,7 +52,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
             begrunnelse = bosituasjon?.begrunnelse
         ),
-        ektefelle = Behandlingsinformasjon.Ektefelle(harEktefellePartnerSamboer = false, fnr = null)
+        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
     )
 
 fun Behandlingsinformasjon.withVilkårAvslått() =
