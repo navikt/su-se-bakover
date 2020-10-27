@@ -5,32 +5,28 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import java.time.LocalDate
 import java.util.UUID
 
-enum class LukketType {
-    TRUKKET,
-    BORTFALT
-}
-
 sealed class LukketJson {
-    abstract val type: LukketType
+    abstract val type: Søknad.LukketType
 
     data class TrukketJson(
-        override val type: LukketType,
+        override val type: Søknad.LukketType,
         val datoSøkerTrakkSøknad: LocalDate
     ) : LukketJson() {
         init {
-            require(type == LukketType.TRUKKET)
+            require(type == Søknad.LukketType.TRUKKET)
         }
     }
 
     data class BortfaltJson(
-        override val type: LukketType
+        override val type: Søknad.LukketType
     ) : LukketJson() {
         init {
-            require(type == LukketType.BORTFALT)
+            require(type == Søknad.LukketType.BORTFALT)
         }
     }
 }

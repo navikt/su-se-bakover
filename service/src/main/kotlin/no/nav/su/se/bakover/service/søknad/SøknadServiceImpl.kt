@@ -173,9 +173,10 @@ internal class SøknadServiceImpl(
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         søknadRepo.lukkSøknad(
             søknadId = request.søknadId,
-            lukket = Søknad.Lukket.Bortfalt(
+            lukket = Søknad.Lukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = request.saksbehandler
+                saksbehandler = request.saksbehandler.navIdent,
+                type = Søknad.LukketType.BORTFALT
             )
         )
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
@@ -212,9 +213,10 @@ internal class SøknadServiceImpl(
                 log.info("$loggtema: bestillings id $it for søknad ${søknad.id}")
                 søknadRepo.lukkSøknad(
                     søknadId = request.søknadId,
-                    lukket = Søknad.Lukket.Trukket(
+                    lukket = Søknad.Lukket(
                         tidspunkt = Tidspunkt.now(),
-                        saksbehandler = request.saksbehandler
+                        saksbehandler = request.saksbehandler.navIdent,
+                        type = Søknad.LukketType.TRUKKET
                     )
                 )
             }

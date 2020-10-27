@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.se.bakover.database.søknad.LukketSøknadJson
-import no.nav.su.se.bakover.database.søknad.LukketSøknadJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import java.time.format.DateTimeFormatter
@@ -10,7 +8,13 @@ internal data class SøknadJson(
     val id: String,
     val søknadInnhold: SøknadInnholdJson,
     val opprettet: String,
-    val lukket: LukketSøknadJson?
+    val lukket: LukketJson?
+)
+
+data class LukketJson(
+    val tidspunkt: String,
+    val saksbehandler: String,
+    val type: String
 )
 
 internal fun Søknad.toJson() = SøknadJson(
@@ -18,4 +22,10 @@ internal fun Søknad.toJson() = SøknadJson(
     søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     lukket = lukket?.toJson()
+)
+
+internal fun Søknad.Lukket.toJson() = LukketJson(
+    tidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunkt),
+    saksbehandler = saksbehandler.toString(),
+    type = type.value
 )

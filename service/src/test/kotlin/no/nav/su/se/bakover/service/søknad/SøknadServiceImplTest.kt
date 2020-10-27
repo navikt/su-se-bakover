@@ -63,7 +63,12 @@ internal class SøknadServiceImplTest {
     fun `trekker en søknad`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -91,7 +96,12 @@ internal class SøknadServiceImplTest {
     fun `en søknad med behandling skal ikke bli trukket`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknadId = søknad.id) } doReturn søknad
-            on { lukkSøknad(søknad.id, Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler)) }.doNothing()
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                )
+            }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn true
         }
         val sakServiceMock = mock<SakService> {
@@ -110,9 +120,10 @@ internal class SøknadServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            lukket = Søknad.Lukket.Trukket(
+            lukket = Søknad.Lukket(
                 tidspunkt = Tidspunkt.now(),
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler.navIdent,
+                type = Søknad.LukketType.TRUKKET
             )
         )
         val trekkSøknadRequest = trekkSøknadRequest.copy(
@@ -124,7 +135,7 @@ internal class SøknadServiceImplTest {
             on {
                 lukkSøknad(
                     søknad.id,
-                    Søknad.Lukket.Trukket(tidspunkt = now(), saksbehandler = saksbehandler)
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler = saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false

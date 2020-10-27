@@ -6,8 +6,10 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class LukkSøknadInputHandlerTest {
@@ -70,6 +72,19 @@ internal class LukkSøknadInputHandlerTest {
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123")
             ).right()
+        }
+    }
+
+    @Test
+    fun `instansiering av input json fungerer bare med korrekt type`() {
+        assertThrows<IllegalArgumentException> {
+            LukketJson.TrukketJson(
+                type = Søknad.LukketType.BORTFALT,
+                datoSøkerTrakkSøknad = 1.oktober(2020)
+            )
+        }
+        assertThrows<IllegalArgumentException> {
+            LukketJson.BortfaltJson(type = Søknad.LukketType.TRUKKET)
         }
     }
 }

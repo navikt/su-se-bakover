@@ -63,14 +63,19 @@ internal class SøknadPostgresRepoTest {
             val saksbehandler = Saksbehandler("Z993156")
             repo.lukkSøknad(
                 søknadId = nySak.søknad.id,
-                lukket = Søknad.Lukket.Trukket(
+                lukket = Søknad.Lukket(
                     tidspunkt = Tidspunkt.now(),
-                    saksbehandler = saksbehandler
+                    saksbehandler = saksbehandler.navIdent,
+                    type = Søknad.LukketType.TRUKKET
                 )
             )
             val hentetSøknad = repo.hentSøknad(nySak.søknad.id)
             hentetSøknad!!.id shouldBe nySak.søknad.id
-            hentetSøknad.lukket shouldBe Søknad.Lukket.Trukket(hentetSøknad.lukket!!.tidspunkt, saksbehandler)
+            hentetSøknad.lukket shouldBe Søknad.Lukket(
+                hentetSøknad.lukket!!.tidspunkt,
+                saksbehandler.navIdent,
+                Søknad.LukketType.TRUKKET
+            )
         }
     }
 

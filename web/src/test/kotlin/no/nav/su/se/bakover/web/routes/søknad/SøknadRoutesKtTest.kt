@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
@@ -60,7 +61,6 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
-import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketType
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
@@ -247,7 +247,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = LukketType.TRUKKET
+                            type = Søknad.LukketType.TRUKKET
                         )
                     )
                 )
@@ -288,7 +288,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = LukketType.TRUKKET
+                            type = Søknad.LukketType.TRUKKET
                         )
                     )
                 )
@@ -329,7 +329,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = LukketType.TRUKKET
+                            type = Søknad.LukketType.TRUKKET
                         )
                     )
                 )

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import java.util.UUID
 
 data class Søknad(
@@ -12,18 +11,14 @@ data class Søknad(
     val søknadInnhold: SøknadInnhold,
     val lukket: Lukket? = null,
 ) {
-    sealed class Lukket {
-        abstract val tidspunkt: Tidspunkt
-        abstract val saksbehandler: Saksbehandler
+    data class Lukket(
+        val tidspunkt: Tidspunkt,
+        val saksbehandler: String,
+        val type: LukketType,
+    )
 
-        data class Trukket(
-            override val tidspunkt: Tidspunkt,
-            override val saksbehandler: Saksbehandler
-        ) : Lukket()
-
-        data class Bortfalt(
-            override val tidspunkt: Tidspunkt,
-            override val saksbehandler: Saksbehandler
-        ) : Lukket()
+    enum class LukketType(val value: String) {
+        TRUKKET("TRUKKET"),
+        BORTFALT("BORTFALT")
     }
 }
