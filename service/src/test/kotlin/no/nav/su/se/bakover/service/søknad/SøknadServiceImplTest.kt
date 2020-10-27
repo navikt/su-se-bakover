@@ -170,6 +170,21 @@ internal class SøknadServiceImplTest {
         ).lagBrevutkastForLukketSøknad(trekkSøknadRequest) shouldBe pdf.right()
     }
 
+    @Test
+    fun `svarer med ukjentBrevType når det ikke skal lages brev`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(søknad.id) } doReturn søknad
+        }
+        createSøknadServiceImpl(
+            søknadRepo = søknadRepoMock
+        ).lagBrevutkastForLukketSøknad(
+            LukkSøknadRequest.BortfaltSøknad(
+                søknadId = søknad.id,
+                saksbehandler = saksbehandler
+            )
+        ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+    }
+
     private fun createSøknadServiceImpl(
         søknadRepo: SøknadRepo = mock(),
         sakService: SakService = mock(),

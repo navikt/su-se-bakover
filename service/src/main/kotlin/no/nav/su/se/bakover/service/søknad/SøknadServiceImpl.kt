@@ -156,6 +156,24 @@ internal class SøknadServiceImpl(
             }
     }
 
+    override fun lagBrevutkastForLukketSøknad(
+        request: LukkSøknadRequest
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        return hentSøknad(request.søknadId).mapLeft {
+            KunneIkkeLageBrevutkast.FantIkkeSøknad
+        }.flatMap {
+            val brevRequest = when (request) {
+                is LukkSøknadRequest.TrekkSøknad -> LagBrevRequest.TrukketSøknad(it, request.trukketDato)
+                is LukkSøknadRequest.BortfaltSøknad -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+                is LukkSøknadRequest.AvvistSøknad -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+            }
+            brevService.lagBrev(brevRequest)
+                .mapLeft {
+                    KunneIkkeLageBrevutkast.KunneIkkeLageBrev
+                }
+        }
+    }
+
     private fun sjekkOmSøknadKanLukkes(søknad: Søknad): Either<KunneIkkeLukkeSøknad, Søknad> {
         if (søknad.lukket != null) {
             log.info("Prøver å lukke en allerede trukket søknad")
@@ -199,16 +217,6 @@ internal class SøknadServiceImpl(
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
-    override fun lagBrevutkastForLukketSøknad(
-        request: LukkSøknadRequest
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        return when (request) {
-            is LukkSøknadRequest.TrekkSøknad -> brevutkastForTrukketSøknad(request)
-            is LukkSøknadRequest.BortfaltSøknad -> KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-            is LukkSøknadRequest.AvvistSøknad -> throw RuntimeException("NYI")
-        }
-    }
-
     private fun trekkSøknad(
         request: LukkSøknadRequest.TrekkSøknad,
         søknad: Søknad
@@ -232,21 +240,6 @@ internal class SøknadServiceImpl(
                 lagreLukketSøknad(request)
             }
         )
-
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
-
-    private fun brevutkastForTrukketSøknad(request: LukkSøknadRequest.TrekkSøknad): Either<KunneIkkeLageBrevutkast, ByteArray> =
-        hentSøknad(request.søknadId).mapLeft {
-            KunneIkkeLageBrevutkast.FantIkkeSøknad
-        }.flatMap {
-            brevService.lagBrev(
-                LagBrevRequest.TrukketSøknad(
-                    søknad = it,
-                    trukketDato = request.trukketDato
-                )
-            ).mapLeft {
-                KunneIkkeLageBrevutkast.KunneIkkeLageBrev
-            }
-        }
 }
