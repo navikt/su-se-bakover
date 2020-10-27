@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Gauge
+import io.micrometer.core.instrument.Metrics
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -14,6 +17,7 @@ import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentA
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
@@ -153,10 +157,35 @@ data class Behandling(
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
+        // Ønsker å kunne vise hvor mange behandlinger vi har i de forskjellige tilstandene. Ved restart kan gaugen bli negativ, men dersom man klarer å summe de vil vi kanskje få lurt det til.
+        incrementStatusGauge(target.status)
+        decrementStatusGauge(status)
+        incrementStatusCounter(target.status)
         status = target.status
         tilstand = resolve(status)
         return tilstand
     }
+
+    private val behandlingstatuserGauge = BehandlingsStatus.values().map {
+        it to AtomicInteger(0)
+    }.toMap()
+
+    private fun incrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("førstegangsbehandling_gauge") {
+        behandlingstatuserGauge.getValue(status).incrementAndGet()
+    }
+        .tag("type", status.name)
+        .register(Metrics.globalRegistry)
+
+    private fun decrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("førstegangsbehandling_gauge") {
+        behandlingstatuserGauge.getValue(status).decrementAndGet()
+    }
+        .tag("type", status.name)
+        .register(Metrics.globalRegistry)
+
+    private fun incrementStatusCounter(status: BehandlingsStatus) = Counter.builder("førstegangsbehandling")
+        .tag("type", status.name)
+        .register(Metrics.globalRegistry)
+        .increment()
 
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -320,11 +349,16 @@ data class Behandling(
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return KunneIkkeUnderkjenne().left()
             }
-
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
             nyTilstand(Simulert())
+            incrementUnderkjentBehandlingCounter()
             return this@Behandling.right()
         }
+
+        /* Underkjent behandling er et eget konsept på utsiden av BehandlingStatus. */
+        private fun incrementUnderkjentBehandlingCounter() = Counter.builder("førstegangsbehandling_underkjent")
+            .register(Metrics.globalRegistry)
+            .increment()
     }
 
     private open inner class Iverksatt : Tilstand {

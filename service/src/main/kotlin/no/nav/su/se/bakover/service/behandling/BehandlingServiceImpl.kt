@@ -19,6 +19,9 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Avslått.incrementAvslåttBehandlingPersistedCounter
+import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Innvilget.incrementInnvilgetBehandlingOppgaveCounter
+import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Innvilget.incrementInnvilgetBehandlingPersistedCounter
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
@@ -42,11 +45,12 @@ internal class BehandlingServiceImpl(
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService
 ) : BehandlingService {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
     }
-
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun underkjenn(
         begrunnelse: String,
@@ -155,52 +159,75 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
             .map { behandling ->
                 return when (behandling.status()) {
-                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> {
-                        behandlingRepo.attester(behandlingId, attestant)
-                        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                        journalførOgDistribuerBrev(
-                            LagBrevRequest.AvslagsVedtak(behandling = behandling),
-                            sakId = behandling.sakId
-                        ).fold({ return it.left() }, { })
-                        behandling.right()
-                    }
-                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                        utbetalingService.utbetal(
-                            behandling.sakId,
-                            attestant,
-                            behandling.beregning()!!,
-                            behandling.simulering()!!
-                        ).mapLeft {
-                            when (it) {
-                                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                                KunneIkkeUtbetale.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
-                                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
-                            }
-                        }.map { oversendtUtbetaling ->
-                            behandlingRepo.leggTilUtbetaling(
-                                behandlingId = behandlingId,
-                                utbetalingId = oversendtUtbetaling.id
-
-                            )
-                            behandlingRepo.attester(behandlingId, attestant)
-                            behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-
-                            lukkAttesteringsoppgave(behandling)
-
-                            journalførOgDistribuerBrev(
-                                LagBrevRequest.InnvilgetVedtak(behandling = behandling),
-                                sakId = behandling.sakId
-                            ).fold({ return it.left() }, { })
-
-                            behandling
-                        }
-                    }
+                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
+                        behandlingId = behandlingId,
+                        attestant = attestant,
+                        behandling = behandling
+                    )
+                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
+                        behandling = behandling,
+                        attestant = attestant,
+                        behandlingId = behandlingId
+                    )
                     else -> throw Behandling.TilstandException(
                         state = behandling.status(),
                         operation = behandling::iverksett.toString()
                     )
                 }
             }
+    }
+
+    private fun iverksettAvslag(
+        behandlingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+        behandling: Behandling
+    ): Either<Behandling.IverksettFeil, Behandling> {
+
+        behandlingRepo.attester(behandlingId, attestant)
+        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+        incrementAvslåttBehandlingPersistedCounter()
+
+        return journalførOgDistribuerBrev(
+            request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
+            sakId = behandling.sakId,
+            incrementJournalførtCounter = BehandlingMetrics.Avslått::incrementAvslåttBehandlingJournalførtCounter,
+            incrementDistribuertBrevCounter = BehandlingMetrics.Avslått::incrementAvslåttBehandlingDistribuertBrevCounter
+        ).map { behandling }
+    }
+
+    private fun iverksettInnvilgning(
+        behandling: Behandling,
+        attestant: NavIdentBruker.Attestant,
+        behandlingId: UUID
+    ): Either<Behandling.IverksettFeil, Behandling> {
+        return utbetalingService.utbetal(
+            sakId = behandling.sakId,
+            attestant = attestant,
+            beregning = behandling.beregning()!!,
+            simulering = behandling.simulering()!!
+        ).mapLeft {
+            when (it) {
+                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                KunneIkkeUtbetale.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
+                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
+            }
+        }.flatMap { oversendtUtbetaling ->
+            behandlingRepo.leggTilUtbetaling(
+                behandlingId = behandlingId,
+                utbetalingId = oversendtUtbetaling.id
+            )
+            behandlingRepo.attester(behandlingId, attestant)
+            behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+            incrementInnvilgetBehandlingPersistedCounter()
+            lukkAttesteringsoppgave(behandling)
+
+            journalførOgDistribuerBrev(
+                request = LagBrevRequest.InnvilgetVedtak(behandling = behandling),
+                sakId = behandling.sakId,
+                incrementJournalførtCounter = BehandlingMetrics.Innvilget::incrementInnvilgetBehandlingJournalførtCounter,
+                incrementDistribuertBrevCounter = BehandlingMetrics.Innvilget::incrementInnvilgetBehandlingDistribuertBrevCounter
+            ).map { behandling }
+        }
     }
 
     private fun lukkAttesteringsoppgave(behandling: Behandling) {
@@ -211,21 +238,29 @@ internal class BehandlingServiceImpl(
             { aktørId ->
                 oppgaveClient.ferdigstillAttesteringsoppgave(
                     aktørId = aktørId
-                )
+                ).map {
+                    incrementInnvilgetBehandlingOppgaveCounter()
+                }
             }
         )
     }
 
     private fun journalførOgDistribuerBrev(
         request: LagBrevRequest,
-        sakId: UUID
+        sakId: UUID,
+        incrementJournalførtCounter: () -> Unit,
+        incrementDistribuertBrevCounter: () -> Unit,
     ): Either<Behandling.IverksettFeil, Unit> =
         brevService.journalførBrev(request, sakId)
             .mapLeft { Behandling.IverksettFeil.KunneIkkeJournalføreBrev }
             .flatMap {
+                incrementJournalførtCounter()
                 brevService.distribuerBrev(it)
                     .mapLeft { Behandling.IverksettFeil.KunneIkkeDistribuereBrev }
-                    .map { Unit }
+                    .map {
+                        incrementDistribuertBrevCounter()
+                        Unit
+                    }
             }
 
     // TODO need to define responsibilities for domain and services.

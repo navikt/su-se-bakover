@@ -197,11 +197,16 @@ internal class BehandlingServiceImplTest {
             on { aktørId(any()) } doReturn AktørId("12345").right()
         }
 
+        val oppgaveClientMock: OppgaveClient = mock {
+            on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
+        }
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             personOppslag = personOppslagMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            oppgaveClient = oppgaveClientMock,
         ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.IverksettFeil.KunneIkkeDistribuereBrev.left()
@@ -235,11 +240,17 @@ internal class BehandlingServiceImplTest {
             on { aktørId(any()) } doReturn AktørId("12345").right()
         }
 
+        val oppgaveClientMock: OppgaveClient = mock {
+            // TODO jah: Trekk ut dette til en OppgaveService i egen PR og mock OppgaveService istedet. Legg da på verifisering
+            on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
+        }
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             personOppslag = personOppslagMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            oppgaveClient = oppgaveClientMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
