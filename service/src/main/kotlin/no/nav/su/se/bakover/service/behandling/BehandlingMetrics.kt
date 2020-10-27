@@ -28,6 +28,14 @@ object BehandlingMetrics {
             incrementCounter(metricName, "DISTRIBUERT_BREV")
     }
 
+    object TilAttestering {
+        private const val metricName = "førstegangsbehandling_til_attestering"
+
+        internal fun incrementPersistedBehandlingTilAttesteringCounter(): Unit = incrementCounter(metricName, "PERSISTERT")
+
+        internal fun incrementOppgaveForBehandlingTilAttesteringCounter(): Unit = incrementCounter(metricName, "OPPGAVE")
+    }
+
     private fun incrementCounter(metricName: String, type: String) {
         Counter.builder(metricName)
             .tag("type", type)

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -14,7 +13,6 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
@@ -22,12 +20,12 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.lesFnr
-import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
+import no.nav.su.se.bakover.web.withSakId
 
 internal const val sakPath = "/saker"
 
@@ -51,8 +49,13 @@ internal fun Route.sakRoutes(
     }
 
     get("$sakPath/{sakId}") {
-        call.withSak(sakService) {
-            call.svar(Resultat.json(OK, serialize((it.toJson()))))
+        call.withSakId { sakId ->
+            call.svar(
+                sakService.hentSak(sakId).fold(
+                    { NotFound.message("Fant ikke sak med id: $sakId") },
+                    { Resultat.json(OK, serialize((it.toJson()))) }
+                )
+            )
         }
     }
 
@@ -60,37 +63,23 @@ internal fun Route.sakRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
-            call.withSak(sakService) { sak ->
+            call.withSakId { sakId ->
                 Either.catch { deserialize<OpprettBehandlingBody>(call) }
                     .flatMap { it.soknadId.toUUID() }
                     .fold(
                         ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
                         ifRight = { søknadId ->
-                            call.audit("Oppretter behandling på sak: ${sak.id} og søknadId: $søknadId")
-                            behandlingService.opprettSøknadsbehandling(sak.id, søknadId)
+                            behandlingService.opprettSøknadsbehandling(søknadId)
                                 .fold(
                                     { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
-                                    { call.svar(HttpStatusCode.Created.jsonBody(it)) }
+                                    {
+                                        call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                        call.svar(HttpStatusCode.Created.jsonBody(it))
+                                    }
                                 )
                         }
                     )
             }
         }
     }
-}
-
-suspend fun ApplicationCall.withSak(sakService: SakService, ifRight: suspend (Sak) -> Unit) {
-    this.lesUUID("sakId").fold(
-        ifLeft = {
-            this.svar(BadRequest.message(it))
-        },
-        ifRight = { sakId ->
-            sakService.hentSak(sakId)
-                .mapLeft { this.svar(NotFound.message("Fant ikke sak med sakId: $sakId")) }
-                .map {
-                    this.audit("Hentet sak med id: $sakId")
-                    ifRight(it)
-                }
-        }
-    )
 }

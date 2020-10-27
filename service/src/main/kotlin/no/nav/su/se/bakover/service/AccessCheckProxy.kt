@@ -193,12 +193,11 @@ class AccessCheckProxy(
                 }
 
                 override fun opprettSøknadsbehandling(
-                    sakId: UUID,
                     søknadId: UUID
                 ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
-                    assertHarTilgangTilSak(sakId)
+                    assertHarTilgangTilSak(søknadId)
 
-                    return services.behandling.opprettSøknadsbehandling(sakId, søknadId)
+                    return services.behandling.opprettSøknadsbehandling(søknadId)
                 }
 
                 override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {

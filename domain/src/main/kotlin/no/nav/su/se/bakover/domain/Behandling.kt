@@ -397,6 +397,7 @@ data class Behandling(
         object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : IverksettFeil()
         object KunneIkkeJournalføreBrev : IverksettFeil()
         object KunneIkkeDistribuereBrev : IverksettFeil()
+        object FantIkkeAktørId : IverksettFeil()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
