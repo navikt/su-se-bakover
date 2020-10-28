@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -90,6 +92,17 @@ internal class SøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock
         ).lukkSøknad(trekkSøknadRequest) shouldBe sak.right()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(søknad.id)
+            verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+            verify(brevServiceMock).journalførBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)), søknad.sakId)
+            verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
+            verify(sakServiceMock).hentSak(søknad.sakId)
+            verifyNoMoreInteractions()
+        }
     }
 
     @Test
@@ -140,7 +153,11 @@ internal class SøknadServiceImplTest {
             on {
                 lukkSøknad(
                     søknad.id,
-                    Søknad.Lukket(tidspunkt = now(), saksbehandler = saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                    Søknad.Lukket(
+                        tidspunkt = now(),
+                        saksbehandler = saksbehandler.navIdent,
+                        type = Søknad.LukketType.TRUKKET
+                    )
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
@@ -183,6 +200,49 @@ internal class SøknadServiceImplTest {
                 saksbehandler = saksbehandler
             )
         ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+    }
+
+    @Test
+    fun `svarer med feilmelding dersom jorunalføring og eller distribusjon av brev feiler`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(søknad.id) } doReturn søknad
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                )
+            }.doNothing()
+            on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(søknad.sakId) } doReturn sak.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on {
+                journalførBrev(
+                    LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)),
+                    sak.id
+                )
+            } doReturn JournalpostId("en id").right()
+
+            on { distribuerBrev(JournalpostId("en id")) } doReturn KunneIkkeDistribuereBrev.left()
+        }
+
+        createSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock
+        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev.left()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(søknad.id)
+            verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+            verify(brevServiceMock).journalførBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)), søknad.sakId)
+            verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
+            verifyNoMoreInteractions()
+        }
     }
 
     private fun createSøknadServiceImpl(

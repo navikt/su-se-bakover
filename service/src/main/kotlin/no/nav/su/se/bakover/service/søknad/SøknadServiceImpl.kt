@@ -165,9 +165,10 @@ internal class SøknadServiceImpl(
             val brevRequest = when (request) {
                 is LukkSøknadRequest.TrekkSøknad -> LagBrevRequest.TrukketSøknad(it, request.trukketDato)
                 is LukkSøknadRequest.BortfaltSøknad -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-                is LukkSøknadRequest.AvvistSøknad -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+                is LukkSøknadRequest.AvvistSøknad.UtenBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
+                is LukkSøknadRequest.AvvistSøknad.MedBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left() // TODO implement
             }
-            brevService.lagBrev(brevRequest)
+            return brevService.lagBrev(brevRequest)
                 .mapLeft {
                     KunneIkkeLageBrevutkast.KunneIkkeLageBrev
                 }
@@ -191,7 +192,52 @@ internal class SøknadServiceImpl(
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         lagreLukketSøknad(request)
+        when (request) {
+            is LukkSøknadRequest.AvvistSøknad.MedBrev -> {
+            } // TODO journalfør og distribuer
+            is LukkSøknadRequest.AvvistSøknad.UtenBrev -> {
+            } // noop
+        }
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
+    }
+
+    private fun bortfaltSøknad(
+        request: LukkSøknadRequest.BortfaltSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        lagreLukketSøknad(request)
+        return sakService.hentSak(søknad.sakId).orNull()!!.right()
+    }
+
+    private fun trekkSøknad(
+        request: LukkSøknadRequest.TrekkSøknad,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Sak> {
+        lagreLukketSøknad(request)
+        return journalførOgDistribuerBrev(
+            request = LagBrevRequest.TrukketSøknad(søknad, request.trukketDato),
+            søknad = søknad
+        ).mapLeft {
+            it
+        }.map {
+            return sakService.hentSak(søknad.sakId).orNull()!!.right()
+        }
+    }
+
+    private fun journalførOgDistribuerBrev(
+        request: LagBrevRequest,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, Unit> {
+        return brevService.journalførBrev(
+            request = request,
+            sakId = søknad.sakId
+        ).mapLeft {
+            KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
+        }.map {
+            return brevService.distribuerBrev(it)
+                .mapLeft { KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev }
+                .map { Unit }
+        }
     }
 
     private fun lagreLukketSøknad(request: LukkSøknadRequest) {
@@ -207,39 +253,5 @@ internal class SøknadServiceImpl(
                 }
             )
         )
-    }
-
-    private fun bortfaltSøknad(
-        request: LukkSøknadRequest.BortfaltSøknad,
-        søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request)
-        return sakService.hentSak(søknad.sakId).orNull()!!.right()
-    }
-
-    private fun trekkSøknad(
-        request: LukkSøknadRequest.TrekkSøknad,
-        søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        val loggtema = "Trekking av søknad"
-        val journalpostId = brevService.journalførBrev(
-            LagBrevRequest.TrukketSøknad(
-                søknad,
-                request.trukketDato
-            ),
-            søknad.sakId
-        ).fold(
-            { return KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left() },
-            { it }
-        )
-
-        brevService.distribuerBrev(journalpostId).fold(
-            { return KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev.left() },
-            {
-                log.info("$loggtema: bestillings id $it for søknad ${søknad.id}")
-                lagreLukketSøknad(request)
-            }
-        )
-        return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 }
