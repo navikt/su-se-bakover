@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.domain.brev.Brevdata
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.Satsgrunn
 
 /**
@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.brev.Satsgrunn
  */
 object VedtakInnholdTestdataBuilder {
 
-    fun build(): Brevdata = Brevdata.InnvilgetVedtak(
-        personalia = Brevdata.Personalia(
+    fun build(): BrevInnhold = BrevInnhold.InnvilgetVedtak(
+        personalia = BrevInnhold.Personalia(
             dato = "01.01.2020",
             fødselsnummer = Fnr("12345678901"),
             fornavn = "Tore",

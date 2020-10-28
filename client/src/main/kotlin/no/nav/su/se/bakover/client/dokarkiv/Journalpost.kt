@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.dokarkiv
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.brev.Brevdata
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import java.util.Base64
 
 sealed class Journalpost {
@@ -56,10 +56,10 @@ sealed class Journalpost {
     data class Vedtakspost(
         val person: Person,
         val sakId: String,
-        val brevdata: Brevdata,
+        val brevInnhold: BrevInnhold,
         val pdf: ByteArray
     ) : Journalpost() {
-        override val tittel = brevdata.brevtype().tittel()
+        override val tittel = brevInnhold.brevTemplate().tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
@@ -76,7 +76,7 @@ sealed class Journalpost {
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
+                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
                     )
                 )
             )
@@ -86,10 +86,10 @@ sealed class Journalpost {
     data class Info(
         val person: Person,
         val sakId: String,
-        val brevdata: Brevdata,
+        val brevInnhold: BrevInnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
-        override val tittel = brevdata.brevtype().tittel()
+        override val tittel = brevInnhold.brevTemplate().tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
@@ -106,7 +106,7 @@ sealed class Journalpost {
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
+                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
                     )
                 )
             )

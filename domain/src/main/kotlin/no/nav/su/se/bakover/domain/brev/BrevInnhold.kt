@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 
-abstract class Brevdata {
+abstract class BrevInnhold {
     fun toJson() = objectMapper.writeValueAsString(this)
-    abstract fun brevtype(): BrevTemplate
+    abstract fun brevTemplate(): BrevTemplate
     data class Personalia(
         val dato: String,
         val fødselsnummer: Fnr,
@@ -24,8 +24,8 @@ abstract class Brevdata {
         val fradragSum: Int,
         val avslagsgrunn: Avslagsgrunn,
         val halvGrunnbeløp: Int,
-    ) : Brevdata() {
-        override fun brevtype(): BrevTemplate = BrevTemplate.AvslagsVedtak
+    ) : BrevInnhold() {
+        override fun brevTemplate(): BrevTemplate = BrevTemplate.AvslagsVedtak
     }
 
     data class InnvilgetVedtak(
@@ -40,7 +40,7 @@ abstract class Brevdata {
         val redusertStønadStatus: Boolean,
         val harEktefelle: Boolean,
         val fradrag: List<FradragPerMåned>,
-    ) : Brevdata() {
-        override fun brevtype(): BrevTemplate = BrevTemplate.InnvilgetVedtak
+    ) : BrevInnhold() {
+        override fun brevTemplate(): BrevTemplate = BrevTemplate.InnvilgetVedtak
     }
 }

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.brev.Brevdata
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 
 object PdfGeneratorStub : PdfGenerator {
 
@@ -29,7 +29,7 @@ object PdfGeneratorStub : PdfGenerator {
         return pdf.toByteArray().right()
     }
 
-    override fun genererPdf(brevdata: Brevdata): Either<KunneIkkeGenererePdf, ByteArray> {
+    override fun genererPdf(brevInnhold: BrevInnhold): Either<KunneIkkeGenererePdf, ByteArray> {
         return pdf.toByteArray().right()
     }
 }

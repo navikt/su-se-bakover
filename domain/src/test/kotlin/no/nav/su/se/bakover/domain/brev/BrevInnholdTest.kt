@@ -4,12 +4,12 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevdata
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-internal class BrevdataTest {
-    val personalia = Brevdata.Personalia(
+internal class BrevInnholdTest {
+    val personalia = BrevInnhold.Personalia(
         dato = "01.01.2020",
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
@@ -21,7 +21,7 @@ internal class BrevdataTest {
         poststed = "Oslo"
     )
 
-    val avslagsvedtak = Brevdata.AvslagsVedtak(
+    val avslagsvedtak = BrevInnhold.AvslagsVedtak(
         personalia = personalia,
         satsbeløp = 31,
         fradragSum = 566,
@@ -29,7 +29,7 @@ internal class BrevdataTest {
         halvGrunnbeløp = 10
     )
 
-    val innvilgetVedtak = Brevdata.InnvilgetVedtak(
+    val innvilgetVedtak = BrevInnhold.InnvilgetVedtak(
         personalia = personalia,
         månedsbeløp = 100,
         fradato = "01.01.2020",
@@ -43,7 +43,7 @@ internal class BrevdataTest {
         fradragSum = 0,
     )
 
-    val trukketSøknad = TrukketSøknadBrevdata(
+    val trukketSøknad = TrukketSøknadBrevInnhold(
         personalia, 1.januar(2020), 1.februar(2020)
     )
 

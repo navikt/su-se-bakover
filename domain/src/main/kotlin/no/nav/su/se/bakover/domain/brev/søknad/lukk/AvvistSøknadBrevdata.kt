@@ -1,20 +1,20 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
-import no.nav.su.se.bakover.domain.brev.Brevdata
 
-data class AvvistSøknadVedtakBrevdata(
+data class AvvistSøknadVedtakBrevInnhold(
     val personalia: Personalia,
-) : Brevdata() {
-    override fun brevtype() = BrevTemplate.AvvistSøknadVedtak
+) : BrevInnhold() {
+    override fun brevTemplate() = BrevTemplate.AvvistSøknadVedtak
 }
 
-data class AvvistSøknadFritekstBrevdata(
+data class AvvistSøknadFritekstBrevInnhold(
     val personalia: Personalia,
     val tittel: String = getBrevtype().tittel(),
     val fritekst: String,
-) : Brevdata() {
-    override fun brevtype() = getBrevtype()
+) : BrevInnhold() {
+    override fun brevTemplate() = getBrevtype()
 
     private companion object {
         fun getBrevtype() = BrevTemplate.AvvistSøknadFritekst

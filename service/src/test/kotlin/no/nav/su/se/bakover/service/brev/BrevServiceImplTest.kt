@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
-import no.nav.su.se.bakover.domain.brev.Brevdata
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.service.argThat
@@ -50,7 +50,7 @@ internal class BrevServiceImplTest {
         }
 
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<Brevdata>()) } doReturn pdf.right()
+            on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
         }
 
         BrevServiceImpl(
@@ -61,7 +61,7 @@ internal class BrevServiceImplTest {
         ).lagBrev(DummyRequest) shouldBe pdf.right()
 
         verify(personMock).person(DummyRequest.getFnr())
-        verify(pdfGeneratorMock).genererPdf(DummyBrevdata)
+        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
     }
 
     @Test
@@ -85,7 +85,7 @@ internal class BrevServiceImplTest {
             on { person(any()) } doReturn person.right()
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(DummyBrevdata) } doReturn KunneIkkeGenererePdf.left()
+            on { genererPdf(DummyBrevInnhold) } doReturn KunneIkkeGenererePdf.left()
         }
 
         BrevServiceImpl(
@@ -95,7 +95,7 @@ internal class BrevServiceImplTest {
             dokDistFordeling = mock()
         ).lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         verify(personMock).person(DummyRequest.getFnr())
-        verify(pdfGeneratorMock).genererPdf(DummyBrevdata)
+        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
     }
 
     @Test
@@ -106,7 +106,7 @@ internal class BrevServiceImplTest {
             on { person(any()) } doReturn person.right()
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<Brevdata>()) } doReturn pdf.right()
+            on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
         }
         val dokArkivMock = mock<DokArkiv> {
             on { opprettJournalpost(any()) } doReturn JournalpostId("journalpostId").right()
@@ -120,9 +120,9 @@ internal class BrevServiceImplTest {
         ).journalførBrev(DummyRequest, sakId) shouldBe JournalpostId("journalpostId").right()
 
         verify(personMock).person(DummyRequest.getFnr())
-        verify(pdfGeneratorMock).genererPdf(DummyBrevdata)
+        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
         verify(dokArkivMock).opprettJournalpost(
-            argThat { it shouldBe Journalpost.Vedtakspost(person, sakId.toString(), DummyBrevdata, pdf) }
+            argThat { it shouldBe Journalpost.Vedtakspost(person, sakId.toString(), DummyBrevInnhold, pdf) }
         )
     }
 
@@ -144,9 +144,9 @@ internal class BrevServiceImplTest {
 
 object DummyRequest : LagBrevRequest() {
     override fun getFnr(): Fnr = Fnr("12345678901")
-    override fun lagBrevdata(personalia: Brevdata.Personalia) = DummyBrevdata
+    override fun lagBrevInnhold(personalia: BrevInnhold.Personalia) = DummyBrevInnhold
 }
 
-object DummyBrevdata : Brevdata() {
-    override fun brevtype(): BrevTemplate = BrevTemplate.AvslagsVedtak
+object DummyBrevInnhold : BrevInnhold() {
+    override fun brevTemplate(): BrevTemplate = BrevTemplate.AvslagsVedtak
 }

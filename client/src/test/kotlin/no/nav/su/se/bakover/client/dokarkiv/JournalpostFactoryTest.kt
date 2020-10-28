@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
-import no.nav.su.se.bakover.domain.brev.Brevdata
 import org.junit.jupiter.api.Test
 import java.util.Base64
 import java.util.UUID
@@ -26,8 +26,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for avslagsvedtak`() {
-        val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn BrevTemplate.AvslagsVedtak
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate() } doReturn BrevTemplate.AvslagsVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -38,8 +38,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for innvilget vedtak`() {
-        val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn BrevTemplate.InnvilgetVedtak
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate() } doReturn BrevTemplate.InnvilgetVedtak
             on { toJson() } doReturn ""
         }
 
@@ -51,8 +51,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en trukket søknad`() {
-        val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn BrevTemplate.TrukketSøknad
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate() } doReturn BrevTemplate.TrukketSøknad
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -63,8 +63,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en avvist søknad med vedtak`() {
-        val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn BrevTemplate.AvvistSøknadVedtak
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate() } doReturn BrevTemplate.AvvistSøknadVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -75,8 +75,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en avvist søknad med fritekst`() {
-        val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn BrevTemplate.AvvistSøknadFritekst
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate() } doReturn BrevTemplate.AvvistSøknadFritekst
             on { toJson() } doReturn ""
         }
 
@@ -86,14 +86,14 @@ internal class JournalpostFactoryTest {
         }
     }
 
-    private fun assertVedtakspost(journalpost: Journalpost, brevdata: Brevdata) =
-        assertJournalpost(journalpost, brevdata, DokumentKategori.VB)
+    private fun assertVedtakspost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
+        assertJournalpost(journalpost, brevInnhold, DokumentKategori.VB)
 
-    private fun assertInfopost(journalpost: Journalpost, brevdata: Brevdata) =
-        assertJournalpost(journalpost, brevdata, DokumentKategori.IB)
+    private fun assertInfopost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
+        assertJournalpost(journalpost, brevInnhold, DokumentKategori.IB)
 
-    private fun assertJournalpost(journalpost: Journalpost, brevdata: Brevdata, dokumentKategori: DokumentKategori) {
-        journalpost.tittel shouldBe brevdata.brevtype().tittel()
+    private fun assertJournalpost(journalpost: Journalpost, brevInnhold: BrevInnhold, dokumentKategori: DokumentKategori) {
+        journalpost.tittel shouldBe brevInnhold.brevTemplate().tittel()
         journalpost.avsenderMottaker shouldBe AvsenderMottaker(
             id = personMock.ident.fnr.toString(),
             navn = "${personMock.navn.etternavn}, ${personMock.navn.fornavn} ${personMock.navn.mellomnavn}"
@@ -107,12 +107,12 @@ internal class JournalpostFactoryTest {
         journalpost.sak shouldBe Fagsak(sakId.toString())
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
-                tittel = brevdata.brevtype().tittel(),
+                tittel = brevInnhold.brevTemplate().tittel(),
                 dokumentKategori = dokumentKategori,
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevdata.toJson().toByteArray()),
+                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
                     )
                 )
             )

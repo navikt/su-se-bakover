@@ -6,21 +6,21 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.domain.brev.Brevdata
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import org.junit.jupiter.api.Test
 
 internal class AvvistSøknadBrevRequestTest {
 
-    private val personaliaMock = mock<Brevdata.Personalia>()
+    private val personaliaMock = mock<BrevInnhold.Personalia>()
     private val søknadMock = mock<Søknad>() {
         on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build()
     }
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak).lagBrevdata(
+        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak).lagBrevInnhold(
             personaliaMock
-        ) shouldBe AvvistSøknadVedtakBrevdata(personaliaMock)
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock)
     }
 
     @Test
@@ -30,9 +30,9 @@ internal class AvvistSøknadBrevRequestTest {
             BrevConfig.Fritekst(
                 "jeg er fritekst"
             )
-        ).lagBrevdata(
+        ).lagBrevInnhold(
             personaliaMock
-        ) shouldBe AvvistSøknadFritekstBrevdata(
+        ) shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = personaliaMock,
             tittel = "Info om avvist søknad",
             fritekst = "jeg er fritekst"

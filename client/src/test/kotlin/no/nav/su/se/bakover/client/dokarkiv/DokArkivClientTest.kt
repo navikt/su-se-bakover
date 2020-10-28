@@ -210,7 +210,7 @@ internal class DokArkivClientTest : WiremockBase {
 
         client.opprettJournalpost(
             Journalpost.Vedtakspost(
-                brevdata = VedtakInnholdTestdataBuilder.build(),
+                brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 person = person,
                 pdf = pdf,
                 sakId = sakId

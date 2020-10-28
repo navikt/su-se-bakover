@@ -12,13 +12,13 @@ import java.util.Locale
 
 abstract class LagBrevRequest {
     abstract fun getFnr(): Fnr
-    abstract fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata
+    abstract fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold
 
     data class AvslagsVedtak(
         private val behandling: Behandling
     ) : LagBrevRequest() {
         override fun getFnr(): Fnr = behandling.fnr
-        override fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata.AvslagsVedtak = Brevdata.AvslagsVedtak(
+        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
             satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
             fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp }
@@ -46,10 +46,10 @@ abstract class LagBrevRequest {
         private val behandling: Behandling
     ) : LagBrevRequest() {
         override fun getFnr(): Fnr = behandling.fnr
-        override fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata.InnvilgetVedtak {
+        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
             val førsteMånedsberegning =
                 behandling.beregning()!!.månedsberegninger.firstOrNull()!! // Støtte för variende beløp i framtiden?
-            return Brevdata.InnvilgetVedtak(
+            return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
                 månedsbeløp = førsteMånedsberegning.beløp,
                 fradato = behandling.beregning()!!.fraOgMed.formatMonthYear(),
