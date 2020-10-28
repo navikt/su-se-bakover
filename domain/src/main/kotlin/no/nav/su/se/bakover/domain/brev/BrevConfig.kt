@@ -1,17 +1,12 @@
 package no.nav.su.se.bakover.domain.brev
 
-abstract class BrevConfig {
-    abstract fun getBrevtype(): BrevType
+sealed class BrevConfig {
 
-    data class BrevTypeConfig(
-        private val brevType: BrevType
+    object Vedtak : BrevConfig()
+
+    data class Fritekst(
+        private val fritekst: String
     ) : BrevConfig() {
-        override fun getBrevtype(): BrevType = brevType
-    }
-
-    enum class BrevType {
-        VEDTAK,
-        FRITEKST,
-        INFO
+        fun getFritekst() = fritekst
     }
 }

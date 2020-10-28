@@ -85,7 +85,7 @@ internal class LukkSøknadInputHandlerTest {
                     {
                         "type":"AVVIST",
                         "brevConfig": {
-                            "brevtype":"VEDTAK"
+                            "brevtype":"${LukketJson.BrevType.VEDTAK}"
                         }
                     }
                 """.trimIndent(),
@@ -94,9 +94,7 @@ internal class LukkSøknadInputHandlerTest {
             ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevConfig = BrevConfig.BrevTypeConfig(
-                    brevType = BrevConfig.BrevType.VEDTAK
-                )
+                brevConfig = BrevConfig.Vedtak
             ).right()
         }
     }
@@ -121,7 +119,7 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
-    fun `ugyldig body for avviste søknad med brev`() {
+    fun `ugyldig brevtype for avviste søknad med brev`() {
         runBlocking {
             val søknadId = UUID.randomUUID()
             LukkSøknadInputHandler.handle(
@@ -148,7 +146,38 @@ internal class LukkSøknadInputHandlerTest {
             )
         }
         assertThrows<IllegalArgumentException> {
+            LukketJson.AvvistJson(
+                type = Søknad.LukketType.BORTFALT,
+            )
+        }
+        assertThrows<IllegalArgumentException> {
             LukketJson.BortfaltJson(type = Søknad.LukketType.TRUKKET)
+        }
+    }
+
+    @Test
+    fun `godtar avvist søknad med fritekst`() {
+        runBlocking {
+            val søknadId = UUID.randomUUID()
+            LukkSøknadInputHandler.handle(
+                body = """
+                    {
+                        "type":"AVVIST",
+                        "brevConfig": {
+                            "brevtype":"${LukketJson.BrevType.FRITEKST}",
+                            "fritekst": "jeg er fritekst"
+                        }
+                    }
+                """.trimIndent(),
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
+                brevConfig = BrevConfig.Fritekst(
+                    fritekst = "jeg er fritekst"
+                )
+            ).right()
         }
     }
 }

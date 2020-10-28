@@ -41,8 +41,14 @@ internal sealed class LukketJson {
         }
 
         data class BrevConfigJson(
-            val brevtype: BrevConfig.BrevType,
+            val brevtype: BrevType,
+            val fritekst: String?
         )
+    }
+
+    enum class BrevType {
+        VEDTAK,
+        FRITEKST,
     }
 }
 
@@ -79,10 +85,17 @@ internal object LukkSøknadInputHandler {
                 else -> LukkSøknadRequest.MedBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler,
-                    brevConfig = BrevConfig.BrevTypeConfig(brevType = bodyAsJson.brevConfig.brevtype)
+                    brevConfig = configForType(bodyAsJson.brevConfig)
                 )
             }
         }.right()
+    }
+
+    private fun configForType(brevConfig: LukketJson.AvvistJson.BrevConfigJson): BrevConfig {
+        return when (brevConfig.fritekst) {
+            null -> BrevConfig.Vedtak
+            else -> BrevConfig.Fritekst(brevConfig.fritekst)
+        }
     }
 }
 

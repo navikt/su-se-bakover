@@ -10,19 +10,17 @@ sealed class LukkSøknadRequest {
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
     sealed class MedBrev : LukkSøknadRequest() {
-        abstract val brevConfig: BrevConfig
 
         data class TrekkSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val brevConfig: BrevConfig = BrevConfig.BrevTypeConfig(BrevConfig.BrevType.INFO),
             val trukketDato: LocalDate
         ) : MedBrev()
 
         data class AvvistSøknad(
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val brevConfig: BrevConfig
+            val brevConfig: BrevConfig
         ) : MedBrev()
     }
 

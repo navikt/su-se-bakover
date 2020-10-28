@@ -13,10 +13,12 @@ data class AvvistSøknadBrevRequest(
     override fun getFnr(): Fnr = søknad.søknadInnhold.personopplysninger.fnr
 
     override fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata {
-        return when (brevConfig.getBrevtype()) {
-            BrevConfig.BrevType.VEDTAK -> AvvistSøknadVedtakBrevdata(personalia)
-            BrevConfig.BrevType.FRITEKST -> AvvistSøknadFritekstBrevdata(personalia)
-            else -> throw RuntimeException("Kan ikke lage avvist-søknadbrev for brevtype ${brevConfig.getBrevtype()}")
+        return when (brevConfig) {
+            is BrevConfig.Vedtak -> AvvistSøknadVedtakBrevdata(personalia)
+            is BrevConfig.Fritekst -> AvvistSøknadFritekstBrevdata(
+                personalia = personalia,
+                fritekst = brevConfig.getFritekst()
+            )
         }
     }
 }

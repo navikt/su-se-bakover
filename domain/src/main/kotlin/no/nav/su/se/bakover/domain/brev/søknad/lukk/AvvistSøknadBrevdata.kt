@@ -11,6 +11,12 @@ data class AvvistSøknadVedtakBrevdata(
 
 data class AvvistSøknadFritekstBrevdata(
     val personalia: Personalia,
+    val tittel: String = getBrevtype().tittel(),
+    val fritekst: String,
 ) : Brevdata() {
-    override fun brevtype() = Brevtype.AvvistSøknadFritekst
+    override fun brevtype() = getBrevtype()
+
+    private companion object {
+        fun getBrevtype() = Brevtype.AvvistSøknadFritekst
+    }
 }
