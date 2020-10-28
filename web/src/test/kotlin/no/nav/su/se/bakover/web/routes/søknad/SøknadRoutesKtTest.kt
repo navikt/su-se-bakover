@@ -93,7 +93,7 @@ internal class SøknadRoutesKtTest {
 
     private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val sakRepo = databaseRepos.sak
-    private val trekkSøknadRequest = LukkSøknadRequest.TrekkSøknad(
+    private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navident"),
         trukketDato = 1.januar(2020)

@@ -48,7 +48,7 @@ internal class LukkSøknadInputHandlerTest {
                 """.trimIndent(),
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.TrekkSøknad(
+            ) shouldBe LukkSøknadRequest.MedBrev.TrekkSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
                 trukketDato = 1.oktober(2020)
@@ -68,7 +68,7 @@ internal class LukkSøknadInputHandlerTest {
                 """.trimIndent(),
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.BortfaltSøknad(
+            ) shouldBe LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123")
             ).right()
@@ -91,11 +91,11 @@ internal class LukkSøknadInputHandlerTest {
                 """.trimIndent(),
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.AvvistSøknad.MedBrev(
+            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevInfo = LukkSøknadRequest.AvvistSøknad.BrevInfo(
-                    typeBrev = LukkSøknadRequest.AvvistSøknad.BrevType.VEDTAK,
+                brevInfo = LukkSøknadRequest.BrevInfo(
+                    typeBrev = LukkSøknadRequest.BrevType.VEDTAK,
                     fritekst = "kanskje"
                 )
             ).right()
@@ -114,7 +114,7 @@ internal class LukkSøknadInputHandlerTest {
                 """.trimIndent(),
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.AvvistSøknad.UtenBrev(
+            ) shouldBe LukkSøknadRequest.UtenBrev.AvvistSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
             ).right()

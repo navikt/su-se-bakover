@@ -50,7 +50,7 @@ internal class LukkSøknadServiceImplTest {
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         lukket = null
     )
-    private val trekkSøknadRequest = LukkSøknadRequest.TrekkSøknad(
+    private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknad.id,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navIdent"),
         trukketDato = 1.januar(2020)
@@ -119,7 +119,7 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
         ).lukkSøknad(
-            LukkSøknadRequest.BortfaltSøknad(
+            LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = søknad.id,
                 saksbehandler = saksbehandler
             )
@@ -190,7 +190,7 @@ internal class LukkSøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock
         ).lagBrevutkast(
-            LukkSøknadRequest.BortfaltSøknad(
+            LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = søknad.id,
                 saksbehandler = saksbehandler
             )

@@ -39,7 +39,7 @@ internal sealed class LukketJson {
         }
 
         data class BrevInfoJson(
-            val typeBrev: LukkSøknadRequest.AvvistSøknad.BrevType,
+            val typeBrev: LukkSøknadRequest.BrevType,
             val fritekst: String?,
         )
     }
@@ -61,25 +61,25 @@ internal object LukkSøknadInputHandler {
         ) ?: return UgyldigLukkSøknadRequest.left()
 
         return when (bodyAsJson) {
-            is LukketJson.TrukketJson -> LukkSøknadRequest.TrekkSøknad(
+            is LukketJson.TrukketJson -> LukkSøknadRequest.MedBrev.TrekkSøknad(
                 søknadId = søknadId,
                 saksbehandler = saksbehandler,
                 trukketDato = bodyAsJson.datoSøkerTrakkSøknad
             )
 
-            is LukketJson.BortfaltJson -> LukkSøknadRequest.BortfaltSøknad(
+            is LukketJson.BortfaltJson -> LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = søknadId,
                 saksbehandler = saksbehandler
             )
             is LukketJson.AvvistJson -> when (bodyAsJson.brevInfo) {
-                null -> LukkSøknadRequest.AvvistSøknad.UtenBrev(
+                null -> LukkSøknadRequest.UtenBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler
                 )
-                else -> LukkSøknadRequest.AvvistSøknad.MedBrev(
+                else -> LukkSøknadRequest.MedBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler,
-                    brevInfo = LukkSøknadRequest.AvvistSøknad.BrevInfo(
+                    brevInfo = LukkSøknadRequest.BrevInfo(
                         typeBrev = bodyAsJson.brevInfo.typeBrev,
                         fritekst = bodyAsJson.brevInfo.fritekst
                     )

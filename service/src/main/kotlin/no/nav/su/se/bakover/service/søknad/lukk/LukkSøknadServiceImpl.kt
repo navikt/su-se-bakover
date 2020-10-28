@@ -31,9 +31,8 @@ internal class LukkSøknadServiceImpl(
             .mapLeft { it }
             .flatMap {
                 return when (request) {
-                    is LukkSøknadRequest.TrekkSøknad -> trekkSøknad(request, it)
-                    is LukkSøknadRequest.BortfaltSøknad -> bortfaltSøknad(request, it)
-                    is LukkSøknadRequest.AvvistSøknad -> avvistSøknad(request, it)
+                    is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, it)
+                    is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
                 }
             }
     }
@@ -45,15 +44,20 @@ internal class LukkSøknadServiceImpl(
             KunneIkkeLageBrevutkast.FantIkkeSøknad
         }.flatMap {
             val brevRequest = when (request) {
-                is LukkSøknadRequest.TrekkSøknad -> LagBrevRequest.TrukketSøknad(it, request.trukketDato)
-                is LukkSøknadRequest.BortfaltSøknad -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-                is LukkSøknadRequest.AvvistSøknad.UtenBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-                is LukkSøknadRequest.AvvistSøknad.MedBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left() // TODO implement
+                is LukkSøknadRequest.MedBrev -> lagBrevRequest(it, request)
+                is LukkSøknadRequest.UtenBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
             }
             return brevService.lagBrev(brevRequest)
                 .mapLeft {
                     KunneIkkeLageBrevutkast.KunneIkkeLageBrev
                 }
+        }
+    }
+
+    private fun lagBrevRequest(søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
+        return when (request) {
+            is LukkSøknadRequest.MedBrev.TrekkSøknad -> LagBrevRequest.TrukketSøknad(søknad, request.trukketDato)
+            is LukkSøknadRequest.MedBrev.AvvistSøknad -> throw RuntimeException("TODO") // TODO implement
         }
     }
 
@@ -73,35 +77,21 @@ internal class LukkSøknadServiceImpl(
         return søknad.right()
     }
 
-    private fun avvistSøknad(
-        request: LukkSøknadRequest.AvvistSøknad,
-        søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request)
-        when (request) {
-            is LukkSøknadRequest.AvvistSøknad.MedBrev -> {
-            } // TODO journalfør og distribuer
-            is LukkSøknadRequest.AvvistSøknad.UtenBrev -> {
-            } // noop
-        }
-        return sakService.hentSak(søknad.sakId).orNull()!!.right()
-    }
-
-    private fun bortfaltSøknad(
-        request: LukkSøknadRequest.BortfaltSøknad,
+    private fun lukkSøknadUtenBrev(
+        request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         lagreLukketSøknad(request)
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
-    private fun trekkSøknad(
-        request: LukkSøknadRequest.TrekkSøknad,
+    private fun lukkSøknadMedBrev(
+        request: LukkSøknadRequest.MedBrev,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
         lagreLukketSøknad(request)
         return journalførOgDistribuerBrev(
-            request = LagBrevRequest.TrukketSøknad(søknad, request.trukketDato),
+            request = lagBrevRequest(søknad, request),
             søknad = søknad
         ).mapLeft {
             it
@@ -133,9 +123,10 @@ internal class LukkSøknadServiceImpl(
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = request.saksbehandler.navIdent,
                 type = when (request) {
-                    is LukkSøknadRequest.TrekkSøknad -> Søknad.LukketType.TRUKKET
-                    is LukkSøknadRequest.BortfaltSøknad -> Søknad.LukketType.BORTFALT
-                    is LukkSøknadRequest.AvvistSøknad -> Søknad.LukketType.AVVIST
+                    is LukkSøknadRequest.MedBrev.TrekkSøknad -> Søknad.LukketType.TRUKKET
+                    is LukkSøknadRequest.MedBrev.AvvistSøknad -> Søknad.LukketType.AVVIST
+                    is LukkSøknadRequest.UtenBrev.BortfaltSøknad -> Søknad.LukketType.BORTFALT
+                    is LukkSøknadRequest.UtenBrev.AvvistSøknad -> Søknad.LukketType.AVVIST
                 }
             )
         )
