@@ -107,7 +107,7 @@ internal class BeregningTest {
                     inntektDelerAvPeriode = null,
                 ),
                 Fradrag(
-                    type = Fradragstype.Barnetillegg,
+                    type = Fradragstype.BidragEtterEkteskapsloven,
                     beløp = 1200,
                     utenlandskInntekt = null,
                     inntektDelerAvPeriode = null,

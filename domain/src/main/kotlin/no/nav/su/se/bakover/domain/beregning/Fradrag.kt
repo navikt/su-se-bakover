@@ -8,14 +8,17 @@ import java.time.LocalDate
 import java.util.UUID
 
 enum class Fradragstype {
-    Uføretrygd,
-    Barnetillegg,
+    NAVytelserTilLivsopphold,
     Arbeidsinntekt,
-    Pensjon,
+    OffentligPensjon,
+    PrivatPensjon,
+    Sosialstønad,
+    Kontantstøtte,
+    Introduksjonsstønad,
+    Kvalifiseringsstønad,
+    BidragEtterEkteskapsloven,
     Kapitalinntekt,
-    UtenlandskInntekt,
-    ForventetInntekt,
-    AndreYtelser;
+    ForventetInntekt;
 
     companion object {
         fun isValid(s: String) =
