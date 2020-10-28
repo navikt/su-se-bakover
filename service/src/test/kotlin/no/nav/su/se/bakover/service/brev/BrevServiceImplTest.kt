@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.Brevdata
-import no.nav.su.se.bakover.domain.brev.Brevtype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.service.argThat
@@ -148,5 +148,5 @@ object DummyRequest : LagBrevRequest() {
 }
 
 object DummyBrevdata : Brevdata() {
-    override fun brevtype(): Brevtype = Brevtype.AvslagsVedtak
+    override fun brevtype(): BrevTemplate = BrevTemplate.AvslagsVedtak
 }

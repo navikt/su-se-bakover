@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.Brevdata
-import no.nav.su.se.bakover.domain.brev.Brevtype
 import java.util.UUID
 
 object JournalpostFactory {
@@ -13,11 +13,11 @@ object JournalpostFactory {
         pdf: ByteArray
     ): Journalpost {
         return when (brevdata.brevtype()) {
-            Brevtype.InnvilgetVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
-            Brevtype.AvslagsVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
-            Brevtype.TrukketSøknad -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
-            Brevtype.AvvistSøknadVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
-            Brevtype.AvvistSøknadFritekst -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
+            BrevTemplate.InnvilgetVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
+            BrevTemplate.AvslagsVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
+            BrevTemplate.TrukketSøknad -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
+            BrevTemplate.AvvistSøknadVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
+            BrevTemplate.AvvistSøknadFritekst -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
         }
     }
 }

@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.Brevdata
-import no.nav.su.se.bakover.domain.brev.Brevtype
 import org.junit.jupiter.api.Test
 import java.util.Base64
 import java.util.UUID
@@ -27,7 +27,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager vedtakspost for avslagsvedtak`() {
         val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn Brevtype.AvslagsVedtak
+            on { brevtype() } doReturn BrevTemplate.AvslagsVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -39,7 +39,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager vedtakspost for innvilget vedtak`() {
         val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn Brevtype.InnvilgetVedtak
+            on { brevtype() } doReturn BrevTemplate.InnvilgetVedtak
             on { toJson() } doReturn ""
         }
 
@@ -52,7 +52,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en trukket søknad`() {
         val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn Brevtype.TrukketSøknad
+            on { brevtype() } doReturn BrevTemplate.TrukketSøknad
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -64,7 +64,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en avvist søknad med vedtak`() {
         val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn Brevtype.AvvistSøknadVedtak
+            on { brevtype() } doReturn BrevTemplate.AvvistSøknadVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -76,7 +76,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en avvist søknad med fritekst`() {
         val brevdata = mock<Brevdata>() {
-            on { brevtype() } doReturn Brevtype.AvvistSøknadFritekst
+            on { brevtype() } doReturn BrevTemplate.AvvistSøknadFritekst
             on { toJson() } doReturn ""
         }
 

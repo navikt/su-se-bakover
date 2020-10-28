@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.Brevdata
-import no.nav.su.se.bakover.domain.brev.Brevtype
 import java.time.LocalDate
 
 data class TrukketSøknadBrevdata private constructor(
@@ -10,7 +10,7 @@ data class TrukketSøknadBrevdata private constructor(
     val datoSøknadOpprettet: String,
     val trukketDato: String
 ) : Brevdata() {
-    override fun brevtype(): Brevtype = Brevtype.TrukketSøknad
+    override fun brevtype(): BrevTemplate = BrevTemplate.TrukketSøknad
 
     constructor(
         personalia: Personalia,

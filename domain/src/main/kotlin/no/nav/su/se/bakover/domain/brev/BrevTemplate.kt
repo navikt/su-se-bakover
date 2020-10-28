@@ -1,33 +1,33 @@
 package no.nav.su.se.bakover.domain.brev
 
-sealed class Brevtype(
+sealed class BrevTemplate(
     private val pdfTemplate: PdfTemplate,
     private val brevTittel: String
 ) {
     fun template() = pdfTemplate.name()
     fun tittel() = brevTittel
 
-    object InnvilgetVedtak : Brevtype(
+    object InnvilgetVedtak : BrevTemplate(
         pdfTemplate = PdfTemplate.InnvilgetVedtak,
         brevTittel = "Vedtaksbrev for søknad om supplerende stønad"
     )
 
-    object AvslagsVedtak : Brevtype(
+    object AvslagsVedtak : BrevTemplate(
         pdfTemplate = PdfTemplate.AvslagsVedtak,
         brevTittel = "Vedtaksbrev for søknad om supplerende stønad"
     )
 
-    object TrukketSøknad : Brevtype(
+    object TrukketSøknad : BrevTemplate(
         pdfTemplate = PdfTemplate.TrukketSøknad,
         brevTittel = "Bekrefter at søknad er trukket"
     )
 
-    object AvvistSøknadVedtak : Brevtype(
+    object AvvistSøknadVedtak : BrevTemplate(
         pdfTemplate = PdfTemplate.AvvistSøknadVedtak,
         brevTittel = "Vedtak om avvist søknad"
     )
 
-    object AvvistSøknadFritekst : Brevtype(
+    object AvvistSøknadFritekst : BrevTemplate(
         pdfTemplate = PdfTemplate.AvvistSøknadFritekst,
         brevTittel = "Info om avvist søknad"
     )
