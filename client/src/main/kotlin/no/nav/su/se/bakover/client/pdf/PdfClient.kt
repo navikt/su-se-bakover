@@ -39,7 +39,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
                 it.right()
             },
             {
-                log.warn("Kall mot PdfClient feilet", it)
+                log.error("Kall mot PdfClient feilet", it)
                 ClientError(response.statusCode, "Kall mot PdfClient feilet").left()
             }
         )

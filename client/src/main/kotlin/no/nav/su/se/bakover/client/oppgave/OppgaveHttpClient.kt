@@ -67,7 +67,7 @@ internal class OppgaveHttpClient(
                 objectMapper.readValue(json, OppgaveResponse::class.java).getOppgaveId().right()
             },
             {
-                log.warn("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeOppretteOppgave.left()
             }
         )
@@ -123,7 +123,7 @@ internal class OppgaveHttpClient(
                 objectMapper.readValue(json, FerdigstillResponse::class.java).right()
             },
             {
-                log.warn("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeFerdigstilleOppgave.left()
             }
         )
@@ -165,7 +165,7 @@ internal class OppgaveHttpClient(
                 }
             },
             {
-                log.warn("Feil i kallet for å hent oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil i kallet for å hent oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeSøkeEtterOppgave.left()
             }
         )

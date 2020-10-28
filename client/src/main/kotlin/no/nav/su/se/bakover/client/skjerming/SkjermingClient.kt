@@ -23,7 +23,7 @@ internal class SkjermingClient(private val skjermingUrl: String) : Skjerming {
                 it == "true"
             },
             {
-                log.warn(
+                log.error(
                     "Feil i kallet mot skjermingsregisteret.",
                     response.statusCode,
                     response.body().asString("application/json"),

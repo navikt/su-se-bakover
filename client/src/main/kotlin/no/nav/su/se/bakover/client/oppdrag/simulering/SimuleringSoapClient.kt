@@ -71,7 +71,7 @@ internal class SimuleringSoapClient(
     }
 
     private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left().also {
-        log.warn("Feil ved simulering, Oppdrag/UR er stengt", exception)
+        log.error("Feil ved simulering, Oppdrag/UR er stengt", exception)
     }
 
     private val Throwable.rootCause: Throwable

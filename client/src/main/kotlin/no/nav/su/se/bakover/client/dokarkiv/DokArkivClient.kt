@@ -53,6 +53,7 @@ class DokArkivClient(
                     val journalpostId: String? = it.optString("journalpostId", null)
 
                     if (!it.optBoolean("journalpostferdigstilt", false)) {
+                        // TODO jah: Spør Jacob om vi har mulighet til å ferdigstille den på dette tidspunktet og hvis ikke når vi gjør det? Kan denne da være info?
                         log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
                     }
 
@@ -60,13 +61,13 @@ class DokArkivClient(
                         log.info("Opprettet journalpost med id $journalpostId")
                         JournalpostId(journalpostId).right()
                     } else {
-                        log.warn("Kunne ikke ferdigstille journalføring, fant ingen journalpostId. body=$json")
+                        log.error("Kunne ikke ferdigstille journalføring, fant ingen journalpostId. body=$json")
                         ClientError(response.statusCode, "Feil ved journalføring.").left()
                     }
                 }
             },
             {
-                log.warn("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
                 ClientError(response.statusCode, "Feil ved journalføring").left()
             }
 
