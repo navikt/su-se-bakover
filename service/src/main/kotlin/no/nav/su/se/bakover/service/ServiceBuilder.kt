@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
+import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
@@ -47,8 +49,7 @@ class ServiceBuilder(
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
-            oppgaveClient = clients.oppgaveClient,
-            brevService = brevService
+            oppgaveClient = clients.oppgaveClient
         )
         return accessCheckProxy.proxy(
             Services(
@@ -73,7 +74,12 @@ class ServiceBuilder(
                 ),
                 sak = sakService,
                 søknad = søknadService,
-                brev = brevService
+                brev = brevService,
+                lukkSøknad = LukkSøknadServiceImpl(
+                    søknadRepo = databaseRepos.søknad,
+                    sakService = sakService,
+                    brevService = brevService
+                )
             )
         )
     }
@@ -86,5 +92,6 @@ data class Services(
     val behandling: BehandlingService,
     val sak: SakService,
     val søknad: SøknadService,
-    val brev: BrevService
+    val brev: BrevService,
+    val lukkSøknad: LukkSøknadService
 )

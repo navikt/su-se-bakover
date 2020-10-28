@@ -15,9 +15,10 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -35,7 +36,8 @@ internal const val søknadPath = "/soknad"
 
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
-    søknadService: SøknadService
+    søknadService: SøknadService,
+    lukkSøknadService: LukkSøknadService
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -75,7 +77,7 @@ internal fun Route.søknadRoutes(
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
-                    søknadService.lukkSøknad(request).fold(
+                    lukkSøknadService.lukkSøknad(request).fold(
                         { call.svar(LukkSøknadErrorHandler.handle(request, it)) },
                         {
                             call.audit("Lukket søknad for søknad: $søknadId")
@@ -97,7 +99,7 @@ internal fun Route.søknadRoutes(
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
-                    søknadService.lagBrevutkastForLukketSøknad(
+                    lukkSøknadService.lagBrevutkastForLukketSøknad(
                         request
                     ).fold(
                         {

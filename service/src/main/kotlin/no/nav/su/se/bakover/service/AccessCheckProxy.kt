@@ -40,10 +40,11 @@ import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -239,20 +240,6 @@ class AccessCheckProxy(
 
                     return services.søknad.hentSøknad(søknadId)
                 }
-
-                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
-                    assertHarTilgangTilSøknad(request.søknadId)
-
-                    return services.søknad.lukkSøknad(request)
-                }
-
-                override fun lagBrevutkastForLukketSøknad(
-                    request: LukkSøknadRequest
-                ): Either<no.nav.su.se.bakover.service.søknad.KunneIkkeLageBrevutkast, ByteArray> {
-                    assertHarTilgangTilSøknad(request.søknadId)
-
-                    return services.søknad.lagBrevutkastForLukketSøknad(request)
-                }
             },
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
@@ -272,6 +259,21 @@ class AccessCheckProxy(
 
                 override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> {
                     return services.brev.distribuerBrev(journalpostId)
+                }
+            },
+            lukkSøknad = object : LukkSøknadService {
+                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+                    assertHarTilgangTilSøknad(request.søknadId)
+
+                    return services.lukkSøknad.lukkSøknad(request)
+                }
+
+                override fun lagBrevutkastForLukketSøknad(
+                    request: LukkSøknadRequest
+                ): Either<no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast, ByteArray> {
+                    assertHarTilgangTilSøknad(request.søknadId)
+
+                    return services.lukkSøknad.lagBrevutkastForLukketSøknad(request)
                 }
             }
         )

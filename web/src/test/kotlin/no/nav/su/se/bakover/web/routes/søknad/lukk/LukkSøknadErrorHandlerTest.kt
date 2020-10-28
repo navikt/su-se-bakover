@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.web.Resultat
 import org.junit.jupiter.api.Test
 import java.util.UUID

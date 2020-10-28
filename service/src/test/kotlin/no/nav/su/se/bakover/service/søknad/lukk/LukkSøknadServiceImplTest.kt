@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.søknad
+package no.nav.su.se.bakover.service.søknad.lukk
 
 import arrow.core.left
 import arrow.core.right
@@ -6,35 +6,30 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class SøknadServiceImplTest {
-
+internal class LukkSøknadServiceImplTest {
     private val sakId = UUID.randomUUID()
-    private val saksbehandler = Saksbehandler("Z993156")
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
     private val sak = Sak(
         id = sakId,
         opprettet = Tidspunkt.now(),
@@ -57,7 +52,7 @@ internal class SøknadServiceImplTest {
     )
     private val trekkSøknadRequest = LukkSøknadRequest.TrekkSøknad(
         søknadId = søknad.id,
-        saksbehandler = Saksbehandler(navIdent = "navIdent"),
+        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navIdent"),
         trukketDato = 1.januar(2020)
     )
 
@@ -248,20 +243,10 @@ internal class SøknadServiceImplTest {
     private fun createSøknadServiceImpl(
         søknadRepo: SøknadRepo = mock(),
         sakService: SakService = mock(),
-        sakFactory: SakFactory = mock(),
-        pdfGenerator: PdfGenerator = mock(),
-        dokArkiv: DokArkiv = mock(),
-        personOppslag: PersonOppslag = mock(),
-        oppgaveClient: OppgaveClient = mock(),
         brevService: BrevService = mock()
-    ) = SøknadServiceImpl(
+    ) = LukkSøknadServiceImpl(
         søknadRepo = søknadRepo,
         sakService = sakService,
-        sakFactory = sakFactory,
-        pdfGenerator = pdfGenerator,
-        dokArkiv = dokArkiv,
-        personOppslag = personOppslag,
-        oppgaveClient = oppgaveClient,
         brevService = brevService
     )
 }

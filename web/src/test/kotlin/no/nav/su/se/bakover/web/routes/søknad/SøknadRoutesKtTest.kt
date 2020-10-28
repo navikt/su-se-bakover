@@ -50,9 +50,9 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
-import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -97,6 +97,17 @@ internal class SøknadRoutesKtTest {
         søknadId = søknadId,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navident"),
         trukketDato = 1.januar(2020)
+    )
+
+    private val mockServices = Services(
+        avstemming = mock(),
+        utbetaling = mock(),
+        oppdrag = mock(),
+        behandling = mock(),
+        sak = mock(),
+        søknad = mock(),
+        brev = mock(),
+        lukkSøknad = mock()
     )
 
     @Test
@@ -220,22 +231,12 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lager en søknad, så trekker søknaden`() {
-        val søknadServiceMock = mock<SøknadService> {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn sak.right()
         }
 
         withTestApplication({
-            testSusebakover(
-                services = Services(
-                    avstemming = mock(),
-                    utbetaling = mock(),
-                    oppdrag = mock(),
-                    behandling = mock(),
-                    sak = mock(),
-                    søknad = søknadServiceMock,
-                    brev = mock()
-                )
-            )
+            testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
         }) {
             defaultRequest(
                 method = Post,
@@ -262,20 +263,12 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
-        val søknadServiceMock = mock<SøknadService> {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
         withTestApplication({
             testSusebakover(
-                services = Services(
-                    avstemming = mock(),
-                    utbetaling = mock(),
-                    oppdrag = mock(),
-                    behandling = mock(),
-                    sak = mock(),
-                    søknad = søknadServiceMock,
-                    brev = mock()
-                )
+                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
             )
         }) {
             defaultRequest(
@@ -294,7 +287,7 @@ internal class SøknadRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe BadRequest
-                verify(søknadServiceMock).lukkSøknad(
+                verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
                 )
             }
@@ -304,21 +297,11 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `kan lage brevutkast av trukket søknad`() {
         val pdf = "".toByteArray()
-        val søknadServiceMock = mock<SøknadService> {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lagBrevutkastForLukketSøknad(any()) } doReturn pdf.right()
         }
         withTestApplication({
-            testSusebakover(
-                services = Services(
-                    avstemming = mock(),
-                    utbetaling = mock(),
-                    oppdrag = mock(),
-                    behandling = mock(),
-                    sak = mock(),
-                    søknad = søknadServiceMock,
-                    brev = mock()
-                )
-            )
+            testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
         }) {
             defaultRequest(
                 method = Post,
@@ -335,7 +318,7 @@ internal class SøknadRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe OK
-                verify(søknadServiceMock).lagBrevutkastForLukketSøknad(
+                verify(lukkSøknadServiceMock).lagBrevutkastForLukketSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
                 )
             }

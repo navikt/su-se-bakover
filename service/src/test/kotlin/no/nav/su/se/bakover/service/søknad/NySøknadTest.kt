@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -73,7 +72,6 @@ class NySøknadTest {
         val pdfGeneratorMock: PdfGenerator = mock()
         val dokArkivMock: DokArkiv = mock()
         val oppgaveClientMock: OppgaveClient = mock()
-        val brevServiceMock: BrevService = mock()
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -81,8 +79,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock,
-            brevService = brevServiceMock
+            oppgaveClient = oppgaveClientMock
         )
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -113,8 +110,6 @@ class NySøknadTest {
         val dokArkivMock: DokArkiv = mock()
         val søknadRepoMock: SøknadRepo = mock()
         val oppgaveClientMock: OppgaveClient = mock()
-        val brevServiceMock: BrevService = mock()
-
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -122,8 +117,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock,
-            brevService = brevServiceMock
+            oppgaveClient = oppgaveClientMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -192,7 +186,6 @@ class NySøknadTest {
         }
 
         val oppgaveClientMock: OppgaveClient = mock()
-        val brevServiceMock: BrevService = mock()
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -201,8 +194,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock,
-            brevService = brevServiceMock
+            oppgaveClient = oppgaveClientMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -277,7 +269,6 @@ class NySøknadTest {
         val oppgaveClientMock: OppgaveClient = mock {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
-        val brevServiceMock: BrevService = mock()
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -286,8 +277,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock,
-            brevService = brevServiceMock
+            oppgaveClient = oppgaveClientMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -377,7 +367,6 @@ class NySøknadTest {
         val oppgaveClientMock: OppgaveClient = mock {
             on { opprettOppgave(any()) } doReturn oppgaveId.right()
         }
-        val brevServiceMock: BrevService = mock()
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -386,8 +375,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock,
-            brevService = brevServiceMock
+            oppgaveClient = oppgaveClientMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)

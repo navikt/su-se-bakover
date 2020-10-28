@@ -46,7 +46,8 @@ internal class StansUtbetalingRoutesKtTest {
         behandling = mock(),
         sak = mock(),
         søknad = mock(),
-        brev = mock()
+        brev = mock(),
+        lukkSøknad = mock()
     )
 
     @Test

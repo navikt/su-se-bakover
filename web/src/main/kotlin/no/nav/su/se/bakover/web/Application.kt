@@ -239,7 +239,7 @@ internal fun Application.susebakover(
                     behandlingService = services.behandling,
                     sakService = services.sak
                 )
-                søknadRoutes(services.søknad)
+                søknadRoutes(services.søknad, services.lukkSøknad)
                 behandlingRoutes(
                     behandlingService = services.behandling,
                     sakService = services.sak
