@@ -67,7 +67,7 @@ internal class BeregningPostgresRepoTest {
                     sats = Sats.HØY,
                     fradrag = listOf(
                         Fradrag(
-                            type = Fradragstype.AndreYtelser,
+                            type = Fradragstype.Arbeidsinntekt,
                             beløp = 10000,
                             utenlandskInntekt = null,
                             inntektDelerAvPeriode = null
