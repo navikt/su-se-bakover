@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.argThat
@@ -75,7 +75,7 @@ internal class LukkSøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 journalførBrev(
-                    LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)),
+                    TrukketSøknadBrevRequest(søknad, 1.januar(2020)),
                     sak.id
                 )
             } doReturn JournalpostId("en id").right()
@@ -101,7 +101,7 @@ internal class LukkSøknadServiceImplTest {
                     it.type shouldBe Søknad.LukketType.TRUKKET
                 }
             )
-            verify(brevServiceMock).journalførBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)), søknad.sakId)
+            verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
             verifyNoMoreInteractions()
@@ -224,7 +224,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(søknad.id) } doReturn søknad
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020))) } doReturn pdf.right()
+            on { lagBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020))) } doReturn pdf.right()
         }
 
         createService(
@@ -266,7 +266,7 @@ internal class LukkSøknadServiceImplTest {
         val brevServiceMock = mock<BrevService> {
             on {
                 journalførBrev(
-                    LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)),
+                    TrukketSøknadBrevRequest(søknad, 1.januar(2020)),
                     sak.id
                 )
             } doReturn JournalpostId("en id").right()
@@ -285,7 +285,7 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(søknad.id)
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
-            verify(brevServiceMock).journalførBrev(LagBrevRequest.TrukketSøknad(søknad, 1.januar(2020)), søknad.sakId)
+            verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verifyNoMoreInteractions()
         }

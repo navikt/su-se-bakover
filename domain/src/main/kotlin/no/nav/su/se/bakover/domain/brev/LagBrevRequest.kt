@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import java.time.LocalDate
@@ -62,21 +61,6 @@ abstract class LagBrevRequest {
                 harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                 fradrag = behandling.beregning()!!.fradrag.toFradragPerMåned(),
                 fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned().sumBy { fradrag -> fradrag.beløp },
-            )
-        }
-    }
-
-    data class TrukketSøknad(
-        private val søknad: Søknad,
-        private val trukketDato: LocalDate
-    ) : LagBrevRequest() {
-        override fun getFnr(): Fnr = søknad.søknadInnhold.personopplysninger.fnr
-
-        override fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata {
-            return Brevdata.TrukketSøknad(
-                personalia = personalia,
-                datoSøknadOpprettet = søknad.opprettet.toLocalDate(),
-                trukketDato = trukketDato
             )
         }
     }

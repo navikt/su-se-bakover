@@ -1,0 +1,22 @@
+package no.nav.su.se.bakover.domain.brev.søknad.lukk
+
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.brev.Brevdata
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import java.time.LocalDate
+
+data class TrukketSøknadBrevRequest(
+    private val søknad: Søknad,
+    private val trukketDato: LocalDate
+) : LagBrevRequest() {
+    override fun getFnr(): Fnr = søknad.søknadInnhold.personopplysninger.fnr
+
+    override fun lagBrevdata(personalia: Brevdata.Personalia): Brevdata {
+        return TrukketSøknadBrevdata(
+            personalia = personalia,
+            datoSøknadOpprettet = søknad.opprettet.toLocalDate(),
+            trukketDato = trukketDato
+        )
+    }
+}

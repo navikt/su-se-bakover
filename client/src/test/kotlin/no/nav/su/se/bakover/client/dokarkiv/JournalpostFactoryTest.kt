@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.Brevdata
 import no.nav.su.se.bakover.domain.brev.Brevtype
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class JournalpostFactoryTest {
@@ -47,5 +48,27 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf) should beOfType<Journalpost.TrukketSøknad>()
+    }
+
+    @Test
+    fun `lager journalpost for en avvist søknad med vedtak`() {
+        val brevdata = mock<Brevdata>() {
+            on { brevtype() } doReturn Brevtype.AvvistSøknadVedtak
+            on { toJson() } doReturn ""
+        }
+        assertThrows<NotImplementedError>() {
+            JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf)
+        }
+    }
+
+    @Test
+    fun `lager journalpost for en avvist søknad med fritekst`() {
+        val brevdata = mock<Brevdata>() {
+            on { brevtype() } doReturn Brevtype.AvvistSøknadFritekst
+            on { toJson() } doReturn ""
+        }
+        assertThrows<NotImplementedError>() {
+            JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf)
+        }
     }
 }

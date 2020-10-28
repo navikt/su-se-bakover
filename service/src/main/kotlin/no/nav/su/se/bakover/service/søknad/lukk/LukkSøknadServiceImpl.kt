@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
@@ -56,8 +58,8 @@ internal class LukkSøknadServiceImpl(
 
     private fun lagBrevRequest(søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
         return when (request) {
-            is LukkSøknadRequest.MedBrev.TrekkSøknad -> LagBrevRequest.TrukketSøknad(søknad, request.trukketDato)
-            is LukkSøknadRequest.MedBrev.AvvistSøknad -> throw RuntimeException("TODO") // TODO implement
+            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(søknad, request.trukketDato)
+            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(søknad, request.brevConfig)
         }
     }
 

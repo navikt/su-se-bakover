@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevdata
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -42,7 +43,7 @@ internal class BrevdataTest {
         fradragSum = 0,
     )
 
-    val trukketSøknad = Brevdata.TrukketSøknad(
+    val trukketSøknad = TrukketSøknadBrevdata(
         personalia, 1.januar(2020), 1.februar(2020)
     )
 

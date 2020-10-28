@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -83,9 +84,8 @@ internal class LukkSøknadInputHandlerTest {
                 body = """
                     {
                         "type":"AVVIST",
-                        "brevInfo": {
-                            "typeBrev":"VEDTAK",
-                            "fritekst":"kanskje"
+                        "brevConfig": {
+                            "brevtype":"VEDTAK"
                         }
                     }
                 """.trimIndent(),
@@ -94,9 +94,8 @@ internal class LukkSøknadInputHandlerTest {
             ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevInfo = LukkSøknadRequest.BrevInfo(
-                    typeBrev = LukkSøknadRequest.BrevType.VEDTAK,
-                    fritekst = "kanskje"
+                brevConfig = BrevConfig.BrevTypeConfig(
+                    brevType = BrevConfig.BrevType.VEDTAK
                 )
             ).right()
         }
@@ -129,9 +128,8 @@ internal class LukkSøknadInputHandlerTest {
                 body = """
                     {
                         "type":"AVVIST",
-                        "brevInfo": {
-                            "typeBrev":"FJAS",
-                            "fritekst":"kanskje"
+                        "brevConfig": {
+                            "brevtype":"FJAS"
                         }
                     }
                 """.trimIndent(),

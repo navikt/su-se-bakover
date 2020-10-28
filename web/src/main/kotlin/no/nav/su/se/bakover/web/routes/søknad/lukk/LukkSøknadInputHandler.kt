@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -32,15 +33,14 @@ internal sealed class LukketJson {
 
     data class AvvistJson(
         override val type: Søknad.LukketType,
-        val brevInfo: BrevInfoJson? = null
+        val brevConfig: BrevConfigJson? = null
     ) : LukketJson() {
         init {
             require(type == Søknad.LukketType.AVVIST)
         }
 
-        data class BrevInfoJson(
-            val typeBrev: LukkSøknadRequest.BrevType,
-            val fritekst: String?,
+        data class BrevConfigJson(
+            val brevtype: BrevConfig.BrevType,
         )
     }
 }
@@ -71,7 +71,7 @@ internal object LukkSøknadInputHandler {
                 søknadId = søknadId,
                 saksbehandler = saksbehandler
             )
-            is LukketJson.AvvistJson -> when (bodyAsJson.brevInfo) {
+            is LukketJson.AvvistJson -> when (bodyAsJson.brevConfig) {
                 null -> LukkSøknadRequest.UtenBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler
@@ -79,10 +79,7 @@ internal object LukkSøknadInputHandler {
                 else -> LukkSøknadRequest.MedBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler,
-                    brevInfo = LukkSøknadRequest.BrevInfo(
-                        typeBrev = bodyAsJson.brevInfo.typeBrev,
-                        fritekst = bodyAsJson.brevInfo.fritekst
-                    )
+                    brevConfig = BrevConfig.BrevTypeConfig(brevType = bodyAsJson.brevConfig.brevtype)
                 )
             }
         }.right()

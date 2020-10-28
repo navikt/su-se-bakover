@@ -16,6 +16,8 @@ object JournalpostFactory {
             Brevtype.InnvilgetVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
             Brevtype.AvslagsVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
             Brevtype.TrukketSøknad -> Journalpost.TrukketSøknad(person, sakId.toString(), brevdata, pdf)
+            Brevtype.AvvistSøknadVedtak -> TODO()
+            Brevtype.AvvistSøknadFritekst -> TODO()
         }
     }
 }
