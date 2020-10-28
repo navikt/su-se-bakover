@@ -38,7 +38,7 @@ internal class LukkSøknadServiceImpl(
             }
     }
 
-    override fun lagBrevutkastForLukketSøknad(
+    override fun lagBrevutkast(
         request: LukkSøknadRequest
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         return hentSøknad(request.søknadId).mapLeft {

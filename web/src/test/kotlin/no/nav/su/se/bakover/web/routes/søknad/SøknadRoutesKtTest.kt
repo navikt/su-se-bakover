@@ -298,7 +298,7 @@ internal class SøknadRoutesKtTest {
     fun `kan lage brevutkast av trukket søknad`() {
         val pdf = "".toByteArray()
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lagBrevutkastForLukketSøknad(any()) } doReturn pdf.right()
+            on { lagBrevutkast(any()) } doReturn pdf.right()
         }
         withTestApplication({
             testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
@@ -318,7 +318,7 @@ internal class SøknadRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe OK
-                verify(lukkSøknadServiceMock).lagBrevutkastForLukketSøknad(
+                verify(lukkSøknadServiceMock).lagBrevutkast(
                     argThat { it shouldBe trekkSøknadRequest }
                 )
             }

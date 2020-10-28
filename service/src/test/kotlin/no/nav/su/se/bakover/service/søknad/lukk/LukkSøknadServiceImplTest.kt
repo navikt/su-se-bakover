@@ -179,7 +179,7 @@ internal class LukkSøknadServiceImplTest {
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             brevService = brevServiceMock
-        ).lagBrevutkastForLukketSøknad(trekkSøknadRequest) shouldBe pdf.right()
+        ).lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
     }
 
     @Test
@@ -189,7 +189,7 @@ internal class LukkSøknadServiceImplTest {
         }
         createSøknadServiceImpl(
             søknadRepo = søknadRepoMock
-        ).lagBrevutkastForLukketSøknad(
+        ).lagBrevutkast(
             LukkSøknadRequest.BortfaltSøknad(
                 søknadId = søknad.id,
                 saksbehandler = saksbehandler

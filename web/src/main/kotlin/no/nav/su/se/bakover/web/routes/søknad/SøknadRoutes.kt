@@ -99,7 +99,7 @@ internal fun Route.søknadRoutes(
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
-                    lukkSøknadService.lagBrevutkastForLukketSøknad(
+                    lukkSøknadService.lagBrevutkast(
                         request
                     ).fold(
                         {

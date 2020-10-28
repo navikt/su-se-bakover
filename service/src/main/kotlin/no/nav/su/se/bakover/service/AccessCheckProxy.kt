@@ -268,12 +268,12 @@ class AccessCheckProxy(
                     return services.lukkSøknad.lukkSøknad(request)
                 }
 
-                override fun lagBrevutkastForLukketSøknad(
+                override fun lagBrevutkast(
                     request: LukkSøknadRequest
                 ): Either<no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilSøknad(request.søknadId)
 
-                    return services.lukkSøknad.lagBrevutkastForLukketSøknad(request)
+                    return services.lukkSøknad.lagBrevutkast(request)
                 }
             }
         )

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 
 interface LukkSøknadService {
     fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak>
-    fun lagBrevutkastForLukketSøknad(request: LukkSøknadRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun lagBrevutkast(request: LukkSøknadRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
 sealed class KunneIkkeLukkeSøknad {
