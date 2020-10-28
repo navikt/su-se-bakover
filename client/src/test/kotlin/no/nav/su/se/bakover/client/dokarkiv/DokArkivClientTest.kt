@@ -87,7 +87,7 @@ internal class DokArkivClientTest : WiremockBase {
     private val forventetVedtaksRequest =
         """
                     {
-                      "tittel": "Vedtaksbrev for soknad om supplerende stønad",
+                      "tittel": "Vedtaksbrev for søknad om supplerende stønad",
                       "journalpostType": "UTGAAENDE",
                       "tema": "SUP",
                       "kanal": null,
@@ -109,7 +109,7 @@ internal class DokArkivClientTest : WiremockBase {
                       },
                       "dokumenter": [
                         {
-                          "tittel": "Vedtaksbrev for soknad om supplerende stønad",
+                          "tittel": "Vedtaksbrev for søknad om supplerende stønad",
                           "dokumentKategori": "VB",
                           "brevkode": "XX.YY-ZZ",
                           "dokumentvarianter": [

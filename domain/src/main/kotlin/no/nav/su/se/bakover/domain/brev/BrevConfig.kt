@@ -11,6 +11,7 @@ abstract class BrevConfig {
 
     enum class BrevType {
         VEDTAK,
-        FRITEKST
+        FRITEKST,
+        INFO
     }
 }

@@ -57,9 +57,9 @@ sealed class Journalpost {
         val person: Person,
         val sakId: String,
         val brevdata: Brevdata,
-        val pdf: ByteArray,
+        val pdf: ByteArray
     ) : Journalpost() {
-        override val tittel: String = "Vedtaksbrev for soknad om supplerende stønad"
+        override val tittel = brevdata.brevtype().tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
@@ -71,7 +71,7 @@ sealed class Journalpost {
         override val journalfoerendeEnhet: String = "4815"
         override val dokumenter: List<JournalpostDokument> = listOf(
             JournalpostDokument(
-                tittel = "Vedtaksbrev for soknad om supplerende stønad",
+                tittel = tittel,
                 dokumentKategori = DokumentKategori.VB,
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
@@ -83,13 +83,13 @@ sealed class Journalpost {
         )
     }
 
-    data class TrukketSøknad(
+    data class Info(
         val person: Person,
         val sakId: String,
         val brevdata: Brevdata,
         val pdf: ByteArray,
     ) : Journalpost() {
-        override val tittel = "Bekrefter at søknad er trukket"
+        override val tittel = brevdata.brevtype().tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)

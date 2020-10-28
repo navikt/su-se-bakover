@@ -15,9 +15,9 @@ object JournalpostFactory {
         return when (brevdata.brevtype()) {
             Brevtype.InnvilgetVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
             Brevtype.AvslagsVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
-            Brevtype.TrukketSøknad -> Journalpost.TrukketSøknad(person, sakId.toString(), brevdata, pdf)
-            Brevtype.AvvistSøknadVedtak -> TODO()
-            Brevtype.AvvistSøknadFritekst -> TODO()
+            Brevtype.TrukketSøknad -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
+            Brevtype.AvvistSøknadVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevdata, pdf)
+            Brevtype.AvvistSøknadFritekst -> Journalpost.Info(person, sakId.toString(), brevdata, pdf)
         }
     }
 }

@@ -16,6 +16,7 @@ data class AvvistSøknadBrevRequest(
         return when (brevConfig.getBrevtype()) {
             BrevConfig.BrevType.VEDTAK -> AvvistSøknadVedtakBrevdata(personalia)
             BrevConfig.BrevType.FRITEKST -> AvvistSøknadFritekstBrevdata(personalia)
+            else -> throw RuntimeException("Kan ikke lage avvist-søknadbrev for brevtype ${brevConfig.getBrevtype()}")
         }
     }
 }
