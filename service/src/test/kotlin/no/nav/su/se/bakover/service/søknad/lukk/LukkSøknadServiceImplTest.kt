@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

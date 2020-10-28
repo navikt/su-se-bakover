@@ -48,9 +48,9 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.FnrGenerator

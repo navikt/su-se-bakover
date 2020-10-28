@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.lukk
 
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.message

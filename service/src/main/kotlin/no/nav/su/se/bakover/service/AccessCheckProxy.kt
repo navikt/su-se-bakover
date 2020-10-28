@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -41,7 +42,6 @@ import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService

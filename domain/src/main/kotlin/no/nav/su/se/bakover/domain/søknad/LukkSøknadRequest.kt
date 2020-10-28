@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.søknad
+package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevConfig

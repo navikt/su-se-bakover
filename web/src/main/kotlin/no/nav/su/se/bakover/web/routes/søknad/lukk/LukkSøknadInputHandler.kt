@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.web.routes.søknad.lukk
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.service.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import java.time.LocalDate
 import java.util.UUID
 
@@ -55,10 +56,9 @@ internal object LukkSøknadInputHandler {
             return UgyldigLukkSøknadRequest.left()
         }
 
-        val bodyAsJson = deserializeBody(body)?.fold(
-            { return UgyldigLukkSøknadRequest.left() },
-            { it }
-        ) ?: return UgyldigLukkSøknadRequest.left()
+        val bodyAsJson = deserializeBody(body).getOrHandle {
+            return it.left()
+        }
 
         return when (bodyAsJson) {
             is LukketJson.TrukketJson -> LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -86,11 +86,15 @@ internal object LukkSøknadInputHandler {
     }
 }
 
-internal suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson>? {
+internal suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson> {
     val trukketJson = deserializeLukketSøknadRequest<LukketJson.TrukketJson>(body)
     val bortfalt = deserializeLukketSøknadRequest<LukketJson.BortfaltJson>(body)
     val avvist = deserializeLukketSøknadRequest<LukketJson.AvvistJson>(body)
-    return listOf(trukketJson, bortfalt, avvist).singleOrNull { it.isRight() }
+    return listOf(trukketJson, bortfalt, avvist).filter {
+        it.isRight()
+    }.let {
+        if (it.size != 1) UgyldigLukkSøknadRequest.left() else it.first()
+    }
 }
 
 internal suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
