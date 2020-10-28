@@ -197,7 +197,7 @@ class AccessCheckProxy(
                 override fun opprettSøknadsbehandling(
                     søknadId: UUID
                 ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
-                    assertHarTilgangTilSak(søknadId)
+                    assertHarTilgangTilSøknad(søknadId)
 
                     return services.behandling.opprettSøknadsbehandling(søknadId)
                 }
