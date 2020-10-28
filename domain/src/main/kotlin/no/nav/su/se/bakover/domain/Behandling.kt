@@ -170,19 +170,21 @@ data class Behandling(
         it to AtomicInteger(0)
     }.toMap()
 
-    private fun incrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("førstegangsbehandling_gauge") {
+    private fun incrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
         behandlingstatuserGauge.getValue(status).incrementAndGet()
     }
         .tag("type", status.name)
         .register(Metrics.globalRegistry)
+        .measure()
 
-    private fun decrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("førstegangsbehandling_gauge") {
+    private fun decrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
         behandlingstatuserGauge.getValue(status).decrementAndGet()
     }
         .tag("type", status.name)
         .register(Metrics.globalRegistry)
+        .measure()
 
-    private fun incrementStatusCounter(status: BehandlingsStatus) = Counter.builder("førstegangsbehandling")
+    private fun incrementStatusCounter(status: BehandlingsStatus) = Counter.builder("soknadsbehandling_counter")
         .tag("type", status.name)
         .register(Metrics.globalRegistry)
         .increment()
