@@ -1,0 +1,41 @@
+package no.nav.su.se.bakover.domain.beregning.beregning
+
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+
+sealed class BeregningStrategy {
+    abstract fun fradragStrategy(): FradragStrategy
+    abstract fun sats(): Sats
+    fun beregn(beregningsgrunnlag: Beregningsgrunnlag) = Beregning(
+        fraOgMed = beregningsgrunnlag.fraOgMed,
+        tilOgMed = beregningsgrunnlag.tilOgMed,
+        sats = sats(),
+        fradrag = fradragStrategy().beregnFradrag(beregningsgrunnlag.forventetInntekt, beregningsgrunnlag.fradrag)
+    )
+
+    object BorAlene : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
+        override fun sats(): Sats = Sats.HØY
+    }
+
+    object BorMedVoksne : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
+        override fun sats(): Sats = Sats.ORDINÆR
+    }
+
+    object EpsOver67År : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsOver67År
+        override fun sats(): Sats = Sats.ORDINÆR
+    }
+
+    object EpsUnder67ÅrOgUførFlyktning : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67ÅrOgUførFlyktning
+        override fun sats(): Sats = Sats.ORDINÆR
+    }
+
+    object EpsUnder67År : BeregningStrategy() {
+        override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67År
+        override fun sats(): Sats = Sats.HØY
+    }
+}

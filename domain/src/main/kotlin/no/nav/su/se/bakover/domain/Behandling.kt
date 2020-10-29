@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -19,6 +19,7 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
+@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 data class Behandling(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
@@ -217,23 +218,15 @@ data class Behandling(
 
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
-                val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
-                    ?: throw TilstandException(
-                        status,
-                        this::opprettBeregning.toString(),
-                        "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
-                    )
-                val oppdatertFradrag = fradragWithForventetInntekt(
-                    fradrag = fradrag,
-                    forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
-                )
-
-                beregning = Beregning(
+                val beregningsgrunnlag = Beregningsgrunnlag(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
-                    sats = sats,
-                    fradrag = oppdatertFradrag
+                    fradrag = fradrag,
+                    forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
                 )
+
+                val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+                beregning = strategy.beregn(beregningsgrunnlag)
 
                 if (beregning!!.beløpErNull() || beregning!!.beløpErOverNullMenUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
