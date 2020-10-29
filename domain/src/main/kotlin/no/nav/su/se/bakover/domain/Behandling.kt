@@ -8,6 +8,7 @@ import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tags
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.Behandling.Tilstand.Companion.behandlingstatuserGauge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
@@ -118,6 +119,12 @@ data class Behandling(
     override fun hashCode() = id.hashCode()
 
     interface Tilstand {
+
+        companion object {
+            val behandlingstatuserGauge = BehandlingsStatus.values().map {
+                it to Metrics.gauge("soknadsbehandlinger_aktive", Tags.of("type", it.name), AtomicInteger(0))
+            }.toMap()
+        }
         val status: BehandlingsStatus
 
         fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -165,10 +172,6 @@ data class Behandling(
         tilstand = resolve(status)
         return tilstand
     }
-
-    private val behandlingstatuserGauge = BehandlingsStatus.values().map {
-        it to Metrics.gauge("soknadsbehandlinger_aktive", Tags.of("type", it.name), AtomicInteger(0))
-    }.toMap()
 
     private fun incrementStatusGauge(status: BehandlingsStatus) =
         behandlingstatuserGauge.getValue(status)!!.incrementAndGet()
