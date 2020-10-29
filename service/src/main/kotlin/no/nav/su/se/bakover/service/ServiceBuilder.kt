@@ -78,7 +78,8 @@ class ServiceBuilder(
                 lukkSøknad = LukkSøknadServiceImpl(
                     søknadRepo = databaseRepos.søknad,
                     sakService = sakService,
-                    brevService = brevService
+                    brevService = brevService,
+                    oppgaveClient = clients.oppgaveClient
                 )
             )
         )

@@ -176,6 +176,10 @@ internal class BehandlingRoutesKtTest {
                         override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
                             return Unit.right()
                         }
+
+                        override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                            return Unit.right()
+                        }
                     }
                 )
             )

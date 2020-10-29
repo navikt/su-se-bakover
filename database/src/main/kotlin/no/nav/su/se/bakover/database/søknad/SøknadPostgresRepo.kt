@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
@@ -71,6 +72,17 @@ internal class SøknadPostgresRepo(
                 ),
                 session
             )
+        }
+    }
+
+    override fun hentOppgaveId(søknadId: UUID): OppgaveId? {
+        return dataSource.withSession { session ->
+            "select oppgaveId from søknad where id=:id".hent(
+                mapOf(
+                    "id" to søknadId,
+                ),
+                session
+            ) { it.toOppgaveId() }
         }
     }
 }

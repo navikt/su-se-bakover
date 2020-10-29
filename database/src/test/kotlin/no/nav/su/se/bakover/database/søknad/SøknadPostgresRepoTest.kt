@@ -123,4 +123,14 @@ internal class SøknadPostgresRepoTest {
             } shouldBe listOf("2")
         }
     }
+
+    @Test
+    fun `henter oppgave-id fra søknad`() {
+        withMigratedDb {
+            val nySak: NySak = testDataHelper.insertSak(FNR)
+            val oppgaveId = OppgaveId("1")
+            repo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
+            repo.hentOppgaveId(nySak.søknad.id) shouldBe oppgaveId
+        }
+    }
 }

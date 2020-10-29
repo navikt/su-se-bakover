@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -56,6 +58,7 @@ internal class LukkSøknadServiceImplTest {
         saksbehandler = saksbehandler,
         trukketDato = 1.januar(2020)
     )
+    private val oppgaveId = OppgaveId("1234")
 
     @Test
     fun `trekker en søknad og håndterer brev`() {
@@ -68,6 +71,7 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
+            on { hentOppgaveId(søknad.id) } doReturn oppgaveId
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
@@ -82,15 +86,19 @@ internal class LukkSøknadServiceImplTest {
 
             on { distribuerBrev(JournalpostId("en id")) } doReturn "en bestillings id".right()
         }
+        val oppgaveClientMock = mock<OppgaveClient> {
+            on { lukkOppgave(oppgaveId) } doReturn Unit.right()
+        }
 
         createService(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            oppgaveClient = oppgaveClientMock
         ).lukkSøknad(trekkSøknadRequest) shouldBe sak.right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveClientMock
         ) {
             verify(søknadRepoMock).hentSøknad(søknad.id)
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
@@ -104,6 +112,8 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
+            verify(søknadRepoMock).hentOppgaveId(søknad.id)
+            verify(oppgaveClientMock).lukkOppgave(oppgaveId)
             verifyNoMoreInteractions()
         }
     }
@@ -119,14 +129,19 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
+            on { hentOppgaveId(søknad.id) } doReturn oppgaveId
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
+        }
+        val oppgaveClientMock = mock<OppgaveClient> {
+            on { lukkOppgave(oppgaveId) } doReturn Unit.right()
         }
 
         createService(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
+            oppgaveClient = oppgaveClientMock
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.AvvistSøknad(
                 søknadId = søknad.id,
@@ -135,7 +150,7 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe sak.right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock
+            søknadRepoMock, sakServiceMock, oppgaveClientMock
         ) {
             verify(søknadRepoMock).hentSøknad(søknad.id)
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
@@ -147,6 +162,8 @@ internal class LukkSøknadServiceImplTest {
                 }
             )
             verify(sakServiceMock).hentSak(søknad.sakId)
+            verify(søknadRepoMock).hentOppgaveId(søknad.id)
+            verify(oppgaveClientMock).lukkOppgave(oppgaveId)
             verifyNoMoreInteractions()
         }
     }
@@ -259,6 +276,7 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
+            on { hentOppgaveId(søknad.id) } doReturn oppgaveId
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
@@ -287,6 +305,60 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
+            verify(søknadRepoMock).hentOppgaveId(søknad.id)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `lukker ikke selve oppgaven hvis oppgaveclient returnerer null`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(søknad.id) } doReturn søknad
+            on {
+                lukkSøknad(
+                    søknad.id,
+                    Søknad.Lukket(tidspunkt = now(), saksbehandler.navIdent, type = Søknad.LukketType.TRUKKET)
+                )
+            }.doNothing()
+            on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
+            on { hentOppgaveId(søknad.id) } doReturn null
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(søknad.sakId) } doReturn sak.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on {
+                journalførBrev(
+                    TrukketSøknadBrevRequest(søknad, 1.januar(2020)),
+                    sak.id
+                )
+            } doReturn JournalpostId("en id").right()
+
+            on { distribuerBrev(JournalpostId("en id")) } doReturn "en bestillings id".right()
+        }
+
+        createService(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+        ).lukkSøknad(trekkSøknadRequest) shouldBe sak.right()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(søknad.id)
+            verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+            verify(søknadRepoMock).lukkSøknad(
+                argThat { it shouldBe søknad.id },
+                argThat {
+                    it.saksbehandler shouldBe saksbehandler.toString()
+                    it.type shouldBe Søknad.LukketType.TRUKKET
+                }
+            )
+            verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
+            verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
+            verify(sakServiceMock).hentSak(søknad.sakId)
+            verify(søknadRepoMock).hentOppgaveId(søknad.id)
             verifyNoMoreInteractions()
         }
     }
@@ -294,10 +366,12 @@ internal class LukkSøknadServiceImplTest {
     private fun createService(
         søknadRepo: SøknadRepo = mock(),
         sakService: SakService = mock(),
-        brevService: BrevService = mock()
+        brevService: BrevService = mock(),
+        oppgaveClient: OppgaveClient = mock()
     ) = LukkSøknadServiceImpl(
         søknadRepo = søknadRepo,
         sakService = sakService,
-        brevService = brevService
+        brevService = brevService,
+        oppgaveClient = oppgaveClient
     )
 }

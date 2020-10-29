@@ -253,6 +253,92 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
     }
 
+    @Test
+    fun `lukker en oppgave med en oppgaveId`() {
+        val oppgaveId = 12345L
+        val versjon = 2
+        wireMockServer.stubFor(
+            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                                      "id": $oppgaveId,
+                                      "tildeltEnhetsnr": "1234",
+                                      "endretAvEnhetsnr": "1234",
+                                      "opprettetAvEnhetsnr": "1234",
+                                      "aktoerId": "1000012345678",
+                                      "tilordnetRessurs": "Z123456",
+                                      "beskrivelse": "MASKERT",
+                                      "tema": "SUP",
+                                      "oppgavetype": "BEH_SAK",
+                                      "behandlingstype": "ae0245",
+                                      "versjon": $versjon,
+                                      "opprettetAv": "supstonad",
+                                      "endretAv": "supstonad",
+                                      "prioritet": "NORM",
+                                      "status": "AAPNET",
+                                      "metadata": {},
+                                      "fristFerdigstillelse": "2019-01-04",
+                                      "aktivDato": "2019-01-04",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "endretTidspunkt": "2019-08-25T11:45:38+02:00"
+                                    }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        wireMockServer.stubFor(
+            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                              "id": $oppgaveId,
+                              "versjon": ${versjon + 1},
+                              "status": "FERDIGSTILT"
+                            }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        client.lukkOppgave(OppgaveId(oppgaveId.toString()))
+
+        WireMock.configureFor(wireMockServer.port())
+        verify(
+            1,
+            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+                .withRequestBody(
+                    equalToJson(
+                        //language=JSON
+                        """
+                            {
+                              "id": $oppgaveId,
+                              "versjon": $versjon,
+                              "status": "FERDIGSTILT"
+                            }
+                        """.trimIndent()
+                    )
+                )
+        )
+    }
+
     private val stubMapping = WireMock.post(WireMock.urlPathEqualTo(oppgavePath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))

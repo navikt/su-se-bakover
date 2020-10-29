@@ -15,5 +15,7 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = Unit.right()
 
+    override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
+
     private fun generateOppgaveId() = OppgaveId(Random.nextLong().toString())
 }
