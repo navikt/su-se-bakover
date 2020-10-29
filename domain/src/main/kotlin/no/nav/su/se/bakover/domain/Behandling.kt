@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.Metrics
+import io.micrometer.core.instrument.Tags
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -167,22 +167,14 @@ data class Behandling(
     }
 
     private val behandlingstatuserGauge = BehandlingsStatus.values().map {
-        it to AtomicInteger(0)
+        it to Metrics.gauge("soknadsbehandlinger_aktive", Tags.of("type", it.name), AtomicInteger(0))
     }.toMap()
 
-    private fun incrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
-        behandlingstatuserGauge.getValue(status).incrementAndGet()
-    }
-        .tag("type", status.name)
-        .register(Metrics.globalRegistry)
-        .measure()
+    private fun incrementStatusGauge(status: BehandlingsStatus) =
+        behandlingstatuserGauge.getValue(status)!!.incrementAndGet()
 
-    private fun decrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
-        behandlingstatuserGauge.getValue(status).decrementAndGet()
-    }
-        .tag("type", status.name)
-        .register(Metrics.globalRegistry)
-        .measure()
+    private fun decrementStatusGauge(status: BehandlingsStatus) =
+        behandlingstatuserGauge.getValue(status)!!.decrementAndGet()
 
     private fun incrementStatusCounter(status: BehandlingsStatus) = Counter.builder("soknadsbehandling_counter")
         .tag("type", status.name)
