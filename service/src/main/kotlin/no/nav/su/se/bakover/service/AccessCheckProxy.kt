@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -25,6 +26,10 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -39,6 +44,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -80,7 +86,7 @@ class AccessCheckProxy(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering
                 ): Either<FantIkkeUtbetaling, Utbetaling> {
-                    throw IllegalStateException("This should only be calld from another service")
+                    throw IllegalStateException("This should only be called from another service")
                 }
 
                 override fun simulerUtbetaling(
@@ -274,7 +280,30 @@ class AccessCheckProxy(
 
                     return services.lukkSøknad.lagBrevutkast(request)
                 }
+            },
+            /**
+             * Denne skal kun brukes fra en annen service.
+             * Når en service bruker en annen service, vil den ha den ikke-proxyede versjonen.
+             * Vi kaster derfor her for å unngå at noen bruker metoden fra feil plass (som ville ha omgått tilgangssjekk).
+             */
+            oppgave = object : OppgaveService {
+                override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+                    throw IllegalStateException("This should only be called from another service")
+                }
+
+                override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                    throw IllegalStateException("This should only be called from another service")
+                }
+
+                override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                    throw IllegalStateException("This should only be called from another service")
+                }
+
+                override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+                    throw IllegalStateException("This should only be called from another service")
+                }
             }
+
         )
     }
 

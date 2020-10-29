@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppdrag.OppdragServiceImpl
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -41,6 +43,9 @@ class ServiceBuilder(
             personOppslag = clients.personOppslag,
             dokArkiv = clients.dokArkiv,
             dokDistFordeling = clients.dokDistFordeling
+        )
+        val oppgaveService = OppgaveServiceImpl(
+            oppgaveClient = clients.oppgaveClient
         )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
@@ -79,6 +84,9 @@ class ServiceBuilder(
                     søknadRepo = databaseRepos.søknad,
                     sakService = sakService,
                     brevService = brevService,
+                    oppgaveService = oppgaveService
+                ),
+                oppgave = OppgaveServiceImpl(
                     oppgaveClient = clients.oppgaveClient
                 )
             )
@@ -94,5 +102,6 @@ data class Services(
     val sak: SakService,
     val søknad: SøknadService,
     val brev: BrevService,
-    val lukkSøknad: LukkSøknadService
+    val lukkSøknad: LukkSøknadService,
+    val oppgave: OppgaveService
 )
