@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import java.time.LocalDate

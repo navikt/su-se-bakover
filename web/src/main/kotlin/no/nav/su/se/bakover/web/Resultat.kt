@@ -31,5 +31,5 @@ internal class Resultat private constructor(
     }
 }
 
-internal fun HttpStatusCode.message(nonJsonMessage: String) = Resultat.message(this, nonJsonMessage)
+internal fun HttpStatusCode.message(nonJsonMessage: String): Resultat = Resultat.message(this, nonJsonMessage)
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

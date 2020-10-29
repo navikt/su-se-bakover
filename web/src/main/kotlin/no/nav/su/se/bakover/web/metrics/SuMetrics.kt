@@ -1,7 +1,7 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.web.metrics
 
 import io.micrometer.core.instrument.Clock
-import io.micrometer.core.instrument.Metrics.addRegistry
+import io.micrometer.core.instrument.Metrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
@@ -15,7 +15,7 @@ object SuMetrics {
     )
 
     fun setup(): Pair<CollectorRegistry, PrometheusMeterRegistry> {
-        addRegistry(prometheusMeterRegistry)
+        Metrics.addRegistry(prometheusMeterRegistry)
         return Pair(collectorRegistry, prometheusMeterRegistry)
     }
 }

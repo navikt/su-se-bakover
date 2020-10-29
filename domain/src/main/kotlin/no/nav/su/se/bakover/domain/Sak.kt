@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID

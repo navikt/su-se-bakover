@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -33,7 +33,12 @@ interface BehandlingService {
         behandlingId: UUID,
         saksbehandler: Saksbehandler
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
-    fun iverksett(behandlingId: UUID, attestant: Attestant): Either<Behandling.IverksettFeil, Behandling>
+
+    fun iverksett(
+        behandlingId: UUID,
+        attestant: Attestant
+    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling>
+
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
