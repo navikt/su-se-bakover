@@ -47,7 +47,7 @@ data class Beregning(
 
     fun beløpErOverNullMenUnderMinstebeløp(): Boolean {
         val minstebeløp = månedsberegninger.map {
-            BigDecimal(Sats.HØY.fraDato(it.fraOgMed))
+            BigDecimal(Sats.HØY.årsbeløp(it.fraOgMed))
                 .multiply(BigDecimal(TO_PROSENT))
                 .divide(BigDecimal(12), 0, RoundingMode.HALF_UP)
                 .toInt()

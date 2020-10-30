@@ -56,7 +56,7 @@ data class Behandling(
             status == BehandlingsStatus.BEREGNET_INNVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
-            return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(LocalDate.now())
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(LocalDate.now())
         }
         return null
     }
