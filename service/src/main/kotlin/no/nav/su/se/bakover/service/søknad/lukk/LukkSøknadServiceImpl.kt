@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -23,7 +23,7 @@ internal class LukkSøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
     private val sakService: SakService,
     private val brevService: BrevService,
-    private val oppgaveClient: OppgaveClient
+    private val oppgaveService: OppgaveService
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -36,10 +36,13 @@ internal class LukkSøknadServiceImpl(
                 return when (request) {
                     is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, it)
                     is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
-                }.also {
+                }.map { sak ->
                     søknadRepo.hentOppgaveId(søknad.id)?.let { oppgaveId ->
-                        oppgaveClient.lukkOppgave(oppgaveId)
+                        oppgaveService.lukkOppgave(oppgaveId).mapLeft {
+                            log.warn("Kunne ikke ferdigstille oppgave for ${søknad.id}")
+                        }
                     }
+                    sak
                 }
             }
     }

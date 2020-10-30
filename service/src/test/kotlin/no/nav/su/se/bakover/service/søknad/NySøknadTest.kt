@@ -30,11 +30,11 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -71,7 +71,7 @@ class NySøknadTest {
         val sakServiceMock: SakService = mock()
         val pdfGeneratorMock: PdfGenerator = mock()
         val dokArkivMock: DokArkiv = mock()
-        val oppgaveClientMock: OppgaveClient = mock()
+        val oppgaveServiceMock: OppgaveService = mock()
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -79,7 +79,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         )
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -90,7 +90,7 @@ class NySøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         )
     }
 
@@ -109,7 +109,7 @@ class NySøknadTest {
         }
         val dokArkivMock: DokArkiv = mock()
         val søknadRepoMock: SøknadRepo = mock()
-        val oppgaveClientMock: OppgaveClient = mock()
+        val oppgaveServiceMock: OppgaveService = mock()
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -117,7 +117,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -161,7 +161,7 @@ class NySøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         )
         actual shouldBe expected.right()
     }
@@ -185,7 +185,7 @@ class NySøknadTest {
             on { opprettJournalpost(any()) } doReturn ClientError(1, "").left()
         }
 
-        val oppgaveClientMock: OppgaveClient = mock()
+        val oppgaveServiceMock: OppgaveService = mock()
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -194,7 +194,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -239,7 +239,7 @@ class NySøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         )
         actual shouldBe sak.copy(
             søknader = mutableListOf(expectedSøknad)
@@ -266,7 +266,7 @@ class NySøknadTest {
             on { opprettJournalpost(any()) } doReturn journalpostId.right()
         }
 
-        val oppgaveClientMock: OppgaveClient = mock {
+        val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
 
@@ -277,7 +277,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -288,7 +288,7 @@ class NySøknadTest {
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         ) {
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
@@ -320,7 +320,7 @@ class NySøknadTest {
                 søknadId = argThat { it shouldBe expectedSøknad.id },
                 journalpostId = argThat { it shouldBe journalpostId }
             )
-            verify(oppgaveClientMock).opprettOppgave(
+            verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
@@ -336,7 +336,7 @@ class NySøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         )
         actual shouldBe sak.copy(
             søknader = mutableListOf(expectedSøknad)
@@ -364,7 +364,7 @@ class NySøknadTest {
             on { opprettJournalpost(any()) } doReturn journalpostId.right()
         }
 
-        val oppgaveClientMock: OppgaveClient = mock {
+        val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn oppgaveId.right()
         }
 
@@ -375,7 +375,7 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -386,7 +386,7 @@ class NySøknadTest {
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         ) {
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
@@ -418,7 +418,7 @@ class NySøknadTest {
                 søknadId = argThat { it shouldBe expectedSøknad.id },
                 journalpostId = argThat { it shouldBe journalpostId }
             )
-            verify(oppgaveClientMock).opprettOppgave(
+            verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
@@ -438,7 +438,7 @@ class NySøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveClientMock
+            oppgaveServiceMock
         )
         actual shouldBe sak.copy(
             søknader = mutableListOf(expectedSøknad)
