@@ -170,7 +170,7 @@ internal fun Behandlingsinformasjon.Formue.Verdier.toJson() =
         verdipapir = verdipapir,
         pengerSkyldt = pengerSkyldt,
         kontanter = kontanter,
-        depositumskonto = kontanter,
+        depositumskonto = depositumskonto,
     )
 
 internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
