@@ -14,7 +14,7 @@ import org.junit.jupiter.api.assertThrows
 internal class MånedsberegningTest {
     @Test
     fun `summerer måned uten fradrag`() {
-        val månedsberegning = Månedsberegning(
+        val månedsberegning = MånedsberegningFactory.domene(
             periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = emptyList()
@@ -25,7 +25,7 @@ internal class MånedsberegningTest {
 
     @Test
     fun `summerer måned med fradrag`() {
-        val månedsberegning = Månedsberegning(
+        val månedsberegning = MånedsberegningFactory.domene(
             periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -43,7 +43,7 @@ internal class MånedsberegningTest {
     @Test
     fun `godtar ikke fradrag fra andre måneder`() {
         assertThrows<IllegalArgumentException> {
-            Månedsberegning(
+            MånedsberegningFactory.domene(
                 periode = Periode(1.januar(2020), 31.januar(2020)),
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -60,7 +60,7 @@ internal class MånedsberegningTest {
     @Test
     fun `tillater bare beregning av en måned av gangen`() {
         assertThrows<IllegalArgumentException> {
-            Månedsberegning(
+            MånedsberegningFactory.domene(
                 periode = Periode(1.januar(2020), 31.mars(2020)),
                 sats = Sats.HØY,
                 fradrag = emptyList()
@@ -71,7 +71,7 @@ internal class MånedsberegningTest {
     @Test
     fun `sum kan ikke bli mindre enn 0`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val månedsberegning = Månedsberegning(
+        val månedsberegning = MånedsberegningFactory.domene(
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
@@ -88,7 +88,7 @@ internal class MånedsberegningTest {
     @Test
     fun `fradrag kan ikke overstige satsbeløpet`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val månedsberegning = Månedsberegning(
+        val månedsberegning = MånedsberegningFactory.domene(
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
@@ -101,5 +101,22 @@ internal class MånedsberegningTest {
         )
         månedsberegning.sum() shouldBe 0
         månedsberegning.fradrag() shouldBe 18973.02
+    }
+
+    @Test
+    fun `henter aktuelt grunnbeløp for periode`() {
+        val m1 = MånedsberegningFactory.domene(
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            sats = Sats.ORDINÆR,
+            fradrag = emptyList()
+        )
+        m1.grunnbeløp() shouldBe 99858
+
+        val m2 = MånedsberegningFactory.domene(
+            periode = Periode(1.desember(2020), 31.desember(2020)),
+            sats = Sats.ORDINÆR,
+            fradrag = emptyList()
+        )
+        m2.grunnbeløp() shouldBe 101351
     }
 }

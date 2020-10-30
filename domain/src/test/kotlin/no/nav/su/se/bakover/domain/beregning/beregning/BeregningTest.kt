@@ -16,7 +16,7 @@ internal class BeregningTest {
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = emptyList()
@@ -35,7 +35,7 @@ internal class BeregningTest {
     @Test
     fun `fradrag for alle perioder`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -57,7 +57,7 @@ internal class BeregningTest {
     @Test
     fun `fradrag for enkelte perioder`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -90,7 +90,7 @@ internal class BeregningTest {
     @Test
     fun `overlappende fradrag for samme periode`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -126,7 +126,7 @@ internal class BeregningTest {
     @Test
     fun `sum lik minstebeløp for utbetaling (2% av høy sats)`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -153,7 +153,7 @@ internal class BeregningTest {
     @Test
     fun `sum under minstebeløp for utbetaling (2% av høy sats)`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -179,7 +179,7 @@ internal class BeregningTest {
     @Test
     fun `sum under minstebeløp for utbetaling (2% av høy sats) for færre enn 12 måneder`() {
         val periode = Periode(1.januar(2020), 31.mars(2020))
-        val beregning = Beregning(
+        val beregning = BeregningFactory.domene(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -195,5 +195,16 @@ internal class BeregningTest {
         beregning.totaltFradrag() shouldBe 60700
         (beregning.totalSum() + beregning.totaltFradrag()) shouldBe 61912
         beregning.sumUnderMinstegrense() shouldBe true
+    }
+
+    @Test
+    fun `generer bare bare id og opprettet en gang for hvert objekt`() {
+        val beregning = BeregningFactory.domene(
+            periode = Periode(1.januar(2020), 31.mars(2020)),
+            sats = Sats.HØY,
+            fradrag = emptyList()
+        )
+        beregning.id() shouldBe beregning.id()
+        beregning.opprettet() shouldBe beregning.opprettet()
     }
 }
