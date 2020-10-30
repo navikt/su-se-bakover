@@ -29,14 +29,13 @@ data class Beregning(
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.periodiserMåneder()
-        val periodisertSats = sats.periodiser(periode)
         val periodiserteFradrag = fradrag.flatMap { it.periodiser() }
             .groupBy { it.periode() }
 
         return perioder.map {
             it to Månedsberegning(
                 periode = it,
-                satsbeløp = periodisertSats[it] ?: 0.0,
+                sats = sats,
                 fradrag = periodiserteFradrag[it] ?: emptyList()
             )
         }.toMap()

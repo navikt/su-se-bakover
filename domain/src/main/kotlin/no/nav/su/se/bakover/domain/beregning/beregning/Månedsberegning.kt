@@ -4,11 +4,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.common.sumLimitedUpwardsTo
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 
 data class Månedsberegning(
     private val periode: Periode,
-    private val satsbeløp: Double,
+    private val sats: Sats,
     private val fradrag: List<Fradrag>
 ) : PeriodisertInformasjon {
     init {
@@ -16,12 +17,14 @@ data class Månedsberegning(
         require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
-    fun sum() = (satsbeløp - fradrag())
+    fun sum() = (periodiserSats() - fradrag())
         .positiveOrZero()
 
     fun fradrag() = fradrag
         .sumByDouble { it.månedsbeløp() }
-        .sumLimitedUpwardsTo(satsbeløp)
+        .sumLimitedUpwardsTo(periodiserSats())
+
+    private fun periodiserSats() = sats.periodiser(periode).getValue(periode)
 
     override fun periode(): Periode = periode
 }

@@ -16,10 +16,10 @@ internal class MånedsberegningTest {
     fun `summerer måned uten fradrag`() {
         val månedsberegning = Månedsberegning(
             periode = Periode(1.januar(2020), 31.januar(2020)),
-            satsbeløp = 1000.0,
+            sats = Sats.HØY,
             fradrag = emptyList()
         )
-        månedsberegning.sum() shouldBe 1000
+        månedsberegning.sum() shouldBe 20637.32
         månedsberegning.fradrag() shouldBe 0
     }
 
@@ -27,7 +27,7 @@ internal class MånedsberegningTest {
     fun `summerer måned med fradrag`() {
         val månedsberegning = Månedsberegning(
             periode = Periode(1.januar(2020), 31.januar(2020)),
-            satsbeløp = 10000.0,
+            sats = Sats.HØY,
             fradrag = listOf(
                 Fradrag(
                     type = Fradragstype.Kontantstøtte,
@@ -36,7 +36,7 @@ internal class MånedsberegningTest {
                 )
             )
         )
-        månedsberegning.sum() shouldBe 5000
+        månedsberegning.sum() shouldBe 15637.32
         månedsberegning.fradrag() shouldBe 5000
     }
 
@@ -45,7 +45,7 @@ internal class MånedsberegningTest {
         assertThrows<IllegalArgumentException> {
             Månedsberegning(
                 periode = Periode(1.januar(2020), 31.januar(2020)),
-                satsbeløp = 10000.0,
+                sats = Sats.HØY,
                 fradrag = listOf(
                     Fradrag(
                         type = Fradragstype.Kontantstøtte,
@@ -62,7 +62,7 @@ internal class MånedsberegningTest {
         assertThrows<IllegalArgumentException> {
             Månedsberegning(
                 periode = Periode(1.januar(2020), 31.mars(2020)),
-                satsbeløp = 1000.0,
+                sats = Sats.HØY,
                 fradrag = emptyList()
             )
         }
@@ -73,7 +73,7 @@ internal class MånedsberegningTest {
         val periode = Periode(1.januar(2020), 31.januar(2020))
         val månedsberegning = Månedsberegning(
             periode = periode,
-            satsbeløp = Sats.ORDINÆR.månedsbeløp(1.januar(2020)),
+            sats = Sats.ORDINÆR,
             fradrag = listOf(
                 Fradrag(
                     type = Fradragstype.Kontantstøtte,
@@ -90,7 +90,7 @@ internal class MånedsberegningTest {
         val periode = Periode(1.januar(2020), 31.januar(2020))
         val månedsberegning = Månedsberegning(
             periode = periode,
-            satsbeløp = 18973.0,
+            sats = Sats.ORDINÆR,
             fradrag = listOf(
                 Fradrag(
                     type = Fradragstype.Kontantstøtte,
@@ -100,6 +100,6 @@ internal class MånedsberegningTest {
             )
         )
         månedsberegning.sum() shouldBe 0
-        månedsberegning.fradrag() shouldBe 18973
+        månedsberegning.fradrag() shouldBe 18973.02
     }
 }
