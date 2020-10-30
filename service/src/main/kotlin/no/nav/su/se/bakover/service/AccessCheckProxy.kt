@@ -26,8 +26,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
@@ -77,17 +75,10 @@ class AccessCheckProxy(
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
-                /**
-                 * Denne skal kun brukes fra en annen service.
-                 * Når en service bruker en annen service, vil den ha den ikke-proxyede versjonen.
-                 * Vi kaster derfor her for å unngå at noen bruker metoden fra feil plass (som ville ha omgått tilgangssjekk).
-                 */
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering
-                ): Either<FantIkkeUtbetaling, Utbetaling> {
-                    throw IllegalStateException("This should only be called from another service")
-                }
+                ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
                     sakId: UUID,
@@ -281,31 +272,24 @@ class AccessCheckProxy(
                     return services.lukkSøknad.lagBrevutkast(request)
                 }
             },
-            /**
-             * Denne skal kun brukes fra en annen service.
-             * Når en service bruker en annen service, vil den ha den ikke-proxyede versjonen.
-             * Vi kaster derfor her for å unngå at noen bruker metoden fra feil plass (som ville ha omgått tilgangssjekk).
-             */
+
             oppgave = object : OppgaveService {
-                override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-                    throw IllegalStateException("This should only be called from another service")
-                }
-
-                override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                    throw IllegalStateException("This should only be called from another service")
-                }
-
-                override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                    throw IllegalStateException("This should only be called from another service")
-                }
-
-                override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                    throw IllegalStateException("This should only be called from another service")
-                }
+                override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
+                override fun ferdigstillFørstegangsoppgave(aktørId: AktørId) = kastKanKunKallesFraAnnenService()
+                override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             }
 
         )
     }
+
+    /**
+     * Denne skal kun brukes fra en annen service.
+     * Når en service bruker en annen service, vil den ha den ikke-proxyede versjonen.
+     * Vi kaster derfor her for å unngå at noen bruker metoden fra feil plass (som ville ha omgått tilgangssjekk).
+     */
+    private fun kastKanKunKallesFraAnnenService(): Nothing =
+        throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
         clients.personOppslag.person(fnr)

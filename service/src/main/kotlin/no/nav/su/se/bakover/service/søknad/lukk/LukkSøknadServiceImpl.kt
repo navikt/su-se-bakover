@@ -36,19 +36,14 @@ internal class LukkSøknadServiceImpl(
                 return when (request) {
                     is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, it)
                     is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
-                }.fold(
-                    { kunneIkkeLukkeSøknad ->
-                        kunneIkkeLukkeSøknad.left()
-                    },
-                    { sak ->
-                        søknadRepo.hentOppgaveId(søknad.id)?.let { oppgaveId ->
-                            oppgaveService.lukkOppgave(oppgaveId).mapLeft {
-                                log.warn("Kunne ikke ferdigstille oppgave for ${søknad.id}")
-                            }
+                }.map { sak ->
+                    søknadRepo.hentOppgaveId(søknad.id)?.let { oppgaveId ->
+                        oppgaveService.lukkOppgave(oppgaveId).mapLeft {
+                            log.warn("Kunne ikke ferdigstille oppgave for ${søknad.id}")
                         }
-                        sak.right()
                     }
-                )
+                    sak
+                }
             }
     }
 

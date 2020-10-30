@@ -37,12 +37,12 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
@@ -197,7 +197,7 @@ internal class BehandlingServiceImplTest {
             on { aktørId(any()) } doReturn AktørId("12345").right()
         }
 
-        val oppgaveClientMock: OppgaveClient = mock {
+        val oppgaveServiceMock: OppgaveService = mock {
             on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
         }
 
@@ -206,7 +206,7 @@ internal class BehandlingServiceImplTest {
             utbetalingService = utbetalingServiceMock,
             personOppslag = personOppslagMock,
             brevService = brevServiceMock,
-            oppgaveClient = oppgaveClientMock,
+            oppgaveService = oppgaveServiceMock,
         ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.IverksettFeil.KunneIkkeDistribuereBrev.left()
@@ -240,7 +240,7 @@ internal class BehandlingServiceImplTest {
             on { aktørId(any()) } doReturn AktørId("12345").right()
         }
 
-        val oppgaveClientMock: OppgaveClient = mock {
+        val oppgaveServiceMock: OppgaveService = mock {
             // TODO jah: Trekk ut dette til en OppgaveService i egen PR og mock OppgaveService istedet. Legg da på verifisering
             on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
         }
@@ -250,7 +250,7 @@ internal class BehandlingServiceImplTest {
             utbetalingService = utbetalingServiceMock,
             personOppslag = personOppslagMock,
             brevService = brevServiceMock,
-            oppgaveClient = oppgaveClientMock
+            oppgaveService = oppgaveServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
@@ -482,7 +482,7 @@ internal class BehandlingServiceImplTest {
         hendelsesloggRepo: HendelsesloggRepo = mock(),
         beregningRepo: BeregningRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
-        oppgaveClient: OppgaveClient = mock(),
+        oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
         sakService: SakService = mock(),
         personOppslag: PersonOppslag = mock(),
@@ -492,7 +492,7 @@ internal class BehandlingServiceImplTest {
         hendelsesloggRepo = hendelsesloggRepo,
         beregningRepo = beregningRepo,
         utbetalingService = utbetalingService,
-        oppgaveClient = oppgaveClient,
+        oppgaveService = oppgaveService,
         søknadService = søknadService,
         sakService = sakService,
         personOppslag = personOppslag,

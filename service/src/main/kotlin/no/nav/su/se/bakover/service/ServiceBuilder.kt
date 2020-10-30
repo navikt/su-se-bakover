@@ -54,7 +54,7 @@ class ServiceBuilder(
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
-            oppgaveClient = clients.oppgaveClient
+            oppgaveService = oppgaveService
         )
         return accessCheckProxy.proxy(
             Services(
@@ -71,7 +71,7 @@ class ServiceBuilder(
                     hendelsesloggRepo = databaseRepos.hendelseslogg,
                     beregningRepo = databaseRepos.beregning,
                     utbetalingService = utbetalingService,
-                    oppgaveClient = clients.oppgaveClient,
+                    oppgaveService = oppgaveService,
                     søknadService = søknadService,
                     sakService = sakService,
                     personOppslag = clients.personOppslag,
