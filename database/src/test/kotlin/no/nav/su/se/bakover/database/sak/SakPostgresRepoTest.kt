@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.sak
 
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -18,7 +19,7 @@ internal class SakPostgresRepoTest {
 
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = SakPostgresRepo(EmbeddedDatabase.instance())
+    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock())
 
     @Test
     fun `opprett og hent sak`() {

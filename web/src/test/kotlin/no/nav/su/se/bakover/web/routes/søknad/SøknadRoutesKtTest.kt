@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -91,7 +92,7 @@ internal class SøknadRoutesKtTest {
     )
     private val søknadId = UUID.randomUUID()
 
-    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val sakRepo = databaseRepos.sak
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
@@ -107,7 +108,8 @@ internal class SøknadRoutesKtTest {
         sak = mock(),
         søknad = mock(),
         brev = mock(),
-        lukkSøknad = mock()
+        lukkSøknad = mock(),
+        oppgave = mock()
     )
 
     @Test
@@ -198,7 +200,8 @@ internal class SøknadRoutesKtTest {
 
         val services = ServiceBuilder(
             databaseRepos = databaseRepos,
-            clients = clients
+            clients = clients,
+            behandlingMetrics = mock()
         ).build()
 
         val fnr = FnrGenerator.random()

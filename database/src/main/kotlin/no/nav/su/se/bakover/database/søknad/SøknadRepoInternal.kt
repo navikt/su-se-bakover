@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
 internal object SøknadRepoInternal {
@@ -31,4 +32,8 @@ internal fun Row.toSøknad(): Søknad {
         opprettet = tidspunkt("opprettet"),
         lukket = stringOrNull("lukket")?.let { objectMapper.readValue<Søknad.Lukket>(it) }
     )
+}
+
+internal fun Row.toOppgaveId(): OppgaveId {
+    return OppgaveId(string("oppgaveId"))
 }

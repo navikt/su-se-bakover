@@ -47,7 +47,7 @@ class UtbetalingXmlMappingTest {
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.EPOCH,
         sakId = UUID.randomUUID(),
-        utbetalinger = mutableListOf()
+        utbetalinger = emptyList()
     )
     private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling.UtbetalingForSimulering(

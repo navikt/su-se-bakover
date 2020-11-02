@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import no.nav.su.se.bakover.domain.Behandling
-
 /**
  * Dette er kanskje ikke den beste plassen å legge ting som kun skal brukes i tester.
  * Se også SøknadInnholdTestdataBuilder

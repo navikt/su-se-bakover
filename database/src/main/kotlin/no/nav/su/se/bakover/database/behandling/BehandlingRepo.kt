@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.behandling
 
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering

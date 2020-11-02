@@ -38,7 +38,7 @@ internal class BeregningJsonTest {
             tilOgMed = LocalDate.of(2020, Month.AUGUST, 31),
             sats = Sats.HØY,
             fradrag = emptyList(),
-            månedsberegninger = mutableListOf(månedsberegning)
+            månedsberegninger = listOf(månedsberegning)
         )
     }
 

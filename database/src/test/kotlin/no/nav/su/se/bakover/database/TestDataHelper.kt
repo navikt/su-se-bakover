@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -14,6 +15,8 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -25,14 +28,19 @@ import javax.sql.DataSource
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance()
 ) {
+    private val behandlingMetrics = mock<BehandlingMetrics>()
+    private val behandlingFactory = BehandlingFactory(behandlingMetrics)
+    private val behandlingPostgresRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val beregningRepo = BeregningPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val behandlingRepo = BehandlingPostgresRepo(dataSource)
-    private val sakRepo = SakPostgresRepo(dataSource)
 
-    fun insertSak(fnr: Fnr): NySak = SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also { sakRepo.opprettSak(it) }
+    private val behandlingRepo = behandlingPostgresRepo
+    private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
+
+    fun insertSak(fnr: Fnr): NySak =
+        SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also { sakRepo.opprettSak(it) }
 
     fun insertSøknad(sakId: UUID): Søknad = Søknad(
         sakId = sakId,

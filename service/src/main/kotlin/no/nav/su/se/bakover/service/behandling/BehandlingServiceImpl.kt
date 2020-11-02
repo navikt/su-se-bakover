@@ -10,24 +10,20 @@ import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Avslått.incrementAvslåttBehandlingPersistedCounter
-import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Innvilget.incrementInnvilgetBehandlingOppgaveCounter
-import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.Innvilget.incrementInnvilgetBehandlingPersistedCounter
-import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.TilAttestering.incrementOppgaveForBehandlingTilAttesteringCounter
-import no.nav.su.se.bakover.service.behandling.BehandlingMetrics.TilAttestering.incrementPersistedBehandlingTilAttesteringCounter
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
@@ -41,11 +37,12 @@ internal class BehandlingServiceImpl(
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
     private val utbetalingService: UtbetalingService,
-    private val oppgaveClient: OppgaveClient,
+    private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val sakService: SakService,
     private val personOppslag: PersonOppslag,
-    private val brevService: BrevService
+    private val brevService: BrevService,
+    private val behandlingMetrics: BehandlingMetrics
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -61,6 +58,7 @@ internal class BehandlingServiceImpl(
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
             .map {
+                behandlingMetrics.incrementUnderkjentCounter()
                 behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                 hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
                 behandlingRepo.hentBehandling(it.id)!!
@@ -133,7 +131,7 @@ internal class BehandlingServiceImpl(
             return KunneIkkeFinneAktørId.left()
         }
 
-        oppgaveClient.opprettOppgave(
+        oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
                 behandling.sakId.toString(),
                 aktørId = aktørId
@@ -145,12 +143,12 @@ internal class BehandlingServiceImpl(
 
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-        incrementPersistedBehandlingTilAttesteringCounter()
+        behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        oppgaveClient.ferdigstillFørstegangsoppgave(
+        oppgaveService.ferdigstillFørstegangsoppgave(
             aktørId = aktørId
         ).map {
-            incrementOppgaveForBehandlingTilAttesteringCounter()
+            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }
         return behandling.right()
     }
@@ -160,23 +158,26 @@ internal class BehandlingServiceImpl(
     override fun iverksett(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant
-    ): Either<Behandling.IverksettFeil, Behandling> {
-        return behandlingRepo.hentBehandling(behandlingId)!!.iverksett(attestant) // invoke first to perform state-check
-            .map { behandling ->
-                return when (behandling.status()) {
+    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)
+            ?: return Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+
+        return behandling.iverksett(attestant) // invoke first to perform state-check
+            .map { iverksattBehandling ->
+                return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
                         behandlingId = behandlingId,
                         attestant = attestant,
-                        behandling = behandling
+                        behandling = iverksattBehandling
                     )
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
-                        behandling = behandling,
+                        behandling = iverksattBehandling,
                         attestant = attestant,
                         behandlingId = behandlingId
                     )
                     else -> throw Behandling.TilstandException(
-                        state = behandling.status(),
-                        operation = behandling::iverksett.toString()
+                        state = iverksattBehandling.status(),
+                        operation = iverksattBehandling::iverksett.toString()
                     )
                 }
             }
@@ -186,17 +187,18 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
         behandling: Behandling
-    ): Either<Behandling.IverksettFeil, Behandling> {
+    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
 
         behandlingRepo.attester(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-        incrementAvslåttBehandlingPersistedCounter()
+
+        behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
         return journalførOgDistribuerBrev(
             request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
             sakId = behandling.sakId,
-            incrementJournalførtCounter = BehandlingMetrics.Avslått::incrementAvslåttBehandlingJournalførtCounter,
-            incrementDistribuertBrevCounter = BehandlingMetrics.Avslått::incrementAvslåttBehandlingDistribuertBrevCounter
+            incrementJournalførtCounter = { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT) },
+            incrementDistribuertBrevCounter = { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV) }
         ).map { behandling }
     }
 
@@ -204,10 +206,10 @@ internal class BehandlingServiceImpl(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID
-    ): Either<Behandling.IverksettFeil, Behandling> {
+    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
         val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
             log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
-            return Behandling.IverksettFeil.FantIkkeAktørId.left()
+            return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
         }
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
@@ -216,9 +218,9 @@ internal class BehandlingServiceImpl(
             simulering = behandling.simulering()!!
         ).mapLeft {
             when (it) {
-                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                KunneIkkeUtbetale.Protokollfeil -> Behandling.IverksettFeil.KunneIkkeUtbetale
-                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.IverksettFeil.KunneIkkeKontrollSimulere
+                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                KunneIkkeUtbetale.Protokollfeil -> Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
             }
         }.flatMap { oversendtUtbetaling ->
             behandlingRepo.leggTilUtbetaling(
@@ -227,16 +229,16 @@ internal class BehandlingServiceImpl(
             )
             behandlingRepo.attester(behandlingId, attestant)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-            incrementInnvilgetBehandlingPersistedCounter()
+            behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-            oppgaveClient.ferdigstillAttesteringsoppgave(aktørId)
-                .map { incrementInnvilgetBehandlingOppgaveCounter() }
+            oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
+                .map { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE) }
 
             journalførOgDistribuerBrev(
                 request = LagBrevRequest.InnvilgetVedtak(behandling = behandling),
                 sakId = behandling.sakId,
-                incrementJournalførtCounter = BehandlingMetrics.Innvilget::incrementInnvilgetBehandlingJournalførtCounter,
-                incrementDistribuertBrevCounter = BehandlingMetrics.Innvilget::incrementInnvilgetBehandlingDistribuertBrevCounter
+                incrementJournalførtCounter = { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT) },
+                incrementDistribuertBrevCounter = { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV) }
             ).map { behandling }
         }
     }
@@ -246,13 +248,13 @@ internal class BehandlingServiceImpl(
         sakId: UUID,
         incrementJournalførtCounter: () -> Unit,
         incrementDistribuertBrevCounter: () -> Unit,
-    ): Either<Behandling.IverksettFeil, Unit> =
+    ): Either<Behandling.KunneIkkeIverksetteBehandling, Unit> =
         brevService.journalførBrev(request, sakId)
-            .mapLeft { Behandling.IverksettFeil.KunneIkkeJournalføreBrev }
+            .mapLeft { Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev }
             .flatMap {
                 incrementJournalførtCounter()
                 brevService.distribuerBrev(it)
-                    .mapLeft { Behandling.IverksettFeil.KunneIkkeDistribuereBrev }
+                    .mapLeft { Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev }
                     .map {
                         incrementDistribuertBrevCounter()
                         Unit

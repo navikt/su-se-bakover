@@ -53,7 +53,7 @@ internal class OppdragGjenopptaStrategyTest {
             type = Utbetaling.UtbetalingsType.GJENOPPTA
         )
 
-        createOppdrag(mutableListOf(opprinnelig, stans)).genererUtbetaling(
+        createOppdrag(listOf(opprinnelig, stans)).genererUtbetaling(
             strategy = Gjenoppta(
                 NavIdentBruker.Attestant("Z123")
             ),
@@ -69,7 +69,7 @@ internal class OppdragGjenopptaStrategyTest {
     @Test
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf()).genererUtbetaling(
+            createOppdrag(listOf()).genererUtbetaling(
                 Gjenoppta(
                     NavIdentBruker.Attestant("Z123")
                 ),
@@ -143,7 +143,7 @@ internal class OppdragGjenopptaStrategyTest {
             type = Utbetaling.UtbetalingsType.STANS
         )
 
-        createOppdrag(mutableListOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
+        createOppdrag(listOf(første, førsteStans, førsteGjenopptak, andre, andreStans)).genererUtbetaling(
             strategy = Gjenoppta(
                 NavIdentBruker.Attestant("Z123")
             ),
@@ -171,7 +171,7 @@ internal class OppdragGjenopptaStrategyTest {
         )
 
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf(første)).genererUtbetaling(
+            createOppdrag(listOf(første)).genererUtbetaling(
                 strategy = Gjenoppta(
                     NavIdentBruker.Attestant("Z123")
                 ),
@@ -212,7 +212,7 @@ internal class OppdragGjenopptaStrategyTest {
             type = Utbetaling.UtbetalingsType.STANS
         )
 
-        createOppdrag(mutableListOf(første, stans)).genererUtbetaling(
+        createOppdrag(listOf(første, stans)).genererUtbetaling(
             strategy = Gjenoppta(
                 NavIdentBruker.Attestant("Z123")
             ),

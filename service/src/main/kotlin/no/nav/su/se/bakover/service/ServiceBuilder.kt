@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -11,6 +12,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppdrag.OppdragServiceImpl
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -22,7 +25,8 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 
 class ServiceBuilder(
     private val databaseRepos: DatabaseRepos,
-    private val clients: Clients
+    private val clients: Clients,
+    private val behandlingMetrics: BehandlingMetrics
 ) {
     fun build(): Services {
         val accessCheckProxy = AccessCheckProxy(databaseRepos.person, clients)
@@ -42,6 +46,9 @@ class ServiceBuilder(
             dokArkiv = clients.dokArkiv,
             dokDistFordeling = clients.dokDistFordeling
         )
+        val oppgaveService = OppgaveServiceImpl(
+            oppgaveClient = clients.oppgaveClient
+        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
@@ -49,7 +56,7 @@ class ServiceBuilder(
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
-            oppgaveClient = clients.oppgaveClient
+            oppgaveService = oppgaveService
         )
         return accessCheckProxy.proxy(
             Services(
@@ -66,11 +73,12 @@ class ServiceBuilder(
                     hendelsesloggRepo = databaseRepos.hendelseslogg,
                     beregningRepo = databaseRepos.beregning,
                     utbetalingService = utbetalingService,
-                    oppgaveClient = clients.oppgaveClient,
+                    oppgaveService = oppgaveService,
                     søknadService = søknadService,
                     sakService = sakService,
                     personOppslag = clients.personOppslag,
-                    brevService = brevService
+                    brevService = brevService,
+                    behandlingMetrics = behandlingMetrics
                 ),
                 sak = sakService,
                 søknad = søknadService,
@@ -78,7 +86,11 @@ class ServiceBuilder(
                 lukkSøknad = LukkSøknadServiceImpl(
                     søknadRepo = databaseRepos.søknad,
                     sakService = sakService,
-                    brevService = brevService
+                    brevService = brevService,
+                    oppgaveService = oppgaveService
+                ),
+                oppgave = OppgaveServiceImpl(
+                    oppgaveClient = clients.oppgaveClient
                 )
             )
         )
@@ -93,5 +105,6 @@ data class Services(
     val sak: SakService,
     val søknad: SøknadService,
     val brev: BrevService,
-    val lukkSøknad: LukkSøknadService
+    val lukkSøknad: LukkSøknadService,
+    val oppgave: OppgaveService
 )

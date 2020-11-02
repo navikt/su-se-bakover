@@ -1,14 +1,12 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Gauge
-import io.micrometer.core.instrument.Metrics
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.beregning.Beregningsgrunnlag
@@ -17,21 +15,20 @@ import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentA
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 
-@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-data class Behandling(
-    val id: UUID = UUID.randomUUID(),
-    val opprettet: Tidspunkt = now(),
-    private var behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+data class Behandling internal constructor(
+    private val behandlingMetrics: BehandlingMetrics,
+    val id: UUID,
+    val opprettet: Tidspunkt,
+    private var behandlingsinformasjon: Behandlingsinformasjon,
     val søknad: Søknad,
-    private var beregning: Beregning? = null,
-    internal var simulering: Simulering? = null,
-    private var status: BehandlingsStatus = BehandlingsStatus.OPPRETTET,
-    private var saksbehandler: NavIdentBruker.Saksbehandler? = null,
-    private var attestant: NavIdentBruker.Attestant? = null,
+    private var beregning: Beregning?,
+    internal var simulering: Simulering?,
+    private var status: BehandlingsStatus,
+    private var saksbehandler: NavIdentBruker.Saksbehandler?,
+    private var attestant: NavIdentBruker.Attestant?,
     val sakId: UUID,
-    val hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
+    val hendelseslogg: Hendelseslogg,
     val fnr: Fnr
 ) {
 
@@ -51,12 +48,12 @@ data class Behandling(
 
     fun hendelser() = hendelseslogg.hendelser()
 
-    fun getUtledetSatsBeløp(): Int? {
+    fun getUtledetSatsBeløp(fraDato: LocalDate): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
             status == BehandlingsStatus.BEREGNET_INNVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
-            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(LocalDate.now())
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(fraDato)
         }
         return null
     }
@@ -107,7 +104,7 @@ data class Behandling(
 
     fun iverksett(
         attestant: NavIdentBruker.Attestant
-    ): Either<IverksettFeil, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
         return tilstand.iverksett(attestant)
     }
 
@@ -119,6 +116,7 @@ data class Behandling(
     override fun hashCode() = id.hashCode()
 
     interface Tilstand {
+
         val status: BehandlingsStatus
 
         fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -145,7 +143,7 @@ data class Behandling(
 
         fun iverksett(
             attestant: NavIdentBruker.Attestant
-        ): Either<IverksettFeil, Behandling> {
+        ): Either<KunneIkkeIverksetteBehandling, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
 
@@ -158,37 +156,11 @@ data class Behandling(
     }
 
     private fun nyTilstand(target: Tilstand): Tilstand {
-        // Ønsker å kunne vise hvor mange behandlinger vi har i de forskjellige tilstandene. Ved restart kan gaugen bli negativ, men dersom man klarer å summe de vil vi kanskje få lurt det til.
-        incrementStatusGauge(target.status)
-        decrementStatusGauge(status)
-        incrementStatusCounter(target.status)
+        behandlingMetrics.behandlingsstatusChanged(status, target.status)
         status = target.status
         tilstand = resolve(status)
         return tilstand
     }
-
-    private val behandlingstatuserGauge = BehandlingsStatus.values().map {
-        it to AtomicInteger(0)
-    }.toMap()
-
-    private fun incrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
-        behandlingstatuserGauge.getValue(status).incrementAndGet()
-    }
-        .tag("type", status.name)
-        .register(Metrics.globalRegistry)
-        .measure()
-
-    private fun decrementStatusGauge(status: BehandlingsStatus) = Gauge.builder("soknadsbehandling_gauge") {
-        behandlingstatuserGauge.getValue(status).decrementAndGet()
-    }
-        .tag("type", status.name)
-        .register(Metrics.globalRegistry)
-        .measure()
-
-    private fun incrementStatusCounter(status: BehandlingsStatus) = Counter.builder("soknadsbehandling_counter")
-        .tag("type", status.name)
-        .register(Metrics.globalRegistry)
-        .increment()
 
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -313,9 +285,9 @@ data class Behandling(
         inner class Innvilget : TilAttestering() {
             override fun iverksett(
                 attestant: NavIdentBruker.Attestant
-            ): Either<IverksettFeil, Behandling> {
+            ): Either<KunneIkkeIverksetteBehandling, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
+                    return KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Innvilget())
@@ -327,9 +299,9 @@ data class Behandling(
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             override fun iverksett(
                 attestant: NavIdentBruker.Attestant
-            ): Either<IverksettFeil, Behandling> {
+            ): Either<KunneIkkeIverksetteBehandling, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return IverksettFeil.AttestantOgSaksbehandlerErLik.left()
+                    return KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Avslag())
@@ -346,14 +318,8 @@ data class Behandling(
             }
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
             nyTilstand(Simulert())
-            incrementUnderkjentBehandlingCounter()
             return this@Behandling.right()
         }
-
-        /* Underkjent behandling er et eget konsept på utsiden av BehandlingStatus. */
-        private fun incrementUnderkjentBehandlingCounter() = Counter.builder("førstegangsbehandling_underkjent")
-            .register(Metrics.globalRegistry)
-            .increment()
     }
 
     private open inner class Iverksatt : Tilstand {
@@ -385,14 +351,15 @@ data class Behandling(
     ) :
         RuntimeException(msg)
 
-    sealed class IverksettFeil {
-        object AttestantOgSaksbehandlerErLik : IverksettFeil()
-        object KunneIkkeUtbetale : IverksettFeil()
-        object KunneIkkeKontrollSimulere : IverksettFeil()
-        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : IverksettFeil()
-        object KunneIkkeJournalføreBrev : IverksettFeil()
-        object KunneIkkeDistribuereBrev : IverksettFeil()
-        object FantIkkeAktørId : IverksettFeil()
+    sealed class KunneIkkeIverksetteBehandling {
+        object AttestantOgSaksbehandlerKanIkkeVæreLik : KunneIkkeIverksetteBehandling()
+        object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
+        object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
+        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
+        object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
+        object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
+        object FantIkkeAktørId : KunneIkkeIverksetteBehandling()
+        object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
     }
 
     data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")

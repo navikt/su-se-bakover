@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
@@ -30,10 +32,10 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    val fnr = Fnr(sakFnr01)
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val fnr = Fnr(sakFnr01)
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val søknadRepo = repos.søknad
-    val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test
     fun `henter sak for sak id`() {

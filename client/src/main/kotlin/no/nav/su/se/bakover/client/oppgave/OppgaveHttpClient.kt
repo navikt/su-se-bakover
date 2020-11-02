@@ -101,7 +101,40 @@ internal class OppgaveHttpClient(
         }
     }
 
-    private fun ferdigstillOppgave(oppgaveId: Long, versjon: Int): Either<KunneIkkeFerdigstilleOppgave, FerdigstillResponse> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+        return hentVersjon(oppgaveId).fold(
+            {
+                KunneIkkeFerdigstilleOppgave.left()
+            },
+            {
+                ferdigstillOppgave(oppgaveId.toString().toLong(), it)
+                Unit.right()
+            }
+        )
+    }
+
+    private fun hentVersjon(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Int> {
+        val (_, _, result) = "$baseUrl$oppgavePath/$oppgaveId".httpGet()
+            .authentication().bearer(tokenOppslag.token())
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .responseString()
+        return result.fold(
+            { responseJson ->
+                val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
+                oppgave.versjon.right()
+            },
+            {
+                KunneIkkeSøkeEtterOppgave.left()
+            }
+        )
+    }
+
+    private fun ferdigstillOppgave(
+        oppgaveId: Long,
+        versjon: Int
+    ): Either<KunneIkkeFerdigstilleOppgave, FerdigstillResponse> {
         val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")

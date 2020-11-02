@@ -41,9 +41,11 @@ import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
@@ -56,6 +58,8 @@ import no.nav.su.se.bakover.web.features.ManglerAuthHeader
 import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
 import no.nav.su.se.bakover.web.features.withUser
+import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -100,7 +104,9 @@ private val jmsContext: JMSContext by lazy {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(),
+    behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
+    behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
@@ -111,7 +117,7 @@ internal fun Application.susebakover(
             }
         }
     },
-    services: Services = ServiceBuilder(databaseRepos, clients).build()
+    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics).build()
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
@@ -240,10 +246,7 @@ internal fun Application.susebakover(
                     sakService = services.sak
                 )
                 søknadRoutes(services.søknad, services.lukkSøknad)
-                behandlingRoutes(
-                    behandlingService = services.behandling,
-                    sakService = services.sak
-                )
+                behandlingRoutes(services.behandling)
                 avstemmingRoutes(services.avstemming)
                 stansutbetalingRoutes(services.utbetaling)
                 gjenopptaUtbetalingRoutes(services.utbetaling)
