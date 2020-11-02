@@ -21,7 +21,7 @@ internal class PeriodeTest {
     @Test
     fun `periodisert fra og med og til og med`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val periodisert = periode.periodiserMåneder()
+        val periodisert = periode.tilMånedsperioder()
         periode.fraOgMed() shouldBe 1.januar(2020)
         periode.tilOgMed() shouldBe 31.desember(2020)
         periodisert.first().fraOgMed() shouldBe 1.januar(2020)
@@ -33,14 +33,14 @@ internal class PeriodeTest {
     @Test
     fun `periodiserer måneder`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val periodisert = periode.periodiserMåneder()
+        val periodisert = periode.tilMånedsperioder()
         periodisert shouldBe listOf(Periode(1.januar(2020), 31.januar(2020)))
     }
 
     @Test
     fun `periodiserer flere måneder`() {
         val periode = Periode(1.januar(2020), 30.april(2020))
-        val periodisert = periode.periodiserMåneder()
+        val periodisert = periode.tilMånedsperioder()
         periodisert shouldBe listOf(
             Periode(1.januar(2020), 31.januar(2020)),
             Periode(1.februar(2020), 29.februar(2020)),

@@ -41,7 +41,7 @@ internal data class Fradrag(
 
     override fun periode(): Periode = periode
 
-    override fun periodiser(): List<IFradrag> = periode.periodiserMåneder()
+    override fun periodiser(): List<IFradrag> = periode.tilMånedsperioder()
         .map { this.copy(type = type, beløp = månedsbeløp(), periode = it) }
 }
 

@@ -41,16 +41,16 @@ internal data class Beregning(
     override fun totaltFradrag() = beregning.values
         .sumByDouble { it.fradrag() }.roundToInt()
 
-    override fun sum(periode: Periode) = periode.periodiserMåneder()
+    override fun sum(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.sum() ?: 0.0 }.roundToInt()
 
-    override fun fradrag(periode: Periode) = periode.periodiserMåneder()
+    override fun fradrag(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.fradrag() ?: 0.0 }.roundToInt()
 
     override fun sumUnderMinstegrense() = totalSum() < kalkuler2ProsentAvHøySats()
 
     private fun beregn(): Map<Periode, IMånedsberegning> {
-        val perioder = periode.periodiserMåneder()
+        val perioder = periode.tilMånedsperioder()
         val periodiserteFradrag = fradrag.flatMap { it.periodiser() }
             .groupBy { it.periode() }
 

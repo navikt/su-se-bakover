@@ -17,11 +17,11 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
 
     fun årsbeløp(dato: LocalDate): Int = satsSomÅrsbeløp(dato)
     fun månedsbeløp(dato: LocalDate) = satsSomMånedsbeløp(dato)
-    fun toProsentAvHøySats(periode: Periode) = periode.periodiserMåneder()
+    fun toProsentAvHøySats(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { HØY.månedsbeløp(it.fraOgMed()) * 0.02 }
         .roundToInt()
 
-    fun periodiser(periode: Periode): Map<Periode, Double> = periode.periodiserMåneder()
+    fun periodiser(periode: Periode): Map<Periode, Double> = periode.tilMånedsperioder()
         .map { it to satsSomMånedsbeløp(it.fraOgMed()) }
         .toMap()
 

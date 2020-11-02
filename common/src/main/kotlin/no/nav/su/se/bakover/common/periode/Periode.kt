@@ -16,7 +16,7 @@ data class Periode(
     fun fraOgMed() = fraOgMed
     fun tilOgMed() = tilOgMed
     fun antallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
-    fun periodiserMåneder(): List<Periode> {
+    fun tilMånedsperioder(): List<Periode> {
         return (0L until antallMåneder())
             .map {
                 val firstInMonth = fraOgMed.plusMonths(it)
