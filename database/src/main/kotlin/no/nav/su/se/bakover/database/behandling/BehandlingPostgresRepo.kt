@@ -143,13 +143,13 @@ internal class BehandlingPostgresRepo(
     }
 
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
-        "select b.*, s.fnr from behandling b left outer join sak s on s.id = b.sakId where b.id=:id"
+        "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
                 row.toBehandling(session)
             }
 
     internal fun hentBehandlingerForSak(sakId: UUID, session: Session): List<Behandling> =
-        "select b.*, s.fnr from behandling b left outer join sak s on s.id = b.sakId where b.sakId=:sakId"
+        "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toBehandling(session)
             }
