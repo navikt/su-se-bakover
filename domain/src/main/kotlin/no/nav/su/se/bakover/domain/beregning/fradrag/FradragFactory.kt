@@ -12,7 +12,7 @@ object FradragFactory {
         beløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null
-    ): AbstractFradrag {
+    ): IFradrag {
         return Fradrag(
             periode = periode,
             type = type,
@@ -28,7 +28,7 @@ object FradragFactory {
         beløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null
-    ): AbstractFradrag = FradragDbWrapper(
+    ): IFradrag = FradragDbWrapper(
         id = id,
         tidspunkt = opprettet,
         fradrag = domene(

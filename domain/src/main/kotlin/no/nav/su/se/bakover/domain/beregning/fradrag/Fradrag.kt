@@ -13,7 +13,7 @@ interface IFradrag : PeriodisertInformasjon {
     fun type(): Fradragstype
     fun totalBeløp(): Double
     fun utenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
-    fun periodiser(): List<AbstractFradrag>
+    fun periodiser(): List<IFradrag>
     fun månedsbeløp(): Double
 }
 
@@ -41,14 +41,14 @@ internal data class Fradrag(
 
     override fun periode(): Periode = periode
 
-    override fun periodiser(): List<Fradrag> = periode.periodiserMåneder()
+    override fun periodiser(): List<IFradrag> = periode.periodiserMåneder()
         .map { this.copy(type = type, beløp = månedsbeløp(), periode = it) }
 }
 
 data class FradragDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    private val fradrag: AbstractFradrag
+    internal val fradrag: IFradrag
 ) : AbstractFradrag(), IFradrag by fradrag {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt

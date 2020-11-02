@@ -4,9 +4,9 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.AbstractBeregningRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.beregning.beregning.AbstractBeregning
-import no.nav.su.se.bakover.domain.beregning.beregning.AbstractMånedsberegning
-import no.nav.su.se.bakover.domain.beregning.fradrag.AbstractFradrag
+import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.IMånedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -14,7 +14,7 @@ internal class AbstractBeregningRepo(
     private val dataSource: DataSource
 ) {
 
-    fun opprettBeregningForBehandling(behandlingId: UUID, beregning: AbstractBeregning): AbstractBeregning {
+    fun opprettBeregningForBehandling(behandlingId: UUID, beregning: IBeregning): IBeregning {
         slettBeregningForBehandling(behandlingId)
         dataSource.withSession { session ->
             "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
@@ -34,7 +34,7 @@ internal class AbstractBeregningRepo(
         return hentBeregningForBehandling(behandlingId)!!
     }
 
-    fun hentBeregningForBehandling(behandlingId: UUID): AbstractBeregning? =
+    fun hentBeregningForBehandling(behandlingId: UUID): IBeregning? =
         dataSource.withSession { hentBeregningForBehandling(behandlingId, it) }
 
     fun slettBeregningForBehandling(behandlingId: UUID) {
@@ -44,7 +44,7 @@ internal class AbstractBeregningRepo(
     }
 
     // TODO DO WE EVEN NEED THIS? OK TO RE-COMPUTE WHEN GETTING FROM DB? COULD USE SEPARATE MECHANISM FOR UPDATE/VIEW? NOT RETRIEVED ATM.
-    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: AbstractMånedsberegning) {
+    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: IMånedsberegning) {
         dataSource.withSession { session ->
             """
             insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
@@ -66,7 +66,7 @@ internal class AbstractBeregningRepo(
         }
     }
 
-    private fun opprettFradrag(beregningId: UUID, fradrag: AbstractFradrag) {
+    private fun opprettFradrag(beregningId: UUID, fradrag: IFradrag) {
         dataSource.withSession { session ->
             """
             insert into fradrag (id, opprettet, fom, tom,  beregningId, fradragstype, beløp, utenlandskInntekt)

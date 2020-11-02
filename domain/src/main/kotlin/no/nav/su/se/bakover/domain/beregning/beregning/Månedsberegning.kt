@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.AbstractFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.util.UUID
 
 interface IMånedsberegning : PeriodisertInformasjon {
@@ -29,7 +29,7 @@ abstract class AbstractMånedsberegning : IMånedsberegning {
 internal data class Månedsberegning(
     private val periode: Periode,
     private val sats: Sats,
-    private val fradrag: List<AbstractFradrag>
+    internal val fradrag: List<IFradrag>
 ) : AbstractMånedsberegning() {
     init {
         require(fradrag.all { it.periode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
@@ -54,7 +54,7 @@ internal data class Månedsberegning(
 data class MånedsberegningDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    private val månedsberegning: AbstractMånedsberegning
+    internal val månedsberegning: IMånedsberegning
 ) : AbstractMånedsberegning(), IMånedsberegning by månedsberegning {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt

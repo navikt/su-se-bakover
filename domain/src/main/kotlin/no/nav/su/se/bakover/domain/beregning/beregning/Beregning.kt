@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.AbstractFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -12,8 +12,8 @@ interface IBeregning : PeriodisertInformasjon {
     fun id(): UUID
     fun opprettet(): Tidspunkt
     fun sats(): Sats
-    fun månedsberegninger(): List<AbstractMånedsberegning>
-    fun fradrag(): List<AbstractFradrag>
+    fun månedsberegninger(): List<IMånedsberegning>
+    fun fradrag(): List<IFradrag>
     fun totalSum(): Int
     fun totaltFradrag(): Int
     fun sum(periode: Periode): Int
@@ -31,7 +31,7 @@ abstract class AbstractBeregning : IBeregning {
 internal data class Beregning(
     private val periode: Periode,
     private val sats: Sats,
-    private val fradrag: List<AbstractFradrag>
+    private val fradrag: List<IFradrag>
 ) : AbstractBeregning() {
     private val beregning = beregn()
 
@@ -49,7 +49,7 @@ internal data class Beregning(
 
     override fun sumUnderMinstegrense() = totalSum() < kalkuler2ProsentAvHøySats()
 
-    private fun beregn(): Map<Periode, AbstractMånedsberegning> {
+    private fun beregn(): Map<Periode, IMånedsberegning> {
         val perioder = periode.periodiserMåneder()
         val periodiserteFradrag = fradrag.flatMap { it.periodiser() }
             .groupBy { it.periode() }
@@ -66,8 +66,8 @@ internal data class Beregning(
     private fun kalkuler2ProsentAvHøySats() = sats.toProsentAvHøySats(periode)
 
     override fun sats(): Sats = sats
-    override fun månedsberegninger(): List<AbstractMånedsberegning> = beregning.values.toList()
-    override fun fradrag(): List<AbstractFradrag> = fradrag
+    override fun månedsberegninger(): List<IMånedsberegning> = beregning.values.toList()
+    override fun fradrag(): List<IFradrag> = fradrag
 
     override fun periode(): Periode = periode
 }
@@ -75,7 +75,7 @@ internal data class Beregning(
 data class BeregningDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    private val beregning: AbstractBeregning
+    internal val beregning: IBeregning
 ) : AbstractBeregning(), IBeregning by beregning {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt
