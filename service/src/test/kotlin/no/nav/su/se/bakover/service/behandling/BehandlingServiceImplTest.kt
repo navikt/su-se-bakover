@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -485,6 +486,7 @@ internal class BehandlingServiceImplTest {
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
+        søknadRepo: SøknadRepo = mock(),
         sakService: SakService = mock(),
         personOppslag: PersonOppslag = mock(),
         brevService: BrevService = mock()
@@ -495,6 +497,7 @@ internal class BehandlingServiceImplTest {
         utbetalingService = utbetalingService,
         oppgaveService = oppgaveService,
         søknadService = søknadService,
+        søknadRepo = søknadRepo,
         sakService = sakService,
         personOppslag = personOppslag,
         brevService = brevService,
