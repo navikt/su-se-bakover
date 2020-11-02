@@ -32,7 +32,7 @@ internal object AbstractBeregningRepoInternal {
         }
 }
 
-internal fun Row.toIBeregning(session: Session) = BeregningFactory.db(
+internal fun Row.toIBeregning(session: Session) = BeregningFactory.persistert(
     id = uuid("id"),
     opprettet = tidspunkt("opprettet"),
     periode = Periode(localDate("fom"), localDate("tom")),
@@ -48,7 +48,7 @@ internal fun Row.toIBeregning(session: Session) = BeregningFactory.db(
 //     fradrag = int("fradrag") //TODO PROBLEMS EXPECT LIST GOT INT
 // )
 
-internal fun Row.toIFradrag() = FradragFactory.db(
+internal fun Row.toIFradrag() = FradragFactory.persistert(
     id = uuid("id"),
     opprettet = tidspunkt("opprettet"),
     periode = Periode(localDate("fom"), localDate("tom")),

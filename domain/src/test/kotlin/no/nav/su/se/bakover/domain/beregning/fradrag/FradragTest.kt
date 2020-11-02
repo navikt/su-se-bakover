@@ -14,7 +14,7 @@ import org.junit.jupiter.api.assertThrows
 internal class FradragTest {
     @Test
     fun `periodiserer fradrag for enkel måned`() {
-        val f1 = FradragFactory.domene(
+        val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020))
@@ -24,7 +24,7 @@ internal class FradragTest {
 
     @Test
     fun `periodiserer fradrag for flere måneder`() {
-        val f1 = FradragFactory.domene(
+        val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 30.april(2020))
@@ -56,7 +56,7 @@ internal class FradragTest {
     @Test
     fun `kan ikke opprette fradrag med negative beløp`() {
         assertThrows<IllegalArgumentException> {
-            FradragFactory.domene(
+            FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = -5.0,
                 periode = Periode(1.januar(2020), 31.januar(2020))
@@ -66,7 +66,7 @@ internal class FradragTest {
 
     @Test
     fun `summerer beløp for måned og total`() {
-        val f1 = FradragFactory.domene(
+        val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020))
@@ -74,7 +74,7 @@ internal class FradragTest {
         f1.totalBeløp() shouldBe 12000.0
         f1.månedsbeløp() shouldBe 12000.0
 
-        val f2 = FradragFactory.domene(
+        val f2 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 31.desember(2020))

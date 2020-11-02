@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.util.UUID
 
 object BeregningFactory {
-    fun domene(
+    fun ny(
         periode: Periode,
         sats: Sats,
         fradrag: List<IFradrag>
@@ -19,7 +19,7 @@ object BeregningFactory {
         )
     }
 
-    fun db(
+    fun persistert(
         id: UUID,
         opprettet: Tidspunkt,
         periode: Periode,
@@ -28,7 +28,7 @@ object BeregningFactory {
     ): IBeregning = BeregningDbWrapper(
         id = id,
         tidspunkt = opprettet,
-        beregning = domene(
+        beregning = ny(
             periode = periode,
             sats = sats,
             fradrag = fradrag

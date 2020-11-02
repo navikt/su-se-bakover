@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import java.util.UUID
 
 object FradragFactory {
-    fun domene(
+    fun ny(
         type: Fradragstype,
         beløp: Double,
         periode: Periode,
@@ -21,7 +21,7 @@ object FradragFactory {
         )
     }
 
-    fun db(
+    fun persistert(
         id: UUID,
         opprettet: Tidspunkt,
         type: Fradragstype,
@@ -31,7 +31,7 @@ object FradragFactory {
     ): IFradrag = FradragDbWrapper(
         id = id,
         tidspunkt = opprettet,
-        fradrag = domene(
+        fradrag = ny(
             periode = periode,
             beløp = beløp,
             type = type,

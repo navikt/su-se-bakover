@@ -32,11 +32,11 @@ internal class AbstractBeregningRepoTest {
 
             val beregning = repo.opprettBeregningForBehandling(
                 behandlingId = nySøknadsbehandling.id,
-                beregning = BeregningFactory.domene(
+                beregning = BeregningFactory.ny(
                     periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
                     sats = Sats.HØY,
                     fradrag = listOf(
-                        FradragFactory.domene(
+                        FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             beløp = 54321.0,
                             periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
@@ -61,7 +61,7 @@ internal class AbstractBeregningRepoTest {
 
             repo.opprettBeregningForBehandling(
                 behandlingId = nySøknadsbehandling.id,
-                beregning = BeregningFactory.domene(
+                beregning = BeregningFactory.ny(
                     periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
                     sats = Sats.HØY,
                     fradrag = emptyList()
@@ -85,11 +85,11 @@ internal class AbstractBeregningRepoTest {
             val nySøknadsbehandling = testDataHelper.insertBehandling(sak.id, søknad)
             val gammelBeregning = repo.opprettBeregningForBehandling(
                 nySøknadsbehandling.id,
-                BeregningFactory.domene(
+                BeregningFactory.ny(
                     periode = Periode(1.januar(2020), 31.desember(2020)),
                     sats = Sats.HØY,
                     fradrag = listOf(
-                        FradragFactory.domene(
+                        FradragFactory.ny(
                             periode = Periode(1.januar(2020), 31.desember(2020)),
                             type = Fradragstype.Arbeidsinntekt,
                             beløp = 10000.0,
@@ -108,7 +108,7 @@ internal class AbstractBeregningRepoTest {
             ) shouldBe 12
             selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id().toString()) shouldBe 1
 
-            val nyBeregning = BeregningFactory.domene(
+            val nyBeregning = BeregningFactory.ny(
                 periode = Periode(1.januar(2020), 31.desember(2020)),
                 sats = Sats.HØY,
                 fradrag = emptyList()
