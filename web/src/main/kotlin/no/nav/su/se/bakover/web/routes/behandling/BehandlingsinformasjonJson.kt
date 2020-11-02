@@ -82,13 +82,24 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         formue = b.formue?.let { f ->
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
-                verdiIkkePrimærbolig = f.verdiIkkePrimærbolig,
-                verdiKjøretøy = f.verdiKjøretøy,
-                innskudd = f.innskudd,
-                verdipapir = f.verdipapir,
-                pengerSkyldt = f.pengerSkyldt,
-                kontanter = f.kontanter,
-                depositumskonto = f.depositumskonto,
+                verdier = Behandlingsinformasjon.Formue.Verdier(
+                    verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
+                    verdiKjøretøy = f.verdier?.verdiKjøretøy,
+                    innskudd = f.verdier?.innskudd,
+                    verdipapir = f.verdier?.verdipapir,
+                    pengerSkyldt = f.verdier?.pengerSkyldt,
+                    kontanter = f.verdier?.kontanter,
+                    depositumskonto = f.verdier?.depositumskonto
+                ),
+                ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+                    verdiIkkePrimærbolig = f.ektefellesVerdier?.verdiIkkePrimærbolig,
+                    verdiKjøretøy = f.ektefellesVerdier?.verdiKjøretøy,
+                    innskudd = f.ektefellesVerdier?.innskudd,
+                    verdipapir = f.ektefellesVerdier?.verdipapir,
+                    pengerSkyldt = f.ektefellesVerdier?.pengerSkyldt,
+                    kontanter = f.ektefellesVerdier?.kontanter,
+                    depositumskonto = f.ektefellesVerdier?.depositumskonto
+                ),
                 begrunnelse = f.begrunnelse
             )
         },
@@ -146,6 +157,13 @@ internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
 internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
+        verdier = this.verdier?.toJson(),
+        ektefellesVerdier = this.ektefellesVerdier?.toJson(),
+        begrunnelse = begrunnelse
+    )
+
+internal fun Behandlingsinformasjon.Formue.Verdier.toJson() =
+    VerdierJson(
         verdiIkkePrimærbolig = verdiIkkePrimærbolig,
         verdiKjøretøy = verdiKjøretøy,
         innskudd = innskudd,
@@ -153,7 +171,6 @@ internal fun Behandlingsinformasjon.Formue.toJson() =
         pengerSkyldt = pengerSkyldt,
         kontanter = kontanter,
         depositumskonto = depositumskonto,
-        begrunnelse = begrunnelse
     )
 
 internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
@@ -180,20 +197,28 @@ inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any {
 
 internal fun UførhetJson.isValid() =
     enumContains<Behandlingsinformasjon.Uførhet.Status>(status)
+
 internal fun FlyktningJson.isValid() =
     enumContains<Behandlingsinformasjon.Flyktning.Status>(status)
+
 internal fun LovligOppholdJson.isValid() =
     enumContains<Behandlingsinformasjon.LovligOpphold.Status>(status)
+
 internal fun BosituasjonJson.isValid() =
     delerBoligMed == null || enumContains<Boforhold.DelerBoligMed>(delerBoligMed)
+
 internal fun PersonligOppmøteJson.isValid() =
     enumContains<Behandlingsinformasjon.PersonligOppmøte.Status>(status)
+
 internal fun OppholdIUtlandetJson.isValid() =
     enumContains<Behandlingsinformasjon.OppholdIUtlandet.Status>(status)
+
 internal fun FormueJson.isValid() =
     enumContains<Behandlingsinformasjon.Formue.Status>(status)
+
 internal fun FastOppholdINorgeJson.isValid() =
     enumContains<Behandlingsinformasjon.FastOppholdINorge.Status>(status)
+
 internal fun EktefelleJson.isValid() = true
 
 data class UførhetJson(
@@ -224,6 +249,12 @@ data class OppholdIUtlandetJson(
 
 data class FormueJson(
     val status: String,
+    val verdier: VerdierJson?,
+    val ektefellesVerdier: VerdierJson?,
+    val begrunnelse: String?
+)
+
+data class VerdierJson(
     val verdiIkkePrimærbolig: Int?,
     val verdiKjøretøy: Int?,
     val innskudd: Int?,
@@ -231,7 +262,6 @@ data class FormueJson(
     val pengerSkyldt: Int?,
     val kontanter: Int?,
     val depositumskonto: Int?,
-    val begrunnelse: String?
 )
 
 data class PersonligOppmøteJson(
