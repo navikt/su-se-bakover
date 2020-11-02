@@ -148,11 +148,11 @@ internal class BehandlingPostgresRepo(
                 row.toBehandling(session)
             }
 
-    internal fun hentBehandlingerForSak(sakId: UUID, session: Session) =
+    internal fun hentBehandlingerForSak(sakId: UUID, session: Session): List<Behandling> =
         "select b.*, s.fnr from behandling b left outer join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toBehandling(session)
-            }.toMutableList()
+            }
 
     private fun Row.toBehandling(session: Session): Behandling {
         val behandlingId = uuid("id")

@@ -81,7 +81,7 @@ internal class BeregningTest {
             tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
             sats = Sats.HØY,
             fradrag = emptyList(),
-            månedsberegninger = mutableListOf(
+            månedsberegninger = listOf(
                 Månedsberegning(
                     fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
                     sats = Sats.HØY,

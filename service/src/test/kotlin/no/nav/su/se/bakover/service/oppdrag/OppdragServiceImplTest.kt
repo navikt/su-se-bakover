@@ -32,7 +32,7 @@ internal class OppdragServiceImplTest {
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = sakId,
-            utbetalinger = mutableListOf()
+            utbetalinger = emptyList()
         )
         val repoMock = mock<OppdragRepo> { on { hentOppdrag(sakId) } doReturn oppdrag }
 

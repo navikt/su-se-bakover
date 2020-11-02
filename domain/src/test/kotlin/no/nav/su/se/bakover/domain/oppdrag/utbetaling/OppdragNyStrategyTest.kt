@@ -81,7 +81,7 @@ internal class OppdragNyStrategyTest {
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = oppdrag.sakId,
-            utbetalinger = mutableListOf(
+            utbetalinger = listOf(
                 Utbetaling.OversendtUtbetaling.MedKvittering(
                     simulering = Simulering(
                         gjelderId = fnr,
@@ -229,7 +229,7 @@ internal class OppdragNyStrategyTest {
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
-            utbetalinger = mutableListOf(first, second, third, fourth)
+            utbetalinger = listOf(first, second, third, fourth)
         )
         oppdrag.hentOversendteUtbetalingerUtenFeil()[1] shouldBe third
     }

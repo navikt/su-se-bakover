@@ -37,8 +37,8 @@ internal class LukkSøknadServiceImplTest {
         id = sakId,
         opprettet = Tidspunkt.now(),
         fnr = Fnr("12345678901"),
-        søknader = mutableListOf(),
-        behandlinger = mutableListOf(),
+        søknader = emptyList(),
+        behandlinger = emptyList(),
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.now(),

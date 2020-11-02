@@ -46,7 +46,7 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.NY
         )
 
-        val stans = createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+        val stans = createOppdrag(listOf(utbetaling)).genererUtbetaling(
             Stans(
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock
@@ -77,7 +77,7 @@ internal class OppdragStansTest {
         )
 
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+            createOppdrag(listOf(utbetaling)).genererUtbetaling(
                 Stans(
                     behandler = NavIdentBruker.Saksbehandler("Z123"),
                     clock = fixedClock
@@ -104,7 +104,7 @@ internal class OppdragStansTest {
         )
 
         assertThrows<UtbetalingStrategyException> {
-            createOppdrag(mutableListOf(utbetaling)).genererUtbetaling(
+            createOppdrag(listOf(utbetaling)).genererUtbetaling(
                 Stans(
                     behandler = NavIdentBruker.Saksbehandler("Z123"),
                     clock = fixedClock
