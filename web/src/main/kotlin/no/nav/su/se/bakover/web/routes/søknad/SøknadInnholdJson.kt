@@ -250,7 +250,6 @@ data class SøknadInnholdJson(
 
     data class InntektOgPensjonJson(
         val forventetInntekt: Number? = null,
-        val tjenerPengerIUtlandetBeløp: Number? = null,
         val andreYtelserINav: String? = null,
         val andreYtelserINavBeløp: Number? = null,
         val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
@@ -260,7 +259,6 @@ data class SøknadInnholdJson(
     ) {
         fun toInntektOgPensjon() = InntektOgPensjon(
             forventetInntekt = forventetInntekt,
-            tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
             andreYtelserINav = andreYtelserINav,
             andreYtelserINavBeløp = andreYtelserINavBeløp,
             søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
@@ -281,7 +279,6 @@ data class SøknadInnholdJson(
             fun InntektOgPensjon.toInntektOgPensjonJson() =
                 InntektOgPensjonJson(
                     forventetInntekt = forventetInntekt,
-                    tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
                     andreYtelserINav = andreYtelserINav,
                     andreYtelserINavBeløp = andreYtelserINavBeløp,
                     søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,

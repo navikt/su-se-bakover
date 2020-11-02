@@ -80,7 +80,6 @@ internal class SøknadJsonTest {
             },
             "inntektOgPensjon":{
                 "forventetInntekt":2500,
-                "tjenerPengerIUtlandetBeløp":20,
                 "andreYtelserINav":"sosialstønad",
                 "andreYtelserINavBeløp":33,
                 "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
@@ -147,7 +146,6 @@ internal class SøknadJsonTest {
                 },
               "inntektOgPensjon": {
                   "forventetInntekt": null,
-                  "tjenerPengerIUtlandetBeløp": null,
                   "andreYtelserINav": null,
                   "andreYtelserINavBeløp": null,
                   "søktAndreYtelserIkkeBehandletBegrunnelse": null,
