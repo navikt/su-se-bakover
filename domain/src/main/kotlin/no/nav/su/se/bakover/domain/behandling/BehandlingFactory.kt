@@ -12,9 +12,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.Clock
 import java.util.UUID
 
-/**
- *
- */
 class BehandlingFactory(
     private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock = Clock.systemUTC(),
