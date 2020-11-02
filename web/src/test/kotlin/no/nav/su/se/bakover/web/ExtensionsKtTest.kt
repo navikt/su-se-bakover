@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.positiveOrZero
-import no.nav.su.se.bakover.common.sumLimitedUpwardsTo
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -24,8 +24,8 @@ internal class ExtensionsKtTest {
 
     @Test
     fun `sum limited to`() {
-        123000.0.sumLimitedUpwardsTo(500.0) shouldBe 500.0
-        (-1234.0).sumLimitedUpwardsTo(500.0) shouldBe -1234.0
+        123000.0.limitedUpwardsTo(500.0) shouldBe 500.0
+        (-1234.0).limitedUpwardsTo(500.0) shouldBe -1234.0
     }
 
     @Test

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.common.positiveOrZero
-import no.nav.su.se.bakover.common.sumLimitedUpwardsTo
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.AbstractFradrag
@@ -41,7 +41,7 @@ internal data class Månedsberegning(
 
     override fun fradrag() = fradrag
         .sumByDouble { it.månedsbeløp() }
-        .sumLimitedUpwardsTo(periodiserSats())
+        .limitedUpwardsTo(periodiserSats())
 
     override fun grunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
     override fun sats(): Sats = sats

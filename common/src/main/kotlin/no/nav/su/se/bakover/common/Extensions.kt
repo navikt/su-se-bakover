@@ -24,7 +24,7 @@ fun Double.positiveOrZero() = when (this < 0) {
     false -> this
 }
 
-fun Double.sumLimitedUpwardsTo(limit: Double) = when (this > limit) {
+fun Double.limitedUpwardsTo(limit: Double) = when (this > limit) {
     true -> limit
     false -> this
 }
