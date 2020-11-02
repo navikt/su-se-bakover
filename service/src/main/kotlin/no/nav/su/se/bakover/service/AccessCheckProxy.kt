@@ -275,7 +275,6 @@ class AccessCheckProxy(
 
             oppgave = object : OppgaveService {
                 override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
-                override fun ferdigstillFørstegangsoppgave(aktørId: AktørId) = kastKanKunKallesFraAnnenService()
                 override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             }

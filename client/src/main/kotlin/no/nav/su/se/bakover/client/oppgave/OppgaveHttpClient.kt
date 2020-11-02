@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstema.SU_UFØRE_FLYKNING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Behandlingstype.FØRSTEGANGSSØKNAD
-import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.BEHANDLE_SAK
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig.Oppgavetype.TIL_ATTESTERING
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveSøkeResultat
@@ -71,20 +70,6 @@ internal class OppgaveHttpClient(
                 KunneIkkeOppretteOppgave.left()
             }
         )
-    }
-
-    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-        return søkEtterOppgave(
-            BEHANDLE_SAK.value,
-            FØRSTEGANGSSØKNAD.value,
-            SU_UFØRE_FLYKNING.value,
-            aktørId
-        ).mapLeft {
-            KunneIkkeFerdigstilleOppgave
-        }.flatMap {
-            ferdigstillOppgave(it.id, it.versjon)
-            Unit.right()
-        }
     }
 
     override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
