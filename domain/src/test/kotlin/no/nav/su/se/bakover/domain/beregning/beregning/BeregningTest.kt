@@ -159,14 +159,14 @@ internal class BeregningTest {
             fradrag = listOf(
                 Fradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = 245514.0,
+                    beløp = 245115.0,
                     periode = periode
                 )
             )
         )
 
-        beregning.totalSum() shouldBe 4602
-        beregning.totaltFradrag() shouldBe 245514
+        beregning.totalSum() shouldBe 5001
+        beregning.totaltFradrag() shouldBe 245115
         (beregning.totalSum() + beregning.totaltFradrag()) shouldBe 250116
         beregning.sumUnderMinstegrense() shouldBe true
     }

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import org.junit.jupiter.api.Test
 
@@ -45,5 +46,13 @@ internal class SatsTest {
         Sats.HØY.årsbeløp(31.desember(2020)) shouldBe 251350
         Sats.HØY.månedsbeløp(1.januar(2020)) shouldBe 20637.32
         Sats.HØY.månedsbeløp(31.desember(2020)) shouldBe 20945.87
+    }
+
+    @Test
+    fun `kalkulerer to prosent av høy sats for perioder`() {
+        Sats.HØY.toProsentAvHøySats(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238
+        Sats.HØY.toProsentAvHøySats(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002
+        Sats.ORDINÆR.toProsentAvHøySats(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238
+        Sats.ORDINÆR.toProsentAvHøySats(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002
     }
 }

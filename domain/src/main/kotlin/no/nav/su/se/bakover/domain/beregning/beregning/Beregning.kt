@@ -63,9 +63,7 @@ internal data class Beregning(
         }.toMap()
     }
 
-    private fun kalkuler2ProsentAvHøySats() = beregning.values
-        .sumByDouble { Sats.HØY.månedsbeløp(periode.fraOgMed()) * 0.02 }
-        .roundToInt()
+    private fun kalkuler2ProsentAvHøySats() = sats.toProsentAvHøySats(periode)
 
     override fun sats(): Sats = sats
     override fun månedsberegninger(): List<AbstractMånedsberegning> = beregning.values.toList()
