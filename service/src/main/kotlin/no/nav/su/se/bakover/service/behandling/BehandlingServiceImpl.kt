@@ -18,12 +18,12 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
@@ -37,12 +37,12 @@ internal class BehandlingServiceImpl(
     private val hendelsesloggRepo: HendelsesloggRepo,
     private val beregningRepo: BeregningRepo,
     private val utbetalingService: UtbetalingService,
-    private val oppgaveClient: OppgaveClient,
+    private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val sakService: SakService,
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
-    private val behandlingMetrics: no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+    private val behandlingMetrics: BehandlingMetrics
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -131,7 +131,7 @@ internal class BehandlingServiceImpl(
             return KunneIkkeFinneAktørId.left()
         }
 
-        oppgaveClient.opprettOppgave(
+        oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
                 behandling.sakId.toString(),
                 aktørId = aktørId
@@ -145,7 +145,7 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        oppgaveClient.ferdigstillFørstegangsoppgave(
+        oppgaveService.ferdigstillFørstegangsoppgave(
             aktørId = aktørId
         ).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
@@ -231,7 +231,7 @@ internal class BehandlingServiceImpl(
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-            oppgaveClient.ferdigstillAttesteringsoppgave(aktørId)
+            oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
                 .map { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE) }
 
             journalførOgDistribuerBrev(

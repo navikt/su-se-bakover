@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import org.slf4j.LoggerFactory
@@ -31,7 +31,7 @@ internal class SøknadServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
     private val personOppslag: PersonOppslag,
-    private val oppgaveClient: OppgaveClient
+    private val oppgaveService: OppgaveService
 ) : SøknadService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -113,7 +113,7 @@ internal class SøknadServiceImpl(
                         log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
                         søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
                         nySøknadOpprettetJournalpostCounter.increment()
-                        oppgaveClient.opprettOppgave(
+                        oppgaveService.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
                                 sakId = sakId.toString(),

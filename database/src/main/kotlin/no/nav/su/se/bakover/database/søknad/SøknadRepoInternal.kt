@@ -34,6 +34,6 @@ internal fun Row.toSøknad(): Søknad {
     )
 }
 
-internal fun Row.toOppgaveId(): OppgaveId? {
+internal fun Row.toOppgaveId(): OppgaveId {
     return OppgaveId(string("oppgaveId"))
 }
