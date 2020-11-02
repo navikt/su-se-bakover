@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class BehandlingMicrometerMetrics : BehandlingMetrics {
 
     private val behandlingstatuserGauge = Behandling.BehandlingsStatus.values().map {
-        it to Metrics.gauge("soknadsbehandlinger_aktive", Tags.of("type", it.name), AtomicInteger(0))
+        it to Metrics.gauge("soknadsbehandling_aktive", Tags.of("type", it.name), AtomicInteger(0))
     }.toMap()
 
     override fun behandlingsstatusChanged(old: Behandling.BehandlingsStatus, new: Behandling.BehandlingsStatus) {
@@ -21,18 +21,18 @@ class BehandlingMicrometerMetrics : BehandlingMetrics {
     }
 
     /* Underkjent behandling er et eget konsept på utsiden av BehandlingStatus. Derfor må den ligge utenfor. */
-    override fun incrementUnderkjentCounter() = counter("førstegangsbehandling_underkjent").increment()
+    override fun incrementUnderkjentCounter() = counter("soknadsbehandling_underkjent").increment()
 
     override fun incrementInnvilgetCounter(handling: BehandlingMetrics.InnvilgetHandlinger) {
-        incrementCounter("førstegangsbehandling_innvilget", handling.name)
+        incrementCounter("soknadsbehandling_innvilget", handling.name)
     }
 
     override fun incrementAvslåttCounter(handling: BehandlingMetrics.AvslåttHandlinger) {
-        incrementCounter("førstegangsbehandling_avslag", handling.name)
+        incrementCounter("soknadsbehandling_avslag", handling.name)
     }
 
     override fun incrementTilAttesteringCounter(handling: BehandlingMetrics.TilAttesteringHandlinger) {
-        incrementCounter("førstegangsbehandling_til_attestering", handling.name)
+        incrementCounter("soknadsbehandling_til_attestering", handling.name)
     }
 
     private fun incrementCounter(metricName: String, type: String) {
