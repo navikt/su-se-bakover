@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -246,7 +245,7 @@ internal class BehandlingRoutesKtTest {
     }
 
     @Test
-    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode oppretter beregning`() {
+    fun `Fradrag med utenlandskInntekt oppretter beregning`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -278,10 +277,6 @@ internal class BehandlingRoutesKtTest {
                                 "beløpIUtenlandskValuta":200,
                                 "valuta":"euro",
                                 "kurs":0.5
-                             },
-                             "inntektDelerAvPeriode":{
-                                "fraOgMed":"$fraOgMed",
-                                "tilOgMed":"$tilOgMed"
                              }
                           }]
                     }
@@ -300,14 +295,14 @@ internal class BehandlingRoutesKtTest {
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
                         kurs = 0.5
-                    ) && it.inntektDelerAvPeriode == InntektDelerAvPeriode(fraOgMed = fraOgMed, tilOgMed = tilOgMed)
+                    )
                 }
             }
         }
     }
 
     @Test
-    fun `Fradrag med utenlandskInntekt og inntektDelerAvPeriode er null oppretter beregning`() {
+    fun `Fradrag med utenlandskInntekt er null oppretter beregning`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -336,8 +331,7 @@ internal class BehandlingRoutesKtTest {
                                 {
                                 "type": "Arbeidsinntekt",
                                 "beløp": 200,
-                                "utenlandskInntekt": null,
-                                "inntektDelerAvPeriode": null
+                                "utenlandskInntekt": null
                             }
                         ]
                     }
@@ -351,9 +345,7 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 behandlingJson.beregning.fradrag shouldHaveSize 1
-                behandlingJson.beregning.fradrag.all {
-                    it.utenlandskInntekt == null && it.inntektDelerAvPeriode == null
-                }
+                behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
             }
         }
     }
@@ -431,8 +423,7 @@ internal class BehandlingRoutesKtTest {
                                     "beløpIUtenlandskValuta":-200,
                                     "valuta":"euro",
                                     "kurs":0.5
-                                 },
-                                 "inntektDelerAvPeriode":null
+                                 }
                               }
                             ]
                         }

@@ -19,8 +19,7 @@ internal class BeregningStrategyTest {
                 Fradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 1500,
-                    utenlandskInntekt = null,
-                    inntektDelerAvPeriode = null
+                    utenlandskInntekt = null
                 )
             ),
             forventetInntekt = 0

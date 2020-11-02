@@ -237,8 +237,7 @@ internal class BehandlingTest {
                         id = UUID.randomUUID(),
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = 600000,
-                        utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        utenlandskInntekt = null
                     )
                 )
             )
@@ -275,8 +274,7 @@ internal class BehandlingTest {
                         id = UUID.randomUUID(),
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = (maxUtbetaling2020 * 0.99).toInt(),
-                        utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        utenlandskInntekt = null
                     )
                 )
             )
@@ -296,8 +294,7 @@ internal class BehandlingTest {
                         id = UUID.randomUUID(),
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = inntektSomGerMinstebeløp,
-                        utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        utenlandskInntekt = null
                     )
                 )
             )
@@ -432,8 +429,7 @@ internal class BehandlingTest {
                             id = UUID.randomUUID(),
                             type = Fradragstype.Arbeidsinntekt,
                             beløp = 1000000,
-                            utenlandskInntekt = null,
-                            inntektDelerAvPeriode = null
+                            utenlandskInntekt = null
                         )
                     )
                 )

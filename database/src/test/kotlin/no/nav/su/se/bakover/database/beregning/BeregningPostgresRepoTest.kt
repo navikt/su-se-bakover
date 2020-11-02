@@ -69,8 +69,7 @@ internal class BeregningPostgresRepoTest {
                         Fradrag(
                             type = Fradragstype.Arbeidsinntekt,
                             beløp = 10000,
-                            utenlandskInntekt = null,
-                            inntektDelerAvPeriode = null
+                            utenlandskInntekt = null
                         )
                     )
                 )

@@ -34,7 +34,6 @@ sealed class FradragStrategy {
                 type = Fradragstype.ForventetInntekt,
                 beløp = forventetInntekt,
                 utenlandskInntekt = null,
-                inntektDelerAvPeriode = null,
             )
         )
     }

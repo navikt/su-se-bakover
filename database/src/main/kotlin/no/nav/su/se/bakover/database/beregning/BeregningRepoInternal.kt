@@ -55,8 +55,7 @@ internal fun Row.toMånedsberegning() = Månedsberegning(
 
 internal fun Row.toFradrag() = Fradrag(
     id = uuid("id"),
-    beløp = int("beløp"),
     type = Fradragstype.valueOf(string("fradragstype")),
-    utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { objectMapper.readValue(it) },
-    inntektDelerAvPeriode = stringOrNull("inntektDelerAvPeriode")?.let { objectMapper.readValue(it) }
+    beløp = int("beløp"),
+    utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { objectMapper.readValue(it) }
 )

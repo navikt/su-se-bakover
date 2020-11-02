@@ -42,7 +42,6 @@ internal class FradragStrategyTest {
     private fun lagFradrag(type: Fradragstype, beløp: Int): Fradrag = Fradrag(
         type = type,
         beløp = beløp,
-        utenlandskInntekt = null,
-        inntektDelerAvPeriode = null
+        utenlandskInntekt = null
     )
 }

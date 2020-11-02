@@ -68,8 +68,8 @@ internal class BeregningPostgresRepo(
     private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         dataSource.withSession { session ->
             """
-            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt, inntektDelerAvPeriode)
-            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json), to_json(:inntektDelerAvPeriode::json))
+            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt)
+            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json))
         """
                 .oppdatering(
                     mapOf(
@@ -77,8 +77,7 @@ internal class BeregningPostgresRepo(
                         "beregningId" to beregningId,
                         "fradragstype" to fradrag.type.toString(),
                         "belop" to fradrag.beløp,
-                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt),
-                        "inntektDelerAvPeriode" to objectMapper.writeValueAsString(fradrag.inntektDelerAvPeriode)
+                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt)
                     ),
                     session
                 )

@@ -4,7 +4,6 @@ import arrow.core.Either
 import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
 import java.util.UUID
 
 enum class Fradragstype {
@@ -33,8 +32,7 @@ data class Fradrag(
     val id: UUID = UUID.randomUUID(),
     val type: Fradragstype,
     val beløp: Int,
-    val utenlandskInntekt: UtenlandskInntekt?,
-    val inntektDelerAvPeriode: InntektDelerAvPeriode?
+    val utenlandskInntekt: UtenlandskInntekt?
 ) {
     fun perMåned(): Int = BigDecimal(beløp).divide(BigDecimal(12), 0, RoundingMode.HALF_UP).toInt()
 }
@@ -46,14 +44,5 @@ data class UtenlandskInntekt(
 ) {
     fun isValid(): Boolean {
         return beløpIUtenlandskValuta >= 0 && valuta.isNotBlank() && kurs >= 0
-    }
-}
-
-data class InntektDelerAvPeriode(
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate
-) {
-    fun isValid(): Boolean {
-        return fraOgMed.dayOfMonth == 1 && tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()
     }
 }

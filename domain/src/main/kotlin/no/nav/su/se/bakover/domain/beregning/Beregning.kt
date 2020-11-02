@@ -75,7 +75,6 @@ fun fradragWithForventetInntekt(fradrag: List<Fradrag>, forventetInntekt: Int): 
             type = Fradragstype.ForventetInntekt,
             beløp = forventetInntekt,
             utenlandskInntekt = null,
-            inntektDelerAvPeriode = null,
         )
     )
 }
