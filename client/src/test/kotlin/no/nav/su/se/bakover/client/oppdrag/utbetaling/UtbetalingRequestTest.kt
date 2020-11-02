@@ -37,7 +37,7 @@ internal class UtbetalingRequestTest {
             id = oppdragId,
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
-            utbetalinger = mutableListOf()
+            utbetalinger = emptyList()
         )
 
         val nyOppdragslinjeId1 = UUID30.randomUUID()
@@ -138,7 +138,7 @@ internal class UtbetalingRequestTest {
     fun `bygger simulering request til bruker som allerede har fått penger`() {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
         val eksisterendeOppdrag = oppdrag.copy(
-            utbetalinger = mutableListOf(
+            utbetalinger = listOf(
                 Utbetaling.OversendtUtbetaling.MedKvittering(
                     utbetalingsrequest = Utbetalingsrequest(
                         value = ""

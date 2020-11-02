@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID
@@ -11,8 +12,8 @@ data class Sak(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
     val fnr: Fnr,
-    private val søknader: MutableList<Søknad> = mutableListOf(),
-    private val behandlinger: MutableList<Behandling> = mutableListOf(),
+    private val søknader: List<Søknad> = emptyList(),
+    private val behandlinger: List<Behandling> = emptyList(),
     val oppdrag: Oppdrag,
 ) {
     fun søknader() = søknader.toList()
@@ -31,8 +32,8 @@ data class NySak(
         id = id,
         opprettet = opprettet,
         fnr = fnr,
-        søknader = mutableListOf(søknad),
-        behandlinger = mutableListOf(),
+        søknader = listOf(søknad),
+        behandlinger = listOf(),
         oppdrag = oppdrag
     )
 }

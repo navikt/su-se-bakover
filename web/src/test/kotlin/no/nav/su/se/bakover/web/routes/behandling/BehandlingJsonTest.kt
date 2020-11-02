@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
@@ -24,8 +25,9 @@ internal class BehandlingJsonTest {
         private val vv1id = UUID.randomUUID()
         private val vv2id = UUID.randomUUID()
         private val sakId = UUID.randomUUID()
+        private val behandlingFactory = BehandlingFactory(mock())
 
-        internal val behandling = Behandling(
+        internal val behandling = behandlingFactory.createBehandling(
             id = behandlingId,
             behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = Behandlingsinformasjon.Uførhet(
@@ -162,7 +164,7 @@ internal class BehandlingJsonTest {
 
     @Test
     fun nullables() {
-        val behandlingWithNulls = Behandling(
+        val behandlingWithNulls = behandlingFactory.createBehandling(
             id = behandlingId,
             behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = søknad,

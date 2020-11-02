@@ -229,7 +229,7 @@ internal class SimuleringSoapClientTest {
         id = UUID30.randomUUID(),
         opprettet = Tidspunkt.EPOCH,
         sakId = UUID.randomUUID(),
-        utbetalinger = mutableListOf()
+        utbetalinger = emptyList()
     )
 
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(

@@ -18,15 +18,21 @@ import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Behandling
-import no.nav.su.se.bakover.domain.Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -45,8 +51,7 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    behandlingService: BehandlingService,
-    sakService: SakService,
+    behandlingService: BehandlingService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -194,39 +199,33 @@ internal fun Route.behandlingRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
+
+        fun kunneIkkeIverksetteMelding(feil: Behandling.KunneIkkeIverksetteBehandling): Resultat {
+            // funksjon + return: Triks for å få exhaustive when
+            return when (feil) {
+                is AttestantOgSaksbehandlerKanIkkeVæreLik -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
+                is KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
+                is KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
+                is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
+                is KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
+                is FantIkkeAktørId -> InternalServerError.message("Fant ikke aktør-id")
+                is FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+            }
+        }
+
         patch("$behandlingPath/{behandlingId}/iverksett") {
-            call.withBehandling(behandlingService) { behandling ->
-                call.audit("Iverksetter behandling med id: ${behandling.id}")
+            call.withBehandlingId { behandlingId ->
+                call.audit("Iverksetter behandling med id: $behandlingId")
                 val navIdent = call.suUserContext.getNAVIdent()
 
-                sakService.hentSak(behandling.sakId)
-                    .mapLeft { throw RuntimeException("Sak id finnes ikke") }
-                    .map {
-                        behandlingService.iverksett(
-                            behandlingId = behandling.id,
-                            attestant = Attestant(navIdent)
-                        ).fold(
-                            {
-                                when (it) {
-                                    is AttestantOgSaksbehandlerErLik -> call.svar(Forbidden.message("Attestant og saksbehandler kan ikke være samme person"))
-                                    is Behandling.IverksettFeil.KunneIkkeUtbetale -> call.svar(
-                                        InternalServerError.message("Kunne ikke utføre utbetaling")
-                                    )
-                                    is Behandling.IverksettFeil.KunneIkkeKontrollSimulere -> call.svar(
-                                        InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                                    )
-                                    is Behandling.IverksettFeil.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> call.svar(
-                                        InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
-                                    )
-                                    Behandling.IverksettFeil.KunneIkkeJournalføreBrev ->
-                                        call.svar(InternalServerError.message("Feil ved journalføring av vedtaksbrev"))
-                                    Behandling.IverksettFeil.KunneIkkeDistribuereBrev ->
-                                        call.svar(InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev"))
-                                }
-                            },
-                            { call.svar(OK.jsonBody(it)) }
-                        )
-                    }
+                behandlingService.iverksett(
+                    behandlingId = behandlingId,
+                    attestant = Attestant(navIdent)
+                ).fold(
+                    { call.svar(kunneIkkeIverksetteMelding(it)) },
+                    { call.svar(OK.jsonBody(it)) }
+                )
             }
         }
     }

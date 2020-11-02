@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -24,13 +25,14 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -64,10 +66,11 @@ internal class BehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val services = ServiceBuilder(
         databaseRepos = repos,
-        clients = TestClientsBuilder.build()
+        clients = TestClientsBuilder.build(),
+        behandlingMetrics = mock()
     ).build()
 
     @Nested
@@ -592,14 +595,14 @@ internal class BehandlingRoutesKtTest {
         }
 
         @Test
-        fun `BadRequest når sakId eller behandlingId er ugyldig`() {
+        fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
                 requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
                     .apply {
-                        response.status() shouldBe HttpStatusCode.BadRequest
+                        response.status() shouldBe HttpStatusCode.NotFound
                     }
 
-                requestSomAttestant(HttpMethod.Patch, "$sakPath/${it.sak.id}/behandlinger/rubbish/iverksett")
+                requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/rubbish/iverksett")
                     .apply {
                         response.status() shouldBe HttpStatusCode.BadRequest
                     }
@@ -648,10 +651,10 @@ internal class BehandlingRoutesKtTest {
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
-                        deserialize<BehandlingJson>(response.content!!).let {
-                            it.attestant shouldBe navIdentAttestant
-                            it.status shouldBe "IVERKSATT_INNVILGET"
-                            it.saksbehandler shouldBe navIdentSaksbehandler
+                        deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
+                            behandlingJson.attestant shouldBe navIdentAttestant
+                            behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
+                            behandlingJson.saksbehandler shouldBe navIdentSaksbehandler
                         }
                     }
             }
@@ -660,7 +663,7 @@ internal class BehandlingRoutesKtTest {
 
     @Nested
     inner class `Underkjenning av behandling` {
-        fun <R> withFerdigbehandletSakForBruker(
+        private fun <R> withFerdigbehandletSakForBruker(
             brukersNavIdent: String,
             test: TestApplicationEngine.(objects: Objects) -> R
         ) =

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -8,18 +9,20 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -44,15 +47,15 @@ internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
-    private val aktørId = AktørId("aktørId")
     private val søknad = Søknad(sakId = UUID.randomUUID(), søknadInnhold = SøknadInnholdTestdataBuilder.build())
+    private val behandlingFactory = BehandlingFactory(mock())
 
     companion object {
         val oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = UUID.randomUUID(),
-            utbetalinger = mutableListOf()
+            utbetalinger = emptyList()
         )
     }
 
@@ -66,7 +69,7 @@ internal class BehandlingTest {
     @Test
     fun equals() {
         val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = Behandling(
+        val b = behandlingFactory.createBehandling(
             id1,
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
@@ -84,7 +87,7 @@ internal class BehandlingTest {
     @Test
     fun hashcode() {
         val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = Behandling(
+        val b = behandlingFactory.createBehandling(
             id1,
             søknad = søknad,
             status = VILKÅRSVURDERT_INNVILGET,
@@ -592,7 +595,7 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
 
@@ -637,7 +640,7 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.IverksettFeil.AttestantOgSaksbehandlerErLik>()
+                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
                 .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
 
@@ -668,7 +671,7 @@ internal class BehandlingTest {
     private fun createBehandling(
         id: UUID,
         status: BehandlingsStatus
-    ) = Behandling(
+    ): Behandling = behandlingFactory.createBehandling(
         id = id,
         søknad = søknad,
         status = status,

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus
-import no.nav.su.se.bakover.domain.Behandling.BehandlingsStatus.OPPRETTET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.OPPRETTET
 import java.util.UUID
 
 data class NySøknadsbehandling(

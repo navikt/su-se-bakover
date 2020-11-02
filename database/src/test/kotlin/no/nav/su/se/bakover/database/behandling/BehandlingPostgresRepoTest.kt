@@ -1,15 +1,17 @@
 package no.nav.su.se.bakover.database.behandling
 
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -18,7 +20,7 @@ internal class BehandlingPostgresRepoTest {
 
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance())
+    private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
 
     @Test
     fun `opprett og hent behandling`() {
@@ -33,7 +35,7 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)
 
-            hentet shouldBe Behandling(
+            hentet shouldBe BehandlingFactory(mock()).createBehandling(
                 id = nySøknadsbehandling.id,
                 opprettet = nySøknadsbehandling.opprettet,
                 fnr = FNR,

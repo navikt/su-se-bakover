@@ -7,13 +7,13 @@ import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Behandling
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Fradrag
@@ -185,7 +185,7 @@ class AccessCheckProxy(
                 override fun iverksett(
                     behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant
-                ): Either<Behandling.IverksettFeil, Behandling> {
+                ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
                     return services.behandling.iverksett(behandlingId, attestant)

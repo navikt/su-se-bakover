@@ -40,7 +40,7 @@ internal class UtbetalingPublisherTest {
         }
     }
 
-    class MqPublisherMock(val response: Either<CouldNotPublish, Unit>) : MqPublisher {
+    class MqPublisherMock(private val response: Either<CouldNotPublish, Unit>) : MqPublisher {
         var count = 0
         var messages: MutableList<String> = mutableListOf()
 

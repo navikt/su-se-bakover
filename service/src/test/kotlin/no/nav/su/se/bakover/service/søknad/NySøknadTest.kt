@@ -242,7 +242,7 @@ class NySøknadTest {
             oppgaveServiceMock
         )
         actual shouldBe sak.copy(
-            søknader = mutableListOf(expectedSøknad)
+            søknader = listOf(expectedSøknad)
         ).right()
     }
 
@@ -339,7 +339,7 @@ class NySøknadTest {
             oppgaveServiceMock
         )
         actual shouldBe sak.copy(
-            søknader = mutableListOf(expectedSøknad)
+            søknader = listOf(expectedSøknad)
         ).right()
     }
 
@@ -441,7 +441,7 @@ class NySøknadTest {
             oppgaveServiceMock
         )
         actual shouldBe sak.copy(
-            søknader = mutableListOf(expectedSøknad)
+            søknader = listOf(expectedSøknad)
         ).right()
     }
 }
