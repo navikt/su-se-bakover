@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
@@ -39,6 +41,7 @@ internal class BehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
+    private val søknadRepo: SøknadRepo,
     private val sakService: SakService,
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
@@ -145,9 +148,8 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        oppgaveService.ferdigstillFørstegangsoppgave(
-            aktørId = aktørId
-        ).map {
+        val oppgaveId = søknadRepo.hentOppgaveId(behandling.sakId) ?: return behandling.right()
+        oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }
         return behandling.right()

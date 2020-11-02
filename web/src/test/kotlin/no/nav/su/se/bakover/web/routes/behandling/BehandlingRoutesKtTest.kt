@@ -173,10 +173,6 @@ internal class BehandlingRoutesKtTest {
                             return Either.left(KunneIkkeOppretteOppgave)
                         }
 
-                        override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                            return Unit.right()
-                        }
-
                         override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
                             return Unit.right()
                         }
