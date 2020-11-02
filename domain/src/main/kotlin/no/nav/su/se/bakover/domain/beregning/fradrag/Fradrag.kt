@@ -48,7 +48,7 @@ internal data class Fradrag(
 data class FradragDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    internal val fradrag: IFradrag
+    private val fradrag: IFradrag
 ) : AbstractFradrag(), IFradrag by fradrag {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt

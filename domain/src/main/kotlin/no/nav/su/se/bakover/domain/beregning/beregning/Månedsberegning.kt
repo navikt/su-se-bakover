@@ -29,7 +29,7 @@ abstract class AbstractMånedsberegning : IMånedsberegning {
 internal data class Månedsberegning(
     private val periode: Periode,
     private val sats: Sats,
-    internal val fradrag: List<IFradrag>
+    private val fradrag: List<IFradrag>
 ) : AbstractMånedsberegning() {
     init {
         require(fradrag.all { it.periode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
@@ -54,7 +54,7 @@ internal data class Månedsberegning(
 data class MånedsberegningDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    internal val månedsberegning: IMånedsberegning
+    private val månedsberegning: IMånedsberegning
 ) : AbstractMånedsberegning(), IMånedsberegning by månedsberegning {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt

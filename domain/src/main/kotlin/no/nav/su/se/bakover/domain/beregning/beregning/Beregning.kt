@@ -75,7 +75,7 @@ internal data class Beregning(
 data class BeregningDbWrapper(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    internal val beregning: IBeregning
+    private val beregning: IBeregning
 ) : AbstractBeregning(), IBeregning by beregning {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt
