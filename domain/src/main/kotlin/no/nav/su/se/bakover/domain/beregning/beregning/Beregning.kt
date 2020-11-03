@@ -47,7 +47,7 @@ internal data class Beregning(
     override fun fradrag(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.fradrag() ?: 0.0 }.roundToInt()
 
-    override fun sumUnderMinstegrense() = totalSum() < kalkuler2ProsentAvHøySats()
+    override fun sumUnderMinstegrense() = totalSum() < Sats.toProsentAvHøy(periode)
 
     private fun beregn(): Map<Periode, IMånedsberegning> {
         val perioder = periode.tilMånedsperioder()
@@ -62,8 +62,6 @@ internal data class Beregning(
             )
         }.toMap()
     }
-
-    private fun kalkuler2ProsentAvHøySats() = sats.toProsentAvHøySats(periode)
 
     override fun sats(): Sats = sats
     override fun månedsberegninger(): List<IMånedsberegning> = beregning.values.toList()

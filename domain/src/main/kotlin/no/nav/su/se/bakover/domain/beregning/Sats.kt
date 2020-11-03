@@ -17,10 +17,6 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
 
     fun årsbeløp(dato: LocalDate): Int = satsSomÅrsbeløp(dato)
     fun månedsbeløp(dato: LocalDate) = satsSomMånedsbeløp(dato)
-    fun toProsentAvHøySats(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { HØY.månedsbeløp(it.fraOgMed()) * 0.02 }
-        .roundToInt()
-
     fun periodiser(periode: Periode): Map<Periode, Double> = periode.tilMånedsperioder()
         .map { it to satsSomMånedsbeløp(it.fraOgMed()) }
         .toMap()
@@ -32,5 +28,11 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
     private fun kalkuler(dato: LocalDate, divisor: Long, presisjon: Int): Number {
         return BigDecimal.valueOf(grunnbeløp.fraDato(dato))
             .divide(BigDecimal.valueOf(divisor), presisjon, java.math.RoundingMode.HALF_UP)
+    }
+
+    companion object {
+        fun toProsentAvHøy(periode: Periode) = periode.tilMånedsperioder()
+            .sumByDouble { HØY.månedsbeløp(it.fraOgMed()) * 0.02 }
+            .roundToInt()
     }
 }

@@ -50,9 +50,7 @@ internal class SatsTest {
 
     @Test
     fun `kalkulerer to prosent av høy sats for perioder`() {
-        Sats.HØY.toProsentAvHøySats(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238
-        Sats.HØY.toProsentAvHøySats(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002
-        Sats.ORDINÆR.toProsentAvHøySats(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238
-        Sats.ORDINÆR.toProsentAvHøySats(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002
+        Sats.toProsentAvHøy(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238
+        Sats.toProsentAvHøy(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002
     }
 }
