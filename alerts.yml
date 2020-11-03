@@ -30,7 +30,7 @@ spec:
       description: "Vi har sannsynligvis ikke klart å journalføre / lage oppgave for ny søknad."
       action: "`Se: `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
     - alert: su-se-bakover-pods-available
-        expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
-        for: 1m
-        description: "Tilgjengelige kubernetes pods for su-se-bakover er mindre enn 1"
-        action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
+      expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
+      for: 1m
+      description: "Tilgjengelige kubernetes pods for su-se-bakover er mindre enn 1"
+      action: "`kubectl describe pod {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for events, og `kubectl logs {{ $labels.kubernetes_pod_name }} -n {{ $labels.kubernetes_namespace }}` for logger"
