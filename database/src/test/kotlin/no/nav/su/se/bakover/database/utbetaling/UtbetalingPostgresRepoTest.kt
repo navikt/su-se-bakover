@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.utbetaling
 
-import io.kotest.matchers.beInstanceOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -72,7 +72,7 @@ internal class UtbetalingPostgresRepoTest {
             )
             val oppdatert = repo.oppdaterMedKvittering(utbetaling.id, kvittering)
 
-            oppdatert shouldBe beInstanceOf(Utbetaling.OversendtUtbetaling.MedKvittering::class)
+            oppdatert.shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
         }
     }
 

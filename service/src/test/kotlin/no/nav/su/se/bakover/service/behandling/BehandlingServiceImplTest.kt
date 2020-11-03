@@ -8,9 +8,8 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.matchers.beOfType
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -401,7 +400,7 @@ internal class BehandlingServiceImplTest {
         ).lagBrevutkast(UUID.randomUUID())
 
         response shouldBe pdf.right()
-        verify(brevServiceMock).lagBrev(argThat { it should beOfType<LagBrevRequest.AvslagsVedtak>() })
+        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.AvslagsVedtak>() })
     }
 
     @Test
@@ -422,7 +421,7 @@ internal class BehandlingServiceImplTest {
         ).lagBrevutkast(UUID.randomUUID())
 
         response shouldBe pdf.right()
-        verify(brevServiceMock).lagBrev(argThat { it should beOfType<LagBrevRequest.InnvilgetVedtak>() })
+        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.InnvilgetVedtak>() })
     }
 
     @Test

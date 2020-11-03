@@ -6,7 +6,7 @@ buildscript {
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.4.10"
-    id("org.jlleitschuh.gradle.ktlint") version "9.4.0"
+    id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
     id("com.github.ben-manes.versions") version "0.31.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.14"
 }
@@ -32,16 +32,16 @@ allprojects {
             }
         }
     }
-    val junitJupiterVersion = "5.6.2"
+    val junitJupiterVersion = "5.7.0"
     val arrowVersion = "0.11.0"
-    val kotestVersion = "4.1.3"
-    val jacksonVersion = "2.11.2"
+    val kotestVersion = "4.3.1"
+    val jacksonVersion = "2.11.3"
     val ktlintVersion = "0.39.0"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.0")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.10")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -49,7 +49,7 @@ allprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.3")
         implementation("net.logstash.logback:logstash-logback-encoder:6.4")
-        implementation("io.github.cdimascio:java-dotenv:5.2.1")
+        implementation("io.github.cdimascio:java-dotenv:5.2.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
@@ -60,7 +60,7 @@ allprojects {
         testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.5.10")
+        testImplementation("org.mockito:mockito-core:3.6.0")
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
