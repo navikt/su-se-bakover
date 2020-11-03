@@ -14,7 +14,7 @@ internal class FradragStrategyTest {
 
         FradragStrategy.Enslig.beregnFradrag(
             forventetInntekt = 6000,
-            fradrag = listOf(arbeidsinntekt, kontantstøtte)
+            fradrag = listOf(arbeidsinntekt, kontantstøtte),
         ).let {
             it shouldBe listOf(arbeidsinntekt, kontantstøtte)
         }
@@ -27,7 +27,7 @@ internal class FradragStrategyTest {
 
         FradragStrategy.Enslig.beregnFradrag(
             forventetInntekt = 15000,
-            fradrag = listOf(arbeidsinntekt, kontantstøtte)
+            fradrag = listOf(arbeidsinntekt, kontantstøtte),
         ).let { fradrag ->
             fradrag shouldHaveSize 2
             val (forventetInntekt, kontant) = fradrag.partition { it.type == Fradragstype.ForventetInntekt }

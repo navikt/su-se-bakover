@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.database.beregning
 
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal.hentBeregningForBehandling
+import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -14,27 +13,26 @@ internal class BeregningPostgresRepo(
     private val dataSource: DataSource
 ) : BeregningRepo {
 
-    override fun opprettBeregningForBehandling(behandlingId: UUID, beregning: Beregning): Beregning {
+    override fun opprettBeregningForBehandling(behandlingId: UUID, beregning: IBeregning): IBeregning {
         slettBeregningForBehandling(behandlingId)
         dataSource.withSession { session ->
             "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
                 mapOf(
-                    "id" to beregning.id,
-                    "opprettet" to beregning.opprettet,
-                    "fom" to beregning.fraOgMed,
-                    "tom" to beregning.tilOgMed,
+                    "id" to beregning.id(),
+                    "opprettet" to beregning.opprettet(),
+                    "fom" to beregning.periode().fraOgMed(),
+                    "tom" to beregning.periode().tilOgMed(),
                     "behandlingId" to behandlingId,
-                    "sats" to beregning.sats.name
+                    "sats" to beregning.sats().name
                 ),
                 session
             )
         }
-        beregning.månedsberegninger.forEach { opprettMånedsberegning(beregning.id, it) }
-        beregning.fradrag.forEach { opprettFradrag(beregning.id, it) }
+        beregning.fradrag().forEach { opprettFradrag(beregning.id(), it) }
         return hentBeregningForBehandling(behandlingId)!!
     }
 
-    override fun hentBeregningForBehandling(behandlingId: UUID): Beregning? =
+    override fun hentBeregningForBehandling(behandlingId: UUID): IBeregning? =
         dataSource.withSession { hentBeregningForBehandling(behandlingId, it) }
 
     override fun slettBeregningForBehandling(behandlingId: UUID) {
@@ -43,41 +41,22 @@ internal class BeregningPostgresRepo(
         }
     }
 
-    private fun opprettMånedsberegning(beregningId: UUID, månedsberegning: Månedsberegning) {
+    private fun opprettFradrag(beregningId: UUID, fradrag: IFradrag) {
         dataSource.withSession { session ->
             """
-            insert into månedsberegning (id, opprettet, fom, tom, grunnbeløp, beregningId, sats, beløp, fradrag)
-            values (:id, :opprettet, :fom, :tom, :grunnbelop, :beregningId, :sats, :belop, :fradrag)
-        """.oppdatering(
-                mapOf(
-                    "id" to månedsberegning.id,
-                    "opprettet" to månedsberegning.opprettet,
-                    "fom" to månedsberegning.fraOgMed,
-                    "tom" to månedsberegning.tilOgMed,
-                    "grunnbelop" to månedsberegning.grunnbeløp,
-                    "beregningId" to beregningId,
-                    "sats" to månedsberegning.sats.name,
-                    "belop" to månedsberegning.beløp,
-                    "fradrag" to månedsberegning.fradrag
-                ),
-                session
-            )
-        }
-    }
-
-    private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
-        dataSource.withSession { session ->
-            """
-            insert into fradrag (id, beregningId, fradragstype, beløp, utenlandskInntekt)
-            values (:id, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json))
+            insert into fradrag (id, opprettet, fom, tom,  beregningId, fradragstype, beløp, utenlandskInntekt)
+            values (:id, :opprettet, :fom, :tom, :beregningId, :fradragstype, :belop, to_json(:utenlandskInntekt::json))
         """
                 .oppdatering(
                     mapOf(
-                        "id" to fradrag.id,
+                        "id" to fradrag.id(),
+                        "opprettet" to fradrag.opprettet(),
+                        "fom" to fradrag.periode().fraOgMed(),
+                        "tom" to fradrag.periode().tilOgMed(),
                         "beregningId" to beregningId,
-                        "fradragstype" to fradrag.type.toString(),
-                        "belop" to fradrag.beløp,
-                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt)
+                        "fradragstype" to fradrag.type().toString(),
+                        "belop" to fradrag.totalBeløp(),
+                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt())
                     ),
                     session
                 )

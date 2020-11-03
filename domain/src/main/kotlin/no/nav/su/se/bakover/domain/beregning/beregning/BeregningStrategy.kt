@@ -1,18 +1,27 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 
 sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
-    fun beregn(beregningsgrunnlag: Beregningsgrunnlag) = Beregning(
-        fraOgMed = beregningsgrunnlag.fraOgMed,
-        tilOgMed = beregningsgrunnlag.tilOgMed,
-        sats = sats(),
-        fradrag = fradragStrategy().beregnFradrag(beregningsgrunnlag.forventetInntekt, beregningsgrunnlag.fradrag)
-    )
+    fun beregn(beregningsgrunnlag: Beregningsgrunnlag): IBeregning {
+        val periode = Periode(
+            beregningsgrunnlag.fraOgMed,
+            beregningsgrunnlag.tilOgMed
+        )
+        return BeregningFactory.ny(
+            periode = periode,
+            sats = sats(),
+            fradrag = fradragStrategy().beregnFradrag(
+                beregningsgrunnlag.forventetInntekt,
+                beregningsgrunnlag.fradrag,
+                periode
+            )
+        )
+    }
 
     object BorAlene : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig

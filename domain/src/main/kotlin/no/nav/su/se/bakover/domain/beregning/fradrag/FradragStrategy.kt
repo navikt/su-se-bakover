@@ -1,39 +1,39 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.common.periode.Periode
 
 sealed class FradragStrategy {
-    abstract fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag>
+    abstract fun beregnFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag>
 
     object Enslig : FradragStrategy() {
-        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag> =
-            bestemFradrag(forventetInntekt, fradrag)
+        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag> =
+            bestemFradrag(forventetInntekt, fradrag, periode)
     }
 
     object EpsOver67År : FradragStrategy() {
-        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag> =
-            bestemFradrag(forventetInntekt, fradrag)
+        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag> =
+            bestemFradrag(forventetInntekt, fradrag, periode)
     }
 
     object EpsUnder67ÅrOgUførFlyktning : FradragStrategy() {
-        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag> =
-            bestemFradrag(forventetInntekt, fradrag)
+        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag> =
+            bestemFradrag(forventetInntekt, fradrag, periode)
     }
 
     object EpsUnder67År : FradragStrategy() {
-        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag> =
-            bestemFradrag(forventetInntekt, fradrag)
+        override fun beregnFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag> =
+            bestemFradrag(forventetInntekt, fradrag, periode)
     }
 
-    protected fun bestemFradrag(forventetInntekt: Int, fradrag: List<Fradrag>): List<Fradrag> {
-        val (arbeid, andre) = fradrag.partition { it.type == Fradragstype.Arbeidsinntekt }
-        val arbeidsinntekt = arbeid.sumBy { it.beløp }
+    protected fun bestemFradrag(forventetInntekt: Int, fradrag: List<IFradrag>, periode: Periode): List<IFradrag> {
+        val (arbeid, andre) = fradrag.partition { it.type() == Fradragstype.Arbeidsinntekt }
+        val arbeidsinntekt = arbeid.sumByDouble { it.totalBeløp() }
         return if (arbeidsinntekt >= forventetInntekt) fradrag else andre.plus(
-            Fradrag(
+            FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
-                beløp = forventetInntekt,
+                beløp = forventetInntekt.toDouble(),
                 utenlandskInntekt = null,
+                periode = periode
             )
         )
     }

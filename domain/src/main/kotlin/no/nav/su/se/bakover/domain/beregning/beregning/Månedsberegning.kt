@@ -17,6 +17,7 @@ interface IMånedsberegning : PeriodisertInformasjon {
     fun fradrag(): Double
     fun grunnbeløp(): Int
     fun sats(): Sats
+    fun getSatsbeløp(): Double
 }
 
 abstract class AbstractMånedsberegning : IMånedsberegning {
@@ -36,26 +37,16 @@ internal data class Månedsberegning(
         require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
-    override fun sum() = (periodiserSats() - fradrag())
+    override fun sum() = (getSatsbeløp() - fradrag())
         .positiveOrZero()
 
     override fun fradrag() = fradrag
         .sumByDouble { it.månedsbeløp() }
-        .limitedUpwardsTo(periodiserSats())
+        .limitedUpwardsTo(getSatsbeløp())
 
     override fun grunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
     override fun sats(): Sats = sats
-
-    private fun periodiserSats() = sats.periodiser(periode).getValue(periode)
+    override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
 
     override fun periode(): Periode = periode
-}
-
-data class MånedsberegningDbWrapper(
-    private val id: UUID,
-    private val tidspunkt: Tidspunkt,
-    private val månedsberegning: IMånedsberegning
-) : AbstractMånedsberegning(), IMånedsberegning by månedsberegning {
-    override fun id(): UUID = id
-    override fun opprettet() = tidspunkt
 }

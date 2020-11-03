@@ -14,3 +14,5 @@ alter table fradrag
             default null;
 
 alter table fradrag drop column if exists inntektDelerAvPeriode;
+
+DROP TABLE IF EXISTS månedsberegning;
