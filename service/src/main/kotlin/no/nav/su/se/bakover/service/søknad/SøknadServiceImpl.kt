@@ -4,8 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -18,6 +16,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
@@ -31,22 +30,11 @@ internal class SøknadServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
     private val personOppslag: PersonOppslag,
-    private val oppgaveService: OppgaveService
+    private val oppgaveService: OppgaveService,
+    private val søknadMetrics: SøknadMetrics
 ) : SøknadService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    private val nySøknadCounter = Counter.builder("ny_soknad_counter")
-        .tag("type", "PERSISTERT")
-        .register(Metrics.globalRegistry)
-
-    private val nySøknadOpprettetJournalpostCounter = Counter.builder("ny_soknad_counter")
-        .tag("type", "JOURNALFØRT")
-        .register(Metrics.globalRegistry)
-
-    private val nySøknadOpprettetOppgaveCounter = Counter.builder("ny_soknad_counter")
-        .tag("type", "OPPGAVE")
-        .register(Metrics.globalRegistry)
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak> {
 
@@ -84,7 +72,7 @@ internal class SøknadServiceImpl(
             }
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
-        nySøknadCounter.increment()
+        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak.id, person, søknad)
         return sak.right()
     }
@@ -112,7 +100,7 @@ internal class SøknadServiceImpl(
                     { journalpostId ->
                         log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
                         søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
-                        nySøknadOpprettetJournalpostCounter.increment()
+                        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
                         oppgaveService.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
@@ -124,7 +112,7 @@ internal class SøknadServiceImpl(
                         }.map { oppgaveId ->
                             log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
                             søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
-                            nySøknadOpprettetOppgaveCounter.increment()
+                            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
                         }
                     }
                 )

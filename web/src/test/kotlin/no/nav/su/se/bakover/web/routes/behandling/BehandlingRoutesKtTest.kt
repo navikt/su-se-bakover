@@ -70,7 +70,8 @@ internal class BehandlingRoutesKtTest {
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(),
-        behandlingMetrics = mock()
+        behandlingMetrics = mock(),
+        søknadMetrics = mock()
     ).build()
 
     @Nested

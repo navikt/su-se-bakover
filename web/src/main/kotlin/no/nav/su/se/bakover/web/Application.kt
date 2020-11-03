@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
@@ -60,6 +61,7 @@ import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
+import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.inntektRoutes
@@ -105,6 +107,7 @@ private val jmsContext: JMSContext by lazy {
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
+    søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
@@ -117,7 +120,7 @@ internal fun Application.susebakover(
             }
         }
     },
-    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics).build()
+    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build()
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")

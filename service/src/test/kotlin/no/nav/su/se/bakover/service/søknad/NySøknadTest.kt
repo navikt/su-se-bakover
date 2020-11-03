@@ -79,7 +79,8 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
         )
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -117,7 +118,8 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -194,7 +196,8 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -277,7 +280,8 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -375,7 +379,8 @@ class NySøknadTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
