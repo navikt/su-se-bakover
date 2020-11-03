@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -41,7 +40,7 @@ internal class AvstemmingDataBuilderTest {
             ),
             total = AvstemmingDataRequest.Totaldata(
                 totalAntall = 5,
-                totalBelop = BigDecimal(18000),
+                totalBelop = 18000.0.toBigDecimal(),
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(
@@ -50,16 +49,16 @@ internal class AvstemmingDataBuilderTest {
             ),
             grunnlag = AvstemmingDataRequest.Grunnlagdata(
                 godkjentAntall = 2,
-                godkjentBelop = BigDecimal(1600),
+                godkjentBelop = 1600.0.toBigDecimal(),
                 godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 varselAntall = 1,
-                varselBelop = BigDecimal(1400),
+                varselBelop = 1400.0.toBigDecimal(),
                 varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 avvistAntall = 1,
-                avvistBelop = BigDecimal(10000),
+                avvistBelop = 10000.0.toBigDecimal(),
                 avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 manglerAntall = 1,
-                manglerBelop = BigDecimal(5000),
+                manglerBelop = 5000.0.toBigDecimal(),
                 manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             detalj = listOf(
@@ -98,7 +97,7 @@ internal class AvstemmingDataBuilderTest {
 }
 
 private val zoneId = ZoneId.of("Europe/Oslo")
-fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
+fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Double) = Utbetalingslinje(
     id = UUID30.randomUUID(),
     opprettet = fraOgMed.atStartOfDay(zoneId).toTidspunkt(),
     fraOgMed = fraOgMed,
@@ -155,7 +154,7 @@ private val simulering = Simulering(
     gjelderId = fnr,
     gjelderNavn = "",
     datoBeregnet = idag(),
-    nettoBeløp = 0,
+    nettoBeløp = 0.0,
     periodeList = listOf()
 )
 fun alleUtbetalinger() = listOf(
@@ -164,8 +163,8 @@ fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = listOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100.0),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200.0)
         )
     ),
     lagUtbetaling(
@@ -173,8 +172,8 @@ fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = listOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600.0),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700.0)
         )
     ),
     lagUtbetaling(
@@ -182,9 +181,9 @@ fun alleUtbetalinger() = listOf(
         opprettet = 2.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
         linjer = listOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
-            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400.0),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 500.0),
+            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500.0)
         )
     ),
     lagUtbetaling(
@@ -192,10 +191,10 @@ fun alleUtbetalinger() = listOf(
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.FEIL,
         linjer = listOf(
-            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
-            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
-            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000)
+            lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000.0),
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000.0),
+            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000.0),
+            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000.0)
         )
     ),
     lagUtbetaling(
@@ -203,7 +202,7 @@ fun alleUtbetalinger() = listOf(
         opprettet = 2.mars(2020),
         status = null,
         linjer = listOf(
-            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000)
+            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000.0)
         )
     )
 )

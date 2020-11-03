@@ -17,6 +17,7 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -30,7 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBeha
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.Resultat
@@ -126,7 +127,7 @@ internal fun Route.behandlingRoutes(
                                         behandlingId = behandling.id,
                                         fraOgMed = body.fraOgMed,
                                         tilOgMed = body.tilOgMed,
-                                        fradrag = body.fradrag.map { it.toFradrag() }
+                                        fradrag = body.fradrag.map { it.toFradrag(Periode(body.fraOgMed, body.tilOgMed)) }
                                     )
                                 )
                             )

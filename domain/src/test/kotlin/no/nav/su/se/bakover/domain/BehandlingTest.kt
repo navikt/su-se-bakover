@@ -694,7 +694,7 @@ internal class BehandlingTest {
         gjelderId = Fnr("12345678910"),
         gjelderNavn = "NAVN NAVN",
         datoBeregnet = LocalDate.now(),
-        nettoBeløp = 54600,
+        nettoBeløp = 54600.0,
         periodeList = listOf()
     )
 }

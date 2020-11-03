@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
@@ -24,7 +24,7 @@ interface BehandlingService {
         behandlingId: UUID,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
-        fradrag: List<Fradrag>
+        fradrag: List<IFradrag>
     ): Behandling
 
     fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling>

@@ -39,7 +39,7 @@ internal class SimuleringTest {
 
         simulering shouldNotBe simulering.copy(gjelderId = Fnr("10101010101"))
         simulering shouldNotBe simulering.copy(gjelderNavn = "MYGG DUM")
-        simulering shouldNotBe simulering.copy(nettoBeløp = 70)
+        simulering shouldNotBe simulering.copy(nettoBeløp = 70.0)
         simulering shouldNotBe simulering.copy(periodeList = emptyList())
     }
 
@@ -49,7 +49,7 @@ internal class SimuleringTest {
 
         assertThrows<IllegalArgumentException> {
             simulering(
-                nettoBeløp = 5000,
+                nettoBeløp = 5000.0,
                 periodeList = listOf(
                     SimulertPeriode(
                         fraOgMed = 1.januar(2020),
@@ -60,13 +60,13 @@ internal class SimuleringTest {
                                     detalj(
                                         faktiskFraOgMed = 1.januar(2020),
                                         faktiskTilOgMed = 31.januar(2020),
-                                        belop = 20637,
+                                        belop = 20637.0,
                                         klasseType = KlasseType.YTEL
                                     ),
                                     detalj(
                                         faktiskFraOgMed = 1.januar(2020),
                                         faktiskTilOgMed = 31.januar(2020),
-                                        belop = -5000,
+                                        belop = -5000.0,
                                         klasseType = KlasseType.YTEL
                                     ),
                                 )
@@ -80,7 +80,7 @@ internal class SimuleringTest {
         // check "empty response" case.
         SimuleringValidering.SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
             simulering(
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf(
                     SimulertPeriode(
                         fraOgMed = 1.januar(2020),
@@ -95,7 +95,7 @@ internal class SimuleringTest {
     private val FNR = Fnr("07028820547")
 
     private val simulering = simulering(
-        nettoBeløp = 20638,
+        nettoBeløp = 20638.0,
         periodeList = listOf(
             SimulertPeriode(
                 fraOgMed = 1.januar(2020),
@@ -106,13 +106,13 @@ internal class SimuleringTest {
                             detalj(
                                 faktiskFraOgMed = 1.januar(2020),
                                 faktiskTilOgMed = 31.januar(2020),
-                                belop = 20637,
+                                belop = 20637.0,
                                 klasseType = KlasseType.YTEL
                             ),
                             detalj(
                                 faktiskFraOgMed = 1.januar(2020),
                                 faktiskTilOgMed = 31.januar(2020),
-                                belop = -10318,
+                                belop = -10318.0,
                                 klasseType = KlasseType.SKAT
                             )
                         )
@@ -128,13 +128,13 @@ internal class SimuleringTest {
                             detalj(
                                 faktiskFraOgMed = 1.februar(2020),
                                 faktiskTilOgMed = 28.februar(2020),
-                                belop = 20637,
+                                belop = 20637.0,
                                 klasseType = KlasseType.YTEL
                             ),
                             detalj(
                                 faktiskFraOgMed = 1.februar(2020),
                                 faktiskTilOgMed = 28.februar(2020),
-                                belop = -10318,
+                                belop = -10318.0,
                                 klasseType = KlasseType.SKAT
                             )
                         )
@@ -145,7 +145,7 @@ internal class SimuleringTest {
     )
 
     private fun simulering(
-        nettoBeløp: Int,
+        nettoBeløp: Double,
         periodeList: List<SimulertPeriode>
     ) = Simulering(
         gjelderId = FNR,
@@ -169,7 +169,7 @@ internal class SimuleringTest {
     private fun detalj(
         faktiskFraOgMed: LocalDate,
         faktiskTilOgMed: LocalDate,
-        belop: Int,
+        belop: Double,
         klasseType: KlasseType
     ) = SimulertDetaljer(
         faktiskFraOgMed = faktiskFraOgMed,
@@ -177,7 +177,7 @@ internal class SimuleringTest {
         konto = "0510000",
         belop = belop,
         tilbakeforing = false,
-        sats = 0,
+        sats = 0.0,
         typeSats = "MND",
         antallSats = 31,
         uforegrad = 0,

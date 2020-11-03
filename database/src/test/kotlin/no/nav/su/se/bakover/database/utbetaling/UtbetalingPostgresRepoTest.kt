@@ -83,8 +83,7 @@ internal class UtbetalingPostgresRepoTest {
             val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
             repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
-            val utbetalingslinje2 =
-                repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
+            val utbetalingslinje2 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
             EmbeddedDatabase.instance().withSession {
                 val hentet = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.id, it)
                 listOf(utbetalingslinje1, utbetalingslinje2) shouldBe hentet
@@ -101,7 +100,7 @@ internal class UtbetalingPostgresRepoTest {
             gjelderId = FNR,
             gjelderNavn = "",
             datoBeregnet = idag(),
-            nettoBeløp = 0,
+            nettoBeløp = 0.0,
             periodeList = listOf()
         ),
         utbetalingsrequest = Utbetalingsrequest(
@@ -116,6 +115,6 @@ internal class UtbetalingPostgresRepoTest {
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.desember(2020),
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        beløp = 25000
+        beløp = 25000.1234
     )
 }

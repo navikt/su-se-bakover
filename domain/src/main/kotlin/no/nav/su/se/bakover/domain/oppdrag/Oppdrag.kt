@@ -95,7 +95,7 @@ data class Oppdrag(
                             fraOgMed = stansesFraOgMed,
                             tilOgMed = stansesTilOgMed,
                             forrigeUtbetalingslinjeId = sisteOversendteUtbetalingslinje.id,
-                            beløp = 0
+                            beløp = 0.0
                         )
                     ),
                     fnr = fnr,
@@ -138,7 +138,7 @@ data class Oppdrag(
                     Utbetalingsperiode(
                         fraOgMed = it.value.map { v -> v.periode().fraOgMed() }.minOrNull()!!,
                         tilOgMed = it.value.map { v -> v.periode().tilOgMed() }.maxOrNull()!!,
-                        beløp = it.key.toInt(), // TODO: avrunding
+                        beløp = it.key
                     )
                 }
         }

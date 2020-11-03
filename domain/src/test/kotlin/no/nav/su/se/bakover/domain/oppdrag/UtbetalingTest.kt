@@ -70,7 +70,7 @@ internal class UtbetalingTest {
     private fun createUtbetalingslinje(
         fraOgMed: LocalDate = 1.januar(2020),
         tilOgMed: LocalDate = 31.desember(2020),
-        beløp: Int = 500,
+        beløp: Double = 500.0,
         forrigeUtbetalingslinjeId: UUID30? = null
     ) = Utbetalingslinje(
         fraOgMed = fraOgMed,

@@ -183,7 +183,7 @@ internal class SimuleringSoapClientTest {
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 0
+                    beløp = 0.0
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -195,7 +195,7 @@ internal class SimuleringSoapClientTest {
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
             gjelderId = FNR,
             gjelderNavn = FNR.toString(),
-            nettoBeløp = 0,
+            nettoBeløp = 0.0,
             datoBeregnet = LocalDate.now(),
             periodeList = listOf(
                 SimulertPeriode(
@@ -238,7 +238,7 @@ internal class SimuleringSoapClientTest {
                 id = UUID30.randomUUID(),
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
-                beløp = 405,
+                beløp = 405.0,
                 forrigeUtbetalingslinjeId = null
             )
         ),

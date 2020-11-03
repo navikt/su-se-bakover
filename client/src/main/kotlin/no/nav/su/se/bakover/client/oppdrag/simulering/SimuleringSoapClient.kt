@@ -86,7 +86,7 @@ internal class SimuleringSoapClient(
      * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
      */
     private fun mapEmptyResponseToResultat(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
-        if (utbetaling.bruttoBeløp() != 0) {
+        if (utbetaling.bruttoBeløp() != 0.0) {
             log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
             return SimuleringFeilet.FUNKSJONELL_FEIL.left()
         }
@@ -94,7 +94,7 @@ internal class SimuleringSoapClient(
             gjelderId = utbetaling.fnr,
             gjelderNavn = utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
             datoBeregnet = LocalDate.now(),
-            nettoBeløp = 0,
+            nettoBeløp = 0.0,
             periodeList = listOf(
                 SimulertPeriode(
                     fraOgMed = utbetaling.tidligsteDato(),
@@ -110,7 +110,7 @@ internal class SimuleringSoapClient(
             gjelderId = Fnr(response.simulering.gjelderId),
             gjelderNavn = response.simulering.gjelderNavn.trim(),
             datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
-            nettoBeløp = response.simulering.belop.intValueExact(),
+            nettoBeløp = response.simulering.belop.toDouble(),
             periodeList = response.simulering.beregningsPeriode.map { mapBeregningsPeriode(it) }
         ).right()
 
@@ -136,9 +136,9 @@ internal class SimuleringSoapClient(
             faktiskFraOgMed = LocalDate.parse(detaljer.faktiskFom),
             faktiskTilOgMed = LocalDate.parse(detaljer.faktiskTom),
             konto = detaljer.kontoStreng.trim(),
-            belop = detaljer.belop.intValueExact(),
+            belop = detaljer.belop.toDouble(),
             tilbakeforing = detaljer.isTilbakeforing,
-            sats = detaljer.sats.intValueExact(),
+            sats = detaljer.sats.toDouble(),
             typeSats = detaljer.typeSats.trim(),
             antallSats = detaljer.antallSats.intValueExact(),
             uforegrad = detaljer.uforeGrad.intValueExact(),

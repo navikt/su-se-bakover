@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -83,7 +83,7 @@ class AccessCheckProxy(
                 override fun simulerUtbetaling(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
-                    beregning: Beregning
+                    beregning: IBeregning
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     assertHarTilgangTilSak(sakId)
 
@@ -93,7 +93,7 @@ class AccessCheckProxy(
                 override fun utbetal(
                     sakId: UUID,
                     attestant: NavIdentBruker,
-                    beregning: Beregning,
+                    beregning: IBeregning,
                     simulering: Simulering
                 ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     assertHarTilgangTilSak(sakId)
@@ -156,7 +156,7 @@ class AccessCheckProxy(
                     behandlingId: UUID,
                     fraOgMed: LocalDate,
                     tilOgMed: LocalDate,
-                    fradrag: List<Fradrag>
+                    fradrag: List<IFradrag>
                 ): Behandling {
                     assertHarTilgangTilBehandling(behandlingId)
 

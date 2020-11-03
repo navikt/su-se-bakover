@@ -8,7 +8,7 @@ data class Simulering(
     val gjelderId: Fnr,
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
-    val nettoBeløp: Int,
+    val nettoBeløp: Double,
     val periodeList: List<SimulertPeriode>
 ) {
     init {
@@ -18,7 +18,7 @@ data class Simulering(
     }
 
     fun bruttoYtelse() = periodeList
-        .sumBy { it.bruttoYtelse() }
+        .sumByDouble { it.bruttoYtelse() }
 
     override fun equals(other: Any?) = other is Simulering &&
         other.gjelderId == this.gjelderId &&
@@ -26,14 +26,6 @@ data class Simulering(
         other.nettoBeløp == this.nettoBeløp &&
         other.periodeList == this.periodeList &&
         other.bruttoYtelse() == this.bruttoYtelse()
-
-    override fun hashCode(): Int {
-        var result = gjelderId.hashCode()
-        result = 31 * result + gjelderNavn.hashCode()
-        result = 31 * result + nettoBeløp
-        result = 31 * result + periodeList.hashCode()
-        return result
-    }
 }
 
 data class SimulertPeriode(
@@ -45,7 +37,7 @@ data class SimulertPeriode(
 ) {
 
     fun bruttoYtelse() = utbetaling
-        .sumBy { it.bruttoYtelse() }
+        .sumByDouble { it.bruttoYtelse() }
 }
 
 data class SimulertUtbetaling(
@@ -58,7 +50,7 @@ data class SimulertUtbetaling(
 ) {
     fun bruttoYtelse() = detaljer
         .filter { it.isYtelse() }
-        .sumBy { it.belop }
+        .sumByDouble { it.belop }
 }
 
 data class SimulertDetaljer(
@@ -67,9 +59,9 @@ data class SimulertDetaljer(
     @JsonAlias("faktiskTilOgMed", "faktiskTom")
     val faktiskTilOgMed: LocalDate,
     val konto: String,
-    val belop: Int,
+    val belop: Double,
     val tilbakeforing: Boolean,
-    val sats: Int,
+    val sats: Double,
     val typeSats: String,
     val antallSats: Int,
     val uforegrad: Int,

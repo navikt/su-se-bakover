@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -284,6 +284,10 @@ internal class BehandlingRoutesKtTest {
                                 "beløpIUtenlandskValuta":200,
                                 "valuta":"euro",
                                 "kurs":0.5
+                             },
+                             "periode" : {
+                                "fraOgMed":"$fraOgMed",
+                                "tilOgMed":"$tilOgMed"
                              }
                           }]
                     }
@@ -338,7 +342,11 @@ internal class BehandlingRoutesKtTest {
                                 {
                                 "type": "Arbeidsinntekt",
                                 "beløp": 200,
-                                "utenlandskInntekt": null
+                                "utenlandskInntekt": null,
+                                "periode" : {
+                                    "fraOgMed":"$fraOgMed",
+                                    "tilOgMed":"$tilOgMed"
+                             }
                             }
                         ]
                     }

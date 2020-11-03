@@ -25,6 +25,6 @@ internal class UtbetalingslinjeTest {
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         forrigeUtbetalingslinjeId = null,
-        beløp = 1000
+        beløp = 1000.0
     )
 }

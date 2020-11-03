@@ -212,7 +212,7 @@ internal class AvstemmingPostgresRepoTest {
             gjelderId = FNR,
             gjelderNavn = "",
             datoBeregnet = idag(),
-            nettoBeløp = 0,
+            nettoBeløp = 0.0,
             periodeList = listOf()
         ),
         utbetalingsrequest = Utbetalingsrequest(""),

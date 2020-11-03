@@ -39,7 +39,7 @@ internal fun Row.toIFradrag() = FradragFactory.persistert(
     id = uuid("id"),
     opprettet = tidspunkt("opprettet"),
     periode = Periode(localDate("fom"), localDate("tom")),
-    beløp = int("beløp").toDouble(), // TODO INT VS DOUBLE
+    beløp = double("beløp"),
     type = Fradragstype.valueOf(string("fradragstype")),
     utenlandskInntekt = stringOrNull("utenlandskInntekt")?.let { objectMapper.readValue(it) }
 )

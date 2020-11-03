@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -62,7 +62,7 @@ internal class UtbetalingServiceImpl(
     override fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
-        beregning: Beregning,
+        beregning: IBeregning,
         simulering: Simulering
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
@@ -100,7 +100,7 @@ internal class UtbetalingServiceImpl(
     override fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: Beregning
+        beregning: IBeregning
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerUtbetaling(
             lagUtbetaling(
@@ -151,7 +151,7 @@ internal class UtbetalingServiceImpl(
     }
 
     private fun simulertStansHarBeløpUlikt0(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Boolean {
-        return if (simulertUtbetaling.simulering.nettoBeløp != 0 || simulertUtbetaling.simulering.bruttoYtelse() != 0) {
+        return if (simulertUtbetaling.simulering.nettoBeløp != 0.0 || simulertUtbetaling.simulering.bruttoYtelse() != 0.0) {
             log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, nettobeløp i simulering var ${simulertUtbetaling.simulering.nettoBeløp}, bruttobeløp var:${simulertUtbetaling.simulering.bruttoYtelse()}")
             true
         } else false
