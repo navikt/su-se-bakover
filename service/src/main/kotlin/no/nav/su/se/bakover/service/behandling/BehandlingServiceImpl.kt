@@ -148,7 +148,7 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        val oppgaveId = søknadRepo.hentOppgaveId(behandling.sakId) ?: return behandling.right()
+        val oppgaveId = søknadRepo.hentOppgaveId(behandling.søknad.id) ?: return behandling.right()
         oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }
