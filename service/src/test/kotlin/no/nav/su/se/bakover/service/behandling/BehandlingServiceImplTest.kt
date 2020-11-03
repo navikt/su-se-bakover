@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.beOfType
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -54,6 +53,7 @@ internal class BehandlingServiceImplTest {
     private val sakId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
+    private val aktørId = AktørId("1234567890123")
 
     @Test
     fun `simuler behandling`() {
@@ -118,6 +118,12 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
+            on { attester(any(), any()) } doReturn behandling
+            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
+        }
+
+        val personOppslagMock: PersonOppslag = mock {
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -125,26 +131,33 @@ internal class BehandlingServiceImplTest {
             on { distribuerBrev(any()) } doReturn "2".right()
         }
 
+        val oppgaveServiceMock: OppgaveService = mock {
+            on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
+        }
+
         val utbetalingSericeMock = mock<UtbetalingService>()
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingSericeMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
-        inOrder(behandlingRepoMock, brevServiceMock) {
+        inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(personOppslagMock).aktørId(fnr)
+
             verify(behandlingRepoMock).attester(behandling.id, attestant)
-            verify(behandlingRepoMock).oppdaterBehandlingStatus(
-                behandling.id,
-                Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
-            )
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+
+            verify(oppgaveServiceMock).ferdigstillAttesteringsoppgave(aktørId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("1"))
-            verifyZeroInteractions(utbetalingSericeMock)
         }
+        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock)
     }
 
     @Test
@@ -153,21 +166,41 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
+            on { attester(any(), any()) } doReturn behandling
+            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
+        }
+
+        val personOppslagMock: PersonOppslag = mock {
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
         }
+
+        val oppgaveServiceMock: OppgaveService = mock {
+            on { ferdigstillAttesteringsoppgave(any()) } doReturn Unit.right()
+        }
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
-        inOrder(behandlingRepoMock, brevServiceMock) {
+        inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
+            verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(personOppslagMock).aktørId(fnr)
+
+            verify(behandlingRepoMock).attester(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+
+            verify(oppgaveServiceMock).ferdigstillAttesteringsoppgave(aktørId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
-            verifyZeroInteractions(brevServiceMock)
         }
+        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock)
     }
 
     @Test
@@ -192,7 +225,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn AktørId("12345").right()
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val oppgaveServiceMock: OppgaveService = mock {
@@ -235,7 +268,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn AktørId("12345").right()
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val oppgaveServiceMock: OppgaveService = mock {
@@ -287,7 +320,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn AktørId("12345").right()
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -327,7 +360,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn AktørId("12345").right()
+            on { aktørId(any()) } doReturn aktørId.right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {

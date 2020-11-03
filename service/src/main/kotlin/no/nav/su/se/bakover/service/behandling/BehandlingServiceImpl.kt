@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -158,16 +159,22 @@ internal class BehandlingServiceImpl(
 
         return behandling.iverksett(attestant) // invoke first to perform state-check
             .map { iverksattBehandling ->
+                val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                    log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
+                    return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
+                }
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
                         behandlingId = behandlingId,
                         attestant = attestant,
-                        behandling = iverksattBehandling
+                        behandling = iverksattBehandling,
+                        aktørId = aktørId
                     )
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
                         behandling = iverksattBehandling,
                         attestant = attestant,
-                        behandlingId = behandlingId
+                        behandlingId = behandlingId,
+                        aktørId = aktørId
                     )
                     else -> throw Behandling.TilstandException(
                         state = iverksattBehandling.status(),
@@ -180,13 +187,17 @@ internal class BehandlingServiceImpl(
     private fun iverksettAvslag(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        behandling: Behandling
+        behandling: Behandling,
+        aktørId: AktørId
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
 
         behandlingRepo.attester(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+
+        oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
+            .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
 
         return journalførOgDistribuerBrev(
             request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
@@ -199,12 +210,9 @@ internal class BehandlingServiceImpl(
     private fun iverksettInnvilgning(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
-        behandlingId: UUID
+        behandlingId: UUID,
+        aktørId: AktørId
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
-        val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-            log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
-            return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
-        }
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,

@@ -17,6 +17,7 @@ interface BehandlingMetrics {
     enum class AvslåttHandlinger {
         PERSISTERT,
         JOURNALFØRT,
+        LUKKET_OPPGAVE,
         DISTRIBUERT_BREV
     }
 
