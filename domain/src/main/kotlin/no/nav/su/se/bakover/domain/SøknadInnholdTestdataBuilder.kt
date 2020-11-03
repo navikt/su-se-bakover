@@ -79,7 +79,6 @@ object SøknadInnholdTestdataBuilder {
         ),
         inntektOgPensjon: InntektOgPensjon = InntektOgPensjon(
             forventetInntekt = 2500,
-            tjenerPengerIUtlandetBeløp = 20,
             andreYtelserINav = "sosialstønad",
             andreYtelserINavBeløp = 33,
             søktAndreYtelserIkkeBehandletBegrunnelse = "uføre",
@@ -133,7 +132,6 @@ object SøknadInnholdTestdataBuilder {
             ),
             inntektOgPensjon = InntektOgPensjon(
                 forventetInntekt = null,
-                tjenerPengerIUtlandetBeløp = null,
                 andreYtelserINav = null,
                 andreYtelserINavBeløp = null,
                 søktAndreYtelserIkkeBehandletBegrunnelse = null,
