@@ -19,7 +19,7 @@ update fradrag set
     opprettet = existingBeregning.opprettet,
     fom = existingBeregning.fom,
     tom = existingBeregning.tom from existingBeregning
-where existingBeregning.id = fradrag.beregningid
+where existingBeregning.id = fradrag.beregningid;
 
 alter table fradrag alter column fom set not null;
 alter table fradrag alter column fom drop default;
