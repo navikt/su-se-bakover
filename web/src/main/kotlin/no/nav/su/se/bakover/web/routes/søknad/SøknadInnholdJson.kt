@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.KjøretøyJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
-import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.TrygdeytelseIUtlandetJson.Companion.toTrygdeytelseIUtlandetJson
+import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.TrygdeytelserIUtlandetJson.Companion.toTrygdeytelseIUtlandetJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
@@ -250,22 +250,20 @@ data class SøknadInnholdJson(
 
     data class InntektOgPensjonJson(
         val forventetInntekt: Number? = null,
-        val tjenerPengerIUtlandetBeløp: Number? = null,
         val andreYtelserINav: String? = null,
         val andreYtelserINavBeløp: Number? = null,
         val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
         val sosialstønadBeløp: Number? = null,
-        val trygdeytelseIUtlandet: List<TrygdeytelseIUtlandetJson>? = null,
+        val trygdeytelserIUtlandet: List<TrygdeytelserIUtlandetJson>? = null,
         val pensjon: List<PensjonsOrdningBeløpJson>? = null
     ) {
         fun toInntektOgPensjon() = InntektOgPensjon(
             forventetInntekt = forventetInntekt,
-            tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
             andreYtelserINav = andreYtelserINav,
             andreYtelserINavBeløp = andreYtelserINavBeløp,
             søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
             sosialstønadBeløp = sosialstønadBeløp,
-            trygdeytelseIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseList(),
+            trygdeytelseIUtlandet = trygdeytelserIUtlandet.toTrygdeytelseList(),
             pensjon = pensjon.toPensjonList()
         )
 
@@ -273,7 +271,7 @@ data class SøknadInnholdJson(
             it.toPensjonsOrdningBeløp()
         }
 
-        fun List<TrygdeytelseIUtlandetJson>?.toTrygdeytelseList() = this?.map {
+        fun List<TrygdeytelserIUtlandetJson>?.toTrygdeytelseList() = this?.map {
             it.toTrygdeytelseIUtlandet()
         }
 
@@ -281,12 +279,11 @@ data class SøknadInnholdJson(
             fun InntektOgPensjon.toInntektOgPensjonJson() =
                 InntektOgPensjonJson(
                     forventetInntekt = forventetInntekt,
-                    tjenerPengerIUtlandetBeløp = tjenerPengerIUtlandetBeløp,
                     andreYtelserINav = andreYtelserINav,
                     andreYtelserINavBeløp = andreYtelserINavBeløp,
                     søktAndreYtelserIkkeBehandletBegrunnelse = søktAndreYtelserIkkeBehandletBegrunnelse,
                     sosialstønadBeløp = sosialstønadBeløp,
-                    trygdeytelseIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson(),
+                    trygdeytelserIUtlandet = trygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson(),
                     pensjon = pensjon.toPensjonsOrdningBeløpListJson()
                 )
 
@@ -373,7 +370,7 @@ data class SøknadInnholdJson(
         }
     }
 
-    data class TrygdeytelseIUtlandetJson(
+    data class TrygdeytelserIUtlandetJson(
         val beløp: Number,
         val type: String,
         val fra: String
@@ -386,7 +383,7 @@ data class SøknadInnholdJson(
 
         companion object {
             fun TrygdeytelseIUtlandet.toTrygdeytelseIUtlandetJson() =
-                TrygdeytelseIUtlandetJson(
+                TrygdeytelserIUtlandetJson(
                     beløp = beløp,
                     type = type,
                     fra = fra

@@ -201,7 +201,8 @@ internal class SøknadRoutesKtTest {
         val services = ServiceBuilder(
             databaseRepos = databaseRepos,
             clients = clients,
-            behandlingMetrics = mock()
+            behandlingMetrics = mock(),
+            søknadMetrics = mock()
         ).build()
 
         val fnr = FnrGenerator.random()

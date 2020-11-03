@@ -80,12 +80,11 @@ internal class SøknadJsonTest {
             },
             "inntektOgPensjon":{
                 "forventetInntekt":2500,
-                "tjenerPengerIUtlandetBeløp":20,
                 "andreYtelserINav":"sosialstønad",
                 "andreYtelserINavBeløp":33,
                 "søktAndreYtelserIkkeBehandletBegrunnelse":"uføre",
                 "sosialstønadBeløp":7000.0,
-                "trygdeytelseIUtlandet": [
+                "trygdeytelserIUtlandet": [
                     {
                         "beløp": 200,
                         "type": "trygd",
@@ -147,12 +146,11 @@ internal class SøknadJsonTest {
                 },
               "inntektOgPensjon": {
                   "forventetInntekt": null,
-                  "tjenerPengerIUtlandetBeløp": null,
                   "andreYtelserINav": null,
                   "andreYtelserINavBeløp": null,
                   "søktAndreYtelserIkkeBehandletBegrunnelse": null,
                   "sosialstønadBeløp": null,
-                  "trygdeytelseIUtlandet": null,
+                  "trygdeytelserIUtlandet": null,
                   "pensjon": null
               }
             }

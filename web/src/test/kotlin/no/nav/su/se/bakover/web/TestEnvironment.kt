@@ -55,7 +55,8 @@ internal fun Application.testSusebakover(
     services: Services = ServiceBuilder( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
-        behandlingMetrics = mock()
+        behandlingMetrics = mock(),
+        søknadMetrics = mock()
     ).build()
 ) {
     return susebakover(

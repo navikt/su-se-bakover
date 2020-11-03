@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.Metrics.counter
 import io.micrometer.core.instrument.Tags
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.web.metrics.SuMetrics.incrementCounter
 import java.util.concurrent.atomic.AtomicInteger
 
 class BehandlingMicrometerMetrics : BehandlingMetrics {
@@ -33,12 +34,5 @@ class BehandlingMicrometerMetrics : BehandlingMetrics {
 
     override fun incrementTilAttesteringCounter(handling: BehandlingMetrics.TilAttesteringHandlinger) {
         incrementCounter("soknadsbehandling_til_attestering", handling.name)
-    }
-
-    private fun incrementCounter(metricName: String, type: String) {
-        counter(
-            metricName,
-            Tags.of("type", type)
-        ).increment()
     }
 }
