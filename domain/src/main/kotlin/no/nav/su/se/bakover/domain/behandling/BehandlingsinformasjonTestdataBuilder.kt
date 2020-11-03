@@ -30,13 +30,24 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdiIkkePrimærbolig = formue?.verdiIkkePrimærbolig ?: 0,
-            verdiKjøretøy = formue?.verdiKjøretøy ?: 0,
-            innskudd = formue?.innskudd ?: 0,
-            verdipapir = formue?.verdipapir ?: 0,
-            pengerSkyldt = formue?.pengerSkyldt ?: 0,
-            kontanter = formue?.kontanter ?: 0,
-            depositumskonto = formue?.depositumskonto ?: 0,
+            verdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 0,
+                verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,
+                innskudd = formue?.verdier?.innskudd ?: 0,
+                verdipapir = formue?.verdier?.verdipapir ?: 0,
+                pengerSkyldt = formue?.verdier?.pengerSkyldt ?: 0,
+                kontanter = formue?.verdier?.kontanter ?: 0,
+                depositumskonto = formue?.verdier?.depositumskonto ?: 0,
+            ),
+            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = formue?.ektefellesVerdier?.verdiIkkePrimærbolig ?: 0,
+                verdiKjøretøy = formue?.ektefellesVerdier?.verdiKjøretøy ?: 0,
+                innskudd = formue?.ektefellesVerdier?.innskudd ?: 0,
+                verdipapir = formue?.ektefellesVerdier?.verdipapir ?: 0,
+                pengerSkyldt = formue?.ektefellesVerdier?.pengerSkyldt ?: 0,
+                kontanter = formue?.ektefellesVerdier?.kontanter ?: 0,
+                depositumskonto = formue?.ektefellesVerdier?.depositumskonto ?: 0,
+            ),
             begrunnelse = formue?.begrunnelse
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(

@@ -53,8 +53,7 @@ class DokArkivClient(
                     val journalpostId: String? = it.optString("journalpostId", null)
 
                     if (!it.optBoolean("journalpostferdigstilt", false)) {
-                        // TODO jah: Spør Jacob om vi har mulighet til å ferdigstille den på dette tidspunktet og hvis ikke når vi gjør det? Kan denne da være info?
-                        log.warn("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
+                        log.error("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. body=$json")
                     }
 
                     if (journalpostId != null) {
