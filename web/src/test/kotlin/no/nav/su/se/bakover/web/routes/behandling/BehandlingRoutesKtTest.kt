@@ -173,10 +173,6 @@ internal class BehandlingRoutesKtTest {
                             return Either.left(KunneIkkeOppretteOppgave)
                         }
 
-                        override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                            return Unit.right()
-                        }
-
                         override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
                             return Unit.right()
                         }
@@ -566,7 +562,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -684,7 +679,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -858,7 +852,6 @@ internal class BehandlingRoutesKtTest {
                     {
 
                         services.behandling.sendTilAttestering(
-                            objects.sak.id,
                             objects.nySøknadsbehandling.id,
                             saksbehandler
                         )

@@ -33,9 +33,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -64,43 +61,6 @@ internal class BehandlingTest {
     @BeforeEach
     fun beforeEach() {
         behandling = createBehandling(id1, OPPRETTET)
-    }
-
-    @Test
-    fun equals() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = behandlingFactory.createBehandling(
-            id1,
-            søknad = søknad,
-            status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1,
-            fnr = FnrGenerator.random()
-        )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
-        assertEquals(a, b)
-        assertNotEquals(a, c)
-        assertNotEquals(b, c)
-        assertNotEquals(a, null)
-        assertNotEquals(a, Object())
-    }
-
-    @Test
-    fun hashcode() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = behandlingFactory.createBehandling(
-            id1,
-            søknad = søknad,
-            status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1,
-            fnr = FnrGenerator.random()
-        )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
-        assertEquals(a.hashCode(), b.hashCode())
-        assertNotEquals(a.hashCode(), c.hashCode())
-        val hashSet = hashSetOf(a, b, c)
-        assertEquals(2, hashSet.size)
-        assertTrue(hashSet.contains(a))
-        assertTrue(hashSet.contains(c))
     }
 
     @Nested

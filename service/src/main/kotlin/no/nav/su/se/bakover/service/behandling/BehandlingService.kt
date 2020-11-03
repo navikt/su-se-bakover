@@ -29,7 +29,6 @@ interface BehandlingService {
 
     fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling>
     fun sendTilAttestering(
-        sakId: UUID,
         behandlingId: UUID,
         saksbehandler: Saksbehandler
     ): Either<KunneIkkeSendeTilAttestering, Behandling>
@@ -53,7 +52,7 @@ sealed class KunneIkkeOppretteSøknadsbehandling {
     object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
 }
 sealed class KunneIkkeSendeTilAttestering() {
-    object UgyldigKombinasjonSakOgBehandling : KunneIkkeSendeTilAttestering()
+    object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
     object InternFeil : KunneIkkeSendeTilAttestering()
 }

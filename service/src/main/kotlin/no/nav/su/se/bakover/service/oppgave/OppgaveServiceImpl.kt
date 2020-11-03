@@ -16,10 +16,6 @@ internal class OppgaveServiceImpl(
         return oppgaveClient.opprettOppgave(config)
     }
 
-    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-        return oppgaveClient.ferdigstillFørstegangsoppgave(aktørId)
-    }
-
     override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
         return oppgaveClient.ferdigstillAttesteringsoppgave(aktørId)
     }

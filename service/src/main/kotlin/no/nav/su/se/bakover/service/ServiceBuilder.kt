@@ -78,7 +78,7 @@ class ServiceBuilder(
                     utbetalingService = utbetalingService,
                     oppgaveService = oppgaveService,
                     søknadService = søknadService,
-                    sakService = sakService,
+                    søknadRepo = databaseRepos.søknad,
                     personOppslag = clients.personOppslag,
                     brevService = brevService,
                     behandlingMetrics = behandlingMetrics
