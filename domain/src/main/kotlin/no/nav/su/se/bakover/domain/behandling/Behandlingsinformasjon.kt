@@ -170,15 +170,19 @@ data class Behandlingsinformasjon(
 
     data class Formue(
         val status: Status,
-        val verdiIkkePrimærbolig: Int?,
-        val verdiKjøretøy: Int?,
-        val innskudd: Int?,
-        val verdipapir: Int?,
-        val pengerSkyldt: Int?,
-        val kontanter: Int?,
-        val depositumskonto: Int?,
+        val verdier: Verdier?,
+        val ektefellesVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {
+        data class Verdier(
+            val verdiIkkePrimærbolig: Int?,
+            val verdiKjøretøy: Int?,
+            val innskudd: Int?,
+            val verdipapir: Int?,
+            val pengerSkyldt: Int?,
+            val kontanter: Int?,
+            val depositumskonto: Int?,
+        )
         enum class Status {
             VilkårOppfylt,
             VilkårIkkeOppfylt,
@@ -189,13 +193,13 @@ data class Behandlingsinformasjon(
             when (status) {
                 Status.MåInnhenteMerInformasjon -> true
                 else ->
-                    verdiIkkePrimærbolig !== null &&
-                        verdiKjøretøy !== null &&
-                        innskudd !== null &&
-                        verdipapir !== null &&
-                        pengerSkyldt !== null &&
-                        kontanter !== null &&
-                        depositumskonto !== null
+                    verdier?.verdiIkkePrimærbolig !== null &&
+                        verdier.verdiKjøretøy !== null &&
+                        verdier.innskudd !== null &&
+                        verdier.verdipapir !== null &&
+                        verdier.pengerSkyldt !== null &&
+                        verdier.kontanter !== null &&
+                        verdier.depositumskonto !== null
             }
 
         override fun erFerdigbehandlet(): Boolean = status != Status.MåInnhenteMerInformasjon

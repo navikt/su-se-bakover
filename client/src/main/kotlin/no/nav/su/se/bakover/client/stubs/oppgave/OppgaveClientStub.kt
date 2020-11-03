@@ -11,8 +11,6 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun opprettOppgave(config: OppgaveConfig) = generateOppgaveId().right()
 
-    override fun ferdigstillFørstegangsoppgave(aktørId: AktørId) = Unit.right()
-
     override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = Unit.right()
 
     override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()

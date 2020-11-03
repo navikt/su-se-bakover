@@ -69,7 +69,8 @@ internal class BehandlingRoutesKtTest {
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(),
-        behandlingMetrics = mock()
+        behandlingMetrics = mock(),
+        søknadMetrics = mock()
     ).build()
 
     @Nested
@@ -169,10 +170,6 @@ internal class BehandlingRoutesKtTest {
                     oppgaveClient = object : OppgaveClient {
                         override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                             return Either.left(KunneIkkeOppretteOppgave)
-                        }
-
-                        override fun ferdigstillFørstegangsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                            return Unit.right()
                         }
 
                         override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
@@ -564,7 +561,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -682,7 +678,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -856,7 +851,6 @@ internal class BehandlingRoutesKtTest {
                     {
 
                         services.behandling.sendTilAttestering(
-                            objects.sak.id,
                             objects.nySøknadsbehandling.id,
                             saksbehandler
                         )

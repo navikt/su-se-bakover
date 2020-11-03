@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
-import io.kotest.matchers.instanceOf
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -39,7 +38,7 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
-        ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling.UtenKvittering::class)
+        ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
         UtbetalingMapper(
             id = UUID30.randomUUID(),
@@ -67,6 +66,6 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
-        ).map() shouldBe instanceOf(Utbetaling.OversendtUtbetaling.MedKvittering::class)
+        ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
     }
 }
