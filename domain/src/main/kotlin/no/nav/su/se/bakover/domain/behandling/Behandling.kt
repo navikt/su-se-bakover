@@ -112,9 +112,6 @@ data class Behandling internal constructor(
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
-    override fun equals(other: Any?) = other is Behandling && id == other.id
-    override fun hashCode() = id.hashCode()
-
     interface Tilstand {
 
         val status: BehandlingsStatus

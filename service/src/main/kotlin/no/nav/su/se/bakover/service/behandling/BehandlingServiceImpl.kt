@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -19,12 +21,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -39,7 +38,7 @@ internal class BehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
-    private val sakService: SakService,
+    private val søknadRepo: SøknadRepo,
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
     private val behandlingMetrics: BehandlingMetrics
@@ -111,46 +110,42 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     override fun sendTilAttestering(
-        sakId: UUID,
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
 
-        val sak = sakService.hentSak(sakId).getOrElse {
-            log.info("Fant ikke sak med sakId : $sakId")
-            return UgyldigKombinasjonSakOgBehandling.left()
-        }
+        val behandlingTilAttestering: Behandling =
+            behandlingRepo.hentBehandling(behandlingId)?.sendTilAttestering(saksbehandler)
+                ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
-        val behandling = sak.behandlinger()
-            .firstOrNull { it.id == behandlingId }?.sendTilAttestering(saksbehandler)
-            ?: return UgyldigKombinasjonSakOgBehandling.left()
-                .also { log.info("Fant ikke behandling $behandlingId på sak med id $sakId") }
-
-        val aktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-            log.error("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
-            return KunneIkkeFinneAktørId.left()
+        val aktørId = personOppslag.aktørId(behandlingTilAttestering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id med for fødselsnummer : ${behandlingTilAttestering.fnr}")
+            return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
 
         oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
-                behandling.sakId.toString(),
+                behandlingTilAttestering.sakId.toString(),
                 aktørId = aktørId
             )
         ).mapLeft {
             log.error("Kunne ikke opprette Attestering oppgave")
-            return InternFeil.left()
+            return KunneIkkeSendeTilAttestering.InternFeil.left()
         }
 
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandlingTilAttestering.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        oppgaveService.ferdigstillFørstegangsoppgave(
-            aktørId = aktørId
-        ).map {
+        val oppgaveId = søknadRepo.hentOppgaveId(behandlingTilAttestering.søknad.id)
+            ?: return behandlingTilAttestering.right()
+                .also { log.error("Klarte ikke å lukke oppgave da vi ikke fant oppgaveId for søknadsId : ${behandlingTilAttestering.søknad.id}") }
+        oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
+        }.mapLeft {
+            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId $oppgaveId feilet")
         }
-        return behandling.right()
+        return behandlingTilAttestering.right()
     }
 
     // TODO need to define responsibilities for domain and services.
@@ -164,16 +159,22 @@ internal class BehandlingServiceImpl(
 
         return behandling.iverksett(attestant) // invoke first to perform state-check
             .map { iverksattBehandling ->
+                val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                    log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
+                    return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
+                }
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
                         behandlingId = behandlingId,
                         attestant = attestant,
-                        behandling = iverksattBehandling
+                        behandling = iverksattBehandling,
+                        aktørId = aktørId
                     )
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
                         behandling = iverksattBehandling,
                         attestant = attestant,
-                        behandlingId = behandlingId
+                        behandlingId = behandlingId,
+                        aktørId = aktørId
                     )
                     else -> throw Behandling.TilstandException(
                         state = iverksattBehandling.status(),
@@ -186,13 +187,17 @@ internal class BehandlingServiceImpl(
     private fun iverksettAvslag(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        behandling: Behandling
+        behandling: Behandling,
+        aktørId: AktørId
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
 
         behandlingRepo.attester(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+
+        oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
+            .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
 
         return journalførOgDistribuerBrev(
             request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
@@ -205,12 +210,9 @@ internal class BehandlingServiceImpl(
     private fun iverksettInnvilgning(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
-        behandlingId: UUID
+        behandlingId: UUID,
+        aktørId: AktørId
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
-        val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-            log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
-            return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
-        }
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,

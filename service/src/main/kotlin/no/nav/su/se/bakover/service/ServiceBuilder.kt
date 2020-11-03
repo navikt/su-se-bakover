@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -26,7 +27,8 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 class ServiceBuilder(
     private val databaseRepos: DatabaseRepos,
     private val clients: Clients,
-    private val behandlingMetrics: BehandlingMetrics
+    private val behandlingMetrics: BehandlingMetrics,
+    private val søknadMetrics: SøknadMetrics
 ) {
     fun build(): Services {
         val accessCheckProxy = AccessCheckProxy(databaseRepos.person, clients)
@@ -56,7 +58,8 @@ class ServiceBuilder(
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personOppslag = clients.personOppslag,
-            oppgaveService = oppgaveService
+            oppgaveService = oppgaveService,
+            søknadMetrics = søknadMetrics
         )
         return accessCheckProxy.proxy(
             Services(
@@ -75,7 +78,7 @@ class ServiceBuilder(
                     utbetalingService = utbetalingService,
                     oppgaveService = oppgaveService,
                     søknadService = søknadService,
-                    sakService = sakService,
+                    søknadRepo = databaseRepos.søknad,
                     personOppslag = clients.personOppslag,
                     brevService = brevService,
                     behandlingMetrics = behandlingMetrics

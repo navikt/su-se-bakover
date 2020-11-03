@@ -34,9 +34,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -65,43 +62,6 @@ internal class BehandlingTest {
     @BeforeEach
     fun beforeEach() {
         behandling = createBehandling(id1, OPPRETTET)
-    }
-
-    @Test
-    fun equals() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = behandlingFactory.createBehandling(
-            id1,
-            søknad = søknad,
-            status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1,
-            fnr = FnrGenerator.random()
-        )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
-        assertEquals(a, b)
-        assertNotEquals(a, c)
-        assertNotEquals(b, c)
-        assertNotEquals(a, null)
-        assertNotEquals(a, Object())
-    }
-
-    @Test
-    fun hashcode() {
-        val a = createBehandling(id1, status = VILKÅRSVURDERT_INNVILGET)
-        val b = behandlingFactory.createBehandling(
-            id1,
-            søknad = søknad,
-            status = VILKÅRSVURDERT_INNVILGET,
-            sakId = id1,
-            fnr = FnrGenerator.random()
-        )
-        val c = createBehandling(id2, status = VILKÅRSVURDERT_INNVILGET)
-        assertEquals(a.hashCode(), b.hashCode())
-        assertNotEquals(a.hashCode(), c.hashCode())
-        val hashSet = hashSetOf(a, b, c)
-        assertEquals(2, hashSet.size)
-        assertTrue(hashSet.contains(a))
-        assertTrue(hashSet.contains(c))
     }
 
     @Nested
@@ -133,13 +93,16 @@ internal class BehandlingTest {
                 Behandlingsinformasjon(
                     formue = Behandlingsinformasjon.Formue(
                         status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                        verdiIkkePrimærbolig = 52889,
-                        verdiKjøretøy = 8823,
-                        innskudd = 3291,
-                        verdipapir = 291,
-                        pengerSkyldt = 8921,
-                        kontanter = 49,
-                        depositumskonto = 315177,
+                        verdier = Behandlingsinformasjon.Formue.Verdier(
+                            verdiIkkePrimærbolig = 52889,
+                            verdiKjøretøy = 8823,
+                            innskudd = 3291,
+                            verdipapir = 291,
+                            pengerSkyldt = 8921,
+                            kontanter = 49,
+                            depositumskonto = 315177
+                        ),
+                        ektefellesVerdier = null,
                         begrunnelse = null
                     )
                 )

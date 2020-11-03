@@ -2,9 +2,8 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.matchers.beOfType
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -31,7 +30,7 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
-            it should beOfType<Journalpost.Vedtakspost>()
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
     }
@@ -44,7 +43,7 @@ internal class JournalpostFactoryTest {
         }
 
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
-            it should beOfType<Journalpost.Vedtakspost>()
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
     }
@@ -56,7 +55,7 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
-            it should beOfType<Journalpost.Info>()
+            it.shouldBeTypeOf<Journalpost.Info>()
             assertInfopost(it, brevdata)
         }
     }
@@ -68,7 +67,7 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
-            it should beOfType<Journalpost.Vedtakspost>()
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
     }
@@ -81,7 +80,7 @@ internal class JournalpostFactoryTest {
         }
 
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
-            it should beOfType<Journalpost.Info>()
+            it.shouldBeTypeOf<Journalpost.Info>()
             assertInfopost(it, brevdata)
         }
     }

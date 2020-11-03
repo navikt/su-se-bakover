@@ -107,7 +107,6 @@ data class Ektefelle(val formue: Formue, val inntektOgPensjon: InntektOgPensjon)
 
 data class InntektOgPensjon(
     val forventetInntekt: Number? = null,
-    val tjenerPengerIUtlandetBeløp: Number? = null,
     val andreYtelserINav: String? = null,
     val andreYtelserINavBeløp: Number? = null,
     val søktAndreYtelserIkkeBehandletBegrunnelse: String? = null,
