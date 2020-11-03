@@ -561,7 +561,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -679,7 +678,6 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
                             services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.sakId,
                                 nySøknadsbehandling.id,
                                 NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
                             )
@@ -853,7 +851,6 @@ internal class BehandlingRoutesKtTest {
                     {
 
                         services.behandling.sendTilAttestering(
-                            objects.sak.id,
                             objects.nySøknadsbehandling.id,
                             saksbehandler
                         )

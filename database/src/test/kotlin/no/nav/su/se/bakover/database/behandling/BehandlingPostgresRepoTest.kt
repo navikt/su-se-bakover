@@ -16,11 +16,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import org.junit.jupiter.api.Test
 
+val behandlingFactory = BehandlingFactory(mock())
+
 internal class BehandlingPostgresRepoTest {
 
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), behandlingFactory)
 
     @Test
     fun `opprett og hent behandling`() {
@@ -33,9 +35,9 @@ internal class BehandlingPostgresRepoTest {
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
-            val hentet = repo.hentBehandling(nySøknadsbehandling.id)
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
-            hentet shouldBe BehandlingFactory(mock()).createBehandling(
+            hentet shouldBe behandlingFactory.createBehandling(
                 id = nySøknadsbehandling.id,
                 opprettet = nySøknadsbehandling.opprettet,
                 fnr = FNR,

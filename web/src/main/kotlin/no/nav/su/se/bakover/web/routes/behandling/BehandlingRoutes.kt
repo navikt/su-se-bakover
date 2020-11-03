@@ -182,9 +182,9 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/tilAttestering") {
             call.withBehandlingId { behandlingId ->
-                call.withSakId { sakId ->
+                call.withSakId {
                     val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
-                    behandlingService.sendTilAttestering(sakId, behandlingId, saksBehandler).fold(
+                    behandlingService.sendTilAttestering(behandlingId, saksBehandler).fold(
                         {
                             call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
                         },

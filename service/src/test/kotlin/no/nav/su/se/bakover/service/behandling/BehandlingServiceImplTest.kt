@@ -18,9 +18,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.beregning.BeregningRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -40,13 +37,12 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
@@ -206,9 +202,9 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            oppgaveService = oppgaveServiceMock,
             personOppslag = personOppslagMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
         ).iverksett(behandling.id, attestant)
 
         response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev.left()
@@ -250,9 +246,9 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            oppgaveService = oppgaveServiceMock,
             personOppslag = personOppslagMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            brevService = brevServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe behandling.right()
@@ -478,29 +474,4 @@ internal class BehandlingServiceImplTest {
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
-
-    private fun createService(
-        behandlingRepo: BehandlingRepo = mock(),
-        hendelsesloggRepo: HendelsesloggRepo = mock(),
-        beregningRepo: BeregningRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        sakService: SakService = mock(),
-        personOppslag: PersonOppslag = mock(),
-        brevService: BrevService = mock()
-    ) = BehandlingServiceImpl(
-        behandlingRepo = behandlingRepo,
-        hendelsesloggRepo = hendelsesloggRepo,
-        beregningRepo = beregningRepo,
-        utbetalingService = utbetalingService,
-        oppgaveService = oppgaveService,
-        søknadService = søknadService,
-        søknadRepo = søknadRepo,
-        sakService = sakService,
-        personOppslag = personOppslag,
-        brevService = brevService,
-        behandlingMetrics = mock()
-    )
 }

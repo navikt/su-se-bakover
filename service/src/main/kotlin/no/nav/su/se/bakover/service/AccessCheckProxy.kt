@@ -173,13 +173,12 @@ class AccessCheckProxy(
                 }
 
                 override fun sendTilAttestering(
-                    sakId: UUID,
                     behandlingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler
                 ): Either<KunneIkkeSendeTilAttestering, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.sendTilAttestering(sakId, behandlingId, saksbehandler)
+                    return services.behandling.sendTilAttestering(behandlingId, saksbehandler)
                 }
 
                 override fun iverksett(

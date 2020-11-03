@@ -21,12 +21,8 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.InternFeil
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering.UgyldigKombinasjonSakOgBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -42,7 +38,6 @@ internal class BehandlingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService, // TODO use services or repos? probably services
     private val søknadRepo: SøknadRepo,
-    private val sakService: SakService,
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
     private val behandlingMetrics: BehandlingMetrics
@@ -114,45 +109,42 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     override fun sendTilAttestering(
-        sakId: UUID,
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
 
-        val sak = sakService.hentSak(sakId).getOrElse {
-            log.info("Fant ikke sak med sakId : $sakId")
-            return UgyldigKombinasjonSakOgBehandling.left()
-        }
+        val behandlingTilAttestering: Behandling =
+            behandlingRepo.hentBehandling(behandlingId)?.sendTilAttestering(saksbehandler)
+                ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
-        val behandling = sak.behandlinger()
-            .firstOrNull { it.id == behandlingId }?.sendTilAttestering(saksbehandler)
-            ?: return UgyldigKombinasjonSakOgBehandling.left()
-                .also { log.info("Fant ikke behandling $behandlingId på sak med id $sakId") }
-
-        val aktørId = personOppslag.aktørId(sak.fnr).getOrElse {
-            log.error("Fant ikke aktør-id med for fødselsnummer : ${sak.fnr}")
-            return KunneIkkeFinneAktørId.left()
+        val aktørId = personOppslag.aktørId(behandlingTilAttestering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id med for fødselsnummer : ${behandlingTilAttestering.fnr}")
+            return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
 
         oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
-                behandling.sakId.toString(),
+                behandlingTilAttestering.sakId.toString(),
                 aktørId = aktørId
             )
         ).mapLeft {
             log.error("Kunne ikke opprette Attestering oppgave")
-            return InternFeil.left()
+            return KunneIkkeSendeTilAttestering.InternFeil.left()
         }
 
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandlingTilAttestering.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        val oppgaveId = søknadRepo.hentOppgaveId(behandling.søknad.id) ?: return behandling.right()
+        val oppgaveId = søknadRepo.hentOppgaveId(behandlingTilAttestering.søknad.id)
+            ?: return behandlingTilAttestering.right()
+                .also { log.error("Klarte ikke å lukke oppgave da vi ikke fant oppgaveId for søknadsId : ${behandlingTilAttestering.søknad.id}") }
         oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
+        }.mapLeft {
+            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId $oppgaveId feilet")
         }
-        return behandling.right()
+        return behandlingTilAttestering.right()
     }
 
     // TODO need to define responsibilities for domain and services.
