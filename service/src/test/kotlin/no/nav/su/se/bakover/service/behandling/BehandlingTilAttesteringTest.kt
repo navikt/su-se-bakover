@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -18,8 +19,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -36,9 +37,8 @@ class BehandlingTilAttesteringTest {
     val nyOppgaveId = OppgaveId("999")
     val aktørId = AktørId("12345")
 
-    private val beregning = Beregning(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.januar(2020),
+    private val beregning = BeregningFactory.ny(
+        periode = Periode(1.januar(2020), 31.januar(2020)),
         sats = Sats.HØY,
         fradrag = listOf()
     )
@@ -47,7 +47,7 @@ class BehandlingTilAttesteringTest {
         gjelderId = fnr,
         gjelderNavn = "NAVN",
         datoBeregnet = idag(),
-        nettoBeløp = 191500,
+        nettoBeløp = 191500.0,
         periodeList = listOf()
     )
 
