@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.SimulertPeriode
 import java.time.LocalDate
 
 data class SimuleringJson(
-    val totalBruttoYtelse: Int,
+    val totalBruttoYtelse: Double,
     val perioder: List<SimulertPeriodeJson>
 ) {
     companion object {
@@ -19,7 +19,7 @@ data class SimuleringJson(
     data class SimulertPeriodeJson(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
-        val bruttoYtelse: Int
+        val bruttoYtelse: Double
     ) {
         companion object {
             fun List<SimulertPeriode>.toJson() = this.map {
@@ -37,6 +37,6 @@ data class UtbetalingslinjeJson(
     val id: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val beløp: Int,
+    val beløp: Double,
     val type: String
 )

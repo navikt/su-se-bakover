@@ -36,7 +36,7 @@ internal class SimuleringRequestBuilderValidationTest {
                     Utbetalingslinje(
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 14.januar(2020),
-                        beløp = 10,
+                        beløp = 10.0,
                         forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                     )
                 ),

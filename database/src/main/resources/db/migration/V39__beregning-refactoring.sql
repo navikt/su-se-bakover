@@ -14,3 +14,8 @@ alter table fradrag
             default null;
 
 alter table fradrag drop column if exists inntektDelerAvPeriode;
+
+DROP TABLE IF EXISTS månedsberegning;
+
+alter table fradrag alter column beløp type decimal;
+alter table utbetalingslinje alter column beløp type decimal;

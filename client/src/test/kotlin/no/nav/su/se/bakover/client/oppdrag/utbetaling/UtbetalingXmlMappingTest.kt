@@ -34,13 +34,13 @@ class UtbetalingXmlMappingTest {
     private val førsteUtbetalingsLinje = Utbetalingslinje(
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.januar(2020),
-        beløp = 10,
+        beløp = 10.0,
         forrigeUtbetalingslinjeId = null
     )
     private val andreUtbetalingslinje = Utbetalingslinje(
         fraOgMed = 1.februar(2020),
         tilOgMed = 29.februar(2020),
-        beløp = 20,
+        beløp = 20.0,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
     )
     private val oppdrag = Oppdrag(
@@ -91,7 +91,7 @@ class UtbetalingXmlMappingTest {
                   <kodeKlassifik>SUUFORE</kodeKlassifik>
                   <datoVedtakFom>2020-01-01</datoVedtakFom>
                   <datoVedtakTom>2020-01-31</datoVedtakTom>
-                  <sats>10</sats>
+                  <sats>10.0</sats>
                   <fradragTillegg>T</fradragTillegg>
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
@@ -107,7 +107,7 @@ class UtbetalingXmlMappingTest {
                   <kodeKlassifik>SUUFORE</kodeKlassifik>
                   <datoVedtakFom>2020-02-01</datoVedtakFom>
                   <datoVedtakTom>2020-02-29</datoVedtakTom>
-                  <sats>20</sats>
+                  <sats>20.0</sats>
                   <fradragTillegg>T</fradragTillegg>
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>

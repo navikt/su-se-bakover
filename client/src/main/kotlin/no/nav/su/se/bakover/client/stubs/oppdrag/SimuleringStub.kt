@@ -59,8 +59,8 @@ object SimuleringStub : SimuleringClient {
         )
     }
 
-    private fun List<SimulertPeriode>.calculateNetto() = this.sumBy { it.bruttoYtelse() } + this.sumBy {
-        it.utbetaling.flatMap { it.detaljer }.filter { !it.isYtelse() }.sumBy { it.belop }
+    private fun List<SimulertPeriode>.calculateNetto() = this.sumByDouble { it.bruttoYtelse() } + this.sumByDouble {
+        it.utbetaling.flatMap { it.detaljer }.filter { !it.isYtelse() }.sumByDouble { it.belop }
     }
 
     private fun List<Utbetalingslinje>.findBeløpForDate(fraOgMed: LocalDate) =
@@ -71,7 +71,7 @@ object SimuleringStub : SimuleringClient {
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
-            nettoBeløp = 0,
+            nettoBeløp = 0.0,
             periodeList = listOf(
                 SimulertPeriode(
                     fraOgMed = utbetaling.tidligsteDato(),
@@ -82,7 +82,7 @@ object SimuleringStub : SimuleringClient {
         )
     }
 
-    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
+    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Double) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "4952000",
@@ -97,13 +97,13 @@ object SimuleringStub : SimuleringClient {
         klasseType = KlasseType.YTEL
     )
 
-    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
+    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Double) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "0510000",
-        belop = -(beløp * 0.25).toInt(),
+        belop = -(beløp * 0.25),
         tilbakeforing = false,
-        sats = 1,
+        sats = 1.0,
         typeSats = "MND",
         antallSats = 31,
         uforegrad = 0,

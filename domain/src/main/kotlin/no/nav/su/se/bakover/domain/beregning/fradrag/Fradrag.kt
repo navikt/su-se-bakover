@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
 import java.util.UUID
 
 interface IFradrag : PeriodisertInformasjon {

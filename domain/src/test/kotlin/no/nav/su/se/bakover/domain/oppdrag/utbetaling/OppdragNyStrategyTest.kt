@@ -8,11 +8,12 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
@@ -66,7 +67,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = first.opprettet,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
-                    beløp = 20637,
+                    beløp = 20637.32,
                     forrigeUtbetalingslinjeId = null
                 )
             )
@@ -87,7 +88,7 @@ internal class OppdragNyStrategyTest {
                         gjelderId = fnr,
                         gjelderNavn = "navn",
                         datoBeregnet = idag(),
-                        nettoBeløp = 0,
+                        nettoBeløp = 0.0,
                         periodeList = listOf()
                     ),
                     kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
@@ -101,7 +102,7 @@ internal class OppdragNyStrategyTest {
                             fraOgMed = 1.januar(2018),
                             tilOgMed = 1.desember(2018),
                             forrigeUtbetalingslinjeId = null,
-                            beløp = 5000
+                            beløp = 5000.0
                         )
                     ),
                     fnr = fnr,
@@ -133,7 +134,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = nyUtbetaling.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
-                    beløp = 20637,
+                    beløp = 20637.32,
                     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
                 ),
                 expectedUtbetalingslinje(
@@ -141,7 +142,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = nyUtbetaling.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
-                    beløp = 20946,
+                    beløp = 20945.87,
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id
                 )
             ),
@@ -165,7 +166,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -183,7 +184,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -201,7 +202,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -218,7 +219,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -254,7 +255,7 @@ internal class OppdragNyStrategyTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 20637
+                    beløp = 20637.32
                 ),
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
@@ -262,7 +263,7 @@ internal class OppdragNyStrategyTest {
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
-                    beløp = 20946
+                    beløp = 20945.87
                 )
             ),
             fnr = fnr,
@@ -294,7 +295,7 @@ internal class OppdragNyStrategyTest {
         opprettet: Tidspunkt,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
-        beløp: Int,
+        beløp: Double,
         forrigeUtbetalingslinjeId: UUID30?
     ): Utbetalingslinje {
         return Utbetalingslinje(
@@ -307,9 +308,8 @@ internal class OppdragNyStrategyTest {
         )
     }
 
-    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = Beregning(
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
+    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory.ny(
+        periode = Periode(fraOgMed, tilOgMed),
         sats = Sats.HØY,
         fradrag = emptyList()
     )

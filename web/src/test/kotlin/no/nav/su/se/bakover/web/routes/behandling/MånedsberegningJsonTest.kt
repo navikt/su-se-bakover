@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.toTidspunkt
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.beregning.MånedsberegningFactory
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
 import java.util.UUID
 
 internal class MånedsberegningJsonTest {
@@ -19,24 +17,18 @@ internal class MånedsberegningJsonTest {
         internal val expectedMånedsberegningJson =
             """
             {
-                "id":"$uuid",
                 "fraOgMed":"2020-01-01",
-                "tilOgMed":"2020-12-31",
+                "tilOgMed":"2020-01-31",
                 "sats":"HØY",
-                "grunnbeløp":15000,
-                "beløp":25000
+                "grunnbeløp":99858,
+                "beløp":20637.32
             }
         """
 
-        internal val månedsberegning = Månedsberegning(
-            id = uuid,
-            opprettet = LocalDateTime.of(2020, Month.JANUARY, 1, 12, 0, 0).toTidspunkt(),
-            fraOgMed = LocalDate.of(2020, Month.JANUARY, 1),
-            tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31),
+        internal val månedsberegning = MånedsberegningFactory.ny(
+            periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
-            grunnbeløp = 15000,
-            beløp = 25000,
-            fradrag = 0
+            fradrag = emptyList()
         )
     }
 

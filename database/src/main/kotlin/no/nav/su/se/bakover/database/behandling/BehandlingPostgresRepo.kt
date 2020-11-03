@@ -5,7 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.beregning.BeregningRepoInternal
+import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepoInternal
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -161,7 +161,7 @@ internal class BehandlingPostgresRepo(
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
             søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!,
-            beregning = BeregningRepoInternal.hentBeregningForBehandling(behandlingId, session),
+            beregning = BeregningPostgresRepoInternal.hentBeregningForBehandling(behandlingId, session),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) },

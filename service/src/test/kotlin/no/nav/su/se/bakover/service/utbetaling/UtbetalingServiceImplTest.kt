@@ -15,12 +15,13 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -109,7 +110,7 @@ internal class UtbetalingServiceImplTest {
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -154,7 +155,7 @@ internal class UtbetalingServiceImplTest {
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0,
+                nettoBeløp = 0.0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -297,7 +298,7 @@ internal class UtbetalingServiceImplTest {
         }
 
         val simuleringClientMock = mock<SimuleringClient> {
-            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234).right()
+            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234.0).right()
         }
 
         val utbetalingRepoMock = mock<UtbetalingRepo>()
@@ -336,9 +337,8 @@ internal class UtbetalingServiceImplTest {
         oppdrag = mock()
     )
 
-    private val beregning = Beregning(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
+    private val beregning = BeregningFactory.ny(
+        periode = Periode(1.januar(2020), 31.desember(2020)),
         sats = Sats.HØY,
         fradrag = listOf(),
     )
@@ -355,7 +355,7 @@ internal class UtbetalingServiceImplTest {
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = idag(),
-        nettoBeløp = 5155,
+        nettoBeløp = 5155.0,
         periodeList = listOf()
     )
 

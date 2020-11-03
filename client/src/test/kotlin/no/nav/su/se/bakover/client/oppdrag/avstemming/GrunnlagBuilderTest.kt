@@ -4,23 +4,22 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 
 internal class GrunnlagBuilderTest {
     @Test
     fun `summerer grunnlag for alle typer`() {
         val expected = AvstemmingDataRequest.Grunnlagdata(
             godkjentAntall = 2,
-            godkjentBelop = BigDecimal(1600),
+            godkjentBelop = 1600.0.toBigDecimal(),
             godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             varselAntall = 1,
-            varselBelop = BigDecimal(1400),
+            varselBelop = 1400.0.toBigDecimal(),
             varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             avvistAntall = 1,
-            avvistBelop = BigDecimal(10000),
+            avvistBelop = 10000.0.toBigDecimal(),
             avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             manglerAntall = 1,
-            manglerBelop = BigDecimal(5000),
+            manglerBelop = 5000.0.toBigDecimal(),
             manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
         )
 
@@ -31,7 +30,7 @@ internal class GrunnlagBuilderTest {
     fun `håndterer fravær av enkelte typer`() {
         val expected = expected().copy(
             godkjentAntall = 1,
-            godkjentBelop = BigDecimal(1000),
+            godkjentBelop = 1000.0.toBigDecimal(),
             godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
         )
 
@@ -41,7 +40,7 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = listOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
+                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000.0),
                     )
                 )
             )
@@ -52,10 +51,10 @@ internal class GrunnlagBuilderTest {
     fun `setter riktig fortegn`() {
         val expected = expected().copy(
             godkjentAntall = 1,
-            godkjentBelop = BigDecimal(1000),
+            godkjentBelop = 1000.0.toBigDecimal(),
             godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
             avvistAntall = 1,
-            avvistBelop = BigDecimal(-1000),
+            avvistBelop = (-1000.0).toBigDecimal(),
             avvistFortegn = AvstemmingDataRequest.Fortegn.FRADRAG
         )
 
@@ -65,14 +64,14 @@ internal class GrunnlagBuilderTest {
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
                     linjer = listOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
+                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000.0),
                     )
                 ),
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.FEIL,
                     linjer = listOf(
-                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), -1000),
+                        lagUtbetalingLinje(1.mars(2020), 31.mars(2020), -1000.0),
                     )
                 )
             )
@@ -81,16 +80,16 @@ internal class GrunnlagBuilderTest {
 
     private fun expected() = AvstemmingDataRequest.Grunnlagdata(
         godkjentAntall = 0,
-        godkjentBelop = BigDecimal.ZERO,
+        godkjentBelop = 0.0.toBigDecimal(),
         godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
         varselAntall = 0,
-        varselBelop = BigDecimal.ZERO,
+        varselBelop = 0.0.toBigDecimal(),
         varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
         avvistAntall = 0,
-        avvistBelop = BigDecimal.ZERO,
+        avvistBelop = 0.0.toBigDecimal(),
         avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
         manglerAntall = 0,
-        manglerBelop = BigDecimal.ZERO,
+        manglerBelop = 0.0.toBigDecimal(),
         manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
     )
 }
