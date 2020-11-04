@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import no.nav.su.se.bakover.domain.beregning.beregning.IMånedsberegning
+import no.nav.su.se.bakover.domain.beregning.beregning.Månedsberegning
 import java.time.format.DateTimeFormatter
 
 internal data class MånedsberegningJson(
@@ -11,7 +11,7 @@ internal data class MånedsberegningJson(
     val beløp: Double
 )
 // TODO expand to show fradrag/mnd
-internal fun IMånedsberegning.toJson() = MånedsberegningJson(
+internal fun Månedsberegning.toJson() = MånedsberegningJson(
     fraOgMed = periode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
     tilOgMed = periode().tilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = sats().name,

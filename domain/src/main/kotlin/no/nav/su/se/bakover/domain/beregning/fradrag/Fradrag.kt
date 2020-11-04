@@ -1,53 +1,31 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import java.util.UUID
 
-interface IFradrag : PeriodisertInformasjon {
+interface Fradrag : PeriodisertInformasjon {
     fun id(): UUID
     fun opprettet(): Tidspunkt
     fun type(): Fradragstype
     fun totalBeløp(): Double
     fun utenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
-    fun periodiser(): List<IFradrag>
+    fun periodiser(): List<Fradrag>
     fun månedsbeløp(): Double
 }
 
-abstract class AbstractFradrag : IFradrag {
+abstract class AbstractFradrag : Fradrag {
     private val id by lazy { UUID.randomUUID() }
     private val opprettet by lazy { Tidspunkt.now() }
     override fun id(): UUID = id
     override fun opprettet() = opprettet
 }
 
-internal data class Fradrag(
-    private val type: Fradragstype,
-    private val beløp: Double,
-    private val periode: Periode,
-    private val utenlandskInntekt: UtenlandskInntekt? = null
-) : AbstractFradrag() {
-    init {
-        require(beløp >= 0) { "Fradrag kan ikke være negative" }
-    }
-
-    override fun månedsbeløp() = beløp / periode.antallMåneder()
-    override fun type(): Fradragstype = type
-    override fun totalBeløp(): Double = beløp
-    override fun utenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-
-    override fun periode(): Periode = periode
-
-    override fun periodiser(): List<IFradrag> = periode.tilMånedsperioder()
-        .map { this.copy(type = type, beløp = månedsbeløp(), periode = it) }
-}
-
-data class FradragDbWrapper(
+internal data class PersistertFradrag(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    private val fradrag: IFradrag
-) : AbstractFradrag(), IFradrag by fradrag {
+    private val fradrag: Fradrag
+) : AbstractFradrag(), Fradrag by fradrag {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt
 }

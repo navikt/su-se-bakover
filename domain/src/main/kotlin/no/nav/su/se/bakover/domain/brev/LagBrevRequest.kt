@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -92,7 +92,7 @@ data class FradragPerMåned(val type: Fradragstype, val beløp: Int)
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
 
-internal fun List<IFradrag>.toFradragPerMåned(): List<FradragPerMåned> =
+internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
     this.map {
         FradragPerMåned(it.type(), it.månedsbeløp().toInt())
     }

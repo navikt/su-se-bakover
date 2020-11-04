@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.Clock
@@ -22,7 +22,7 @@ class BehandlingFactory(
         opprettet: Tidspunkt = now(clock),
         behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         søknad: Søknad,
-        beregning: IBeregning? = null,
+        beregning: Beregning? = null,
         simulering: Simulering? = null,
         status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET,
         saksbehandler: NavIdentBruker.Saksbehandler? = null,

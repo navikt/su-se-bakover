@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
 import java.time.LocalDate
@@ -64,7 +64,7 @@ data class Oppdrag(
 
         data class Ny(
             override val behandler: NavIdentBruker,
-            val beregning: IBeregning,
+            val beregning: Beregning,
             val clock: Clock = Clock.systemUTC()
         ) : UtbetalingStrategy()
 
@@ -109,7 +109,7 @@ data class Oppdrag(
 
         inner class Ny(
             private val behandler: NavIdentBruker,
-            private val beregning: IBeregning,
+            private val beregning: Beregning,
             private val clock: Clock = Clock.systemUTC()
         ) : Strategy() {
             fun generate(fnr: Fnr): Utbetaling.UtbetalingForSimulering {
@@ -132,7 +132,7 @@ data class Oppdrag(
                 )
             }
 
-            private fun createUtbetalingsperioder(beregning: IBeregning) = beregning.månedsberegninger()
+            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger()
                 .groupBy { it.sum() }
                 .map {
                     Utbetalingsperiode(

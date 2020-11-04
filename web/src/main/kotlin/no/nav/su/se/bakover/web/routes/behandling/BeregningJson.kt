@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -19,7 +19,7 @@ internal data class BeregningJson(
     val fradrag: List<FradragJson> = emptyList()
 )
 
-internal fun IBeregning.toJson() = BeregningJson(
+internal fun Beregning.toJson() = BeregningJson(
     id = id().toString(),
     opprettet = opprettet().toString(),
     fraOgMed = periode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
@@ -42,7 +42,7 @@ internal data class FradragJson(
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntekt?
 ) {
-    fun toFradrag(periode: Periode): IFradrag = FradragFactory.ny(
+    fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
         periode = this.periode?.toPeriode() ?: periode,
         type = Fradragstype.valueOf(type),
         beløp = beløp,

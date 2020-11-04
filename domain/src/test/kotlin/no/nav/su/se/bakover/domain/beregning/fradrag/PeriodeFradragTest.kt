@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class FradragTest {
+internal class PeriodeFradragTest {
     @Test
     fun `periodiserer fradrag for enkel måned`() {
         val f1 = FradragFactory.ny(
@@ -29,22 +29,22 @@ internal class FradragTest {
             periode = Periode(1.januar(2020), 30.april(2020))
         )
         f1.periodiser() shouldBe listOf(
-            Fradrag(
+            PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
                 periode = Periode(1.januar(2020), 31.januar(2020))
             ),
-            Fradrag(
+            PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
                 periode = Periode(1.februar(2020), 29.februar(2020))
             ),
-            Fradrag(
+            PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
                 periode = Periode(1.mars(2020), 31.mars(2020))
             ),
-            Fradrag(
+            PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
                 periode = Periode(1.april(2020), 30.april(2020))

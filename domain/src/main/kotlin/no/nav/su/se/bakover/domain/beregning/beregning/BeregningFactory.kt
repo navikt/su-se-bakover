@@ -3,16 +3,16 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 
 object BeregningFactory {
     fun ny(
         periode: Periode,
         sats: Sats,
-        fradrag: List<IFradrag>
-    ): IBeregning {
-        return Beregning(
+        fradrag: List<Fradrag>
+    ): Beregning {
+        return PeriodeBeregning(
             periode = periode,
             sats = sats,
             fradrag = fradrag
@@ -24,8 +24,8 @@ object BeregningFactory {
         opprettet: Tidspunkt,
         periode: Periode,
         sats: Sats,
-        fradrag: List<IFradrag>
-    ): IBeregning = BeregningDbWrapper(
+        fradrag: List<Fradrag>
+    ): Beregning = PersistertBeregning(
         id = id,
         tidspunkt = opprettet,
         beregning = ny(

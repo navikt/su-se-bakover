@@ -245,7 +245,7 @@ data class Behandlingsinformasjon(
     ) : Base() {
         fun utledSats() = getBeregningStrategy().sats()
 
-        fun getBeregningStrategy() =
+        internal fun getBeregningStrategy() =
             if (!delerBolig) {
                 BeregningStrategy.BorAlene
             } else {

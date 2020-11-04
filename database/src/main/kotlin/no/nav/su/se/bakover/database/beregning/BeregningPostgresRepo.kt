@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -13,7 +13,7 @@ internal class BeregningPostgresRepo(
     private val dataSource: DataSource
 ) : BeregningRepo {
 
-    override fun opprettBeregningForBehandling(behandlingId: UUID, beregning: IBeregning): IBeregning {
+    override fun opprettBeregningForBehandling(behandlingId: UUID, beregning: Beregning): Beregning {
         slettBeregningForBehandling(behandlingId)
         dataSource.withSession { session ->
             "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
@@ -32,7 +32,7 @@ internal class BeregningPostgresRepo(
         return hentBeregningForBehandling(behandlingId)!!
     }
 
-    override fun hentBeregningForBehandling(behandlingId: UUID): IBeregning? =
+    override fun hentBeregningForBehandling(behandlingId: UUID): Beregning? =
         dataSource.withSession { hentBeregningForBehandling(behandlingId, it) }
 
     override fun slettBeregningForBehandling(behandlingId: UUID) {
@@ -41,7 +41,7 @@ internal class BeregningPostgresRepo(
         }
     }
 
-    private fun opprettFradrag(beregningId: UUID, fradrag: IFradrag) {
+    private fun opprettFradrag(beregningId: UUID, fradrag: Fradrag) {
         dataSource.withSession { session ->
             """
             insert into fradrag (id, opprettet, fom, tom,  beregningId, fradragstype, beløp, utenlandskInntekt)

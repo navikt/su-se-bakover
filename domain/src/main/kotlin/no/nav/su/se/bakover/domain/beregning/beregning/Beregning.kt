@@ -4,16 +4,15 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
-import kotlin.math.roundToInt
 
-interface IBeregning : PeriodisertInformasjon {
+interface Beregning : PeriodisertInformasjon {
     fun id(): UUID
     fun opprettet(): Tidspunkt
     fun sats(): Sats
-    fun månedsberegninger(): List<IMånedsberegning>
-    fun fradrag(): List<IFradrag>
+    fun månedsberegninger(): List<Månedsberegning>
+    fun fradrag(): List<Fradrag>
     fun totalSum(): Int
     fun totaltFradrag(): Int
     fun sum(periode: Periode): Int
@@ -21,60 +20,18 @@ interface IBeregning : PeriodisertInformasjon {
     fun sumUnderMinstegrense(): Boolean
 }
 
-abstract class AbstractBeregning : IBeregning {
+abstract class AbstractBeregning : Beregning {
     private val id by lazy { UUID.randomUUID() }
     private val opprettet by lazy { Tidspunkt.now() }
     override fun id(): UUID = id
     override fun opprettet() = opprettet
 }
 
-internal data class Beregning(
-    private val periode: Periode,
-    private val sats: Sats,
-    private val fradrag: List<IFradrag>
-) : AbstractBeregning() {
-    private val beregning = beregn()
-
-    override fun totalSum() = beregning.values
-        .sumByDouble { it.sum() }.roundToInt()
-
-    override fun totaltFradrag() = beregning.values
-        .sumByDouble { it.fradrag() }.roundToInt()
-
-    override fun sum(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { beregning[it]?.sum() ?: 0.0 }.roundToInt()
-
-    override fun fradrag(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { beregning[it]?.fradrag() ?: 0.0 }.roundToInt()
-
-    override fun sumUnderMinstegrense() = totalSum() < Sats.toProsentAvHøy(periode)
-
-    private fun beregn(): Map<Periode, IMånedsberegning> {
-        val perioder = periode.tilMånedsperioder()
-        val periodiserteFradrag = fradrag.flatMap { it.periodiser() }
-            .groupBy { it.periode() }
-
-        return perioder.map {
-            it to Månedsberegning(
-                periode = it,
-                sats = sats,
-                fradrag = periodiserteFradrag[it] ?: emptyList()
-            )
-        }.toMap()
-    }
-
-    override fun sats(): Sats = sats
-    override fun månedsberegninger(): List<IMånedsberegning> = beregning.values.toList()
-    override fun fradrag(): List<IFradrag> = fradrag
-
-    override fun periode(): Periode = periode
-}
-
-data class BeregningDbWrapper(
+internal data class PersistertBeregning(
     private val id: UUID,
     private val tidspunkt: Tidspunkt,
-    private val beregning: IBeregning
-) : AbstractBeregning(), IBeregning by beregning {
+    private val beregning: Beregning
+) : AbstractBeregning(), Beregning by beregning {
     override fun id(): UUID = id
     override fun opprettet() = tidspunkt
 }

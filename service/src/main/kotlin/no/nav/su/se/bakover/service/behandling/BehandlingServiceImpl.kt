@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -84,7 +84,7 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
-        fradrag: List<IFradrag>
+        fradrag: List<Fradrag>
     ): Behandling {
         return behandlingRepo.hentBehandling(behandlingId)!!
             .opprettBeregning(fraOgMed, tilOgMed, fradrag) // invoke first to perform state-check

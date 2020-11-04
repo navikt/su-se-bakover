@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 
-sealed class BeregningStrategy {
+internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
-    fun beregn(beregningsgrunnlag: Beregningsgrunnlag): IBeregning {
+    fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {
         val periode = Periode(
             beregningsgrunnlag.fraOgMed,
             beregningsgrunnlag.tilOgMed

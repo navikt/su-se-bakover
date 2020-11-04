@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -62,7 +62,7 @@ internal class UtbetalingServiceImpl(
     override fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
-        beregning: IBeregning,
+        beregning: Beregning,
         simulering: Simulering
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
@@ -100,7 +100,7 @@ internal class UtbetalingServiceImpl(
     override fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: IBeregning
+        beregning: Beregning
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerUtbetaling(
             lagUtbetaling(

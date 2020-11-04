@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class MånedsberegningTest {
+internal class PeriodeMånedsberegningTest {
     @Test
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
@@ -29,7 +29,7 @@ internal class MånedsberegningTest {
             periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 5000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020))
@@ -47,7 +47,7 @@ internal class MånedsberegningTest {
                 periode = Periode(1.januar(2020), 31.januar(2020)),
                 sats = Sats.HØY,
                 fradrag = listOf(
-                    Fradrag(
+                    PeriodeFradrag(
                         type = Fradragstype.Kontantstøtte,
                         beløp = 5000.0,
                         periode = Periode(1.desember(2020), 31.desember(2020))
@@ -75,7 +75,7 @@ internal class MånedsberegningTest {
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
                     periode = periode
@@ -92,7 +92,7 @@ internal class MånedsberegningTest {
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
                     periode = periode
