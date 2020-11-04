@@ -19,6 +19,18 @@ data class Behandlingsinformasjon(
     val bosituasjon: Bosituasjon? = null,
     val ektefelle: EktefellePartnerSamboer? = null,
 ) {
+    private val alleVilkår = listOf(
+        uførhet,
+        flyktning,
+        lovligOpphold,
+        fastOppholdINorge,
+        oppholdIUtlandet,
+        formue,
+        personligOppmøte,
+        bosituasjon,
+        ektefelle,
+    )
+
     fun patch(
         b: Behandlingsinformasjon
     ) = Behandlingsinformasjon(
@@ -33,42 +45,18 @@ data class Behandlingsinformasjon(
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
-    private fun erFerdigbehandlet() =
-        listOf(
-            uførhet,
-            flyktning,
-            lovligOpphold,
-            fastOppholdINorge,
-            oppholdIUtlandet,
-            formue,
-            personligOppmøte,
-            bosituasjon,
-            ektefelle,
-        ).all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
+    private fun erFerdigbehandlet() = alleVilkår.all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
+    fun erInnvilget() = alleVilkår.all { it?.erVilkårOppfylt() ?: false }
+    fun getAvslagsgrunn() = alleVilkår.mapNotNull { it?.avslagsgrunn() }.firstOrNull()
+    fun erAvslag(): Boolean {
+        if (uførhet != null && flyktning != null) {
+            if (uførhet.status == Uførhet.Status.VilkårIkkeOppfylt || flyktning.status == Flyktning.Status.VilkårIkkeOppfylt) {
+                return true
+            }
+        }
 
-    fun erInnvilget() =
-        listOf(
-            uførhet?.erVilkårOppfylt(),
-            flyktning?.erVilkårOppfylt(),
-            lovligOpphold?.erVilkårOppfylt(),
-            fastOppholdINorge?.erVilkårOppfylt(),
-            oppholdIUtlandet?.erVilkårOppfylt(),
-            formue?.erVilkårOppfylt(),
-            personligOppmøte?.erVilkårOppfylt(),
-        ).all { it ?: false }
-
-    fun erAvslag() = erFerdigbehandlet() && !erInnvilget()
-
-    fun getAvslagsgrunn() =
-        listOfNotNull(
-            uførhet?.avslagsgrunn(),
-            flyktning?.avslagsgrunn(),
-            lovligOpphold?.avslagsgrunn(),
-            fastOppholdINorge?.avslagsgrunn(),
-            oppholdIUtlandet?.avslagsgrunn(),
-            formue?.avslagsgrunn(),
-            personligOppmøte?.avslagsgrunn(),
-        ).firstOrNull()
+        return erFerdigbehandlet() && !erInnvilget()
+    }
 
     abstract class Base {
         open fun erGyldig(): Boolean = true
@@ -179,6 +167,7 @@ data class Behandlingsinformasjon(
             val kontanter: Int?,
             val depositumskonto: Int?,
         )
+
         enum class Status {
             VilkårOppfylt,
             VilkårIkkeOppfylt,
@@ -272,6 +261,7 @@ data class Behandlingsinformasjon(
             } else {
                 true
             }
+
         override fun erFerdigbehandlet(): Boolean = erGyldig()
         override fun erVilkårOppfylt(): Boolean = erGyldig()
 
@@ -289,7 +279,6 @@ data class Behandlingsinformasjon(
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
             else -> null
         }
-
     }
 
     @JsonTypeInfo(
