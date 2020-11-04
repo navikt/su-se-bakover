@@ -45,17 +45,21 @@ data class Behandlingsinformasjon(
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
-    private fun erFerdigbehandlet() = alleVilkår.all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
     fun erInnvilget() = alleVilkår.all { it?.erVilkårOppfylt() ?: false }
     fun getAvslagsgrunn() = alleVilkår.mapNotNull { it?.avslagsgrunn() }.firstOrNull()
     fun erAvslag(): Boolean {
+        val erFerdigbehandlet = alleVilkår.all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
+
+        return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() || (erFerdigbehandlet && !erInnvilget())
+    }
+
+    private fun uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt(): Boolean {
         if (uførhet != null && flyktning != null) {
             if (uførhet.status == Uførhet.Status.VilkårIkkeOppfylt || flyktning.status == Flyktning.Status.VilkårIkkeOppfylt) {
                 return true
             }
         }
-
-        return erFerdigbehandlet() && !erInnvilget()
+        return false
     }
 
     abstract class Base {
