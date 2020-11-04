@@ -54,9 +54,9 @@ internal class BeregningPostgresRepo(
                         "fom" to fradrag.periode().fraOgMed(),
                         "tom" to fradrag.periode().tilOgMed(),
                         "beregningId" to beregningId,
-                        "fradragstype" to fradrag.type().toString(),
-                        "belop" to fradrag.totalBeløp(),
-                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.utenlandskInntekt())
+                        "fradragstype" to fradrag.getFradragstype().toString(),
+                        "belop" to fradrag.getTotaltFradrag(),
+                        "utenlandskInntekt" to objectMapper.writeValueAsString(fradrag.getUtenlandskInntekt())
                     ),
                     session
                 )

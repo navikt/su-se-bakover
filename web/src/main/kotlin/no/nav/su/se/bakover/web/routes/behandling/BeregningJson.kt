@@ -28,9 +28,9 @@ internal fun Beregning.toJson() = BeregningJson(
     månedsberegninger = månedsberegninger().map { it.toJson() }, // TODO show fradrag/month
     fradrag = fradrag().map {
         FradragJson(
-            type = it.type().toString(),
-            beløp = it.totalBeløp(),
-            utenlandskInntekt = it.utenlandskInntekt(),
+            type = it.getFradragstype().toString(),
+            beløp = it.getTotaltFradrag(),
+            utenlandskInntekt = it.getUtenlandskInntekt(),
             periode = it.periode().toJson()
         )
     }

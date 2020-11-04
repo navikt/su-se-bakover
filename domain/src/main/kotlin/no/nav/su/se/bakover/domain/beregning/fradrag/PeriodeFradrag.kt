@@ -12,13 +12,13 @@ internal data class PeriodeFradrag(
         require(beløp >= 0) { "Fradrag kan ikke være negative" }
     }
 
-    override fun månedsbeløp() = beløp / periode.antallMåneder()
-    override fun type(): Fradragstype = type
-    override fun totalBeløp(): Double = beløp
-    override fun utenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
+    override fun getFradragPerMåned() = beløp / periode.antallMåneder()
+    override fun getFradragstype(): Fradragstype = type
+    override fun getTotaltFradrag(): Double = beløp
+    override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
 
     override fun periode(): Periode = periode
 
     override fun periodiser(): List<Fradrag> = periode.tilMånedsperioder()
-        .map { this.copy(type = type, beløp = månedsbeløp(), periode = it) }
+        .map { this.copy(type = type, beløp = getFradragPerMåned(), periode = it) }
 }

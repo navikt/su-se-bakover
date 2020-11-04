@@ -26,8 +26,8 @@ internal sealed class FradragStrategy {
     }
 
     protected fun bestemFradrag(forventetInntekt: Int, fradrag: List<Fradrag>, periode: Periode): List<Fradrag> {
-        val (arbeid, andre) = fradrag.partition { it.type() == Fradragstype.Arbeidsinntekt }
-        val arbeidsinntekt = arbeid.sumByDouble { it.totalBeløp() }
+        val (arbeid, andre) = fradrag.partition { it.getFradragstype() == Fradragstype.Arbeidsinntekt }
+        val arbeidsinntekt = arbeid.sumByDouble { it.getTotaltFradrag() }
         return if (arbeidsinntekt >= forventetInntekt) fradrag else andre.plus(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,

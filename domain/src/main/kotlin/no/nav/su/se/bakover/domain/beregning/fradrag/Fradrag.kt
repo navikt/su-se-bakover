@@ -7,11 +7,11 @@ import java.util.UUID
 interface Fradrag : PeriodisertInformasjon {
     fun id(): UUID
     fun opprettet(): Tidspunkt
-    fun type(): Fradragstype
-    fun totalBeløp(): Double
-    fun utenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
+    fun getFradragstype(): Fradragstype
+    fun getTotaltFradrag(): Double
+    fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
     fun periodiser(): List<Fradrag>
-    fun månedsbeløp(): Double
+    fun getFradragPerMåned(): Double
 }
 
 abstract class AbstractFradrag : Fradrag {
