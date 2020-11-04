@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.domain.beregning.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.Sats
 
 interface Månedsberegning : PeriodisertInformasjon {
     fun sum(): Double
