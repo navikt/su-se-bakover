@@ -71,10 +71,10 @@ data class Behandlingsinformasjon(
         ).firstOrNull()
 
     abstract class Base {
-        abstract fun erGyldig(): Boolean
-        abstract fun erFerdigbehandlet(): Boolean
-        abstract fun erVilkårOppfylt(): Boolean
-        abstract fun avslagsgrunn(): Avslagsgrunn?
+        open fun erGyldig(): Boolean = true
+        open fun erFerdigbehandlet(): Boolean = true
+        open fun erVilkårOppfylt(): Boolean = true
+        open fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     data class Uførhet(
@@ -111,7 +111,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -128,7 +127,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -145,7 +143,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -161,7 +158,6 @@ data class Behandlingsinformasjon(
             SkalHoldeSegINorge
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = erGyldig()
         override fun erVilkårOppfylt(): Boolean = status == Status.SkalHoldeSegINorge
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -221,7 +217,6 @@ data class Behandlingsinformasjon(
             IkkeMøttPersonlig
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = erGyldig()
         override fun erVilkårOppfylt(): Boolean =
             status.let {
@@ -277,6 +272,8 @@ data class Behandlingsinformasjon(
             } else {
                 true
             }
+        override fun erFerdigbehandlet(): Boolean = erGyldig()
+        override fun erVilkårOppfylt(): Boolean = erGyldig()
 
         fun getSatsgrunn() = when {
             !delerBolig -> Satsgrunn.ENSLIG
@@ -293,9 +290,6 @@ data class Behandlingsinformasjon(
             else -> null
         }
 
-        override fun erFerdigbehandlet(): Boolean = erGyldig()
-        override fun erVilkårOppfylt(): Boolean = erGyldig()
-        override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     @JsonTypeInfo(
@@ -308,11 +302,6 @@ data class Behandlingsinformasjon(
         JsonSubTypes.Type(value = EktefellePartnerSamboer.IngenEktefelle::class, name = "IngenEktefelle"),
     )
     sealed class EktefellePartnerSamboer : Base() {
-        override fun erGyldig() = true
-        override fun erFerdigbehandlet() = true
-        override fun erVilkårOppfylt() = true
-        override fun avslagsgrunn(): Avslagsgrunn? = null
-
         data class Ektefelle(val fnr: Fnr) : EktefellePartnerSamboer()
         object IngenEktefelle : EktefellePartnerSamboer()
     }
