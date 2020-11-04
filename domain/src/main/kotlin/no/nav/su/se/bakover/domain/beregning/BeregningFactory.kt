@@ -11,7 +11,9 @@ object BeregningFactory {
         sats: Sats,
         fradrag: List<Fradrag>
     ): Beregning {
-        return PeriodeBeregning(
+        return Beregning(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
             periode = periode,
             sats = sats,
             fradrag = fradrag
@@ -24,13 +26,11 @@ object BeregningFactory {
         periode: Periode,
         sats: Sats,
         fradrag: List<Fradrag>
-    ): Beregning = PersistertBeregning(
+    ): Beregning = Beregning(
         id = id,
-        tidspunkt = opprettet,
-        beregning = ny(
-            periode = periode,
-            sats = sats,
-            fradrag = fradrag
-        )
+        opprettet = opprettet,
+        periode = periode,
+        sats = sats,
+        fradrag = fradrag
     )
 }
