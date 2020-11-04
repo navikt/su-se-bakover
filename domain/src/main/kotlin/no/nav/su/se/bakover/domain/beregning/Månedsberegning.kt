@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 
 interface Månedsberegning : PeriodisertInformasjon {
-    fun sum(): Double
-    fun fradrag(): Double
-    fun grunnbeløp(): Int
-    fun sats(): Sats
+    fun getSumYtelse(): Double
+    fun getSumFradrag(): Double
+    fun getBenyttetGrunnbeløp(): Int
+    fun getSats(): Sats
     fun getSatsbeløp(): Double
 }
