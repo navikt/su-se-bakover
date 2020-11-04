@@ -35,8 +35,6 @@ data class Oppholdstillatelse(
     val erNorskStatsborger: Boolean,
     val harOppholdstillatelse: Boolean? = null,
     val oppholdstillatelseType: OppholdstillatelseType? = null,
-    val oppholdstillatelseMindreEnnTreMåneder: Boolean? = null,
-    val oppholdstillatelseForlengelse: Boolean? = null,
     val statsborgerskapAndreLand: Boolean,
     val statsborgerskapAndreLandFritekst: String? = null
 ) {

@@ -89,8 +89,6 @@ data class SøknadInnholdJson(
         val erNorskStatsborger: Boolean,
         val harOppholdstillatelse: Boolean? = null,
         val typeOppholdstillatelse: String? = null,
-        val oppholdstillatelseMindreEnnTreMåneder: Boolean? = null,
-        val oppholdstillatelseForlengelse: Boolean? = null,
         val statsborgerskapAndreLand: Boolean,
         val statsborgerskapAndreLandFritekst: String? = null
     ) {
@@ -100,8 +98,6 @@ data class SøknadInnholdJson(
             oppholdstillatelseType = typeOppholdstillatelse?.let {
                 toOppholdstillatelseType(it)
             },
-            oppholdstillatelseMindreEnnTreMåneder = oppholdstillatelseMindreEnnTreMåneder,
-            oppholdstillatelseForlengelse = oppholdstillatelseForlengelse,
             statsborgerskapAndreLand = statsborgerskapAndreLand,
             statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst
         )
@@ -120,8 +116,6 @@ data class SøknadInnholdJson(
                     erNorskStatsborger = this.erNorskStatsborger,
                     harOppholdstillatelse = this.harOppholdstillatelse,
                     typeOppholdstillatelse = this.oppholdstillatelseType?.toJson(),
-                    oppholdstillatelseMindreEnnTreMåneder = this.oppholdstillatelseMindreEnnTreMåneder,
-                    oppholdstillatelseForlengelse = this.oppholdstillatelseForlengelse,
                     statsborgerskapAndreLand = this.statsborgerskapAndreLand,
                     statsborgerskapAndreLandFritekst = this.statsborgerskapAndreLandFritekst
                 )

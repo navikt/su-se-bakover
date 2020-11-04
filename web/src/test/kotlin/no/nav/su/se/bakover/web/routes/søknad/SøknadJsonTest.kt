@@ -73,8 +73,6 @@ internal class SøknadJsonTest {
                 "erNorskStatsborger":false,
                 "harOppholdstillatelse":true,
                 "typeOppholdstillatelse":"midlertidig",
-                "oppholdstillatelseMindreEnnTreMåneder":false,
-                "oppholdstillatelseForlengelse":true,
                 "statsborgerskapAndreLand":false,
                 "statsborgerskapAndreLandFritekst":null
             },
