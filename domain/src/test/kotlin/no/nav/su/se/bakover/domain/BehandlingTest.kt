@@ -183,7 +183,7 @@ internal class BehandlingTest {
             val beregning = vilkårsvurdert.beregning()!!
             beregning.periode().fraOgMed() shouldBe fraOgMed
             beregning.periode().tilOgMed() shouldBe tilOgMed
-            beregning.sats() shouldBe Sats.HØY
+            beregning.getSats() shouldBe Sats.HØY
         }
 
         @Test

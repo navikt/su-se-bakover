@@ -9,14 +9,14 @@ import java.util.UUID
 interface Beregning : PeriodisertInformasjon {
     fun id(): UUID
     fun opprettet(): Tidspunkt
-    fun sats(): Sats
-    fun månedsberegninger(): List<Månedsberegning>
-    fun fradrag(): List<Fradrag>
-    fun totalSum(): Int
-    fun totaltFradrag(): Int
-    fun sum(periode: Periode): Int
-    fun fradrag(periode: Periode): Int
-    fun sumUnderMinstegrense(): Boolean
+    fun getSats(): Sats
+    fun getMånedsberegninger(): List<Månedsberegning>
+    fun getFradrag(): List<Fradrag>
+    fun getSumYtelse(): Int
+    fun getSumFradrag(): Int
+    fun getSumYtelse(periode: Periode): Int
+    fun getFradrag(periode: Periode): Int
+    fun getSumYtelseErUnderMinstebeløp(): Boolean
 }
 
 abstract class AbstractBeregning : Beregning {
