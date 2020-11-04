@@ -197,7 +197,7 @@ data class Behandling internal constructor(
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
                 beregning = strategy.beregn(beregningsgrunnlag)
 
-                if (beregning!!.totalSum() <= 0 || beregning!!.sumUnderMinstegrense()) {
+                if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
                     return
                 }

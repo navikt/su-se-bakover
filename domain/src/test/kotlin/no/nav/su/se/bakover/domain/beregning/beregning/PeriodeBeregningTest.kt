@@ -22,15 +22,15 @@ internal class PeriodeBeregningTest {
             sats = Sats.HØY,
             fradrag = emptyList()
         )
-        beregning.totalSum() shouldBe 250116
-        beregning.totaltFradrag() shouldBe 0
-        beregning.sum(periode) shouldBe 250116
-        beregning.fradrag(periode) shouldBe 0
+        beregning.getSumYtelse() shouldBe 250116
+        beregning.getSumFradrag() shouldBe 0
+        beregning.getSumYtelse(periode) shouldBe 250116
+        beregning.getFradrag(periode) shouldBe 0
 
-        beregning.sum(Periode(1.januar(2020), 31.januar(2020))) shouldBe 20637
-        beregning.sum(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.sum(Periode(1.januar(2020), 30.april(2020))) shouldBe 82549
-        beregning.fradrag(Periode(1.januar(2020), 30.april(2020))) shouldBe 0
+        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 20637
+        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
+        beregning.getSumYtelse(Periode(1.januar(2020), 30.april(2020))) shouldBe 82549
+        beregning.getFradrag(Periode(1.januar(2020), 30.april(2020))) shouldBe 0
     }
 
     @Test
@@ -48,11 +48,11 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 238116
-        beregning.totaltFradrag() shouldBe 12000
+        beregning.getSumYtelse() shouldBe 238116
+        beregning.getSumFradrag() shouldBe 12000
 
-        beregning.sum(Periode(1.januar(2020), 31.januar(2020))) shouldBe 19637
-        beregning.fradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 1000
+        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 19637
+        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 1000
     }
 
     @Test
@@ -75,17 +75,17 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 238116
-        beregning.totaltFradrag() shouldBe 12000
+        beregning.getSumYtelse() shouldBe 238116
+        beregning.getSumFradrag() shouldBe 12000
 
-        beregning.sum(Periode(1.januar(2020), 31.januar(2020))) shouldBe 14637
-        beregning.fradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 6000
+        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 14637
+        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 6000
 
-        beregning.sum(Periode(1.juni(2020), 30.juni(2020))) shouldBe 14946
-        beregning.fradrag(Periode(1.juni(2020), 30.juni(2020))) shouldBe 6000
+        beregning.getSumYtelse(Periode(1.juni(2020), 30.juni(2020))) shouldBe 14946
+        beregning.getFradrag(Periode(1.juni(2020), 30.juni(2020))) shouldBe 6000
 
-        beregning.sum(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.fradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
+        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
+        beregning.getFradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
     }
 
     @Test
@@ -108,14 +108,14 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 238116
-        beregning.totaltFradrag() shouldBe 12000
+        beregning.getSumYtelse() shouldBe 238116
+        beregning.getSumFradrag() shouldBe 12000
 
-        beregning.sum(Periode(1.januar(2020), 31.januar(2020))) shouldBe 8637
-        beregning.fradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 12000
+        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 8637
+        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 12000
 
-        beregning.sum(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.fradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
+        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
+        beregning.getFradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
     }
 
     /**
@@ -139,10 +139,10 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 5002
-        beregning.totaltFradrag() shouldBe 245114
-        (beregning.totalSum() + beregning.totaltFradrag()) shouldBe 250116
-        beregning.sumUnderMinstegrense() shouldBe false
+        beregning.getSumYtelse() shouldBe 5002
+        beregning.getSumFradrag() shouldBe 245114
+        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 250116
+        beregning.getSumYtelseErUnderMinstebeløp() shouldBe false
     }
 
     /**
@@ -166,10 +166,10 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 5001
-        beregning.totaltFradrag() shouldBe 245115
-        (beregning.totalSum() + beregning.totaltFradrag()) shouldBe 250116
-        beregning.sumUnderMinstegrense() shouldBe true
+        beregning.getSumYtelse() shouldBe 5001
+        beregning.getSumFradrag() shouldBe 245115
+        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 250116
+        beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
     }
 
     /**
@@ -192,10 +192,10 @@ internal class PeriodeBeregningTest {
             )
         )
 
-        beregning.totalSum() shouldBe 1212
-        beregning.totaltFradrag() shouldBe 60700
-        (beregning.totalSum() + beregning.totaltFradrag()) shouldBe 61912
-        beregning.sumUnderMinstegrense() shouldBe true
+        beregning.getSumYtelse() shouldBe 1212
+        beregning.getSumFradrag() shouldBe 60700
+        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 61912
+        beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
     }
 
     @Test

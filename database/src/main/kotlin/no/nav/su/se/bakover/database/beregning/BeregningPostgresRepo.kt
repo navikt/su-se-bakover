@@ -23,12 +23,12 @@ internal class BeregningPostgresRepo(
                     "fom" to beregning.periode().fraOgMed(),
                     "tom" to beregning.periode().tilOgMed(),
                     "behandlingId" to behandlingId,
-                    "sats" to beregning.sats().name
+                    "sats" to beregning.getSats().name
                 ),
                 session
             )
         }
-        beregning.fradrag().forEach { opprettFradrag(beregning.id(), it) }
+        beregning.getFradrag().forEach { opprettFradrag(beregning.id(), it) }
         return hentBeregningForBehandling(behandlingId)!!
     }
 

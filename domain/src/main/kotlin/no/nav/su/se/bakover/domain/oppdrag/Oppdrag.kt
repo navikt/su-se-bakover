@@ -132,7 +132,7 @@ data class Oppdrag(
                 )
             }
 
-            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger()
+            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.getMånedsberegninger()
                 .groupBy { it.getSumYtelse() }
                 .map {
                     Utbetalingsperiode(

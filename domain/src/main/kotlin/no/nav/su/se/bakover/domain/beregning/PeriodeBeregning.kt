@@ -11,19 +11,19 @@ internal data class PeriodeBeregning(
 ) : AbstractBeregning() {
     private val beregning = beregn()
 
-    override fun totalSum() = beregning.values
+    override fun getSumYtelse() = beregning.values
         .sumByDouble { it.getSumYtelse() }.roundToInt()
 
-    override fun totaltFradrag() = beregning.values
+    override fun getSumFradrag() = beregning.values
         .sumByDouble { it.getSumFradrag() }.roundToInt()
 
-    override fun sum(periode: Periode) = periode.tilMånedsperioder()
+    override fun getSumYtelse(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.getSumYtelse() ?: 0.0 }.roundToInt()
 
-    override fun fradrag(periode: Periode) = periode.tilMånedsperioder()
+    override fun getFradrag(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.getSumFradrag() ?: 0.0 }.roundToInt()
 
-    override fun sumUnderMinstegrense() = totalSum() < Sats.toProsentAvHøy(periode)
+    override fun getSumYtelseErUnderMinstebeløp() = getSumYtelse() < Sats.toProsentAvHøy(periode)
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.tilMånedsperioder()
@@ -39,9 +39,9 @@ internal data class PeriodeBeregning(
         }.toMap()
     }
 
-    override fun sats(): Sats = sats
-    override fun månedsberegninger(): List<Månedsberegning> = beregning.values.toList()
-    override fun fradrag(): List<Fradrag> = fradrag
+    override fun getSats(): Sats = sats
+    override fun getMånedsberegninger(): List<Månedsberegning> = beregning.values.toList()
+    override fun getFradrag(): List<Fradrag> = fradrag
 
     override fun periode(): Periode = periode
 }
