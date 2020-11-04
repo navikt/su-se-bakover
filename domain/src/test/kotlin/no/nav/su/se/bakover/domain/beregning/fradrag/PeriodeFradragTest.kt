@@ -81,4 +81,20 @@ internal class PeriodeFradragTest {
         f2.totalBeløp() shouldBe 12000.0
         f2.månedsbeløp() shouldBe 1000.0
     }
+
+    @Test
+    fun `månedsbeløp er det samme for periodiserte og ikke-periodiserte`() {
+        val f1 = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            beløp = 12000.0,
+            periode = Periode(1.januar(2020), 31.desember(2020))
+        )
+        f1.totalBeløp() shouldBe 12000.0
+        f1.månedsbeløp() shouldBe 1000.0
+
+        f1.periodiser().forEach {
+            it.totalBeløp() shouldBe 1000.0
+            it.månedsbeløp() shouldBe 1000.0
+        }
+    }
 }
