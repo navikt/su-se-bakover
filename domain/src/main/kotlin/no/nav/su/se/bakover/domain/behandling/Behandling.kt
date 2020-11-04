@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -22,7 +22,7 @@ data class Behandling internal constructor(
     val opprettet: Tidspunkt,
     private var behandlingsinformasjon: Behandlingsinformasjon,
     val søknad: Søknad,
-    private var beregning: IBeregning?,
+    private var beregning: Beregning?,
     internal var simulering: Simulering?,
     private var status: BehandlingsStatus,
     private var saksbehandler: NavIdentBruker.Saksbehandler?,
@@ -86,7 +86,7 @@ data class Behandling internal constructor(
     fun opprettBeregning(
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
-        fradrag: List<IFradrag> = emptyList()
+        fradrag: List<Fradrag> = emptyList()
     ): Behandling {
         tilstand.opprettBeregning(fraOgMed, tilOgMed, fradrag)
         return this
@@ -123,7 +123,7 @@ data class Behandling internal constructor(
         fun opprettBeregning(
             fraOgMed: LocalDate,
             tilOgMed: LocalDate,
-            fradrag: List<IFradrag>
+            fradrag: List<Fradrag>
         ) {
             throw TilstandException(status, this::opprettBeregning.toString())
         }
@@ -186,7 +186,7 @@ data class Behandling internal constructor(
         }
 
         inner class Innvilget : Vilkårsvurdert() {
-            override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<IFradrag>) {
+            override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
@@ -222,7 +222,7 @@ data class Behandling internal constructor(
     private open inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
-        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<IFradrag>) {
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 
@@ -263,7 +263,7 @@ data class Behandling internal constructor(
             return this@Behandling
         }
 
-        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<IFradrag>) {
+        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
 

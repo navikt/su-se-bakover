@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.time.LocalDate
 
-data class Beregningsgrunnlag(
+internal data class Beregningsgrunnlag(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val fradrag: List<IFradrag>,
+    val fradrag: List<Fradrag>,
     val forventetInntekt: Int
 )

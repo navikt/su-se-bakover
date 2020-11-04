@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
 
-internal class BeregningTest {
+internal class PeriodeBeregningTest {
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
@@ -39,7 +39,7 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 12000.0,
                     periode = periode
@@ -61,12 +61,12 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020))
                 ),
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
                     periode = Periode(1.juni(2020), 30.juni(2020))
@@ -94,12 +94,12 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020))
                 ),
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 6000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020))
@@ -130,7 +130,7 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 245114.0,
                     periode = periode
@@ -157,7 +157,7 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 245115.0,
                     periode = periode
@@ -183,7 +183,7 @@ internal class BeregningTest {
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
-                Fradrag(
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 60700.0,
                     periode = periode

@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.beregning.IBeregning
+import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -22,13 +22,13 @@ interface UtbetalingService {
     fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: IBeregning
+        beregning: Beregning
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
-        beregning: IBeregning,
+        beregning: Beregning,
         simulering: Simulering
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 

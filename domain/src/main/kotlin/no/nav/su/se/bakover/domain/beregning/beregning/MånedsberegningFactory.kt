@@ -2,15 +2,15 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.IFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 
 object MånedsberegningFactory {
     fun ny(
         periode: Periode,
         sats: Sats,
-        fradrag: List<IFradrag>
-    ): IMånedsberegning {
-        return Månedsberegning(
+        fradrag: List<Fradrag>
+    ): Månedsberegning {
+        return PeriodeMånedsberegning(
             periode = periode,
             sats = sats,
             fradrag = fradrag

@@ -10,8 +10,8 @@ object FradragFactory {
         beløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null
-    ): IFradrag {
-        return Fradrag(
+    ): Fradrag {
+        return PeriodeFradrag(
             periode = periode,
             type = type,
             beløp = beløp,
@@ -26,7 +26,7 @@ object FradragFactory {
         beløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null
-    ): IFradrag = FradragDbWrapper(
+    ): Fradrag = PersistertFradrag(
         id = id,
         tidspunkt = opprettet,
         fradrag = ny(
