@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.beregning.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.time.LocalDate

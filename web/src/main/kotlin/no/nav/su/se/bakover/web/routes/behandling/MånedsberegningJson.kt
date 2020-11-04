@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import no.nav.su.se.bakover.domain.beregning.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import java.time.format.DateTimeFormatter
 
 internal data class MånedsberegningJson(

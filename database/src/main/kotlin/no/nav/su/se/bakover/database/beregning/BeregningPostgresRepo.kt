@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepoInternal.hentBeregningForBehandling
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.beregning.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 import javax.sql.DataSource

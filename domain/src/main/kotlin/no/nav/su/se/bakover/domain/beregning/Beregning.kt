@@ -1,9 +1,8 @@
-package no.nav.su.se.bakover.domain.beregning.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 

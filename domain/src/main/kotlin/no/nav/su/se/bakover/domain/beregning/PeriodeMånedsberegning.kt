@@ -1,10 +1,9 @@
-package no.nav.su.se.bakover.domain.beregning.beregning
+package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 
 internal data class PeriodeMånedsberegning(
