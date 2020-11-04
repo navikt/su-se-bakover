@@ -14,7 +14,7 @@ internal data class MånedsberegningJson(
 internal fun Månedsberegning.toJson() = MånedsberegningJson(
     fraOgMed = periode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
     tilOgMed = periode().tilOgMed().format(DateTimeFormatter.ISO_DATE),
-    sats = sats().name,
-    grunnbeløp = grunnbeløp(),
-    beløp = sum()
+    sats = getSats().name,
+    grunnbeløp = getBenyttetGrunnbeløp(),
+    beløp = getSumYtelse()
 )

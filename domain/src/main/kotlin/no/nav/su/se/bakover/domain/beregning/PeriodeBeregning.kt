@@ -12,16 +12,16 @@ internal data class PeriodeBeregning(
     private val beregning = beregn()
 
     override fun totalSum() = beregning.values
-        .sumByDouble { it.sum() }.roundToInt()
+        .sumByDouble { it.getSumYtelse() }.roundToInt()
 
     override fun totaltFradrag() = beregning.values
-        .sumByDouble { it.fradrag() }.roundToInt()
+        .sumByDouble { it.getSumFradrag() }.roundToInt()
 
     override fun sum(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { beregning[it]?.sum() ?: 0.0 }.roundToInt()
+        .sumByDouble { beregning[it]?.getSumYtelse() ?: 0.0 }.roundToInt()
 
     override fun fradrag(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { beregning[it]?.fradrag() ?: 0.0 }.roundToInt()
+        .sumByDouble { beregning[it]?.getSumFradrag() ?: 0.0 }.roundToInt()
 
     override fun sumUnderMinstegrense() = totalSum() < Sats.toProsentAvHøy(periode)
 

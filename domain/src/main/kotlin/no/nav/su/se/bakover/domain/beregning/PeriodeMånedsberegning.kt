@@ -16,15 +16,15 @@ internal data class PeriodeMånedsberegning(
         require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
-    override fun sum() = (getSatsbeløp() - fradrag())
+    override fun getSumYtelse() = (getSatsbeløp() - getSumFradrag())
         .positiveOrZero()
 
-    override fun fradrag() = fradrag
+    override fun getSumFradrag() = fradrag
         .sumByDouble { it.månedsbeløp() }
         .limitedUpwardsTo(getSatsbeløp())
 
-    override fun grunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
-    override fun sats(): Sats = sats
+    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
+    override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
 
     override fun periode(): Periode = periode

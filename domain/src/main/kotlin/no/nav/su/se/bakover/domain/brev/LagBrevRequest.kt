@@ -50,7 +50,7 @@ abstract class LagBrevRequest {
                 behandling.beregning()!!.månedsberegninger().firstOrNull()!! // Støtte för variende beløp i framtiden?
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
-                månedsbeløp = førsteMånedsberegning.sum().toInt(), // TODO: avrunding
+                månedsbeløp = førsteMånedsberegning.getSumYtelse().toInt(), // TODO: avrunding
                 fradato = behandling.beregning()!!.periode().fraOgMed().formatMonthYear(),
                 tildato = behandling.beregning()!!.periode().tilOgMed().formatMonthYear(),
                 sats = behandling.beregning()?.sats().toString().toLowerCase(),

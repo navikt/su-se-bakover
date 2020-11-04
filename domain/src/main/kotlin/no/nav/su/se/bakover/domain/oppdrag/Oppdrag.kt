@@ -133,7 +133,7 @@ data class Oppdrag(
             }
 
             private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger()
-                .groupBy { it.sum() }
+                .groupBy { it.getSumYtelse() }
                 .map {
                     Utbetalingsperiode(
                         fraOgMed = it.value.map { v -> v.periode().fraOgMed() }.minOrNull()!!,

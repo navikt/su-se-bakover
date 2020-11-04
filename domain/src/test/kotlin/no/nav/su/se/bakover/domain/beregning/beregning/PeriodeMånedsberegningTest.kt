@@ -20,8 +20,8 @@ internal class PeriodeMånedsberegningTest {
             sats = Sats.HØY,
             fradrag = emptyList()
         )
-        månedsberegning.sum() shouldBe 20637.32
-        månedsberegning.fradrag() shouldBe 0
+        månedsberegning.getSumYtelse() shouldBe 20637.32
+        månedsberegning.getSumFradrag() shouldBe 0
     }
 
     @Test
@@ -37,8 +37,8 @@ internal class PeriodeMånedsberegningTest {
                 )
             )
         )
-        månedsberegning.sum() shouldBe 15637.32
-        månedsberegning.fradrag() shouldBe 5000
+        månedsberegning.getSumYtelse() shouldBe 15637.32
+        månedsberegning.getSumFradrag() shouldBe 5000
     }
 
     @Test
@@ -83,7 +83,7 @@ internal class PeriodeMånedsberegningTest {
                 )
             )
         )
-        månedsberegning.sum() shouldBe 0
+        månedsberegning.getSumYtelse() shouldBe 0
     }
 
     @Test
@@ -100,8 +100,8 @@ internal class PeriodeMånedsberegningTest {
                 )
             )
         )
-        månedsberegning.sum() shouldBe 0
-        månedsberegning.fradrag() shouldBe 18973.02
+        månedsberegning.getSumYtelse() shouldBe 0
+        månedsberegning.getSumFradrag() shouldBe 18973.02
     }
 
     @Test
@@ -111,13 +111,13 @@ internal class PeriodeMånedsberegningTest {
             sats = Sats.ORDINÆR,
             fradrag = emptyList()
         )
-        m1.grunnbeløp() shouldBe 99858
+        m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             periode = Periode(1.desember(2020), 31.desember(2020)),
             sats = Sats.ORDINÆR,
             fradrag = emptyList()
         )
-        m2.grunnbeløp() shouldBe 101351
+        m2.getBenyttetGrunnbeløp() shouldBe 101351
     }
 }
