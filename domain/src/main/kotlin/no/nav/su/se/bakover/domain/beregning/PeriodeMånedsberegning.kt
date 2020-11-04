@@ -20,7 +20,7 @@ internal data class PeriodeMånedsberegning(
         .positiveOrZero()
 
     override fun getSumFradrag() = fradrag
-        .sumByDouble { it.månedsbeløp() }
+        .sumByDouble { it.getFradragPerMåned() }
         .limitedUpwardsTo(getSatsbeløp())
 
     override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()

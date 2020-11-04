@@ -94,5 +94,5 @@ fun LocalDate.formatMonthYear(): String =
 
 internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
     this.map {
-        FradragPerMåned(it.type(), it.månedsbeløp().toInt())
+        FradragPerMåned(it.getFradragstype(), it.getFradragPerMåned().toInt())
     }

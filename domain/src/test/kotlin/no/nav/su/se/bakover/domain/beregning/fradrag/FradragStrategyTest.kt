@@ -34,11 +34,11 @@ internal class FradragStrategyTest {
             periode = periode
         ).let { fradrag ->
             fradrag shouldHaveSize 2
-            val (forventetInntekt, kontant) = fradrag.partition { it.type() == Fradragstype.ForventetInntekt }
+            val (forventetInntekt, kontant) = fradrag.partition { it.getFradragstype() == Fradragstype.ForventetInntekt }
             kontant shouldBe listOf(kontantstøtte)
             forventetInntekt.first().let {
-                it.type() shouldBe Fradragstype.ForventetInntekt
-                it.totalBeløp() shouldBe 15000
+                it.getFradragstype() shouldBe Fradragstype.ForventetInntekt
+                it.getTotaltFradrag() shouldBe 15000
             }
         }
     }
