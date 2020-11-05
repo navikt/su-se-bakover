@@ -50,9 +50,11 @@ internal class SøknadJsonTest {
                     "erUførFlyktning": false,
                     "fnr": "${fnrUnder67()}"
                 },
-                "datoForInnlegelse": "2020-01-01",
-                "datoForUtskrivelse": "2020-01-31",
-                "fortsattInnlagt": false
+                "innlagtPåInstitusjon": {
+                    "datoForInnlegelse": "2020-01-01",
+                    "datoForUtskrivelse": "2020-01-31",
+                    "fortsattInnlagt": false
+                }
             },
             "utenlandsopphold":{
                 "registrertePerioder":[

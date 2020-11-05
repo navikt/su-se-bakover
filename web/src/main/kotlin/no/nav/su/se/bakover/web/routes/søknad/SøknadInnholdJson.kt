@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.Formue
+import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.InntektOgPensjon
 import no.nav.su.se.bakover.domain.Kjøretøy
 import no.nav.su.se.bakover.domain.Oppholdstillatelse
@@ -127,9 +128,7 @@ data class SøknadInnholdJson(
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektefellePartnerSamboer: EktefellePartnerSamboer?,
-        val datoForInnlegelse: LocalDate?,
-        val datoForUtskrivelse: LocalDate?,
-        val fortsattInnlagt: Boolean
+        val innlagtPåInstitusjon: InnlagtPåInstitusjon?
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -138,9 +137,7 @@ data class SøknadInnholdJson(
                 toBoforholdType(it)
             },
             ektefellePartnerSamboer = ektefellePartnerSamboer,
-            datoForInnlegelse = datoForInnlegelse,
-            datoForUtskrivelse = datoForUtskrivelse,
-            fortsattInnlagt = fortsattInnlagt
+            innlagtPåInstitusjon = innlagtPåInstitusjon
         )
 
         private fun toBoforholdType(str: String): DelerBoligMed {
@@ -159,9 +156,7 @@ data class SøknadInnholdJson(
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
-                    datoForInnlegelse = this.datoForInnlegelse,
-                    datoForUtskrivelse = this.datoForUtskrivelse,
-                    fortsattInnlagt = this.fortsattInnlagt,
+                    innlagtPåInstitusjon = this.innlagtPåInstitusjon
                 )
         }
     }
