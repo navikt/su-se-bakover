@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database
 
 import com.nhaarman.mockitokotlin2.mock
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -48,9 +48,10 @@ internal class TestDataHelper(
         søknadInnhold = SøknadInnholdTestdataBuilder.build()
     ).also { søknadRepo.opprettSøknad(it) }
 
-    fun insertBehandling(sakId: UUID, søknad: Søknad): NySøknadsbehandling = NySøknadsbehandling(
+    fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling = NySøknadsbehandling(
         sakId = sakId,
-        søknadId = søknad.id
+        søknadId = søknad.id,
+        oppgaveId = oppgaveId
     ).also {
         behandlingRepo.opprettSøknadsbehandling(it)
     }
@@ -64,8 +65,6 @@ internal class TestDataHelper(
             fradrag = emptyList()
         )
     )
-
-    fun hentUtbetaling(utbetalingId: UUID30) = utbetalingRepo.hentUtbetaling(utbetalingId)
 
     fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) = utbetalingRepo.opprettUtbetaling(utbetaling)
 

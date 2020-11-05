@@ -53,11 +53,12 @@ class BehandlingTilAttesteringTest {
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
+        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build(), oppgaveId = oppgaveId),
         status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,
         fnr = fnr,
-        simulering = simulering
+        simulering = simulering,
+        oppgaveId = oppgaveId
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -82,7 +83,7 @@ class BehandlingTilAttesteringTest {
         }
 
         val søknadRepoMock = mock<SøknadRepo> {
-            on { hentOppgaveId(any()) } doReturn oppgaveId
+            on { hentSøknad(any()) } doReturn simulertBehandling.søknad
         }
 
         val actual = createService(
@@ -110,7 +111,6 @@ class BehandlingTilAttesteringTest {
             verify(behandlingRepoMock).settSaksbehandler(simulertBehandling.id, saksbehandler)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(simulertBehandling.id, Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET)
 
-            verify(søknadRepoMock).hentOppgaveId(simulertBehandling.søknad.id)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
         verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock, søknadRepoMock)

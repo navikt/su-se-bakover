@@ -30,7 +30,8 @@ internal fun Row.toSøknad(): Søknad {
         id = uuid("id"),
         søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
         opprettet = tidspunkt("opprettet"),
-        lukket = stringOrNull("lukket")?.let { objectMapper.readValue<Søknad.Lukket>(it) }
+        lukket = stringOrNull("lukket")?.let { objectMapper.readValue<Søknad.Lukket>(it) },
+        oppgaveId = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
     )
 }
 

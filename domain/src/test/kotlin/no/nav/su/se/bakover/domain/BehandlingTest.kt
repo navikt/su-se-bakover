@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -639,7 +640,8 @@ internal class BehandlingTest {
         søknad = søknad,
         status = status,
         sakId = id1,
-        fnr = FnrGenerator.random()
+        fnr = FnrGenerator.random(),
+        oppgaveId = OppgaveId("1234")
     )
 
     private fun defaultSimulering() = Simulering(

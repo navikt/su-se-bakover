@@ -130,7 +130,7 @@ internal class SøknadPostgresRepoTest {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             val oppgaveId = OppgaveId("1")
             repo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
-            repo.hentOppgaveId(nySak.søknad.id) shouldBe oppgaveId
+            repo.hentSøknad(nySak.søknad.id)?.oppgaveId shouldBe oppgaveId
         }
     }
 }

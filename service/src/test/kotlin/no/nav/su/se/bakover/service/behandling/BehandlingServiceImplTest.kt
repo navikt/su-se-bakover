@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -53,6 +54,7 @@ internal class BehandlingServiceImplTest {
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val aktørId = AktørId("1234567890123")
+    private val oppgaveId = OppgaveId("1234")
 
     @Test
     fun `simuler behandling`() {
@@ -460,7 +462,8 @@ internal class BehandlingServiceImplTest {
         søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
-        fnr = fnr
+        fnr = fnr,
+        oppgaveId = oppgaveId
     )
 
     private fun behandlingTilAttestering(status: Behandling.BehandlingsStatus) = beregnetBehandling().copy(

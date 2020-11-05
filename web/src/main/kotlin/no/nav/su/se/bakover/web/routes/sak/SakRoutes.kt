@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
@@ -14,6 +15,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -71,7 +73,14 @@ internal fun Route.sakRoutes(
                         ifRight = { søknadId ->
                             behandlingService.opprettSøknadsbehandling(søknadId)
                                 .fold(
-                                    { call.svar(NotFound.message("Fant ikke søknad med id:$søknadId")) },
+                                    {
+                                        call.svar(
+                                            when (it) {
+                                                is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id:$søknadId")
+                                                is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message("$søknadId mangler oppgave")
+                                            }
+                                        )
+                                    },
                                     {
                                         call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
                                         call.svar(HttpStatusCode.Created.jsonBody(it))
