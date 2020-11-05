@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -120,7 +120,24 @@ internal class SøknadServiceImpl(
         )
     }
 
-    override fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
-        return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+    override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
+        return søknadRepo.hentSøknad(søknadId)?.right() ?: FantIkkeSøknad.left()
+    }
+
+    override fun lagUtskrift(søknadId: UUID): Either<KunneIkkeLageSøknadsutskrift, ByteArray> {
+        val søknad = hentSøknad(søknadId).getOrElse {
+            log.error("Skriv ut søknad: Fant ikke søknad")
+            return KunneIkkeLageSøknadsutskrift.FantIkkeSøknad.left()
+        }
+
+        return pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
+            {
+                log.error("Skriv ut søknad: Kunne ikke generere PDF. Originalfeil: $it")
+                KunneIkkeLageSøknadsutskrift.KunneIkkeLagePdf.left()
+            },
+            {
+                it.right()
+            }
+        )
     }
 }

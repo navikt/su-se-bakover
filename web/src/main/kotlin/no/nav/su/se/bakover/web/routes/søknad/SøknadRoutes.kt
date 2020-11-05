@@ -8,13 +8,16 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadsutskrift
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
@@ -64,6 +67,24 @@ internal fun Route.søknadRoutes(
                     )
                 }
             )
+        }
+    }
+
+    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
+        get("$søknadPath/{søknadId}/utskrift") {
+            call.withSøknadId { søknadId ->
+                søknadService.lagUtskrift(søknadId).fold(
+                    {
+                        when (it) {
+                            KunneIkkeLageSøknadsutskrift.FantIkkeSøknad -> call.respond(InternalServerError.message("Fant ikke søknad"))
+                            KunneIkkeLageSøknadsutskrift.KunneIkkeLagePdf -> call.respond(InternalServerError.message("Kunne ikke lage PDF"))
+                        }
+                    },
+                    {
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    }
+                )
+            }
         }
     }
 

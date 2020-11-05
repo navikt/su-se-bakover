@@ -45,6 +45,8 @@ import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadsutskrift
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
@@ -230,10 +232,16 @@ class AccessCheckProxy(
                     return services.søknad.nySøknad(søknadInnhold)
                 }
 
-                override fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
+                override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
                     assertHarTilgangTilSøknad(søknadId)
 
                     return services.søknad.hentSøknad(søknadId)
+                }
+
+                override fun lagUtskrift(søknadId: UUID): Either<KunneIkkeLageSøknadsutskrift, ByteArray> {
+                    assertHarTilgangTilSøknad(søknadId)
+
+                    return services.søknad.lagUtskrift(søknadId)
                 }
             },
             brev = object : BrevService {
