@@ -51,7 +51,8 @@ internal class LukkSøknadServiceImplTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        lukket = null
+        lukket = null,
+        oppgaveId = OppgaveId("1234")
     )
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknad.id,
@@ -71,7 +72,6 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
-            on { hentOppgaveId(søknad.id) } doReturn oppgaveId
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
@@ -112,7 +112,6 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
-            verify(søknadRepoMock).hentOppgaveId(søknad.id)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verifyNoMoreInteractions()
         }
@@ -129,7 +128,6 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
-            on { hentOppgaveId(søknad.id) } doReturn oppgaveId
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
@@ -162,7 +160,6 @@ internal class LukkSøknadServiceImplTest {
                 }
             )
             verify(sakServiceMock).hentSak(søknad.sakId)
-            verify(søknadRepoMock).hentOppgaveId(søknad.id)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verifyNoMoreInteractions()
         }
@@ -309,7 +306,8 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
-    fun `lukker ikke selve oppgaven hvis oppgaveclient returnerer null`() {
+    fun `lukker søknaden selv om oppgaveId er null`() {
+        val søknad = søknad.copy(oppgaveId = null)
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknad.id) } doReturn søknad
             on {
@@ -319,7 +317,6 @@ internal class LukkSøknadServiceImplTest {
                 )
             }.doNothing()
             on { harSøknadPåbegyntBehandling(søknad.id) } doReturn false
-            on { hentOppgaveId(søknad.id) } doReturn null
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(søknad.sakId) } doReturn sak.right()
@@ -356,7 +353,6 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
-            verify(søknadRepoMock).hentOppgaveId(søknad.id)
             verifyNoMoreInteractions()
         }
     }

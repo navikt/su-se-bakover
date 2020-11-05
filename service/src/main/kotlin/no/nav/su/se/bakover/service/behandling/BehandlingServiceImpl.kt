@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -137,13 +136,10 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandlingTilAttestering.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        val oppgaveId = søknadRepo.hentOppgaveId(behandlingTilAttestering.søknad.id)
-            ?: return behandlingTilAttestering.right()
-                .also { log.error("Klarte ikke å lukke oppgave da vi ikke fant oppgaveId for søknadsId : ${behandlingTilAttestering.søknad.id}") }
-        oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
+        oppgaveService.lukkOppgave(behandlingTilAttestering.oppgaveId()).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }.mapLeft {
-            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId $oppgaveId feilet")
+            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${behandlingTilAttestering.oppgaveId()} feilet")
         }
         return behandlingTilAttestering.right()
     }
@@ -269,21 +265,23 @@ internal class BehandlingServiceImpl(
     ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
-        return søknadService.hentSøknad(søknadId)
-            .map {
-                val nySøknadsbehandling = NySøknadsbehandling(
-                    id = UUID.randomUUID(),
-                    opprettet = now(),
-                    sakId = it.sakId,
-                    søknadId = søknadId
-                )
-                behandlingRepo.opprettSøknadsbehandling(
-                    nySøknadsbehandling
-                )
-                behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!
-            }.mapLeft {
-                KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
-            }
+        val søknad = søknadService.hentSøknad(søknadId).getOrElse {
+            return KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
+        }
+        // TODO Prøv å opprette oppgaven hvis den mangler?
+        val oppgaveId = søknad.oppgaveId ?: return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+
+        val nySøknadsbehandling = NySøknadsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = now(),
+            sakId = søknad.sakId,
+            søknadId = søknadId,
+            oppgaveId = oppgaveId
+        )
+        behandlingRepo.opprettSøknadsbehandling(
+            nySøknadsbehandling
+        )
+        return behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!.right()
     }
 
     override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.beregning
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
@@ -26,6 +27,7 @@ internal class BehandlingJsonTest {
         private val vv2id = UUID.randomUUID()
         private val sakId = UUID.randomUUID()
         private val behandlingFactory = BehandlingFactory(mock())
+        private val oppgaveId = OppgaveId("1234")
 
         internal val behandling = behandlingFactory.createBehandling(
             id = behandlingId,
@@ -93,7 +95,8 @@ internal class BehandlingJsonTest {
             attestant = NavIdentBruker.Attestant("kjella"),
             saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
             sakId = sakId,
-            fnr = FnrGenerator.random()
+            fnr = FnrGenerator.random(),
+            oppgaveId = oppgaveId
         )
 
         //language=JSON
@@ -191,7 +194,8 @@ internal class BehandlingJsonTest {
             behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = søknad,
             sakId = sakId,
-            fnr = FnrGenerator.random()
+            fnr = FnrGenerator.random(),
+            oppgaveId = oppgaveId
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

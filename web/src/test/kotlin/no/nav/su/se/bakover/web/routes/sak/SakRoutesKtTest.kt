@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
@@ -129,11 +130,13 @@ internal class SakRoutesKtTest {
     @Test
     fun `kan opprette behandling på en sak og søknad`() {
 
+        val oppgaveId = OppgaveId("1234")
         val nySak: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
             repos.sak.opprettSak(it)
         }.toSak()
         val nySøknad: Søknad = Søknad(sakId = nySak.id, søknadInnhold = søknadInnhold).also {
             søknadRepo.opprettSøknad(it)
+            søknadRepo.oppdaterOppgaveId(it.id, oppgaveId)
         }
 
         withTestApplication({

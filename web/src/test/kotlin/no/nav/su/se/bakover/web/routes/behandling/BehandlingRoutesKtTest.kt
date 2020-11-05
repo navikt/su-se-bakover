@@ -885,7 +885,8 @@ internal class BehandlingRoutesKtTest {
         }
         val nySøknadsbehandling = NySøknadsbehandling(
             sakId = sak.id,
-            søknadId = søknad.id
+            søknadId = søknad.id,
+            oppgaveId = OppgaveId("1234")
         )
         repos.behandling.opprettSøknadsbehandling(
             nySøknadsbehandling

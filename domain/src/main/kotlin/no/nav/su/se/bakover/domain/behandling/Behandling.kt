@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -29,7 +30,8 @@ data class Behandling internal constructor(
     private var attestant: NavIdentBruker.Attestant?,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg,
-    val fnr: Fnr
+    val fnr: Fnr,
+    private var oppgaveId: OppgaveId
 ) {
 
     private var tilstand: Tilstand = resolve(status)
@@ -47,6 +49,8 @@ data class Behandling internal constructor(
     fun simulering() = simulering
 
     fun hendelser() = hendelseslogg.hendelser()
+
+    fun oppgaveId() = oppgaveId
 
     fun getUtledetSatsBeløp(fraDato: LocalDate): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
