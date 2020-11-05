@@ -132,6 +132,73 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `skal ge tidig avslag om uførhet er ikke oppfylt`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        1,
+                        1
+                    ),
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+                        null
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `skal ge tidig avslag om flyktning er ikke oppfylt`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        1,
+                        1
+                    ),
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                        null
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `både uførhet og flyktning må vare vurdert innen tidig avslag kan ges`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        1,
+                        1
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe OPPRETTET
+
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                        null
+                    )
+                )
+            )
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> { opprettet.opprettBeregning(1.januar(2020), 31.desember(2020)) }
                 .also {
