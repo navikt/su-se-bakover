@@ -34,7 +34,3 @@ internal fun Row.toSøknad(): Søknad {
         oppgaveId = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
     )
 }
-
-internal fun Row.toOppgaveId(): OppgaveId? {
-    return stringOrNull("oppgaveId")?.let { OppgaveId(it) }
-}
