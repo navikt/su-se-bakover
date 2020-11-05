@@ -38,7 +38,10 @@ object SøknadInnholdTestdataBuilder {
             ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr(
                 erUførFlyktning = false,
                 fnr = fnrUnder67()
-            )
+            ),
+            datoForInnlegelse = LocalDate.of(2020, JANUARY, 1),
+            datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
+            fortsattInnlagt = false
         ),
 
         utenlandsopphold: Utenlandsopphold = Utenlandsopphold(

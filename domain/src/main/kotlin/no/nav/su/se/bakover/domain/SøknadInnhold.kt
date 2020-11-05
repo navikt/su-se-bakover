@@ -49,6 +49,9 @@ data class Boforhold(
     val delerBolig: Boolean,
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
+    val datoForInnlegelse: LocalDate?,
+    val datoForUtskrivelse: LocalDate?,
+    val fortsattInnlagt: Boolean,
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle

@@ -127,6 +127,9 @@ data class SøknadInnholdJson(
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektefellePartnerSamboer: EktefellePartnerSamboer?,
+        val datoForInnlegelse: LocalDate?,
+        val datoForUtskrivelse: LocalDate?,
+        val fortsattInnlagt: Boolean
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -134,7 +137,10 @@ data class SøknadInnholdJson(
             delerBoligMed = delerBoligMed?.let {
                 toBoforholdType(it)
             },
-            ektefellePartnerSamboer = ektefellePartnerSamboer
+            ektefellePartnerSamboer = ektefellePartnerSamboer,
+            datoForInnlegelse = datoForInnlegelse,
+            datoForUtskrivelse = datoForUtskrivelse,
+            fortsattInnlagt = fortsattInnlagt
         )
 
         private fun toBoforholdType(str: String): DelerBoligMed {
@@ -153,6 +159,9 @@ data class SøknadInnholdJson(
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
+                    datoForInnlegelse = this.datoForInnlegelse,
+                    datoForUtskrivelse = this.datoForUtskrivelse,
+                    fortsattInnlagt = this.fortsattInnlagt,
                 )
         }
     }
