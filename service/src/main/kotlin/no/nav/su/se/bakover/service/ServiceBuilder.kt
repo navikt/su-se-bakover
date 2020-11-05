@@ -31,8 +31,6 @@ class ServiceBuilder(
     private val søknadMetrics: SøknadMetrics
 ) {
     fun build(): Services {
-        val accessCheckProxy = AccessCheckProxy(databaseRepos.person, clients)
-
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak
         )
@@ -61,40 +59,38 @@ class ServiceBuilder(
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics
         )
-        return accessCheckProxy.proxy(
-            Services(
-                avstemming = AvstemmingServiceImpl(
-                    repo = databaseRepos.avstemming,
-                    publisher = clients.avstemmingPublisher
-                ),
-                utbetaling = utbetalingService,
-                oppdrag = OppdragServiceImpl(
-                    repo = databaseRepos.oppdrag
-                ),
-                behandling = BehandlingServiceImpl(
-                    behandlingRepo = databaseRepos.behandling,
-                    hendelsesloggRepo = databaseRepos.hendelseslogg,
-                    beregningRepo = databaseRepos.beregning,
-                    utbetalingService = utbetalingService,
-                    oppgaveService = oppgaveService,
-                    søknadService = søknadService,
-                    søknadRepo = databaseRepos.søknad,
-                    personOppslag = clients.personOppslag,
-                    brevService = brevService,
-                    behandlingMetrics = behandlingMetrics
-                ),
-                sak = sakService,
-                søknad = søknadService,
-                brev = brevService,
-                lukkSøknad = LukkSøknadServiceImpl(
-                    søknadRepo = databaseRepos.søknad,
-                    sakService = sakService,
-                    brevService = brevService,
-                    oppgaveService = oppgaveService
-                ),
-                oppgave = OppgaveServiceImpl(
-                    oppgaveClient = clients.oppgaveClient
-                )
+        return Services(
+            avstemming = AvstemmingServiceImpl(
+                repo = databaseRepos.avstemming,
+                publisher = clients.avstemmingPublisher
+            ),
+            utbetaling = utbetalingService,
+            oppdrag = OppdragServiceImpl(
+                repo = databaseRepos.oppdrag
+            ),
+            behandling = BehandlingServiceImpl(
+                behandlingRepo = databaseRepos.behandling,
+                hendelsesloggRepo = databaseRepos.hendelseslogg,
+                beregningRepo = databaseRepos.beregning,
+                utbetalingService = utbetalingService,
+                oppgaveService = oppgaveService,
+                søknadService = søknadService,
+                søknadRepo = databaseRepos.søknad,
+                personOppslag = clients.personOppslag,
+                brevService = brevService,
+                behandlingMetrics = behandlingMetrics
+            ),
+            sak = sakService,
+            søknad = søknadService,
+            brev = brevService,
+            lukkSøknad = LukkSøknadServiceImpl(
+                søknadRepo = databaseRepos.søknad,
+                sakService = sakService,
+                brevService = brevService,
+                oppgaveService = oppgaveService
+            ),
+            oppgave = OppgaveServiceImpl(
+                oppgaveClient = clients.oppgaveClient
             )
         )
     }
