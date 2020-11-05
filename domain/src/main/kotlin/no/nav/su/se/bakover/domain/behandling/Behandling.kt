@@ -367,7 +367,6 @@ data class Behandling internal constructor(
         object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
         object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
         object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
-        object FantIkkeAktørId : KunneIkkeIverksetteBehandling()
         object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
     }
 

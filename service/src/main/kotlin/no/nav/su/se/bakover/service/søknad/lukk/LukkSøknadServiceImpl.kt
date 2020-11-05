@@ -123,6 +123,7 @@ internal class LukkSøknadServiceImpl(
             request = request,
             sakId = søknad.sakId
         ).mapLeft {
+            // TODO: Her kan vi ende opp med å svare med feil, selvom vi har persistert søknaden som lukket
             KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
         }.map {
             return brevService.distribuerBrev(it)

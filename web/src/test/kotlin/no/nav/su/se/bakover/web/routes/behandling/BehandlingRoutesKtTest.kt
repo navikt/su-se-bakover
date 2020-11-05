@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -171,10 +170,6 @@ internal class BehandlingRoutesKtTest {
                     oppgaveClient = object : OppgaveClient {
                         override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                             return Either.left(KunneIkkeOppretteOppgave)
-                        }
-
-                        override fun ferdigstillAttesteringsoppgave(aktørId: AktørId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-                            return Unit.right()
                         }
 
                         override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
@@ -542,7 +537,7 @@ internal class BehandlingRoutesKtTest {
 
     @Nested
     inner class `Iverksetting av behandling` {
-        fun <R> withFerdigbehandletSakForBruker(
+        private fun <R> withFerdigbehandletSakForBruker(
             brukersNavIdent: String,
             test: TestApplicationEngine.(objects: Objects) -> R
         ) =

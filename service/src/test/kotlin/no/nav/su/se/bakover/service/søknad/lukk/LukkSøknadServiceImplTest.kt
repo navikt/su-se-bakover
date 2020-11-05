@@ -5,6 +5,7 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -113,8 +114,8 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
     }
 
     @Test
@@ -161,8 +162,8 @@ internal class LukkSøknadServiceImplTest {
             )
             verify(sakServiceMock).hentSak(søknad.sakId)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, oppgaveServiceMock)
     }
 
     @Test
@@ -263,7 +264,7 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
-    fun `svarer med feilmelding dersom jorunalføring og eller distribusjon av brev feiler`() {
+    fun `svarer med feilmelding dersom distribusjon av brev feiler`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(søknad.id) } doReturn søknad
             on {
@@ -299,10 +300,17 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(søknad.id)
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+            verify(søknadRepoMock).lukkSøknad(
+                argThat { it shouldBe søknad.id },
+                argThat {
+                    it.saksbehandler shouldBe saksbehandler.toString()
+                    it.type shouldBe Søknad.LukketType.TRUKKET
+                }
+            )
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock)
     }
 
     @Test
@@ -353,8 +361,8 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(TrukketSøknadBrevRequest(søknad, 1.januar(2020)), søknad.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("en id"))
             verify(sakServiceMock).hentSak(søknad.sakId)
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock)
     }
 
     private fun createService(

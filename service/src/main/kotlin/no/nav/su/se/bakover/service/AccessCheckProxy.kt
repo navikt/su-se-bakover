@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -274,7 +273,6 @@ class AccessCheckProxy(
 
             oppgave = object : OppgaveService {
                 override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
-                override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             }
 
