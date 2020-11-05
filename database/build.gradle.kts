@@ -1,4 +1,4 @@
-val flywayVersion = "6.5.3"
+val flywayVersion = "7.1.1"
 val hikariVersion = "3.4.5"
 val vaultJdbcVersion = "1.3.7"
 val kotliqueryVersion = "1.3.1"
