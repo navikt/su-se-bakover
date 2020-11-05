@@ -25,7 +25,7 @@ import java.util.UUID
 internal class UtbetalingRequestTest {
     companion object {
         const val FAGOMRÅDE = "SUUFORE"
-        const val BELØP = 1000.0
+        const val BELØP = 1000
         const val SAKSBEHANDLER = "SU"
         val FNR = Fnr("12345678911")
         val yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -147,7 +147,7 @@ internal class UtbetalingRequestTest {
                         gjelderId = FNR,
                         gjelderNavn = "",
                         datoBeregnet = idag(),
-                        nettoBeløp = 0.0,
+                        nettoBeløp = 0,
                         periodeList = listOf()
                     ),
                     kvittering = Kvittering(

@@ -100,7 +100,7 @@ internal class UtbetalingPostgresRepoTest {
             gjelderId = FNR,
             gjelderNavn = "",
             datoBeregnet = idag(),
-            nettoBeløp = 0.0,
+            nettoBeløp = 0,
             periodeList = listOf()
         ),
         utbetalingsrequest = Utbetalingsrequest(
@@ -115,6 +115,6 @@ internal class UtbetalingPostgresRepoTest {
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.desember(2020),
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        beløp = 25000.1234
+        beløp = 25000
     )
 }

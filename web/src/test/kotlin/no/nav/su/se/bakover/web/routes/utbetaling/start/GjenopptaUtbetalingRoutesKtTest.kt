@@ -217,7 +217,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "",
                 datoBeregnet = LocalDate.now(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             utbetalingsrequest = Utbetalingsrequest("")

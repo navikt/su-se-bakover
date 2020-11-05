@@ -264,7 +264,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = idag(),
-        nettoBeløp = 13.0,
+        nettoBeløp = 13,
         periodeList = listOf()
     )
     private val oppdragsmelding = Utbetalingsrequest(

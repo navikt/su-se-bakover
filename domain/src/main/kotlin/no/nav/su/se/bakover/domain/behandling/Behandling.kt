@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentA
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 data class Behandling internal constructor(
     private val behandlingMetrics: BehandlingMetrics,
@@ -53,7 +54,7 @@ data class Behandling internal constructor(
             status == BehandlingsStatus.BEREGNET_INNVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
-            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(fraDato)
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(fraDato)?.roundToInt()
         }
         return null
     }

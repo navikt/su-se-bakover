@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import kotlin.math.roundToInt
 
 internal data class PeriodeMånedsberegning(
     private val periode: Periode,
@@ -16,8 +17,9 @@ internal data class PeriodeMånedsberegning(
         require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
-    override fun getSumYtelse() = (getSatsbeløp() - getSumFradrag())
+    override fun getSumYtelse(): Int = (getSatsbeløp() - getSumFradrag())
         .positiveOrZero()
+        .roundToInt()
 
     override fun getSumFradrag() = fradrag
         .sumByDouble { it.getFradragPerMåned() }

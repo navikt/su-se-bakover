@@ -110,7 +110,7 @@ internal class UtbetalingServiceImplTest {
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -155,7 +155,7 @@ internal class UtbetalingServiceImplTest {
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -298,7 +298,7 @@ internal class UtbetalingServiceImplTest {
         }
 
         val simuleringClientMock = mock<SimuleringClient> {
-            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234.0).right()
+            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234).right()
         }
 
         val utbetalingRepoMock = mock<UtbetalingRepo>()
@@ -355,7 +355,7 @@ internal class UtbetalingServiceImplTest {
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = idag(),
-        nettoBeløp = 5155.0,
+        nettoBeløp = 5155,
         periodeList = listOf()
     )
 

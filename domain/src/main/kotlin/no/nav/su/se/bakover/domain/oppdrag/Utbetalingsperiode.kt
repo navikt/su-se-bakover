@@ -5,5 +5,5 @@ import java.time.LocalDate
 data class Utbetalingsperiode(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val beløp: Double
+    val beløp: Int
 )

@@ -84,6 +84,6 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
         tilOgMed = localDate("tom"),
         opprettet = tidspunkt("opprettet"),
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
-        beløp = double("beløp")
+        beløp = int("beløp")
     )
 }

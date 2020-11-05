@@ -32,7 +32,7 @@ internal class BeregningJsonTest {
                     "tilOgMed":"2020-08-31",
                     "sats":"HØY",
                     "grunnbeløp":101351,
-                    "beløp":19945.87
+                    "beløp":19946
                 }],
                 "fradrag": [{
                   "type": "Arbeidsinntekt",

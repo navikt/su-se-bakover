@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
 import java.time.Month
+import kotlin.math.roundToInt
 
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
@@ -59,19 +60,23 @@ object SimuleringStub : SimuleringClient {
         )
     }
 
-    private fun List<SimulertPeriode>.calculateNetto() = this.sumByDouble { it.bruttoYtelse() } + this.sumByDouble {
-        it.utbetaling.flatMap { it.detaljer }.filter { !it.isYtelse() }.sumByDouble { it.belop }
-    }
+    private fun List<SimulertPeriode>.calculateNetto() =
+        this.sumBy { it.bruttoYtelse() } + this.sumBy { simulertPeriode ->
+            simulertPeriode.utbetaling
+                .flatMap { it.detaljer }
+                .filter { !it.isYtelse() }
+                .sumBy { it.belop }
+        }
 
     private fun List<Utbetalingslinje>.findBeløpForDate(fraOgMed: LocalDate) =
-        this.first() { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
+        this.first { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
 
     private fun simulerStans(utbetaling: Utbetaling): Simulering {
         return Simulering(
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
-            nettoBeløp = 0.0,
+            nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(
                     fraOgMed = utbetaling.tidligsteDato(),
@@ -82,7 +87,7 @@ object SimuleringStub : SimuleringClient {
         )
     }
 
-    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Double) = SimulertDetaljer(
+    private fun createYtelse(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "4952000",
@@ -97,13 +102,13 @@ object SimuleringStub : SimuleringClient {
         klasseType = KlasseType.YTEL
     )
 
-    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Double) = SimulertDetaljer(
+    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "0510000",
-        belop = -(beløp * 0.25),
+        belop = -(beløp * 0.25).roundToInt(),
         tilbakeforing = false,
-        sats = 1.0,
+        sats = 1,
         typeSats = "MND",
         antallSats = 31,
         uforegrad = 0,

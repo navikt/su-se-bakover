@@ -151,7 +151,7 @@ internal class UtbetalingServiceImpl(
     }
 
     private fun simulertStansHarBeløpUlikt0(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Boolean {
-        return if (simulertUtbetaling.simulering.nettoBeløp != 0.0 || simulertUtbetaling.simulering.bruttoYtelse() != 0.0) {
+        return if (simulertUtbetaling.simulering.nettoBeløp != 0 || simulertUtbetaling.simulering.bruttoYtelse() != 0) {
             log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, nettobeløp i simulering var ${simulertUtbetaling.simulering.nettoBeløp}, bruttobeløp var:${simulertUtbetaling.simulering.bruttoYtelse()}")
             true
         } else false

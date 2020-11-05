@@ -8,7 +8,7 @@ data class Simulering(
     val gjelderId: Fnr,
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
-    val nettoBeløp: Double,
+    val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>
 ) {
     init {
@@ -18,7 +18,7 @@ data class Simulering(
     }
 
     fun bruttoYtelse() = periodeList
-        .sumByDouble { it.bruttoYtelse() }
+        .sumBy { it.bruttoYtelse() }
 
     override fun equals(other: Any?) = other is Simulering &&
         other.gjelderId == this.gjelderId &&
@@ -37,7 +37,7 @@ data class SimulertPeriode(
 ) {
 
     fun bruttoYtelse() = utbetaling
-        .sumByDouble { it.bruttoYtelse() }
+        .sumBy { it.bruttoYtelse() }
 }
 
 data class SimulertUtbetaling(
@@ -50,7 +50,7 @@ data class SimulertUtbetaling(
 ) {
     fun bruttoYtelse() = detaljer
         .filter { it.isYtelse() }
-        .sumByDouble { it.belop }
+        .sumBy { it.belop }
 }
 
 data class SimulertDetaljer(
@@ -59,9 +59,9 @@ data class SimulertDetaljer(
     @JsonAlias("faktiskTilOgMed", "faktiskTom")
     val faktiskTilOgMed: LocalDate,
     val konto: String,
-    val belop: Double,
+    val belop: Int,
     val tilbakeforing: Boolean,
-    val sats: Double,
+    val sats: Int,
     val typeSats: String,
     val antallSats: Int,
     val uforegrad: Int,

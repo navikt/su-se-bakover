@@ -183,9 +183,9 @@ internal class StansUtbetalingServiceTest {
                                         faktiskFraOgMed = idag(),
                                         faktiskTilOgMed = idag(),
                                         konto = "",
-                                        belop = 1234.0,
+                                        belop = 1234,
                                         tilbakeforing = false,
-                                        sats = 1234.0,
+                                        sats = 1234,
                                         typeSats = "",
                                         antallSats = 1,
                                         uforegrad = 0,
@@ -322,7 +322,7 @@ internal class StansUtbetalingServiceTest {
         gjelderId = fnr,
         gjelderNavn = "navn",
         datoBeregnet = idag(),
-        nettoBeløp = 0.0,
+        nettoBeløp = 0,
         periodeList = listOf()
     )
     private val oppdragsmelding = Utbetalingsrequest(

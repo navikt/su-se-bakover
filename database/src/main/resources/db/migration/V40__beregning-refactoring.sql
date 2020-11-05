@@ -35,4 +35,3 @@ alter table fradrag drop column if exists inntektDelerAvPeriode;
 drop table if exists månedsberegning;
 
 alter table fradrag alter column beløp type decimal;
-alter table utbetalingslinje alter column beløp type decimal;

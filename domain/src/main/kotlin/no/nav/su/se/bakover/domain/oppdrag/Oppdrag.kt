@@ -95,7 +95,7 @@ data class Oppdrag(
                             fraOgMed = stansesFraOgMed,
                             tilOgMed = stansesTilOgMed,
                             forrigeUtbetalingslinjeId = sisteOversendteUtbetalingslinje.id,
-                            beløp = 0.0
+                            beløp = 0
                         )
                     ),
                     fnr = fnr,

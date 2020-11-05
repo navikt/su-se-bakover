@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 abstract class LagBrevRequest {
     abstract fun getFnr(): Fnr
@@ -21,7 +22,8 @@ abstract class LagBrevRequest {
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
             satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt() ?: 0, // TODO: avrunding
-            fradragSum = behandling.beregning()?.getSumFradrag() ?: 0,
+            // TODO: burde kanskje sende over doubles?
+            fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
             avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
         )
@@ -59,7 +61,8 @@ abstract class LagBrevRequest {
                 redusertStønadStatus = behandling.beregning()?.getFradrag()?.isNotEmpty() ?: false,
                 harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                 fradrag = behandling.beregning()!!.getFradrag().toFradragPerMåned(),
-                fradragSum = behandling.beregning()!!.getSumFradrag(),
+                // TODO: burde kanskje sende over doubles?
+                fradragSum = behandling.beregning()!!.getSumFradrag().roundToInt(),
             )
         }
     }

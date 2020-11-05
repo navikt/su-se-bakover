@@ -67,7 +67,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = first.opprettet,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
-                    beløp = 20637.32,
+                    beløp = 20637,
                     forrigeUtbetalingslinjeId = null
                 )
             )
@@ -88,7 +88,7 @@ internal class OppdragNyStrategyTest {
                         gjelderId = fnr,
                         gjelderNavn = "navn",
                         datoBeregnet = idag(),
-                        nettoBeløp = 0.0,
+                        nettoBeløp = 0,
                         periodeList = listOf()
                     ),
                     kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
@@ -102,7 +102,7 @@ internal class OppdragNyStrategyTest {
                             fraOgMed = 1.januar(2018),
                             tilOgMed = 1.desember(2018),
                             forrigeUtbetalingslinjeId = null,
-                            beløp = 5000.0
+                            beløp = 5000
                         )
                     ),
                     fnr = fnr,
@@ -134,7 +134,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = nyUtbetaling.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
-                    beløp = 20637.32,
+                    beløp = 20637,
                     forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
                 ),
                 expectedUtbetalingslinje(
@@ -142,7 +142,7 @@ internal class OppdragNyStrategyTest {
                     opprettet = nyUtbetaling.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
-                    beløp = 20945.87,
+                    beløp = 20946,
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id
                 )
             ),
@@ -166,7 +166,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -184,7 +184,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -202,7 +202,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -219,7 +219,7 @@ internal class OppdragNyStrategyTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -255,7 +255,7 @@ internal class OppdragNyStrategyTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 20637.32
+                    beløp = 20637
                 ),
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
@@ -263,7 +263,7 @@ internal class OppdragNyStrategyTest {
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
-                    beløp = 20945.87
+                    beløp = 20946
                 )
             ),
             fnr = fnr,
@@ -295,7 +295,7 @@ internal class OppdragNyStrategyTest {
         opprettet: Tidspunkt,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
-        beløp: Double,
+        beløp: Int,
         forrigeUtbetalingslinjeId: UUID30?
     ): Utbetalingslinje {
         return Utbetalingslinje(

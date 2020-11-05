@@ -20,7 +20,7 @@ internal class PeriodeMånedsberegningTest {
             sats = Sats.HØY,
             fradrag = emptyList()
         )
-        månedsberegning.getSumYtelse() shouldBe 20637.32
+        månedsberegning.getSumYtelse() shouldBe 20637
         månedsberegning.getSumFradrag() shouldBe 0
     }
 
@@ -37,7 +37,7 @@ internal class PeriodeMånedsberegningTest {
                 )
             )
         )
-        månedsberegning.getSumYtelse() shouldBe 15637.32
+        månedsberegning.getSumYtelse() shouldBe 15637
         månedsberegning.getSumFradrag() shouldBe 5000
     }
 

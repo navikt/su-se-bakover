@@ -13,7 +13,7 @@ interface Beregning : PeriodisertInformasjon {
     fun getMånedsberegninger(): List<Månedsberegning>
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
-    fun getSumFradrag(): Int
+    fun getSumFradrag(): Double
     fun getSumYtelse(periode: Periode): Int
     fun getFradrag(periode: Periode): Int
     fun getSumYtelseErUnderMinstebeløp(): Boolean

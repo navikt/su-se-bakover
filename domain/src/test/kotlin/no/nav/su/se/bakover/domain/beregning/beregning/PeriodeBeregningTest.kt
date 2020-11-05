@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
@@ -24,13 +24,6 @@ internal class PeriodeBeregningTest {
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
-        beregning.getSumYtelse(periode) shouldBe 250116
-        beregning.getFradrag(periode) shouldBe 0
-
-        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 20637
-        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.getSumYtelse(Periode(1.januar(2020), 30.april(2020))) shouldBe 82549
-        beregning.getFradrag(Periode(1.januar(2020), 30.april(2020))) shouldBe 0
     }
 
     @Test
@@ -50,9 +43,6 @@ internal class PeriodeBeregningTest {
 
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
-
-        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 19637
-        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 1000
     }
 
     @Test
@@ -77,15 +67,6 @@ internal class PeriodeBeregningTest {
 
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
-
-        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 14637
-        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 6000
-
-        beregning.getSumYtelse(Periode(1.juni(2020), 30.juni(2020))) shouldBe 14946
-        beregning.getFradrag(Periode(1.juni(2020), 30.juni(2020))) shouldBe 6000
-
-        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.getFradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
     }
 
     @Test
@@ -110,46 +91,26 @@ internal class PeriodeBeregningTest {
 
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
-
-        beregning.getSumYtelse(Periode(1.januar(2020), 31.januar(2020))) shouldBe 8637
-        beregning.getFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe 12000
-
-        beregning.getSumYtelse(Periode(1.desember(2020), 31.desember(2020))) shouldBe 20946
-        beregning.getFradrag(Periode(1.desember(2020), 31.desember(2020))) shouldBe 0
     }
 
     /**
-     * Månedsbeløp: Jan-Apr = 20637.32 -> * 0.02 = 412,7464
-     * Månedsbeløp: Mai-Des = 20945.87 -> * 0.02 = 418,9174
-     * Beløpsgrense regnet måned for måned: (412,7464 * 4) + (418,9174) * 8 = 5002,3248 -> rund til nærmeste hele = 5002
-     * Beløpsgrense regnet fra årsbeløp med høy sats: 250116 -> * 0.02 -> 5002,32
-     */
-    @Test
-    fun `sum lik minstebeløp for utbetaling (2% av høy sats)`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
-            periode = periode,
-            sats = Sats.HØY,
-            fradrag = listOf(
-                PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    beløp = 245114.0,
-                    periode = periode
-                )
-            )
-        )
-
-        beregning.getSumYtelse() shouldBe 5002
-        beregning.getSumFradrag() shouldBe 245114
-        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 250116
-        beregning.getSumYtelseErUnderMinstebeløp() shouldBe false
-    }
-
-    /**
-     * Månedsbeløp: Jan-Apr = 20637.32 -> * 0.02 = 412,7464
-     * Månedsbeløp: Mai-Des = 20945.87 -> * 0.02 = 418,9174
-     * Beløpsgrense regnet måned for måned: (412,7464 * 4) + (418,9174) * 8 = 5002,3248 -> rund til nærmeste hele = 5002
-     * Beløpsgrense regnet fra årsbeløp med høy sats: 250116 -> * 0.02 -> 5002,32
+     * Månedsbeløp: Jan-Apr = 20637,32 -> * 0.02 = 412,7464
+     * Månedsbeløp: Mai-Des = 20945,87 -> * 0.02 = 418,9174
+     * Beløpsgrense regnet måned for måned: (412,7464 * 4) + (418,9174 * 8) = 5002,3248
+     *
+     * Fradrag: 245117 -> 20426,42 pr mnd
+     *
+     * Utbetalt Jan-Apr: 20637,32 - 20426,42 = 210,9 -> rundes til 211 -- "får" 0,1 pr mnd = 0,4 totalt
+     * Utbetalt Mai-Des: 20945,87 - 20426,42 = 519,46 -> rundes til 519 -- "mister" 0,46 pr mnd = 3,68 totalt
+     * "Mister" totalt 3,28 kr pga avrunding av månedsbeløp
+     * Totalt (tatt høyde for avrunding av månedsbeløp): 4996
+     *
+     * Dersom vi ikke hadde tatt høyde for avrunding ville vi hatt
+     * Jan-Apr: 210,9 pr mnd
+     * Mai-Des: 519,46 pr mnd
+     * Totalt: 4999.28
+     *
+     * Total (uten avrunding) - "det vi mister pga avrunding" = 4996
      */
     @Test
     fun `sum under minstebeløp for utbetaling (2% av høy sats)`() {
@@ -160,15 +121,14 @@ internal class PeriodeBeregningTest {
             fradrag = listOf(
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = 245115.0,
+                    beløp = 245117.0,
                     periode = periode
                 )
             )
         )
 
-        beregning.getSumYtelse() shouldBe 5001
-        beregning.getSumFradrag() shouldBe 245115
-        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 250116
+        beregning.getSumYtelse() shouldBe 4996
+        beregning.getSumFradrag() shouldBe 245117.0.plusOrMinus(0.5)
         beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
     }
 

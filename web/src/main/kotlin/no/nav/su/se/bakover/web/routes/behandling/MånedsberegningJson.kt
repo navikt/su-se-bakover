@@ -8,7 +8,7 @@ internal data class MånedsberegningJson(
     val tilOgMed: String,
     val sats: String,
     val grunnbeløp: Int,
-    val beløp: Double
+    val beløp: Int
 )
 // TODO expand to show fradrag/mnd
 internal fun Månedsberegning.toJson() = MånedsberegningJson(

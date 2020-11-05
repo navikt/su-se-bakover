@@ -47,7 +47,7 @@ class BehandlingTilAttesteringTest {
         gjelderId = fnr,
         gjelderNavn = "NAVN",
         datoBeregnet = idag(),
-        nettoBeløp = 191500.0,
+        nettoBeløp = 191500,
         periodeList = listOf()
     )
 

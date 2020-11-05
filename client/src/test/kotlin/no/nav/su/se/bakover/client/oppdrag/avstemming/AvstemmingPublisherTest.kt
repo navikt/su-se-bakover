@@ -53,7 +53,7 @@ class AvstemmingPublisherTest {
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
                     datoBeregnet = idag(),
-                    nettoBeløp = 0.0,
+                    nettoBeløp = 0,
                     periodeList = listOf()
                 ),
                 utbetalingsrequest = Utbetalingsrequest(

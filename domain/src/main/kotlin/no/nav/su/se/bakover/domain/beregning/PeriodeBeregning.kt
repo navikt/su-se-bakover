@@ -12,13 +12,13 @@ internal data class PeriodeBeregning(
     private val beregning = beregn()
 
     override fun getSumYtelse() = beregning.values
-        .sumByDouble { it.getSumYtelse() }.roundToInt()
+        .sumBy { it.getSumYtelse() }
 
     override fun getSumFradrag() = beregning.values
-        .sumByDouble { it.getSumFradrag() }.roundToInt()
+        .sumByDouble { it.getSumFradrag() }
 
     override fun getSumYtelse(periode: Periode) = periode.tilMånedsperioder()
-        .sumByDouble { beregning[it]?.getSumYtelse() ?: 0.0 }.roundToInt()
+        .sumBy { beregning[it]?.getSumYtelse() ?: 0 }
 
     override fun getFradrag(periode: Periode) = periode.tilMånedsperioder()
         .sumByDouble { beregning[it]?.getSumFradrag() ?: 0.0 }.roundToInt()

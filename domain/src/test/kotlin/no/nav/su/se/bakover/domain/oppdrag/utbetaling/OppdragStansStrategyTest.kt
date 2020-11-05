@@ -40,7 +40,7 @@ internal class OppdragStansTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -58,7 +58,7 @@ internal class OppdragStansTest {
             fraOgMed = 1.juli(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinje = utbetaling.utbetalingslinjer[0].id,
-            beløp = 0.0
+            beløp = 0
         )
     }
 
@@ -70,7 +70,7 @@ internal class OppdragStansTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.mai(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -97,7 +97,7 @@ internal class OppdragStansTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 0.0
+                    beløp = 0
                 )
             ),
             type = Utbetaling.UtbetalingsType.STANS
@@ -129,7 +129,7 @@ internal class OppdragStansTest {
                 gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             utbetalingsrequest = Utbetalingsrequest(
@@ -144,7 +144,7 @@ internal class OppdragStansTest {
         )
 }
 
-fun Utbetalingslinje.assert(fraOgMed: LocalDate, tilOgMed: LocalDate, forrigeUtbetalingslinje: UUID30, beløp: Double) {
+fun Utbetalingslinje.assert(fraOgMed: LocalDate, tilOgMed: LocalDate, forrigeUtbetalingslinje: UUID30, beløp: Int) {
     this.fraOgMed shouldBe fraOgMed
     this.tilOgMed shouldBe tilOgMed
     this.forrigeUtbetalingslinjeId shouldBe forrigeUtbetalingslinje

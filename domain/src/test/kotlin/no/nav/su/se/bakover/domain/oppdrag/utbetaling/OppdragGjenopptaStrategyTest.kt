@@ -35,7 +35,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -47,7 +47,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].id,
-                    beløp = 0.0
+                    beløp = 0
                 )
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA
@@ -88,7 +88,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -101,7 +101,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
-                    beløp = 0.0
+                    beløp = 0
                 )
             ),
             type = Utbetaling.UtbetalingsType.STANS
@@ -113,7 +113,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA
@@ -125,7 +125,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
-                    beløp = 5100.0
+                    beløp = 5100
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -137,7 +137,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
-                    beløp = 0.0
+                    beløp = 0
                 )
             ),
             type = Utbetaling.UtbetalingsType.STANS
@@ -152,7 +152,7 @@ internal class OppdragGjenopptaStrategyTest {
             fraOgMed = 1.mai(2021),
             tilOgMed = 31.oktober(2021),
             forrigeUtbetalingslinje = andreStans.utbetalingslinjer[0].id,
-            beløp = 5100.0
+            beløp = 5100
         )
     }
 
@@ -164,7 +164,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500.0
+                    beløp = 1500
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY
@@ -188,13 +188,13 @@ internal class OppdragGjenopptaStrategyTest {
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
-            beløp = 1500.0
+            beløp = 1500
         )
         val l2 = Utbetalingslinje(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
-            beløp = 5100.0
+            beløp = 5100
         )
         val første = createOversendtUtbetaling(
             listOf(l1, l2), Utbetaling.UtbetalingsType.NY
@@ -206,7 +206,7 @@ internal class OppdragGjenopptaStrategyTest {
                     fraOgMed = 1.april(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[1].id,
-                    beløp = 0.0
+                    beløp = 0
                 )
             ),
             type = Utbetaling.UtbetalingsType.STANS
@@ -222,13 +222,13 @@ internal class OppdragGjenopptaStrategyTest {
                 fraOgMed = 1.april(2020),
                 tilOgMed = 30.april(2020),
                 forrigeUtbetalingslinje = stans.utbetalingslinjer[0].id,
-                beløp = 1500.0
+                beløp = 1500
             )
             it.utbetalingslinjer[1].assert(
                 fraOgMed = 1.mai(2020),
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinje = it.utbetalingslinjer[0].id,
-                beløp = 5100.0
+                beløp = 5100
             )
         }
     }
@@ -311,7 +311,7 @@ internal class OppdragGjenopptaStrategyTest {
             gjelderId = Fnr(fnr = fnr.toString()),
             gjelderNavn = "navn",
             datoBeregnet = idag(),
-            nettoBeløp = 0.0,
+            nettoBeløp = 0,
             periodeList = listOf()
         ),
         oppdragId = UUID30.randomUUID(),

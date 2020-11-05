@@ -62,7 +62,7 @@ internal class UtbetalingKvitteringConsumerTest {
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
-                nettoBeløp = 0.0,
+                nettoBeløp = 0,
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,

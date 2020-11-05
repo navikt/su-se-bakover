@@ -21,7 +21,7 @@ internal class MånedsberegningJsonTest {
                 "tilOgMed":"2020-01-31",
                 "sats":"HØY",
                 "grunnbeløp":99858,
-                "beløp":20637.32
+                "beløp":20637
             }
         """
 
