@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
 data class Søknad(
@@ -10,6 +11,7 @@ data class Søknad(
     val opprettet: Tidspunkt = now(),
     val søknadInnhold: SøknadInnhold,
     val lukket: Lukket? = null,
+    val oppgaveId: OppgaveId? = null
 ) {
     data class Lukket(
         val tidspunkt: Tidspunkt,
