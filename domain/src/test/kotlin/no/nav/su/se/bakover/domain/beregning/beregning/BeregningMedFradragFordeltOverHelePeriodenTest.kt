@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
 
-internal class PeriodeBeregningTest {
+internal class BeregningMedFradragFordeltOverHelePeriodenTest {
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
@@ -167,5 +167,68 @@ internal class PeriodeBeregningTest {
         )
         beregning.id() shouldBe beregning.id()
         beregning.opprettet() shouldBe beregning.opprettet()
+    }
+
+    @Test
+    fun `alle fradrag blir fordelt over hele perioden`() {
+        val periode = Periode(1.januar(2020), 31.mars(2020))
+
+        val totaltFradrag = 100000.0
+
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                PeriodeFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = totaltFradrag,
+                    periode = Periode(1.januar(2020), 31.januar(2020))
+                )
+            )
+        )
+
+        val forventetTotaltFradrag = Sats.HØY.månedsbeløp(periode.fraOgMed()) * 3
+
+        beregning.getSumYtelse() shouldBe 0
+        beregning.getSumFradrag() shouldBe forventetTotaltFradrag
+        beregning.getMånedsberegninger().forEach {
+            it.getSumFradrag() shouldBe (forventetTotaltFradrag / 3).plusOrMinus(0.5)
+            it.getSumYtelse() shouldBe 0
+        }
+    }
+
+    @Test
+    fun `To beregninger med samme totalsum for fradrag, men for forskjellige perioder skal fortsatt gi samme sluttverdier`() {
+        val periode = Periode(1.januar(2020), 31.mars(2020))
+
+        val totaltFradrag = 100000.0
+
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                PeriodeFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = totaltFradrag,
+                    periode = Periode(1.januar(2020), 31.januar(2020))
+                )
+            )
+        )
+
+        val beregning2 = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                PeriodeFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = totaltFradrag,
+                    periode = periode
+                )
+            )
+        )
+
+        beregning.getMånedsberegninger() shouldBe beregning2.getMånedsberegninger()
+        beregning.getSumFradrag() shouldBe beregning2.getSumFradrag()
+        beregning.getSumYtelse() shouldBe beregning2.getSumYtelse()
     }
 }

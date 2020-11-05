@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import kotlin.math.roundToInt
 
-internal data class PeriodeBeregning(
+internal data class BeregningMedFradragFordeltOverHelePerioden(
     private val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>
@@ -27,7 +28,15 @@ internal data class PeriodeBeregning(
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.tilMånedsperioder()
-        val periodiserteFradrag = fradrag.flatMap { it.periodiser() }
+
+        val periodiserteFradrag = fradrag.flatMap {
+            FradragFactory.ny(
+                type = it.getFradragstype(),
+                beløp = it.getTotaltFradrag(),
+                periode = periode,
+                utenlandskInntekt = it.getUtenlandskInntekt()
+            ).periodiser()
+        }
             .groupBy { it.periode() }
 
         return perioder.map {

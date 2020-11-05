@@ -11,7 +11,7 @@ object BeregningFactory {
         sats: Sats,
         fradrag: List<Fradrag>
     ): Beregning {
-        return PeriodeBeregning(
+        return BeregningMedFradragFordeltOverHelePerioden(
             periode = periode,
             sats = sats,
             fradrag = fradrag
