@@ -77,7 +77,7 @@ internal fun Route.sakRoutes(
                                         call.svar(
                                             when (it) {
                                                 is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id:$søknadId")
-                                                is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message("$søknadId mangler oppgave")
+                                                is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message("Søknad $søknadId mangler oppgave")
                                             }
                                         )
                                     },

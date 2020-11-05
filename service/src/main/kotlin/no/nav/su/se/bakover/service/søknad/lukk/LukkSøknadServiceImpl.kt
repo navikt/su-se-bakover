@@ -41,7 +41,7 @@ internal class LukkSøknadServiceImpl(
                     is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
                 }.map { sak ->
                     if (oppgaveId == null) {
-                        log.info("Kunne ikke lukke oppgave da oppgave ikke var opprettet")
+                        log.info("Kunne ikke lukke oppgave da oppgave for søknad ${søknad.id} ikke var opprettet")
                     } else {
                         oppgaveService.lukkOppgave(oppgaveId).mapLeft {
                             log.warn("Kunne ikke lukke oppgave $oppgaveId for søknad ${søknad.id}")

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -82,15 +81,10 @@ class BehandlingTilAttesteringTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn simulertBehandling.søknad
-        }
-
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock,
-            søknadRepo = søknadRepoMock
+            oppgaveService = oppgaveServiceMock
         ).sendTilAttestering(behandling.id, saksbehandler)
 
         actual shouldBe simulertBehandling.copy(
@@ -98,7 +92,7 @@ class BehandlingTilAttesteringTest {
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
         ).right()
 
-        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock, søknadRepoMock) {
+        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
             verify(personOppslagMock).aktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
@@ -113,6 +107,6 @@ class BehandlingTilAttesteringTest {
 
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock, søknadRepoMock)
+        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
     }
 }

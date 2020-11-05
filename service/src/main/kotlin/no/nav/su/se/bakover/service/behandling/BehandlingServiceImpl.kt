@@ -268,6 +268,7 @@ internal class BehandlingServiceImpl(
         val søknad = søknadService.hentSøknad(søknadId).getOrElse {
             return KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
         }
+        // TODO Prøv å opprette oppgaven hvis den mangler?
         val oppgaveId = søknad.oppgaveId ?: return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
 
         val nySøknadsbehandling = NySøknadsbehandling(
