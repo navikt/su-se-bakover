@@ -40,7 +40,7 @@ object SøknadInnholdTestdataBuilder {
                 fnr = fnrUnder67()
             ),
             innlagtPåInstitusjon = InnlagtPåInstitusjon(
-                datoForInnlegelse = LocalDate.of(2020, JANUARY, 1),
+                datoForInnleggelse = LocalDate.of(2020, JANUARY, 1),
                 datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
                 fortsattInnlagt = false
             )

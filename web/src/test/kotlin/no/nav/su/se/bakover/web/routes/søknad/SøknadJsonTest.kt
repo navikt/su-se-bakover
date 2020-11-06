@@ -51,7 +51,7 @@ internal class SøknadJsonTest {
                     "fnr": "${fnrUnder67()}"
                 },
                 "innlagtPåInstitusjon": {
-                    "datoForInnlegelse": "2020-01-01",
+                    "datoForInnleggelse": "2020-01-01",
                     "datoForUtskrivelse": "2020-01-31",
                     "fortsattInnlagt": false
                 }

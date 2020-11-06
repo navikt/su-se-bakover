@@ -146,7 +146,7 @@ data class TrygdeytelseIUtlandet(
 )
 
 data class InnlagtPåInstitusjon(
-    val datoForInnlegelse: LocalDate,
+    val datoForInnleggelse: LocalDate,
     val datoForUtskrivelse: LocalDate?,
     val fortsattInnlagt: Boolean,
 )
