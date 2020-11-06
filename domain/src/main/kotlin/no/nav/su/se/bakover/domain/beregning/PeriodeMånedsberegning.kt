@@ -28,6 +28,6 @@ internal data class PeriodeMånedsberegning(
     override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
-
+    override fun getFradrag(): List<Fradrag> = fradrag
     override fun periode(): Periode = periode
 }

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
@@ -119,5 +120,21 @@ internal class PeriodeMånedsberegningTest {
             fradrag = emptyList()
         )
         m2.getBenyttetGrunnbeløp() shouldBe 101351
+    }
+
+    @Test
+    fun `henter fradrag for aktuell måned`() {
+        val f1 = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            beløp = 1234.56,
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            utenlandskInntekt = null
+        )
+        val m1 = MånedsberegningFactory.ny(
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            sats = Sats.ORDINÆR,
+            fradrag = listOf(f1)
+        )
+        m1.getFradrag() shouldBe listOf(f1)
     }
 }
