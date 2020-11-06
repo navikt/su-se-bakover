@@ -14,7 +14,7 @@ internal data class PeriodeMånedsberegning(
 ) : Månedsberegning {
     init {
         require(fradrag.all { it.getPeriode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
-        require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
+        require(periode.getAntallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
     override fun getSumYtelse(): Int = (getSatsbeløp() - getSumFradrag())
@@ -25,7 +25,7 @@ internal data class PeriodeMånedsberegning(
         .sumByDouble { it.getFradragPerMåned() }
         .limitedUpwardsTo(getSatsbeløp())
 
-    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.fraOgMed()).toInt()
+    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.fraDato(periode.getFraOgMed()).toInt()
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag

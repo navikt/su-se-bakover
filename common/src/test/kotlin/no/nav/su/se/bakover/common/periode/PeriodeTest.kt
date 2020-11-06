@@ -14,20 +14,20 @@ internal class PeriodeTest {
     @Test
     fun `fra og med og til og med`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        periode.fraOgMed() shouldBe 1.januar(2020)
-        periode.tilOgMed() shouldBe 31.januar(2020)
+        periode.getFraOgMed() shouldBe 1.januar(2020)
+        periode.getTilOgMed() shouldBe 31.januar(2020)
     }
 
     @Test
     fun `periodisert fra og med og til og med`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
         val periodisert = periode.tilMånedsperioder()
-        periode.fraOgMed() shouldBe 1.januar(2020)
-        periode.tilOgMed() shouldBe 31.desember(2020)
-        periodisert.first().fraOgMed() shouldBe 1.januar(2020)
-        periodisert.first().tilOgMed() shouldBe 31.januar(2020)
-        periodisert.last().fraOgMed() shouldBe 1.desember(2020)
-        periodisert.last().tilOgMed() shouldBe 31.desember(2020)
+        periode.getFraOgMed() shouldBe 1.januar(2020)
+        periode.getTilOgMed() shouldBe 31.desember(2020)
+        periodisert.first().getFraOgMed() shouldBe 1.januar(2020)
+        periodisert.first().getTilOgMed() shouldBe 31.januar(2020)
+        periodisert.last().getFraOgMed() shouldBe 1.desember(2020)
+        periodisert.last().getTilOgMed() shouldBe 31.desember(2020)
     }
 
     @Test
@@ -47,7 +47,7 @@ internal class PeriodeTest {
             Periode(1.mars(2020), 31.mars(2020)),
             Periode(1.april(2020), 30.april(2020))
         )
-        periodisert shouldHaveSize periode.antallMåneder()
+        periodisert shouldHaveSize periode.getAntallMåneder()
     }
 
     @Test

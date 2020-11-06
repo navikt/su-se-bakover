@@ -187,7 +187,7 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             )
         )
 
-        val forventetTotaltFradrag = Sats.HØY.månedsbeløp(periode.fraOgMed()) * 3
+        val forventetTotaltFradrag = Sats.HØY.månedsbeløp(periode.getFraOgMed()) * 3
 
         beregning.getSumYtelse() shouldBe 0
         beregning.getSumFradrag() shouldBe forventetTotaltFradrag

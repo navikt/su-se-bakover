@@ -13,11 +13,11 @@ data class Periode(
         require(fraOgMed.isBefore(tilOgMed)) { "fraOgMed må være tidligere enn tilOgMed" }
     }
 
-    fun fraOgMed() = fraOgMed
-    fun tilOgMed() = tilOgMed
-    fun antallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
+    fun getFraOgMed() = fraOgMed
+    fun getTilOgMed() = tilOgMed
+    fun getAntallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     fun tilMånedsperioder(): List<Periode> {
-        return (0L until antallMåneder())
+        return (0L until getAntallMåneder())
             .map {
                 val firstInMonth = fraOgMed.plusMonths(it)
                 val lastInMonth = firstInMonth.plusMonths(1).minusDays(1)

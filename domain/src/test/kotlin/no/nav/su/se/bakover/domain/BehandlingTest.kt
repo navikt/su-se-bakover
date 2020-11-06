@@ -181,8 +181,8 @@ internal class BehandlingTest {
                 tilOgMed = tilOgMed
             )
             val beregning = vilkårsvurdert.beregning()!!
-            beregning.getPeriode().fraOgMed() shouldBe fraOgMed
-            beregning.getPeriode().tilOgMed() shouldBe tilOgMed
+            beregning.getPeriode().getFraOgMed() shouldBe fraOgMed
+            beregning.getPeriode().getTilOgMed() shouldBe tilOgMed
             beregning.getSats() shouldBe Sats.HØY
         }
 
@@ -198,8 +198,8 @@ internal class BehandlingTest {
         fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
             val periode = Periode(fraOgMed = 1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
-                fraOgMed = periode.fraOgMed(),
-                tilOgMed = periode.tilOgMed(),
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -239,8 +239,8 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.opprettBeregning(
-                fraOgMed = periode.fraOgMed(),
-                tilOgMed = periode.tilOgMed(),
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -264,8 +264,8 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.opprettBeregning(
-                fraOgMed = periode.fraOgMed(),
-                tilOgMed = periode.tilOgMed(),
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -403,8 +403,8 @@ internal class BehandlingTest {
                     tilOgMed = 31.desember(2020),
                 )
                 beregnet.opprettBeregning(
-                    fraOgMed = periode.fraOgMed(),
-                    tilOgMed = periode.tilOgMed(),
+                    fraOgMed = periode.getFraOgMed(),
+                    tilOgMed = periode.getTilOgMed(),
                     fradrag = listOf(
                         FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,

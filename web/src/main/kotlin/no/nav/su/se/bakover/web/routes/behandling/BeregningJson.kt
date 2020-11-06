@@ -22,8 +22,8 @@ internal data class BeregningJson(
 internal fun Beregning.toJson() = BeregningJson(
     id = getId().toString(),
     opprettet = getOpprettet().toString(),
-    fraOgMed = getPeriode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = getPeriode().tilOgMed().format(DateTimeFormatter.ISO_DATE),
+    fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
+    tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
     månedsberegninger = getMånedsberegninger().map { it.toJson() }, // TODO show fradrag/month
     fradrag = getFradrag().map {
@@ -58,4 +58,4 @@ internal data class PeriodeJson(
 }
 
 internal fun Periode.toJson() =
-    PeriodeJson(fraOgMed().format(DateTimeFormatter.ISO_DATE), tilOgMed().format(DateTimeFormatter.ISO_DATE))
+    PeriodeJson(getFraOgMed().format(DateTimeFormatter.ISO_DATE), getTilOgMed().format(DateTimeFormatter.ISO_DATE))

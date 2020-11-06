@@ -136,8 +136,8 @@ data class Oppdrag(
                 .groupBy { it.getSumYtelse() }
                 .map {
                     Utbetalingsperiode(
-                        fraOgMed = it.value.map { v -> v.getPeriode().fraOgMed() }.minOrNull()!!,
-                        tilOgMed = it.value.map { v -> v.getPeriode().tilOgMed() }.maxOrNull()!!,
+                        fraOgMed = it.value.map { v -> v.getPeriode().getFraOgMed() }.minOrNull()!!,
+                        tilOgMed = it.value.map { v -> v.getPeriode().getTilOgMed() }.maxOrNull()!!,
                         beløp = it.key
                     )
                 }

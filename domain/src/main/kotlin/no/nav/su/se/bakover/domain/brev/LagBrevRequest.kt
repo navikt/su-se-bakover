@@ -53,8 +53,8 @@ abstract class LagBrevRequest {
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
                 månedsbeløp = førsteMånedsberegning.getSumYtelse().toInt(), // TODO: avrunding
-                fradato = behandling.beregning()!!.getPeriode().fraOgMed().formatMonthYear(),
-                tildato = behandling.beregning()!!.getPeriode().tilOgMed().formatMonthYear(),
+                fradato = behandling.beregning()!!.getPeriode().getFraOgMed().formatMonthYear(),
+                tildato = behandling.beregning()!!.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = behandling.beregning()?.getSats().toString().toLowerCase(),
                 satsbeløp = førsteMånedsberegning.getSatsbeløp().toInt(), // TODO: avrunding
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,

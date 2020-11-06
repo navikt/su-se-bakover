@@ -12,7 +12,7 @@ internal data class PeriodeFradrag(
         require(beløp >= 0) { "Fradrag kan ikke være negative" }
     }
 
-    override fun getFradragPerMåned() = beløp / periode.antallMåneder()
+    override fun getFradragPerMåned() = beløp / periode.getAntallMåneder()
     override fun getFradragstype(): Fradragstype = type
     override fun getTotaltFradrag(): Double = beløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt

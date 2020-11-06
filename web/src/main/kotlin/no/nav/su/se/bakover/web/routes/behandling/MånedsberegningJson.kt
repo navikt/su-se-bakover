@@ -12,8 +12,8 @@ internal data class MånedsberegningJson(
 )
 // TODO expand to show fradrag/mnd
 internal fun Månedsberegning.toJson() = MånedsberegningJson(
-    fraOgMed = getPeriode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = getPeriode().tilOgMed().format(DateTimeFormatter.ISO_DATE),
+    fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
+    tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
     grunnbeløp = getBenyttetGrunnbeløp(),
     beløp = getSumYtelse()
