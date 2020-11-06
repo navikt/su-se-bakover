@@ -61,7 +61,7 @@ internal fun Route.søknadRoutes(
                         { sak ->
                             call.audit("Lagrer søknad for person: $sak")
                             call.svar(
-                                Resultat.json(Created, serialize((sak.toJson())))
+                                Resultat.json(Created, serialize(sak))
                             )
                         }
                     )

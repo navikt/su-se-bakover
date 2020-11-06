@@ -36,7 +36,7 @@ internal class SøknadServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak> {
+    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
 
         val fnr: Fnr = søknadInnhold.personopplysninger.fnr
 
@@ -74,7 +74,7 @@ internal class SøknadServiceImpl(
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak.id, person, søknad)
-        return sak.right()
+        return søknad.right()
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {
