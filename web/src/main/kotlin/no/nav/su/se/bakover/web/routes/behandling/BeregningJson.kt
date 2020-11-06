@@ -20,8 +20,8 @@ internal data class BeregningJson(
 )
 
 internal fun Beregning.toJson() = BeregningJson(
-    id = id().toString(),
-    opprettet = opprettet().toString(),
+    id = getId().toString(),
+    opprettet = getOpprettet().toString(),
     fraOgMed = periode().fraOgMed().format(DateTimeFormatter.ISO_DATE),
     tilOgMed = periode().tilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,

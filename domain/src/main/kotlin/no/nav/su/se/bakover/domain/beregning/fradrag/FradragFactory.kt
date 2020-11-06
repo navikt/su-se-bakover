@@ -28,7 +28,7 @@ object FradragFactory {
         utenlandskInntekt: UtenlandskInntekt? = null
     ): Fradrag = PersistertFradrag(
         id = id,
-        tidspunkt = opprettet,
+        opprettet = opprettet,
         fradrag = ny(
             periode = periode,
             beløp = beløp,

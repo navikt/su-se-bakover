@@ -105,8 +105,8 @@ internal class BeregningPostgresRepoTest {
             )
 
             selectCount(from = "beregning", where = "behandlingId", id = nySøknadsbehandling.id.toString()) shouldBe 1
-            selectCount(from = "beregning", where = "id", id = gammelBeregning.id().toString()) shouldBe 1
-            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id().toString()) shouldBe 1
+            selectCount(from = "beregning", where = "id", id = gammelBeregning.getId().toString()) shouldBe 1
+            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.getId().toString()) shouldBe 1
 
             val nyBeregning = BeregningFactory.ny(
                 periode = Periode(1.januar(2020), 31.desember(2020)),
@@ -117,11 +117,11 @@ internal class BeregningPostgresRepoTest {
 
             selectCount(from = "beregning", where = "behandlingId", id = nySøknadsbehandling.id.toString()) shouldBe 1
 
-            selectCount(from = "beregning", where = "id", id = nyBeregning.id().toString()) shouldBe 1
-            selectCount(from = "fradrag", where = "beregningId", id = nyBeregning.id().toString()) shouldBe 0
+            selectCount(from = "beregning", where = "id", id = nyBeregning.getId().toString()) shouldBe 1
+            selectCount(from = "fradrag", where = "beregningId", id = nyBeregning.getId().toString()) shouldBe 0
 
-            selectCount(from = "beregning", where = "id", id = gammelBeregning.id().toString()) shouldBe 0
-            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.id().toString()) shouldBe 0
+            selectCount(from = "beregning", where = "id", id = gammelBeregning.getId().toString()) shouldBe 0
+            selectCount(from = "fradrag", where = "beregningId", id = gammelBeregning.getId().toString()) shouldBe 0
         }
     }
 

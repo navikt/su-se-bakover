@@ -26,7 +26,7 @@ object BeregningFactory {
         fradrag: List<Fradrag>
     ): Beregning = PersistertBeregning(
         id = id,
-        tidspunkt = opprettet,
+        opprettet = opprettet,
         beregning = ny(
             periode = periode,
             sats = sats,

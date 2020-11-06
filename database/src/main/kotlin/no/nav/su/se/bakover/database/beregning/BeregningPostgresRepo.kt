@@ -18,8 +18,8 @@ internal class BeregningPostgresRepo(
         dataSource.withSession { session ->
             "insert into beregning (id, opprettet, fom, tom, behandlingId, sats) values (:id, :opprettet, :fom, :tom, :behandlingId, :sats)".oppdatering(
                 mapOf(
-                    "id" to beregning.id(),
-                    "opprettet" to beregning.opprettet(),
+                    "id" to beregning.getId(),
+                    "opprettet" to beregning.getOpprettet(),
                     "fom" to beregning.periode().fraOgMed(),
                     "tom" to beregning.periode().tilOgMed(),
                     "behandlingId" to behandlingId,
@@ -28,7 +28,7 @@ internal class BeregningPostgresRepo(
                 session
             )
         }
-        beregning.getFradrag().forEach { opprettFradrag(beregning.id(), it) }
+        beregning.getFradrag().forEach { opprettFradrag(beregning.getId(), it) }
         return hentBeregningForBehandling(behandlingId)!!
     }
 
@@ -49,8 +49,8 @@ internal class BeregningPostgresRepo(
         """
                 .oppdatering(
                     mapOf(
-                        "id" to fradrag.id(),
-                        "opprettet" to fradrag.opprettet(),
+                        "id" to fradrag.getId(),
+                        "opprettet" to fradrag.getOpprettet(),
                         "fom" to fradrag.periode().fraOgMed(),
                         "tom" to fradrag.periode().tilOgMed(),
                         "beregningId" to beregningId,

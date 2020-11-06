@@ -165,8 +165,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = emptyList()
         )
-        beregning.id() shouldBe beregning.id()
-        beregning.opprettet() shouldBe beregning.opprettet()
+        beregning.getId() shouldBe beregning.getId()
+        beregning.getOpprettet() shouldBe beregning.getOpprettet()
     }
 
     @Test

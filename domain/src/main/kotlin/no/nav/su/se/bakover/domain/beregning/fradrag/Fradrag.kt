@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import java.util.UUID
 
 interface Fradrag : PeriodisertInformasjon {
-    fun id(): UUID
-    fun opprettet(): Tidspunkt
+    fun getId(): UUID
+    fun getOpprettet(): Tidspunkt
     fun getFradragstype(): Fradragstype
     fun getTotaltFradrag(): Double
     fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
@@ -15,17 +15,17 @@ interface Fradrag : PeriodisertInformasjon {
 }
 
 abstract class AbstractFradrag : Fradrag {
-    private val id by lazy { UUID.randomUUID() }
-    private val opprettet by lazy { Tidspunkt.now() }
-    override fun id(): UUID = id
-    override fun opprettet() = opprettet
+    private val id = UUID.randomUUID()
+    private val opprettet = Tidspunkt.now()
+    override fun getId(): UUID = id
+    override fun getOpprettet() = opprettet
 }
 
 internal data class PersistertFradrag(
     private val id: UUID,
-    private val tidspunkt: Tidspunkt,
+    private val opprettet: Tidspunkt,
     private val fradrag: Fradrag
 ) : AbstractFradrag(), Fradrag by fradrag {
-    override fun id(): UUID = id
-    override fun opprettet() = tidspunkt
+    override fun getId(): UUID = id
+    override fun getOpprettet() = opprettet
 }

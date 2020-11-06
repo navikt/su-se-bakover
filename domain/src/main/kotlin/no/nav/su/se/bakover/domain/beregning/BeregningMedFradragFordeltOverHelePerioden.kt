@@ -29,8 +29,7 @@ internal data class BeregningMedFradragFordeltOverHelePerioden(
                 periode = periode,
                 utenlandskInntekt = it.getUtenlandskInntekt()
             ).periodiser()
-        }
-            .groupBy { it.periode() }
+        }.groupBy { it.periode() }
 
         return perioder.map {
             it to MånedsberegningFactory.ny(

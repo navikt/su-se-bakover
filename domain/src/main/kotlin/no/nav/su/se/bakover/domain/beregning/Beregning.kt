@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.util.UUID
 
 interface Beregning : PeriodisertInformasjon {
-    fun id(): UUID
-    fun opprettet(): Tidspunkt
+    fun getId(): UUID
+    fun getOpprettet(): Tidspunkt
     fun getSats(): Sats
     fun getMånedsberegninger(): List<Månedsberegning>
     fun getFradrag(): List<Fradrag>
@@ -17,17 +17,17 @@ interface Beregning : PeriodisertInformasjon {
 }
 
 abstract class AbstractBeregning : Beregning {
-    private val id by lazy { UUID.randomUUID() }
-    private val opprettet by lazy { Tidspunkt.now() }
-    override fun id(): UUID = id
-    override fun opprettet() = opprettet
+    private val id = UUID.randomUUID()
+    private val opprettet = Tidspunkt.now()
+    override fun getId(): UUID = id
+    override fun getOpprettet() = opprettet
 }
 
 internal data class PersistertBeregning(
     private val id: UUID,
-    private val tidspunkt: Tidspunkt,
+    private val opprettet: Tidspunkt,
     private val beregning: Beregning
 ) : AbstractBeregning(), Beregning by beregning {
-    override fun id(): UUID = id
-    override fun opprettet() = tidspunkt
+    override fun getId(): UUID = id
+    override fun getOpprettet() = opprettet
 }
