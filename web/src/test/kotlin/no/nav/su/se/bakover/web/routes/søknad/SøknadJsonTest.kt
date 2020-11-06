@@ -49,6 +49,11 @@ internal class SøknadJsonTest {
                     "type": "MedFnr",
                     "erUførFlyktning": false,
                     "fnr": "${fnrUnder67()}"
+                },
+                "innlagtPåInstitusjon": {
+                    "datoForInnleggelse": "2020-01-01",
+                    "datoForUtskrivelse": "2020-01-31",
+                    "fortsattInnlagt": false
                 }
             },
             "utenlandsopphold":{

@@ -49,6 +49,7 @@ data class Boforhold(
     val delerBolig: Boolean,
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
+    val innlagtPåInstitusjon: InnlagtPåInstitusjon?
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
@@ -142,4 +143,10 @@ data class TrygdeytelseIUtlandet(
     val beløp: Number,
     val type: String,
     val fra: String
+)
+
+data class InnlagtPåInstitusjon(
+    val datoForInnleggelse: LocalDate,
+    val datoForUtskrivelse: LocalDate?,
+    val fortsattInnlagt: Boolean,
 )
