@@ -13,7 +13,7 @@ internal data class PeriodeMånedsberegning(
     private val fradrag: List<Fradrag>
 ) : Månedsberegning {
     init {
-        require(fradrag.all { it.periode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
+        require(fradrag.all { it.getPeriode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
         require(periode.antallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
@@ -29,5 +29,5 @@ internal data class PeriodeMånedsberegning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun periode(): Periode = periode
+    override fun getPeriode(): Periode = periode
 }

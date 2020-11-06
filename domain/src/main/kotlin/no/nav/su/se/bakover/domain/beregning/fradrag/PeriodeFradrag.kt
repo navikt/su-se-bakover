@@ -17,7 +17,7 @@ internal data class PeriodeFradrag(
     override fun getTotaltFradrag(): Double = beløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
 
-    override fun periode(): Periode = periode
+    override fun getPeriode(): Periode = periode
 
     override fun periodiser(): List<Fradrag> = periode.tilMånedsperioder()
         .map { this.copy(type = type, beløp = getFradragPerMåned(), periode = it) }

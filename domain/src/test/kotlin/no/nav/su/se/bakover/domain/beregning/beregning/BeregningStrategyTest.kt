@@ -33,8 +33,8 @@ internal class BeregningStrategyTest {
             forventetInntekt = 0
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
-            it.periode().fraOgMed() shouldBe beregningsgrunnlag.fraOgMed
-            it.periode().tilOgMed() shouldBe beregningsgrunnlag.tilOgMed
+            it.getPeriode().fraOgMed() shouldBe beregningsgrunnlag.fraOgMed
+            it.getPeriode().tilOgMed() shouldBe beregningsgrunnlag.tilOgMed
             it.getSats() shouldBe Sats.HØY
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
             it.getMånedsberegninger() shouldHaveSize 1

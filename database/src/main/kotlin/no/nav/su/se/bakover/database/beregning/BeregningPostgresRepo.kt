@@ -20,8 +20,8 @@ internal class BeregningPostgresRepo(
                 mapOf(
                     "id" to beregning.getId(),
                     "opprettet" to beregning.getOpprettet(),
-                    "fom" to beregning.periode().fraOgMed(),
-                    "tom" to beregning.periode().tilOgMed(),
+                    "fom" to beregning.getPeriode().fraOgMed(),
+                    "tom" to beregning.getPeriode().tilOgMed(),
                     "behandlingId" to behandlingId,
                     "sats" to beregning.getSats().name
                 ),
@@ -51,8 +51,8 @@ internal class BeregningPostgresRepo(
                     mapOf(
                         "id" to fradrag.getId(),
                         "opprettet" to fradrag.getOpprettet(),
-                        "fom" to fradrag.periode().fraOgMed(),
-                        "tom" to fradrag.periode().tilOgMed(),
+                        "fom" to fradrag.getPeriode().fraOgMed(),
+                        "tom" to fradrag.getPeriode().tilOgMed(),
                         "beregningId" to beregningId,
                         "fradragstype" to fradrag.getFradragstype().toString(),
                         "belop" to fradrag.getTotaltFradrag(),

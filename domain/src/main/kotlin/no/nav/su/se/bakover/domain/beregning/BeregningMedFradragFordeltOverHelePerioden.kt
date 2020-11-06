@@ -29,7 +29,7 @@ internal data class BeregningMedFradragFordeltOverHelePerioden(
                 periode = periode,
                 utenlandskInntekt = it.getUtenlandskInntekt()
             ).periodiser()
-        }.groupBy { it.periode() }
+        }.groupBy { it.getPeriode() }
 
         return perioder.map {
             it to MånedsberegningFactory.ny(
@@ -44,5 +44,5 @@ internal data class BeregningMedFradragFordeltOverHelePerioden(
     override fun getMånedsberegninger(): List<Månedsberegning> = beregning.values.toList()
     override fun getFradrag(): List<Fradrag> = fradrag
 
-    override fun periode(): Periode = periode
+    override fun getPeriode(): Periode = periode
 }
