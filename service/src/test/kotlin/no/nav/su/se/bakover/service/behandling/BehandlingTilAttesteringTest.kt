@@ -52,7 +52,12 @@ class BehandlingTilAttesteringTest {
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build(), oppgaveId = oppgaveId),
+        søknad = Søknad(
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            oppgaveId = oppgaveId,
+            journalpostId = null
+        ),
         status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,
         fnr = fnr,
@@ -97,7 +102,7 @@ class BehandlingTilAttesteringTest {
             verify(personOppslagMock).aktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
-                    sakId = sakId.toString(),
+                    sakId = sakId,
                     aktørId = aktørId
                 )
             )

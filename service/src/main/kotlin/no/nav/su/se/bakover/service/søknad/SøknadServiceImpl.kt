@@ -64,7 +64,9 @@ internal class SøknadServiceImpl(
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
                 val søknad = Søknad(
                     sakId = it.id,
-                    søknadInnhold = søknadInnhold
+                    søknadInnhold = søknadInnhold,
+                    oppgaveId = null,
+                    journalpostId = null,
                 )
                 søknadRepo.opprettSøknad(søknad)
 
@@ -104,7 +106,7 @@ internal class SøknadServiceImpl(
                         oppgaveService.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
-                                sakId = sakId.toString(),
+                                sakId = sakId,
                                 aktørId = person.ident.aktørId
                             )
                         ).mapLeft {

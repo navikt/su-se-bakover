@@ -142,7 +142,9 @@ class NySøknadTest {
                             opprettet = it.søknad.opprettet,
                             sakId = it.id,
                             søknadInnhold = søknadInnhold,
-                            lukket = null
+                            lukket = null,
+                            oppgaveId = null,
+                            journalpostId = null,
                         ),
                         oppdrag = Oppdrag(
                             id = it.oppdrag.id,
@@ -218,7 +220,9 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
+                        lukket = null,
+                        oppgaveId = null,
+                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -303,7 +307,9 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
+                        lukket = null,
+                        oppgaveId = null,
+                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -328,7 +334,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId.toString(),
+                        sakId = sakId,
                         aktørId = person.ident.aktørId
                     )
                 }
@@ -402,7 +408,9 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
+                        lukket = null,
+                        oppgaveId = null,
+                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -427,7 +435,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId.toString(),
+                        sakId = sakId,
                         aktørId = person.ident.aktørId
                     )
                 }

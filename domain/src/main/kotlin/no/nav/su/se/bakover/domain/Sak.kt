@@ -54,7 +54,9 @@ class SakFactory(
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
-                lukket = null
+                lukket = null,
+                oppgaveId = null,
+                journalpostId = null,
             ),
             oppdrag = Oppdrag(
                 id = uuidFactory.newUUID30(),

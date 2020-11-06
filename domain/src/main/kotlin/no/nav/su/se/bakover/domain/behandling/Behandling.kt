@@ -112,7 +112,7 @@ data class Behandling internal constructor(
         return tilstand.iverksett(attestant)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -151,7 +151,7 @@ data class Behandling internal constructor(
         fun underkjenn(
             begrunnelse: String,
             attestant: NavIdentBruker.Attestant
-        ): Either<KunneIkkeUnderkjenne, Behandling> {
+        ): Either<KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -321,9 +321,9 @@ data class Behandling internal constructor(
         override fun underkjenn(
             begrunnelse: String,
             attestant: NavIdentBruker.Attestant
-        ): Either<KunneIkkeUnderkjenne, Behandling> {
+        ): Either<KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                return KunneIkkeUnderkjenne().left()
+                return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
             nyTilstand(Simulert())
@@ -370,5 +370,9 @@ data class Behandling internal constructor(
         object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
     }
 
-    data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
+    sealed class KunneIkkeUnderkjenne {
+        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
+        object KunneIkkeLukkeOppgave : KunneIkkeUnderkjenne()
+        object FantIkkeAktørId : KunneIkkeUnderkjenne()
+    }
 }

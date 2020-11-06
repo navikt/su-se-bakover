@@ -16,14 +16,17 @@ import java.util.UUID
 
 internal class SøknadJsonTest {
     companion object {
-        val søknadId = UUID.randomUUID()
+        val søknadId: UUID = UUID.randomUUID()
         val søknad = Søknad(
             sakId = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            lukket = null,
+            oppgaveId = null,
+            journalpostId = null,
         )
-        val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
+        val opprettetTidspunkt: String = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
 
         //language=JSON
         val søknadJsonString =

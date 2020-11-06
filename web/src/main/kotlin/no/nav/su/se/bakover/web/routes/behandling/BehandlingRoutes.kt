@@ -249,7 +249,14 @@ internal fun Route.behandlingRoutes(
                                 behandling = behandling
                             ).fold(
                                 ifLeft = {
-                                    call.svar(Forbidden.message(it.msg))
+                                    fun kunneIkkeUnderkjenneFeilmelding(feil: Behandling.KunneIkkeUnderkjenne): Resultat {
+                                        return when (feil) {
+                                            Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke vare samme person.")
+                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave -> InternalServerError.message("Kunne ikke lukke oppgave.")
+                                            Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId -> NotFound.message("Fant ikke aktørid")
+                                        }
+                                    }
+                                    call.svar(kunneIkkeUnderkjenneFeilmelding(it))
                                 },
                                 ifRight = { call.svar(OK.jsonBody(it)) }
                             )

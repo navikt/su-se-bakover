@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -55,6 +57,24 @@ internal class BehandlingServiceImpl(
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
         return behandling.underkjenn(begrunnelse, attestant)
             .map {
+                val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                    return Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+                }
+                // Det er ikke sååå viktig om vi prøver lukke/opprette oppgave først; sannsynligvis feiler begge eller ingen.
+                val journalpostId: JournalpostId = behandling.søknad.journalpostId
+                    ?: TODO("Bytt Søknad til en sealed class (PersistertSøknad,JournalførtSøknad,SøknadMedOppgave ellernoe)")
+                oppgaveService.lukkOppgave(behandling.oppgaveId())
+                    .mapLeft {
+                        return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
+                    }.map {
+                        oppgaveService.opprettOppgave(
+                            OppgaveConfig.Saksbehandling(
+                                journalpostId = journalpostId,
+                                sakId = behandling.sakId,
+                                aktørId = aktørId
+                            )
+                        )
+                    }
                 behandlingMetrics.incrementUnderkjentCounter()
                 behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                 hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
@@ -123,7 +143,7 @@ internal class BehandlingServiceImpl(
 
         oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
-                behandlingTilAttestering.sakId.toString(),
+                behandlingTilAttestering.sakId,
                 aktørId = aktørId
             )
         ).mapLeft {

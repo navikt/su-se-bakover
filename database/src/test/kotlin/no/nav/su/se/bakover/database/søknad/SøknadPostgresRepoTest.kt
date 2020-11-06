@@ -32,7 +32,9 @@ internal class SøknadPostgresRepoTest {
                 val søknad: Søknad = Søknad(
                     sakId = sak.id,
                     id = UUID.randomUUID(),
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build()
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                    oppgaveId = null,
+                    journalpostId = null
                 ).also { repo.opprettSøknad(it) }
                 val hentet = repo.hentSøknad(søknad.id)
 
@@ -49,6 +51,8 @@ internal class SøknadPostgresRepoTest {
                 sakId = sak.id,
                 id = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                oppgaveId = null,
+                journalpostId = null
             ).also { repo.opprettSøknad(it) }
             val hentetSøknad: Søknad = repo.hentSøknad(søknad.id)!!
             hentetSøknad.id shouldBe søknad.id

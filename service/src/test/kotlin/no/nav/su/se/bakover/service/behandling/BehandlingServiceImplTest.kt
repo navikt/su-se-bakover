@@ -473,7 +473,12 @@ internal class BehandlingServiceImplTest {
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
+        søknad = Søknad(
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            oppgaveId = null,
+            journalpostId = null,
+        ),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
         fnr = fnr,

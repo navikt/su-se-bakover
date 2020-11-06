@@ -134,10 +134,11 @@ internal class SakRoutesKtTest {
         val nySak: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
             repos.sak.opprettSak(it)
         }.toSak()
-        val nySøknad: Søknad = Søknad(sakId = nySak.id, søknadInnhold = søknadInnhold).also {
-            søknadRepo.opprettSøknad(it)
-            søknadRepo.oppdaterOppgaveId(it.id, oppgaveId)
-        }
+        val nySøknad: Søknad =
+            Søknad(sakId = nySak.id, søknadInnhold = søknadInnhold, oppgaveId = null, journalpostId = null).also {
+                søknadRepo.opprettSøknad(it)
+                søknadRepo.oppdaterOppgaveId(it.id, oppgaveId)
+            }
 
         withTestApplication({
             testSusebakover()

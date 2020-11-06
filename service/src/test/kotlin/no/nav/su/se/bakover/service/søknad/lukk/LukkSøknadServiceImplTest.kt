@@ -53,7 +53,8 @@ internal class LukkSøknadServiceImplTest {
         opprettet = Tidspunkt.now(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         lukket = null,
-        oppgaveId = OppgaveId("1234")
+        oppgaveId = OppgaveId("1234"),
+        journalpostId = JournalpostId("12"),
     )
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknad.id,
@@ -203,7 +204,9 @@ internal class LukkSøknadServiceImplTest {
                 tidspunkt = Tidspunkt.now(),
                 saksbehandler = saksbehandler.navIdent,
                 type = Søknad.LukketType.TRUKKET
-            )
+            ),
+            oppgaveId = null,
+            journalpostId = null,
         )
         val trekkSøknadRequest = trekkSøknadRequest.copy(
             søknadId = søknad.id

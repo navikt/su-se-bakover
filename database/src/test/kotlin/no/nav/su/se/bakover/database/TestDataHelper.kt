@@ -45,7 +45,9 @@ internal class TestDataHelper(
     fun insertSøknad(sakId: UUID): Søknad = Søknad(
         sakId = sakId,
         id = UUID.randomUUID(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        oppgaveId = null,
+        journalpostId = null,
     ).also { søknadRepo.opprettSøknad(it) }
 
     fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling = NySøknadsbehandling(

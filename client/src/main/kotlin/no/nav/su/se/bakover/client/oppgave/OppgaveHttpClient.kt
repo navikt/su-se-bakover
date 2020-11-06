@@ -40,7 +40,7 @@ internal class OppgaveHttpClient(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
                         journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.sakId,
+                        saksreferanse = config.sakId.toString(),
                         aktoerId = config.aktørId.toString(),
                         tema = "SUP",
                         behandlesAvApplikasjon = "SUPSTONAD",
