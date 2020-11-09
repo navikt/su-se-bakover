@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
-import arrow.core.getOrElse
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -125,19 +125,20 @@ internal class SøknadServiceImpl(
     }
 
     override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray> {
-        val søknad = hentSøknad(søknadId).getOrElse {
+        return hentSøknad(søknadId).mapLeft {
             log.error("Hent søknad-PDF: Fant ikke søknad")
             return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
         }
-
-        return pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
-            {
-                log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
-            },
-            {
-                it.right()
+            .flatMap {
+                pdfGenerator.genererPdf(it.søknadInnhold).fold(
+                    {
+                        log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
+                    },
+                    {
+                        it.right()
+                    }
+                )
             }
-        )
     }
 }
