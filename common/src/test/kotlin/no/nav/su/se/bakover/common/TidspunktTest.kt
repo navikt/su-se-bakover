@@ -74,7 +74,6 @@ internal class TidspunktTest {
     fun `should serialize as instant`() {
         val start = 1.oktober(2020).endOfDay()
         val serialized = objectMapper.writeValueAsString(start)
-        val ske = objectMapper.writeValueAsString(Instant.now())
         serialized shouldBe "\"2020-10-01T23:59:59.999999Z\"" // TODO Spennende at denne serialiseres til double qoutes?
         val deserialized = objectMapper.readValue(serialized, Tidspunkt::class.java)
         deserialized shouldBe start
