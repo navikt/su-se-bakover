@@ -131,7 +131,7 @@ internal class SøknadRoutesKtTest {
                 assertEquals(Created, response.status())
             }.response
 
-            shouldNotThrow<Throwable> { objectMapper.readValue<SakJson>(createResponse.content!!) }
+            shouldNotThrow<Throwable> { objectMapper.readValue<SøknadJson>(createResponse.content!!) }
 
             val sakFraDb = sakRepo.hentSak(fnr)
             sakFraDb shouldNotBe null
@@ -141,7 +141,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `knytter søknad til sak ved innsending`() {
-        var sakNr: String
+        var søknadId: String
         withTestApplication({
             testSusebakover()
         }) {
@@ -153,10 +153,10 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
-                sakNr = objectMapper.readValue<SakJson>(response.content!!).id
+                søknadId = objectMapper.readValue<Søknad>(response.content!!).sakId.toString()
             }
 
-            defaultRequest(Get, "$sakPath/$sakNr", listOf(Brukerrolle.Veileder)).apply {
+            defaultRequest(Get, "$sakPath/$søknadId", listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, response.status())
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()

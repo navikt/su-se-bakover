@@ -123,7 +123,8 @@ class NySøknadTest {
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
-        lateinit var expected: Sak
+
+        lateinit var expected: Søknad
         inOrder(
             personOppslagMock,
             sakServiceMock,
@@ -151,7 +152,7 @@ class NySøknadTest {
                             utbetalinger = emptyList()
                         )
                     ).also { nySak ->
-                        expected = nySak.toSak()
+                        expected = nySak.toSak().søknader().first()
                     }
                 }
             )
@@ -244,9 +245,8 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        actual shouldBe sak.copy(
-            søknader = listOf(expectedSøknad)
-        ).right()
+
+        actual shouldBe expectedSøknad.right()
     }
 
     @Test
@@ -342,9 +342,8 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        actual shouldBe sak.copy(
-            søknader = listOf(expectedSøknad)
-        ).right()
+
+        actual shouldBe expectedSøknad.right()
     }
 
     @Test
@@ -445,8 +444,7 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        actual shouldBe sak.copy(
-            søknader = listOf(expectedSøknad)
-        ).right()
+
+        actual shouldBe expectedSøknad.right()
     }
 }
