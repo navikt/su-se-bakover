@@ -141,7 +141,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `knytter søknad til sak ved innsending`() {
-        var søknadId: String
+        var sakId: String
         withTestApplication({
             testSusebakover()
         }) {
@@ -153,10 +153,10 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 assertEquals(Created, response.status())
-                søknadId = objectMapper.readValue<Søknad>(response.content!!).sakId.toString()
+                sakId = objectMapper.readValue<SøknadJson>(response.content!!).sakId
             }
 
-            defaultRequest(Get, "$sakPath/$søknadId", listOf(Brukerrolle.Veileder)).apply {
+            defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Veileder)).apply {
                 assertEquals(OK, response.status())
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
