@@ -8,7 +8,7 @@ import java.util.UUID
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad>
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
-    fun lagUtskrift(søknadId: UUID): Either<KunneIkkeLageSøknadsutskrift, ByteArray>
+    fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray>
 }
 
 object FantIkkeSøknad
@@ -17,7 +17,7 @@ sealed class KunneIkkeOppretteSøknad {
     object FantIkkePerson : KunneIkkeOppretteSøknad()
 }
 
-sealed class KunneIkkeLageSøknadsutskrift {
-    object FantIkkeSøknad : KunneIkkeLageSøknadsutskrift()
-    object KunneIkkeLagePdf : KunneIkkeLageSøknadsutskrift()
+sealed class KunneIkkeLageSøknadPdf {
+    object FantIkkeSøknad : KunneIkkeLageSøknadPdf()
+    object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf()
 }

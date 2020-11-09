@@ -124,16 +124,16 @@ internal class SøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: FantIkkeSøknad.left()
     }
 
-    override fun lagUtskrift(søknadId: UUID): Either<KunneIkkeLageSøknadsutskrift, ByteArray> {
+    override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray> {
         val søknad = hentSøknad(søknadId).getOrElse {
-            log.error("Skriv ut søknad: Fant ikke søknad")
-            return KunneIkkeLageSøknadsutskrift.FantIkkeSøknad.left()
+            log.error("Hent søknad-PDF: Fant ikke søknad")
+            return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
         }
 
         return pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
             {
-                log.error("Skriv ut søknad: Kunne ikke generere PDF. Originalfeil: $it")
-                KunneIkkeLageSøknadsutskrift.KunneIkkeLagePdf.left()
+                log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
             },
             {
                 it.right()

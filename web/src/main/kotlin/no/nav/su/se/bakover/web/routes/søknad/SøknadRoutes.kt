@@ -17,7 +17,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadsutskrift
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
@@ -73,11 +73,11 @@ internal fun Route.søknadRoutes(
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         get("$søknadPath/{søknadId}/utskrift") {
             call.withSøknadId { søknadId ->
-                søknadService.lagUtskrift(søknadId).fold(
+                søknadService.hentSøknadPdf(søknadId).fold(
                     {
                         when (it) {
-                            KunneIkkeLageSøknadsutskrift.FantIkkeSøknad -> call.respond(InternalServerError.message("Fant ikke søknad"))
-                            KunneIkkeLageSøknadsutskrift.KunneIkkeLagePdf -> call.respond(InternalServerError.message("Kunne ikke lage PDF"))
+                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> call.respond(NotFound.message("Fant ikke søknad"))
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> call.respond(InternalServerError.message("Kunne ikke lage PDF"))
                         }
                     },
                     {
