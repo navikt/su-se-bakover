@@ -130,7 +130,8 @@ internal class SøknadJsonTest {
                 "kontanterBeløp":25000
             },
             "forNav":{
-                "harFullmektigEllerVerge":"verge"
+                "harFullmektigEllerVerge":"verge",
+                "type": "DigitalSøknad"
             },
             "ektefelle": {
                 "formue": {
