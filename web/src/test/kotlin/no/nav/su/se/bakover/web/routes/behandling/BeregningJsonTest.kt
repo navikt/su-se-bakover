@@ -46,7 +46,7 @@ internal class BeregningJsonTest {
             }
         """
 
-        internal val beregning = BeregningFactory.persistert(
+        internal val beregning = BeregningFactory.ny(
             id = uuid,
             opprettet = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(),
             periode = Periode(1.august(2020), 31.august(2020)),

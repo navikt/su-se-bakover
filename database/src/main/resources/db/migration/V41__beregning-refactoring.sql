@@ -35,3 +35,8 @@ alter table fradrag drop column if exists inntektDelerAvPeriode;
 drop table if exists månedsberegning;
 
 alter table fradrag alter column beløp type decimal;
+
+alter table behandling add column if not exists beregning jsonb;
+
+drop table if exists fradrag;
+drop table if exists beregning;

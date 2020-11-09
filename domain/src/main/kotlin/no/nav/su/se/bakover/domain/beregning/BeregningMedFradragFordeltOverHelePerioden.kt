@@ -1,15 +1,23 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import java.util.UUID
 
 internal data class BeregningMedFradragFordeltOverHelePerioden(
+    private val id: UUID = UUID.randomUUID(),
+    private val opprettet: Tidspunkt = Tidspunkt.now(),
     private val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>
-) : AbstractBeregning() {
+) : Beregning {
     private val beregning = beregn()
+
+    override fun getId(): UUID = id
+
+    override fun getOpprettet(): Tidspunkt = opprettet
 
     override fun getSumYtelse() = beregning.values
         .sumBy { it.getSumYtelse() }
