@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -137,13 +135,10 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandlingTilAttestering.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        val oppgaveId = søknadRepo.hentOppgaveId(behandlingTilAttestering.søknad.id)
-            ?: return behandlingTilAttestering.right()
-                .also { log.error("Klarte ikke å lukke oppgave da vi ikke fant oppgaveId for søknadsId : ${behandlingTilAttestering.søknad.id}") }
-        oppgaveService.lukkOppgave(OppgaveId(oppgaveId.toString())).map {
+        oppgaveService.lukkOppgave(behandlingTilAttestering.oppgaveId()).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }.mapLeft {
-            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId $oppgaveId feilet")
+            log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${behandlingTilAttestering.oppgaveId()} feilet")
         }
         return behandlingTilAttestering.right()
     }
@@ -159,22 +154,16 @@ internal class BehandlingServiceImpl(
 
         return behandling.iverksett(attestant) // invoke first to perform state-check
             .map { iverksattBehandling ->
-                val aktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-                    log.error("Lukk attesteringsoppgave: Fant ikke aktør-id med for fødselsnummer : ${behandling.fnr}")
-                    return Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId.left()
-                }
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
                         behandlingId = behandlingId,
                         attestant = attestant,
-                        behandling = iverksattBehandling,
-                        aktørId = aktørId
+                        behandling = iverksattBehandling
                     )
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
                         behandling = iverksattBehandling,
                         attestant = attestant,
-                        behandlingId = behandlingId,
-                        aktørId = aktørId
+                        behandlingId = behandlingId
                     )
                     else -> throw Behandling.TilstandException(
                         state = iverksattBehandling.status(),
@@ -187,8 +176,7 @@ internal class BehandlingServiceImpl(
     private fun iverksettAvslag(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        behandling: Behandling,
-        aktørId: AktørId
+        behandling: Behandling
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
 
         behandlingRepo.attester(behandlingId, attestant)
@@ -196,7 +184,7 @@ internal class BehandlingServiceImpl(
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-        oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
+        oppgaveService.lukkOppgave(behandling.oppgaveId())
             .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
 
         return journalførOgDistribuerBrev(
@@ -210,8 +198,7 @@ internal class BehandlingServiceImpl(
     private fun iverksettInnvilgning(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
-        behandlingId: UUID,
-        aktørId: AktørId
+        behandlingId: UUID
     ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
@@ -233,7 +220,7 @@ internal class BehandlingServiceImpl(
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-            oppgaveService.ferdigstillAttesteringsoppgave(aktørId)
+            oppgaveService.lukkOppgave(behandling.oppgaveId())
                 .map { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE) }
 
             journalførOgDistribuerBrev(
@@ -269,21 +256,23 @@ internal class BehandlingServiceImpl(
     ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
         // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
         // TODO: + sjekk at søknad ikke er lukket
-        return søknadService.hentSøknad(søknadId)
-            .map {
-                val nySøknadsbehandling = NySøknadsbehandling(
-                    id = UUID.randomUUID(),
-                    opprettet = now(),
-                    sakId = it.sakId,
-                    søknadId = søknadId
-                )
-                behandlingRepo.opprettSøknadsbehandling(
-                    nySøknadsbehandling
-                )
-                behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!
-            }.mapLeft {
-                KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
-            }
+        val søknad = søknadService.hentSøknad(søknadId).getOrElse {
+            return KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
+        }
+        // TODO Prøv å opprette oppgaven hvis den mangler?
+        val oppgaveId = søknad.oppgaveId ?: return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+
+        val nySøknadsbehandling = NySøknadsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = now(),
+            sakId = søknad.sakId,
+            søknadId = søknadId,
+            oppgaveId = oppgaveId
+        )
+        behandlingRepo.opprettSøknadsbehandling(
+            nySøknadsbehandling
+        )
+        return behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!.right()
     }
 
     override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {

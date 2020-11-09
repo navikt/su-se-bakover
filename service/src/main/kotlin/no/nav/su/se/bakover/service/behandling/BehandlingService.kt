@@ -50,6 +50,7 @@ sealed class KunneIkkeLageBrevutkast {
 object FantIkkeBehandling
 sealed class KunneIkkeOppretteSøknadsbehandling {
     object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
 }
 sealed class KunneIkkeSendeTilAttestering() {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()

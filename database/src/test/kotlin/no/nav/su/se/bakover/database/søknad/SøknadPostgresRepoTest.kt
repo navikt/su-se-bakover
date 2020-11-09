@@ -97,20 +97,6 @@ internal class SøknadPostgresRepoTest {
     }
 
     @Test
-    fun `lagrer oppgaveId`() {
-        withMigratedDb {
-            val nySak: NySak = testDataHelper.insertSak(FNR)
-            val oppgaveId = OppgaveId("1")
-            repo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
-            EmbeddedDatabase.instance().withSession { session ->
-                "select oppgaveId from søknad where id='${nySak.søknad.id}'".hentListe(
-                    session = session
-                ) { it.stringOrNull("oppgaveId") }
-            } shouldBe listOf("1")
-        }
-    }
-
-    @Test
     fun `lagrer journalPostId`() {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
@@ -125,12 +111,12 @@ internal class SøknadPostgresRepoTest {
     }
 
     @Test
-    fun `henter oppgave-id fra søknad`() {
+    fun `lagrer og henter oppgaveId fra søknad`() {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             val oppgaveId = OppgaveId("1")
             repo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
-            repo.hentOppgaveId(nySak.søknad.id) shouldBe oppgaveId
+            repo.hentSøknad(nySak.søknad.id)?.oppgaveId shouldBe oppgaveId
         }
     }
 }

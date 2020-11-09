@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 internal class MigrationsPostgresTest {
@@ -10,8 +10,8 @@ internal class MigrationsPostgresTest {
     fun `migreringer skal kjøre på en tom database`() {
         EmbeddedDatabase.instance().also {
             clean(it)
-            val migrations = Flyway(it, "postgres").migrate()
-            assertTrue(migrations > 0)
+            val migrations: Int = Flyway(it, "postgres").migrate().migrationsExecuted
+            migrations shouldBeGreaterThan 0
         }
     }
 
@@ -19,8 +19,10 @@ internal class MigrationsPostgresTest {
     fun `migreringer skal ikke kjøre flere ganger`() {
         EmbeddedDatabase.instance().also {
             clean(it)
-            assertTrue(Flyway(it, "postgres").migrate() > 0)
-            assertEquals(0, Flyway(it, "postgres").migrate())
+            val firstMigration = Flyway(it, "postgres").migrate().migrationsExecuted
+            firstMigration shouldBeGreaterThan 0
+            val sesondMigration = Flyway(it, "postgres").migrate().migrationsExecuted
+            sesondMigration shouldBe 0
         }
     }
 }

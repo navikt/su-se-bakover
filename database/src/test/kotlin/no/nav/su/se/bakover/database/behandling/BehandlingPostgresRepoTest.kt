@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 
 val behandlingFactory = BehandlingFactory(mock())
@@ -23,6 +24,7 @@ internal class BehandlingPostgresRepoTest {
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), behandlingFactory)
+    private val oppgaveId = OppgaveId("1234")
 
     @Test
     fun `opprett og hent behandling`() {
@@ -31,7 +33,8 @@ internal class BehandlingPostgresRepoTest {
             val søknad: Søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
@@ -42,7 +45,8 @@ internal class BehandlingPostgresRepoTest {
                 opprettet = nySøknadsbehandling.opprettet,
                 fnr = FNR,
                 søknad = søknad,
-                sakId = sak.id
+                sakId = sak.id,
+                oppgaveId = oppgaveId
             )
         }
     }
@@ -54,7 +58,8 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
@@ -84,7 +89,8 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
@@ -103,7 +109,8 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
@@ -122,7 +129,8 @@ internal class BehandlingPostgresRepoTest {
             val søknad = testDataHelper.insertSøknad(sak.id)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
             )
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)

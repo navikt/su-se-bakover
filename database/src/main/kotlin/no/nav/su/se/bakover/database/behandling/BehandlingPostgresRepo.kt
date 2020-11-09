@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -125,9 +126,9 @@ internal class BehandlingPostgresRepo(
         dataSource.withSession { session ->
             """
             insert into behandling
-                (id, sakId, søknadId, opprettet, status, behandlingsinformasjon)
+                (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId)
             values
-                (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json))
+                (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId)
             """.oppdatering(
                 mapOf(
                     "id" to nySøknadsbehandling.id,
@@ -135,7 +136,8 @@ internal class BehandlingPostgresRepo(
                     "soknadId" to nySøknadsbehandling.søknadId,
                     "opprettet" to nySøknadsbehandling.opprettet,
                     "status" to nySøknadsbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(nySøknadsbehandling.behandlingsinformasjon)
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(nySøknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to nySøknadsbehandling.oppgaveId.toString()
                 ),
                 session
             )
@@ -171,7 +173,8 @@ internal class BehandlingPostgresRepo(
                 ?: Hendelseslogg(
                     behandlingId.toString()
                 ),
-            fnr = Fnr(string("fnr"))
+            fnr = Fnr(string("fnr")),
+            oppgaveId = OppgaveId(string("oppgaveId"))
         )
     }
 }

@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -53,11 +52,12 @@ class BehandlingTilAttesteringTest {
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
+        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build(), oppgaveId = oppgaveId),
         status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,
         fnr = fnr,
-        simulering = simulering
+        simulering = simulering,
+        oppgaveId = oppgaveId
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -81,15 +81,10 @@ class BehandlingTilAttesteringTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentOppgaveId(any()) } doReturn oppgaveId
-        }
-
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock,
-            søknadRepo = søknadRepoMock
+            oppgaveService = oppgaveServiceMock
         ).sendTilAttestering(behandling.id, saksbehandler)
 
         actual shouldBe simulertBehandling.copy(
@@ -97,7 +92,7 @@ class BehandlingTilAttesteringTest {
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
         ).right()
 
-        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock, søknadRepoMock) {
+        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
             verify(personOppslagMock).aktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
@@ -110,9 +105,8 @@ class BehandlingTilAttesteringTest {
             verify(behandlingRepoMock).settSaksbehandler(simulertBehandling.id, saksbehandler)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(simulertBehandling.id, Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET)
 
-            verify(søknadRepoMock).hentOppgaveId(simulertBehandling.søknad.id)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock, søknadRepoMock)
+        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
     }
 }

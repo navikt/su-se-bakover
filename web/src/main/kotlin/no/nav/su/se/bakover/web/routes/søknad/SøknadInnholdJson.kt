@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.Formue
+import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.InntektOgPensjon
 import no.nav.su.se.bakover.domain.Kjøretøy
 import no.nav.su.se.bakover.domain.Oppholdstillatelse
@@ -89,8 +90,6 @@ data class SøknadInnholdJson(
         val erNorskStatsborger: Boolean,
         val harOppholdstillatelse: Boolean? = null,
         val typeOppholdstillatelse: String? = null,
-        val oppholdstillatelseMindreEnnTreMåneder: Boolean? = null,
-        val oppholdstillatelseForlengelse: Boolean? = null,
         val statsborgerskapAndreLand: Boolean,
         val statsborgerskapAndreLandFritekst: String? = null
     ) {
@@ -100,8 +99,6 @@ data class SøknadInnholdJson(
             oppholdstillatelseType = typeOppholdstillatelse?.let {
                 toOppholdstillatelseType(it)
             },
-            oppholdstillatelseMindreEnnTreMåneder = oppholdstillatelseMindreEnnTreMåneder,
-            oppholdstillatelseForlengelse = oppholdstillatelseForlengelse,
             statsborgerskapAndreLand = statsborgerskapAndreLand,
             statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst
         )
@@ -120,8 +117,6 @@ data class SøknadInnholdJson(
                     erNorskStatsborger = this.erNorskStatsborger,
                     harOppholdstillatelse = this.harOppholdstillatelse,
                     typeOppholdstillatelse = this.oppholdstillatelseType?.toJson(),
-                    oppholdstillatelseMindreEnnTreMåneder = this.oppholdstillatelseMindreEnnTreMåneder,
-                    oppholdstillatelseForlengelse = this.oppholdstillatelseForlengelse,
                     statsborgerskapAndreLand = this.statsborgerskapAndreLand,
                     statsborgerskapAndreLandFritekst = this.statsborgerskapAndreLandFritekst
                 )
@@ -133,6 +128,7 @@ data class SøknadInnholdJson(
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektefellePartnerSamboer: EktefellePartnerSamboer?,
+        val innlagtPåInstitusjon: InnlagtPåInstitusjon?
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -140,7 +136,8 @@ data class SøknadInnholdJson(
             delerBoligMed = delerBoligMed?.let {
                 toBoforholdType(it)
             },
-            ektefellePartnerSamboer = ektefellePartnerSamboer
+            ektefellePartnerSamboer = ektefellePartnerSamboer,
+            innlagtPåInstitusjon = innlagtPåInstitusjon
         )
 
         private fun toBoforholdType(str: String): DelerBoligMed {
@@ -159,6 +156,7 @@ data class SøknadInnholdJson(
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
+                    innlagtPåInstitusjon = this.innlagtPåInstitusjon
                 )
         }
     }

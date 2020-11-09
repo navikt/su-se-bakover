@@ -38,6 +38,11 @@ object SøknadInnholdTestdataBuilder {
             ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr(
                 erUførFlyktning = false,
                 fnr = fnrUnder67()
+            ),
+            innlagtPåInstitusjon = InnlagtPåInstitusjon(
+                datoForInnleggelse = LocalDate.of(2020, JANUARY, 1),
+                datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
+                fortsattInnlagt = false
             )
         ),
 
@@ -72,8 +77,6 @@ object SøknadInnholdTestdataBuilder {
             erNorskStatsborger = false,
             harOppholdstillatelse = true,
             oppholdstillatelseType = Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG,
-            oppholdstillatelseMindreEnnTreMåneder = false,
-            oppholdstillatelseForlengelse = true,
             statsborgerskapAndreLand = false,
             statsborgerskapAndreLandFritekst = null
         ),

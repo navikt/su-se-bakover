@@ -19,6 +19,18 @@ data class Behandlingsinformasjon(
     val bosituasjon: Bosituasjon? = null,
     val ektefelle: EktefellePartnerSamboer? = null,
 ) {
+    private val alleVilkår = listOf(
+        uførhet,
+        flyktning,
+        lovligOpphold,
+        fastOppholdINorge,
+        oppholdIUtlandet,
+        formue,
+        personligOppmøte,
+        bosituasjon,
+        ektefelle,
+    )
+
     fun patch(
         b: Behandlingsinformasjon
     ) = Behandlingsinformasjon(
@@ -33,48 +45,28 @@ data class Behandlingsinformasjon(
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
-    private fun erFerdigbehandlet() =
-        listOf(
-            uførhet,
-            flyktning,
-            lovligOpphold,
-            fastOppholdINorge,
-            oppholdIUtlandet,
-            formue,
-            personligOppmøte,
-            bosituasjon,
-            ektefelle,
-        ).all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
+    fun erInnvilget() = alleVilkår.all { it?.erVilkårOppfylt() ?: false }
+    fun getAvslagsgrunn() = alleVilkår.mapNotNull { it?.avslagsgrunn() }.firstOrNull()
+    fun erAvslag(): Boolean {
+        val erFerdigbehandlet = alleVilkår.all { it != null && it.erGyldig() && it.erFerdigbehandlet() }
 
-    fun erInnvilget() =
-        listOf(
-            uførhet?.erVilkårOppfylt(),
-            flyktning?.erVilkårOppfylt(),
-            lovligOpphold?.erVilkårOppfylt(),
-            fastOppholdINorge?.erVilkårOppfylt(),
-            oppholdIUtlandet?.erVilkårOppfylt(),
-            formue?.erVilkårOppfylt(),
-            personligOppmøte?.erVilkårOppfylt(),
-        ).all { it ?: false }
+        return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() || (erFerdigbehandlet && !erInnvilget())
+    }
 
-    fun erAvslag() = erFerdigbehandlet() && !erInnvilget()
-
-    fun getAvslagsgrunn() =
-        listOfNotNull(
-            uførhet?.avslagsgrunn(),
-            flyktning?.avslagsgrunn(),
-            lovligOpphold?.avslagsgrunn(),
-            fastOppholdINorge?.avslagsgrunn(),
-            oppholdIUtlandet?.avslagsgrunn(),
-            formue?.avslagsgrunn(),
-            personligOppmøte?.avslagsgrunn(),
-        ).firstOrNull()
+    private fun uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt(): Boolean {
+        if (uførhet != null && flyktning != null) {
+            if (uførhet.status == Uførhet.Status.VilkårIkkeOppfylt || flyktning.status == Flyktning.Status.VilkårIkkeOppfylt) {
+                return true
+            }
+        }
+        return false
+    }
 
     abstract class Base {
-        abstract fun erGyldig(): Boolean
-        abstract fun erFerdigbehandlet(): Boolean
-        abstract fun erVilkårOppfylt(): Boolean
-        abstract fun avslagsgrunn(): Avslagsgrunn?
+        open fun erGyldig(): Boolean = true
+        open fun erFerdigbehandlet(): Boolean = true
+        open fun erVilkårOppfylt(): Boolean = true
+        open fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     data class Uførhet(
@@ -111,7 +103,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -128,7 +119,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -145,7 +135,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = status != Status.Uavklart
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -161,7 +150,6 @@ data class Behandlingsinformasjon(
             SkalHoldeSegINorge
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = erGyldig()
         override fun erVilkårOppfylt(): Boolean = status == Status.SkalHoldeSegINorge
         override fun avslagsgrunn(): Avslagsgrunn? =
@@ -183,6 +171,7 @@ data class Behandlingsinformasjon(
             val kontanter: Int?,
             val depositumskonto: Int?,
         )
+
         enum class Status {
             VilkårOppfylt,
             VilkårIkkeOppfylt,
@@ -221,7 +210,6 @@ data class Behandlingsinformasjon(
             IkkeMøttPersonlig
         }
 
-        override fun erGyldig(): Boolean = true
         override fun erFerdigbehandlet(): Boolean = erGyldig()
         override fun erVilkårOppfylt(): Boolean =
             status.let {
@@ -277,6 +265,9 @@ data class Behandlingsinformasjon(
                 true
             }
 
+        override fun erFerdigbehandlet(): Boolean = erGyldig()
+        override fun erVilkårOppfylt(): Boolean = erGyldig()
+
         fun getSatsgrunn() = when {
             !delerBolig -> Satsgrunn.ENSLIG
             delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN ->
@@ -291,10 +282,6 @@ data class Behandlingsinformasjon(
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
             else -> null
         }
-
-        override fun erFerdigbehandlet(): Boolean = erGyldig()
-        override fun erVilkårOppfylt(): Boolean = erGyldig()
-        override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     @JsonTypeInfo(
@@ -307,11 +294,6 @@ data class Behandlingsinformasjon(
         JsonSubTypes.Type(value = EktefellePartnerSamboer.IngenEktefelle::class, name = "IngenEktefelle"),
     )
     sealed class EktefellePartnerSamboer : Base() {
-        override fun erGyldig() = true
-        override fun erFerdigbehandlet() = true
-        override fun erVilkårOppfylt() = true
-        override fun avslagsgrunn(): Avslagsgrunn? = null
-
         data class Ektefelle(val fnr: Fnr) : EktefellePartnerSamboer()
         object IngenEktefelle : EktefellePartnerSamboer()
     }

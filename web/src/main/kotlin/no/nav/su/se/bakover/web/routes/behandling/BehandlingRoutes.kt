@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeAktørId
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
@@ -208,7 +207,6 @@ internal fun Route.behandlingRoutes(
                 is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
                 is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
-                is FantIkkeAktørId -> InternalServerError.message("Fant ikke aktør-id")
                 is FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
             }
         }

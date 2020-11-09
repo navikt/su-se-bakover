@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.stubs.oppgave
 
 import arrow.core.right
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -11,9 +10,7 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun opprettOppgave(config: OppgaveConfig) = generateOppgaveId().right()
 
-    override fun ferdigstillAttesteringsoppgave(aktørId: AktørId) = Unit.right()
-
     override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
 
-    private fun generateOppgaveId() = OppgaveId(Random.nextLong().toString())
+    private fun generateOppgaveId() = OppgaveId(Random.nextLong(0, Long.MAX_VALUE).toString())
 }

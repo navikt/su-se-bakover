@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -129,6 +130,73 @@ internal class BehandlingTest {
         fun `dont transition if vilkårsvurdering not completed`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.status() shouldBe OPPRETTET
+        }
+
+        @Test
+        fun `skal ge tidig avslag om uførhet er ikke oppfylt`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        1,
+                        1
+                    ),
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+                        null
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `skal ge tidig avslag om flyktning er ikke oppfylt`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        1,
+                        1
+                    ),
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                        null
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `både uførhet og flyktning må vare vurdert innen tidig avslag kan ges`() {
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        1,
+                        1
+                    )
+                )
+            )
+
+            opprettet.status() shouldBe OPPRETTET
+
+            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                oppdatert = Behandlingsinformasjon(
+                    flyktning = Behandlingsinformasjon.Flyktning(
+                        Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                        null
+                    )
+                )
+            )
+            opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
         }
 
         @Test
@@ -650,7 +718,8 @@ internal class BehandlingTest {
         søknad = søknad,
         status = status,
         sakId = id1,
-        fnr = FnrGenerator.random()
+        fnr = FnrGenerator.random(),
+        oppgaveId = OppgaveId("1234")
     )
 
     private fun defaultSimulering() = Simulering(

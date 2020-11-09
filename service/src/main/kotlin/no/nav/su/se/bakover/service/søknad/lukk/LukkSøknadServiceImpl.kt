@@ -31,15 +31,20 @@ internal class LukkSøknadServiceImpl(
         val søknad = hentSøknad(request.søknadId).getOrElse {
             return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
         }
+
+        val oppgaveId = søknad.oppgaveId
+
         return sjekkOmSøknadKanLukkes(søknad)
             .map {
                 return when (request) {
                     is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, it)
                     is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
                 }.map { sak ->
-                    søknadRepo.hentOppgaveId(søknad.id)?.let { oppgaveId ->
+                    if (oppgaveId == null) {
+                        log.info("Kunne ikke lukke oppgave da oppgave for søknad ${søknad.id} ikke var opprettet")
+                    } else {
                         oppgaveService.lukkOppgave(oppgaveId).mapLeft {
-                            log.warn("Kunne ikke ferdigstille oppgave for ${søknad.id}")
+                            log.warn("Kunne ikke lukke oppgave $oppgaveId for søknad ${søknad.id}")
                         }
                     }
                     sak
@@ -118,6 +123,7 @@ internal class LukkSøknadServiceImpl(
             request = request,
             sakId = søknad.sakId
         ).mapLeft {
+            // TODO: Her kan vi ende opp med å svare med feil, selvom vi har persistert søknaden som lukket
             KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
         }.map {
             return brevService.distribuerBrev(it)

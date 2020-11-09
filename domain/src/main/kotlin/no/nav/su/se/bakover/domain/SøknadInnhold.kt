@@ -35,8 +35,6 @@ data class Oppholdstillatelse(
     val erNorskStatsborger: Boolean,
     val harOppholdstillatelse: Boolean? = null,
     val oppholdstillatelseType: OppholdstillatelseType? = null,
-    val oppholdstillatelseMindreEnnTreMåneder: Boolean? = null,
-    val oppholdstillatelseForlengelse: Boolean? = null,
     val statsborgerskapAndreLand: Boolean,
     val statsborgerskapAndreLandFritekst: String? = null
 ) {
@@ -51,6 +49,7 @@ data class Boforhold(
     val delerBolig: Boolean,
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
+    val innlagtPåInstitusjon: InnlagtPåInstitusjon?
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
@@ -144,4 +143,10 @@ data class TrygdeytelseIUtlandet(
     val beløp: Number,
     val type: String,
     val fra: String
+)
+
+data class InnlagtPåInstitusjon(
+    val datoForInnleggelse: LocalDate,
+    val datoForUtskrivelse: LocalDate?,
+    val fortsattInnlagt: Boolean,
 )

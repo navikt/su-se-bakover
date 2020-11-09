@@ -1,8 +1,8 @@
-val fuelVersion = "2.2.3"
-val wireMockVersion = "2.27.1"
+val fuelVersion = "2.3.0"
+val wireMockVersion = "2.27.2"
 val orgJsonVersion = "20200518"
 val tjenestespesifikasjonVersion = "1.2020.07.06-13.56-22258ab2afe2"
-val cxfVersion = "3.3.7"
+val cxfVersion = "3.4.0"
 
 dependencies {
     implementation(project(":common"))

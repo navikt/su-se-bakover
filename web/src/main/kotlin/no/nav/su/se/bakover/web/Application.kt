@@ -30,6 +30,7 @@ import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
+import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
@@ -47,6 +48,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
@@ -242,18 +244,23 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             withUser {
-                personRoutes(clients.personOppslag)
-                inntektRoutes(clients.inntektOppslag)
-                sakRoutes(
-                    behandlingService = services.behandling,
-                    sakService = services.sak
-                )
-                søknadRoutes(services.søknad, services.lukkSøknad)
-                behandlingRoutes(services.behandling)
-                avstemmingRoutes(services.avstemming)
-                stansutbetalingRoutes(services.utbetaling)
-                gjenopptaUtbetalingRoutes(services.utbetaling)
-                meRoutes()
+                withAccessProtectedServices(
+                    services,
+                    AccessCheckProxy(databaseRepos.person, clients)
+                ) { accessProtectedServices ->
+                    personRoutes(clients.personOppslag)
+                    inntektRoutes(clients.inntektOppslag)
+                    sakRoutes(
+                        behandlingService = accessProtectedServices.behandling,
+                        sakService = accessProtectedServices.sak
+                    )
+                    søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
+                    behandlingRoutes(accessProtectedServices.behandling)
+                    avstemmingRoutes(accessProtectedServices.avstemming)
+                    stansutbetalingRoutes(accessProtectedServices.utbetaling)
+                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
+                    meRoutes()
+                }
             }
         }
     }
@@ -271,3 +278,9 @@ internal fun Application.susebakover(
         )
     }
 }
+
+fun Route.withAccessProtectedServices(
+    services: Services,
+    accessCheckProxy: AccessCheckProxy,
+    build: Route.(services: Services) -> Unit
+) = build(accessCheckProxy.proxy(services))
