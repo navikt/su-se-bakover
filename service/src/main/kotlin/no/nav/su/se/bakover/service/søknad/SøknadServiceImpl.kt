@@ -130,15 +130,11 @@ internal class SøknadServiceImpl(
             return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
         }
             .flatMap {
-                pdfGenerator.genererPdf(it.søknadInnhold).fold(
-                    {
+                pdfGenerator.genererPdf(it.søknadInnhold)
+                    .mapLeft {
                         log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
-                    },
-                    {
-                        it.right()
+                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
                     }
-                )
             }
     }
 }
