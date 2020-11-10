@@ -2,13 +2,16 @@ package no.nav.su.se.bakover.database.søknad
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -26,13 +29,46 @@ internal object SøknadRepoInternal {
 }
 
 internal fun Row.toSøknad(): Søknad {
-    return Søknad(
-        sakId = uuid("sakId"),
-        id = uuid("id"),
-        søknadInnhold = objectMapper.readValue(string("søknadInnhold")),
-        opprettet = tidspunkt("opprettet"),
-        lukket = stringOrNull("lukket")?.let { objectMapper.readValue<Søknad.Lukket>(it) },
-        oppgaveId = stringOrNull("oppgaveId")?.let { OppgaveId(it) },
-        journalpostId = stringOrNull("journalpostId")?.let { JournalpostId(it) },
-    )
+    val sakId: UUID = uuid("sakId")
+    val id: UUID = uuid("id")
+    val søknadInnhold: SøknadInnhold = objectMapper.readValue(string("søknadInnhold"))
+    val opprettet: Tidspunkt = tidspunkt("opprettet")
+    val lukket: LukketJson? = stringOrNull("lukket")?.let { objectMapper.readValue(it) }
+    val oppgaveId: OppgaveId? = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
+    val journalpostId: JournalpostId? = stringOrNull("journalpostId")?.let { JournalpostId(it) }
+
+    return when {
+        lukket != null -> Søknad.Lukket(
+            sakId = sakId,
+            id = id,
+            opprettet = opprettet,
+            søknadInnhold = søknadInnhold,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
+            lukketTidspunkt = lukket.tidspunkt,
+            lukketType = lukket.type
+        )
+        journalpostId == null -> Søknad.Ny(
+            sakId = sakId,
+            id = id,
+            opprettet = opprettet,
+            søknadInnhold = søknadInnhold,
+        )
+        oppgaveId == null -> Søknad.Journalført.UtenOppgave(
+            sakId = sakId,
+            id = id,
+            opprettet = opprettet,
+            søknadInnhold = søknadInnhold,
+            journalpostId = journalpostId,
+        )
+        else -> Søknad.Journalført.MedOppgave(
+            sakId = sakId,
+            id = id,
+            opprettet = opprettet,
+            søknadInnhold = søknadInnhold,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId
+        )
+    }
 }

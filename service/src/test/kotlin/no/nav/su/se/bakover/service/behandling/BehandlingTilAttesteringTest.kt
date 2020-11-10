@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -29,11 +30,12 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class BehandlingTilAttesteringTest {
-    val sakId = UUID.randomUUID()
-    val fnr = FnrGenerator.random()
-    val oppgaveId = OppgaveId("123")
-    val nyOppgaveId = OppgaveId("999")
-    val aktørId = AktørId("12345")
+    private val sakId = UUID.randomUUID()
+    private val fnr = FnrGenerator.random()
+    private val oppgaveId = OppgaveId("o")
+    private val journalpostId = JournalpostId("j")
+    private val nyOppgaveId = OppgaveId("999")
+    private val aktørId = AktørId("12345")
 
     private val beregning = Beregning(
         fraOgMed = 1.januar(2020),
@@ -52,11 +54,11 @@ class BehandlingTilAttesteringTest {
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(
+        søknad = Søknad.Journalført.MedOppgave(
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,
-            journalpostId = null
+            journalpostId = journalpostId
         ),
         status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,

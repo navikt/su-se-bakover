@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -158,11 +159,15 @@ internal class BehandlingPostgresRepo(
 
     private fun Row.toBehandling(session: Session): Behandling {
         val behandlingId = uuid("id")
+        val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
+        if (søknad !is Søknad.Journalført.MedOppgave) {
+            throw IllegalStateException("Kunne ikke hente behandling med søknad som ikke er journalført med oppgave.")
+        }
         return behandlingFactory.createBehandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
-            søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!,
+            søknad = søknad,
             beregning = BeregningRepoInternal.hentBeregningForBehandling(behandlingId, session),
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),

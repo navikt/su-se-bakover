@@ -54,7 +54,8 @@ internal class BehandlingServiceImplTest {
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val aktørId = AktørId("1234567890123")
-    private val oppgaveId = OppgaveId("1234")
+    private val oppgaveId = OppgaveId("o")
+    private val journalpostId = JournalpostId("j")
 
     @Test
     fun `simuler behandling`() {
@@ -473,11 +474,11 @@ internal class BehandlingServiceImplTest {
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(
+        søknad = Søknad.Journalført.MedOppgave(
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = null,
-            journalpostId = null,
+            oppgaveId = oppgaveId,
+            journalpostId = journalpostId,
         ),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,

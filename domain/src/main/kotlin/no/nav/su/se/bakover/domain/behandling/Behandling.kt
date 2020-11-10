@@ -22,7 +22,7 @@ data class Behandling internal constructor(
     val id: UUID,
     val opprettet: Tidspunkt,
     private var behandlingsinformasjon: Behandlingsinformasjon,
-    val søknad: Søknad,
+    val søknad: Søknad.Journalført.MedOppgave,
     private var beregning: Beregning?,
     internal var simulering: Simulering?,
     private var status: BehandlingsStatus,

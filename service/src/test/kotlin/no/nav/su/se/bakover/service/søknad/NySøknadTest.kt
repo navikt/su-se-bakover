@@ -137,14 +137,11 @@ class NySøknadTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         fnr = fnr,
-                        søknad = Søknad(
+                        søknad = Søknad.Ny(
                             id = it.søknad.id,
                             opprettet = it.søknad.opprettet,
                             sakId = it.id,
                             søknadInnhold = søknadInnhold,
-                            lukket = null,
-                            oppgaveId = null,
-                            journalpostId = null,
                         ),
                         oppdrag = Oppdrag(
                             id = it.oppdrag.id,
@@ -215,14 +212,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null,
-                        oppgaveId = null,
-                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -302,14 +296,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null,
-                        oppgaveId = null,
-                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -403,14 +394,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null,
-                        oppgaveId = null,
-                        journalpostId = null,
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }

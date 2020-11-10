@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -60,9 +61,9 @@ internal class BehandlingServiceImpl(
                 val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
                     return Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
                 }
-                // Det er ikke sååå viktig om vi prøver lukke/opprette oppgave først; sannsynligvis feiler begge eller ingen.
+                // Rekkefølgen lukke/opprette oppgave er ikke så viktig; sannsynligvis feiler begge eller ingen.
+                // Men dersom vi lukker først, er vi idempotente, siden det går fint å lukke en oppgave flere ganger.
                 val journalpostId: JournalpostId = behandling.søknad.journalpostId
-                    ?: TODO("Bytt Søknad til en sealed class (PersistertSøknad,JournalførtSøknad,SøknadMedOppgave ellernoe)")
                 oppgaveService.lukkOppgave(behandling.oppgaveId())
                     .mapLeft {
                         return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
@@ -270,24 +271,29 @@ internal class BehandlingServiceImpl(
                     }
             }
 
-    // TODO need to define responsibilities for domain and services.
     override fun opprettSøknadsbehandling(
         søknadId: UUID
     ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
-        // TODO: sjekk at det ikke finnes eksisterende behandling som ikke er avsluttet
-        // TODO: + sjekk at søknad ikke er lukket
         val søknad = søknadService.hentSøknad(søknadId).getOrElse {
             return KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
         }
-        // TODO Prøv å opprette oppgaven hvis den mangler?
-        val oppgaveId = søknad.oppgaveId ?: return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
-
+        if (søknad is Søknad.Lukket) {
+            return KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
+        }
+        if (søknad !is Søknad.Journalført.MedOppgave) {
+            // TODO Prøv å opprette oppgaven hvis den mangler?
+            return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+        }
+        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
+            // Dersom man legger til avslutting av behandlinger, må denne spørringa spesifiseres.
+            return KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
+        }
         val nySøknadsbehandling = NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = now(),
             sakId = søknad.sakId,
-            søknadId = søknadId,
-            oppgaveId = oppgaveId
+            søknadId = søknad.id,
+            oppgaveId = søknad.oppgaveId
         )
         behandlingRepo.opprettSøknadsbehandling(
             nySøknadsbehandling

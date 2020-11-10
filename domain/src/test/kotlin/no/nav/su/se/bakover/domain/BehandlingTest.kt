@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Fradrag
 import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -45,7 +46,12 @@ internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
-    private val søknad = Søknad(sakId = UUID.randomUUID(), søknadInnhold = SøknadInnholdTestdataBuilder.build(), oppgaveId = null, journalpostId = null)
+    private val søknad = Søknad.Journalført.MedOppgave(
+        sakId = UUID.randomUUID(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        oppgaveId = OppgaveId("o"),
+        journalpostId = JournalpostId("j")
+    )
     private val behandlingFactory = BehandlingFactory(mock())
 
     companion object {

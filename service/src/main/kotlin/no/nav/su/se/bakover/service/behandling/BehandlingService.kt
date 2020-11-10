@@ -51,6 +51,8 @@ object FantIkkeBehandling
 sealed class KunneIkkeOppretteSøknadsbehandling {
     object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
     object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
 }
 sealed class KunneIkkeSendeTilAttestering() {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()

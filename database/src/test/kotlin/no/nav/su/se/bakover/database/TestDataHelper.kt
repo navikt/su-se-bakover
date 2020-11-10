@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -39,24 +41,35 @@ internal class TestDataHelper(
     private val behandlingRepo = behandlingPostgresRepo
     private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
 
-    fun insertSak(fnr: Fnr): NySak =
-        SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also { sakRepo.opprettSak(it) }
+    fun nySakMedJournalførtsøknadOgOppgave(fnr: Fnr, oppgaveId: OppgaveId, journalpostId: JournalpostId): Sak {
+        val nySak = insertSak(fnr)
+        val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
+            søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
+        }
+        val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId).also {
+            søknadRepo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
+        }
+        return nySak.toSak().copy(søknader = listOf(journalførtSøknadMedOppgave))
+    }
 
-    fun insertSøknad(sakId: UUID): Søknad = Søknad(
+    internal fun insertSak(fnr: Fnr): NySak = SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
+        sakRepo.opprettSak(it)
+    }
+
+    fun insertSøknad(sakId: UUID): Søknad.Ny = Søknad.Ny(
         sakId = sakId,
         id = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        oppgaveId = null,
-        journalpostId = null,
     ).also { søknadRepo.opprettSøknad(it) }
 
-    fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling = NySøknadsbehandling(
-        sakId = sakId,
-        søknadId = søknad.id,
-        oppgaveId = oppgaveId
-    ).also {
-        behandlingRepo.opprettSøknadsbehandling(it)
-    }
+    fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling =
+        NySøknadsbehandling(
+            sakId = sakId,
+            søknadId = søknad.id,
+            oppgaveId = oppgaveId
+        ).also {
+            behandlingRepo.opprettSøknadsbehandling(it)
+        }
 
     fun insertBeregning(behandlingId: UUID) = beregningRepo.opprettBeregningForBehandling(
         behandlingId = behandlingId,

@@ -17,15 +17,17 @@ data class LukketJson(
     val type: String
 )
 
-internal fun Søknad.toJson() = SøknadJson(
-    id = id.toString(),
-    søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
-    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    lukket = lukket?.toJson()
-)
+internal fun Søknad.toJson(): SøknadJson {
+    return SøknadJson(
+        id = id.toString(),
+        søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        lukket = if (this is Søknad.Lukket) this.toJson() else null
+    )
+}
 
 internal fun Søknad.Lukket.toJson() = LukketJson(
-    tidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunkt),
-    saksbehandler = saksbehandler.toString(),
-    type = type.value
+    tidspunkt = DateTimeFormatter.ISO_INSTANT.format(lukketTidspunkt),
+    saksbehandler = lukketAv.toString(),
+    type = lukketType.toString()
 )

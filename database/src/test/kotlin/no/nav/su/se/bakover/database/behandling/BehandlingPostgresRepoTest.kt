@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 
@@ -21,16 +22,17 @@ val behandlingFactory = BehandlingFactory(mock())
 
 internal class BehandlingPostgresRepoTest {
 
-    private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), behandlingFactory)
-    private val oppgaveId = OppgaveId("1234")
+    private val oppgaveId = OppgaveId("o")
+    private val journalpostId = JournalpostId("j")
 
     @Test
     fun `opprett og hent behandling`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
-            val søknad: Søknad = testDataHelper.insertSøknad(sak.id)
+            val fnr = FnrGenerator.random()
+            val sak: Sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = søknad.id,
@@ -43,7 +45,7 @@ internal class BehandlingPostgresRepoTest {
             hentet shouldBe behandlingFactory.createBehandling(
                 id = nySøknadsbehandling.id,
                 opprettet = nySøknadsbehandling.opprettet,
-                fnr = FNR,
+                fnr = fnr,
                 søknad = søknad,
                 sakId = sak.id,
                 oppgaveId = oppgaveId
@@ -54,11 +56,11 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `oppdater behandlingsinformasjon`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id,
+                søknadId = sak.søknader()[0].id,
                 oppgaveId = oppgaveId
             )
 
@@ -85,11 +87,11 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `saksbehandle behandling`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id,
+                søknadId = sak.søknader()[0].id,
                 oppgaveId = oppgaveId
             )
 
@@ -105,11 +107,11 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `attesterer behandling`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id,
+                søknadId = sak.søknader()[0].id,
                 oppgaveId = oppgaveId
             )
 
@@ -125,11 +127,11 @@ internal class BehandlingPostgresRepoTest {
     @Test
     fun `oppdater behandlingstatus`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
-                søknadId = søknad.id,
+                søknadId = sak.søknader()[0].id,
                 oppgaveId = oppgaveId
             )
 

@@ -25,7 +25,7 @@ data class NySak(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = now(),
     val fnr: Fnr,
-    val søknad: Søknad,
+    val søknad: Søknad.Ny,
     val oppdrag: Oppdrag
 ) {
     fun toSak() = Sak(
@@ -49,14 +49,11 @@ class SakFactory(
             id = sakId,
             fnr = fnr,
             opprettet = opprettet,
-            søknad = Søknad(
+            søknad = Søknad.Ny(
                 id = uuidFactory.newUUID(),
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
-                lukket = null,
-                oppgaveId = null,
-                journalpostId = null,
             ),
             oppdrag = Oppdrag(
                 id = uuidFactory.newUUID30(),

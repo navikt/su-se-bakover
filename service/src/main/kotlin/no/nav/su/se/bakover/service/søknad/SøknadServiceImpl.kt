@@ -62,11 +62,9 @@ internal class SøknadServiceImpl(
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
-                val søknad = Søknad(
+                val søknad = Søknad.Ny(
                     sakId = it.id,
                     søknadInnhold = søknadInnhold,
-                    oppgaveId = null,
-                    journalpostId = null,
                 )
                 søknadRepo.opprettSøknad(søknad)
 

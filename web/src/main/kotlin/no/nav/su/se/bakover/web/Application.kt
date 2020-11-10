@@ -250,10 +250,7 @@ internal fun Application.susebakover(
                 ) { accessProtectedServices ->
                     personRoutes(clients.personOppslag)
                     inntektRoutes(clients.inntektOppslag)
-                    sakRoutes(
-                        behandlingService = accessProtectedServices.behandling,
-                        sakService = accessProtectedServices.sak
-                    )
+                    sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
