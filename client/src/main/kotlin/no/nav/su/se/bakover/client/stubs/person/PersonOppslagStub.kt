@@ -31,7 +31,14 @@ object PersonOppslagStub :
         statsborgerskap = "NOR",
         kjønn = "MANN",
         adressebeskyttelse = null,
-        skjermet = false
+        skjermet = false,
+        kontaktinfo = Person.Kontaktinfo(
+            epostadresse = "mail@epost.com",
+            mobiltelefonnummer = "90909090",
+            reservert = false,
+            kanVarsles = true,
+            språk = "nb"
+        )
     ).right()
 
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()

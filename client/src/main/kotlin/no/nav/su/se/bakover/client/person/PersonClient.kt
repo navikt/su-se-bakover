@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
 import arrow.core.orNull
+import no.nav.su.se.bakover.client.dkif.Dkif
+import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
@@ -11,9 +13,10 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 
 class PersonClient(
+    pdlUrl: String,
     private val kodeverk: Kodeverk,
     private val skjerming: Skjerming,
-    pdlUrl: String,
+    private val dkif: Dkif,
     tokenOppslag: TokenOppslag
 ) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag)
@@ -49,7 +52,8 @@ class PersonClient(
             statsborgerskap = pdlData.statsborgerskap,
             kjønn = pdlData.kjønn,
             adressebeskyttelse = pdlData.adressebeskyttelse,
-            skjermet = skjerming.erSkjermet(pdlData.ident.fnr)
+            skjermet = skjerming.erSkjermet(pdlData.ident.fnr),
+            kontaktinfo = kontaktinfo(pdlData.ident.fnr)
         )
 
     private fun toPoststed(postnummer: String) = Person.Poststed(
@@ -61,4 +65,15 @@ class PersonClient(
         kommunenummer = kommunenummer,
         kommunenavn = kodeverk.hentKommunenavn(kommunenummer).orNull()
     )
+
+    private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
+        val dkifInfo: Kontaktinformasjon? = dkif.hentKontaktinformasjon(fnr).orNull()
+        return if (dkifInfo == null) null else Person.Kontaktinfo(
+            dkifInfo.epostadresse,
+            dkifInfo.mobiltelefonnummer,
+            dkifInfo.reservert,
+            dkifInfo.kanVarsles,
+            dkifInfo.språk
+        )
+    }
 }

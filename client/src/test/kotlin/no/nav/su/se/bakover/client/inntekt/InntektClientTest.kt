@@ -67,8 +67,8 @@ internal class InntektClientTest : WiremockBase {
             statsborgerskap = "NOR",
             kjønn = "MANN",
             adressebeskyttelse = null,
-            skjermet = false
-
+            skjermet = false,
+            kontaktinfo = null
         ).right()
 
         override fun aktørId(fnr: Fnr) = AktørId("aktoerId").right()

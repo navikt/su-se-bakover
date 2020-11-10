@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.inntekt.SuInntektClient
@@ -28,7 +29,8 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
         val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
         val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
-        val personOppslag = PersonClient(kodeverk, SkjermingClient(Config.skjermingUrl), Config.pdlUrl, tokenOppslag)
+        val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
+        val personOppslag = PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
 
         return Clients(
             oauth = oAuth,
@@ -75,6 +77,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
                 }
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
+            dkif = dkif,
         )
     }
 }

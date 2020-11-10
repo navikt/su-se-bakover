@@ -48,7 +48,8 @@ data class PersonResponseJson(
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
-    val skjermet: Boolean?
+    val skjermet: Boolean?,
+    val kontaktinfo: KontaktinfoJson?
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -70,6 +71,14 @@ data class PersonResponseJson(
         val bruksenhet: String?,
         val kommunenummer: String?,
         val kommunenavn: String?
+    )
+
+    data class KontaktinfoJson(
+        val epostadresse: String?,
+        val mobiltelefonnummer: String?,
+        val reservert: Boolean,
+        val kanVarsles: Boolean,
+        val språk: String?
     )
 
     companion object {
@@ -105,7 +114,16 @@ data class PersonResponseJson(
             statsborgerskap = this.statsborgerskap,
             kjønn = this.kjønn,
             adressebeskyttelse = this.adressebeskyttelse,
-            skjermet = this.skjermet
+            skjermet = this.skjermet,
+            kontaktinfo = this.kontaktinfo?.let {
+                KontaktinfoJson(
+                    epostadresse = it.epostadresse,
+                    mobiltelefonnummer = it.mobiltelefonnummer,
+                    reservert = it.reservert,
+                    kanVarsles = it.kanVarsles,
+                    språk = it.språk
+                )
+            }
         )
     }
 }
