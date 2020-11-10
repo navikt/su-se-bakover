@@ -65,7 +65,7 @@ internal class PersonRoutesKtTest {
                         "etternavn": "Strømøy"
                     },
                     "telefonnummer": {
-                        "landskode": "47",
+                        "landskode": "+47",
                         "nummer": "12345678"
                     },
                     "adresse": {

@@ -19,7 +19,7 @@ object PersonOppslagStub :
             mellomnavn = "Johnas",
             etternavn = "Strømøy"
         ),
-        telefonnummer = Telefonnummer(landskode = "47", nummer = "12345678"),
+        telefonnummer = Telefonnummer(landskode = "+47", nummer = "12345678"),
         adresse = Person.Adresse(
             adressenavn = "Oslogata",
             husnummer = "12",

@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 
 internal data class SøknadJson(
     val id: String,
+    val sakId: String,
     val søknadInnhold: SøknadInnholdJson,
     val opprettet: String,
     val lukket: LukketJson?
@@ -19,6 +20,7 @@ data class LukketJson(
 
 internal fun Søknad.toJson() = SøknadJson(
     id = id.toString(),
+    sakId = sakId.toString(),
     søknadInnhold = søknadInnhold.toSøknadInnholdJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     lukket = lukket?.toJson()
