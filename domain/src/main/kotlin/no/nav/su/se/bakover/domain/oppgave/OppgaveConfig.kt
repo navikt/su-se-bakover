@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.oppgave
 
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 
 /**
@@ -14,13 +14,13 @@ sealed class OppgaveConfig {
     abstract val behandlingstema: Behandlingstema?
     abstract val oppgavetype: Oppgavetype
     abstract val behandlingstype: Behandlingstype
-    abstract val tilordnetRessurs: Saksbehandler?
+    abstract val tilordnetRessurs: NavIdentBruker?
 
     data class Saksbehandling(
         override val journalpostId: JournalpostId,
         override val sakId: String,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: Saksbehandler? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
@@ -30,7 +30,7 @@ sealed class OppgaveConfig {
     data class Attestering(
         override val sakId: String,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: Saksbehandler? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
