@@ -1,113 +1,103 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class BehandlingsinformasjonTest {
-    private val behandlingsinformasjon = Behandlingsinformasjon(
+
+    @Test
+    fun `alle vilkår må være innvilget for at summen av vilkår skal være innvilget`() {
+        alleVilkårOppfylt.erInnvilget() shouldBe true
+        alleVilkårOppfylt.erAvslag() shouldBe false
+    }
+
+    @Test
+    fun `et vilkår som ikke er oppfylt fører til at summen er avslått`() {
+        val info = alleVilkårOppfylt.copy(
+            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt, begrunnelse = "får ikke lov"
+            )
+        )
+        info.erInnvilget() shouldBe false
+        info.erAvslag() shouldBe true
+    }
+
+    @Test
+    fun `inkluderer bare den første avslagsgrunnen for vilkår som ikke er oppfylt`() {
+        val info = alleVilkårOppfylt.copy(
+            uførhet = Behandlingsinformasjon.Uførhet(
+                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt, uføregrad = 10, forventetInntekt = 100
+            ),
+            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt, begrunnelse = "får ikke lov"
+            )
+        )
+        info.getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
+    }
+
+    @Test
+    fun `ingen avslagsgrunn dersom alle vilkår er oppfylt`() {
+        alleVilkårOppfylt.getAvslagsgrunn() shouldBe null
+    }
+
+    private val alleVilkårOppfylt = Behandlingsinformasjon(
         uførhet = Behandlingsinformasjon.Uførhet(
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = null,
-            forventetInntekt = null
+            uføregrad = 100,
+            forventetInntekt = 5000
         ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = null
+            begrunnelse = "det stemmer"
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = null
+            begrunnelse = "jepp"
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = null
+            begrunnelse = "jepp"
         ),
         oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
             status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = null
+            begrunnelse = "ingen turer planlagt"
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = null,
-                verdiKjøretøy = null,
-                innskudd = null,
-                verdipapir = null,
-                pengerSkyldt = null,
-                kontanter = null,
-                depositumskonto = null
+                verdiIkkePrimærbolig = 0,
+                verdiKjøretøy = 12000,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 1500,
+                depositumskonto = 0
             ),
             ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = null,
-                verdiKjøretøy = null,
-                innskudd = null,
-                verdipapir = null,
-                pengerSkyldt = null,
-                kontanter = null,
-                depositumskonto = null,
+                verdiIkkePrimærbolig = 74500,
+                verdiKjøretøy = 0,
+                innskudd = 13000,
+                verdipapir = 2500,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0,
             ),
-            begrunnelse = null
+            begrunnelse = "ok"
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = null
+            begrunnelse = "møtte opp i går"
         ),
         bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = false,
-            delerBoligMed = null,
-            ektemakeEllerSamboerUnder67År = null,
-            ektemakeEllerSamboerUførFlyktning = null,
-            begrunnelse = null
-        )
+            delerBolig = true,
+            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
+            ektemakeEllerSamboerUnder67År = true,
+            ektemakeEllerSamboerUførFlyktning = true,
+            begrunnelse = "ja"
+        ),
+        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(FnrGenerator.random())
     )
-
-    @Test
-    fun `ikke oppfylt uførhet`() {
-        behandlingsinformasjon.copy(
-            uførhet = behandlingsinformasjon.uførhet!!.copy(status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
-    }
-
-    @Test
-    fun `ikke oppfylt flyktning`() {
-        behandlingsinformasjon.copy(
-            flyktning = behandlingsinformasjon.flyktning!!.copy(status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.FLYKTNING
-    }
-
-    @Test
-    fun `ikke oppfylt lovlig opphold`() {
-        behandlingsinformasjon.copy(
-            lovligOpphold = behandlingsinformasjon.lovligOpphold!!.copy(status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.OPPHOLDSTILLATELSE
-    }
-
-    @Test
-    fun `ikke fast opphold i norge`() {
-        behandlingsinformasjon.copy(
-            fastOppholdINorge = behandlingsinformasjon.fastOppholdINorge!!.copy(status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-    }
-
-    @Test
-    fun `opphold i utlandet ikke oppfylt`() {
-        behandlingsinformasjon.copy(
-            oppholdIUtlandet = behandlingsinformasjon.oppholdIUtlandet!!.copy(status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
-    }
-
-    @Test
-    fun `formue ikke oppfylt`() {
-        behandlingsinformasjon.copy(
-            formue = behandlingsinformasjon.formue!!.copy(status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.FORMUE
-    }
-
-    @Test
-    fun `personlig oppmøte ikke møtt`() {
-        behandlingsinformasjon.copy(
-            personligOppmøte = behandlingsinformasjon.personligOppmøte!!.copy(status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig)
-        ).getAvslagsgrunn() shouldBe Avslagsgrunn.PERSONLIG_OPPMØTE
-    }
 }
