@@ -28,10 +28,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
         TokenOppslagStub
     )
 
+    private val saksbehandler = "Z12345"
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
     private val sakId = "222"
-    private val tilordnetRessurs = "Z12345"
 
     @Test
     fun `opprett sakbehandling oppgave`() {
@@ -111,7 +111,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktivDato": "${LocalDate.now()}",
                     "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
                     "prioritet": "NORM",
-                    "tilordnetRessurs": "$tilordnetRessurs"
+                    "tilordnetRessurs": "$saksbehandler"
                 }""".trimMargin()
 
         wireMockServer.stubFor(
@@ -126,6 +126,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "journalpostId": "$journalpostId",
                                                       "saksreferanse": "$sakId",
                                                       "aktoerId": "$aktørId",
+                                                      "tilordnetRessurs": "$saksbehandler",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
                                                       "behandlingstema": "ab0431",
@@ -138,8 +139,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "opprettetAv": "srvsupstonad",
                                                       "prioritet": "NORM",
                                                       "status": "OPPRETTET",
-                                                      "metadata": {},
-                                                      "tilordnetRessurs": "$tilordnetRessurs"
+                                                      "metadata": {}
                                                     }
                         """.trimIndent()
                     )
@@ -151,7 +151,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId = journalpostId,
                 sakId = sakId,
                 aktørId = AktørId(aktørId),
-                tilordnetRessurs = tilordnetRessurs
+                tilordnetRessurs = saksbehandler
             )
         ) shouldBeRight OppgaveId("111")
     }
