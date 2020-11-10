@@ -77,7 +77,7 @@ internal class LukkSøknadInputHandlerTest {
     }
 
     @Test
-    fun `godtar fullstendige requester for avviste søknad med brev`() {
+    fun `godtar fullstendige requester for avviste søknad med brev, uten fritekst`() {
         runBlocking {
             val søknadId = UUID.randomUUID()
             LukkSøknadInputHandler.handle(
@@ -94,7 +94,31 @@ internal class LukkSøknadInputHandlerTest {
             ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevConfig = BrevConfig.Vedtak
+                brevConfig = BrevConfig.Vedtak(null)
+            ).right()
+        }
+    }
+
+    @Test
+    fun `godtar fullstendige requester for avviste søknad med brev, med fritekst`() {
+        runBlocking {
+            val søknadId = UUID.randomUUID()
+            LukkSøknadInputHandler.handle(
+                body = """
+                    {
+                        "type":"AVVIST",
+                        "brevConfig": {
+                            "brevtype":"${LukketJson.BrevType.VEDTAK}",
+                            "fritekst": "Jeg er fritekst"
+                        }
+                    }
+                """.trimIndent(),
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
+                søknadId = søknadId,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
+                brevConfig = BrevConfig.Vedtak("Jeg er fritekst")
             ).right()
         }
     }

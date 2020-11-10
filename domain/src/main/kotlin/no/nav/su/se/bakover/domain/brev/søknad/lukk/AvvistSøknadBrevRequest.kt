@@ -14,7 +14,7 @@ data class AvvistSøknadBrevRequest(
 
     override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
         return when (brevConfig) {
-            is BrevConfig.Vedtak -> AvvistSøknadVedtakBrevInnhold(personalia)
+            is BrevConfig.Vedtak -> AvvistSøknadVedtakBrevInnhold(personalia, brevConfig.getFritekst())
             is BrevConfig.Fritekst -> AvvistSøknadFritekstBrevInnhold(
                 personalia = personalia,
                 fritekst = brevConfig.getFritekst()
