@@ -7,7 +7,7 @@ internal data class PeriodeFradrag(
     private val beløp: Double,
     private val periode: Periode,
     private val utenlandskInntekt: UtenlandskInntekt? = null
-) : AbstractFradrag() {
+) : Fradrag {
     init {
         require(beløp >= 0) { "Fradrag kan ikke være negative" }
     }
@@ -16,9 +16,7 @@ internal data class PeriodeFradrag(
     override fun getFradragstype(): Fradragstype = type
     override fun getTotaltFradrag(): Double = beløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-
     override fun getPeriode(): Periode = periode
-
     override fun periodiser(): List<Fradrag> = periode.tilMånedsperioder()
         .map { this.copy(type = type, beløp = getFradragPerMåned(), periode = it) }
 }

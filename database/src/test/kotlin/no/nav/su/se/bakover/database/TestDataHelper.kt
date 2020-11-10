@@ -1,11 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import com.nhaarman.mockitokotlin2.mock
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
-import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -18,8 +14,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -34,7 +28,6 @@ internal class TestDataHelper(
     private val behandlingPostgresRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
-    private val beregningRepo = BeregningPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
 
     private val behandlingRepo = behandlingPostgresRepo
@@ -56,18 +49,6 @@ internal class TestDataHelper(
     ).also {
         behandlingRepo.opprettSøknadsbehandling(it)
     }
-
-    fun insertBeregning(behandlingId: UUID) = beregningRepo.opprettBeregningForBehandling(
-        behandlingId = behandlingId,
-        beregning = BeregningFactory.ny(
-            periode = Periode(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020)
-            ),
-            sats = Sats.HØY,
-            fradrag = emptyList()
-        )
-    )
 
     fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) =
         utbetalingRepo.opprettUtbetaling(utbetaling)

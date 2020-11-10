@@ -5,7 +5,8 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.beregning.BeregningPostgresRepoInternal
+import no.nav.su.se.bakover.database.beregning.Beregnet
+import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -94,6 +96,33 @@ internal class BehandlingPostgresRepo(
         }
     }
 
+    override fun leggTilBeregning(behandlingId: UUID, beregning: Beregning) {
+        dataSource.withSession { session ->
+            """
+            update behandling set beregning=to_json(:beregning::json) where id=:id
+        """.oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "beregning" to objectMapper.writeValueAsString(beregning.toSnapshot())
+                ),
+                session
+            )
+        }
+    }
+
+    override fun slettBeregning(behandlingId: UUID) {
+        dataSource.withSession {
+            """
+                update behandling set beregning=null where id=:id
+            """.oppdatering(
+                mapOf(
+                    "id" to behandlingId
+                ),
+                it
+            )
+        }
+    }
+
     override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Behandling {
         dataSource.withSession { session ->
             "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
@@ -163,8 +192,8 @@ internal class BehandlingPostgresRepo(
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
             søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!,
-            beregning = BeregningPostgresRepoInternal.hentBeregningForBehandling(behandlingId, session),
-            simulering = stringOrNull("simulering")?.let { objectMapper.readValue(it, Simulering::class.java) },
+            beregning = stringOrNull("beregning")?.let { objectMapper.readValue<Beregnet>(it) },
+            simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) },

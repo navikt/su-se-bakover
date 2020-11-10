@@ -7,30 +7,18 @@ import java.util.UUID
 
 object BeregningFactory {
     fun ny(
+        id: UUID = UUID.randomUUID(),
+        opprettet: Tidspunkt = Tidspunkt.now(),
         periode: Periode,
         sats: Sats,
         fradrag: List<Fradrag>
     ): Beregning {
         return BeregningMedFradragFordeltOverHelePerioden(
+            id = id,
+            opprettet = opprettet,
             periode = periode,
             sats = sats,
             fradrag = fradrag
         )
     }
-
-    fun persistert(
-        id: UUID,
-        opprettet: Tidspunkt,
-        periode: Periode,
-        sats: Sats,
-        fradrag: List<Fradrag>
-    ): Beregning = PersistertBeregning(
-        id = id,
-        opprettet = opprettet,
-        beregning = ny(
-            periode = periode,
-            sats = sats,
-            fradrag = fradrag
-        )
-    )
 }
