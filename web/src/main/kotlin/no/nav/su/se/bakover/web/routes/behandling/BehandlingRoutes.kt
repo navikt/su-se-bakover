@@ -276,8 +276,8 @@ internal fun Route.behandlingRoutes(
         patch("$behandlingPath/{behandlingId}/underkjenn") {
             val navIdent = call.suUserContext.getNAVIdent()
 
-            call.withBehandling(behandlingService) { behandling ->
-                call.audit("behandling med id: ${behandling.id} godkjennes ikke")
+            call.withBehandlingId { behandlingId ->
+                call.audit("behandling med id: $behandlingId godkjennes ikke")
                 // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
 
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
@@ -288,16 +288,23 @@ internal fun Route.behandlingRoutes(
                     ifRight = { body ->
                         if (body.valid()) {
                             behandlingService.underkjenn(
-                                begrunnelse = body.begrunnelse,
+                                behandlingId = behandlingId,
                                 attestant = Attestant(navIdent),
-                                behandling = behandling
+                                begrunnelse = body.begrunnelse
                             ).fold(
                                 ifLeft = {
                                     fun kunneIkkeUnderkjenneFeilmelding(feil: Behandling.KunneIkkeUnderkjenne): Resultat {
                                         return when (feil) {
-                                            Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke vare samme person.")
-                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave -> InternalServerError.message("Kunne ikke lukke oppgave.")
-                                            Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId -> NotFound.message("Fant ikke aktørid")
+                                            Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                            Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                                                "Attestant og saksbehandler kan ikke vare samme person."
+                                            )
+                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave -> InternalServerError.message(
+                                                "Kunne ikke lukke oppgave."
+                                            )
+                                            Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId -> InternalServerError.message(
+                                                "Fant ikke aktørid som er knyttet til tokenet"
+                                            )
                                         }
                                     }
                                     call.svar(kunneIkkeUnderkjenneFeilmelding(it))

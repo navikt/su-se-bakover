@@ -735,7 +735,10 @@ internal class BehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
-                ).apply {
+                ) {
+                    setBody("""{"begrunnelse":"b"}""")
+                }.apply {
+                    response.content shouldContain "Fant ikke behandling"
                     response.status() shouldBe HttpStatusCode.NotFound
                 }
             }

@@ -14,9 +14,9 @@ import java.util.UUID
 interface BehandlingService {
     fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(
-        begrunnelse: String,
+        behandlingId: UUID,
         attestant: Attestant,
-        behandling: Behandling
+        begrunnelse: String
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
 
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling

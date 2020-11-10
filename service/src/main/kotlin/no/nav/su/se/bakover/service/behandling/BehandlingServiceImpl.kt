@@ -50,35 +50,39 @@ internal class BehandlingServiceImpl(
     }
 
     override fun underkjenn(
-        begrunnelse: String,
+        behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        behandling: Behandling
+        begrunnelse: String
     ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
-        return behandling.underkjenn(begrunnelse, attestant)
-            .map {
-                val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-                    return Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
-                }
-                // Rekkefølgen lukke/opprette oppgave er ikke så viktig; sannsynligvis feiler begge eller ingen.
-                // Men dersom vi lukker først, er vi idempotente, siden det går fint å lukke en oppgave flere ganger.
-                val journalpostId: JournalpostId = behandling.søknad.journalpostId
-                oppgaveService.lukkOppgave(behandling.oppgaveId())
-                    .mapLeft {
-                        return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
-                    }.map {
-                        oppgaveService.opprettOppgave(
-                            OppgaveConfig.Saksbehandling(
-                                journalpostId = journalpostId,
-                                sakId = behandling.sakId,
-                                aktørId = aktørId
-                            )
-                        )
+        return hentBehandling(behandlingId).mapLeft {
+            Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling
+        }.flatMap { behandling ->
+            behandling.underkjenn(begrunnelse, attestant)
+                .map {
+                    val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                        return Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
                     }
-                behandlingMetrics.incrementUnderkjentCounter()
-                behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
-                hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
-                behandlingRepo.hentBehandling(it.id)!!
-            }
+                    // Rekkefølgen lukke/opprette oppgave er ikke så viktig; sannsynligvis feiler begge eller ingen.
+                    // Men dersom vi lukker først, er vi idempotente, siden det går fint å lukke en oppgave flere ganger.
+                    val journalpostId: JournalpostId = behandling.søknad.journalpostId
+                    oppgaveService.lukkOppgave(behandling.oppgaveId())
+                        .mapLeft {
+                            return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
+                        }.map {
+                            oppgaveService.opprettOppgave(
+                                OppgaveConfig.Saksbehandling(
+                                    journalpostId = journalpostId,
+                                    sakId = behandling.sakId,
+                                    aktørId = aktørId
+                                )
+                            )
+                        }
+                    behandlingMetrics.incrementUnderkjentCounter()
+                    behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
+                    hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
+                    behandlingRepo.hentBehandling(it.id)!!
+                }
+        }
     }
 
     // TODO need to define responsibilities for domain and services.

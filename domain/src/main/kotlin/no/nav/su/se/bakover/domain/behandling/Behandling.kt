@@ -363,6 +363,7 @@ data class Behandling internal constructor(
     }
 
     sealed class KunneIkkeUnderkjenne {
+        object FantIkkeBehandling : KunneIkkeUnderkjenne()
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
         object KunneIkkeLukkeOppgave : KunneIkkeUnderkjenne()
         object FantIkkeAktørId : KunneIkkeUnderkjenne()
