@@ -110,7 +110,7 @@ internal class SimuleringSoapClient(
             gjelderId = Fnr(response.simulering.gjelderId),
             gjelderNavn = response.simulering.gjelderNavn.trim(),
             datoBeregnet = LocalDate.parse(response.simulering.datoBeregnet),
-            nettoBeløp = response.simulering.belop.intValueExact(),
+            nettoBeløp = response.simulering.belop.toInt(),
             periodeList = response.simulering.beregningsPeriode.map { mapBeregningsPeriode(it) }
         ).right()
 
@@ -136,9 +136,9 @@ internal class SimuleringSoapClient(
             faktiskFraOgMed = LocalDate.parse(detaljer.faktiskFom),
             faktiskTilOgMed = LocalDate.parse(detaljer.faktiskTom),
             konto = detaljer.kontoStreng.trim(),
-            belop = detaljer.belop.intValueExact(),
+            belop = detaljer.belop.toInt(),
             tilbakeforing = detaljer.isTilbakeforing,
-            sats = detaljer.sats.intValueExact(),
+            sats = detaljer.sats.toInt(),
             typeSats = detaljer.typeSats.trim(),
             antallSats = detaljer.antallSats.intValueExact(),
             uforegrad = detaljer.uforeGrad.intValueExact(),

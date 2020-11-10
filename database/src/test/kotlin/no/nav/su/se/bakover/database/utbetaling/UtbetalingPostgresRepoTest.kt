@@ -83,8 +83,7 @@ internal class UtbetalingPostgresRepoTest {
             val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
             repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
-            val utbetalingslinje2 =
-                repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
+            val utbetalingslinje2 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
             EmbeddedDatabase.instance().withSession {
                 val hentet = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.id, it)
                 listOf(utbetalingslinje1, utbetalingslinje2) shouldBe hentet

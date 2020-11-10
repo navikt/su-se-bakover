@@ -71,7 +71,6 @@ class ServiceBuilder(
             behandling = BehandlingServiceImpl(
                 behandlingRepo = databaseRepos.behandling,
                 hendelsesloggRepo = databaseRepos.hendelseslogg,
-                beregningRepo = databaseRepos.beregning,
                 utbetalingService = utbetalingService,
                 oppgaveService = oppgaveService,
                 søknadService = søknadService,

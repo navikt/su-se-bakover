@@ -62,6 +62,7 @@ class UtbetalingXmlMappingTest {
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 
+    //language=xml
     private val expected =
         """
             <?xml version='1.0' encoding='UTF-8'?>

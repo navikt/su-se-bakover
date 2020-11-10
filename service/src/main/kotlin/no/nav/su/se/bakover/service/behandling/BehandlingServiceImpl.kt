@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.beregning.BeregningRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -16,7 +15,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -32,11 +31,10 @@ import java.util.UUID
 internal class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val hendelsesloggRepo: HendelsesloggRepo,
-    private val beregningRepo: BeregningRepo,
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
-    private val søknadService: SøknadService, // TODO use services or repos? probably services
-    private val søknadRepo: SøknadRepo,
+    private val søknadService: SøknadService,
+    private val søknadRepo: SøknadRepo, // TODO use services or repos? probably services
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
     private val behandlingMetrics: BehandlingMetrics
@@ -70,7 +68,7 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)!!
             .oppdaterBehandlingsinformasjon(behandlingsinformasjon) // invoke first to perform state-check
             .let {
-                beregningRepo.slettBeregningForBehandling(behandlingId)
+                behandlingRepo.slettBeregning(behandlingId)
                 behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it.behandlingsinformasjon())
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
                 it
@@ -87,7 +85,7 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)!!
             .opprettBeregning(fraOgMed, tilOgMed, fradrag) // invoke first to perform state-check
             .let {
-                beregningRepo.opprettBeregningForBehandling(behandlingId, it.beregning()!!)
+                behandlingRepo.leggTilBeregning(it.id, it.beregning()!!)
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
                 it
             }

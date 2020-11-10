@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsgrunn
 
@@ -231,25 +231,24 @@ data class Behandlingsinformasjon(
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
     ) : Base() {
-        fun utledSats() =
+        fun utledSats() = getBeregningStrategy().sats()
+
+        internal fun getBeregningStrategy() =
             if (!delerBolig) {
-                Sats.HØY
+                BeregningStrategy.BorAlene
             } else {
                 // Vi gjør en del null assertions her for at logikken ikke skal bli så vanskelig å følge
                 // Det _bør_ være trygt fordi gyldighet av objektet skal bli sjekket andre plasser
                 when (delerBoligMed!!) {
-                    Boforhold.DelerBoligMed.VOKSNE_BARN ->
-                        Sats.ORDINÆR
-                    Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
-                        Sats.ORDINÆR
+                    Boforhold.DelerBoligMed.VOKSNE_BARN, Boforhold.DelerBoligMed.ANNEN_VOKSEN -> BeregningStrategy.BorMedVoksne
                     Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER ->
                         if (!ektemakeEllerSamboerUnder67År!!) {
-                            Sats.ORDINÆR
+                            BeregningStrategy.EpsOver67År
                         } else {
                             if (ektemakeEllerSamboerUførFlyktning!!) {
-                                Sats.ORDINÆR
+                                BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                             } else {
-                                Sats.HØY
+                                BeregningStrategy.EpsUnder67År
                             }
                         }
                 }

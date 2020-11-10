@@ -3,9 +3,12 @@ package no.nav.su.se.bakover.database.behandling
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.beregning.assertBeregningMapping
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -14,6 +17,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 
@@ -142,6 +149,64 @@ internal class BehandlingPostgresRepoTest {
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)
 
             hentet!!.status() shouldBe oppdatertStatus.status()
+        }
+    }
+
+    @Test
+    fun `legger til og henter ut beregning`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = testDataHelper.insertSøknad(sak.id)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val originalBeregning = BeregningFactory.ny(
+                periode = Periode(1.januar(2020), 31.januar(2020)),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 5000.0,
+                        periode = Periode(1.januar(2020), 31.januar(2020)),
+                        utenlandskInntekt = null
+                    )
+                )
+            )
+            repo.leggTilBeregning(nySøknadsbehandling.id, originalBeregning)
+            assertBeregningMapping(repo.hentBehandling(nySøknadsbehandling.id)!!.beregning()!!, originalBeregning)
+        }
+    }
+
+    @Test
+    fun `sletter beregning`() {
+        withMigratedDb {
+            val sak = testDataHelper.insertSak(FNR)
+            val søknad = testDataHelper.insertSøknad(sak.id)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val originalBeregning = BeregningFactory.ny(
+                periode = Periode(1.januar(2020), 31.januar(2020)),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = 5000.0,
+                        periode = Periode(1.januar(2020), 31.januar(2020)),
+                        utenlandskInntekt = null
+                    )
+                )
+            )
+            repo.leggTilBeregning(nySøknadsbehandling.id, originalBeregning)
+            repo.hentBehandling(nySøknadsbehandling.id)!!.beregning() shouldNotBe null
+            repo.slettBeregning(nySøknadsbehandling.id)
+            repo.hentBehandling(nySøknadsbehandling.id)!!.beregning() shouldBe null
         }
     }
 }
