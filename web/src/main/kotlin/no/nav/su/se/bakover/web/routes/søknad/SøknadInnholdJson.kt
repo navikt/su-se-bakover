@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
@@ -19,6 +21,7 @@ import no.nav.su.se.bakover.domain.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.Utenlandsopphold
 import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
+import no.nav.su.se.bakover.web.routes.behandling.enumContains
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.EktefelleJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
@@ -209,26 +212,67 @@ data class SøknadInnholdJson(
         }
     }
 
-    data class ForNavJson(
-        val harFullmektigEllerVerge: String? = null
-    ) {
-        fun toForNav() = ForNav(
-            harFullmektigEllerVerge?.let {
-                vergeMålType(it)
-            }
-        )
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = ForNavJson.DigitalSøknad::class, name = "DigitalSøknad"),
+        JsonSubTypes.Type(value = ForNavJson.Papirsøknad::class, name = "Papirsøknad"),
+    )
+    sealed class ForNavJson {
+        abstract fun toForNav(): ForNav
 
-        private fun vergeMålType(str: String): ForNav.Vergemål {
-            return when (str) {
-                "fullmektig" -> ForNav.Vergemål.FULLMEKTIG
-                "verge" -> ForNav.Vergemål.VERGE
-                else -> throw IllegalArgumentException("Vergemål er ugyldig")
+        data class DigitalSøknad(
+            val harFullmektigEllerVerge: String? = null
+        ) : ForNavJson() {
+            override fun toForNav() = ForNav.DigitalSøknad(
+                harFullmektigEllerVerge?.let {
+                    vergeMålType(it)
+                }
+            )
+
+            private fun vergeMålType(str: String): ForNav.DigitalSøknad.Vergemål {
+                return when (str) {
+                    "fullmektig" -> ForNav.DigitalSøknad.Vergemål.FULLMEKTIG
+                    "verge" -> ForNav.DigitalSøknad.Vergemål.VERGE
+                    else -> throw IllegalArgumentException("Vergemål er ugyldig")
+                }
             }
+        }
+
+        data class Papirsøknad(
+            val mottaksdatoForSøknad: LocalDate,
+            val grunnForPapirinnsending: String,
+            val annenGrunn: String?
+        ) : ForNavJson() {
+            override fun toForNav() = ForNav.Papirsøknad(
+                mottaksdatoForSøknad,
+                grunn(grunnForPapirinnsending),
+                annenGrunn
+            )
+
+            private fun grunn(str: String): ForNav.Papirsøknad.GrunnForPapirinnsending =
+                if (enumContains<ForNav.Papirsøknad.GrunnForPapirinnsending>(str)) {
+                    ForNav.Papirsøknad.GrunnForPapirinnsending.valueOf(str)
+                } else {
+                    throw IllegalArgumentException("Ugyldig grunn")
+                }
         }
 
         companion object {
             fun ForNav.toForNavJson() =
-                ForNavJson(this.harFullmektigEllerVerge?.toJson())
+                when (this) {
+                    is ForNav.DigitalSøknad ->
+                        DigitalSøknad(this.harFullmektigEllerVerge?.toJson())
+                    is ForNav.Papirsøknad ->
+                        Papirsøknad(
+                            mottaksdatoForSøknad,
+                            grunnForPapirinnsending.toString(),
+                            annenGrunn
+                        )
+                }
         }
     }
 
@@ -288,6 +332,7 @@ data class SøknadInnholdJson(
             fun List<PensjonsOrdningBeløp>?.toPensjonsOrdningBeløpListJson() = this?.map {
                 it.toPensjonsOrdningBeløpJson()
             }
+
             fun List<TrygdeytelseIUtlandet>?.toTrygdeytelseIUtlandetJson() = this?.map {
                 it.toTrygdeytelseIUtlandetJson()
             }
@@ -449,9 +494,9 @@ private fun DelerBoligMed.toJson(): String {
     }
 }
 
-private fun ForNav.Vergemål.toJson(): String {
+private fun ForNav.DigitalSøknad.Vergemål.toJson(): String {
     return when (this) {
-        ForNav.Vergemål.VERGE -> "verge"
-        ForNav.Vergemål.FULLMEKTIG -> "fullmektig"
+        ForNav.DigitalSøknad.Vergemål.VERGE -> "verge"
+        ForNav.DigitalSøknad.Vergemål.FULLMEKTIG -> "fullmektig"
     }
 }

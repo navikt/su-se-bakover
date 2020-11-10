@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -36,7 +36,7 @@ internal class SøknadServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Sak> {
+    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
 
         val fnr: Fnr = søknadInnhold.personopplysninger.fnr
 
@@ -74,7 +74,7 @@ internal class SøknadServiceImpl(
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak.id, person, søknad)
-        return sak.right()
+        return søknad.right()
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {
@@ -120,7 +120,21 @@ internal class SøknadServiceImpl(
         )
     }
 
-    override fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
-        return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+    override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
+        return søknadRepo.hentSøknad(søknadId)?.right() ?: FantIkkeSøknad.left()
+    }
+
+    override fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray> {
+        return hentSøknad(søknadId).mapLeft {
+            log.error("Hent søknad-PDF: Fant ikke søknad")
+            return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
+        }
+            .flatMap {
+                pdfGenerator.genererPdf(it.søknadInnhold)
+                    .mapLeft {
+                        log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                    }
+            }
     }
 }

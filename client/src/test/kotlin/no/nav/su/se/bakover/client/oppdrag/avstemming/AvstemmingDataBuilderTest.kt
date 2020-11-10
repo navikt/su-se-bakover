@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -41,7 +40,7 @@ internal class AvstemmingDataBuilderTest {
             ),
             total = AvstemmingDataRequest.Totaldata(
                 totalAntall = 5,
-                totalBelop = BigDecimal(18000),
+                totalBelop = 18000.toBigDecimal(),
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(
@@ -50,16 +49,16 @@ internal class AvstemmingDataBuilderTest {
             ),
             grunnlag = AvstemmingDataRequest.Grunnlagdata(
                 godkjentAntall = 2,
-                godkjentBelop = BigDecimal(1600),
+                godkjentBelop = 1600.toBigDecimal(),
                 godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 varselAntall = 1,
-                varselBelop = BigDecimal(1400),
+                varselBelop = 1400.toBigDecimal(),
                 varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 avvistAntall = 1,
-                avvistBelop = BigDecimal(10000),
+                avvistBelop = 10000.toBigDecimal(),
                 avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
                 manglerAntall = 1,
-                manglerBelop = BigDecimal(5000),
+                manglerBelop = 5000.toBigDecimal(),
                 manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             detalj = listOf(

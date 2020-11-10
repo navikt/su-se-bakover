@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -17,7 +18,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -37,9 +38,8 @@ class BehandlingTilAttesteringTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
 
-    private val beregning = Beregning(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.januar(2020),
+    private val beregning = BeregningFactory.ny(
+        periode = Periode(1.januar(2020), 31.januar(2020)),
         sats = Sats.HØY,
         fradrag = listOf()
     )

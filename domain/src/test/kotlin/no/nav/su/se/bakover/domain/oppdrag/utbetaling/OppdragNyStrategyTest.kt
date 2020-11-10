@@ -8,10 +8,11 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -307,9 +308,8 @@ internal class OppdragNyStrategyTest {
         )
     }
 
-    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = Beregning(
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
+    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory.ny(
+        periode = Periode(fraOgMed, tilOgMed),
         sats = Sats.HØY,
         fradrag = emptyList()
     )

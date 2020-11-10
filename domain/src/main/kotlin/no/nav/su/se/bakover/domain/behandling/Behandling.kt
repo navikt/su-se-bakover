@@ -8,14 +8,15 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradragWithForventetInntekt
+import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.roundToInt
 
 data class Behandling internal constructor(
     private val behandlingMetrics: BehandlingMetrics,
@@ -57,7 +58,7 @@ data class Behandling internal constructor(
             status == BehandlingsStatus.BEREGNET_INNVILGET ||
             status == BehandlingsStatus.SIMULERT
         ) {
-            return behandlingsinformasjon().bosituasjon?.utledSats()?.fraDatoAsInt(fraDato)
+            return behandlingsinformasjon().bosituasjon?.utledSats()?.årsbeløp(fraDato)?.roundToInt()
         }
         return null
     }
@@ -168,8 +169,7 @@ data class Behandling internal constructor(
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
             if (this@Behandling.beregning != null) {
-                this@Behandling.beregning =
-                    null // TODO we need to discuss how to divide responsibility between service and domain.
+                this@Behandling.beregning = null
             }
 
             behandlingsinformasjon =
@@ -191,25 +191,17 @@ data class Behandling internal constructor(
 
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
-                val sats = this@Behandling.behandlingsinformasjon.bosituasjon?.utledSats()
-                    ?: throw TilstandException(
-                        status,
-                        this::opprettBeregning.toString(),
-                        "Kan ikke opprette beregning. Behandlingsinformasjon er ikke komplett."
-                    )
-                val oppdatertFradrag = fradragWithForventetInntekt(
-                    fradrag = fradrag,
-                    forventetInntekt = this@Behandling.behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
-                )
-
-                beregning = Beregning(
+                val beregningsgrunnlag = Beregningsgrunnlag(
                     fraOgMed = fraOgMed,
                     tilOgMed = tilOgMed,
-                    sats = sats,
-                    fradrag = oppdatertFradrag
+                    fradrag = fradrag,
+                    forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
                 )
 
-                if (beregning!!.beløpErNull() || beregning!!.beløpErOverNullMenUnderMinstebeløp()) {
+                val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+                beregning = strategy.beregn(beregningsgrunnlag)
+
+                if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
                     return
                 }

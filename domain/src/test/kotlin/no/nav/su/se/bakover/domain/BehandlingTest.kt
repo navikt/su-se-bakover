@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -28,9 +29,9 @@ import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -254,9 +255,9 @@ internal class BehandlingTest {
                 tilOgMed = tilOgMed
             )
             val beregning = vilkårsvurdert.beregning()!!
-            beregning.fraOgMed shouldBe fraOgMed
-            beregning.tilOgMed shouldBe tilOgMed
-            beregning.sats shouldBe Sats.HØY
+            beregning.getPeriode().getFraOgMed() shouldBe fraOgMed
+            beregning.getPeriode().getTilOgMed() shouldBe tilOgMed
+            beregning.getSats() shouldBe Sats.HØY
         }
 
         @Test
@@ -269,16 +270,16 @@ internal class BehandlingTest {
 
         @Test
         fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
+            val periode = Periode(fraOgMed = 1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020),
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
-                    Fradrag(
-                        id = UUID.randomUUID(),
+                    FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = 600000,
+                        beløp = 600000.0,
                         utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        periode = periode
                     )
                 )
             )
@@ -306,17 +307,20 @@ internal class BehandlingTest {
         @Test
         fun `skal avslå hvis utbetaling er under minstebeløp`() {
             val maxUtbetaling2020 = 250116
+            val periode = Periode(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020)
+            )
 
             vilkårsvurdert.opprettBeregning(
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020),
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
-                    Fradrag(
-                        id = UUID.randomUUID(),
+                    FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = (maxUtbetaling2020 * 0.99).toInt(),
+                        beløp = (maxUtbetaling2020 * 0.99),
                         utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        periode = periode
                     )
                 )
             )
@@ -326,18 +330,22 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            val inntektSomGerMinstebeløp = 245114
+            val inntektSomGirMinstebeløp = 245114.0
 
-            vilkårsvurdert.opprettBeregning(
+            val periode = Periode(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
+            )
+
+            vilkårsvurdert.opprettBeregning(
+                fraOgMed = periode.getFraOgMed(),
+                tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
-                    Fradrag(
-                        id = UUID.randomUUID(),
+                    FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = inntektSomGerMinstebeløp,
+                        beløp = inntektSomGirMinstebeløp,
                         utenlandskInntekt = null,
-                        inntektDelerAvPeriode = null
+                        periode = periode
                     )
                 )
             )
@@ -464,16 +472,19 @@ internal class BehandlingTest {
                 beregnet.oppdaterBehandlingsinformasjon(
                     extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
                 )
-                beregnet.opprettBeregning(
+                val periode = Periode(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
+                )
+                beregnet.opprettBeregning(
+                    fraOgMed = periode.getFraOgMed(),
+                    tilOgMed = periode.getTilOgMed(),
                     fradrag = listOf(
-                        Fradrag(
-                            id = UUID.randomUUID(),
+                        FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
-                            beløp = 1000000,
+                            beløp = 1000000.0,
                             utenlandskInntekt = null,
-                            inntektDelerAvPeriode = null
+                            periode = periode
                         )
                     )
                 )

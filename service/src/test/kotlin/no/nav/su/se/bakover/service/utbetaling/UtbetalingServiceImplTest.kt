@@ -15,11 +15,12 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -336,9 +337,8 @@ internal class UtbetalingServiceImplTest {
         oppdrag = mock()
     )
 
-    private val beregning = Beregning(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
+    private val beregning = BeregningFactory.ny(
+        periode = Periode(1.januar(2020), 31.desember(2020)),
         sats = Sats.HØY,
         fradrag = listOf(),
     )

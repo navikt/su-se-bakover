@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
 import java.time.Month
+import kotlin.math.roundToInt
 
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
@@ -59,12 +60,16 @@ object SimuleringStub : SimuleringClient {
         )
     }
 
-    private fun List<SimulertPeriode>.calculateNetto() = this.sumBy { it.bruttoYtelse() } + this.sumBy {
-        it.utbetaling.flatMap { it.detaljer }.filter { !it.isYtelse() }.sumBy { it.belop }
-    }
+    private fun List<SimulertPeriode>.calculateNetto() =
+        this.sumBy { it.bruttoYtelse() } + this.sumBy { simulertPeriode ->
+            simulertPeriode.utbetaling
+                .flatMap { it.detaljer }
+                .filter { !it.isYtelse() }
+                .sumBy { it.belop }
+        }
 
     private fun List<Utbetalingslinje>.findBeløpForDate(fraOgMed: LocalDate) =
-        this.first() { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
+        this.first { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
 
     private fun simulerStans(utbetaling: Utbetaling): Simulering {
         return Simulering(
@@ -101,7 +106,7 @@ object SimuleringStub : SimuleringClient {
         faktiskFraOgMed = fraOgMed,
         faktiskTilOgMed = tilOgMed,
         konto = "0510000",
-        belop = -(beløp * 0.25).toInt(),
+        belop = -(beløp * 0.25).roundToInt(),
         tilbakeforing = false,
         sats = 1,
         typeSats = "MND",

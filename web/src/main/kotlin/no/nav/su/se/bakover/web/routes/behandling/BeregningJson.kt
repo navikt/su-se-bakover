@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.InntektDelerAvPeriode
-import no.nav.su.se.bakover.domain.beregning.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal data class BeregningJson(
@@ -18,32 +20,42 @@ internal data class BeregningJson(
 )
 
 internal fun Beregning.toJson() = BeregningJson(
-    id = id.toString(),
-    opprettet = opprettet.toString(),
-    fraOgMed = fraOgMed.format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = tilOgMed.format(DateTimeFormatter.ISO_DATE),
-    sats = sats.name,
-    månedsberegninger = månedsberegninger.map { it.toJson() },
-    fradrag = fradrag.map {
+    id = getId().toString(),
+    opprettet = getOpprettet().toString(),
+    fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
+    tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
+    sats = getSats().name,
+    månedsberegninger = getMånedsberegninger().map { it.toJson() }, // TODO show fradrag/month
+    fradrag = getFradrag().map {
         FradragJson(
-            type = it.type.toString(),
-            beløp = it.beløp,
-            utenlandskInntekt = it.utenlandskInntekt,
-            inntektDelerAvPeriode = it.inntektDelerAvPeriode
+            type = it.getFradragstype().toString(),
+            beløp = it.getTotaltFradrag(),
+            utenlandskInntekt = it.getUtenlandskInntekt(),
+            periode = it.getPeriode().toJson()
         )
     }
 )
 
 internal data class FradragJson(
+    val periode: PeriodeJson?,
     val type: String,
-    val beløp: Int,
-    val utenlandskInntekt: UtenlandskInntekt?,
-    val inntektDelerAvPeriode: InntektDelerAvPeriode?
+    val beløp: Double,
+    val utenlandskInntekt: UtenlandskInntekt?
 ) {
-    fun toFradrag(): Fradrag = Fradrag(
+    fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
+        periode = this.periode?.toPeriode() ?: periode,
         type = Fradragstype.valueOf(type),
         beløp = beløp,
-        utenlandskInntekt = utenlandskInntekt,
-        inntektDelerAvPeriode = inntektDelerAvPeriode,
+        utenlandskInntekt = utenlandskInntekt
     )
 }
+
+internal data class PeriodeJson(
+    val fraOgMed: String,
+    val tilOgMed: String
+) {
+    fun toPeriode() = Periode(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+}
+
+internal fun Periode.toJson() =
+    PeriodeJson(getFraOgMed().format(DateTimeFormatter.ISO_DATE), getTilOgMed().format(DateTimeFormatter.ISO_DATE))

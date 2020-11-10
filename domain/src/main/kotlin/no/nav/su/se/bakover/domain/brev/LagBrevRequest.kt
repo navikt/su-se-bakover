@@ -4,11 +4,12 @@ import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.beregning.Fradrag
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 abstract class LagBrevRequest {
     abstract fun getFnr(): Fnr
@@ -20,19 +21,19 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
-            satsbeløp = behandling.beregning()?.månedsberegninger?.firstOrNull()?.satsBeløp ?: 0,
-            fradragSum = behandling.beregning()?.fradrag?.toFradragPerMåned()?.sumBy { fradrag -> fradrag.beløp }
-                ?: 0,
+            satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt() ?: 0, // TODO: avrunding
+            // TODO: burde kanskje sende over doubles?
+            fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
             avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
         )
 
         private fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
             return when {
-                behandling.beregning()?.beløpErNull() == true -> {
+                behandling.beregning()?.getSumYtelse() ?: 0 <= 0 -> {
                     Avslagsgrunn.FOR_HØY_INNTEKT
                 }
-                behandling.beregning()?.beløpErOverNullMenUnderMinstebeløp() == true -> {
+                behandling.beregning()?.getSumYtelseErUnderMinstebeløp() == true -> {
                     Avslagsgrunn.SU_UNDER_MINSTEGRENSE
                 }
                 else -> {
@@ -48,19 +49,20 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
             val førsteMånedsberegning =
-                behandling.beregning()!!.månedsberegninger.firstOrNull()!! // Støtte för variende beløp i framtiden?
+                behandling.beregning()!!.getMånedsberegninger().firstOrNull()!! // Støtte för variende beløp i framtiden?
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
-                månedsbeløp = førsteMånedsberegning.beløp,
-                fradato = behandling.beregning()!!.fraOgMed.formatMonthYear(),
-                tildato = behandling.beregning()!!.tilOgMed.formatMonthYear(),
-                sats = behandling.beregning()?.sats.toString().toLowerCase(),
-                satsbeløp = førsteMånedsberegning.satsBeløp,
+                månedsbeløp = førsteMånedsberegning.getSumYtelse().toInt(), // TODO: avrunding
+                fradato = behandling.beregning()!!.getPeriode().getFraOgMed().formatMonthYear(),
+                tildato = behandling.beregning()!!.getPeriode().getTilOgMed().formatMonthYear(),
+                sats = behandling.beregning()?.getSats().toString().toLowerCase(),
+                satsbeløp = førsteMånedsberegning.getSatsbeløp().toInt(), // TODO: avrunding
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
-                redusertStønadStatus = behandling.beregning()?.fradrag?.isNotEmpty() ?: false,
+                redusertStønadStatus = behandling.beregning()?.getFradrag()?.isNotEmpty() ?: false,
                 harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-                fradrag = behandling.beregning()!!.fradrag.toFradragPerMåned(),
-                fradragSum = behandling.beregning()!!.fradrag.toFradragPerMåned().sumBy { fradrag -> fradrag.beløp },
+                fradrag = behandling.beregning()!!.getFradrag().toFradragPerMåned(),
+                // TODO: burde kanskje sende over doubles?
+                fradragSum = behandling.beregning()!!.getSumFradrag().roundToInt(),
             )
         }
     }
@@ -95,5 +97,5 @@ fun LocalDate.formatMonthYear(): String =
 
 internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
     this.map {
-        FradragPerMåned(it.type, it.perMåned())
+        FradragPerMåned(it.getFradragstype(), it.getFradragPerMåned().toInt())
     }

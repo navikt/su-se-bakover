@@ -19,6 +19,7 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -31,7 +32,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBeha
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-import no.nav.su.se.bakover.domain.beregning.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
@@ -144,9 +145,7 @@ internal fun Route.behandlingRoutes(
         fun valid() = fraOgMed.dayOfMonth == 1 &&
             tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
             fradrag.all {
-                Fradragstype.isValid(it.type) &&
-                    it.utenlandskInntekt?.isValid() ?: true &&
-                    it.inntektDelerAvPeriode?.isValid() ?: true
+                Fradragstype.isValid(it.type) && it.utenlandskInntekt?.isValid() ?: true
             }
     }
 
@@ -172,7 +171,7 @@ internal fun Route.behandlingRoutes(
                                         behandlingId = behandling.id,
                                         fraOgMed = body.fraOgMed,
                                         tilOgMed = body.tilOgMed,
-                                        fradrag = body.fradrag.map { it.toFradrag() }
+                                        fradrag = body.fradrag.map { it.toFradrag(Periode(body.fraOgMed, body.tilOgMed)) }
                                     )
                                 )
                             )

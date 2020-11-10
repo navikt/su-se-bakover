@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
@@ -14,6 +15,8 @@ interface BehandlingRepo {
     fun oppdaterBehandlingStatus(behandlingId: UUID, status: Behandling.BehandlingsStatus): Behandling
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30): Behandling
     fun leggTilSimulering(behandlingId: UUID, simulering: Simulering)
+    fun leggTilBeregning(behandlingId: UUID, beregning: Beregning)
+    fun slettBeregning(behandlingId: UUID)
     fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Behandling
     fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Behandling
     fun opprettSøknadsbehandling(nySøknadsbehandling: NySøknadsbehandling)

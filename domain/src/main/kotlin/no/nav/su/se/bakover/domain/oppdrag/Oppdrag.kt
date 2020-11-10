@@ -132,13 +132,13 @@ data class Oppdrag(
                 )
             }
 
-            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.månedsberegninger
-                .groupBy { it.beløp }
+            private fun createUtbetalingsperioder(beregning: Beregning) = beregning.getMånedsberegninger()
+                .groupBy { it.getSumYtelse() }
                 .map {
                     Utbetalingsperiode(
-                        fraOgMed = it.value.minByOrNull { it.fraOgMed }!!.fraOgMed,
-                        tilOgMed = it.value.maxByOrNull { it.tilOgMed }!!.tilOgMed,
-                        beløp = it.key,
+                        fraOgMed = it.value.map { v -> v.getPeriode().getFraOgMed() }.minOrNull()!!,
+                        tilOgMed = it.value.map { v -> v.getPeriode().getTilOgMed() }.maxOrNull()!!,
+                        beløp = it.key
                     )
                 }
         }

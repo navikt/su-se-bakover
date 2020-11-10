@@ -32,6 +32,7 @@ internal class SøknadJsonTest {
             """
         {
           "id": "$søknadId",
+          "sakId": "$sakId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
             "uførevedtak":{
@@ -132,7 +133,8 @@ internal class SøknadJsonTest {
                 "kontanterBeløp":25000
             },
             "forNav":{
-                "harFullmektigEllerVerge":"verge"
+                "harFullmektigEllerVerge":"verge",
+                "type": "DigitalSøknad"
             },
             "ektefelle": {
                 "formue": {

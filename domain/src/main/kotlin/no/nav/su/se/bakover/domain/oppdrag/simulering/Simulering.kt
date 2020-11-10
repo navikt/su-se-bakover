@@ -26,14 +26,6 @@ data class Simulering(
         other.nettoBeløp == this.nettoBeløp &&
         other.periodeList == this.periodeList &&
         other.bruttoYtelse() == this.bruttoYtelse()
-
-    override fun hashCode(): Int {
-        var result = gjelderId.hashCode()
-        result = 31 * result + gjelderNavn.hashCode()
-        result = 31 * result + nettoBeløp
-        result = 31 * result + periodeList.hashCode()
-        return result
-    }
 }
 
 data class SimulertPeriode(
