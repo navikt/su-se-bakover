@@ -50,7 +50,7 @@ internal class OppgaveHttpClient(
                         aktivDato = aktivDato,
                         fristFerdigstillelse = aktivDato.plusDays(30),
                         prioritet = "NORM",
-                        tilordnetRessurs = config.tilordnetRessurs
+                        tilordnetRessurs = config.tilordnetRessurs?.toString()
                     )
                 )
             ).responseString()

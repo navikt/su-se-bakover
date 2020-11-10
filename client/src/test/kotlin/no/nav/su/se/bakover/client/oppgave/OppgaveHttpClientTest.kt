@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -28,7 +29,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         TokenOppslagStub
     )
 
-    private val saksbehandler = "Z12345"
+    private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
     private val sakId = "222"
@@ -147,7 +148,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             )
         )
         client.opprettOppgave(
-            OppgaveConfig.SaksbehandlingMedTilordnetRessurs(
+            OppgaveConfig.Saksbehandling(
                 journalpostId = journalpostId,
                 sakId = sakId,
                 aktørId = AktørId(aktørId),
