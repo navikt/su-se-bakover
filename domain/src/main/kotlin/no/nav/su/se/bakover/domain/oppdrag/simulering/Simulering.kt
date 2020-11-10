@@ -51,6 +51,13 @@ data class SimulertUtbetaling(
     fun bruttoYtelse() = detaljer
         .filter { it.isYtelse() }
         .sumBy { it.belop }
+
+    override fun equals(other: Any?) = other is SimulertUtbetaling &&
+        other.fagSystemId == this.fagSystemId &&
+        other.utbetalesTilId == this.utbetalesTilId &&
+        other.utbetalesTilNavn == this.utbetalesTilNavn &&
+        other.feilkonto == this.feilkonto &&
+        other.detaljer == this.detaljer
 }
 
 data class SimulertDetaljer(

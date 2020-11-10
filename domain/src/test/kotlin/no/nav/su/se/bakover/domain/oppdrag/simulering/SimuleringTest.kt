@@ -32,15 +32,19 @@ internal class SimuleringTest {
     }
 
     @Test
-    fun equals() {
+    fun `equals`() {
         simulering shouldBe simulering
         simulering shouldBe simulering.copy()
-        simulering shouldBe simulering.copy(datoBeregnet = 1.januar(2020))
 
         simulering shouldNotBe simulering.copy(gjelderId = Fnr("10101010101"))
         simulering shouldNotBe simulering.copy(gjelderNavn = "MYGG DUM")
         simulering shouldNotBe simulering.copy(nettoBeløp = 70)
         simulering shouldNotBe simulering.copy(periodeList = emptyList())
+    }
+
+    @Test
+    fun `equals ignorerer dato beregnet`() {
+        simulering shouldBe simulering.copy(datoBeregnet = 1.januar(2020))
     }
 
     @Test

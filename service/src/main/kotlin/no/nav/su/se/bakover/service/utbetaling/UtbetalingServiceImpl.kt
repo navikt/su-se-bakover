@@ -6,6 +6,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -88,10 +90,11 @@ internal class UtbetalingServiceImpl(
         attestantsSimulering: Utbetaling.SimulertUtbetaling
     ): Boolean {
         return if (saksbehandlersSimulering != attestantsSimulering.simulering) {
-            log.error(
-                "Kunne ikke utbetale siden saksbehandlers simulering ikke matcher den verifiserende simuleringa. Saksbehandlers simulering: {}, Verifiserende simulering: {}",
-                saksbehandlersSimulering,
-                attestantsSimulering.simulering
+            log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering. Se sikkerlogg for detaljer.")
+            sikkerLogg.error(
+                "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
+                objectMapper.writeValueAsString(attestantsSimulering.simulering),
+                objectMapper.writeValueAsString(saksbehandlersSimulering)
             )
             true
         } else false
