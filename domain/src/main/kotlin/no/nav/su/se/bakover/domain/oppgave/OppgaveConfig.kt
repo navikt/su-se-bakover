@@ -13,11 +13,24 @@ sealed class OppgaveConfig {
     abstract val behandlingstema: Behandlingstema?
     abstract val oppgavetype: Oppgavetype
     abstract val behandlingstype: Behandlingstype
+    abstract val tilordnetRessurs: String?
 
     data class Saksbehandling(
         override val journalpostId: JournalpostId,
         override val sakId: String,
         override val aktørId: AktørId
+    ) : OppgaveConfig() {
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
+        override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val tilordnetRessurs: String? = null
+    }
+
+    data class SaksbehandlingMedTilordnetRessurs(
+        override val journalpostId: JournalpostId,
+        override val sakId: String,
+        override val aktørId: AktørId,
+        override val tilordnetRessurs: String
     ) : OppgaveConfig() {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
@@ -32,6 +45,7 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.TIL_ATTESTERING
+        override val tilordnetRessurs: String? = null
     }
 
     /**

@@ -31,6 +31,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
     private val sakId = "222"
+    private val tilordnetRessurs = "Z12345"
 
     @Test
     fun `opprett sakbehandling oppgave`() {
@@ -48,7 +49,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "behandlingstype": "ae0245",
                     "aktivDato": "${LocalDate.now()}",
                     "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
-                    "prioritet": "NORM"
+                    "prioritet": "NORM",
+                    "tilordnetRessurs": null
                 }""".trimMargin()
 
         wireMockServer.stubFor(
@@ -92,6 +94,69 @@ internal class OppgaveHttpClientTest : WiremockBase {
     }
 
     @Test
+    fun `opprett sakbehandling oppgave med tilordnet ressurs`() {
+
+        //language=JSON
+        val expectedSaksbehandlingRequest =
+            """
+                {
+                    "journalpostId": "$journalpostId",
+                    "saksreferanse": "$sakId",
+                    "aktoerId": "$aktørId",
+                    "tema": "SUP",
+                    "behandlesAvApplikasjon": "SUPSTONAD",
+                    "oppgavetype": "BEH_SAK",
+                    "behandlingstema": "ab0431",
+                    "behandlingstype": "ae0245",
+                    "aktivDato": "${LocalDate.now()}",
+                    "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
+                    "prioritet": "NORM",
+                    "tilordnetRessurs": "$tilordnetRessurs"
+                }""".trimMargin()
+
+        wireMockServer.stubFor(
+            stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
+                WireMock.aResponse()
+                    .withBody(
+                        //language=JSON
+                        """
+                                    {
+                                                      "id": 111,
+                                                      "tildeltEnhetsnr": "4811",
+                                                      "journalpostId": "$journalpostId",
+                                                      "saksreferanse": "$sakId",
+                                                      "aktoerId": "$aktørId",
+                                                      "tema": "SUP",
+                                                      "behandlesAvApplikasjon": "SUPSTONAD",
+                                                      "behandlingstema": "ab0431",
+                                                      "oppgavetype": "BEH_SAK",
+                                                      "behandlingstype": "ae0245",
+                                                      "versjon": 1,
+                                                      "fristFerdigstillelse": "2020-06-06",
+                                                      "aktivDato": "2020-06-06",
+                                                      "opprettetTidspunkt": "2020-08-20T15:14:23.498+02:00",
+                                                      "opprettetAv": "srvsupstonad",
+                                                      "prioritet": "NORM",
+                                                      "status": "OPPRETTET",
+                                                      "metadata": {},
+                                                      "tilordnetRessurs": "$tilordnetRessurs"
+                                                    }
+                        """.trimIndent()
+                    )
+                    .withStatus(201)
+            )
+        )
+        client.opprettOppgave(
+            OppgaveConfig.SaksbehandlingMedTilordnetRessurs(
+                journalpostId = journalpostId,
+                sakId = sakId,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = tilordnetRessurs
+            )
+        ) shouldBeRight OppgaveId("111")
+    }
+
+    @Test
     fun `opprett attestering oppgave`() {
         //language=JSON
         val expectedAttesteringRequest =
@@ -107,7 +172,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "behandlingstype": "ae0245",
                     "aktivDato": "${LocalDate.now()}",
                     "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
-                    "prioritet": "NORM"
+                    "prioritet": "NORM",
+                    "tilordnetRessurs": null
                 }""".trimMargin()
 
         wireMockServer.stubFor(
