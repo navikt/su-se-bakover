@@ -27,7 +27,7 @@ import java.time.Clock;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class V41__store_beregning_as_json_and_patch_existing extends BaseJavaMigration {
+public class V42__store_beregning_as_json_and_patch_existing extends BaseJavaMigration {
     private ObjectMapper mapper = JsonMapper.builder()
             .addModule(new JavaTimeModule())
             .addModule(new KotlinModule())
@@ -146,9 +146,9 @@ public class V41__store_beregning_as_json_and_patch_existing extends BaseJavaMig
         public String behandlingId;
         public String fradragstype;
         public int beløp;
-        public V41__store_beregning_as_json_and_patch_existing.UtenlandskInntekt utenlandskinntekt;
+        public V42__store_beregning_as_json_and_patch_existing.UtenlandskInntekt utenlandskinntekt;
 
-        FradragData(String behandlingId, String fradragstype, int beløp, V41__store_beregning_as_json_and_patch_existing.UtenlandskInntekt utenlandskinntekt) {
+        FradragData(String behandlingId, String fradragstype, int beløp, V42__store_beregning_as_json_and_patch_existing.UtenlandskInntekt utenlandskinntekt) {
             this.behandlingId = behandlingId;
             this.fradragstype = fradragstype;
             this.beløp = beløp;
