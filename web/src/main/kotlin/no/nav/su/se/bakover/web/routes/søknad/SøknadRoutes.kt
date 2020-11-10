@@ -8,13 +8,16 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
@@ -55,15 +58,33 @@ internal fun Route.søknadRoutes(
                                 }
                             )
                         },
-                        { sak ->
-                            call.audit("Lagrer søknad for person: $sak")
+                        { søknad ->
+                            call.audit("Lagrer søknad for person: $søknad")
                             call.svar(
-                                Resultat.json(Created, serialize((sak.toJson())))
+                                Resultat.json(Created, serialize(søknad.toJson()))
                             )
                         }
                     )
                 }
             )
+        }
+    }
+
+    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
+        get("$søknadPath/{søknadId}/utskrift") {
+            call.withSøknadId { søknadId ->
+                søknadService.hentSøknadPdf(søknadId).fold(
+                    {
+                        when (it) {
+                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> call.respond(NotFound.message("Fant ikke søknad"))
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> call.respond(InternalServerError.message("Kunne ikke lage PDF"))
+                        }
+                    },
+                    {
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    }
+                )
+            }
         }
     }
 

@@ -115,8 +115,8 @@ object SøknadInnholdTestdataBuilder {
             kontanterBeløp = 25000
         ),
 
-        forNav: ForNav = ForNav(
-            harFullmektigEllerVerge = ForNav.Vergemål.VERGE
+        forNav: ForNav = ForNav.DigitalSøknad(
+            harFullmektigEllerVerge = ForNav.DigitalSøknad.Vergemål.VERGE
         ),
         ektefelle: Ektefelle = Ektefelle(
             formue = Formue(

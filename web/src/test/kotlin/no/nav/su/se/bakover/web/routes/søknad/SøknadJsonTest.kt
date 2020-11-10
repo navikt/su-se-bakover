@@ -16,9 +16,10 @@ import java.util.UUID
 
 internal class SøknadJsonTest {
     companion object {
+        val sakId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val søknad = Søknad(
-            sakId = UUID.randomUUID(),
+            sakId = sakId,
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
@@ -30,6 +31,7 @@ internal class SøknadJsonTest {
             """
         {
           "id": "$søknadId",
+          "sakId": "$sakId",
           "opprettet": "$opprettetTidspunkt",
           "søknadInnhold": {
             "uførevedtak":{
@@ -130,7 +132,8 @@ internal class SøknadJsonTest {
                 "kontanterBeløp":25000
             },
             "forNav":{
-                "harFullmektigEllerVerge":"verge"
+                "harFullmektigEllerVerge":"verge",
+                "type": "DigitalSøknad"
             },
             "ektefelle": {
                 "formue": {
