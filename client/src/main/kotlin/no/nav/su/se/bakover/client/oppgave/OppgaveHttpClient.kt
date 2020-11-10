@@ -10,6 +10,7 @@ import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -56,11 +57,13 @@ internal class OppgaveHttpClient(
 
         return result.fold(
             { json ->
-                log.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
+                log.info("Lagret oppgave i oppgave. status=${response.statusCode} se sikkerlogg for detaljer")
+                sikkerLogg.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
                 objectMapper.readValue(json, OppgaveResponse::class.java).getOppgaveId().right()
             },
             {
-                log.error("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil i kallet mot oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
+                sikkerLogg.error("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeOppretteOppgave.left()
             }
         )
@@ -117,11 +120,13 @@ internal class OppgaveHttpClient(
 
         return result.fold(
             { json ->
-                log.info("Endret oppgave i oppgave. status=${response.statusCode} body=$json")
+                log.info("Endret oppgave i oppgave. status=${response.statusCode} se sikkerlogg for detaljer")
+                sikkerLogg.info("Endret oppgave i oppgave. status=${response.statusCode} body=$json")
                 objectMapper.readValue(json, FerdigstillResponse::class.java).right()
             },
             {
-                log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
+                sikkerLogg.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
                 KunneIkkeFerdigstilleOppgave.left()
             }
         )
