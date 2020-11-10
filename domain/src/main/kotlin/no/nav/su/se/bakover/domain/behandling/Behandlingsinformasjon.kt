@@ -2,11 +2,12 @@ package no.nav.su.se.bakover.domain.behandling
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsgrunn
+import java.time.LocalDate
+import java.time.Period
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -243,45 +244,43 @@ data class Behandlingsinformasjon(
     }
 
     data class Bosituasjon(
-        val delerBolig: Boolean,
-        val delerBoligMed: Boforhold.DelerBoligMed?,
-        val ektemakeEllerSamboerUnder67År: Boolean?,
+        val epsFnr: Fnr?,
+        val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
     ) : Base() {
         fun utledSats() = getBeregningStrategy().sats()
 
-        internal fun getBeregningStrategy() =
-            if (!delerBolig) {
-                BeregningStrategy.BorAlene
+        internal fun getBeregningStrategy(): BeregningStrategy {
+            if (epsFnr == null && (delerBolig != null && !delerBolig)) {
+                return BeregningStrategy.BorAlene
             } else {
-                // Vi gjør en del null assertions her for at logikken ikke skal bli så vanskelig å følge
-                // Det _bør_ være trygt fordi gyldighet av objektet skal bli sjekket andre plasser
-                when (delerBoligMed!!) {
-                    Boforhold.DelerBoligMed.VOKSNE_BARN, Boforhold.DelerBoligMed.ANNEN_VOKSEN -> BeregningStrategy.BorMedVoksne
-                    Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER ->
-                        if (!ektemakeEllerSamboerUnder67År!!) {
-                            BeregningStrategy.EpsOver67År
-                        } else {
-                            if (ektemakeEllerSamboerUførFlyktning!!) {
-                                BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-                            } else {
-                                BeregningStrategy.EpsUnder67År
-                            }
-                        }
+                if (delerBolig != null && delerBolig) {
+                    return BeregningStrategy.BorMedVoksne
                 }
+                if (epsFnr != null) {
+                    println(epsUnder67År())
+                    if (!epsUnder67År()) {
+                        return BeregningStrategy.EpsOver67År
+                    }
+                    if (ektemakeEllerSamboerUførFlyktning != null && ektemakeEllerSamboerUførFlyktning) {
+                        return BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                    }
+                    return BeregningStrategy.EpsUnder67År
+                }
+                throw RuntimeException("TODO")
             }
+        }
 
-        override fun erGyldig(): Boolean =
-            if (delerBolig && delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER) {
-                if (ektemakeEllerSamboerUnder67År == true) {
-                    ektemakeEllerSamboerUførFlyktning != null
-                } else {
-                    ektemakeEllerSamboerUførFlyktning == null
-                }
-            } else {
-                true
+        override fun erGyldig(): Boolean {
+            if (epsFnr == null && delerBolig == null) {
+                return false
             }
+            if (epsFnr != null) {
+                return ektemakeEllerSamboerUførFlyktning != null
+            }
+            return delerBolig != null
+        }
 
         override fun erVilkårOppfylt(): Boolean = erGyldig()
         override fun erVilkårIkkeOppfylt(): Boolean = false
@@ -289,19 +288,27 @@ data class Behandlingsinformasjon(
         override fun avslagsgrunn(): Avslagsgrunn? = null
 
         fun getSatsgrunn() = when {
-            !delerBolig -> Satsgrunn.ENSLIG
-            delerBoligMed == Boforhold.DelerBoligMed.VOKSNE_BARN ->
+            delerBolig != null && !delerBolig -> Satsgrunn.ENSLIG
+            delerBolig != null && delerBolig ->
                 Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-            delerBoligMed == Boforhold.DelerBoligMed.ANNEN_VOKSEN ->
-                Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUnder67År == false ->
+            epsFnr != null && !epsUnder67År() ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
-            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUnder67År == true && ektemakeEllerSamboerUførFlyktning == false ->
+            epsFnr != null && epsUnder67År() && ektemakeEllerSamboerUførFlyktning == false ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-            delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektemakeEllerSamboerUførFlyktning == true ->
+            epsFnr != null && epsUnder67År() && ektemakeEllerSamboerUførFlyktning == true ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
             else -> null
         }
+
+        private fun epsUnder67År() =
+            Period.between(
+                LocalDate.of(
+                    epsFnr.toString().substring(5, 6).toInt(),
+                    epsFnr.toString().substring(3, 4).toInt(),
+                    epsFnr.toString().substring(1, 2).toInt(),
+                ),
+                LocalDate.now()
+            ).years < 67
     }
 
     @JsonTypeInfo(

@@ -55,11 +55,10 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             begrunnelse = personligOppmøte?.begrunnelse
         ),
         bosituasjon = Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = bosituasjon?.delerBolig ?: false,
-            delerBoligMed = bosituasjon?.delerBoligMed,
-            ektemakeEllerSamboerUnder67År = bosituasjon?.ektemakeEllerSamboerUnder67År,
             ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = bosituasjon?.begrunnelse
+            begrunnelse = bosituasjon?.begrunnelse,
         ),
         ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
     )
