@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
@@ -51,6 +53,7 @@ object StubClientsBuilder : ClientsBuilder {
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
             microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
+            digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") }
         )
     }
 }

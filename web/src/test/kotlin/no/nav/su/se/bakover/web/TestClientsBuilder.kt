@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
@@ -34,6 +35,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
+        digitalKontaktinformasjon = DkifClientStub
     )
 
     override fun build(): Clients = testClients

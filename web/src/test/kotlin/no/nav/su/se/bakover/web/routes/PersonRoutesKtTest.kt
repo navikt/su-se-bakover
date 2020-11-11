@@ -81,7 +81,14 @@ internal class PersonRoutesKtTest {
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
                     "adressebeskyttelse": null,
-                    "skjermet": false
+                    "skjermet": false,
+                    "kontaktinfo": {
+                        "epostadresse": "mail@epost.com",
+                        "mobiltelefonnummer": "90909090",
+                        "reservert": false,
+                        "kanVarsles": true,
+                        "språk": "nb"
+                    }
                 }
             """.trimIndent()
 
