@@ -71,30 +71,37 @@ internal object LukkSøknadInputHandler {
                 søknadId = søknadId,
                 saksbehandler = saksbehandler,
                 trukketDato = bodyAsJson.datoSøkerTrakkSøknad
-            )
+            ).right()
 
             is LukketJson.BortfaltJson -> LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = søknadId,
                 saksbehandler = saksbehandler
-            )
+            ).right()
             is LukketJson.AvvistJson -> when (bodyAsJson.brevConfig) {
                 null -> LukkSøknadRequest.UtenBrev.AvvistSøknad(
                     søknadId = søknadId,
                     saksbehandler = saksbehandler
-                )
-                else -> LukkSøknadRequest.MedBrev.AvvistSøknad(
-                    søknadId = søknadId,
-                    saksbehandler = saksbehandler,
-                    brevConfig = configForType(bodyAsJson.brevConfig)
-                )
+                ).right()
+                else -> {
+                    if (bodyAsJson.brevConfig.brevtype == LukketJson.BrevType.FRITEKST && bodyAsJson.brevConfig.fritekst == null) {
+                        UgyldigLukkSøknadRequest.left()
+                    } else {
+                        LukkSøknadRequest.MedBrev.AvvistSøknad(
+                            søknadId = søknadId,
+                            saksbehandler = saksbehandler,
+                            brevConfig = configForType(bodyAsJson.brevConfig)
+                        ).right()
+                    }
+                }
             }
-        }.right()
+        }
     }
 
     private fun configForType(brevConfig: LukketJson.AvvistJson.BrevConfigJson): BrevConfig {
-        return when (brevConfig.fritekst) {
-            null -> BrevConfig.Vedtak
-            else -> BrevConfig.Fritekst(brevConfig.fritekst)
+        return when (brevConfig.brevtype) {
+            LukketJson.BrevType.VEDTAK -> BrevConfig.Vedtak(brevConfig.fritekst)
+            // Vi sjekker for null hvis brevet er av typen fritekst på steget over
+            LukketJson.BrevType.FRITEKST -> BrevConfig.Fritekst(brevConfig.fritekst!!)
         }
     }
 }

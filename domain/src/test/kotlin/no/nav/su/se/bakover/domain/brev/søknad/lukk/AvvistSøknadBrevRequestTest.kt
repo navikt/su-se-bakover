@@ -18,9 +18,16 @@ internal class AvvistSøknadBrevRequestTest {
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak).lagBrevInnhold(
+        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak(null)).lagBrevInnhold(
             personaliaMock
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock)
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock, null)
+    }
+
+    @Test
+    fun `lager vedtaks-brevdata med fritekst`() {
+        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak("jeg er fritekst")).lagBrevInnhold(
+            personaliaMock
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock, "jeg er fritekst")
     }
 
     @Test

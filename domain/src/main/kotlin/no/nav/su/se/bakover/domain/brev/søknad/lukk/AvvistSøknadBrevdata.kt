@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.brev.BrevTemplate
 
 data class AvvistSøknadVedtakBrevInnhold(
     val personalia: Personalia,
+    val fritekst: String?
 ) : BrevInnhold() {
     override fun brevTemplate() = BrevTemplate.AvvistSøknadVedtak
 }
