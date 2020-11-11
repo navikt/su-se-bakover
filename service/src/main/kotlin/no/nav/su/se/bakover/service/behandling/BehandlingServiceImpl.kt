@@ -75,7 +75,9 @@ internal class BehandlingServiceImpl(
                                     sakId = behandling.sakId,
                                     aktørId = aktørId
                                 )
-                            )
+                            ).mapLeft {
+                                return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+                            }
                         }
                     behandlingMetrics.incrementUnderkjentCounter()
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())

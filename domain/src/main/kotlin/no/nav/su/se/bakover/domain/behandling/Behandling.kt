@@ -318,6 +318,7 @@ data class Behandling internal constructor(
                 return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
+            this@Behandling.attestant = attestant
             nyTilstand(Simulert())
             return this@Behandling.right()
         }
@@ -366,6 +367,7 @@ data class Behandling internal constructor(
         object FantIkkeBehandling : KunneIkkeUnderkjenne()
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
         object KunneIkkeLukkeOppgave : KunneIkkeUnderkjenne()
+        object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
         object FantIkkeAktørId : KunneIkkeUnderkjenne()
     }
 }

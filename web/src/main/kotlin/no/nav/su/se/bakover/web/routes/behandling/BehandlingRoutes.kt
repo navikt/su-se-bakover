@@ -302,6 +302,9 @@ internal fun Route.behandlingRoutes(
                                             Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave -> InternalServerError.message(
                                                 "Kunne ikke lukke oppgave."
                                             )
+                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> InternalServerError.message(
+                                                "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."
+                                            )
                                             Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId -> InternalServerError.message(
                                                 "Fant ikke aktørid som er knyttet til tokenet"
                                             )

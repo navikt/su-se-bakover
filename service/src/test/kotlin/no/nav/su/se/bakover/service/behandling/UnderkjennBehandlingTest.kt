@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.service.behandling
 
+import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -26,6 +30,8 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -72,9 +78,276 @@ class UnderkjennBehandlingTest {
         fnr = fnr,
         simulering = simulering,
         oppgaveId = oppgaveId,
-        attestant = attestant,
+        attestant = null,
         saksbehandler = saksbehandler
     )
+
+    private val oppgaveConfig = OppgaveConfig.Saksbehandling(
+        journalpostId = journalpostId,
+        sakId = sakId,
+        aktørId = aktørId
+    )
+
+    @Test
+    fun `Fant ikke behandling`() {
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn null
+        }
+
+        val personOppslagMock = mock<PersonOppslag>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestant,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
+
+        inOrder(behandlingRepoMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `Feil behandlingsstatus`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(status = Behandling.BehandlingsStatus.SIMULERT)
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock = mock<PersonOppslag>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        shouldThrow<Behandling.TilstandException> {
+            BehandlingTestUtils.createService(
+                behandlingRepo = behandlingRepoMock,
+                personOppslag = personOppslagMock,
+                oppgaveService = oppgaveServiceMock,
+                behandlingMetrics = behandlingMetricsMock,
+                hendelsesloggRepo = hendelsesloggRepoMock
+            ).underkjenn(
+                behandlingId = behandling.id,
+                attestant = attestant,
+                begrunnelse = begrunnelse
+            )
+        }.msg shouldContain "for state: SIMULERT"
+
+        inOrder(behandlingRepoMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `attestant kan ikke være den samme som saksbehandler`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val attestantSomErLikSaksbehandler = NavIdentBruker.Attestant(saksbehandler.navIdent)
+
+        val personOppslagMock = mock<PersonOppslag>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestantSomErLikSaksbehandler,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+
+        inOrder(behandlingRepoMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `Feiler å underkjenne dersom vi ikke fikk aktør id`() {
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock = mock<PersonOppslag> {
+            on { aktørId(any()) } doReturn PdlFeil.FantIkkePerson.left()
+        }
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestant,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+
+        inOrder(behandlingRepoMock, personOppslagMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `Klarer ikke lukke oppgave`() {
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock = mock<PersonOppslag> {
+            on { aktørId(any()) } doReturn aktørId.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn KunneIkkeFerdigstilleOppgave.left()
+        }
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestant,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
+
+        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `Klarer ikke opprette oppgave`() {
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock = mock<PersonOppslag> {
+            on { aktørId(any()) } doReturn aktørId.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+        }
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestant,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+
+        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
 
     @Test
     fun `underkjenner behandling`() {
@@ -82,8 +355,6 @@ class UnderkjennBehandlingTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { settSaksbehandler(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
@@ -112,7 +383,8 @@ class UnderkjennBehandlingTest {
         )
 
         actual shouldBe behandling.copy(
-            status = Behandling.BehandlingsStatus.SIMULERT
+            status = Behandling.BehandlingsStatus.SIMULERT,
+            attestant = attestant
         ).right()
 
         inOrder(
@@ -127,11 +399,7 @@ class UnderkjennBehandlingTest {
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
-                    it shouldBe OppgaveConfig.Saksbehandling(
-                        journalpostId = journalpostId,
-                        sakId = sakId,
-                        aktørId = aktørId
-                    )
+                    it shouldBe oppgaveConfig
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter()

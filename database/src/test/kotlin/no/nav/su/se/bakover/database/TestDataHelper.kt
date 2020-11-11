@@ -35,7 +35,7 @@ internal class TestDataHelper(
     private val behandlingRepo = behandlingPostgresRepo
     private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
 
-    fun nySakMedJournalførtsøknadOgOppgave(fnr: Fnr, oppgaveId: OppgaveId, journalpostId: JournalpostId): Sak {
+    fun nySakMedJournalførtSøknadOgOppgave(fnr: Fnr, oppgaveId: OppgaveId, journalpostId: JournalpostId): Sak {
         val nySak = insertSak(fnr)
         val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
             søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)

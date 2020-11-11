@@ -38,7 +38,7 @@ internal class BehandlingPostgresRepoTest {
     fun `opprett og hent behandling`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak: Sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
@@ -64,7 +64,7 @@ internal class BehandlingPostgresRepoTest {
     fun `oppdater behandlingsinformasjon`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = sak.søknader()[0].id,
@@ -73,20 +73,19 @@ internal class BehandlingPostgresRepoTest {
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
-            val oppdatert = repo.oppdaterBehandlingsinformasjon(
-                nySøknadsbehandling.id,
-                Behandlingsinformasjon(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                        uføregrad = 40,
-                        forventetInntekt = 200
-                    )
+            val oppdatertBehandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    uføregrad = 40,
+                    forventetInntekt = 200
                 )
-            )
+            ).also {
+                repo.oppdaterBehandlingsinformasjon(nySøknadsbehandling.id, it)
+            }
 
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
-            oppdatert.behandlingsinformasjon() shouldBe hentet.behandlingsinformasjon()
+            oppdatertBehandlingsinformasjon shouldBe hentet.behandlingsinformasjon()
             nySøknadsbehandling.behandlingsinformasjon shouldNotBe hentet.behandlingsinformasjon()
         }
     }
@@ -95,7 +94,7 @@ internal class BehandlingPostgresRepoTest {
     fun `saksbehandle behandling`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = sak.søknader()[0].id,
@@ -104,10 +103,11 @@ internal class BehandlingPostgresRepoTest {
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
-            val saksbehandler = repo.settSaksbehandler(nySøknadsbehandling.id, NavIdentBruker.Saksbehandler("Per"))
+            val saksbehandler = NavIdentBruker.Saksbehandler("Per")
+            repo.settSaksbehandler(nySøknadsbehandling.id, saksbehandler)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
-            hentet.saksbehandler() shouldBe saksbehandler.saksbehandler()
+            hentet.saksbehandler() shouldBe saksbehandler
         }
     }
 
@@ -115,7 +115,7 @@ internal class BehandlingPostgresRepoTest {
     fun `attesterer behandling`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = sak.søknader()[0].id,
@@ -124,10 +124,11 @@ internal class BehandlingPostgresRepoTest {
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
-            val attestant = repo.attester(nySøknadsbehandling.id, NavIdentBruker.Attestant("kjella"))
+            val attestant = NavIdentBruker.Attestant("kjella")
+            repo.attester(nySøknadsbehandling.id, attestant)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
-            hentet.attestant() shouldBe attestant.attestant()
+            hentet.attestant() shouldBe attestant
         }
     }
 
@@ -135,7 +136,7 @@ internal class BehandlingPostgresRepoTest {
     fun `oppdater behandlingstatus`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
                 søknadId = sak.søknader()[0].id,
@@ -146,11 +147,11 @@ internal class BehandlingPostgresRepoTest {
 
             nySøknadsbehandling.status shouldBe Behandling.BehandlingsStatus.OPPRETTET
 
-            val oppdatertStatus =
-                repo.oppdaterBehandlingStatus(nySøknadsbehandling.id, Behandling.BehandlingsStatus.BEREGNET_INNVILGET)
+            val oppdatertStatus = Behandling.BehandlingsStatus.BEREGNET_INNVILGET
+            repo.oppdaterBehandlingStatus(nySøknadsbehandling.id, oppdatertStatus)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)
 
-            hentet!!.status() shouldBe oppdatertStatus.status()
+            hentet!!.status() shouldBe oppdatertStatus
         }
     }
 
@@ -158,7 +159,7 @@ internal class BehandlingPostgresRepoTest {
     fun `legger til og henter ut beregning`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak: Sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,
@@ -187,7 +188,7 @@ internal class BehandlingPostgresRepoTest {
     fun `sletter beregning`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
-            val sak: Sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
             val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
             val nySøknadsbehandling = NySøknadsbehandling(
                 sakId = sak.id,

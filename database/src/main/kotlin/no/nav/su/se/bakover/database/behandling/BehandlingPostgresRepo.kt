@@ -39,7 +39,7 @@ internal class BehandlingPostgresRepo(
     override fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
         behandlingsinformasjon: Behandlingsinformasjon
-    ): Behandling {
+    ) {
         dataSource.withSession { session ->
             "update behandling set behandlingsinformasjon = to_json(:behandlingsinformasjon::json) where id = :id".oppdatering(
                 mapOf(
@@ -49,13 +49,12 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
-    ): Behandling {
+    ) {
         dataSource.withSession { session ->
             "update behandling set status = :status where id = :id".oppdatering(
                 mapOf(
@@ -65,10 +64,9 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
-    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30): Behandling {
+    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         dataSource.withSession { session ->
             """
             update behandling set utbetalingId=:utbetalingId where id=:id
@@ -80,7 +78,6 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun leggTilSimulering(behandlingId: UUID, simulering: Simulering) {
@@ -124,7 +121,7 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Behandling {
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler) {
         dataSource.withSession { session ->
             "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
                 mapOf(
@@ -134,10 +131,9 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
-    override fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Behandling {
+    override fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
         dataSource.withSession { session ->
             "update behandling set attestant = :attestant where id=:id".oppdatering(
                 mapOf(
@@ -147,7 +143,6 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun opprettSøknadsbehandling(

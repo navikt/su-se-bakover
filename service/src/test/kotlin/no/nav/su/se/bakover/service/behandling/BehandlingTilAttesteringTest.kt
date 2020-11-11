@@ -75,8 +75,6 @@ class BehandlingTilAttesteringTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { settSaksbehandler(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {

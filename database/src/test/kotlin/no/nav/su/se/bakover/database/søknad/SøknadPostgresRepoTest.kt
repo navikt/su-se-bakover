@@ -109,7 +109,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb {
             val oppgaveId = OppgaveId("o")
             val journalpostId = JournalpostId("j")
-            val sak = testDataHelper.nySakMedJournalførtsøknadOgOppgave(FNR, oppgaveId, journalpostId)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR, oppgaveId, journalpostId)
             val søknadId = sak.søknader()[0].id
             repo.oppdaterOppgaveId(søknadId, oppgaveId)
             val hentetSøknad = repo.hentSøknad(søknadId)!!

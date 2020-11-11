@@ -121,8 +121,6 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { attester(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
@@ -168,8 +166,6 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { attester(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
