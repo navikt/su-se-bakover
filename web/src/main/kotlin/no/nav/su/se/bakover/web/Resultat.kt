@@ -4,7 +4,6 @@ import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
-import no.nav.su.se.bakover.client.ClientResponse
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
 internal class Resultat private constructor(
@@ -25,9 +24,6 @@ internal class Resultat private constructor(
         fun message(httpCode: HttpStatusCode, message: String) = json(httpCode, """{"message": "$message"}""")
         fun json(httpCode: HttpStatusCode, json: String) =
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
-
-        fun from(clientResponse: ClientResponse) =
-            json(HttpStatusCode.fromValue(clientResponse.httpStatus), clientResponse.content)
     }
 }
 
