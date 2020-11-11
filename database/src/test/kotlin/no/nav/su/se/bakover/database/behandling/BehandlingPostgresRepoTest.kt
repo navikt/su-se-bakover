@@ -214,4 +214,22 @@ internal class BehandlingPostgresRepoTest {
             repo.hentBehandling(nySøknadsbehandling.id)!!.beregning() shouldBe null
         }
     }
+
+    @Test
+    fun`oppdaterer oppgaveid`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val oppdatertOppgaveId = OppgaveId("ny")
+            repo.oppdaterOppgaveId(nySøknadsbehandling.id, oppdatertOppgaveId)
+            repo.hentBehandling(nySøknadsbehandling.id)!!.oppgaveId() shouldBe oppdatertOppgaveId
+        }
+    }
 }

@@ -169,6 +169,18 @@ internal class BehandlingPostgresRepo(
         }
     }
 
+    override fun oppdaterOppgaveId(behandlingId: UUID, oppgaveId: OppgaveId) {
+        dataSource.withSession { session ->
+            "update behandling set oppgaveId = :oppgaveId where id=:id".oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "oppgaveId" to oppgaveId.toString()
+                ),
+                session
+            )
+        }
+    }
+
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
         "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->

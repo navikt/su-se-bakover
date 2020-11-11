@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
+import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.junit.jupiter.api.Test
@@ -103,8 +104,13 @@ class BehandlingTilAttesteringTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
                     sakId = sakId,
-                    aktørId = aktørId
+                    aktørId = aktørId,
+                    tilordnetRessurs = null
                 )
+            )
+            verify(behandlingRepoMock).oppdaterOppgaveId(
+                argThat { it shouldBe simulertBehandling.id },
+                argThat { it shouldBe nyOppgaveId }
             )
 
             verify(behandlingRepoMock).settSaksbehandler(simulertBehandling.id, saksbehandler)

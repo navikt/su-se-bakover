@@ -403,6 +403,10 @@ class UnderkjennBehandlingTest {
                     it shouldBe oppgaveConfig
                 }
             )
+            verify(behandlingRepoMock).oppdaterOppgaveId(
+                argThat { it shouldBe behandling.id },
+                argThat { it shouldBe nyOppgaveId }
+            )
             verify(behandlingMetricsMock).incrementUnderkjentCounter()
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },

@@ -77,7 +77,10 @@ internal class BehandlingServiceImpl(
                                     tilordnetRessurs = behandling.saksbehandler()
                                 )
                             ).mapLeft {
+                                log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning")
                                 return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+                            }.map {
+                                behandlingRepo.oppdaterOppgaveId(behandling.id, it)
                             }
                         }
                     behandlingMetrics.incrementUnderkjentCounter()
@@ -155,8 +158,10 @@ internal class BehandlingServiceImpl(
                 tilordnetRessurs = behandlingTilAttestering.attestant()
             )
         ).mapLeft {
-            log.error("Kunne ikke opprette Attestering oppgave")
+            log.error("Kunne ikke opprette Attesteringsoppgave")
             return KunneIkkeSendeTilAttestering.InternFeil.left()
+        }.map {
+            behandlingRepo.oppdaterOppgaveId(behandlingTilAttestering.id, it)
         }
 
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
