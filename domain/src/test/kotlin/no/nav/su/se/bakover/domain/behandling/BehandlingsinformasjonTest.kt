@@ -43,6 +43,40 @@ internal class BehandlingsinformasjonTest {
         alleVilkårOppfylt.getAvslagsgrunn() shouldBe null
     }
 
+    @Test
+    fun `dersom uførhet er vurdert men ikke oppfylt skal man få avslag`() {
+        val info = alleVilkårOppfylt.copy(
+            uførhet = Behandlingsinformasjon.Uførhet(
+                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt, uføregrad = 5, forventetInntekt = 5
+            )
+        )
+        info.erInnvilget() shouldBe false
+        info.erAvslag() shouldBe true
+        info.getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
+    }
+
+    @Test
+    fun `dersom flyktning er vurdert men ikke oppfylt skal man få avslag`() {
+        val info = alleVilkårOppfylt.copy(
+            flyktning = Behandlingsinformasjon.Flyktning(
+                status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt, begrunnelse = null
+            )
+        )
+        info.erInnvilget() shouldBe false
+        info.erAvslag() shouldBe true
+        info.getAvslagsgrunn() shouldBe Avslagsgrunn.FLYKTNING
+    }
+
+    @Test
+    fun `dersom man mangler vurdering av et vilkår er det ikke innvilget, men ikke nødvendigvis avslag`() {
+        val info = alleVilkårOppfylt.copy(
+            lovligOpphold = null
+        )
+        info.erInnvilget() shouldBe false
+        info.erAvslag() shouldBe false
+        info.getAvslagsgrunn() shouldBe null
+    }
+
     private val alleVilkårOppfylt = Behandlingsinformasjon(
         uførhet = Behandlingsinformasjon.Uførhet(
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
