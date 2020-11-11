@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
-import arrow.core.orNull
-import no.nav.su.se.bakover.client.dkif.Dkif
+import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.skjerming.Skjerming
@@ -16,7 +15,7 @@ class PersonClient(
     pdlUrl: String,
     private val kodeverk: Kodeverk,
     private val skjerming: Skjerming,
-    private val dkif: Dkif,
+    private val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     tokenOppslag: TokenOppslag
 ) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag)
@@ -67,13 +66,15 @@ class PersonClient(
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
-        val dkifInfo: Kontaktinformasjon? = dkif.hentKontaktinformasjon(fnr).orNull()
-        return if (dkifInfo == null) null else Person.Kontaktinfo(
-            dkifInfo.epostadresse,
-            dkifInfo.mobiltelefonnummer,
-            dkifInfo.reservert,
-            dkifInfo.kanVarsles,
-            dkifInfo.språk
-        )
+        val dkifInfo: Kontaktinformasjon? = digitalKontaktinformasjon.hentKontaktinformasjon(fnr).orNull()
+        return dkifInfo?.let {
+            Person.Kontaktinfo(
+                it.epostadresse,
+                it.mobiltelefonnummer,
+                it.reservert,
+                it.kanVarsles,
+                it.språk
+            )
+        }
     }
 }

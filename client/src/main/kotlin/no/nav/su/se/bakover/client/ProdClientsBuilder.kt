@@ -77,7 +77,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
                 }
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
-            dkif = dkif,
+            digitalKontaktinformasjon = dkif,
         )
     }
 }

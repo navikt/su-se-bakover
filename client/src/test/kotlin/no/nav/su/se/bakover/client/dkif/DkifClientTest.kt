@@ -5,7 +5,6 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.Fnr
@@ -70,10 +69,7 @@ class DkifClientTest : WiremockBase {
                     )
                 )
         )
-        client.hentKontaktinformasjon(fnr) shouldBe ClientError(
-            500,
-            "Feil i kontaktinfo: Et eller annet gikk galt"
-        ).left()
+        client.hentKontaktinformasjon(fnr) shouldBe DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon.left()
     }
 
     private val wiremockBuilder: MappingBuilder = WireMock.get(WireMock.urlPathEqualTo(dkifPath))

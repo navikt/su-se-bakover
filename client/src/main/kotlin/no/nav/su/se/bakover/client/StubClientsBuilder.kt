@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
-import no.nav.su.se.bakover.client.dkif.Dkif
+import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
@@ -53,7 +53,7 @@ object StubClientsBuilder : ClientsBuilder {
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
             microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
-            dkif = DkifClientStub.also { log.warn("********** Using stub for ${Dkif::class.java} **********") }
+            digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") }
         )
     }
 }

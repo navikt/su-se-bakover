@@ -35,7 +35,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
-        dkif = DkifClientStub
+        digitalKontaktinformasjon = DkifClientStub
     )
 
     override fun build(): Clients = testClients
