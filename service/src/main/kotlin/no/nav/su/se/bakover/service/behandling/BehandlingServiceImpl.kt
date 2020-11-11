@@ -73,7 +73,8 @@ internal class BehandlingServiceImpl(
                                 OppgaveConfig.Saksbehandling(
                                     journalpostId = journalpostId,
                                     sakId = behandling.sakId,
-                                    aktørId = aktørId
+                                    aktørId = aktørId,
+                                    tilordnetRessurs = behandling.saksbehandler()
                                 )
                             ).mapLeft {
                                 return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
@@ -149,7 +150,9 @@ internal class BehandlingServiceImpl(
         oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
                 behandlingTilAttestering.sakId,
-                aktørId = aktørId
+                aktørId = aktørId,
+                // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
+                tilordnetRessurs = behandlingTilAttestering.attestant()
             )
         ).mapLeft {
             log.error("Kunne ikke opprette Attestering oppgave")

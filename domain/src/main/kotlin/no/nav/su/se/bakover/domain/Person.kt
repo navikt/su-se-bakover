@@ -8,7 +8,8 @@ data class Person(
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
-    val skjermet: Boolean?
+    val skjermet: Boolean?,
+    val kontaktinfo: Kontaktinfo?
 ) {
     data class Navn(
         val fornavn: String,
@@ -33,5 +34,13 @@ data class Person(
     data class Poststed(
         val postnummer: String,
         val poststed: String?
+    )
+
+    data class Kontaktinfo(
+        val epostadresse: String?,
+        val mobiltelefonnummer: String?,
+        val reservert: Boolean,
+        val kanVarsles: Boolean,
+        val språk: String?,
     )
 }

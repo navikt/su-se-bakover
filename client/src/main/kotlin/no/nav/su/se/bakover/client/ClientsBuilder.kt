@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client
 
 import com.github.kittinunf.fuel.core.FuelManager
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.inntekt.InntektOppslag
@@ -33,6 +34,7 @@ data class Clients(
     val dokDistFordeling: DokDistFordeling,
     val avstemmingPublisher: AvstemmingPublisher,
     val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    val digitalKontaktinformasjon: DigitalKontaktinformasjon,
 ) {
     init {
         // https://fuel.gitbook.io/documentation/core/fuel
