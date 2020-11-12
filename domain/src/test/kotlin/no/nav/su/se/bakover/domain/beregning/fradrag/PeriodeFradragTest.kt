@@ -16,7 +16,8 @@ internal class PeriodeFradragTest {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.januar(2020))
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            tilhører = FradragTilhører.BRUKER
         )
         f1.periodiser() shouldBe listOf(f1)
     }
@@ -26,28 +27,33 @@ internal class PeriodeFradragTest {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
-            periode = Periode(1.januar(2020), 30.april(2020))
+            periode = Periode(1.januar(2020), 30.april(2020)),
+            tilhører = FradragTilhører.BRUKER
         )
         f1.periodiser() shouldBe listOf(
             PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
-                periode = Periode(1.januar(2020), 31.januar(2020))
+                periode = Periode(1.januar(2020), 31.januar(2020)),
+                tilhører = FradragTilhører.BRUKER
             ),
             PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
-                periode = Periode(1.februar(2020), 29.februar(2020))
+                periode = Periode(1.februar(2020), 29.februar(2020)),
+                tilhører = FradragTilhører.BRUKER
             ),
             PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
-                periode = Periode(1.mars(2020), 31.mars(2020))
+                periode = Periode(1.mars(2020), 31.mars(2020)),
+                tilhører = FradragTilhører.BRUKER
             ),
             PeriodeFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = 3000.0,
-                periode = Periode(1.april(2020), 30.april(2020))
+                periode = Periode(1.april(2020), 30.april(2020)),
+                tilhører = FradragTilhører.BRUKER
             )
         )
     }
@@ -58,7 +64,8 @@ internal class PeriodeFradragTest {
             FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
                 beløp = -5.0,
-                periode = Periode(1.januar(2020), 31.januar(2020))
+                periode = Periode(1.januar(2020), 31.januar(2020)),
+                tilhører = FradragTilhører.BRUKER
             )
         }
     }
@@ -68,7 +75,8 @@ internal class PeriodeFradragTest {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.januar(2020))
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            tilhører = FradragTilhører.BRUKER
         )
         f1.getTotaltFradrag() shouldBe 12000.0
         f1.getFradragPerMåned() shouldBe 12000.0
@@ -76,7 +84,8 @@ internal class PeriodeFradragTest {
         val f2 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.desember(2020))
+            periode = Periode(1.januar(2020), 31.desember(2020)),
+            tilhører = FradragTilhører.BRUKER
         )
         f2.getTotaltFradrag() shouldBe 12000.0
         f2.getFradragPerMåned() shouldBe 1000.0
@@ -87,7 +96,8 @@ internal class PeriodeFradragTest {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.desember(2020))
+            periode = Periode(1.januar(2020), 31.desember(2020)),
+            tilhører = FradragTilhører.BRUKER
         )
         f1.getTotaltFradrag() shouldBe 12000.0
         f1.getFradragPerMåned() shouldBe 1000.0

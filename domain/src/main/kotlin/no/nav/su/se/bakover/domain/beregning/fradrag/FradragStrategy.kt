@@ -7,7 +7,7 @@ internal sealed class FradragStrategy {
 
     object Enslig : FradragStrategy() {
         override fun beregnFradrag(forventetInntekt: Int, fradrag: List<Fradrag>, periode: Periode): List<Fradrag> =
-            bestemFradrag(forventetInntekt, fradrag, periode)
+            bestemFradrag(forventetInntekt, fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER }, periode)
     }
 
     object EpsOver67År : FradragStrategy() {
@@ -32,8 +32,9 @@ internal sealed class FradragStrategy {
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
                 beløp = forventetInntekt.toDouble(),
+                periode = periode,
                 utenlandskInntekt = null,
-                periode = periode
+                tilhører = FradragTilhører.BRUKER
             )
         )
     }

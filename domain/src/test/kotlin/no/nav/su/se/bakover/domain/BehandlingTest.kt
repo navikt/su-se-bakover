@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -272,8 +273,9 @@ internal class BehandlingTest {
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = 600000.0,
+                        periode = periode,
                         utenlandskInntekt = null,
-                        periode = periode
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )
@@ -313,8 +315,9 @@ internal class BehandlingTest {
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = (maxUtbetaling2020 * 0.99),
+                        periode = periode,
                         utenlandskInntekt = null,
-                        periode = periode
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )
@@ -338,8 +341,9 @@ internal class BehandlingTest {
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = inntektSomGirMinstebeløp,
+                        periode = periode,
                         utenlandskInntekt = null,
-                        periode = periode
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )
@@ -477,8 +481,9 @@ internal class BehandlingTest {
                         FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             beløp = 1000000.0,
+                            periode = periode,
                             utenlandskInntekt = null,
-                            periode = periode
+                            tilhører = FradragTilhører.BRUKER
                         )
                     )
                 )

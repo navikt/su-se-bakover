@@ -8,4 +8,10 @@ interface Fradrag : PeriodisertInformasjon {
     fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
     fun periodiser(): List<Fradrag>
     fun getFradragPerMåned(): Double
+    fun getTilhører(): FradragTilhører
+}
+
+enum class FradragTilhører {
+    BRUKER,
+    EPS;
 }

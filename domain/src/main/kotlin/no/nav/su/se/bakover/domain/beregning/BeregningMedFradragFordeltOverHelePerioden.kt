@@ -35,7 +35,8 @@ internal data class BeregningMedFradragFordeltOverHelePerioden(
                 type = it.getFradragstype(),
                 beløp = it.getTotaltFradrag(),
                 periode = periode,
-                utenlandskInntekt = it.getUtenlandskInntekt()
+                utenlandskInntekt = it.getUtenlandskInntekt(),
+                tilhører = it.getTilhører()
             ).periodiser()
         }.groupBy { it.getPeriode() }
 

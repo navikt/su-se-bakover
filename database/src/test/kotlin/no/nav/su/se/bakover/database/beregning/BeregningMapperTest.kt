@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -24,7 +25,8 @@ internal class BeregningMapperTest {
         type = Fradragstype.Arbeidsinntekt,
         beløp = 12000.0,
         periode = periode,
-        utenlandskInntekt = null
+        utenlandskInntekt = null,
+        tilhører = FradragTilhører.BRUKER
     )
 
     private val månedsberegning = MånedsberegningFactory.ny(
@@ -81,7 +83,8 @@ internal class BeregningMapperTest {
                         "fraOgMed": "2020-01-01",
                         "tilOgMed": "2020-01-31",
                         "antallMåneder": 1
-                      }
+                      },
+                      "tilhører": "BRUKER"
                     }
                   ],
                   "periode": {
@@ -101,7 +104,8 @@ internal class BeregningMapperTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-01-31",
                     "antallMåneder": 1
-                  }
+                  },
+                  "tilhører": "BRUKER"
                 }
               ],
               "sumYtelse": 8637,

@@ -7,13 +7,15 @@ object FradragFactory {
         type: Fradragstype,
         beløp: Double,
         periode: Periode,
-        utenlandskInntekt: UtenlandskInntekt? = null
+        utenlandskInntekt: UtenlandskInntekt? = null,
+        tilhører: FradragTilhører
     ): Fradrag {
         return PeriodeFradrag(
             periode = periode,
             type = type,
             beløp = beløp,
-            utenlandskInntekt = utenlandskInntekt
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører
         )
     }
 }

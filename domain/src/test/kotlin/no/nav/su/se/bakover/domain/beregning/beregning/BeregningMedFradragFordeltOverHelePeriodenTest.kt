@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
@@ -36,7 +37,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 12000.0,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -55,12 +57,14 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 ),
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
-                    periode = Periode(1.juni(2020), 30.juni(2020))
+                    periode = Periode(1.juni(2020), 30.juni(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 ),
             )
         )
@@ -79,12 +83,14 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 6000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 ),
                 PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 6000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -122,7 +128,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 245117.0,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -147,7 +154,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 60700.0,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -182,7 +190,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -210,7 +219,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -222,7 +232,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                 PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )

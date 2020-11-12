@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -55,8 +56,9 @@ internal class BeregningJsonTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = 1000.0,
+                    periode = Periode(1.august(2020), 31.august(2020)),
                     utenlandskInntekt = null,
-                    periode = Periode(1.august(2020), 31.august(2020))
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )

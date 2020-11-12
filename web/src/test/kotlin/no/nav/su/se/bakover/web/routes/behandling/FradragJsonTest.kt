@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 
@@ -55,10 +56,11 @@ internal class FradragJsonTest {
     @Test
     fun `bruker innsendt periode ved konvertering til fradrag`() {
         val expected = FradragFactory.ny(
-            periode = Periode(1.januar(2020), 31.januar(2020)),
             type = Fradragstype.Arbeidsinntekt,
             beløp = 10.0,
-            utenlandskInntekt = null
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER
         )
 
         val json = FradragJson(

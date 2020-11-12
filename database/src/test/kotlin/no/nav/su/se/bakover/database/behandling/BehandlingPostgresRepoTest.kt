@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
@@ -171,7 +172,8 @@ internal class BehandlingPostgresRepoTest {
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = 5000.0,
                         periode = Periode(1.januar(2020), 31.januar(2020)),
-                        utenlandskInntekt = null
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )
@@ -199,7 +201,8 @@ internal class BehandlingPostgresRepoTest {
                         type = Fradragstype.Arbeidsinntekt,
                         beløp = 5000.0,
                         periode = Periode(1.januar(2020), 31.januar(2020)),
-                        utenlandskInntekt = null
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )

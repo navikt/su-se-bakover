@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.util.UUID
@@ -55,13 +56,16 @@ internal data class BeregnetFradrag(
     private val totaltFradrag: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
     private val fradragPerMåned: Double,
-    private val periode: Periode
+    private val periode: Periode,
+    private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
     override fun getTotaltFradrag(): Double = totaltFradrag
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun periodiser(): List<Fradrag> = listOf(this) // TODO probably refactor
     override fun getFradragPerMåned(): Double = fradragPerMåned
+    override fun getTilhører(): FradragTilhører = tilhører
+
     override fun getPeriode(): Periode = periode
 }
 
@@ -92,5 +96,6 @@ internal fun Fradrag.toSnapshot() = BeregnetFradrag(
     totaltFradrag = getTotaltFradrag(),
     utenlandskInntekt = getUtenlandskInntekt(),
     fradragPerMåned = getFradragPerMåned(),
-    periode = getPeriode()
+    periode = getPeriode(),
+    tilhører = getTilhører()
 )

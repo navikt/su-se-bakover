@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
@@ -43,10 +44,11 @@ internal data class FradragJson(
     val utenlandskInntekt: UtenlandskInntekt?
 ) {
     fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
-        periode = this.periode?.toPeriode() ?: periode,
         type = Fradragstype.valueOf(type),
         beløp = beløp,
-        utenlandskInntekt = utenlandskInntekt
+        periode = this.periode?.toPeriode() ?: periode,
+        utenlandskInntekt = utenlandskInntekt,
+        tilhører = FradragTilhører.BRUKER // TODO input bruker/eps from frontend
     )
 }
 

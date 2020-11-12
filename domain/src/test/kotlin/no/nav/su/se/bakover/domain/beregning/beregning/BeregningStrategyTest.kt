@@ -9,12 +9,13 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 
 internal class BeregningStrategyTest {
     @Test
-    fun `ideresender korrekte verdier`() {
+    fun `videresender korrekte verdier`() {
         val periode = Periode(
             fraOgMed = 1.januar(2020),
             tilOgMed = 31.januar(2020)
@@ -26,8 +27,9 @@ internal class BeregningStrategyTest {
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 1500.0,
+                    periode = periode,
                     utenlandskInntekt = null,
-                    periode = periode
+                    tilhører = FradragTilhører.BRUKER
                 )
             ),
             forventetInntekt = 0

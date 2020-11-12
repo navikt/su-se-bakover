@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningFactory;
 import no.nav.su.se.bakover.domain.beregning.Sats;
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag;
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory;
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører;
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -95,7 +96,8 @@ public class V42__store_beregning_as_json_and_patch_existing extends BaseJavaMig
                             Fradragstype.valueOf(f.fradragstype),
                             f.beløp,
                             periode,
-                            utenlandskInntekt
+                            utenlandskInntekt,
+                            FradragTilhører.BRUKER
                     ));
                 }
 
