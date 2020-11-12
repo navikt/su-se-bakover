@@ -75,8 +75,11 @@ internal class OppgaveHttpClient(
         return hentOppgave(oppgaveId).mapLeft {
             KunneIkkeFerdigstilleOppgave
         }.flatMap {
-            if (it.erFerdigstilt()) { Unit.right() }
-            else { ferdigstillOppgave(oppgaveId.toString().toLong(), it.versjon).map { Unit } }
+            if (it.erFerdigstilt()) {
+                Unit.right()
+            } else {
+                ferdigstillOppgave(oppgaveId.toString().toLong(), it.versjon).map { Unit }
+            }
         }
     }
 
