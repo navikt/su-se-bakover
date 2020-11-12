@@ -144,15 +144,15 @@ internal fun Application.susebakover(
             when (it.feil) {
                 is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
                     call.audit("[Tilgangssjekk] Bruker har ikke tilgang til person ${it.fnr}")
-                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person. Melding: ${it.message}")
+                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person.", it)
                     call.respond(HttpStatusCode.Forbidden, ErrorJson("Ikke tilgang til å se person"))
                 }
                 is KunneIkkeHentePerson.FantIkkePerson -> {
-                    log.warn("[Tilgangssjekk] Fant ikke person", it.message)
+                    log.warn("[Tilgangssjekk] Fant ikke person", it)
                     call.respond(HttpStatusCode.NotFound, ErrorJson("Fant ikke person"))
                 }
                 is KunneIkkeHentePerson.Ukjent -> {
-                    log.warn("[Tilgangssjekk] Feil ved oppslag på person", it.message)
+                    log.warn("[Tilgangssjekk] Feil ved oppslag på person", it)
                     call.respond(HttpStatusCode.InternalServerError, ErrorJson("Feil ved oppslag på person"))
                 }
             }
