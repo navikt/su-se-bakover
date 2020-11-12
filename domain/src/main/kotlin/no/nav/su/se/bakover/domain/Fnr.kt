@@ -24,16 +24,16 @@ data class Fnr @JsonCreator(mode = DELEGATING) constructor(
 
     fun getFødselsår() = fnr.substring(4, 6)
 
-    fun getIndividNummer() = fnr.substring(6, 9)
+    fun getIndividnummer() = fnr.substring(6, 9)
 
     fun getÅrhundre(): String {
-        val individNummer = Integer.parseInt(getIndividNummer())
+        val individnummer = Integer.parseInt(getIndividnummer())
         val fødselsår = Integer.parseInt(getFødselsår())
         return when {
-            individNummer in 0..499 && fødselsår in 0..99 -> "19"
-            individNummer in 500..749 && fødselsår in 54..99 -> "18"
-            individNummer in 500..999 && fødselsår in 0..39 -> "20"
-            individNummer in 900..999 && fødselsår in 40..99 -> "19"
+            individnummer in 0..499 && fødselsår in 0..99 -> "19"
+            individnummer in 500..749 && fødselsår in 54..99 -> "18"
+            individnummer in 500..999 && fødselsår in 0..39 -> "20"
+            individnummer in 900..999 && fødselsår in 40..99 -> "19"
             else -> throw RuntimeException("Feil individnummer")
         }
     }

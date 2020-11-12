@@ -24,7 +24,7 @@ internal class FnrTest {
 
     @Test
     fun `får ut riktig individnummer`() {
-        Fnr("16113113816").getIndividNummer().shouldBe("138")
+        Fnr("16113113816").getIndividnummer().shouldBe("138")
     }
 
     @Test
