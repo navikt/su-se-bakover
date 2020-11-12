@@ -353,6 +353,10 @@ class UnderkjennBehandlingTest {
                     it shouldBe oppgaveConfig
                 }
             )
+            verify(behandlingRepoMock).oppdaterAttestant(
+                behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
+                attestant = argThat { it shouldBe attestant }
+            )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
                 argThat { it shouldBe nyOppgaveId }
@@ -443,6 +447,10 @@ class UnderkjennBehandlingTest {
                 }
             )
 
+            verify(behandlingRepoMock).oppdaterAttestant(
+                argThat { it shouldBe behandling.id },
+                argThat { it shouldBe attestant }
+            )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
                 argThat { it shouldBe nyOppgaveId }

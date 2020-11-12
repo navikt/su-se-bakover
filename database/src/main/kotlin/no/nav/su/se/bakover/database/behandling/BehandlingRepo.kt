@@ -19,7 +19,7 @@ interface BehandlingRepo {
     fun leggTilBeregning(behandlingId: UUID, beregning: Beregning)
     fun slettBeregning(behandlingId: UUID)
     fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler)
-    fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant)
+    fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant)
     fun opprettSøknadsbehandling(nySøknadsbehandling: NySøknadsbehandling)
     fun oppdaterOppgaveId(behandlingId: UUID, oppgaveId: OppgaveId)
 }

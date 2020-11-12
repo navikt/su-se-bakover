@@ -125,7 +125,7 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val attestant = NavIdentBruker.Attestant("kjella")
-            repo.attester(nySøknadsbehandling.id, attestant)
+            repo.oppdaterAttestant(nySøknadsbehandling.id, attestant)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.attestant() shouldBe attestant

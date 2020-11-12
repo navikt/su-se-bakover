@@ -133,7 +133,7 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
+    override fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
         dataSource.withSession { session ->
             "update behandling set attestant = :attestant where id=:id".oppdatering(
                 mapOf(

@@ -150,7 +150,7 @@ internal class BehandlingServiceImplTest {
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verify(behandlingRepoMock).attester(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("1"))
@@ -191,7 +191,7 @@ internal class BehandlingServiceImplTest {
 
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
 
-            verify(behandlingRepoMock).attester(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
 
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
@@ -235,7 +235,7 @@ internal class BehandlingServiceImplTest {
         inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).attester(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
@@ -298,7 +298,7 @@ internal class BehandlingServiceImplTest {
                 simulering = argThat { it shouldBe simulering }
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).attester(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET

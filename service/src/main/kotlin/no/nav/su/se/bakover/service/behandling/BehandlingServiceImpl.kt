@@ -81,6 +81,7 @@ internal class BehandlingServiceImpl(
                         return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
+                    behandlingRepo.oppdaterAttestant(behandlingId, attestant)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
 
                     oppgaveService.lukkOppgave(eksisterendeOppgaveId)
@@ -227,7 +228,7 @@ internal class BehandlingServiceImpl(
             }
             .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
 
-        behandlingRepo.attester(behandlingId, attestant)
+        behandlingRepo.oppdaterAttestant(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -263,7 +264,7 @@ internal class BehandlingServiceImpl(
                 behandlingId = behandlingId,
                 utbetalingId = oversendtUtbetaling.id
             )
-            behandlingRepo.attester(behandlingId, attestant)
+            behandlingRepo.oppdaterAttestant(behandlingId, attestant)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
