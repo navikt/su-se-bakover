@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
-import no.nav.su.se.bakover.client.inntekt.SuInntektClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
@@ -35,12 +34,6 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
-            inntektOppslag = SuInntektClient(
-                Config.suInntektUrl,
-                Config.suInntektAzureClientId,
-                oAuth,
-                personOppslag
-            ),
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(Config.pdfgenUrl),
             dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),

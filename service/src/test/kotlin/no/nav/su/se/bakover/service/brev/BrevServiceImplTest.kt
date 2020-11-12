@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PdlFeil
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -22,6 +20,8 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -68,7 +68,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `lager ikke brev når person kall failer`() {
         val personMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn PdlFeil.FantIkkePerson.left()
+            on { person(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         BrevServiceImpl(

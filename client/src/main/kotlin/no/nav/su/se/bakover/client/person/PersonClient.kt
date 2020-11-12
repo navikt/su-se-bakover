@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 
 class PersonClient(
     pdlUrl: String,
@@ -20,8 +22,8 @@ class PersonClient(
 ) : PersonOppslag {
     private val pdlClient = PdlClient(pdlUrl, tokenOppslag)
 
-    override fun person(fnr: Fnr): Either<PdlFeil, Person> = pdlClient.person(fnr).map { toPerson(it) }
-    override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> = pdlClient.aktørId(fnr)
+    override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = pdlClient.person(fnr).map { toPerson(it) }
+    override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = pdlClient.aktørId(fnr)
 
     private fun toPerson(pdlData: PdlData) =
         Person(

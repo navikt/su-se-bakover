@@ -7,12 +7,12 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.client.StubClientsBuilder
-import no.nav.su.se.bakover.client.person.PdlFeil
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -39,9 +39,9 @@ internal class AccessCheckProxyTest {
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
-                            Either.Left(PdlFeil.IkkeTilgangTilPerson)
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                             TODO("Not yet implemented")
                         }
                     }
@@ -60,9 +60,9 @@ internal class AccessCheckProxyTest {
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
-                            Either.Left(PdlFeil.IkkeTilgangTilPerson)
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                             TODO("Not yet implemented")
                         }
                     }
@@ -81,9 +81,9 @@ internal class AccessCheckProxyTest {
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
-                            Either.Left(PdlFeil.IkkeTilgangTilPerson)
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                             TODO("Not yet implemented")
                         }
                     }
@@ -102,9 +102,9 @@ internal class AccessCheckProxyTest {
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
-                            Either.Left(PdlFeil.IkkeTilgangTilPerson)
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                             TODO("Not yet implemented")
                         }
                     }
@@ -123,9 +123,9 @@ internal class AccessCheckProxyTest {
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
-                            Either.Left(PdlFeil.IkkeTilgangTilPerson)
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
-                        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                             TODO("Not yet implemented")
                         }
                     }

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -27,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -297,7 +297,9 @@ class AccessCheckProxy(
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
         clients.personOppslag.person(fnr)
-            .getOrHandle { throw Tilgangssjekkfeil(it, fnr) }
+            .getOrHandle {
+                throw Tilgangssjekkfeil(it, fnr)
+            }
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
@@ -329,4 +331,4 @@ class AccessCheckProxy(
     }
 }
 
-class Tilgangssjekkfeil(val pdlFeil: PdlFeil, val fnr: Fnr) : RuntimeException(pdlFeil.message)
+class Tilgangssjekkfeil(val feil: KunneIkkeHentePerson, val fnr: Fnr) : RuntimeException()

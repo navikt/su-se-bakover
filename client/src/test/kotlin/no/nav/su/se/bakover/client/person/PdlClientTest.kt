@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.MDC
@@ -53,7 +54,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.aktørId(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
+        client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -65,7 +66,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.aktørId(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
+        client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test
@@ -136,7 +137,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.person(Fnr("12345678912")) shouldBe PdlFeil.FantIkkePerson.left()
+        client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     @Test
@@ -148,7 +149,7 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
-        client.person(Fnr("12345678912")) shouldBe PdlFeil.Ukjent.left()
+        client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
     @Test

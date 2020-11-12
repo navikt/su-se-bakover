@@ -3,11 +3,15 @@ package no.nav.su.se.bakover.web.routes
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ukjent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
@@ -27,7 +31,13 @@ internal fun Route.personRoutes(
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     personOppslag.person(fnr).fold(
-                        { Resultat.message(HttpStatusCode.fromValue(it.httpCode), it.message) },
+                        {
+                            when (it) {
+                                FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
+                                IkkeTilgangTilPerson -> Resultat.message(HttpStatusCode.Forbidden, "Ikke tilgang til å se person")
+                                Ukjent -> Resultat.message(HttpStatusCode.InternalServerError, "Feil ved oppslag på person")
+                            }
+                        },
                         { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
                     )
                 )
