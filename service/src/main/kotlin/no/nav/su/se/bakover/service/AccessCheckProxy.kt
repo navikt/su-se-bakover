@@ -32,9 +32,11 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
@@ -135,13 +137,13 @@ class AccessCheckProxy(
                 }
 
                 override fun underkjenn(
-                    begrunnelse: String,
+                    behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant,
-                    behandling: Behandling
-                ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
-                    assertHarTilgangTilPerson(behandling.fnr)
+                    begrunnelse: String
+                ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
+                    assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.underkjenn(begrunnelse, attestant, behandling)
+                    return services.behandling.underkjenn(behandlingId, attestant, begrunnelse)
                 }
 
                 override fun oppdaterBehandlingsinformasjon(
@@ -185,7 +187,7 @@ class AccessCheckProxy(
                 override fun iverksett(
                     behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant
-                ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+                ): Either<KunneIkkeIverksetteBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
                     return services.behandling.iverksett(behandlingId, attestant)

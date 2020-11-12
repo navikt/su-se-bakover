@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -734,7 +735,10 @@ internal class BehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
-                ).apply {
+                ) {
+                    setBody("""{"begrunnelse":"b"}""")
+                }.apply {
+                    response.content shouldContain "Fant ikke behandling"
                     response.status() shouldBe HttpStatusCode.NotFound
                 }
             }
@@ -795,13 +799,7 @@ internal class BehandlingRoutesKtTest {
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
                 ) {
-                    setBody(
-                        """
-                    {
-                        "begrunnelse":"begrunnelse"
-                    }
-                        """.trimIndent()
-                    )
+                    setBody("""{"begrunnelse":"begrunnelse" }""")
                 }.apply {
                     response.status() shouldBe HttpStatusCode.OK
                     deserialize<BehandlingJson>(response.content!!).let {
@@ -873,18 +871,21 @@ internal class BehandlingRoutesKtTest {
         val sak: Sak = SakFactory().nySak(FnrGenerator.random(), søknadInnhold).also {
             repos.sak.opprettSak(it)
         }.toSak()
-        val søknad: Søknad = Søknad(sakId = sak.id, søknadInnhold = søknadInnhold).also {
-            repos.søknad.opprettSøknad(it)
-        }
+
+        val søknadId: UUID = sak.søknader()[0].id
+
+        repos.søknad.oppdaterjournalpostId(søknadId, JournalpostId("12"))
+        repos.søknad.oppdaterOppgaveId(søknadId, OppgaveId("12"))
+
         val nySøknadsbehandling = NySøknadsbehandling(
             sakId = sak.id,
-            søknadId = søknad.id,
+            søknadId = søknadId,
             oppgaveId = OppgaveId("1234")
         )
         repos.behandling.opprettSøknadsbehandling(
             nySøknadsbehandling
         )
-        return Objects(sak, søknad, nySøknadsbehandling, repos.behandling.hentBehandling(nySøknadsbehandling.id)!!)
+        return Objects(repos.sak.hentSak(sak.id)!!, repos.søknad.hentSøknad(søknadId)!!, nySøknadsbehandling, repos.behandling.hentBehandling(nySøknadsbehandling.id)!!)
     }
 
     val navIdentSaksbehandler = "random-saksbehandler-id"

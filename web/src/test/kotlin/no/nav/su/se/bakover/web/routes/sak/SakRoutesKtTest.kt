@@ -1,29 +1,20 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -33,9 +24,7 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val fnr = Fnr(sakFnr01)
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
-    private val søknadRepo = repos.søknad
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test
@@ -123,35 +112,6 @@ internal class SakRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 assertEquals(BadRequest, response.status(), "$sakPath/UUID gir 400 ved ugyldig UUID")
-            }
-        }
-    }
-
-    @Test
-    fun `kan opprette behandling på en sak og søknad`() {
-
-        val oppgaveId = OppgaveId("1234")
-        val nySak: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
-            repos.sak.opprettSak(it)
-        }.toSak()
-        val nySøknad: Søknad = Søknad(sakId = nySak.id, søknadInnhold = søknadInnhold).also {
-            søknadRepo.opprettSøknad(it)
-            søknadRepo.oppdaterOppgaveId(it.id, oppgaveId)
-        }
-
-        withTestApplication({
-            testSusebakover()
-        }) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${nySak.id}/behandlinger",
-                listOf(Brukerrolle.Saksbehandler)
-            ) {
-                setBody("""{ "soknadId": "${nySøknad.id}" }""")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val behandling = objectMapper.readValue<BehandlingJson>(response.content!!)
-                behandling.søknad.id shouldBe nySøknad.id.toString()
             }
         }
     }

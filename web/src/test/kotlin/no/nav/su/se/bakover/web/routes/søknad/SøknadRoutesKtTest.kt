@@ -252,15 +252,15 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )
             }.apply {
                 response.status() shouldBe OK
-                /*verify(søknadServiceMock).lukkSøknad(
+                verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
-                )*/
+                )
             }
         }
     }
@@ -285,7 +285,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )
@@ -316,7 +316,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )

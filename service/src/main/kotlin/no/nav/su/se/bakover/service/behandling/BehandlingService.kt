@@ -14,10 +14,10 @@ import java.util.UUID
 interface BehandlingService {
     fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(
-        begrunnelse: String,
+        behandlingId: UUID,
         attestant: Attestant,
-        behandling: Behandling
-    ): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
+        begrunnelse: String
+    ): Either<KunneIkkeUnderkjenneBehandling, Behandling>
 
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
     fun opprettBeregning(
@@ -36,7 +36,7 @@ interface BehandlingService {
     fun iverksett(
         behandlingId: UUID,
         attestant: Attestant
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling>
+    ): Either<KunneIkkeIverksetteBehandling, Behandling>
 
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
@@ -51,9 +51,29 @@ object FantIkkeBehandling
 sealed class KunneIkkeOppretteSøknadsbehandling {
     object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
     object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
 }
 sealed class KunneIkkeSendeTilAttestering() {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
-    object InternFeil : KunneIkkeSendeTilAttestering()
+    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+}
+
+sealed class KunneIkkeUnderkjenneBehandling {
+    object FantIkkeBehandling : KunneIkkeUnderkjenneBehandling()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneBehandling()
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneBehandling()
+    object FantIkkeAktørId : KunneIkkeUnderkjenneBehandling()
+}
+
+sealed class KunneIkkeIverksetteBehandling {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteBehandling()
+    object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
+    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
+    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
+    object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
+    object KunneIkkeLukkeOppgave : KunneIkkeIverksetteBehandling()
 }

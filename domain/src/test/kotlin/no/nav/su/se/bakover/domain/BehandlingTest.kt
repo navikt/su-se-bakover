@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -46,7 +48,12 @@ internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
-    private val søknad = Søknad(sakId = UUID.randomUUID(), søknadInnhold = SøknadInnholdTestdataBuilder.build())
+    private val søknad = Søknad.Journalført.MedOppgave(
+        sakId = UUID.randomUUID(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        oppgaveId = OppgaveId("o"),
+        journalpostId = JournalpostId("j")
+    )
     private val behandlingFactory = BehandlingFactory(mock())
 
     companion object {
@@ -637,9 +644,9 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
@@ -682,9 +689,9 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG

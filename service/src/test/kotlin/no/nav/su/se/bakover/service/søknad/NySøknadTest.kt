@@ -138,12 +138,11 @@ class NySøknadTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         fnr = fnr,
-                        søknad = Søknad(
+                        søknad = Søknad.Ny(
                             id = it.søknad.id,
                             opprettet = it.søknad.opprettet,
                             sakId = it.id,
                             søknadInnhold = søknadInnhold,
-                            lukket = null
                         ),
                         oppdrag = Oppdrag(
                             id = it.oppdrag.id,
@@ -214,12 +213,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -298,12 +296,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -328,7 +325,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId.toString(),
+                        sakId = sakId,
                         aktørId = person.ident.aktørId
                     )
                 }
@@ -396,12 +393,11 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
-                    it shouldBe Søknad(
+                    it shouldBe Søknad.Ny(
                         id = it.id,
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                        lukket = null
                     ).also { søknad ->
                         expectedSøknad = søknad
                     }
@@ -426,7 +422,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId.toString(),
+                        sakId = sakId,
                         aktørId = person.ident.aktørId
                     )
                 }

@@ -23,7 +23,7 @@ data class Behandling internal constructor(
     val id: UUID,
     val opprettet: Tidspunkt,
     private var behandlingsinformasjon: Behandlingsinformasjon,
-    val søknad: Søknad,
+    val søknad: Søknad.Journalført.MedOppgave,
     private var beregning: Beregning?,
     internal var simulering: Simulering?,
     private var status: BehandlingsStatus,
@@ -107,13 +107,19 @@ data class Behandling internal constructor(
         return tilstand.sendTilAttestering(saksbehandler)
     }
 
+    fun oppdaterOppgaveId(
+        oppgaveId: OppgaveId
+    ): Behandling {
+        return tilstand.oppdaterOppgaveId(oppgaveId)
+    }
+
     fun iverksett(
         attestant: NavIdentBruker.Attestant
-    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.iverksett(attestant)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<KunneIkkeUnderkjenne, Behandling> {
+    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -143,16 +149,22 @@ data class Behandling internal constructor(
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
+        fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            throw TilstandException(status, this::oppdaterOppgaveId.toString())
+        }
+
         fun iverksett(
             attestant: NavIdentBruker.Attestant
-        ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
         }
 
         fun underkjenn(
             begrunnelse: String,
             attestant: NavIdentBruker.Attestant
-        ): Either<KunneIkkeUnderkjenne, Behandling> {
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
     }
@@ -267,6 +279,13 @@ data class Behandling internal constructor(
             return this@Behandling
         }
 
+        override fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            this@Behandling.oppgaveId = oppgaveId
+            return this@Behandling
+        }
+
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
@@ -286,9 +305,9 @@ data class Behandling internal constructor(
         inner class Innvilget : TilAttestering() {
             override fun iverksett(
                 attestant: NavIdentBruker.Attestant
-            ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+            ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik.left()
+                    return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Innvilget())
@@ -300,9 +319,9 @@ data class Behandling internal constructor(
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             override fun iverksett(
                 attestant: NavIdentBruker.Attestant
-            ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+            ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                    return KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik.left()
+                    return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
                 this@Behandling.attestant = attestant
                 nyTilstand(Iverksatt().Avslag())
@@ -313,13 +332,21 @@ data class Behandling internal constructor(
         override fun underkjenn(
             begrunnelse: String,
             attestant: NavIdentBruker.Attestant
-        ): Either<KunneIkkeUnderkjenne, Behandling> {
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
-                return KunneIkkeUnderkjenne().left()
+                return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
+            this@Behandling.attestant = attestant
             nyTilstand(Simulert())
             return this@Behandling.right()
+        }
+
+        override fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            this@Behandling.oppgaveId = oppgaveId
+            return this@Behandling
         }
     }
 
@@ -352,15 +379,5 @@ data class Behandling internal constructor(
     ) :
         RuntimeException(msg)
 
-    sealed class KunneIkkeIverksetteBehandling {
-        object AttestantOgSaksbehandlerKanIkkeVæreLik : KunneIkkeIverksetteBehandling()
-        object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
-        object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
-        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
-        object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
-        object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
-        object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
-    }
-
-    data class KunneIkkeUnderkjenne(val msg: String = "Attestant og saksbehandler kan ikke vare samme person!")
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 }

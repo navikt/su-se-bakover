@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
@@ -28,7 +27,6 @@ internal class AvstemmingsnøkkelTest {
 
     @Test
     fun `Parse nøkkel from specific time`() {
-        print(Tidspunkt.now().instant.epochSecond)
         val seconds = 1601975988L
         val nanos = 123456789L
         val avstemmingsnøkkel = Avstemmingsnøkkel(Instant.ofEpochSecond(seconds, nanos).toTidspunkt())

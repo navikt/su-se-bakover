@@ -6,25 +6,26 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 internal class SøknadJsonTest {
     companion object {
-        val sakId = UUID.randomUUID()
-        val søknadId = UUID.randomUUID()
-        val søknad = Søknad(
+        internal val søknad = Søknad.Ny(
             sakId = sakId,
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+            søknadInnhold = søknadInnhold,
         )
-        val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
+        private val opprettetTidspunkt: String = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
+        private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 
         //language=JSON
         val søknadJsonString =
@@ -178,20 +179,25 @@ internal class SøknadJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer lukket`() {
-        val trukket = Søknad.Lukket(
-            tidspunkt = 1.oktober(2020).startOfDay(),
-            saksbehandler = "Z123",
-            type = Søknad.LukketType.TRUKKET
+        val trukket = søknad.lukk(
+            lukketAv = saksbehandler,
+            type = Søknad.Lukket.LukketType.TRUKKET
+        ).copy(
+            lukketTidspunkt = 1.oktober(2020).startOfDay()
         )
         //language=json
         val expectedJson = """
             {
                 "tidspunkt":"2020-10-01T00:00:00Z",
-                "saksbehandler":"Z123",
+                "saksbehandler":"saksbehandler",
                 "type":"TRUKKET"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, serialize(trukket.toJson()), true)
-        deserialize<Søknad.Lukket>(expectedJson) shouldBe trukket
+        deserialize<LukketJson>(expectedJson) shouldBe LukketJson(
+            tidspunkt = "2020-10-01T00:00:00Z",
+            saksbehandler = "saksbehandler",
+            type = "TRUKKET"
+        )
     }
 }

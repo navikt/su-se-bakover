@@ -55,7 +55,8 @@ internal class BehandlingServiceImplTest {
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val aktørId = AktørId("1234567890123")
-    private val oppgaveId = OppgaveId("1234")
+    private val oppgaveId = OppgaveId("o")
+    private val journalpostId = JournalpostId("j")
 
     @Test
     fun `simuler behandling`() {
@@ -120,8 +121,6 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { attester(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
@@ -150,11 +149,9 @@ internal class BehandlingServiceImplTest {
         response shouldBe behandling.right()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
-
+            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
-
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("1"))
         }
@@ -167,8 +164,6 @@ internal class BehandlingServiceImplTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { attester(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
@@ -190,14 +185,15 @@ internal class BehandlingServiceImplTest {
             oppgaveService = oppgaveServiceMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
+
+            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
 
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
 
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock)
@@ -234,7 +230,7 @@ internal class BehandlingServiceImplTest {
             brevService = brevServiceMock,
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev.left()
 
         inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
@@ -342,7 +338,7 @@ internal class BehandlingServiceImplTest {
             personOppslag = personOppslagMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        response shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
@@ -381,7 +377,7 @@ internal class BehandlingServiceImplTest {
             personOppslag = personOppslagMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
             verify(behandlingRepoMock).hentBehandling(
@@ -474,7 +470,12 @@ internal class BehandlingServiceImplTest {
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build()),
+        søknad = Søknad.Journalført.MedOppgave(
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            oppgaveId = oppgaveId,
+            journalpostId = journalpostId,
+        ),
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
         fnr = fnr,

@@ -7,8 +7,8 @@ import java.util.UUID
 
 interface SøknadRepo {
     fun hentSøknad(søknadId: UUID): Søknad?
-    fun opprettSøknad(søknad: Søknad)
-    fun lukkSøknad(søknadId: UUID, lukket: Søknad.Lukket)
+    fun opprettSøknad(søknad: Søknad.Ny)
+    fun oppdaterSøknad(søknad: Søknad.Lukket)
     fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean
     fun oppdaterjournalpostId(søknadId: UUID, journalpostId: JournalpostId)
     fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: OppgaveId)

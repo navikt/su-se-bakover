@@ -19,22 +19,25 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.FnrGenerator
+import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class BehandlingTilAttesteringTest {
-    val sakId = UUID.randomUUID()
-    val fnr = FnrGenerator.random()
-    val oppgaveId = OppgaveId("123")
-    val nyOppgaveId = OppgaveId("999")
-    val aktørId = AktørId("12345")
+    private val sakId = UUID.randomUUID()
+    private val fnr = FnrGenerator.random()
+    private val oppgaveId = OppgaveId("o")
+    private val journalpostId = JournalpostId("j")
+    private val nyOppgaveId = OppgaveId("999")
+    private val aktørId = AktørId("12345")
 
     private val beregning = BeregningFactory.ny(
         periode = Periode(1.januar(2020), 31.januar(2020)),
@@ -52,7 +55,12 @@ class BehandlingTilAttesteringTest {
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
-        søknad = Søknad(sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build(), oppgaveId = oppgaveId),
+        søknad = Søknad.Journalført.MedOppgave(
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            oppgaveId = oppgaveId,
+            journalpostId = journalpostId
+        ),
         status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,
         fnr = fnr,
@@ -68,8 +76,6 @@ class BehandlingTilAttesteringTest {
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
-            on { settSaksbehandler(any(), any()) } doReturn behandling
-            on { oppdaterBehandlingStatus(any(), any()) } doReturn behandling
         }
 
         val personOppslagMock: PersonOppslag = mock {
@@ -89,7 +95,8 @@ class BehandlingTilAttesteringTest {
 
         actual shouldBe simulertBehandling.copy(
             saksbehandler = saksbehandler,
-            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+            oppgaveId = nyOppgaveId
         ).right()
 
         inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
@@ -97,9 +104,14 @@ class BehandlingTilAttesteringTest {
             verify(personOppslagMock).aktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
-                    sakId = sakId.toString(),
-                    aktørId = aktørId
+                    sakId = sakId,
+                    aktørId = aktørId,
+                    tilordnetRessurs = null
                 )
+            )
+            verify(behandlingRepoMock).oppdaterOppgaveId(
+                argThat { it shouldBe simulertBehandling.id },
+                argThat { it shouldBe nyOppgaveId }
             )
 
             verify(behandlingRepoMock).settSaksbehandler(simulertBehandling.id, saksbehandler)

@@ -251,10 +251,7 @@ internal fun Application.susebakover(
                     AccessCheckProxy(databaseRepos.person, clients)
                 ) { accessProtectedServices ->
                     personRoutes(clients.personOppslag)
-                    sakRoutes(
-                        behandlingService = accessProtectedServices.behandling,
-                        sakService = accessProtectedServices.sak
-                    )
+                    sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
