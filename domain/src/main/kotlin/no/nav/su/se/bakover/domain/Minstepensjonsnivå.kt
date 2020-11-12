@@ -18,7 +18,7 @@ enum class Minstepensjonsnivå {
         LocalDate.of(2020, Month.MAY, 1) to Pensjonsnivåverdier(ordinær = 183587),
     )
 
-    private inner class Pensjonsnivåverdier (val ordinær: Int) {
+    private inner class Pensjonsnivåverdier(val ordinær: Int) {
         fun get(nivå: Minstepensjonsnivå) =
             when (nivå) {
                 Ordinær -> ordinær
