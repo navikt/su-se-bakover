@@ -21,8 +21,7 @@ internal class BeregningStrategyTest {
             tilOgMed = 31.januar(2020)
         )
         val beregningsgrunnlag = Beregningsgrunnlag(
-            fraOgMed = periode.getFraOgMed(),
-            tilOgMed = periode.getTilOgMed(),
+            periode = periode,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
@@ -41,8 +40,8 @@ internal class BeregningStrategyTest {
             )
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
-            it.getPeriode().getFraOgMed() shouldBe beregningsgrunnlag.fraOgMed
-            it.getPeriode().getTilOgMed() shouldBe beregningsgrunnlag.tilOgMed
+            it.getPeriode().getFraOgMed() shouldBe periode.getFraOgMed()
+            it.getPeriode().getTilOgMed() shouldBe periode.getTilOgMed()
             it.getSats() shouldBe Sats.HØY
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
             it.getMånedsberegninger() shouldHaveSize 1

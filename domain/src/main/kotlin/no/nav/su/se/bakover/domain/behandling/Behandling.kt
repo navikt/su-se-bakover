@@ -196,8 +196,7 @@ data class Behandling internal constructor(
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    fraOgMed = fraOgMed,
-                    tilOgMed = tilOgMed,
+                    periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                     fradrag = fradrag.plus( // TODO Add forventet IEU for EPS if ufør flyktning
                         FradragFactory.ny(
                             type = Fradragstype.ForventetInntekt,
