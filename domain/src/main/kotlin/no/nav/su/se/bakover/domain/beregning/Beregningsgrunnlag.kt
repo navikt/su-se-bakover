@@ -6,6 +6,5 @@ import java.time.LocalDate
 internal data class Beregningsgrunnlag(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val fradrag: List<Fradrag>,
-    val forventetInntekt: Int
+    val fradrag: List<Fradrag>
 )

@@ -30,9 +30,15 @@ internal class BeregningStrategyTest {
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 12000.0,
+                    periode = Periode(fraOgMed = periode.getFraOgMed(), tilOgMed = periode.getTilOgMed()),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
                 )
-            ),
-            forventetInntekt = 0
+            )
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
             it.getPeriode().getFraOgMed() shouldBe beregningsgrunnlag.fraOgMed
