@@ -135,9 +135,9 @@ internal class LukkSøknadServiceImpl(
     }
 
     private fun lagreLukketSøknad(request: LukkSøknadRequest, søknad: Søknad) {
-        søknadRepo.lukkSøknad(
+        søknadRepo.oppdaterSøknad(
             søknad.lukk(
-                av = request.saksbehandler,
+                lukketAv = request.saksbehandler,
                 type = when (request) {
                     is LukkSøknadRequest.MedBrev.TrekkSøknad -> Søknad.Lukket.LukketType.TRUKKET
                     is LukkSøknadRequest.MedBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST

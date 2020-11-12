@@ -180,7 +180,7 @@ internal class SøknadJsonTest {
     @Test
     fun `serialiserer og deserialiserer lukket`() {
         val trukket = søknad.lukk(
-            av = saksbehandler,
+            lukketAv = saksbehandler,
             type = Søknad.Lukket.LukketType.TRUKKET
         ).copy(
             lukketTidspunkt = 1.oktober(2020).startOfDay()

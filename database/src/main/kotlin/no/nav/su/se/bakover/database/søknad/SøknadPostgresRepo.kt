@@ -31,7 +31,7 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun lukkSøknad(søknad: Søknad.Lukket) {
+    override fun oppdaterSøknad(søknad: Søknad.Lukket) {
         dataSource.withSession { session ->
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(

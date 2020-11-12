@@ -58,16 +58,16 @@ internal class SøknadPostgresRepoTest {
     }
 
     @Test
-    fun `trukket søknad skal bli hentet med saksbehandler som har trekt søknaden`() {
+    fun `lagrer og henter lukket søknad`() {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             val søknad: Søknad.Ny = nySak.søknad
             val saksbehandler = Saksbehandler("Z993156")
             val lukketSøknad = søknad.lukk(
-                av = saksbehandler,
+                lukketAv = saksbehandler,
                 type = Søknad.Lukket.LukketType.TRUKKET
             )
-            repo.lukkSøknad(lukketSøknad)
+            repo.oppdaterSøknad(lukketSøknad)
             val hentetSøknad = repo.hentSøknad(nySak.søknad.id)!!
             hentetSøknad shouldBe lukketSøknad
         }

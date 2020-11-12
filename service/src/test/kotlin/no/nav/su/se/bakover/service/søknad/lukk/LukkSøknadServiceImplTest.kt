@@ -71,7 +71,7 @@ internal class LukkSøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { lukkSøknad(any()) }.doNothing()
+            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -97,7 +97,7 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).lukkSøknad(
+            verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
                     it shouldBe Søknad.Lukket(
                         sakId = sakId,
@@ -127,7 +127,7 @@ internal class LukkSøknadServiceImplTest {
     fun `lukker søknad hvor brev ikke skal sendes`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { lukkSøknad(any()) }.doNothing()
+            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
 
@@ -158,7 +158,7 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).lukkSøknad(
+            verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
                     it shouldBe Søknad.Lukket(
                         sakId = sakId,
@@ -183,7 +183,7 @@ internal class LukkSøknadServiceImplTest {
     fun `en søknad med behandling skal ikke bli trukket`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn nySøknad
-            on { lukkSøknad(any()) }.doNothing()
+            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
         val sakServiceMock = mock<SakService>()
@@ -323,7 +323,7 @@ internal class LukkSøknadServiceImplTest {
     fun `svarer med feilmelding dersom distribusjon av brev feiler`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn nySøknad
-            on { lukkSøknad(any()) }.doNothing()
+            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -348,7 +348,7 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
-            verify(søknadRepoMock).lukkSøknad(
+            verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
                     it shouldBe Søknad.Lukket(
                         sakId = sakId,
@@ -388,7 +388,7 @@ internal class LukkSøknadServiceImplTest {
         )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn søknad
-            on { lukkSøknad(any()) }.doNothing()
+            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -413,7 +413,7 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknad.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
-            verify(søknadRepoMock).lukkSøknad(
+            verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
                     it shouldBe Søknad.Lukket(
                         sakId = sakId,

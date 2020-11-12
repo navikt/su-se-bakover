@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
@@ -643,9 +644,9 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
@@ -688,9 +689,9 @@ internal class BehandlingTest {
         @Test
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
-                .shouldBeLeftOfType<Behandling.KunneIkkeUnderkjenne>()
+                .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG

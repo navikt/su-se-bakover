@@ -53,21 +53,24 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
         begrunnelse: String
-    ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
+    ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
-            Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling
+            KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
             behandling.underkjenn(begrunnelse, attestant)
+                .mapLeft {
+                    KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                }
                 .map {
                     val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
-                        return Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+                        return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
                     // Rekkefølgen lukke/opprette oppgave er ikke så viktig; sannsynligvis feiler begge eller ingen.
                     // Men dersom vi lukker først, er vi idempotente, siden det går fint å lukke en oppgave flere ganger.
                     val journalpostId: JournalpostId = behandling.søknad.journalpostId
                     oppgaveService.lukkOppgave(behandling.oppgaveId())
                         .mapLeft {
-                            return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
+                            return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave.left()
                         }.map {
                             oppgaveService.opprettOppgave(
                                 OppgaveConfig.Saksbehandling(
@@ -78,7 +81,7 @@ internal class BehandlingServiceImpl(
                                 )
                             ).mapLeft {
                                 log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning")
-                                return@underkjenn Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+                                return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
                             }.map {
                                 behandlingRepo.oppdaterOppgaveId(behandling.id, it)
                             }
@@ -181,11 +184,14 @@ internal class BehandlingServiceImpl(
     override fun iverksett(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)
-            ?: return Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+            ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
         return behandling.iverksett(attestant) // invoke first to perform state-check
+            .mapLeft {
+                KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            }
             .map { iverksattBehandling ->
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
@@ -210,7 +216,7 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
         behandling: Behandling
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
 
         behandlingRepo.attester(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
@@ -232,7 +238,7 @@ internal class BehandlingServiceImpl(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,
@@ -240,9 +246,9 @@ internal class BehandlingServiceImpl(
             simulering = behandling.simulering()!!
         ).mapLeft {
             when (it) {
-                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                KunneIkkeUtbetale.Protokollfeil -> Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-                KunneIkkeUtbetale.KunneIkkeSimulere -> Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+                KunneIkkeUtbetale.KunneIkkeSimulere -> KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
             }
         }.flatMap { oversendtUtbetaling ->
             behandlingRepo.leggTilUtbetaling(
@@ -270,13 +276,13 @@ internal class BehandlingServiceImpl(
         sakId: UUID,
         incrementJournalførtCounter: () -> Unit,
         incrementDistribuertBrevCounter: () -> Unit,
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Unit> =
+    ): Either<KunneIkkeIverksetteBehandling, Unit> =
         brevService.journalførBrev(request, sakId)
-            .mapLeft { Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev }
+            .mapLeft { KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev }
             .flatMap {
                 incrementJournalførtCounter()
                 brevService.distribuerBrev(it)
-                    .mapLeft { Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev }
+                    .mapLeft { KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev }
                     .map {
                         incrementDistribuertBrevCounter()
                         Unit

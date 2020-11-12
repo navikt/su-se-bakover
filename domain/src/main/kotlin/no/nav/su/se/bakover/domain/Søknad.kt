@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -13,8 +15,8 @@ sealed class Søknad {
     abstract val søknadInnhold: SøknadInnhold
 
     abstract fun lukk(
-        av: NavIdentBruker.Saksbehandler,
-        type: Lukket.LukketType
+        lukketAv: Saksbehandler,
+        type: LukketType
     ): Lukket
 
     data class Ny(
@@ -25,8 +27,8 @@ sealed class Søknad {
     ) : Søknad() {
 
         override fun lukk(
-            av: NavIdentBruker.Saksbehandler,
-            type: Lukket.LukketType
+            lukketAv: Saksbehandler,
+            type: LukketType
         ): Lukket {
             return Lukket(
                 sakId = sakId,
@@ -35,7 +37,7 @@ sealed class Søknad {
                 søknadInnhold = søknadInnhold,
                 journalpostId = null,
                 oppgaveId = null,
-                lukketAv = av,
+                lukketAv = lukketAv,
                 lukketType = type
             )
         }
@@ -78,7 +80,7 @@ sealed class Søknad {
          * Returnerer seg selv.
          */
         override fun lukk(
-            av: NavIdentBruker.Saksbehandler,
+            lukketAv: Saksbehandler,
             type: LukketType
         ) = this
     }
@@ -95,8 +97,8 @@ sealed class Søknad {
         ) : Journalført() {
 
             override fun lukk(
-                av: NavIdentBruker.Saksbehandler,
-                type: Lukket.LukketType
+                lukketAv: Saksbehandler,
+                type: LukketType
             ): Lukket {
                 return Lukket(
                     sakId = sakId,
@@ -105,7 +107,7 @@ sealed class Søknad {
                     søknadInnhold = søknadInnhold,
                     journalpostId = journalpostId,
                     oppgaveId = null,
-                    lukketAv = av,
+                    lukketAv = lukketAv,
                     lukketType = type
                 )
             }
@@ -133,8 +135,8 @@ sealed class Søknad {
             val oppgaveId: OppgaveId,
         ) : Journalført() {
             override fun lukk(
-                av: NavIdentBruker.Saksbehandler,
-                type: Lukket.LukketType
+                lukketAv: Saksbehandler,
+                type: LukketType
             ): Lukket {
                 return Lukket(
                     sakId = sakId,
@@ -143,7 +145,7 @@ sealed class Søknad {
                     søknadInnhold = søknadInnhold,
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
-                    lukketAv = av,
+                    lukketAv = lukketAv,
                     lukketType = type
                 )
             }

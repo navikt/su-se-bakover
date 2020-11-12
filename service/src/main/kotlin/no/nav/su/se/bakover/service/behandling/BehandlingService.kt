@@ -17,7 +17,7 @@ interface BehandlingService {
         behandlingId: UUID,
         attestant: Attestant,
         begrunnelse: String
-    ): Either<Behandling.KunneIkkeUnderkjenne, Behandling>
+    ): Either<KunneIkkeUnderkjenneBehandling, Behandling>
 
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
     fun opprettBeregning(
@@ -36,7 +36,7 @@ interface BehandlingService {
     fun iverksett(
         behandlingId: UUID,
         attestant: Attestant
-    ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling>
+    ): Either<KunneIkkeIverksetteBehandling, Behandling>
 
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
@@ -58,4 +58,22 @@ sealed class KunneIkkeSendeTilAttestering() {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
     object InternFeil : KunneIkkeSendeTilAttestering()
+}
+
+sealed class KunneIkkeUnderkjenneBehandling {
+    object FantIkkeBehandling : KunneIkkeUnderkjenneBehandling()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneBehandling()
+    object KunneIkkeLukkeOppgave : KunneIkkeUnderkjenneBehandling()
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneBehandling()
+    object FantIkkeAktørId : KunneIkkeUnderkjenneBehandling()
+}
+
+sealed class KunneIkkeIverksetteBehandling {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteBehandling()
+    object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
+    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
+    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
+    object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
 }

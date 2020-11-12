@@ -114,7 +114,7 @@ class UnderkjennBehandlingTest {
             begrunnelse = begrunnelse
         )
 
-        actual shouldBe Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
+        actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
 
         inOrder(behandlingRepoMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -198,7 +198,7 @@ class UnderkjennBehandlingTest {
             begrunnelse = begrunnelse
         )
 
-        actual shouldBe Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         inOrder(behandlingRepoMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -240,7 +240,7 @@ class UnderkjennBehandlingTest {
             begrunnelse = begrunnelse
         )
 
-        actual shouldBe Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
+        actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
 
         inOrder(behandlingRepoMock, personOppslagMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -285,7 +285,7 @@ class UnderkjennBehandlingTest {
             begrunnelse = begrunnelse
         )
 
-        actual shouldBe Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave.left()
+        actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -332,7 +332,7 @@ class UnderkjennBehandlingTest {
             begrunnelse = begrunnelse
         )
 
-        actual shouldBe Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })

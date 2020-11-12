@@ -25,17 +25,12 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -243,16 +238,16 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Attestant) {
 
-        fun kunneIkkeIverksetteMelding(feil: Behandling.KunneIkkeIverksetteBehandling): Resultat {
+        fun kunneIkkeIverksetteMelding(feil: KunneIkkeIverksetteBehandling): Resultat {
             // funksjon + return: Triks for å få exhaustive when
             return when (feil) {
-                is AttestantOgSaksbehandlerKanIkkeVæreLik -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
-                is KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
-                is KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
-                is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
-                is KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
-                is FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                is KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
+                is KunneIkkeIverksetteBehandling.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
+                is KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
+                is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
+                is KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
+                is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
             }
         }
 
@@ -293,19 +288,19 @@ internal fun Route.behandlingRoutes(
                                 begrunnelse = body.begrunnelse
                             ).fold(
                                 ifLeft = {
-                                    fun kunneIkkeUnderkjenneFeilmelding(feil: Behandling.KunneIkkeUnderkjenne): Resultat {
+                                    fun kunneIkkeUnderkjenneFeilmelding(feil: KunneIkkeUnderkjenneBehandling): Resultat {
                                         return when (feil) {
-                                            Behandling.KunneIkkeUnderkjenne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                            Behandling.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                                            KunneIkkeUnderkjenneBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                            KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
                                                 "Attestant og saksbehandler kan ikke vare samme person."
                                             )
-                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeLukkeOppgave -> InternalServerError.message(
+                                            KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave -> InternalServerError.message(
                                                 "Kunne ikke lukke oppgave."
                                             )
-                                            Behandling.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> InternalServerError.message(
+                                            KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave -> InternalServerError.message(
                                                 "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."
                                             )
-                                            Behandling.KunneIkkeUnderkjenne.FantIkkeAktørId -> InternalServerError.message(
+                                            KunneIkkeUnderkjenneBehandling.FantIkkeAktørId -> InternalServerError.message(
                                                 "Fant ikke aktørid som er knyttet til tokenet"
                                             )
                                         }

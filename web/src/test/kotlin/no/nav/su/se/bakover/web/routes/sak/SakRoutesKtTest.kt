@@ -14,8 +14,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
@@ -26,13 +24,8 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val fnr = Fnr(sakFnr01)
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
-    private val søknadRepo = repos.søknad
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-
-    val oppgaveId = OppgaveId("o")
-    val journalpostId = JournalpostId("j")
 
     @Test
     fun `henter sak for sak id`() {

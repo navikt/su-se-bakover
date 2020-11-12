@@ -187,7 +187,7 @@ internal class BehandlingServiceImplTest {
             oppgaveService = oppgaveServiceMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
 
@@ -231,7 +231,7 @@ internal class BehandlingServiceImplTest {
             brevService = brevServiceMock,
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev.left()
 
         inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
@@ -339,7 +339,7 @@ internal class BehandlingServiceImplTest {
             personOppslag = personOppslagMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        response shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
@@ -378,7 +378,7 @@ internal class BehandlingServiceImplTest {
             personOppslag = personOppslagMock
         ).iverksett(behandling.id, attestant)
 
-        response shouldBe Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
 
         inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
             verify(behandlingRepoMock).hentBehandling(
