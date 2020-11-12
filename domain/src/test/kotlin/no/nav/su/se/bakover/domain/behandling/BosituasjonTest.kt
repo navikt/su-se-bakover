@@ -130,7 +130,7 @@ internal class BosituasjonTest {
     @Test
     fun `er gyldig hvis man deler bolig med ektemake eller samboer som er ufør flyktning under 67`() {
         Behandlingsinformasjon.Bosituasjon(
-            epsFnr = Fnr("01019012345"),
+            epsFnr = Fnr("01019013816"),
             delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null

@@ -3,11 +3,10 @@ package no.nav.su.se.bakover.domain.behandling
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.Satsgrunn
-import java.time.LocalDate
-import java.time.Period
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -259,8 +258,7 @@ data class Behandlingsinformasjon(
                     return BeregningStrategy.BorMedVoksne
                 }
                 if (epsFnr != null) {
-                    println(epsUnder67År())
-                    if (!epsUnder67År()) {
+                    if (epsFnr.getAlder() < 67) {
                         return BeregningStrategy.EpsOver67År
                     }
                     if (ektemakeEllerSamboerUførFlyktning != null && ektemakeEllerSamboerUførFlyktning) {
@@ -268,7 +266,7 @@ data class Behandlingsinformasjon(
                     }
                     return BeregningStrategy.EpsUnder67År
                 }
-                throw RuntimeException("TODO")
+                throw RuntimeException("Uhåndtert case for beregning strategy")
             }
         }
 
@@ -291,24 +289,14 @@ data class Behandlingsinformasjon(
             delerBolig != null && !delerBolig -> Satsgrunn.ENSLIG
             delerBolig != null && delerBolig ->
                 Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-            epsFnr != null && !epsUnder67År() ->
+            epsFnr != null && epsFnr.getAlder() > 66 ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
-            epsFnr != null && epsUnder67År() && ektemakeEllerSamboerUførFlyktning == false ->
+            epsFnr != null && epsFnr.getAlder() < 67 && ektemakeEllerSamboerUførFlyktning == false ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-            epsFnr != null && epsUnder67År() && ektemakeEllerSamboerUførFlyktning == true ->
+            epsFnr != null && epsFnr.getAlder() < 67 && ektemakeEllerSamboerUførFlyktning == true ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
             else -> null
         }
-
-        private fun epsUnder67År() =
-            Period.between(
-                LocalDate.of(
-                    epsFnr.toString().substring(5, 6).toInt(),
-                    epsFnr.toString().substring(3, 4).toInt(),
-                    epsFnr.toString().substring(1, 2).toInt(),
-                ),
-                LocalDate.now()
-            ).years < 67
     }
 
     @JsonTypeInfo(
@@ -321,7 +309,14 @@ data class Behandlingsinformasjon(
         JsonSubTypes.Type(value = EktefellePartnerSamboer.IngenEktefelle::class, name = "IngenEktefelle"),
     )
     sealed class EktefellePartnerSamboer : Base() {
-        data class Ektefelle(val fnr: Fnr) : EktefellePartnerSamboer()
+        data class Ektefelle(
+            val fnr: Fnr,
+            val navn: Person.Navn,
+            val kjønn: String?,
+            val adressebeskyttelse: String?,
+            val skjermet: Boolean?
+        ) : EktefellePartnerSamboer()
+
         object IngenEktefelle : EktefellePartnerSamboer()
 
         override fun erGyldig(): Boolean = true

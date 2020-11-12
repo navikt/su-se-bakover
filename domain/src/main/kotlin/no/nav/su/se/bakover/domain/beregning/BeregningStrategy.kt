@@ -32,6 +32,8 @@ internal sealed class BeregningStrategy {
         override fun sats(): Sats = Sats.ORDINÆR
     }
 
+    // Alle som er over 67, skal få denne begrunnelse, selv om man i praksis kan si EPS over 67 + mottar SU
+    // i frontend
     object EpsOver67År : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsOver67År
         override fun sats(): Sats = Sats.ORDINÆR
