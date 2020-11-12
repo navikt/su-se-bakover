@@ -95,7 +95,8 @@ class BehandlingTilAttesteringTest {
 
         actual shouldBe simulertBehandling.copy(
             saksbehandler = saksbehandler,
-            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+            oppgaveId = nyOppgaveId
         ).right()
 
         inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {

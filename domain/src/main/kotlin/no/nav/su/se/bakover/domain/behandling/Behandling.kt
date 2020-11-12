@@ -107,6 +107,12 @@ data class Behandling internal constructor(
         return tilstand.sendTilAttestering(saksbehandler)
     }
 
+    fun oppdaterOppgaveId(
+        oppgaveId: OppgaveId
+    ): Behandling {
+        return tilstand.oppdaterOppgaveId(oppgaveId)
+    }
+
     fun iverksett(
         attestant: NavIdentBruker.Attestant
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
@@ -141,6 +147,12 @@ data class Behandling internal constructor(
             saksbehandler: NavIdentBruker.Saksbehandler
         ): Behandling {
             throw TilstandException(status, this::sendTilAttestering.toString())
+        }
+
+        fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            throw TilstandException(status, this::oppdaterOppgaveId.toString())
         }
 
         fun iverksett(
@@ -267,6 +279,13 @@ data class Behandling internal constructor(
             return this@Behandling
         }
 
+        override fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            this@Behandling.oppgaveId = oppgaveId
+            return this@Behandling
+        }
+
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
             nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
         }
@@ -321,6 +340,13 @@ data class Behandling internal constructor(
             this@Behandling.attestant = attestant
             nyTilstand(Simulert())
             return this@Behandling.right()
+        }
+
+        override fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            this@Behandling.oppgaveId = oppgaveId
+            return this@Behandling
         }
     }
 

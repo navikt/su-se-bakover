@@ -257,52 +257,6 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `Klarer ikke lukke oppgave`() {
-        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
-
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandling
-        }
-
-        val personOppslagMock = mock<PersonOppslag> {
-            on { aktørId(any()) } doReturn aktørId.right()
-        }
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn KunneIkkeFerdigstilleOppgave.left()
-        }
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
-
-        val actual = BehandlingTestUtils.createService(
-            behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
-        ).underkjenn(
-            behandlingId = behandling.id,
-            attestant = attestant,
-            begrunnelse = begrunnelse
-        )
-
-        actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave.left()
-
-        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
-            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
-            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-        }
-
-        verifyNoMoreInteractions(
-            behandlingRepoMock,
-            personOppslagMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
-            hendelsesloggRepoMock
-        )
-    }
-
-    @Test
     fun `Klarer ikke opprette oppgave`() {
         val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
 
@@ -337,8 +291,94 @@ class UnderkjennBehandlingTest {
         inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
+        }
+
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        )
+    }
+
+    @Test
+    fun `Underkjenner selvom vi ikke klarer lukke oppgave`() {
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock = mock<PersonOppslag> {
+            on { aktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
+            on { lukkOppgave(any()) } doReturn KunneIkkeFerdigstilleOppgave.left()
+        }
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            hendelsesloggRepo = hendelsesloggRepoMock
+        ).underkjenn(
+            behandlingId = behandling.id,
+            attestant = attestant,
+            begrunnelse = begrunnelse
+        )
+
+        actual shouldBe behandling.copy(
+            status = Behandling.BehandlingsStatus.SIMULERT,
+            attestant = attestant
+        ).right()
+
+        inOrder(
+            behandlingRepoMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            behandlingMetricsMock,
+            hendelsesloggRepoMock
+        ) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe oppgaveConfig
+                }
+            )
+            verify(behandlingRepoMock).oppdaterOppgaveId(
+                argThat { it shouldBe behandling.id },
+                argThat { it shouldBe nyOppgaveId }
+            )
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(behandlingMetricsMock).incrementUnderkjentCounter()
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(
+                behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
+                status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
+            )
+
+            verify(hendelsesloggRepoMock).oppdaterHendelseslogg(
+                argThat {
+                    it shouldBe Hendelseslogg(
+                        id = innvilgetBehandlingTilAttestering.id.toString(),
+                        hendelser = mutableListOf(
+                            UnderkjentAttestering(
+                                attestant.navIdent,
+                                begrunnelse,
+                                it.hendelser()[0].tidspunkt
+                            )
+                        )
+                    )
+                }
+            )
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
         }
 
         verifyNoMoreInteractions(
@@ -397,16 +437,17 @@ class UnderkjennBehandlingTest {
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
                 }
             )
+
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
                 argThat { it shouldBe nyOppgaveId }
             )
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(behandlingMetricsMock).incrementUnderkjentCounter()
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },

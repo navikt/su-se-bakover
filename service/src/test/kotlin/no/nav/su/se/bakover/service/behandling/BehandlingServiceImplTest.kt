@@ -149,11 +149,9 @@ internal class BehandlingServiceImplTest {
         response shouldBe behandling.right()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
-
+            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
-
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
             verify(brevServiceMock).distribuerBrev(JournalpostId("1"))
         }
@@ -191,10 +189,11 @@ internal class BehandlingServiceImplTest {
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
 
+            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
+
             verify(behandlingRepoMock).attester(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(behandling.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
 
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock)

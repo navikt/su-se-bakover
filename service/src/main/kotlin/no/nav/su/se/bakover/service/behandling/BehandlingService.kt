@@ -57,13 +57,12 @@ sealed class KunneIkkeOppretteSøknadsbehandling {
 sealed class KunneIkkeSendeTilAttestering() {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
-    object InternFeil : KunneIkkeSendeTilAttestering()
+    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
 }
 
 sealed class KunneIkkeUnderkjenneBehandling {
     object FantIkkeBehandling : KunneIkkeUnderkjenneBehandling()
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneBehandling()
-    object KunneIkkeLukkeOppgave : KunneIkkeUnderkjenneBehandling()
     object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneBehandling()
     object FantIkkeAktørId : KunneIkkeUnderkjenneBehandling()
 }
@@ -76,4 +75,5 @@ sealed class KunneIkkeIverksetteBehandling {
     object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
     object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
     object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
+    object KunneIkkeLukkeOppgave : KunneIkkeIverksetteBehandling()
 }

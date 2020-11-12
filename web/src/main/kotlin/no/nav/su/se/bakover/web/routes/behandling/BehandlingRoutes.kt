@@ -248,6 +248,7 @@ internal fun Route.behandlingRoutes(
                 is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                is KunneIkkeIverksetteBehandling.KunneIkkeLukkeOppgave -> InternalServerError.message("Kunne ikke lukke oppgave")
             }
         }
 
@@ -293,9 +294,6 @@ internal fun Route.behandlingRoutes(
                                             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
                                             KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
                                                 "Attestant og saksbehandler kan ikke vare samme person."
-                                            )
-                                            KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave -> InternalServerError.message(
-                                                "Kunne ikke lukke oppgave."
                                             )
                                             KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave -> InternalServerError.message(
                                                 "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -65,26 +66,26 @@ internal class BehandlingServiceImpl(
                     val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
                         return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
-                    // Rekkefølgen lukke/opprette oppgave er ikke så viktig; sannsynligvis feiler begge eller ingen.
-                    // Men dersom vi lukker først, er vi idempotente, siden det går fint å lukke en oppgave flere ganger.
+
                     val journalpostId: JournalpostId = behandling.søknad.journalpostId
-                    oppgaveService.lukkOppgave(behandling.oppgaveId())
+                    val eksisterendeOppgaveId = behandling.oppgaveId()
+                    val nyOppgaveId = oppgaveService.opprettOppgave(
+                        OppgaveConfig.Saksbehandling(
+                            journalpostId = journalpostId,
+                            sakId = behandling.sakId,
+                            aktørId = aktørId,
+                            tilordnetRessurs = behandling.saksbehandler()
+                        )
+                    ).getOrElse {
+                        log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning. Avbryter handlingen.")
+                        return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+                    }
+                    behandling.oppdaterOppgaveId(nyOppgaveId)
+                    behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
+
+                    oppgaveService.lukkOppgave(eksisterendeOppgaveId)
                         .mapLeft {
-                            return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeLukkeOppgave.left()
-                        }.map {
-                            oppgaveService.opprettOppgave(
-                                OppgaveConfig.Saksbehandling(
-                                    journalpostId = journalpostId,
-                                    sakId = behandling.sakId,
-                                    aktørId = aktørId,
-                                    tilordnetRessurs = behandling.saksbehandler()
-                                )
-                            ).mapLeft {
-                                log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning")
-                                return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
-                            }.map {
-                                behandlingRepo.oppdaterOppgaveId(behandling.id, it)
-                            }
+                            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId underkjenning. Dette må gjøres manuelt.")
                         }
                     behandlingMetrics.incrementUnderkjentCounter()
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
@@ -153,25 +154,26 @@ internal class BehandlingServiceImpl(
             return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
 
-        oppgaveService.opprettOppgave(
+        val eksisterendeOppgaveId: OppgaveId = behandlingTilAttestering.oppgaveId()
+
+        val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
                 behandlingTilAttestering.sakId,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                 tilordnetRessurs = behandlingTilAttestering.attestant()
             )
-        ).mapLeft {
-            log.error("Kunne ikke opprette Attesteringsoppgave")
-            return KunneIkkeSendeTilAttestering.InternFeil.left()
-        }.map {
-            behandlingRepo.oppdaterOppgaveId(behandlingTilAttestering.id, it)
+        ).getOrElse {
+            log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
+            return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
         }
-
+        behandlingTilAttestering.oppdaterOppgaveId(nyOppgaveId)
+        behandlingRepo.oppdaterOppgaveId(behandlingTilAttestering.id, nyOppgaveId)
         behandlingRepo.settSaksbehandler(behandlingId, saksbehandler)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandlingTilAttestering.status())
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
-        oppgaveService.lukkOppgave(behandlingTilAttestering.oppgaveId()).map {
+        oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
         }.mapLeft {
             log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${behandlingTilAttestering.oppgaveId()} feilet")
@@ -218,14 +220,20 @@ internal class BehandlingServiceImpl(
         behandling: Behandling
     ): Either<KunneIkkeIverksetteBehandling, Behandling> {
 
+        oppgaveService.lukkOppgave(behandling.oppgaveId())
+            .mapLeft {
+                log.error("Kunne ikke lukke oppgave ved iverksetting av avslag. Avbryter handlingen.")
+                return KunneIkkeIverksetteBehandling.KunneIkkeLukkeOppgave.left()
+            }
+            .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
+
         behandlingRepo.attester(behandlingId, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-        oppgaveService.lukkOppgave(behandling.oppgaveId())
-            .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
-
+        // TODO: Nå sender vi 500 dersom en av disse feiler, men vil samtidig ha persistert iverksettingen. Da må vi gjøre 2 steg manuelt.
+        // Bør vi kanskje avbryte operasjonen dersom journalføringa feiler?
         return journalførOgDistribuerBrev(
             request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
             sakId = behandling.sakId,
@@ -260,7 +268,12 @@ internal class BehandlingServiceImpl(
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
             oppgaveService.lukkOppgave(behandling.oppgaveId())
-                .map { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE) }
+                .mapLeft {
+                    log.error("Kunne ikke lukke oppgave ved innvilget iverksetting. Behandlingen er sendt til utbetaling og er iverksatt. Oppgaven må lukkes manuelt.")
+                }
+                .map {
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE)
+                }
 
             journalførOgDistribuerBrev(
                 request = LagBrevRequest.InnvilgetVedtak(behandling = behandling),
