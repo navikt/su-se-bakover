@@ -156,7 +156,8 @@ data class Behandlingsinformasjon(
     ) : Base() {
         enum class Status {
             SkalVæreMerEnn90DagerIUtlandet,
-            SkalHoldeSegINorge
+            SkalHoldeSegINorge,
+            Uavklart
         }
 
         override fun erGyldig(): Boolean = true
@@ -220,7 +221,8 @@ data class Behandlingsinformasjon(
             IkkeMøttMenSykMedLegeerklæringOgFullmakt,
             IkkeMøttMenKortvarigSykMedLegeerklæring,
             IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
-            IkkeMøttPersonlig
+            IkkeMøttPersonlig,
+            Uavklart
         }
 
         override fun erGyldig(): Boolean = true

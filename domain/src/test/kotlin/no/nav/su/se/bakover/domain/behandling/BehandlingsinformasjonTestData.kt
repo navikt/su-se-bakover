@@ -86,6 +86,10 @@ object BehandlingsinformasjonTestData {
             status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
             begrunnelse = "det stemmer"
         )
+        val Uavklart = Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
+            begrunnelse = "det stemmer"
+        )
     }
 
     object Formue {
@@ -148,6 +152,10 @@ object BehandlingsinformasjonTestData {
         )
         val IkkeOppfylt = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
+            begrunnelse = "det stemmer"
+        )
+        val Uavklart = Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
             begrunnelse = "det stemmer"
         )
     }
