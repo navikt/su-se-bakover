@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
-import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -24,7 +23,6 @@ object TestClientsBuilder : ClientsBuilder {
     val testClients = Clients(
         oauth = OauthStub(),
         personOppslag = PersonOppslagStub,
-        inntektOppslag = InntektOppslagStub,
         tokenOppslag = TokenOppslagStub,
         pdfGenerator = PdfGeneratorStub,
         dokArkiv = DokArkivStub,

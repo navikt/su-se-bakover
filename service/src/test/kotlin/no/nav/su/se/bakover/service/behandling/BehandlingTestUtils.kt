@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.service.behandling
 
 import com.nhaarman.mockitokotlin2.mock
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService

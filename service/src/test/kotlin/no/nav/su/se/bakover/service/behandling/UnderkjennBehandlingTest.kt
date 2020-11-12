@@ -10,8 +10,6 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.client.person.PdlFeil
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -34,6 +32,8 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -222,7 +222,7 @@ class UnderkjennBehandlingTest {
         }
 
         val personOppslagMock = mock<PersonOppslag> {
-            on { aktørId(any()) } doReturn PdlFeil.FantIkkePerson.left()
+            on { aktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()

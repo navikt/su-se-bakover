@@ -4,17 +4,14 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
-import no.nav.su.se.bakover.client.inntekt.InntektOppslag
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
-import no.nav.su.se.bakover.client.stubs.inntekt.InntektOppslagStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -27,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import org.slf4j.LoggerFactory
 
 object StubClientsBuilder : ClientsBuilder {
@@ -38,7 +36,6 @@ object StubClientsBuilder : ClientsBuilder {
         return Clients(
             oauth = azureClient,
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
-            inntektOppslag = InntektOppslagStub.also { log.warn("********** Using stub for ${InntektOppslag::class.java} **********") },
             tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
             pdfGenerator = if (Config.pdfgenLocal) {
                 PdfClient("http://localhost:8081")

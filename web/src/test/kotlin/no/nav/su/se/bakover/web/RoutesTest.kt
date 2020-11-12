@@ -14,11 +14,11 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.person.PdlFeil
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.personPath
 import org.junit.jupiter.api.Test
@@ -88,7 +88,7 @@ class RoutesTest {
                 clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(fnr: Fnr): Either<PdlFeil, Person> = throw RuntimeException("thrown exception")
+                        override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = throw RuntimeException("thrown exception")
                         override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
                     }
                 )
