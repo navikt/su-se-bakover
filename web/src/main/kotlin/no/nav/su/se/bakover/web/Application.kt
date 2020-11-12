@@ -173,11 +173,10 @@ internal fun Application.susebakover(
             )
         }
         exception<AuthorizationException> {
-            log.error("Got authorizationException with message=${it.message}", it)
             call.respond(HttpStatusCode.Forbidden, ErrorJson(it.message))
         }
         exception<UgyldigFnrException> {
-            log.error("Got UgyldigFnrException with message=${it.message}", it)
+            log.warn("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
         exception<Behandling.TilstandException> {
