@@ -86,8 +86,8 @@ internal class BosituasjonTest {
     @Test
     fun `deler bolig med ektemake samboer og ektemake er under 67 år og ufør flyktning`() {
         val info = Behandlingsinformasjon.Bosituasjon(
-            epsFnr = Fnr("01010012345"),
-            delerBolig = false,
+            epsFnr = Fnr("05019445102"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         )
@@ -140,8 +140,8 @@ internal class BosituasjonTest {
     @Test
     fun `er ugyldig hvis man deler bolig med ektemake eller samboer under 67 men ufør flyktning ikke spesifisert`() {
         Behandlingsinformasjon.Bosituasjon(
-            epsFnr = Fnr("01010012345"),
-            delerBolig = true,
+            epsFnr = Fnr("01019012345"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         ).erGyldig() shouldBe false
@@ -150,8 +150,8 @@ internal class BosituasjonTest {
     @Test
     fun `er ugyldig hvis man deler bolig med ektemake eller samboer over 67 men ufør flyktning er spesifisert`() {
         Behandlingsinformasjon.Bosituasjon(
-            epsFnr = Fnr("01010012345"),
-            delerBolig = true,
+            epsFnr = Fnr("16113113816"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         ).erGyldig() shouldBe false

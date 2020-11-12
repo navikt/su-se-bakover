@@ -258,7 +258,7 @@ data class Behandlingsinformasjon(
                     return BeregningStrategy.BorMedVoksne
                 }
                 if (epsFnr != null) {
-                    if (epsFnr.getAlder() < 67) {
+                    if (epsFnr.getAlder() > 66) {
                         return BeregningStrategy.EpsOver67År
                     }
                     if (ektemakeEllerSamboerUførFlyktning != null && ektemakeEllerSamboerUførFlyktning) {
@@ -275,7 +275,12 @@ data class Behandlingsinformasjon(
                 return false
             }
             if (epsFnr != null) {
-                return ektemakeEllerSamboerUførFlyktning != null
+                if (epsFnr.getAlder() < 67) {
+                    return ektemakeEllerSamboerUførFlyktning != null
+                }
+                if (epsFnr.getAlder() >= 67) {
+                    return ektemakeEllerSamboerUførFlyktning == null
+                }
             }
             return delerBolig != null
         }
