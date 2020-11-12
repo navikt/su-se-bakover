@@ -12,11 +12,11 @@ internal class EktefelleTest {
     }
 
     @Test
-    fun `er ferdigbehandlet uansett hva man putter inn`() {
+    fun `er aldri ikke-oppfylt`() {
         Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(FnrGenerator.random())
-            .erFerdigbehandlet() shouldBe true
+            .erVilkårIkkeOppfylt() shouldBe false
         Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-            .erFerdigbehandlet() shouldBe true
+            .erVilkårIkkeOppfylt() shouldBe false
     }
 
     @Test

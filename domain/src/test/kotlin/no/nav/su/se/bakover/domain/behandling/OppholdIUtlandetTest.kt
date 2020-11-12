@@ -19,16 +19,14 @@ internal class OppholdIUtlandetTest {
     }
 
     @Test
-    fun `er ferdigbehandlet uansett hva man putter inn`() {
+    fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
             begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test
