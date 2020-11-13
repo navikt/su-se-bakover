@@ -26,7 +26,7 @@ dependencies {
     implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.11.3")
 
-    testImplementation("com.github.tomakehurst:wiremock:$wireMockVersion") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.7.0")

@@ -78,6 +78,9 @@ allprojects {
             implementation("org.postgresql:postgresql:42.2.13") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.1") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
+            }
         }
     }
 
