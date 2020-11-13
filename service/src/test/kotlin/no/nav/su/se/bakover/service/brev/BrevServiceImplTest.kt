@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -130,7 +131,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `distribuerer brev`() {
         val dockdistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(JournalpostId("journalpostId")) } doReturn "en bestillings id".right()
+            on { bestillDistribusjon(JournalpostId("journalpostId")) } doReturn BrevbestillingId("en bestillings id").right()
         }
 
         BrevServiceImpl(
@@ -138,7 +139,7 @@ internal class BrevServiceImplTest {
             personOppslag = mock(),
             dokArkiv = mock(),
             dokDistFordeling = dockdistMock
-        ).distribuerBrev(JournalpostId("journalpostId")) shouldBe "en bestillings id".right()
+        ).distribuerBrev(JournalpostId("journalpostId")) shouldBe BrevbestillingId("en bestillings id").right()
         verify(dockdistMock).bestillDistribusjon(JournalpostId("journalpostId"))
     }
 }

@@ -22,6 +22,9 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.PERSISTERT
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
@@ -353,6 +356,7 @@ class UnderkjennBehandlingTest {
                     it shouldBe oppgaveConfig
                 }
             )
+            verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
             verify(behandlingRepoMock).oppdaterAttestant(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 attestant = argThat { it shouldBe attestant }
@@ -361,13 +365,10 @@ class UnderkjennBehandlingTest {
                 argThat { it shouldBe behandling.id },
                 argThat { it shouldBe nyOppgaveId }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-            verify(behandlingMetricsMock).incrementUnderkjentCounter()
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
             )
-
             verify(hendelsesloggRepoMock).oppdaterHendelseslogg(
                 argThat {
                     it shouldBe Hendelseslogg(
@@ -382,7 +383,8 @@ class UnderkjennBehandlingTest {
                     )
                 }
             )
-            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe PERSISTERT })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
 
         verifyNoMoreInteractions(
@@ -446,6 +448,7 @@ class UnderkjennBehandlingTest {
                     it shouldBe oppgaveConfig
                 }
             )
+            verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
 
             verify(behandlingRepoMock).oppdaterAttestant(
                 argThat { it shouldBe behandling.id },
@@ -455,13 +458,10 @@ class UnderkjennBehandlingTest {
                 argThat { it shouldBe behandling.id },
                 argThat { it shouldBe nyOppgaveId }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-            verify(behandlingMetricsMock).incrementUnderkjentCounter()
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
             )
-
             verify(hendelsesloggRepoMock).oppdaterHendelseslogg(
                 argThat {
                     it shouldBe Hendelseslogg(
@@ -476,7 +476,9 @@ class UnderkjennBehandlingTest {
                     )
                 }
             )
-            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(behandlingMetricsMock).incrementUnderkjentCounter(PERSISTERT)
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(behandlingMetricsMock).incrementUnderkjentCounter(LUKKET_OPPGAVE)
         }
 
         verifyNoMoreInteractions(
