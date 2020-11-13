@@ -165,7 +165,7 @@ data class Kjøretøy(
 data class TrygdeytelseIUtlandet(
     val beløp: Number,
     val type: String,
-    val fra: String
+    val valuta: String
 )
 
 data class InnlagtPåInstitusjon(

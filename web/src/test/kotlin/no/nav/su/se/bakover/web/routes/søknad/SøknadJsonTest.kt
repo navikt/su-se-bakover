@@ -94,12 +94,12 @@ internal class SøknadJsonTest {
                     {
                         "beløp": 200,
                         "type": "trygd",
-                        "fra": "En trygdeutgiver"
+                        "valuta": "En valuta"
                     },
                     {
                         "beløp": 500,
                         "type": "Annen trygd",
-                        "fra": "En annen trygdeutgiver"
+                        "valuta": "En annen valuta"
                     }
                 ],
                 "pensjon":[

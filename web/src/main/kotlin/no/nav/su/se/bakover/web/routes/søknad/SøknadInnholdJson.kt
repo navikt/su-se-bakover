@@ -416,12 +416,12 @@ data class SøknadInnholdJson(
     data class TrygdeytelserIUtlandetJson(
         val beløp: Number,
         val type: String,
-        val fra: String
+        val valuta: String
     ) {
         fun toTrygdeytelseIUtlandet() = TrygdeytelseIUtlandet(
             beløp = beløp,
             type = type,
-            fra = fra
+            valuta = valuta
         )
 
         companion object {
@@ -429,7 +429,7 @@ data class SøknadInnholdJson(
                 TrygdeytelserIUtlandetJson(
                     beløp = beløp,
                     type = type,
-                    fra = fra
+                    valuta = valuta
                 )
         }
     }
