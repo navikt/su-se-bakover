@@ -14,7 +14,9 @@ internal class V43__add_tilhørighet_to_fradrag : BaseJavaMigration() {
         val beregninger: MutableMap<String, String> = mutableMapOf()
 
         while (rs.next()) {
-            beregninger[rs.getString("id")] = rs.getString("beregning")
+            rs.getString("beregning")?.let {
+                beregninger[rs.getString("id")] = it
+            }
         }
         rs.close()
 
