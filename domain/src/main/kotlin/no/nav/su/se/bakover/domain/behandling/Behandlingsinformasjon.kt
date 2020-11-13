@@ -251,17 +251,17 @@ data class Behandlingsinformasjon(
         fun utledSats() = getBeregningStrategy().sats()
 
         internal fun getBeregningStrategy(): BeregningStrategy {
-            if (epsFnr == null && (delerBolig != null && !delerBolig)) {
+            if (epsFnr == null && delerBolig == false) {
                 return BeregningStrategy.BorAlene
             } else {
-                if (delerBolig != null && delerBolig) {
+                if (delerBolig == true) {
                     return BeregningStrategy.BorMedVoksne
                 }
                 if (epsFnr != null) {
                     if (epsFnr.getAlder() > 66) {
                         return BeregningStrategy.EpsOver67År
                     }
-                    if (ektemakeEllerSamboerUførFlyktning != null && ektemakeEllerSamboerUførFlyktning) {
+                    if (ektemakeEllerSamboerUførFlyktning == true) {
                         return BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                     }
                     return BeregningStrategy.EpsUnder67År
@@ -291,8 +291,8 @@ data class Behandlingsinformasjon(
         override fun avslagsgrunn(): Avslagsgrunn? = null
 
         fun getSatsgrunn() = when {
-            delerBolig != null && !delerBolig -> Satsgrunn.ENSLIG
-            delerBolig != null && delerBolig ->
+            delerBolig == false -> Satsgrunn.ENSLIG
+            delerBolig == true ->
                 Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
             epsFnr != null && epsFnr.getAlder() > 66 ->
                 Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
