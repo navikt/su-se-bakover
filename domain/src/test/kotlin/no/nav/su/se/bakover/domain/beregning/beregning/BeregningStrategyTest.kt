@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -18,7 +19,7 @@ internal class BeregningStrategyTest {
     fun `videresender korrekte verdier`() {
         val periode = Periode(
             fraOgMed = 1.januar(2020),
-            tilOgMed = 31.januar(2020)
+            tilOgMed = 31.desember(2020)
         )
         val beregningsgrunnlag = Beregningsgrunnlag(
             periode = periode,
@@ -44,7 +45,7 @@ internal class BeregningStrategyTest {
             it.getPeriode().getTilOgMed() shouldBe periode.getTilOgMed()
             it.getSats() shouldBe Sats.HØY
             it.getFradrag() shouldBe beregningsgrunnlag.fradrag
-            it.getMånedsberegninger() shouldHaveSize 1
+            it.getMånedsberegninger() shouldHaveSize 12
         }
     }
 

@@ -211,6 +211,7 @@ data class Behandling internal constructor(
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
                 beregning = strategy.beregn(beregningsgrunnlag)
 
+                // TODO 2% only applicable for enslig or eps u/67
                 if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
                     return
@@ -233,7 +234,7 @@ data class Behandling internal constructor(
         }
     }
 
-    private open inner class Beregnet : Tilstand {
+    private open inner class Beregnet : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
@@ -266,7 +267,7 @@ data class Behandling internal constructor(
         }
     }
 
-    private inner class Simulert : Tilstand {
+    private inner class Simulert : Behandling.Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
