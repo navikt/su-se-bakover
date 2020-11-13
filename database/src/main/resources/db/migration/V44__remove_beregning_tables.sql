@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS månedsberegning;
+DROP TABLE IF EXISTS fradrag;
+DROP TABLE IF EXISTS beregning;
