@@ -1,25 +1,22 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Boforhold
-import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
 import org.junit.jupiter.api.Test
+import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
 internal class BehandlingsinformasjonTest {
 
     @Test
     fun `alle vilkår må være innvilget for at summen av vilkår skal være innvilget`() {
-        alleVilkårOppfylt.erInnvilget() shouldBe true
-        alleVilkårOppfylt.erAvslag() shouldBe false
+        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.erInnvilget() shouldBe true
+        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.erAvslag() shouldBe false
     }
 
     @Test
     fun `et vilkår som ikke er oppfylt fører til at summen er avslått`() {
-        val info = alleVilkårOppfylt.copy(
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt, begrunnelse = "får ikke lov"
-            )
+        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe true
@@ -27,28 +24,22 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `inkluderer bare den første avslagsgrunnen for vilkår som ikke er oppfylt`() {
-        val info = alleVilkårOppfylt.copy(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt, uføregrad = 10, forventetInntekt = 100
-            ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt, begrunnelse = "får ikke lov"
-            )
+        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            uførhet = TestData.Uførhet.IkkeOppfylt,
+            lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
         )
         info.getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
     }
 
     @Test
     fun `ingen avslagsgrunn dersom alle vilkår er oppfylt`() {
-        alleVilkårOppfylt.getAvslagsgrunn() shouldBe null
+        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.getAvslagsgrunn() shouldBe null
     }
 
     @Test
     fun `dersom uførhet er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = alleVilkårOppfylt.copy(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt, uføregrad = 5, forventetInntekt = 5
-            )
+        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            uførhet = TestData.Uførhet.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe true
@@ -57,10 +48,8 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `dersom flyktning er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = alleVilkårOppfylt.copy(
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt, begrunnelse = null
-            )
+        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            flyktning = TestData.Flyktning.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe true
@@ -69,7 +58,7 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `dersom man mangler vurdering av et vilkår er det ikke innvilget, men ikke nødvendigvis avslag`() {
-        val info = alleVilkårOppfylt.copy(
+        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             lovligOpphold = null
         )
         info.erInnvilget() shouldBe false
@@ -77,61 +66,88 @@ internal class BehandlingsinformasjonTest {
         info.getAvslagsgrunn() shouldBe null
     }
 
-    private val alleVilkårOppfylt = Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = 100,
-            forventetInntekt = 5000
-        ),
-        flyktning = Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
-        ),
-        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "jepp"
-        ),
-        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "jepp"
-        ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "ingen turer planlagt"
-        ),
-        formue = Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = 0,
-                verdiKjøretøy = 12000,
-                innskudd = 0,
-                verdipapir = 0,
-                pengerSkyldt = 0,
-                kontanter = 1500,
-                depositumskonto = 0
-            ),
-            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = 74500,
-                verdiKjøretøy = 0,
-                innskudd = 13000,
-                verdipapir = 2500,
-                pengerSkyldt = 0,
-                kontanter = 0,
-                depositumskonto = 0,
-            ),
-            begrunnelse = "ok"
-        ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = "møtte opp i går"
-        ),
-        bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
-            ektemakeEllerSamboerUførFlyktning = true,
-            begrunnelse = "ja"
-        ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(FnrGenerator.random())
-    )
+    @Test
+    fun `dersom uførhet og flyktning er fylt ut, men en av dem gir avslag, skal man få avslag uten å fylle inn resten`() {
+        val ikkeOppfyltUfør = Behandlingsinformasjon(
+            uførhet = TestData.Uførhet.IkkeOppfylt,
+            flyktning = TestData.Flyktning.Oppfylt,
+            lovligOpphold = null,
+            fastOppholdINorge = null,
+            oppholdIUtlandet = null,
+            formue = null,
+            personligOppmøte = null,
+            bosituasjon = null,
+            ektefelle = null,
+        )
+        ikkeOppfyltUfør.erInnvilget() shouldBe false
+        ikkeOppfyltUfør.erAvslag() shouldBe true
+
+        val ikkeOppfyltFlyktning = Behandlingsinformasjon(
+            uførhet = TestData.Uførhet.Oppfylt,
+            flyktning = TestData.Flyktning.IkkeOppfylt,
+            lovligOpphold = null,
+            fastOppholdINorge = null,
+            oppholdIUtlandet = null,
+            formue = null,
+            personligOppmøte = null,
+            bosituasjon = null,
+            ektefelle = null,
+        )
+        ikkeOppfyltFlyktning.erInnvilget() shouldBe false
+        ikkeOppfyltFlyktning.erAvslag() shouldBe true
+    }
+
+    @Test
+    fun `dersom ett vilkår er ikke-oppfylt og alle de andre er uavklart, skal det gi avslag`() {
+        val ikkeOppfyltFastOpphold = Behandlingsinformasjon(
+            uførhet = TestData.Uførhet.Uavklart,
+            flyktning = TestData.Flyktning.Uavklart,
+            lovligOpphold = TestData.LovligOpphold.Uavklart,
+            fastOppholdINorge = TestData.FastOppholdINorge.IkkeOppfylt,
+            oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
+            formue = TestData.Formue.Uavklart,
+            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
+            bosituasjon = TestData.Bosituasjon.Oppfylt,
+            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+        )
+
+        ikkeOppfyltFastOpphold.erInnvilget() shouldBe false
+        ikkeOppfyltFastOpphold.erAvslag() shouldBe true
+    }
+
+    @Test
+    fun `dersom ett vilkår er ikke-oppfylt og alle de andre er enten uavklart eller oppfylt, skal det gi avslag`() {
+        val ikkeOppfyltOppholdIUtlandet = Behandlingsinformasjon(
+            uførhet = TestData.Uførhet.Oppfylt,
+            flyktning = TestData.Flyktning.Oppfylt,
+            lovligOpphold = TestData.LovligOpphold.Uavklart,
+            fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
+            oppholdIUtlandet = TestData.OppholdIUtlandet.IkkeOppfylt,
+            formue = TestData.Formue.Oppfylt,
+            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
+            bosituasjon = TestData.Bosituasjon.Oppfylt,
+            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+        )
+
+        ikkeOppfyltOppholdIUtlandet.erInnvilget() shouldBe false
+        ikkeOppfyltOppholdIUtlandet.erAvslag() shouldBe true
+    }
+
+    @Test
+    fun `dersom ingen vilkår er ikke-oppfylt og ett eller flere er uavklart, så er ikke behandlingen ferdig`() {
+        val uferdig = Behandlingsinformasjon(
+            uførhet = TestData.Uførhet.Oppfylt,
+            flyktning = TestData.Flyktning.Oppfylt,
+            lovligOpphold = TestData.LovligOpphold.Uavklart,
+            fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
+            oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
+            formue = TestData.Formue.Oppfylt,
+            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
+            bosituasjon = TestData.Bosituasjon.Oppfylt,
+            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+        )
+
+        uferdig.erInnvilget() shouldBe false
+        uferdig.erAvslag() shouldBe false
+    }
 }

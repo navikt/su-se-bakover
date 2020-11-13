@@ -39,36 +39,14 @@ internal class PersonligOppmøteTest {
     }
 
     @Test
-    fun `er ferdigbehandlet uansett hva man putter inn`() {
+    fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
             begrunnelse = null
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenVerge,
-            begrunnelse = "adsad"
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-            begrunnelse = null
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenKortvarigSykMedLegeerklæring,
-            begrunnelse = null
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
-            begrunnelse = null
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenSykMedLegeerklæringOgFullmakt,
-            begrunnelse = null
-        ).erFerdigbehandlet() shouldBe true
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test

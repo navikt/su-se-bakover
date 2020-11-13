@@ -24,27 +24,14 @@ internal class FastOppholdINorgeTest {
     }
 
     @Test
-    fun `er ferdigbehandlet hvis status er oppfylt`() {
-        Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
-    fun `er ferdigbehandlet hvis status er ikke oppfylt`() {
-        Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-            begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
-    fun `er ikke ferdigbehandlet hvis status er ikke uavklart`() {
+    fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
             begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe false
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test

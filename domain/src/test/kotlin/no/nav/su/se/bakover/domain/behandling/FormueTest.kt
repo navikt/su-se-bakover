@@ -112,24 +112,10 @@ internal class FormueTest {
             verdier = null,
             ektefellesVerdier = null,
             begrunnelse = "null"
-        ).erFerdigbehandlet() shouldBe false
-    }
-
-    @Test
-    fun `er ferdigbehandlet dersom status er ikke må innhente er informasjon`() {
-        Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdier = null,
-            ektefellesVerdier = null,
-            begrunnelse = "null"
-        ).erFerdigbehandlet() shouldBe true
-
-        Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-            verdier = null,
-            ektefellesVerdier = null,
-            begrunnelse = "null"
-        ).erFerdigbehandlet() shouldBe true
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test

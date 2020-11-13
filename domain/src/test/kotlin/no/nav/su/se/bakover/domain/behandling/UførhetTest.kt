@@ -88,30 +88,15 @@ internal class UførhetTest {
     }
 
     @Test
-    fun `er ferdigbehandlet dersom status er vilkår oppfylt`() {
-        Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = 100,
-            forventetInntekt = 200
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
-    fun `er ferdigbehandlet dersom status er vilkår ikke oppfylt`() {
-        Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-            uføregrad = null,
-            forventetInntekt = null
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
     fun `er ikke ferdigbehandlet dersom status er har uføresak til behandlig`() {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 100,
             forventetInntekt = 100
-        ).erFerdigbehandlet() shouldBe false
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test
