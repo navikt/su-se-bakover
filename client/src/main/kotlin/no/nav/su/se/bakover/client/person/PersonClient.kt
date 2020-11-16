@@ -54,7 +54,8 @@ class PersonClient(
             kjønn = pdlData.kjønn,
             adressebeskyttelse = pdlData.adressebeskyttelse,
             skjermet = skjerming.erSkjermet(pdlData.ident.fnr),
-            kontaktinfo = kontaktinfo(pdlData.ident.fnr)
+            kontaktinfo = kontaktinfo(pdlData.ident.fnr),
+            vergemaalEllerFremtidsfullmakt = pdlData.vergemaalEllerFremtidsfullmakt
         )
 
     private fun toPoststed(postnummer: String) = Person.Poststed(

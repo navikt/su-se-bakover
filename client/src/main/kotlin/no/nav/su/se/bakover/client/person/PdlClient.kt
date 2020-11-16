@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
@@ -66,7 +67,8 @@ internal class PdlClient(
                 },
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
                 kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
-                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering
+                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering,
+                vergemaalEllerFremtidsfullmakt = hentPerson.vergemaalEllerFremtidsfullmakt.firstOrNull()
             )
         }
     }
@@ -178,7 +180,8 @@ data class HentPerson(
     val oppholdsadresse: List<Oppholdsadresse>,
     val statsborgerskap: List<Statsborgerskap>,
     val kjoenn: List<Kjønn>,
-    val adressebeskyttelse: List<Adressebeskyttelse>
+    val adressebeskyttelse: List<Adressebeskyttelse>,
+    val vergemaalEllerFremtidsfullmakt: List<Person.VergemaalEllerFremtidsfullmakt>
 )
 
 data class NavnResponse(

@@ -38,7 +38,8 @@ object PersonOppslagStub :
             reservert = false,
             kanVarsles = true,
             språk = "nb"
-        )
+        ),
+        vergemaalEllerFremtidsfullmakt = null
     ).right()
 
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()

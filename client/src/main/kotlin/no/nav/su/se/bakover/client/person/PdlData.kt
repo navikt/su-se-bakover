@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.person
 
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Telefonnummer
 
 internal data class PdlData(
@@ -11,7 +12,8 @@ internal data class PdlData(
     val adresse: Adresse?,
     val statsborgerskap: String?,
     val kjønn: String?,
-    val adressebeskyttelse: String?
+    val adressebeskyttelse: String?,
+    val vergemaalEllerFremtidsfullmakt: Person.VergemaalEllerFremtidsfullmakt?,
 ) {
     internal data class Ident(
         val fnr: Fnr,
