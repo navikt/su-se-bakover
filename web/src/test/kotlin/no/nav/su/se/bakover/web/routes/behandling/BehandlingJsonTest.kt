@@ -78,14 +78,22 @@ internal class BehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "bosituasjon": {
+                    "epsFnr": null,
                     "delerBolig": false,
-                    "delerBoligMed": null,
-                    "ektemakeEllerSamboerUnder67År": false,
                     "ektemakeEllerSamboerUførFlyktning": false,
                     "begrunnelse": null
                 },
                 "ektefelle": {
-                  "fnr": "17087524256"
+                    "fnr": "17087524256",
+                    "navn": {
+                      "fornavn": "fornavn",
+                      "mellomnavn": null,
+                      "etternavn": "etternavn"
+                    },
+                    "kjønn": null,
+                    "adressebeskyttelse": null,
+                    "skjermet": null,
+                    "alder": 45
                 },
                 "utledetSats": "HØY"
           },

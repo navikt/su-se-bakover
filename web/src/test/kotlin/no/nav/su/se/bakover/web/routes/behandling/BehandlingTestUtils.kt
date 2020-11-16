@@ -4,6 +4,7 @@ import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -85,14 +86,17 @@ object BehandlingTestUtils {
                 begrunnelse = null
             ),
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                epsFnr = null,
                 delerBolig = false,
-                delerBoligMed = null,
-                ektemakeEllerSamboerUnder67År = false,
                 ektemakeEllerSamboerUførFlyktning = false,
                 begrunnelse = null
             ),
             ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                fnr = Fnr("17087524256")
+                fnr = Fnr("17087524256"),
+                navn = Person.Navn("fornavn", null, "etternavn"),
+                kjønn = null,
+                adressebeskyttelse = null,
+                skjermet = null
             )
         ),
         søknad = journalførtSøknadMedOppgave,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Boforhold
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -13,9 +13,8 @@ internal class BosituasjonTest {
     @Test
     fun `deler ikke bolig`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = false,
-            delerBoligMed = null,
-            ektemakeEllerSamboerUnder67År = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         )
@@ -28,9 +27,8 @@ internal class BosituasjonTest {
     @Test
     fun `deler bolig med voksne barn`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.VOKSNE_BARN,
-            ektemakeEllerSamboerUnder67År = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         )
@@ -43,9 +41,8 @@ internal class BosituasjonTest {
     @Test
     fun `deler bolig med annen voksen`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.ANNEN_VOKSEN,
-            ektemakeEllerSamboerUnder67År = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         )
@@ -57,10 +54,10 @@ internal class BosituasjonTest {
 
     @Test
     fun `deler bolig med ektemake samboer og ektemake er over 67 år`() {
+
         val info = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = false,
+            epsFnr = Fnr("01010012345"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         )
@@ -72,10 +69,11 @@ internal class BosituasjonTest {
 
     @Test
     fun `deler bolig med ektemake samboer og ektemake er under 67 år og ikke ufør flyktning`() {
+        val epsFnr = Fnr("01019012345")
+
         val info = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
+            epsFnr = epsFnr,
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null
         )
@@ -88,9 +86,8 @@ internal class BosituasjonTest {
     @Test
     fun `deler bolig med ektemake samboer og ektemake er under 67 år og ufør flyktning`() {
         val info = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
+            epsFnr = Fnr("05019445102"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         )
@@ -103,9 +100,8 @@ internal class BosituasjonTest {
     @Test
     fun `er gyldig hvis man ikke deler bolig`() {
         Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = false,
-            delerBoligMed = null,
-            ektemakeEllerSamboerUnder67År = true,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         ).erGyldig() shouldBe true
@@ -114,9 +110,8 @@ internal class BosituasjonTest {
     @Test
     fun `er gyldig hvis man deler bolig med ektemake eller samboer over 67`() {
         Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = false,
+            epsFnr = Fnr("16113113816"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         ).erGyldig() shouldBe true
@@ -125,9 +120,8 @@ internal class BosituasjonTest {
     @Test
     fun `er gyldig hvis man deler bolig med noen andre enn ektemake eller samboer`() {
         Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.VOKSNE_BARN,
-            ektemakeEllerSamboerUnder67År = false,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null
         ).erGyldig() shouldBe true
@@ -136,9 +130,8 @@ internal class BosituasjonTest {
     @Test
     fun `er gyldig hvis man deler bolig med ektemake eller samboer som er ufør flyktning under 67`() {
         Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
+            epsFnr = Fnr("01019013816"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         ).erGyldig() shouldBe true
@@ -147,9 +140,8 @@ internal class BosituasjonTest {
     @Test
     fun `er ugyldig hvis man deler bolig med ektemake eller samboer under 67 men ufør flyktning ikke spesifisert`() {
         Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = true,
+            epsFnr = Fnr("01019012345"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         ).erGyldig() shouldBe false
@@ -158,9 +150,8 @@ internal class BosituasjonTest {
     @Test
     fun `er ugyldig hvis man deler bolig med ektemake eller samboer over 67 men ufør flyktning er spesifisert`() {
         Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
-            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektemakeEllerSamboerUnder67År = false,
+            epsFnr = Fnr("16113113816"),
+            delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = true,
             begrunnelse = null
         ).erGyldig() shouldBe false
