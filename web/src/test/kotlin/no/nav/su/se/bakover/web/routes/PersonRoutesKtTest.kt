@@ -88,7 +88,9 @@ internal class PersonRoutesKtTest {
                         "reservert": false,
                         "kanVarsles": true,
                         "språk": "nb"
-                    }
+                    },
+                    "fullmakt": null,
+                    "vergemål": null
                 }
             """.trimIndent()
 

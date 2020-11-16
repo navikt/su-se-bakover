@@ -11,7 +11,9 @@ internal data class PdlData(
     val adresse: Adresse?,
     val statsborgerskap: String?,
     val kjønn: String?,
-    val adressebeskyttelse: String?
+    val adressebeskyttelse: String?,
+    val vergemålEllerFremtidsfullmakt: Boolean,
+    val fullmakt: Boolean,
 ) {
     internal data class Ident(
         val fnr: Fnr,

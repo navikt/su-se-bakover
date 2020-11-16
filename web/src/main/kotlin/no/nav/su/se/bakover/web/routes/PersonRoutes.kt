@@ -59,7 +59,9 @@ data class PersonResponseJson(
     val kjønn: String?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
-    val kontaktinfo: KontaktinfoJson?
+    val kontaktinfo: KontaktinfoJson?,
+    val vergemål: Boolean?,
+    val fullmakt: Boolean?
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -133,7 +135,9 @@ data class PersonResponseJson(
                     kanVarsles = it.kanVarsles,
                     språk = it.språk
                 )
-            }
+            },
+            vergemål = this.vergemål,
+            fullmakt = this.fullmakt
         )
     }
 }

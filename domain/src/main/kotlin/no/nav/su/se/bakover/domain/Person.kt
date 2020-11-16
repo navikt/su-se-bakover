@@ -9,7 +9,9 @@ data class Person(
     val kjønn: String?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
-    val kontaktinfo: Kontaktinfo?
+    val kontaktinfo: Kontaktinfo?,
+    val vergemål: Boolean?,
+    val fullmakt: Boolean?
 ) {
     data class Navn(
         val fornavn: String,
