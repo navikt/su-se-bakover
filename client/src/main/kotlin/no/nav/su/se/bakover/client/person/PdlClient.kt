@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
@@ -68,7 +67,8 @@ internal class PdlClient(
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
                 kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
                 adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering,
-                vergemaalEllerFremtidsfullmakt = hentPerson.vergemaalEllerFremtidsfullmakt.firstOrNull()
+                vergemålEllerFremtidsfullmakt = hentPerson.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
+                fullmakt = hentPerson.fullmakt.isNotEmpty(),
             )
         }
     }
@@ -181,7 +181,8 @@ data class HentPerson(
     val statsborgerskap: List<Statsborgerskap>,
     val kjoenn: List<Kjønn>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
-    val vergemaalEllerFremtidsfullmakt: List<Person.VergemaalEllerFremtidsfullmakt>
+    val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
+    val fullmakt: List<Fullmakt>
 )
 
 data class NavnResponse(
@@ -246,3 +247,24 @@ data class Kjønn(
 data class Adressebeskyttelse(
     val gradering: String
 )
+
+data class VergemaalEllerFremtidsfullmakt(
+    val type: String?,
+    val vergeEllerFullmektig: VergeEllerFullmektig
+) {
+
+    data class VergeEllerFullmektig(
+        val motpartsPersonident: String
+    )
+}
+
+data class Fullmakt(
+    val motpartsRolle: FullmaktsRolle,
+    val gyldigFraOgMed: LocalDate,
+    val gyldigTilOgMed: LocalDate,
+) {
+    enum class FullmaktsRolle {
+        FULLMAKTSGIVER,
+        FULLMEKTIG
+    }
+}

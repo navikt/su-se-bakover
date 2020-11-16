@@ -59,6 +59,11 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
             vergeEllerFullmektig {
                 motpartsPersonident
             }
+        },
+        fullmakt(historikk: $historikk) {
+            motpartsRolle
+            gyldigFraOgMed
+            gyldigTilOgMed
         }
     }
     hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {

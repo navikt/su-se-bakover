@@ -41,7 +41,8 @@ internal class BrevServiceImplTest {
         adressebeskyttelse = null,
         skjermet = null,
         kontaktinfo = null,
-        vergemaalEllerFremtidsfullmakt = null
+        vergemål = null,
+        fullmakt = null,
     )
 
     @Test

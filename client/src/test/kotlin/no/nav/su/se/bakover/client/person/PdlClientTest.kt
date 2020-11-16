@@ -226,7 +226,8 @@ internal class PdlClientTest : WiremockBase {
                     }
                   ],
                   "adressebeskyttelse": [],
-                  "vergemaalEllerFremtidsfullmakt": []
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -268,7 +269,8 @@ internal class PdlClientTest : WiremockBase {
             ),
             statsborgerskap = "SYR",
             adressebeskyttelse = null,
-            vergemaalEllerFremtidsfullmakt = null
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
         ).right()
     }
 

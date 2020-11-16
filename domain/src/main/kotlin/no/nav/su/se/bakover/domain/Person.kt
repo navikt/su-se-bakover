@@ -10,7 +10,8 @@ data class Person(
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
     val kontaktinfo: Kontaktinfo?,
-    val vergemaalEllerFremtidsfullmakt: VergemaalEllerFremtidsfullmakt?
+    val vergemål: Boolean?,
+    val fullmakt: Boolean?
 ) {
     data class Navn(
         val fornavn: String,
@@ -44,14 +45,4 @@ data class Person(
         val kanVarsles: Boolean,
         val språk: String?,
     )
-
-    data class VergemaalEllerFremtidsfullmakt(
-        val type: String?,
-        val vergeEllerFullmektig: VergeEllerFullmektig
-    ) {
-
-        data class VergeEllerFullmektig(
-            val motpartsPersonident: String
-        )
-    }
 }
