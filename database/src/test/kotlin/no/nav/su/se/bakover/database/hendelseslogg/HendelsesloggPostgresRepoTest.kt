@@ -25,7 +25,7 @@ internal class HendelsesloggPostgresRepoTest {
                 tidspunkt = tidspunkt
             )
 
-            val opprettet = testDataHelper.oppdaterHendelseslogg(Hendelseslogg("id"))
+            val opprettet = Hendelseslogg("id").also { testDataHelper.oppdaterHendelseslogg(it) }
             val hentet = repo.hentHendelseslogg("id")!!
             hentet shouldBe opprettet
 

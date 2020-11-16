@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -41,7 +42,7 @@ internal class OppgaveHttpClient(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
                         journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.sakId,
+                        saksreferanse = config.sakId.toString(),
                         aktoerId = config.aktørId.toString(),
                         tema = "SUP",
                         behandlesAvApplikasjon = "SUPSTONAD",
@@ -71,18 +72,18 @@ internal class OppgaveHttpClient(
     }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
-        return hentVersjon(oppgaveId).fold(
-            {
-                KunneIkkeFerdigstilleOppgave.left()
-            },
-            {
-                ferdigstillOppgave(oppgaveId.toString().toLong(), it)
+        return hentOppgave(oppgaveId).mapLeft {
+            KunneIkkeFerdigstilleOppgave
+        }.flatMap {
+            if (it.erFerdigstilt()) {
                 Unit.right()
+            } else {
+                ferdigstillOppgave(oppgaveId.toString().toLong(), it.versjon).map { Unit }
             }
-        )
+        }
     }
 
-    private fun hentVersjon(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, Int> {
+    private fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
         val (_, _, result) = "$baseUrl$oppgavePath/$oppgaveId".httpGet()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -92,7 +93,7 @@ internal class OppgaveHttpClient(
         return result.fold(
             { responseJson ->
                 val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
-                oppgave.versjon.right()
+                oppgave.right()
             },
             {
                 KunneIkkeSøkeEtterOppgave.left()

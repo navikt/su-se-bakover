@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -38,7 +39,7 @@ internal class BehandlingPostgresRepo(
     override fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
         behandlingsinformasjon: Behandlingsinformasjon
-    ): Behandling {
+    ) {
         dataSource.withSession { session ->
             "update behandling set behandlingsinformasjon = to_json(:behandlingsinformasjon::json) where id = :id".oppdatering(
                 mapOf(
@@ -48,13 +49,12 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun oppdaterBehandlingStatus(
         behandlingId: UUID,
         status: Behandling.BehandlingsStatus
-    ): Behandling {
+    ) {
         dataSource.withSession { session ->
             "update behandling set status = :status where id = :id".oppdatering(
                 mapOf(
@@ -64,10 +64,9 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
-    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30): Behandling {
+    override fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30) {
         dataSource.withSession { session ->
             """
             update behandling set utbetalingId=:utbetalingId where id=:id
@@ -79,7 +78,6 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun leggTilSimulering(behandlingId: UUID, simulering: Simulering) {
@@ -123,7 +121,7 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Behandling {
+    override fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler) {
         dataSource.withSession { session ->
             "update behandling set saksbehandler = :saksbehandler where id=:id".oppdatering(
                 mapOf(
@@ -133,10 +131,9 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
-    override fun attester(behandlingId: UUID, attestant: NavIdentBruker.Attestant): Behandling {
+    override fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
         dataSource.withSession { session ->
             "update behandling set attestant = :attestant where id=:id".oppdatering(
                 mapOf(
@@ -146,7 +143,6 @@ internal class BehandlingPostgresRepo(
                 session
             )
         }
-        return hentBehandling(behandlingId)!!
     }
 
     override fun opprettSøknadsbehandling(
@@ -173,6 +169,18 @@ internal class BehandlingPostgresRepo(
         }
     }
 
+    override fun oppdaterOppgaveId(behandlingId: UUID, oppgaveId: OppgaveId) {
+        dataSource.withSession { session ->
+            "update behandling set oppgaveId = :oppgaveId where id=:id".oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "oppgaveId" to oppgaveId.toString()
+                ),
+                session
+            )
+        }
+    }
+
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
         "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
@@ -187,11 +195,15 @@ internal class BehandlingPostgresRepo(
 
     private fun Row.toBehandling(session: Session): Behandling {
         val behandlingId = uuid("id")
+        val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
+        if (søknad !is Søknad.Journalført.MedOppgave) {
+            throw IllegalStateException("Kunne ikke hente behandling med søknad som ikke er journalført med oppgave.")
+        }
         return behandlingFactory.createBehandling(
             id = behandlingId,
             behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
-            søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!,
+            søknad = søknad,
             beregning = stringOrNull("beregning")?.let { objectMapper.readValue<Beregnet>(it) },
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),

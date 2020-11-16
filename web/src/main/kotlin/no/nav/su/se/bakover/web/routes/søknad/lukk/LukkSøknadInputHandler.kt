@@ -13,31 +13,31 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal sealed class LukketJson {
-    abstract val type: Søknad.LukketType
+    abstract val type: Søknad.Lukket.LukketType
 
     data class TrukketJson(
-        override val type: Søknad.LukketType,
+        override val type: Søknad.Lukket.LukketType,
         val datoSøkerTrakkSøknad: LocalDate
     ) : LukketJson() {
         init {
-            require(type == Søknad.LukketType.TRUKKET)
+            require(type == Søknad.Lukket.LukketType.TRUKKET)
         }
     }
 
     data class BortfaltJson(
-        override val type: Søknad.LukketType
+        override val type: Søknad.Lukket.LukketType
     ) : LukketJson() {
         init {
-            require(type == Søknad.LukketType.BORTFALT)
+            require(type == Søknad.Lukket.LukketType.BORTFALT)
         }
     }
 
     data class AvvistJson(
-        override val type: Søknad.LukketType,
+        override val type: Søknad.Lukket.LukketType,
         val brevConfig: BrevConfigJson? = null
     ) : LukketJson() {
         init {
-            require(type == Søknad.LukketType.AVVIST)
+            require(type == Søknad.Lukket.LukketType.AVVIST)
         }
 
         data class BrevConfigJson(

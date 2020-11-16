@@ -24,27 +24,14 @@ internal class FlyktningTest {
     }
 
     @Test
-    fun `er ferdigbehandlet hvis status er oppfylt`() {
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
-    fun `er ferdigbehandlet hvis status er ikke oppfylt`() {
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe true
-    }
-
-    @Test
-    fun `er ikke ferdigbehandlet hvis status er ikke uavklart`() {
+    fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
             begrunnelse = "neh"
-        ).erFerdigbehandlet() shouldBe false
+        ).let {
+            it.erVilkårOppfylt() shouldBe false
+            it.erVilkårIkkeOppfylt() shouldBe false
+        }
     }
 
     @Test

@@ -26,7 +26,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
@@ -49,6 +48,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -252,15 +252,15 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )
             }.apply {
                 response.status() shouldBe OK
-                /*verify(søknadServiceMock).lukkSøknad(
+                verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
-                )*/
+                )
             }
         }
     }
@@ -285,7 +285,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )
@@ -316,7 +316,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.LukketType.TRUKKET
+                            type = Søknad.Lukket.LukketType.TRUKKET
                         )
                     )
                 )

@@ -10,7 +10,7 @@ import javax.sql.DataSource
 internal class HendelsesloggPostgresRepo(
     private val dataSource: DataSource
 ) : HendelsesloggRepo {
-    override fun hentHendelseslogg(id: String) =
+    override fun hentHendelseslogg(id: String): Hendelseslogg? =
         dataSource.withSession { session ->
             "select * from hendelseslogg where id=:id".hent(
                 mapOf("id" to id),
@@ -18,7 +18,7 @@ internal class HendelsesloggPostgresRepo(
             ) { it.toHendelseslogg() }
         }
 
-    override fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg): Hendelseslogg {
+    override fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) {
         dataSource.withSession { session ->
             "insert into hendelseslogg (id, hendelser) values (:id, to_json(:hendelser::json)) on conflict(id) do update set hendelser=to_json(:hendelser::json)".oppdatering(
                 mapOf(
@@ -28,6 +28,5 @@ internal class HendelsesloggPostgresRepo(
                 session
             )
         }
-        return hendelseslogg
     }
 }

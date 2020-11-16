@@ -2,10 +2,9 @@ package no.nav.su.se.bakover.service.søknad.lukk
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -28,28 +27,43 @@ internal class LukkSøknadServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
-        val søknad = hentSøknad(request.søknadId).getOrElse {
-            return KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+        val søknad = hentSøknad(request.søknadId).getOrHandle {
+            return it.left()
         }
-
-        val oppgaveId = søknad.oppgaveId
-
-        return sjekkOmSøknadKanLukkes(søknad)
-            .map {
-                return when (request) {
-                    is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, it)
-                    is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, it)
-                }.map { sak ->
-                    if (oppgaveId == null) {
-                        log.info("Kunne ikke lukke oppgave da oppgave for søknad ${søknad.id} ikke var opprettet")
-                    } else {
-                        oppgaveService.lukkOppgave(oppgaveId).mapLeft {
-                            log.warn("Kunne ikke lukke oppgave $oppgaveId for søknad ${søknad.id}")
-                        }
+        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
+            log.info("Kan ikke lukke søknad. Finnes en behandling")
+            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        }
+        return when (søknad) {
+            is Søknad.Lukket -> {
+                log.info("Søknad var allerede lukket.")
+                KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            }
+            is Søknad.Ny -> {
+                log.info("Lukker ikke-journalført søknad.")
+                lukkSøknad(request, søknad)
+            }
+            is Søknad.Journalført.UtenOppgave -> {
+                log.info("Lukker journalført søknad uten oppgave.")
+                lukkSøknad(request, søknad)
+            }
+            is Søknad.Journalført.MedOppgave -> {
+                log.info("Lukker journalført søknad og tilhørende oppgave.")
+                lukkSøknad(request, søknad).map {
+                    oppgaveService.lukkOppgave(søknad.oppgaveId).mapLeft {
+                        log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
                     }
-                    sak
+                    it
                 }
             }
+        }
+    }
+
+    private fun lukkSøknad(request: LukkSøknadRequest, søknad: Søknad): Either<KunneIkkeLukkeSøknad, Sak> {
+        return when (request) {
+            is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, søknad)
+            is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, søknad)
+        }
     }
 
     override fun lagBrevutkast(
@@ -80,23 +94,11 @@ internal class LukkSøknadServiceImpl(
         return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
     }
 
-    private fun sjekkOmSøknadKanLukkes(søknad: Søknad): Either<KunneIkkeLukkeSøknad, Søknad> {
-        if (søknad.lukket != null) {
-            log.info("Prøver å lukke en allerede trukket søknad")
-            return KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
-        }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
-            log.info("Kan ikke lukke søknad. Finnes en behandling")
-            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
-        }
-        return søknad.right()
-    }
-
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request)
+        lagreLukketSøknad(request, søknad)
         return sakService.hentSak(søknad.sakId).orNull()!!.right()
     }
 
@@ -104,7 +106,7 @@ internal class LukkSøknadServiceImpl(
         request: LukkSøknadRequest.MedBrev,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request)
+        lagreLukketSøknad(request, søknad)
         return journalførOgDistribuerBrev(
             request = lagBrevRequest(søknad, request),
             søknad = søknad
@@ -132,17 +134,15 @@ internal class LukkSøknadServiceImpl(
         }
     }
 
-    private fun lagreLukketSøknad(request: LukkSøknadRequest) {
-        søknadRepo.lukkSøknad(
-            søknadId = request.søknadId,
-            lukket = Søknad.Lukket(
-                tidspunkt = Tidspunkt.now(),
-                saksbehandler = request.saksbehandler.navIdent,
+    private fun lagreLukketSøknad(request: LukkSøknadRequest, søknad: Søknad) {
+        søknadRepo.oppdaterSøknad(
+            søknad.lukk(
+                lukketAv = request.saksbehandler,
                 type = when (request) {
-                    is LukkSøknadRequest.MedBrev.TrekkSøknad -> Søknad.LukketType.TRUKKET
-                    is LukkSøknadRequest.MedBrev.AvvistSøknad -> Søknad.LukketType.AVVIST
-                    is LukkSøknadRequest.UtenBrev.BortfaltSøknad -> Søknad.LukketType.BORTFALT
-                    is LukkSøknadRequest.UtenBrev.AvvistSøknad -> Søknad.LukketType.AVVIST
+                    is LukkSøknadRequest.MedBrev.TrekkSøknad -> Søknad.Lukket.LukketType.TRUKKET
+                    is LukkSøknadRequest.MedBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
+                    is LukkSøknadRequest.UtenBrev.BortfaltSøknad -> Søknad.Lukket.LukketType.BORTFALT
+                    is LukkSøknadRequest.UtenBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
                 }
             )
         )

@@ -35,4 +35,5 @@ internal data class OppgaveResponse(
     val opprettetTidspunkt: ZonedDateTime
 ) {
     fun getOppgaveId() = OppgaveId(id.toString())
+    fun erFerdigstilt(): Boolean = status == "FERDIGSTILT"
 }

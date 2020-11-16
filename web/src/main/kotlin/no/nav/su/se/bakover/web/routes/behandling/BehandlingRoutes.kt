@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
+import arrow.core.flatMap
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
@@ -23,16 +25,12 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreLik
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.FantIkkeBehandling
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-import no.nav.su.se.bakover.domain.behandling.Behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -42,6 +40,7 @@ import no.nav.su.se.bakover.web.lesUUID
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.toUUID
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
@@ -54,6 +53,47 @@ internal fun Route.behandlingRoutes(
     behandlingService: BehandlingService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
+
+    data class OpprettBehandlingBody(val soknadId: String)
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$sakPath/{sakId}/behandlinger") {
+            call.withSakId { sakId ->
+                Either.catch { deserialize<OpprettBehandlingBody>(call) }
+                    .flatMap { it.soknadId.toUUID() }
+                    .fold(
+                        ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
+                        ifRight = { søknadId ->
+                            behandlingService.opprettSøknadsbehandling(søknadId)
+                                .fold(
+                                    {
+                                        call.svar(
+                                            when (it) {
+                                                is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message(
+                                                    "Fant ikke søknad med id:$søknadId"
+                                                )
+                                                is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
+                                                    "Søknad med id $søknadId mangler oppgave"
+                                                )
+                                                is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
+                                                    "Søknad med id $søknadId har allerede en behandling"
+                                                )
+                                                is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message(
+                                                    "Søknad med id $søknadId er lukket"
+                                                )
+                                            }
+                                        )
+                                    },
+                                    {
+                                        call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                        call.svar(HttpStatusCode.Created.jsonBody(it))
+                                    }
+                                )
+                        }
+                    )
+            }
+        }
+    }
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}") {
@@ -198,16 +238,17 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Attestant) {
 
-        fun kunneIkkeIverksetteMelding(feil: Behandling.KunneIkkeIverksetteBehandling): Resultat {
+        fun kunneIkkeIverksetteMelding(feil: KunneIkkeIverksetteBehandling): Resultat {
             // funksjon + return: Triks for å få exhaustive when
             return when (feil) {
-                is AttestantOgSaksbehandlerKanIkkeVæreLik -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
-                is KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
-                is KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
-                is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
-                is KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
-                is FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                is KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
+                is KunneIkkeIverksetteBehandling.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
+                is KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
+                is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
+                is KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
+                is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                is KunneIkkeIverksetteBehandling.KunneIkkeLukkeOppgave -> InternalServerError.message("Kunne ikke lukke oppgave")
             }
         }
 
@@ -231,8 +272,8 @@ internal fun Route.behandlingRoutes(
         patch("$behandlingPath/{behandlingId}/underkjenn") {
             val navIdent = call.suUserContext.getNAVIdent()
 
-            call.withBehandling(behandlingService) { behandling ->
-                call.audit("behandling med id: ${behandling.id} godkjennes ikke")
+            call.withBehandlingId { behandlingId ->
+                call.audit("behandling med id: $behandlingId godkjennes ikke")
                 // TODO jah: Ignorerer resultatet her inntil videre og attesterer uansett.
 
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
@@ -243,12 +284,26 @@ internal fun Route.behandlingRoutes(
                     ifRight = { body ->
                         if (body.valid()) {
                             behandlingService.underkjenn(
-                                begrunnelse = body.begrunnelse,
+                                behandlingId = behandlingId,
                                 attestant = Attestant(navIdent),
-                                behandling = behandling
+                                begrunnelse = body.begrunnelse
                             ).fold(
                                 ifLeft = {
-                                    call.svar(Forbidden.message(it.msg))
+                                    fun kunneIkkeUnderkjenneFeilmelding(feil: KunneIkkeUnderkjenneBehandling): Resultat {
+                                        return when (feil) {
+                                            KunneIkkeUnderkjenneBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                            KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                                                "Attestant og saksbehandler kan ikke vare samme person."
+                                            )
+                                            KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave -> InternalServerError.message(
+                                                "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."
+                                            )
+                                            KunneIkkeUnderkjenneBehandling.FantIkkeAktørId -> InternalServerError.message(
+                                                "Fant ikke aktørid som er knyttet til tokenet"
+                                            )
+                                        }
+                                    }
+                                    call.svar(kunneIkkeUnderkjenneFeilmelding(it))
                                 },
                                 ifRight = { call.svar(OK.jsonBody(it)) }
                             )

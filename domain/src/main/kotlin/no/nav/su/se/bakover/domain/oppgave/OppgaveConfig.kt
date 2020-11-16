@@ -3,13 +3,14 @@ package no.nav.su.se.bakover.domain.oppgave
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.util.UUID
 
 /**
  * https://jira.adeo.no/browse/OH-580
  */
 sealed class OppgaveConfig {
     abstract val journalpostId: JournalpostId?
-    abstract val sakId: String
+    abstract val sakId: UUID
     abstract val aktørId: AktørId
     abstract val behandlingstema: Behandlingstema?
     abstract val oppgavetype: Oppgavetype
@@ -18,7 +19,7 @@ sealed class OppgaveConfig {
 
     data class Saksbehandling(
         override val journalpostId: JournalpostId,
-        override val sakId: String,
+        override val sakId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
@@ -28,7 +29,7 @@ sealed class OppgaveConfig {
     }
 
     data class Attestering(
-        override val sakId: String,
+        override val sakId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {

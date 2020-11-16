@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 internal class OppgaveHttpClientTest : WiremockBase {
 
@@ -32,7 +33,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
-    private val sakId = "222"
+    private val sakId = UUID.randomUUID()
 
     @Test
     fun `opprett sakbehandling oppgave`() {

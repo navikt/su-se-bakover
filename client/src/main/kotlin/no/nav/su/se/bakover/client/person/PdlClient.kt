@@ -14,6 +14,10 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ukjent
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.LocalDate
@@ -31,7 +35,7 @@ internal class PdlClient(
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
-    fun person(fnr: Fnr): Either<PdlFeil, PdlData> {
+    fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
             val hentPerson = response.hentPerson!!
             val navn = hentPerson.navn.sortedBy {
@@ -69,7 +73,7 @@ internal class PdlClient(
 
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
-    fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> {
+    fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return kallpdl<IdentResponseData>(fnr, hentIdenterQuery).map {
             hentIdent(it.hentIdenter!!).aktørId
         }
@@ -81,7 +85,7 @@ internal class PdlClient(
             aktørId = it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
         )
 
-    private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<PdlFeil, T> {
+    private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val token = tokenOppslag.token()
         val (_, response, result) = "$pdlUrl/graphql".httpPost()
@@ -96,8 +100,7 @@ internal class PdlClient(
             {
                 val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
                 if (pdlResponse.hasErrors()) {
-                    log.error("Feil i kallet mod PDL: {}", pdlResponse)
-                    PdlFeil.from(pdlResponse.errors!!).left()
+                    håndtererPdlFeil(pdlResponse).left()
                 } else {
                     pdlResponse.data.right()
                 }
@@ -108,38 +111,25 @@ internal class PdlClient(
                     response.statusCode,
                     response.body().asString("application/json")
                 )
-                PdlFeil.Ukjent.left()
+                Ukjent.left()
             }
         )
     }
 
-    private fun specializedType(clazz: Class<*>) =
-        objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
-}
-
-sealed class PdlFeil(
-    val message: String,
-    val httpCode: Int
-) {
-    companion object {
-        fun from(errors: List<PdlError>): PdlFeil {
-            return if (errors.size == 1) {
-                resolveError(errors.first().extensions.code)
-            } else {
-                Ukjent
-            }
+    private fun <T> håndtererPdlFeil(pdlResponse: PdlResponse<T>): KunneIkkeHentePerson {
+        val feil = pdlResponse.toKunneIkkeHentePerson()
+        if (feil.size != 1) {
+            log.error("Mer enn 1 feil fra PDL: ${pdlResponse.errors}")
+            return Ukjent
         }
-
-        private fun resolveError(code: String) = when (code.toLowerCase()) {
-            "not_found" -> FantIkkePerson
-            "unauthorized" -> IkkeTilgangTilPerson
-            else -> Ukjent
+        if (feil.first() is Ukjent) {
+            log.error("Ukjent feilresponskode fra PDL: ${pdlResponse.errors}")
         }
+        return feil.first()
     }
 
-    object FantIkkePerson : PdlFeil("Fant ikke person i PDL", 404)
-    object IkkeTilgangTilPerson : PdlFeil("Ikke tilgang til å se person", 403)
-    object Ukjent : PdlFeil("Ukjent feil mot PDL", 500)
+    private fun specializedType(clazz: Class<*>) =
+        objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
 }
 
 data class PdlResponse<T>(
@@ -147,6 +137,18 @@ data class PdlResponse<T>(
     val errors: List<PdlError>?
 ) {
     fun hasErrors() = !errors.isNullOrEmpty()
+
+    fun toKunneIkkeHentePerson(): List<KunneIkkeHentePerson> {
+        return errors.orEmpty().map {
+            resolveError(it.extensions.code)
+        }
+    }
+
+    private fun resolveError(code: String) = when (code.toLowerCase()) {
+        "not_found" -> FantIkkePerson
+        "unauthorized" -> IkkeTilgangTilPerson
+        else -> Ukjent
+    }
 }
 
 data class PdlError(

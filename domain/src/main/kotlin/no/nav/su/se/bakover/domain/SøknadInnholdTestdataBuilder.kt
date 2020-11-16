@@ -11,9 +11,6 @@ fun fnrUnder67(): Fnr {
     return Fnr("0101${femtiÅrSiden}01337")
 }
 
-/**
- * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
- */
 object SøknadInnholdTestdataBuilder {
     fun personopplysninger(
         fnr: String = "12345678910"
@@ -87,8 +84,8 @@ object SøknadInnholdTestdataBuilder {
             søktAndreYtelserIkkeBehandletBegrunnelse = "uføre",
             sosialstønadBeløp = 7000.0,
             trygdeytelseIUtlandet = listOf(
-                TrygdeytelseIUtlandet(beløp = 200, type = "trygd", fra = "En trygdeutgiver"),
-                TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", fra = "En annen trygdeutgiver")
+                TrygdeytelseIUtlandet(beløp = 200, type = "trygd", valuta = "En valuta"),
+                TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", valuta = "En annen valuta")
             ),
             pensjon = listOf(
                 PensjonsOrdningBeløp("KLP", 2000.0),

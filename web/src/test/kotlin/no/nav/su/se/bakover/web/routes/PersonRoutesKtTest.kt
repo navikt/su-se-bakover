@@ -9,13 +9,13 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.person.PdlFeil
-import no.nav.su.se.bakover.client.person.PersonOppslag
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -107,7 +107,7 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.Ukjent, null)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(KunneIkkeHentePerson.Ukjent, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
@@ -120,7 +120,7 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(PdlFeil.FantIkkePerson, null)))
+            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(KunneIkkeHentePerson.FantIkkePerson, null)))
         }) {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
@@ -128,12 +128,12 @@ internal class PersonRoutesKtTest {
         }
     }
 
-    private fun personoppslag(pdlFeil: PdlFeil = PdlFeil.Ukjent, testIdent: String?) = object : PersonOppslag {
-        override fun person(fnr: Fnr): Either<PdlFeil, Person> = when (testIdent) {
+    private fun personoppslag(feil: KunneIkkeHentePerson = KunneIkkeHentePerson.Ukjent, testIdent: String?) = object : PersonOppslag {
+        override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
             fnr.toString() -> PersonOppslagStub.person(fnr)
-            else -> pdlFeil.left()
+            else -> feil.left()
         }
 
-        override fun aktørId(fnr: Fnr): Either<PdlFeil, AktørId> = throw NotImplementedError()
+        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = throw NotImplementedError()
     }
 }

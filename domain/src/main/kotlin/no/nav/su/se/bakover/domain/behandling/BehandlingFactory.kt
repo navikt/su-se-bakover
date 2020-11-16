@@ -22,7 +22,7 @@ class BehandlingFactory(
         id: UUID = uuidFactory.newUUID(),
         opprettet: Tidspunkt = now(clock),
         behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        søknad: Søknad,
+        søknad: Søknad.Journalført.MedOppgave,
         beregning: Beregning? = null,
         simulering: Simulering? = null,
         status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET,

@@ -61,6 +61,33 @@ allprojects {
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
         testImplementation("org.mockito:mockito-core:3.6.0")
+
+        constraints {
+            implementation("io.netty:netty-codec-http2:4.1.53.Final") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1020439")
+            }
+            implementation("commons-collections:commons-collections:3.2.2") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
+            }
+            implementation("com.google.guava:guava:30.0-jre") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415")
+            }
+            implementation("org.apache.httpcomponents:httpclient:4.5.13") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1016906")
+            }
+            implementation("org.postgresql:postgresql:42.2.13") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
+            }
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.1") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
+            }
+            implementation("junit:junit:4.13.1") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
+            }
+            implementation("org.eclipse.jetty:jetty-webapp:9.4.33.v20201020") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1021614")
+            }
+        }
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

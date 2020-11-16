@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -27,14 +26,17 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
@@ -135,13 +137,13 @@ class AccessCheckProxy(
                 }
 
                 override fun underkjenn(
-                    begrunnelse: String,
+                    behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant,
-                    behandling: Behandling
-                ): Either<Behandling.KunneIkkeUnderkjenne, Behandling> {
-                    assertHarTilgangTilPerson(behandling.fnr)
+                    begrunnelse: String
+                ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
+                    assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.underkjenn(begrunnelse, attestant, behandling)
+                    return services.behandling.underkjenn(behandlingId, attestant, begrunnelse)
                 }
 
                 override fun oppdaterBehandlingsinformasjon(
@@ -185,7 +187,7 @@ class AccessCheckProxy(
                 override fun iverksett(
                     behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant
-                ): Either<Behandling.KunneIkkeIverksetteBehandling, Behandling> {
+                ): Either<KunneIkkeIverksetteBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
                     return services.behandling.iverksett(behandlingId, attestant)
@@ -297,7 +299,9 @@ class AccessCheckProxy(
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
         clients.personOppslag.person(fnr)
-            .getOrHandle { throw Tilgangssjekkfeil(it, fnr) }
+            .getOrHandle {
+                throw Tilgangssjekkfeil(it, fnr)
+            }
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
@@ -329,4 +333,4 @@ class AccessCheckProxy(
     }
 }
 
-class Tilgangssjekkfeil(val pdlFeil: PdlFeil, val fnr: Fnr) : RuntimeException(pdlFeil.message)
+class Tilgangssjekkfeil(val feil: KunneIkkeHentePerson, val fnr: Fnr) : RuntimeException()

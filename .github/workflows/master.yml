@@ -44,6 +44,20 @@ jobs:
             docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
             docker push ${IMAGE}
 
+   snyk:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v2
+       - name: Run Snyk to check for vulnerabilities
+         uses: snyk/actions/gradle-jdk11@master
+         env:
+           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+           ORG_GRADLE_PROJECT_githubUser: x-access-token
+           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+         with:
+           args: --all-sub-projects --org=supstonad
+           command: monitor
+
    deploy_to_dev:
       name: Deploy to dev
       needs: build

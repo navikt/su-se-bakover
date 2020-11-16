@@ -36,7 +36,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
-import no.nav.su.se.bakover.client.person.PdlFeil
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
@@ -47,6 +46,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -66,7 +66,6 @@ import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
-import no.nav.su.se.bakover.web.routes.inntektRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -142,16 +141,19 @@ internal fun Application.susebakover(
 
     install(StatusPages) {
         exception<Tilgangssjekkfeil> {
-            when (it.pdlFeil) {
-                is PdlFeil.IkkeTilgangTilPerson -> {
+            when (it.feil) {
+                is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
                     call.audit("[Tilgangssjekk] Bruker har ikke tilgang til person ${it.fnr}")
-                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person. Melding: ${it.message}", it.pdlFeil)
-                    call.respond(HttpStatusCode.Forbidden, ErrorJson(it.pdlFeil.message))
+                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person.", it)
+                    call.respond(HttpStatusCode.Forbidden, ErrorJson("Ikke tilgang til å se person"))
                 }
-                is PdlFeil.FantIkkePerson,
-                is PdlFeil.Ukjent -> {
-                    log.warn("[Tilgangssjekk] Fikk feil fra PDL", it.message)
-                    call.respond(HttpStatusCode.fromValue(it.pdlFeil.httpCode), ErrorJson(it.pdlFeil.message))
+                is KunneIkkeHentePerson.FantIkkePerson -> {
+                    log.warn("[Tilgangssjekk] Fant ikke person", it)
+                    call.respond(HttpStatusCode.NotFound, ErrorJson("Fant ikke person"))
+                }
+                is KunneIkkeHentePerson.Ukjent -> {
+                    log.warn("[Tilgangssjekk] Feil ved oppslag på person", it)
+                    call.respond(HttpStatusCode.InternalServerError, ErrorJson("Feil ved oppslag på person"))
                 }
             }
         }
@@ -171,11 +173,10 @@ internal fun Application.susebakover(
             )
         }
         exception<AuthorizationException> {
-            log.error("Got authorizationException with message=${it.message}", it)
             call.respond(HttpStatusCode.Forbidden, ErrorJson(it.message))
         }
         exception<UgyldigFnrException> {
-            log.error("Got UgyldigFnrException with message=${it.message}", it)
+            log.warn("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
         exception<Behandling.TilstandException> {
@@ -249,11 +250,7 @@ internal fun Application.susebakover(
                     AccessCheckProxy(databaseRepos.person, clients)
                 ) { accessProtectedServices ->
                     personRoutes(clients.personOppslag)
-                    inntektRoutes(clients.inntektOppslag)
-                    sakRoutes(
-                        behandlingService = accessProtectedServices.behandling,
-                        sakService = accessProtectedServices.sak
-                    )
+                    sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
