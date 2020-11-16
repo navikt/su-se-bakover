@@ -3,7 +3,7 @@ package db.migration
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-internal class V43__add_tilhørighet_to_fradragTest {
+internal class V44__add_tilhørighet_to_fradragTest {
 
     @Test
     fun `skal legge til tilhører bruker på alle fradrag`() {

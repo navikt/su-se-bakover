@@ -7,7 +7,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.util.UUID
 
-internal class V43__add_tilhørighet_to_fradrag : BaseJavaMigration() {
+internal class V44__add_tilhørighet_to_fradrag : BaseJavaMigration() {
     override fun migrate(context: Context?) {
         val statement = context!!.connection.createStatement()
         val rs = statement.executeQuery("select id, beregning from behandling")
