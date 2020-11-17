@@ -101,7 +101,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             val (bruker, eps) = it.partition { it.getTilhører() == FradragTilhører.BRUKER }
             bruker shouldContainExactly listOf(forventetInntekt)
             eps shouldHaveSize 1
-            eps.first { it.getFradragstype() == Fradragstype.Arbeidsinntekt }.let {
+            eps.first { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }.let {
                 it.getTotaltFradrag() shouldBe 2.0.plusOrMinus(0.0001)
                 it.getPeriode() shouldBe epsArbeidsinntekt.getPeriode()
             }
@@ -166,6 +166,73 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             )
         }.let {
             it.message shouldContain "Fradrag må inneholde EPSs forventede inntekt etter uførhet."
+        }
+    }
+
+    @Test
+    fun `velger EPS sin arbeidsinntekt dersom den er større enn forventet inntekt`() {
+        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
+        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 5000.0, tilhører = FradragTilhører.EPS)
+        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 150000.0, tilhører = FradragTilhører.EPS)
+
+        val periodisertBeløpsgrense2020 = 229945.6
+        val expectedBeregnetEpsFradrag = lagFradrag(
+            type = Fradragstype.BeregnetFradragEPS,
+            beløp = (epsUføretrygd.getTotaltFradrag() + epsArbeidsinntekt.getTotaltFradrag()) - periodisertBeløpsgrense2020,
+            tilhører = FradragTilhører.EPS
+        )
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsUføretrygd, epsArbeidsinntekt)
+        ).let {
+            it shouldBe listOf(forventetInntekt, expectedBeregnetEpsFradrag)
+        }
+    }
+
+    @Test
+    fun `velger EPS sin forventetInntekt dersom den er større enn arbeidsinntekt`() {
+        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
+        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, tilhører = FradragTilhører.EPS)
+
+        val periodisertBeløpsgrense2020 = 229945.6
+        val expectedBeregnetEpsFradrag = lagFradrag(
+            type = Fradragstype.BeregnetFradragEPS,
+            beløp = (epsUføretrygd.getTotaltFradrag() + epsForventetInntekt.getTotaltFradrag()) - periodisertBeløpsgrense2020,
+            tilhører = FradragTilhører.EPS
+        )
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsUføretrygd, epsArbeidsinntekt)
+        ).let {
+            it shouldBe listOf(forventetInntekt, expectedBeregnetEpsFradrag)
+        }
+    }
+
+    @Test
+    fun `inneholder bare et fradrag for eps, uavhengig av hvor mange som er input`() {
+        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
+        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, tilhører = FradragTilhører.EPS)
+        val epsKapitalinntekt = lagFradrag(Fradragstype.Kapitalinntekt, 60000.0, tilhører = FradragTilhører.EPS)
+        val epsPensjon = lagFradrag(Fradragstype.PrivatPensjon, 15000.0, tilhører = FradragTilhører.EPS)
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(
+                forventetInntekt,
+                epsForventetInntekt,
+                epsUføretrygd,
+                epsArbeidsinntekt,
+                epsKapitalinntekt,
+                epsPensjon
+            )
+        ).let {
+            it shouldHaveSize 2
+            it.count { it.getTilhører() == FradragTilhører.BRUKER } shouldBe 1
+            it.count { it.getTilhører() == FradragTilhører.EPS } shouldBe 1
         }
     }
 }

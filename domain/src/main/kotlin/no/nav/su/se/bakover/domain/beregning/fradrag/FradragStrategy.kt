@@ -54,6 +54,7 @@ internal sealed class FradragStrategy {
             val periode = finnFradragsperiode(fradrag)
             return fradrag
                 .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.BRUKER, it) }
+                .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.EPS, it) }
                 .pipe { `fjern EPS fradrag opp til beløpsgrense`(periodisertSumSatsbeløp(periode), it) }
         }
 
@@ -63,7 +64,27 @@ internal sealed class FradragStrategy {
 
     object EpsUnder67År : FradragStrategy() {
         override fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag> =
-            `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.BRUKER, fradrag)
+            fradrag
+                .pipe {
+                    `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(
+                        FradragTilhører.BRUKER,
+                        fradrag
+                    )
+                }
+                .pipe { slåSammenEpsFradragTilSammeType(it) }
+
+        private fun slåSammenEpsFradragTilSammeType(fradrag: List<Fradrag>): List<Fradrag> {
+            val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
+            if (epsFradrag.isEmpty()) return søkersFradrag
+            val sammenslått = FradragFactory.ny(
+                type = Fradragstype.BeregnetFradragEPS,
+                beløp = epsFradrag.sumByDouble { it.getTotaltFradrag() },
+                periode = finnFradragsperiode(epsFradrag),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS
+            )
+            return søkersFradrag.plus(sammenslått)
+        }
     }
 
     protected fun `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(
@@ -95,13 +116,13 @@ internal sealed class FradragStrategy {
         }
 
         return søkersFradrag.plus(
-            epsFradrag[0].let
+            epsFradrag[0].let // TODO should be replaced - guaranteed by guards for now.
             {
                 FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.BeregnetFradragEPS,
                     beløp = diff,
                     periode = it.getPeriode(),
-                    utenlandskInntekt = it.getUtenlandskInntekt(),
+                    utenlandskInntekt = null,
                     tilhører = it.getTilhører()
                 )
             }

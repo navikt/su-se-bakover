@@ -84,7 +84,7 @@ internal class EpsOver67StrategyTest {
             val (bruker, eps) = it.partition { it.getTilhører() == FradragTilhører.BRUKER }
             bruker shouldContainExactly listOf(forventetInntekt)
             eps shouldHaveSize 1
-            eps.first { it.getFradragstype() == Fradragstype.Arbeidsinntekt }.let {
+            eps.first { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }.let {
                 it.getTotaltFradrag() shouldBe 23.0.plusOrMinus(0.0001)
                 it.getPeriode() shouldBe epsArbeidsinntekt.getPeriode()
             }
@@ -104,6 +104,31 @@ internal class EpsOver67StrategyTest {
                     )
                 )
             )
+        }
+    }
+
+    @Test
+    fun `inneholder bare et fradrag for eps, uavhengig av hvor mange som er input`() {
+        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
+        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
+        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, tilhører = FradragTilhører.EPS)
+        val epsKapitalinntekt = lagFradrag(Fradragstype.Kapitalinntekt, 60000.0, tilhører = FradragTilhører.EPS)
+        val epsPensjon = lagFradrag(Fradragstype.PrivatPensjon, 15000.0, tilhører = FradragTilhører.EPS)
+
+        FradragStrategy.EpsOver67År.beregn(
+            fradrag = listOf(
+                forventetInntekt,
+                epsForventetInntekt,
+                epsUføretrygd,
+                epsArbeidsinntekt,
+                epsKapitalinntekt,
+                epsPensjon
+            )
+        ).let {
+            it shouldHaveSize 2
+            it.count { it.getTilhører() == FradragTilhører.BRUKER } shouldBe 1
+            it.count { it.getTilhører() == FradragTilhører.EPS } shouldBe 1
         }
     }
 }

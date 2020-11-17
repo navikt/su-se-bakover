@@ -14,7 +14,14 @@ enum class Fradragstype {
     Kvalifiseringsstønad,
     BidragEtterEkteskapsloven,
     Kapitalinntekt,
-    ForventetInntekt;
+    ForventetInntekt,
+
+    /**
+     *  Resulting type of the operation that calculates EPS fradrag to be included in brukers beregning.
+     *  Represents a "mixed bag" of fradrag that in total exceeds the respecive limits given by §5 and §6.
+     *  Not to be used for input-operations (i.e. from frontend).
+     */
+    BeregnetFradragEPS;
 
     companion object {
         fun isValid(s: String) =
