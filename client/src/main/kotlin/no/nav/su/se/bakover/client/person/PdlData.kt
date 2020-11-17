@@ -8,7 +8,7 @@ internal data class PdlData(
     val ident: Ident,
     val navn: Navn,
     val telefonnummer: Telefonnummer?,
-    val adresse: Adresse?,
+    val adresse: List<Adresse>?,
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
@@ -27,11 +27,10 @@ internal data class PdlData(
     )
 
     internal data class Adresse(
-        val adressenavn: String?,
-        val husnummer: String?,
-        val husbokstav: String?,
+        val adresselinje: String?,
         val postnummer: String?,
-        val bruksenhet: String?,
-        val kommunenummer: String?
+        val bruksenhet: String? = null,
+        val kommunenummer: String? = null,
+        val landkode: String? = null,
     )
 }
