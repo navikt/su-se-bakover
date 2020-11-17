@@ -1,64 +1,75 @@
 query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
-   hentPerson(ident: $ident) {
-      navn(historikk: $historikk) {
-         fornavn
-         mellomnavn
-         etternavn
-         metadata {
-            master
-         }
-      },
-      telefonnummer {
-         nummer
-         landskode
-         prioritet
-      },
-      bostedsadresse(historikk: $historikk) {
-         vegadresse {
-            husnummer
-            husbokstav
-            adressenavn
-            kommunenummer
-            postnummer
-            bruksenhetsnummer
-         }
-      },
-      kontaktadresse(historikk: $historikk) {
-         vegadresse {
-            husnummer
-            husbokstav
-            adressenavn
-            kommunenummer
-            postnummer
-            bruksenhetsnummer
-         }
-      },
-      oppholdsadresse(historikk: $historikk) {
-         vegadresse {
-            husnummer
-            husbokstav
-            adressenavn
-            kommunenummer
-            postnummer
-            bruksenhetsnummer
-         }
-      },
-      statsborgerskap(historikk: $historikk) {
-         land
-         gyldigFraOgMed
-         gyldigTilOgMed
-      },
-      kjoenn(historikk: $historikk) {
-         kjoenn
-      },
-      adressebeskyttelse(historikk: $historikk) {
-         gradering
-      }
-   }
-   hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {
-      identer {
-         ident
-         gruppe
-      }
-   }
+    hentPerson(ident: $ident) {
+        navn(historikk: $historikk) {
+            fornavn
+            mellomnavn
+            etternavn
+            metadata {
+                master
+            }
+        },
+        telefonnummer {
+            nummer
+            landskode
+            prioritet
+        },
+        bostedsadresse(historikk: $historikk) {
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                kommunenummer
+                postnummer
+                bruksenhetsnummer
+            }
+        },
+        kontaktadresse(historikk: $historikk) {
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                kommunenummer
+                postnummer
+                bruksenhetsnummer
+            }
+        },
+        oppholdsadresse(historikk: $historikk) {
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                kommunenummer
+                postnummer
+                bruksenhetsnummer
+            }
+        },
+        statsborgerskap(historikk: $historikk) {
+            land
+            gyldigFraOgMed
+            gyldigTilOgMed
+        },
+        kjoenn(historikk: $historikk) {
+            kjoenn
+        },
+        adressebeskyttelse(historikk: $historikk) {
+            gradering
+        },
+        vergemaalEllerFremtidsfullmakt(historikk: $historikk) {
+            type
+            vergeEllerFullmektig {
+                motpartsPersonident
+            }
+        },
+        fullmakt(historikk: $historikk) {
+            motpartsRolle
+            gyldigFraOgMed
+            gyldigTilOgMed
+        }
+    }
+    hentIdenter(ident: $ident, grupper: $identGrupper, historikk: $historikk) {
+        identer {
+            ident
+            gruppe
+        }
+    }
 }

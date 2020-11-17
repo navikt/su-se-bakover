@@ -66,7 +66,9 @@ internal class PdlClient(
                 },
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
                 kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
-                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering
+                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering,
+                vergemålEllerFremtidsfullmakt = hentPerson.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
+                fullmakt = hentPerson.fullmakt.isNotEmpty(),
             )
         }
     }
@@ -178,7 +180,9 @@ data class HentPerson(
     val oppholdsadresse: List<Oppholdsadresse>,
     val statsborgerskap: List<Statsborgerskap>,
     val kjoenn: List<Kjønn>,
-    val adressebeskyttelse: List<Adressebeskyttelse>
+    val adressebeskyttelse: List<Adressebeskyttelse>,
+    val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
+    val fullmakt: List<Fullmakt>
 )
 
 data class NavnResponse(
@@ -243,3 +247,24 @@ data class Kjønn(
 data class Adressebeskyttelse(
     val gradering: String
 )
+
+data class VergemaalEllerFremtidsfullmakt(
+    val type: String?,
+    val vergeEllerFullmektig: VergeEllerFullmektig
+) {
+
+    data class VergeEllerFullmektig(
+        val motpartsPersonident: String
+    )
+}
+
+data class Fullmakt(
+    val motpartsRolle: FullmaktsRolle,
+    val gyldigFraOgMed: LocalDate,
+    val gyldigTilOgMed: LocalDate,
+) {
+    enum class FullmaktsRolle {
+        FULLMAKTSGIVER,
+        FULLMEKTIG
+    }
+}

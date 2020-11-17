@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -59,7 +58,7 @@ abstract class LagBrevRequest {
                 satsbeløp = førsteMånedsberegning.getSatsbeløp().toInt(), // TODO: avrunding
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
                 redusertStønadStatus = behandling.beregning()?.getFradrag()?.isNotEmpty() ?: false,
-                harEktefelle = behandling.behandlingsinformasjon().bosituasjon?.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
+                harEktefelle = behandling.behandlingsinformasjon().ektefelle != null,
                 fradrag = behandling.beregning()!!.getFradrag().toFradragPerMåned(),
                 // TODO: burde kanskje sende over doubles?
                 fradragSum = behandling.beregning()!!.getSumFradrag().roundToInt(),

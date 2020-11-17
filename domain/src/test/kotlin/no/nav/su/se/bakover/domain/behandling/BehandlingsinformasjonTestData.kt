@@ -162,11 +162,10 @@ object BehandlingsinformasjonTestData {
 
     object Bosituasjon {
         val Oppfylt = Behandlingsinformasjon.Bosituasjon(
+            epsFnr = null,
             delerBolig = false,
             begrunnelse = "det stemmer",
-            delerBoligMed = null,
             ektemakeEllerSamboerUførFlyktning = null,
-            ektemakeEllerSamboerUnder67År = null
         )
     }
 

@@ -225,7 +225,9 @@ internal class PdlClientTest : WiremockBase {
                       "kjoenn": "MANN"
                     }
                   ],
-                  "adressebeskyttelse": []
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -266,7 +268,9 @@ internal class PdlClientTest : WiremockBase {
                 kommunenummer = "5427"
             ),
             statsborgerskap = "SYR",
-            adressebeskyttelse = null
+            adressebeskyttelse = null,
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
         ).right()
     }
 
