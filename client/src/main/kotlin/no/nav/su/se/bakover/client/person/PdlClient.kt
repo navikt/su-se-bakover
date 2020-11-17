@@ -130,6 +130,9 @@ internal class PdlClient(
         return feil.first()
     }
 
+    private fun hentAlleAdresser() {
+    }
+
     private fun specializedType(clazz: Class<*>) =
         objectMapper.typeFactory.constructParametricType(PdlResponse::class.java, clazz)
 }
@@ -199,15 +202,23 @@ data class TelefonnummerResponse(
 )
 
 data class Bostedsadresse(
-    val vegadresse: Vegadresse?
+    val vegadresse: Vegadresse?,
+    val ukjentBosed: UkjentBosted?,
+    val matrikeladresse: Matrikkeladresse?
 )
 
 data class Kontaktadresse(
-    val vegadresse: Vegadresse?
+    val vegadresse: Vegadresse?,
+    val postadresseIFrittFormat: PostadresseIFrittFormat?,
+    val postboksadresse: Postboksadresse?,
+    val utenlandskAdresse: UtenlandskAdresse?,
+    val utenlandskAdresseIFrittFormat: UtenlandskAdresseIFrittFormat?,
 )
 
 data class Oppholdsadresse(
-    val vegadresse: Vegadresse?
+    val vegadresse: Vegadresse?,
+    val ukjentBosed: UkjentBosted?,
+    val matrikeladresse: Matrikkeladresse?
 )
 
 data class Statsborgerskap(
@@ -224,6 +235,51 @@ data class Vegadresse(
     val postnummer: String?,
     val bruksenhetsnummer: String?
 )
+
+data class PostadresseIFrittFormat(
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val postnummer: String?
+)
+
+data class Postboksadresse(
+    val postbokseier: String?,
+    val postboks: String?,
+    val postnummer: String?
+)
+
+data class UkjentBosted(
+    val bostedskommune: String
+)
+
+data class Matrikkeladresse(
+    val matrikkelId: Long?,
+    val bruksenhetsnummer: String?,
+    val tilleggsnavn: String?,
+    val postnummer: String?,
+    val kommunenummer: String?,
+)
+
+data class UtenlandskAdresse(
+    val adressenavnNummer: String?,
+    val bygningEtasjeLeilighet: String?,
+    val postboksNummerNavn: String?,
+    val postkode: String?,
+    val bySted: String?,
+    val regionDistriktOmraade: String?,
+    val landkode: String,
+)
+
+data class UtenlandskAdresseIFrittFormat (
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val postkode: String?,
+    val byEllerStedsnavn: String?,
+    val landkode: String,
+)
+
 
 data class Metadata(
     val opplysningsId: String?,
