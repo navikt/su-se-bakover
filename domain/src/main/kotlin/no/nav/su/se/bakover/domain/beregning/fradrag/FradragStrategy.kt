@@ -13,12 +13,6 @@ internal sealed class FradragStrategy {
 
     protected open fun validate(fradrag: List<Fradrag>) {
         require(fradrag.harNøyaktigEnForventetInntektFor(FradragTilhører.BRUKER)) { "Fradrag må inneholde brukers forventede inntekt etter uførhet." }
-        require(finnFradragsperiode(fradrag).getAntallMåneder() == 12) { "Beregning av fradrag støtter kun behandling av 12-måneders perioder" }
-        require(
-            fradrag.all {
-                it.getPeriode().getAntallMåneder() == 12
-            }
-        ) { "Alle fradrag må være oppgitt i 12-måneders perioder" }
     }
 
     protected abstract fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag>

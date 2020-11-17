@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class EpsOver67StrategyTest {
     @Test
@@ -88,22 +87,6 @@ internal class EpsOver67StrategyTest {
                 it.getTotaltFradrag() shouldBe 23.0.plusOrMinus(0.0001)
                 it.getPeriode() shouldBe epsArbeidsinntekt.getPeriode()
             }
-        }
-    }
-
-    @Test
-    fun `godtar ikke fradrag hvor antall måneder ikke er 12 - denne oppførselene er udefinert`() {
-        assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsOver67År.beregn(
-                listOf(
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                        periode = Periode(1.januar(2020), 31.januar(2020))
-                    )
-                )
-            )
         }
     }
 
