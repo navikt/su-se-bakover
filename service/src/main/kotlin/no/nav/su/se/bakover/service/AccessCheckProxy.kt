@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -69,6 +70,13 @@ class AccessCheckProxy(
             avstemming = object : AvstemmingService {
                 override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
                     return services.avstemming.avstemming()
+                }
+
+                override fun avstemming(
+                    fraOgMed: Tidspunkt,
+                    tilOgMed: Tidspunkt
+                ): Either<AvstemmingFeilet, Avstemming> {
+                    return services.avstemming.avstemming(fraOgMed, tilOgMed)
                 }
             },
             utbetaling = object : UtbetalingService {
