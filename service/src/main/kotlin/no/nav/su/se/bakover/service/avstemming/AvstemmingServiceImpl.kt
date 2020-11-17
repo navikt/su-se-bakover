@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.avstemming
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -14,6 +15,15 @@ internal class AvstemmingServiceImpl(
 ) : AvstemmingService {
     override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
         val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming()).build()
+        return gjørAvstemming(periode)
+    }
+
+    override fun avstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Either<AvstemmingFeilet, Avstemming> {
+        val periode = AvstemmingsPeriode(fraOgMed, tilOgMed)
+        return gjørAvstemming(periode)
+    }
+
+    private fun gjørAvstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming> {
         val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
 
         val avstemming = Avstemming(
