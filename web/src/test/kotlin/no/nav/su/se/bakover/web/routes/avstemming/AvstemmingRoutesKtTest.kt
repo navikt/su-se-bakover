@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 internal class AvstemmingRoutesKtTest {
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
@@ -142,6 +144,31 @@ internal class AvstemmingRoutesKtTest {
             listOf(
                 "/avstem?fraOgMed=2020-11-18&tilOgMed=2020-11-17",
                 "/avstem?fraOgMed=2021-11-18&tilOgMed=2020-11-12",
+            ).forEach {
+                defaultRequest(
+                    HttpMethod.Post,
+                    it,
+                    listOf(Brukerrolle.Veileder)
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kall med tilOgMed etter dagens dato feiler`() {
+        withTestApplication({
+            testSusebakover(
+                services = services.copy(
+                    avstemming = happyAvstemmingService
+                )
+            )
+        }) {
+            listOf(
+                "/avstem?fraOgMed=2020-11-11&tilOgMed=${
+                LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE)
+                }",
             ).forEach {
                 defaultRequest(
                     HttpMethod.Post,

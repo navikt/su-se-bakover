@@ -41,10 +41,10 @@ internal fun Route.avstemmingRoutes(
                             )
                         }
                         .map {
-                            if (it.first > it.second) {
+                            if (!isValidAvstemmingsperiode(it)) {
                                 return@post call.respond(
                                     HttpStatusCode.BadRequest,
-                                    "Fra-dato må være <= til-dato."
+                                    "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!"
                                 )
                             }
                             it
@@ -65,6 +65,9 @@ internal fun Route.avstemmingRoutes(
             )
     }
 }
+
+private fun isValidAvstemmingsperiode(periode: Pair<LocalDate, LocalDate>) =
+    (periode.first <= periode.second) && periode.second < LocalDate.now()
 
 private fun erBeggeNullOrEmpty(s1: String?, s2: String?) = s1.isNullOrEmpty() && s2.isNullOrEmpty()
 private fun erIngenNullOrEmpty(s1: String?, s2: String?) = !s1.isNullOrEmpty() && !s2.isNullOrEmpty()
