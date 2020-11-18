@@ -190,7 +190,7 @@ internal class PdlClientTest : WiremockBase {
                         "husnummer": "42",
                         "husbokstav": null,
                         "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": "5427",
+                        "kommunenummer": null,
                         "postnummer": "9190",
                         "bruksenhetsnummer": null
                       }

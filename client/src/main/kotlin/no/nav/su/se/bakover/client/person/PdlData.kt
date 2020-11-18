@@ -44,7 +44,6 @@ internal data class PdlData(
             if (adresselinje != other.adresselinje) return false
             if (postnummer != other.postnummer) return false
             if (bruksenhet != other.bruksenhet) return false
-            if (kommunenummer != other.kommunenummer) return false
             if (landkode != other.landkode) return false
 
             return true
@@ -54,7 +53,6 @@ internal data class PdlData(
             var result = adresselinje?.hashCode() ?: 0
             result = 31 * result + (postnummer?.hashCode() ?: 0)
             result = 31 * result + (bruksenhet?.hashCode() ?: 0)
-            result = 31 * result + (kommunenummer?.hashCode() ?: 0)
             result = 31 * result + (landkode?.hashCode() ?: 0)
             return result
         }
