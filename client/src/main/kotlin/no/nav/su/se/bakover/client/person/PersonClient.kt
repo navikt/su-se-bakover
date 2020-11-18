@@ -46,7 +46,9 @@ class PersonClient(
                     kommune = it.kommunenummer?.let { kommunenummer ->
                         toKommune(kommunenummer)
                     },
-                    landkode = it.landkode
+                    landkode = it.landkode,
+                    adressetype = it.adressetype,
+                    adresseformat = it.adresseformat
                 )
             },
             statsborgerskap = pdlData.statsborgerskap,

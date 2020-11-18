@@ -74,7 +74,9 @@ internal class PersonRoutesKtTest {
                         "poststed": "OSLO",
                         "bruksenhet": "U1H20",
                         "kommunenavn": "OSLO",
-                        "kommunenummer":"0301"
+                        "kommunenummer":"0301",
+                        "adressetype": "Bostedsadresse",
+                        "adresseformat": "Vegadresse",
                     }],
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",

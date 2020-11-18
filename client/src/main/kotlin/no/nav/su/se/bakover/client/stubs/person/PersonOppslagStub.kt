@@ -26,6 +26,8 @@ object PersonOppslagStub :
                 bruksenhet = "U1H20",
                 poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
                 kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO"),
+                adressetype = "Bostedsadresse",
+                adresseformat = "Vegadresse"
             )
         ),
         statsborgerskap = "NOR",

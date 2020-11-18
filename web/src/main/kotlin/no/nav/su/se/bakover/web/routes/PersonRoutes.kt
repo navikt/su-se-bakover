@@ -34,8 +34,14 @@ internal fun Route.personRoutes(
                         {
                             when (it) {
                                 FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
-                                IkkeTilgangTilPerson -> Resultat.message(HttpStatusCode.Forbidden, "Ikke tilgang til å se person")
-                                Ukjent -> Resultat.message(HttpStatusCode.InternalServerError, "Feil ved oppslag på person")
+                                IkkeTilgangTilPerson -> Resultat.message(
+                                    HttpStatusCode.Forbidden,
+                                    "Ikke tilgang til å se person"
+                                )
+                                Ukjent -> Resultat.message(
+                                    HttpStatusCode.InternalServerError,
+                                    "Feil ved oppslag på person"
+                                )
                             }
                         },
                         { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
@@ -80,7 +86,9 @@ data class PersonResponseJson(
         val poststed: String?,
         val bruksenhet: String?,
         val kommunenummer: String?,
-        val kommunenavn: String?
+        val kommunenavn: String?,
+        val adressetype: String,
+        val adresseformat: String,
     )
 
     data class KontaktinfoJson(
@@ -116,7 +124,9 @@ data class PersonResponseJson(
                     poststed = it.poststed?.poststed,
                     bruksenhet = it.bruksenhet,
                     kommunenummer = it.kommune?.kommunenummer,
-                    kommunenavn = it.kommune?.kommunenavn
+                    kommunenavn = it.kommune?.kommunenavn,
+                    adressetype = it.adressetype,
+                    adresseformat = it.adresseformat
                 )
             },
             statsborgerskap = this.statsborgerskap,

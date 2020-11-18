@@ -25,6 +25,8 @@ data class Person(
         val bruksenhet: String?,
         val kommune: Kommune?,
         val landkode: String? = null,
+        val adressetype: String,
+        val adresseformat: String
     )
 
     data class Kommune(
