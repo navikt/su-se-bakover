@@ -532,7 +532,7 @@ internal class PdlClientTest : WiremockBase {
                     adresseformat = "Vegadresse"
                 ),
                 PdlData.Adresse(
-                    adresselinje = "MatrikkelId: 5, Storgården",
+                    adresselinje = "Storgården",
                     postnummer = "9190",
                     bruksenhet = "H0606",
                     kommunenummer = "5427",

@@ -157,10 +157,7 @@ internal class PdlClient(
                 )
                 is UkjentBosted -> null
                 is Matrikkeladresse -> Adresse(
-                    adresselinje = listOfNotNull(
-                        "MatrikkelId: ${format.matrikkelId}",
-                        format.tilleggsnavn
-                    ).joinToString(),
+                    adresselinje = format.tilleggsnavn,
                     postnummer = format.postnummer,
                     bruksenhet = format.bruksenhetsnummer,
                     kommunenummer = format.kommunenummer,
