@@ -7,7 +7,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.Clock
@@ -31,7 +33,9 @@ class BehandlingFactory(
         sakId: UUID,
         hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
         fnr: Fnr,
-        oppgaveId: OppgaveId
+        oppgaveId: OppgaveId,
+        iverksattJournalpostId: JournalpostId? = null,
+        iverksattBrevbestillingId: BrevbestillingId? = null,
     ) = Behandling(
         behandlingMetrics = behandlingMetrics,
         id = id,
@@ -46,6 +50,8 @@ class BehandlingFactory(
         sakId = sakId,
         hendelseslogg = hendelseslogg, // TODO create when behandling created by service probably also move out from behandling alltogether.
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        iverksattJournalpostId = iverksattJournalpostId,
+        iverksattBrevbestillingId = iverksattBrevbestillingId,
     )
 }

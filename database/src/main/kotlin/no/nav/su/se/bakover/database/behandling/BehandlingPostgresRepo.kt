@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -181,6 +183,30 @@ internal class BehandlingPostgresRepo(
         }
     }
 
+    override fun oppdaterIverksattJournalpostId(behandlingId: UUID, journalpostId: JournalpostId) {
+        dataSource.withSession { session ->
+            "update behandling set iverksattJournalpostId = :journalpostId where id=:id".oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "journalpostId" to journalpostId.toString()
+                ),
+                session
+            )
+        }
+    }
+
+    override fun oppdaterIverksattBrevbestillingId(behandlingId: UUID, bestillingId: BrevbestillingId) {
+        dataSource.withSession { session ->
+            "update behandling set iverksattBrevbestillingId = :bestillingId where id=:id".oppdatering(
+                mapOf(
+                    "id" to behandlingId,
+                    "bestillingId" to bestillingId.toString()
+                ),
+                session
+            )
+        }
+    }
+
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
         "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
@@ -215,7 +241,9 @@ internal class BehandlingPostgresRepo(
                     behandlingId.toString()
                 ),
             fnr = Fnr(string("fnr")),
-            oppgaveId = OppgaveId(string("oppgaveId"))
+            oppgaveId = OppgaveId(string("oppgaveId")),
+            iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) },
+            iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) },
         )
     }
 }
