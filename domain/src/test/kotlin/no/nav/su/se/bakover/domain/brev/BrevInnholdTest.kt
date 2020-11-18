@@ -9,19 +9,14 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class BrevInnholdTest {
-    val personalia = BrevInnhold.Personalia(
+    private val personalia = BrevInnhold.Personalia(
         dato = "01.01.2020",
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
-        adresse = "en Adresse",
-        husnummer = "4C",
-        bruksenhet = "H102",
-        postnummer = "0186",
-        poststed = "Oslo"
     )
 
-    val avslagsvedtak = BrevInnhold.AvslagsVedtak(
+    private val avslagsvedtak = BrevInnhold.AvslagsVedtak(
         personalia = personalia,
         satsbeløp = 31,
         fradragSum = 566,
@@ -29,7 +24,7 @@ internal class BrevInnholdTest {
         halvGrunnbeløp = 10
     )
 
-    val innvilgetVedtak = BrevInnhold.InnvilgetVedtak(
+    private val innvilgetVedtak = BrevInnhold.InnvilgetVedtak(
         personalia = personalia,
         månedsbeløp = 100,
         fradato = "01.01.2020",
@@ -43,7 +38,7 @@ internal class BrevInnholdTest {
         fradragSum = 0,
     )
 
-    val trukketSøknad = TrukketSøknadBrevInnhold(
+    private val trukketSøknad = TrukketSøknadBrevInnhold(
         personalia, 1.januar(2020), 1.februar(2020)
     )
 
@@ -56,12 +51,7 @@ internal class BrevInnholdTest {
               "dato":"01.01.2020",
               "fødselsnummer": "12345678901",
               "fornavn": "Tore",
-              "etternavn": "Strømøy",
-              "adresse": "en Adresse",
-              "husnummer": "4C",
-              "bruksenhet": "H102",
-              "postnummer": "0186",
-              "poststed": "Oslo"
+              "etternavn": "Strømøy"
             }
         """.trimIndent()
         JSONAssert.assertEquals(serialized, expectedJson, true)
@@ -77,12 +67,7 @@ internal class BrevInnholdTest {
               "dato":"01.01.2020",
               "fødselsnummer": "12345678901",
               "fornavn": "Tore",
-              "etternavn": "Strømøy",
-              "adresse": "en Adresse",
-              "husnummer": "4C",
-              "bruksenhet": "H102",
-              "postnummer": "0186",
-              "poststed": "Oslo"
+              "etternavn": "Strømøy"
               },
               "månedsbeløp": 100,
               "fradato": "01.01.2020",
@@ -109,12 +94,7 @@ internal class BrevInnholdTest {
               "dato":"01.01.2020",
               "fødselsnummer": "12345678901",
               "fornavn": "Tore",
-              "etternavn": "Strømøy",
-              "adresse": "en Adresse",
-              "husnummer": "4C",
-              "bruksenhet": "H102",
-              "postnummer": "0186",
-              "poststed": "Oslo"
+              "etternavn": "Strømøy"
               },
               "satsbeløp": 31,
               "fradragSum": 566,
@@ -135,12 +115,7 @@ internal class BrevInnholdTest {
                   "dato":"01.01.2020",
                   "fødselsnummer": "12345678901",
                   "fornavn": "Tore",
-                  "etternavn": "Strømøy",
-                  "adresse": "en Adresse",
-                  "husnummer": "4C",
-                  "bruksenhet": "H102",
-                  "postnummer": "0186",
-                  "poststed": "Oslo"
+                  "etternavn": "Strømøy"
               },
               "datoSøknadOpprettet": "01.01.2020",
               "trukketDato": "01.02.2020"

@@ -11,11 +11,6 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
-        val adresse: String?,
-        val husnummer: String?,
-        val bruksenhet: String?,
-        val postnummer: String?,
-        val poststed: String?,
     )
 
     data class AvslagsVedtak(

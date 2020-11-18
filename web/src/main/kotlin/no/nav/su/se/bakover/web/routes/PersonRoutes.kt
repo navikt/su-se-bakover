@@ -54,7 +54,7 @@ data class PersonResponseJson(
     val etternavn: String, // deprecated
     val navn: NavnJson,
     val telefonnummer: TelefonnummerJson?,
-    val adresse: AdresseJson?,
+    val adresse: List<AdresseJson>?,
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
@@ -75,9 +75,7 @@ data class PersonResponseJson(
     )
 
     data class AdresseJson(
-        val adressenavn: String?,
-        val husnummer: String?,
-        val husbokstav: String?,
+        val adresselinje: String?,
         val postnummer: String?,
         val poststed: String?,
         val bruksenhet: String?,
@@ -111,11 +109,9 @@ data class PersonResponseJson(
                     nummer = t.nummer
                 )
             },
-            adresse = this.adresse?.let {
+            adresse = this.adresse?.map {
                 AdresseJson(
-                    adressenavn = it.adressenavn,
-                    husnummer = it.husnummer,
-                    husbokstav = it.husbokstav,
+                    adresselinje = it.adresselinje,
                     postnummer = it.poststed?.postnummer,
                     poststed = it.poststed?.poststed,
                     bruksenhet = it.bruksenhet,

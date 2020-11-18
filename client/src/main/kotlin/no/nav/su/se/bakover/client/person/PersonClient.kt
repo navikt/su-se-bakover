@@ -36,18 +36,17 @@ class PersonClient(
                 )
             },
             telefonnummer = pdlData.telefonnummer,
-            adresse = pdlData.adresse?.let {
+            adresse = pdlData.adresse?.map {
                 Person.Adresse(
-                    adressenavn = it.adressenavn,
-                    husnummer = it.husnummer,
-                    husbokstav = it.husbokstav,
+                    adresselinje = it.adresselinje,
                     poststed = it.postnummer?.let { postnummer ->
                         toPoststed(postnummer)
                     },
                     bruksenhet = it.bruksenhet,
                     kommune = it.kommunenummer?.let { kommunenummer ->
                         toKommune(kommunenummer)
-                    }
+                    },
+                    landkode = it.landkode
                 )
             },
             statsborgerskap = pdlData.statsborgerskap,

@@ -190,7 +190,7 @@ internal class PdlClientTest : WiremockBase {
                         "husnummer": "42",
                         "husbokstav": null,
                         "adressenavn": "SANDTAKVEIEN",
-                        "kommunenummer": null,
+                        "kommunenummer": "5427",
                         "postnummer": "9190",
                         "bruksenhetsnummer": null
                       }
@@ -259,13 +259,25 @@ internal class PdlClientTest : WiremockBase {
             ),
             telefonnummer = null,
             kjønn = "MANN",
-            adresse = PdlData.Adresse(
-                adressenavn = "SANDTAKVEIEN",
-                husnummer = "42",
-                husbokstav = null,
-                postnummer = "9190",
-                bruksenhet = null,
-                kommunenummer = "5427"
+            adresse = listOf(
+                PdlData.Adresse(
+                    adresselinje = "SANDTAKVEIEN 42",
+                    postnummer = "9190",
+                    bruksenhet = null,
+                    kommunenummer = "5427"
+                ),
+                PdlData.Adresse(
+                    adresselinje = "SANDTAKVEIEN 42",
+                    postnummer = "9190",
+                    bruksenhet = null,
+                    kommunenummer = "5427"
+                ),
+                PdlData.Adresse(
+                    adresselinje = "SANDTAKVEIEN 42",
+                    postnummer = "9190",
+                    bruksenhet = null,
+                    kommunenummer = "5427"
+                )
             ),
             statsborgerskap = "SYR",
             adressebeskyttelse = null,

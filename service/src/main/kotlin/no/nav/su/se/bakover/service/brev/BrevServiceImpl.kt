@@ -74,11 +74,6 @@ internal class BrevServiceImpl(
         fødselsnummer = person.ident.fnr,
         fornavn = person.navn.fornavn,
         etternavn = person.navn.etternavn,
-        adresse = person.adresse?.adressenavn,
-        bruksenhet = person.adresse?.bruksenhet,
-        husnummer = person.adresse?.husnummer,
-        postnummer = person.adresse?.poststed?.postnummer,
-        poststed = person.adresse?.poststed?.poststed
     )
 
     private fun lagPdf(brevInnhold: BrevInnhold): Either<KunneIkkeLageBrev, ByteArray> {

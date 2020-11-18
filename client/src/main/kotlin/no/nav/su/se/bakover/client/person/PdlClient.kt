@@ -132,7 +132,7 @@ internal class PdlClient(
         fun tilAdresse(adresse: Adresseformat): Adresse? {
             return when (adresse) {
                 is Vegadresse -> Adresse(
-                    adresselinje = "${adresse.adressenavn} ${adresse.husnummer}${adresse.husnummer}",
+                    adresselinje = "${adresse.adressenavn} ${adresse.husnummer ?: ""}${adresse.husbokstav ?: ""}",
                     postnummer = adresse.postnummer,
                     bruksenhet = adresse.bruksenhetsnummer,
                     kommunenummer = adresse.kommunenummer,
@@ -187,10 +187,11 @@ internal class PdlClient(
                         tilAdresse(adresseformat)
                     }
                 }
-                is Oppholdsadresse -> listOf(it.vegadresse, it.matrikeladresse, it.utenlandskAdresse).firstOrNull()
-                    ?.let { adresseformat ->
-                        tilAdresse(adresseformat)
-                    }
+                is Oppholdsadresse ->
+                    listOf(it.vegadresse, it.matrikeladresse, it.utenlandskAdresse).firstOrNull()
+                        ?.let { adresseformat ->
+                            tilAdresse(adresseformat)
+                        }
                 is Kontaktadresse -> listOf(
                     it.vegadresse,
                     it.postadresseIFrittFormat,
