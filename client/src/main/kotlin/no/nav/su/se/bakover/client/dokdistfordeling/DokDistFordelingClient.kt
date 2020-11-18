@@ -31,12 +31,16 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             ).responseString()
 
         return result.fold(
-            {
-                json ->
+            { json ->
                 JSONObject(json).let {
-                    val bestillingsId = BrevbestillingId(it.optString("bestillingsId", ""))
-                    log.info("Bestilt distribusjon med bestillingsId $bestillingsId")
-                    bestillingsId.right()
+                    val eksternId: String? = it.optString("bestillingsId", null)
+
+                    if (eksternId == null) {
+                        log.error("Bestilt distribusjon, men bestillingsId manglet i responsen. Dette må følges opp manuelt.")
+                    } else {
+                        log.info("Bestilt distribusjon med bestillingsId $eksternId")
+                    }
+                    BrevbestillingId(eksternId ?: "ikke_mottatt_fra_ekstern_tjeneste").right()
                 }
             },
             {
