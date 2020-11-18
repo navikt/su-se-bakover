@@ -138,7 +138,7 @@ internal class PdlClient(
                     kommunenummer = adresse.kommunenummer,
                 )
                 is PostadresseIFrittFormat -> Adresse(
-                    adresselinje = listOf(
+                    adresselinje = listOfNotNull(
                         adresse.adresselinje1,
                         adresse.adresselinje2,
                         adresse.adresselinje3
@@ -151,13 +151,16 @@ internal class PdlClient(
                 )
                 is UkjentBosted -> null
                 is Matrikkeladresse -> Adresse(
-                    adresselinje = listOf("MatrikkelId: ${adresse.matrikkelId}", adresse.tilleggsnavn).joinToString(),
+                    adresselinje = listOfNotNull(
+                        "MatrikkelId: ${adresse.matrikkelId}",
+                        adresse.tilleggsnavn
+                    ).joinToString(),
                     postnummer = adresse.postnummer,
                     bruksenhet = adresse.bruksenhetsnummer,
                     kommunenummer = adresse.kommunenummer
                 )
                 is UtenlandskAdresse -> Adresse(
-                    adresselinje = listOf(
+                    adresselinje = listOfNotNull(
                         adresse.adressenavnNummer,
                         adresse.bygningEtasjeLeilighet,
                         adresse.bySted,
@@ -167,7 +170,7 @@ internal class PdlClient(
                     landkode = adresse.landkode
                 )
                 is UtenlandskAdresseIFrittFormat -> Adresse(
-                    adresselinje = listOf(
+                    adresselinje = listOfNotNull(
                         adresse.adresselinje1,
                         adresse.adresselinje2,
                         adresse.adresselinje3,
@@ -179,20 +182,18 @@ internal class PdlClient(
             }
         }
 
-        return adresser.map {
+        return adresser.mapNotNull {
             // TODO ai: Se om man kan førenkle
             when (it) {
-                is Bostedsadresse -> {
-                    listOf(it.vegadresse, it.matrikeladresse, it.ukjentBosted).firstOrNull()?.let { adresseformat ->
-                        tilAdresse(adresseformat)
-                    }
-                }
+                is Bostedsadresse ->
+                    listOfNotNull(it.vegadresse, it.matrikeladresse, it.ukjentBosted).firstOrNull()
+                        ?.let { tilAdresse(it) }
+
                 is Oppholdsadresse ->
-                    listOf(it.vegadresse, it.matrikeladresse, it.utenlandskAdresse).firstOrNull()
-                        ?.let { adresseformat ->
-                            tilAdresse(adresseformat)
-                        }
-                is Kontaktadresse -> listOf(
+                    listOfNotNull(it.vegadresse, it.matrikkeladresse, it.utenlandskAdresse).firstOrNull()
+                        ?.let { tilAdresse(it) }
+
+                is Kontaktadresse -> listOfNotNull(
                     it.vegadresse,
                     it.postadresseIFrittFormat,
                     it.postboksadresse,
@@ -200,7 +201,7 @@ internal class PdlClient(
                     it.utenlandskAdresseIFrittFormat,
                 ).firstOrNull()?.let { adresseformat -> tilAdresse(adresseformat) }
             }
-        }.filterNotNull()
+        }.distinct()
     }
 
     private fun specializedType(clazz: Class<*>) =
@@ -288,7 +289,7 @@ data class Kontaktadresse(
 
 data class Oppholdsadresse(
     val vegadresse: Vegadresse?,
-    val matrikeladresse: Matrikkeladresse?,
+    val matrikkeladresse: Matrikkeladresse?,
     val utenlandskAdresse: UtenlandskAdresse?,
 ) : Adressetype()
 
