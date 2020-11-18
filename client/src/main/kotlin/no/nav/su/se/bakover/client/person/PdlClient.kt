@@ -42,7 +42,7 @@ internal class PdlClient(
             val navn = hentPerson.navn.sortedBy {
                 folkeregisteretAsMaster(it.metadata)
             }.first()
-            val alleAdresser = hentAlleAdresser(
+            val alleAdresser = finnRiktigAdresseformatOgMapTilPdlAdresse(
                 listOf(
                     hentPerson.bostedsadresse,
                     hentPerson.oppholdsadresse,
@@ -128,78 +128,98 @@ internal class PdlClient(
         return feil.first()
     }
 
-    private fun hentAlleAdresser(adresser: List<Adressetype>): List<Adresse> {
-        fun tilAdresse(adresse: Adresseformat): Adresse? {
-            return when (adresse) {
+    private fun finnRiktigAdresseformatOgMapTilPdlAdresse(adresser: List<Adressetype>): List<Adresse> {
+        fun tilPdlAdresse(format: Adresseformat, adressetype: String): Adresse? {
+            return when (format) {
                 is Vegadresse -> Adresse(
-                    adresselinje = "${adresse.adressenavn} ${adresse.husnummer ?: ""}${adresse.husbokstav ?: ""}",
-                    postnummer = adresse.postnummer,
-                    bruksenhet = adresse.bruksenhetsnummer,
-                    kommunenummer = adresse.kommunenummer,
+                    adresselinje = "${format.adressenavn} ${format.husnummer ?: ""}${format.husbokstav ?: ""}",
+                    postnummer = format.postnummer,
+                    bruksenhet = format.bruksenhetsnummer,
+                    kommunenummer = format.kommunenummer,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
                 is PostadresseIFrittFormat -> Adresse(
                     adresselinje = listOfNotNull(
-                        adresse.adresselinje1,
-                        adresse.adresselinje2,
-                        adresse.adresselinje3
+                        format.adresselinje1,
+                        format.adresselinje2,
+                        format.adresselinje3
                     ).joinToString(),
-                    postnummer = adresse.postnummer,
+                    postnummer = format.postnummer,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
                 is Postboksadresse -> Adresse(
-                    adresselinje = "${adresse.postbokseier}, ${adresse.postboks}",
-                    postnummer = adresse.postnummer
+                    adresselinje = "${format.postbokseier}, ${format.postboks}",
+                    postnummer = format.postnummer,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
                 is UkjentBosted -> null
                 is Matrikkeladresse -> Adresse(
                     adresselinje = listOfNotNull(
-                        "MatrikkelId: ${adresse.matrikkelId}",
-                        adresse.tilleggsnavn
+                        "MatrikkelId: ${format.matrikkelId}",
+                        format.tilleggsnavn
                     ).joinToString(),
-                    postnummer = adresse.postnummer,
-                    bruksenhet = adresse.bruksenhetsnummer,
-                    kommunenummer = adresse.kommunenummer
+                    postnummer = format.postnummer,
+                    bruksenhet = format.bruksenhetsnummer,
+                    kommunenummer = format.kommunenummer,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
                 is UtenlandskAdresse -> Adresse(
                     adresselinje = listOfNotNull(
-                        adresse.adressenavnNummer,
-                        adresse.bygningEtasjeLeilighet,
-                        adresse.bySted,
-                        adresse.regionDistriktOmraade
+                        format.adressenavnNummer,
+                        format.bygningEtasjeLeilighet,
+                        format.bySted,
+                        format.regionDistriktOmraade
                     ).joinToString(),
-                    postnummer = adresse.postkode,
-                    landkode = adresse.landkode
+                    postnummer = format.postkode,
+                    landkode = format.landkode,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
                 is UtenlandskAdresseIFrittFormat -> Adresse(
                     adresselinje = listOfNotNull(
-                        adresse.adresselinje1,
-                        adresse.adresselinje2,
-                        adresse.adresselinje3,
-                        adresse.byEllerStedsnavn
+                        format.adresselinje1,
+                        format.adresselinje2,
+                        format.adresselinje3,
+                        format.byEllerStedsnavn
                     ).joinToString(),
-                    postnummer = adresse.postkode,
-                    landkode = adresse.landkode
+                    postnummer = format.postkode,
+                    landkode = format.landkode,
+                    adresseformat = format.type,
+                    adressetype = adressetype
                 )
             }
         }
 
-        return adresser.mapNotNull {
+        return adresser.mapNotNull { adressetype ->
             // TODO ai: Se om man kan førenkle
-            when (it) {
+            when (adressetype) {
                 is Bostedsadresse ->
-                    listOfNotNull(it.vegadresse, it.matrikeladresse, it.ukjentBosted).firstOrNull()
-                        ?.let { tilAdresse(it) }
+                    listOfNotNull(
+                        adressetype.vegadresse,
+                        adressetype.matrikeladresse,
+                        adressetype.ukjentBosted
+                    ).firstOrNull()
+                        ?.let { tilPdlAdresse(it, adressetype.type) }
 
                 is Oppholdsadresse ->
-                    listOfNotNull(it.vegadresse, it.matrikkeladresse, it.utenlandskAdresse).firstOrNull()
-                        ?.let { tilAdresse(it) }
+                    listOfNotNull(
+                        adressetype.vegadresse,
+                        adressetype.matrikkeladresse,
+                        adressetype.utenlandskAdresse
+                    ).firstOrNull()
+                        ?.let { tilPdlAdresse(it, adressetype.type) }
 
                 is Kontaktadresse -> listOfNotNull(
-                    it.vegadresse,
-                    it.postadresseIFrittFormat,
-                    it.postboksadresse,
-                    it.utenlandskAdresse,
-                    it.utenlandskAdresseIFrittFormat,
-                ).firstOrNull()?.let { adresseformat -> tilAdresse(adresseformat) }
+                    adressetype.vegadresse,
+                    adressetype.postadresseIFrittFormat,
+                    adressetype.postboksadresse,
+                    adressetype.utenlandskAdresse,
+                    adressetype.utenlandskAdresseIFrittFormat,
+                ).firstOrNull()?.let { tilPdlAdresse(it, adressetype.type) }
             }
         }.distinct()
     }
@@ -272,12 +292,12 @@ data class TelefonnummerResponse(
     val prioritet: Int
 )
 
-sealed class Adressetype()
+sealed class Adressetype(val type: String)
 data class Bostedsadresse(
     val vegadresse: Vegadresse?,
     val ukjentBosted: UkjentBosted?,
     val matrikeladresse: Matrikkeladresse?
-) : Adressetype()
+) : Adressetype(type = "Bostedsadresse")
 
 data class Kontaktadresse(
     val vegadresse: Vegadresse?,
@@ -285,13 +305,13 @@ data class Kontaktadresse(
     val postboksadresse: Postboksadresse?,
     val utenlandskAdresse: UtenlandskAdresse?,
     val utenlandskAdresseIFrittFormat: UtenlandskAdresseIFrittFormat?,
-) : Adressetype()
+) : Adressetype(type = "Kontaktadresse")
 
 data class Oppholdsadresse(
     val vegadresse: Vegadresse?,
     val matrikkeladresse: Matrikkeladresse?,
     val utenlandskAdresse: UtenlandskAdresse?,
-) : Adressetype()
+) : Adressetype(type = "Oppholdsadresse")
 
 data class Statsborgerskap(
     val land: String,
@@ -299,7 +319,7 @@ data class Statsborgerskap(
     val gyldigTilOgMed: LocalDate?
 )
 
-sealed class Adresseformat()
+sealed class Adresseformat(val type: String)
 data class Vegadresse(
     val husnummer: String?,
     val husbokstav: String?,
@@ -307,24 +327,24 @@ data class Vegadresse(
     val kommunenummer: String?,
     val postnummer: String?,
     val bruksenhetsnummer: String?
-) : Adresseformat()
+) : Adresseformat(type = "Vegadresse")
 
 data class PostadresseIFrittFormat(
     val adresselinje1: String?,
     val adresselinje2: String?,
     val adresselinje3: String?,
     val postnummer: String?
-) : Adresseformat()
+) : Adresseformat(type = "PostadresseIFrittFormat")
 
 data class Postboksadresse(
     val postbokseier: String?,
     val postboks: String?,
     val postnummer: String?
-) : Adresseformat()
+) : Adresseformat(type = "Postboksadresse")
 
 data class UkjentBosted(
     val bostedskommune: String
-) : Adresseformat()
+) : Adresseformat(type = "UkjentBosted")
 
 data class Matrikkeladresse(
     val matrikkelId: Long?,
@@ -332,7 +352,7 @@ data class Matrikkeladresse(
     val tilleggsnavn: String?,
     val postnummer: String?,
     val kommunenummer: String?,
-) : Adresseformat()
+) : Adresseformat(type = "Matrikkeladresse")
 
 data class UtenlandskAdresse(
     val adressenavnNummer: String?,
@@ -342,7 +362,7 @@ data class UtenlandskAdresse(
     val bySted: String?,
     val regionDistriktOmraade: String?,
     val landkode: String,
-) : Adresseformat()
+) : Adresseformat(type = "UtenlandskAdresse")
 
 data class UtenlandskAdresseIFrittFormat(
     val adresselinje1: String?,
@@ -351,7 +371,7 @@ data class UtenlandskAdresseIFrittFormat(
     val postkode: String?,
     val byEllerStedsnavn: String?,
     val landkode: String,
-) : Adresseformat()
+) : Adresseformat(type = "UtenlandskAdresseIFrittFormat")
 
 data class Metadata(
     val opplysningsId: String?,

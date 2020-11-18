@@ -264,7 +264,9 @@ internal class PdlClientTest : WiremockBase {
                     adresselinje = "SANDTAKVEIEN 42",
                     postnummer = "9190",
                     bruksenhet = null,
-                    kommunenummer = "5427"
+                    kommunenummer = "5427",
+                    adressetype = "Bostedsadresse",
+                    adresseformat = "Vegadresse",
                 ),
             ),
             statsborgerskap = "SYR",
@@ -389,19 +391,25 @@ internal class PdlClientTest : WiremockBase {
                     adresselinje = "SANDTAKVEIEN 42",
                     postnummer = "9190",
                     bruksenhet = null,
-                    kommunenummer = "5427"
+                    kommunenummer = "5427",
+                    adressetype = "Bostedsadresse",
+                    adresseformat = "Vegadresse"
                 ),
                 PdlData.Adresse(
                     adresselinje = "MatrikkelId: 5, Storgården",
                     postnummer = "9190",
                     bruksenhet = "H0606",
-                    kommunenummer = "5427"
+                    kommunenummer = "5427",
+                    adressetype = "Oppholdsadresse",
+                    adresseformat = "Matrikkeladresse"
                 ),
                 PdlData.Adresse(
                     adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
                     postnummer = "9190",
                     bruksenhet = null,
                     kommunenummer = null,
+                    adressetype = "Kontaktadresse",
+                    adresseformat = "PostadresseIFrittFormat"
                 ),
             ),
             statsborgerskap = "SYR",
