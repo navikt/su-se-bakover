@@ -223,7 +223,6 @@ data class Behandling internal constructor(
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
                 beregning = strategy.beregn(beregningsgrunnlag)
 
-                // TODO 2% only applicable for enslig or eps u/67
                 if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
                     return
