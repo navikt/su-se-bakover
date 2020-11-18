@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.metrics
 
 import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.Metrics.counter
 import io.micrometer.core.instrument.Tags
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -23,7 +22,9 @@ class BehandlingMicrometerMetrics : BehandlingMetrics {
     }
 
     /* Underkjent behandling er et eget konsept på utsiden av BehandlingStatus. Derfor må den ligge utenfor. */
-    override fun incrementUnderkjentCounter(handling: UnderkjentHandlinger) = counter("soknadsbehandling_underkjent").increment()
+    override fun incrementUnderkjentCounter(handling: UnderkjentHandlinger) {
+        incrementCounter("soknadsbehandling_underkjent", handling.name)
+    }
 
     override fun incrementInnvilgetCounter(handling: BehandlingMetrics.InnvilgetHandlinger) {
         incrementCounter("soknadsbehandling_innvilget", handling.name)
