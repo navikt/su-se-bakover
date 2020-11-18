@@ -277,6 +277,142 @@ internal class PdlClientTest : WiremockBase {
     }
 
     @Test
+    fun `hent person OK og viser alle ulike adresser, the sequel`() {
+
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "navn": [
+                    {
+                      "fornavn": "NYDELIG",
+                      "mellomnavn": null,
+                      "etternavn": "KRONJUVEL",
+                      "metadata": {
+                        "master": "Freg"
+                      }
+                    }
+                  ],
+                  "telefonnummer": [],
+                  "bostedsadresse": [
+                    {
+                      "vegadresse": {
+                        "husnummer": "42",
+                        "husbokstav": null,
+                        "adressenavn": "SANDTAKVEIEN",
+                        "kommunenummer": "5427",
+                        "postnummer": "9190",
+                        "bruksenhetsnummer": null
+                      }
+                    }
+                  ],
+                  "kontaktadresse": [
+                    {
+                      "vegadresse": null,
+                      "postadresseIFrittFormat": {
+                        "adresselinje1": "HER ER POSTLINJE 1",
+                        "adresselinje2": "OG POSTLINJE 2",
+                        "adresselinje3": null,
+                        "postnummer": "9190"
+                      },
+                      "postboksadresse": null,
+                      "utenlandskAdresse": null,
+                      "utenlandskAdresseIFrittFormat": null
+                    }
+                  ],
+                  "oppholdsadresse": [
+                    {
+                    "vegadresse": {
+                      "husnummer": "42",
+                      "husbokstav": null,
+                      "adressenavn": "SANDTAKVEIEN",
+                      "kommunenummer": "5427",
+                      "postnummer": "9190",
+                      "bruksenhetsnummer": null
+                    },
+                      "matrikkeladresse": null,
+                      "utenlandskAdresse": null
+                    }
+                  ],
+                  "statsborgerskap": [
+                    {
+                      "land": "SYR",
+                      "gyldigFraOgMed": null,
+                      "gyldigTilOgMed": null
+                    },
+                    {
+                      "land": "SYR",
+                      "gyldigFraOgMed": null,
+                      "gyldigTilOgMed": null
+                    }
+                  ],
+                  "kjoenn": [
+                    {
+                      "kjoenn": "MANN"
+                    }
+                  ],
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
+                },
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+        wireMockServer.stubFor(
+            wiremockBuilder
+                .willReturn(WireMock.ok(suksessResponseJson))
+        )
+
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        client.person(Fnr("07028820547")) shouldBe PdlData(
+            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+            navn = PdlData.Navn(
+                fornavn = "NYDELIG",
+                mellomnavn = null,
+                etternavn = "KRONJUVEL"
+            ),
+            telefonnummer = null,
+            kjønn = "MANN",
+            adresse = listOf<PdlData.Adresse>(
+                PdlData.Adresse(
+                    adresselinje = "SANDTAKVEIEN 42",
+                    postnummer = "9190",
+                    bruksenhet = null,
+                    kommunenummer = "5427",
+                    adressetype = "Bostedsadresse",
+                    adresseformat = "Vegadresse"
+                ),
+                PdlData.Adresse(
+                    adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
+                    postnummer = "9190",
+                    bruksenhet = null,
+                    kommunenummer = null,
+                    adressetype = "Kontaktadresse",
+                    adresseformat = "PostadresseIFrittFormat"
+                ),
+            ),
+            statsborgerskap = "SYR",
+            adressebeskyttelse = null,
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
+        ).right()
+    }
+
+    @Test
     fun `hent person OK og viser alle ulike adresser`() {
 
         //language=JSON

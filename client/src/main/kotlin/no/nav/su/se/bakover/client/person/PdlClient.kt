@@ -200,7 +200,7 @@ internal class PdlClient(
                 is Bostedsadresse ->
                     listOfNotNull(
                         adressetype.vegadresse,
-                        adressetype.matrikeladresse,
+                        adressetype.matrikkeladresse,
                         adressetype.ukjentBosted
                     ).firstOrNull()
                         ?.let { tilPdlAdresse(it, adressetype.type) }
@@ -296,7 +296,7 @@ sealed class Adressetype(val type: String)
 data class Bostedsadresse(
     val vegadresse: Vegadresse?,
     val ukjentBosted: UkjentBosted?,
-    val matrikeladresse: Matrikkeladresse?
+    val matrikkeladresse: Matrikkeladresse?
 ) : Adressetype(type = "Bostedsadresse")
 
 data class Kontaktadresse(
