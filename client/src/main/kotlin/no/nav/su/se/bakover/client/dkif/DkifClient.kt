@@ -35,8 +35,13 @@ class DkifClient(val baseUrl: String, val tokenOppslag: TokenOppslag, val consum
                     }
             },
             {
-                val errorMessage = "Feil ved henting av digital kontaktinformasjon"
-                log.error("$errorMessage. Status=${response.statusCode} Body=${String(response.data)}", it)
+                val errorMessage = "Feil ved henting av digital kontaktinformasjon. Status=${response.statusCode} Body=${String(response.data)}"
+                if (response.statusCode == 500) {
+                    // Eksempel json-response: `{"melding":"Det oppsto en feil ved kall til Maskinporten"}`
+                    log.warn(errorMessage, it)
+                } else {
+                    log.error(errorMessage, it)
+                }
                 DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon.left()
             }
         )
