@@ -1,79 +1,97 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import arrow.syntax.function.pipe
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Minstepensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 internal sealed class FradragStrategy {
-    fun beregn(fradrag: List<Fradrag>): List<Fradrag> {
-        validate(fradrag)
-        return beregnFradrag(fradrag)
+    fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {
+        val periodiserteFradrag = fradrag
+            .flatMap { it.periodiser() }
+            .groupBy { it.getPeriode() }
+        val beregningsperiodeMedFradrag = beregningsperiode.tilMånedsperioder()
+            .map { it to (periodiserteFradrag[it] ?: emptyList()) }
+            .toMap()
+
+        validate(beregningsperiodeMedFradrag)
+        return beregnFradrag(beregningsperiodeMedFradrag)
     }
 
-    protected open fun validate(fradrag: List<Fradrag>) {
-        require(fradrag.harNøyaktigEnForventetInntektFor(FradragTilhører.BRUKER)) { "Fradrag må inneholde brukers forventede inntekt etter uførhet." }
+    protected open fun validate(fradrag: Map<Periode, List<Fradrag>>) {
+        require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet." }
     }
 
-    protected abstract fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag>
+    protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
 
     object Enslig : FradragStrategy() {
-        override fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag> {
-            return fradrag
-                .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.BRUKER, it) }
+        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
+            return fradrag.mapValues { it.value.filter { it.getTilhører() == FradragTilhører.BRUKER } }
+                .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
     }
 
     object EpsOver67År : FradragStrategy() {
-        override fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag> {
-            val periode = finnFradragsperiode(fradrag)
+        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag
-                .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.BRUKER, it) }
-                .pipe { `fjern EPS fradrag opp til beløpsgrense`(periodisertSumMinstepensjonsnivå(periode), it) }
+                .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
+                .`fjern EPS fradrag opp til minstepensjonsnivå`()
         }
 
         private fun periodisertSumMinstepensjonsnivå(periode: Periode) =
             Minstepensjonsnivå.Ordinær.periodiser(periode).values.sumByDouble { it }
+
+        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til minstepensjonsnivå`(): Map<Periode, List<Fradrag>> {
+            return mapValues {
+                `fjern EPS fradrag opp til beløpsgrense`(
+                    periode = it.key,
+                    beløpsgrense = periodisertSumMinstepensjonsnivå(it.key),
+                    fradrag = it.value
+                )
+            }
+        }
     }
 
     object EpsUnder67ÅrOgUførFlyktning : FradragStrategy() {
-
-        override fun validate(fradrag: List<Fradrag>) {
-            super.validate(fradrag)
-            require(fradrag.harNøyaktigEnForventetInntektFor(FradragTilhører.EPS)) { "Fradrag må inneholde EPSs forventede inntekt etter uførhet." }
-        }
-
-        override fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag> {
-            val periode = finnFradragsperiode(fradrag)
+        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag
-                .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.BRUKER, it) }
-                .pipe { `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(FradragTilhører.EPS, it) }
-                .pipe { `fjern EPS fradrag opp til beløpsgrense`(periodisertSumSatsbeløp(periode), it) }
+                .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
+                .`fjern EPS fradrag opp til satsbeløp`()
         }
 
         private fun periodisertSumSatsbeløp(periode: Periode) =
             Sats.ORDINÆR.periodiser(periode).values.sumByDouble { it }
+
+        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Periode, List<Fradrag>> {
+            return mapValues {
+                `fjern EPS fradrag opp til beløpsgrense`(
+                    it.key,
+                    periodisertSumSatsbeløp(it.key),
+                    it.value
+                )
+            }
+        }
     }
 
     object EpsUnder67År : FradragStrategy() {
-        override fun beregnFradrag(fradrag: List<Fradrag>): List<Fradrag> =
+        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> =
             fradrag
-                .pipe {
-                    `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(
-                        FradragTilhører.BRUKER,
-                        fradrag
-                    )
-                }
-                .pipe { slåSammenEpsFradragTilSammeType(it) }
+                .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
+                .`slå sammen eps sine fradrag til en og samme type`()
 
-        private fun slåSammenEpsFradragTilSammeType(fradrag: List<Fradrag>): List<Fradrag> {
+        private fun Map<Periode, List<Fradrag>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Periode, List<Fradrag>> {
+            return mapValues { `slå sammen eps sine fradrag til en og samme type`(it.key, it.value) }
+        }
+
+        private fun `slå sammen eps sine fradrag til en og samme type`(
+            periode: Periode,
+            fradrag: List<Fradrag>
+        ): List<Fradrag> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
             if (epsFradrag.isEmpty()) return søkersFradrag
             val sammenslått = FradragFactory.ny(
                 type = Fradragstype.BeregnetFradragEPS,
                 beløp = epsFradrag.sumByDouble { it.getTotaltFradrag() },
-                periode = finnFradragsperiode(epsFradrag),
+                periode = periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.EPS
             )
@@ -81,53 +99,49 @@ internal sealed class FradragStrategy {
         }
     }
 
-    protected fun `filtrer ut den laveste av arbeidsinntekt og forventet inntekt`(
-        tilhører: FradragTilhører,
+    protected fun Map<Periode, List<Fradrag>>.`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(): Map<Periode, List<Fradrag>> {
+        return mapValues { `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(it.value) }
+    }
+
+    private fun `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(
         fradrag: List<Fradrag>
     ): List<Fradrag> {
         val arbeidsinntekter =
-            fradrag.filter { it.getTilhører() == tilhører && it.getFradragstype() == Fradragstype.Arbeidsinntekt }
+            fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.Arbeidsinntekt }
         val forventetInntekt =
-            fradrag.filter { it.getTilhører() == tilhører && it.getFradragstype() == Fradragstype.ForventetInntekt }
+            fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt }
 
         return if (arbeidsinntekter.sumByDouble { it.getTotaltFradrag() } > forventetInntekt.sumByDouble { it.getTotaltFradrag() })
-            fradrag.filter { !forventetInntekt.contains(it) }
+            fradrag.minus(forventetInntekt)
         else
-            fradrag.filter { !arbeidsinntekter.contains(it) }
+            fradrag.minus(arbeidsinntekter)
     }
 
     protected fun `fjern EPS fradrag opp til beløpsgrense`(
+        periode: Periode,
         beløpsgrense: Double,
         fradrag: List<Fradrag>
     ): List<Fradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
         val epsFradragSum = epsFradrag.sumByDouble { it.getTotaltFradrag() }
 
-        val diff = epsFradragSum - beløpsgrense
+        val beregnetFradragEps = epsFradragSum - beløpsgrense
 
-        if (diff <= 0) {
+        if (beregnetFradragEps <= 0) {
             return søkersFradrag
         }
 
         return søkersFradrag.plus(
-            epsFradrag[0].let // TODO should be replaced - guaranteed by guards for now.
-            {
-                FradragFactory.ny(
-                    type = Fradragstype.BeregnetFradragEPS,
-                    beløp = diff,
-                    periode = it.getPeriode(),
-                    utenlandskInntekt = null,
-                    tilhører = it.getTilhører()
-                )
-            }
+            FradragFactory.ny(
+                type = Fradragstype.BeregnetFradragEPS,
+                beløp = beregnetFradragEps,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS
+            )
         )
     }
 
-    protected fun List<Fradrag>.harNøyaktigEnForventetInntektFor(fradragTilhører: FradragTilhører) =
-        singleOrNull { it.getTilhører() == fradragTilhører && it.getFradragstype() == Fradragstype.ForventetInntekt } != null
-
-    protected fun finnFradragsperiode(fradrag: List<Fradrag>) = Periode(
-        fradrag.minByOrNull { it.getPeriode().getFraOgMed() }!!.getPeriode().getFraOgMed(),
-        fradrag.maxByOrNull { it.getPeriode().getTilOgMed() }!!.getPeriode().getTilOgMed()
-    )
+    protected fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
+        singleOrNull { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt } != null
 }

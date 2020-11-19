@@ -1,238 +1,164 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.doubles.plusOrMinus
+import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.EPS
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.BeregnetFradragEPS
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.ForventetInntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Kapitalinntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
+/**
+ * Mpn 1.jan = 227676.28 -> pr.mnd = 18973.02
+ * Mpn 1.mai = 231080.28 -> pr.mnd = 19256.69
+ * Periodisert grense 2020 = (4 * 18973.02) + (8 * 19256.69) = 229945.6
+ */
 internal class EpsUnder67OgUførFlyktningStrategyTest {
+
     @Test
-    fun `EPS sin inntekt skal ikke regnes dersom det er under ordinær sats for uføretrygd`() {
-        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10.0, tilhører = FradragTilhører.BRUKER)
-        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 10.0, tilhører = FradragTilhører.EPS)
-        val epsKontantstøtte = lagFradrag(Fradragstype.Kontantstøtte, 10.0, tilhører = FradragTilhører.EPS)
-        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10.0, tilhører = FradragTilhører.EPS)
+    fun `inkluderer ikke fradrag for EPS som er lavere enn ordinær sats for uføretrygd for aktuell måned`() {
+        val periode = Periode(1.januar(2020), 31.januar(2020))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsForventetInntekt = lagFradrag(ForventetInntekt, 5000.0, periode, tilhører = EPS)
 
         FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-            fradrag = listOf(forventetInntekt, epsArbeidsinntekt, epsKontantstøtte, epsForventetInntekt)
+            fradrag = listOf(forventetInntekt, epsForventetInntekt),
+            beregningsperiode = periode
         ).let {
-            it shouldBe listOf(forventetInntekt)
-        }
-    }
-
-    /**
-     * Mpn 1.jan = 227676.28 -> pr.mnd = 18973.02
-     * Mpn 1.mai = 231080.28 -> pr.mnd = 19256.69
-     * Periodisert grense 2020 = (4 * 18973.02) + (8 * 19256.69) = 229945.6
-     */
-    @Test
-    fun `inkluderer ikke fradrag når sum er lavere enn periodisert ordinær sats for aktuell 12-månedersperiode`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beløpUnderPeriodisertOrdinærSats = 229944.0
-        val forventetInntekt = lagFradrag(
-            type = Fradragstype.ForventetInntekt,
-            beløp = 10000.0,
-            tilhører = FradragTilhører.BRUKER,
-            periode = periode
-        )
-
-        val epsForventetInntekt = FradragFactory.ny(
-            type = Fradragstype.ForventetInntekt,
-            beløp = 0.0,
-            periode = periode,
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.EPS
-        )
-
-        val epsArbeidsinntekt = lagFradrag(
-            type = Fradragstype.Arbeidsinntekt,
-            beløp = beløpUnderPeriodisertOrdinærSats,
-            tilhører = FradragTilhører.EPS,
-            periode = periode
-        )
-
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsArbeidsinntekt)
-        ).let {
-            it shouldBe listOf(forventetInntekt)
-        }
-    }
-
-    /**
-     * Mpn 1.jan = 227676.28 -> pr.mnd = 18973.02
-     * Mpn 1.mai = 231080.28 -> pr.mnd = 19256.69
-     * Periodisert grense 2020 = (4 * 18973.02) + (8 * 19256.69) = 229945.6
-     */
-    @Test
-    fun `inkluderer fradrag når sum er høyere enn periodisert ordinær sats for aktuell 12-månedersperiode`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
-        val beløpOverPeriodisertOrdinærSats = 229947.6
-        val forventetInntekt = lagFradrag(
-            type = Fradragstype.ForventetInntekt,
-            beløp = 10000.0,
-            tilhører = FradragTilhører.BRUKER,
-            periode = periode
-        )
-
-        val epsForventetInntekt = FradragFactory.ny(
-            type = Fradragstype.ForventetInntekt,
-            beløp = 0.0,
-            periode = periode,
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.EPS
-        )
-
-        val epsArbeidsinntekt = lagFradrag(
-            type = Fradragstype.Arbeidsinntekt,
-            beløp = beløpOverPeriodisertOrdinærSats,
-            tilhører = FradragTilhører.EPS,
-            periode = periode
-        )
-
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsArbeidsinntekt)
-        ).let {
-            val (bruker, eps) = it.partition { it.getTilhører() == FradragTilhører.BRUKER }
-            bruker shouldContainExactly listOf(forventetInntekt)
-            eps shouldHaveSize 1
-            eps.first { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }.let {
-                it.getTotaltFradrag() shouldBe 2.0.plusOrMinus(0.0001)
-                it.getPeriode() shouldBe epsArbeidsinntekt.getPeriode()
-            }
+            it shouldHaveSize 1
+            it.values.forEach { it shouldBe listOf(forventetInntekt) }
         }
     }
 
     @Test
-    fun `godtar ikke fradrag hvor antall måneder ikke er 12 - denne oppførselene er udefinert`() {
-        assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-                listOf(
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                        periode = Periode(1.januar(2020), 31.januar(2020))
-                    )
-                )
+    fun `inkluderer fradrag for EPS som overstiger ordinær sats for uføretrygd for aktuell måned`() {
+        val periode = Periode(1.januar(2020), 31.januar(2020))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsForventetInntekt = lagFradrag(ForventetInntekt, 20000.0, periode, tilhører = EPS)
+
+        val expectedEpsFradrag = lagFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, periode, tilhører = EPS)
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, epsForventetInntekt),
+            beregningsperiode = periode
+        ).let {
+            it shouldHaveSize 1
+            it.values.forEach { it shouldContainAll listOf(forventetInntekt, expectedEpsFradrag) }
+        }
+    }
+
+    @Test
+    fun `varierer mellom å inkludere og ikke inkludere EPS sine fradrag`() {
+        val forventetInntekt =
+            lagFradrag(ForventetInntekt, 12000.0, Periode(1.januar(2020), 31.desember(2020)), tilhører = BRUKER)
+        val epsArbeidsinntektJan =
+            lagFradrag(ForventetInntekt, 20000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
+        val epsArbeidsinntektJuli =
+            lagFradrag(Arbeidsinntekt, 20000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = EPS)
+
+        val expectedFradragBrukerJan =
+            lagFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = BRUKER)
+        val expectedFradragBrukerMars =
+            lagFradrag(ForventetInntekt, 1000.0, Periode(1.mars(2020), 31.mars(2020)), tilhører = BRUKER)
+        val expectedFradragBrukerJuli =
+            lagFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
+        val expectedEpsFradragJan =
+            lagFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
+        val expectedEpsFradragJuli =
+            lagFradrag(
+                BeregnetFradragEPS, 20000.0 - 19256.69, Periode(1.juli(2020), 31.juli(2020)), tilhører = EPS
+            )
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, epsArbeidsinntektJan, epsArbeidsinntektJuli),
+            beregningsperiode = Periode(1.januar(2020), 31.desember(2020))
+        ).let {
+            it shouldHaveSize 12
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                expectedFradragBrukerJan,
+                expectedEpsFradragJan
+            )
+            it[Periode(1.mars(2020), 31.mars(2020))]!! shouldBe listOf(expectedFradragBrukerMars)
+            it[Periode(1.juli(2020), 31.juli(2020))]!! shouldContainAll listOf(
+                expectedFradragBrukerJuli,
+                expectedEpsFradragJuli
             )
         }
     }
 
     @Test
-    fun `eps må oppgi nøyaktig en forventet inntekt`() {
-        assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-                listOf(
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                        periode = Periode(1.januar(2020), 31.desember(2020))
-                    )
-                )
-            )
-        }.let {
-            it.message shouldContain "Fradrag må inneholde EPSs forventede inntekt etter uførhet."
-        }
-
-        assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-                listOf(
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                        periode = Periode(1.januar(2020), 31.desember(2020))
-                    ),
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.EPS,
-                        periode = Periode(1.januar(2020), 31.desember(2020))
-                    ),
-                    lagFradrag(
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = 10000.0,
-                        tilhører = FradragTilhører.EPS,
-                        periode = Periode(1.januar(2020), 31.desember(2020))
-                    )
-                )
-            )
-        }.let {
-            it.message shouldContain "Fradrag må inneholde EPSs forventede inntekt etter uførhet."
-        }
-    }
-
-    @Test
-    fun `velger EPS sin arbeidsinntekt dersom den er større enn forventet inntekt`() {
-        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
-        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 5000.0, tilhører = FradragTilhører.EPS)
-        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
-        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 150000.0, tilhører = FradragTilhører.EPS)
-
-        val periodisertBeløpsgrense2020 = 229945.6
-        val expectedBeregnetEpsFradrag = lagFradrag(
-            type = Fradragstype.BeregnetFradragEPS,
-            beløp = (epsUføretrygd.getTotaltFradrag() + epsArbeidsinntekt.getTotaltFradrag()) - periodisertBeløpsgrense2020,
-            tilhører = FradragTilhører.EPS
-        )
-
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsUføretrygd, epsArbeidsinntekt)
-        ).let {
-            it shouldBe listOf(forventetInntekt, expectedBeregnetEpsFradrag)
-        }
-    }
-
-    @Test
-    fun `velger EPS sin forventetInntekt dersom den er større enn arbeidsinntekt`() {
-        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
-        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 150000.0, tilhører = FradragTilhører.EPS)
-        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
-        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, tilhører = FradragTilhører.EPS)
-
-        val periodisertBeløpsgrense2020 = 229945.6
-        val expectedBeregnetEpsFradrag = lagFradrag(
-            type = Fradragstype.BeregnetFradragEPS,
-            beløp = (epsUføretrygd.getTotaltFradrag() + epsForventetInntekt.getTotaltFradrag()) - periodisertBeløpsgrense2020,
-            tilhører = FradragTilhører.EPS
-        )
-
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-            fradrag = listOf(forventetInntekt, epsForventetInntekt, epsUføretrygd, epsArbeidsinntekt)
-        ).let {
-            it shouldBe listOf(forventetInntekt, expectedBeregnetEpsFradrag)
-        }
-    }
-
-    @Test
-    fun `inneholder bare et fradrag for eps, uavhengig av hvor mange som er input`() {
-        val forventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 10000.0)
-        val epsForventetInntekt = lagFradrag(Fradragstype.ForventetInntekt, 150000.0, tilhører = FradragTilhører.EPS)
-        val epsUføretrygd = lagFradrag(Fradragstype.NAVytelserTilLivsopphold, 150000.0, tilhører = FradragTilhører.EPS)
-        val epsArbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, tilhører = FradragTilhører.EPS)
-        val epsKapitalinntekt = lagFradrag(Fradragstype.Kapitalinntekt, 60000.0, tilhører = FradragTilhører.EPS)
-        val epsPensjon = lagFradrag(Fradragstype.PrivatPensjon, 15000.0, tilhører = FradragTilhører.EPS)
+    fun `inneholder bare en fradragstype for EPS uavhengig av hvor mange som sendes inn`() {
+        val periode = Periode(1.januar(2020), 30.april(2020))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 10000.0, periode)
+        val epsForventetInntekt = lagFradrag(ForventetInntekt, 5000.0, periode, tilhører = EPS)
+        val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 60000.0, periode, tilhører = EPS)
+        val epsPensjon = lagFradrag(PrivatPensjon, 15000.0, periode, tilhører = EPS)
 
         FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
             fradrag = listOf(
                 forventetInntekt,
                 epsForventetInntekt,
-                epsUføretrygd,
-                epsArbeidsinntekt,
                 epsKapitalinntekt,
                 epsPensjon
-            )
+            ),
+            beregningsperiode = periode
         ).let {
-            it shouldHaveSize 2
-            it.count { it.getTilhører() == FradragTilhører.BRUKER } shouldBe 1
-            it.count { it.getTilhører() == FradragTilhører.EPS } shouldBe 1
+            it shouldHaveSize 4
+            it.values.forEach {
+                it.filter { it.getTilhører() == EPS }
+                    .all { it.getFradragstype() == BeregnetFradragEPS }
+            }
+        }
+    }
+
+    @Test
+    fun `kan beregne fradrag for EPS uten forventet inntekt og arbeidsinntekt`() {
+        val periode = Periode(1.januar(2020), 31.januar(2020))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 10000.0, periode)
+        val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 10000.0, periode, tilhører = EPS)
+        val epsPrivatPensjon = lagFradrag(PrivatPensjon, 10000.0, periode, tilhører = EPS)
+
+        val expectedBeregnetEpsFradrag = lagFradrag(
+            type = BeregnetFradragEPS,
+            beløp = (epsKapitalinntekt.getTotaltFradrag() + epsPrivatPensjon.getTotaltFradrag() - 18973.02),
+            periode,
+            tilhører = EPS
+        )
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, epsKapitalinntekt, epsPrivatPensjon),
+            beregningsperiode = periode
+        ).let {
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                forventetInntekt,
+                expectedBeregnetEpsFradrag
+            )
+        }
+    }
+
+    @Test
+    fun `fungerer uavhengig av om EPS har fradrag`() {
+        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 24000.0, periode)
+
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+            fradrag = listOf(forventetInntekt, arbeidsinntekt),
+            beregningsperiode = periode
+        ).let {
+            it shouldHaveSize 12
+            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getFradragPerMåned() }
+            it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }
 }

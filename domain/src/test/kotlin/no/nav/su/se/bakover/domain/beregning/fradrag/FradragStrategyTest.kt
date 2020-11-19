@@ -9,34 +9,63 @@ import org.junit.jupiter.api.assertThrows
 
 internal class FradragStrategyTest {
     @Test
-    fun `alle beregninger av fradrag må inneholde brukers forventede inntekt etter uførhet`() {
+    fun `hver delperiode må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
+        val periode = Periode(1.januar(2020), 31.desember(2020))
         assertThrows<IllegalArgumentException> {
             FradragStrategy.Enslig.beregn(
-                fradrag = listOf(lagFradrag(Fradragstype.Kontantstøtte, 5000.0))
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
             )
         }.let {
-            it.message shouldContain "Fradrag må inneholde brukers forventede inntekt etter uførhet."
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
         }
         assertThrows<IllegalArgumentException> {
             FradragStrategy.EpsOver67År.beregn(
-                fradrag = listOf(lagFradrag(Fradragstype.Kontantstøtte, 5000.0))
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
             )
         }.let {
-            it.message shouldContain "Fradrag må inneholde brukers forventede inntekt etter uførhet."
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
         }
         assertThrows<IllegalArgumentException> {
             FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
-                fradrag = listOf(lagFradrag(Fradragstype.Kontantstøtte, 5000.0))
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
             )
         }.let {
-            it.message shouldContain "Fradrag må inneholde brukers forventede inntekt etter uførhet."
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
         }
         assertThrows<IllegalArgumentException> {
             FradragStrategy.EpsUnder67År.beregn(
-                fradrag = listOf(lagFradrag(Fradragstype.Kontantstøtte, 5000.0))
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
             )
         }.let {
-            it.message shouldContain "Fradrag må inneholde brukers forventede inntekt etter uførhet."
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
         }
     }
 }
@@ -44,7 +73,7 @@ internal class FradragStrategyTest {
 internal fun lagFradrag(
     type: Fradragstype,
     beløp: Double,
-    periode: Periode = Periode(1.januar(2020), 31.desember(2020)),
+    periode: Periode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER
 ) = FradragFactory.ny(
     type = type,

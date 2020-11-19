@@ -20,7 +20,7 @@ internal class EnsligBeregningTest {
      |     Bruker     |          |           Total            |          |
      +----------------+----------+----------------------------+----------+
      | Stønadssats    | 251.350  | SUM SU/år                  | =5.027   |
-     | Arbeidsinntekt | -180.000 | SUM SU/mnd                 | =418.917 |
+     | Arbeidsinntekt | -180.000 | SUM SU/mnd                 | =418,917 |
      | Folketrygd     | -66.323  | Utbetalt SU/år (avrundet)  | =5.028   |
      | SUM            | =5.027   | Utbetalt SU/mnd (avrundet) | =419     |
      +----------------+----------+----------------------------+----------+
