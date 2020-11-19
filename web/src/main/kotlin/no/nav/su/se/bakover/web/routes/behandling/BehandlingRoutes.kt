@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
@@ -240,17 +241,24 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Attestant) {
 
-        fun kunneIkkeIverksetteMelding(feil: KunneIkkeIverksetteBehandling): Resultat {
-            // funksjon + return: Triks for å få exhaustive when
-            return when (feil) {
+        fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksetteBehandling): Resultat {
+            return when (value) {
                 is KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
                 is KunneIkkeIverksetteBehandling.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
                 is KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
                 is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
                 is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
-                is KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev -> InternalServerError.message("Feil ved bestilling av distribusjon for vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                is KunneIkkeIverksetteBehandling.KunneIkkeLukkeOppgave -> InternalServerError.message("Kunne ikke lukke oppgave")
+            }
+        }
+
+        fun iverksattMelding(value: IverksattBehandling): Resultat {
+            return when (value) {
+                // TODO jah: Vurdere om vi skal legge på manglene i json-responsen. Vurdere Multi-respons.
+                is IverksattBehandling.UtenMangler -> OK.jsonBody(value.behandling)
+                is IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave -> OK.jsonBody(value.behandling)
+                is IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev -> OK.jsonBody(value.behandling)
+                is IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev -> OK.jsonBody(value.behandling)
             }
         }
 
@@ -264,7 +272,7 @@ internal fun Route.behandlingRoutes(
                     attestant = Attestant(navIdent)
                 ).fold(
                     { call.svar(kunneIkkeIverksetteMelding(it)) },
-                    { call.svar(OK.jsonBody(it)) }
+                    { call.svar(iverksattMelding(it)) }
                 )
             }
         }

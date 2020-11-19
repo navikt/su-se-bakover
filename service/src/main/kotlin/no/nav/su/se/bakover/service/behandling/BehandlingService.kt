@@ -36,7 +36,7 @@ interface BehandlingService {
     fun iverksett(
         behandlingId: UUID,
         attestant: Attestant
-    ): Either<KunneIkkeIverksetteBehandling, Behandling>
+    ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling>
 
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
@@ -73,7 +73,17 @@ sealed class KunneIkkeIverksetteBehandling {
     object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
     object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
-    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteBehandling()
     object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
-    object KunneIkkeLukkeOppgave : KunneIkkeIverksetteBehandling()
+}
+
+sealed class IverksattBehandling {
+    abstract val behandling: Behandling
+
+    data class UtenMangler(override val behandling: Behandling) : IverksattBehandling()
+
+    sealed class MedMangler : IverksattBehandling() {
+        data class KunneIkkeJournalføreBrev(override val behandling: Behandling) : MedMangler()
+        data class KunneIkkeDistribuereBrev(override val behandling: Behandling) : MedMangler()
+        data class KunneIkkeLukkeOppgave(override val behandling: Behandling) : MedMangler()
+    }
 }

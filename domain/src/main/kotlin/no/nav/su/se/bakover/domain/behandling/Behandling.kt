@@ -14,8 +14,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
@@ -29,14 +31,16 @@ data class Behandling internal constructor(
     private var behandlingsinformasjon: Behandlingsinformasjon,
     val søknad: Søknad.Journalført.MedOppgave,
     private var beregning: Beregning?,
-    internal var simulering: Simulering?,
+    private var simulering: Simulering?,
     private var status: BehandlingsStatus,
     private var saksbehandler: NavIdentBruker.Saksbehandler?,
     private var attestant: NavIdentBruker.Attestant?,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg,
     val fnr: Fnr,
-    private var oppgaveId: OppgaveId
+    private var oppgaveId: OppgaveId,
+    private var iverksattJournalpostId: JournalpostId?,
+    private var iverksattBrevbestillingId: BrevbestillingId?,
 ) {
 
     private var tilstand: Tilstand = resolve(status)
@@ -56,6 +60,10 @@ data class Behandling internal constructor(
     fun hendelser() = hendelseslogg.hendelser()
 
     fun oppgaveId() = oppgaveId
+
+    fun iverksattJournalpostId() = iverksattJournalpostId
+
+    fun iverksattBrevbestillingId() = iverksattBrevbestillingId
 
     fun getUtledetSatsBeløp(fraDato: LocalDate): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||
@@ -123,6 +131,14 @@ data class Behandling internal constructor(
         return tilstand.iverksett(attestant)
     }
 
+    fun oppdaterIverksattJournalpostId(journalpostId: JournalpostId): Behandling {
+        return tilstand.oppdaterIverksattJournalpostId(journalpostId)
+    }
+
+    fun oppdaterIverksattBrevbestillingId(brevbestillingId: BrevbestillingId): Behandling {
+        return tilstand.oppdaterIverksattBrevbestillingId(brevbestillingId)
+    }
+
     fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
@@ -163,6 +179,14 @@ data class Behandling internal constructor(
             attestant: NavIdentBruker.Attestant
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::iverksett.toString())
+        }
+
+        fun oppdaterIverksattJournalpostId(journalpostId: JournalpostId): Behandling {
+            throw TilstandException(status, this::oppdaterOppgaveId.toString())
+        }
+
+        fun oppdaterIverksattBrevbestillingId(brevbestillingId: BrevbestillingId): Behandling {
+            throw TilstandException(status, this::oppdaterOppgaveId.toString())
         }
 
         fun underkjenn(
@@ -362,6 +386,16 @@ data class Behandling internal constructor(
 
     private open inner class Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
+
+        override fun oppdaterIverksattJournalpostId(journalpostId: JournalpostId): Behandling {
+            this@Behandling.iverksattJournalpostId = journalpostId
+            return this@Behandling
+        }
+
+        override fun oppdaterIverksattBrevbestillingId(brevbestillingId: BrevbestillingId): Behandling {
+            this@Behandling.iverksattBrevbestillingId = brevbestillingId
+            return this@Behandling
+        }
 
         inner class Innvilget : Iverksatt()
         inner class Avslag : Iverksatt() {

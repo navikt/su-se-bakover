@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
+import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
@@ -195,7 +197,7 @@ class AccessCheckProxy(
                 override fun iverksett(
                     behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant
-                ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+                ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
                     return services.behandling.iverksett(behandlingId, attestant)
@@ -269,7 +271,7 @@ class AccessCheckProxy(
                     return services.brev.journalførBrev(request, sakId)
                 }
 
-                override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> {
+                override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> {
                     return services.brev.distribuerBrev(journalpostId)
                 }
             },

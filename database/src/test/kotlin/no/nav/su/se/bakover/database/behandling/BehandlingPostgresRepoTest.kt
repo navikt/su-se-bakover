@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
@@ -187,7 +188,7 @@ internal class BehandlingPostgresRepoTest {
     }
 
     @Test
-    fun`oppdaterer oppgaveid`() {
+    fun `oppdaterer oppgaveid`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
@@ -201,6 +202,42 @@ internal class BehandlingPostgresRepoTest {
             val oppdatertOppgaveId = OppgaveId("ny")
             repo.oppdaterOppgaveId(nySøknadsbehandling.id, oppdatertOppgaveId)
             repo.hentBehandling(nySøknadsbehandling.id)!!.oppgaveId() shouldBe oppdatertOppgaveId
+        }
+    }
+
+    @Test
+    fun `oppdaterer iverksattJournalpostId`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val iverksattJournalpostId = JournalpostId("ny")
+            repo.oppdaterIverksattJournalpostId(nySøknadsbehandling.id, iverksattJournalpostId)
+            repo.hentBehandling(nySøknadsbehandling.id)!!.iverksattJournalpostId() shouldBe iverksattJournalpostId
+        }
+    }
+
+    @Test
+    fun `oppdaterer iverksattBrevbestillingId`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+            val iverksattBrevbestillingId = BrevbestillingId("ny")
+            repo.oppdaterIverksattBrevbestillingId(nySøknadsbehandling.id, iverksattBrevbestillingId)
+            repo.hentBehandling(nySøknadsbehandling.id)!!.iverksattBrevbestillingId() shouldBe iverksattBrevbestillingId
         }
     }
 }

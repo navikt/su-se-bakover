@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -79,7 +80,7 @@ internal class LukkSøknadServiceImplTest {
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn JournalpostId("en id").right()
-            on { distribuerBrev(any()) } doReturn "en bestillings id".right()
+            on { distribuerBrev(any()) } doReturn BrevbestillingId("en bestillings id").right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -396,7 +397,7 @@ internal class LukkSøknadServiceImplTest {
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn JournalpostId("en id").right()
-            on { distribuerBrev(JournalpostId("en id")) } doReturn "en bestillings id".right()
+            on { distribuerBrev(JournalpostId("en id")) } doReturn BrevbestillingId("en bestillings id").right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService>()

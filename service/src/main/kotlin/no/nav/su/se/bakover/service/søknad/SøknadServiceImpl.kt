@@ -49,7 +49,7 @@ internal class SøknadServiceImpl(
         if (person.ident.fnr != fnr) {
             // TODO jah: Dersom disse ikke er like, bruker vi søknadens fnr alle steder bortsett fra i journalføringa, som bruker fnr fra PDL.
             // Bør vi returnere Left her? Og heller sjekke dette bedre når man slår opp fødselsnummer ved starten av søknaden?
-            log.error("Personen har et nyere fødselsnummer i PDL enn det som var oppgitt.")
+            log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som var oppgitt.")
         }
 
         val (sak: Sak, søknad: Søknad) = sakService.hentSak(fnr).fold(

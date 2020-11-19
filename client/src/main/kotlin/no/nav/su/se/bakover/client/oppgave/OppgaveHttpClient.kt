@@ -122,8 +122,9 @@ internal class OppgaveHttpClient(
 
         return result.fold(
             { json ->
-                log.info("Endret oppgave i oppgave. status=${response.statusCode} se sikkerlogg for detaljer")
-                sikkerLogg.info("Endret oppgave i oppgave. status=${response.statusCode} body=$json")
+                val loggmelding = "Endret oppgave $oppgaveId med versjon $versjon sin status til FERDIGSTILT"
+                log.info("$loggmelding. Response-json finnes i sikkerlogg.")
+                sikkerLogg.info("$loggmelding. Response-json: $json")
                 objectMapper.readValue(json, FerdigstillResponse::class.java).right()
             },
             {
@@ -133,6 +134,5 @@ internal class OppgaveHttpClient(
             }
         )
     }
-
     private object KunneIkkeSøkeEtterOppgave
 }
