@@ -27,7 +27,7 @@ internal data class PdlData(
     )
 
     internal data class Adresse(
-        val adresselinje: String?,
+        val adresselinje: String,
         val postnummer: String?,
         val bruksenhet: String? = null,
         val kommunenummer: String? = null,
@@ -50,7 +50,7 @@ internal data class PdlData(
         }
 
         override fun hashCode(): Int {
-            var result = adresselinje?.hashCode() ?: 0
+            var result = adresselinje.hashCode()
             result = 31 * result + (postnummer?.hashCode() ?: 0)
             result = 31 * result + (bruksenhet?.hashCode() ?: 0)
             result = 31 * result + (landkode?.hashCode() ?: 0)
