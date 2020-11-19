@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -16,13 +17,15 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 internal class LukkSøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
     private val sakService: SakService,
     private val brevService: BrevService,
-    private val oppgaveService: OppgaveService
+    private val oppgaveService: OppgaveService,
+    private val clock: Clock = Clock.systemUTC(),
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -59,9 +62,11 @@ internal class LukkSøknadServiceImpl(
                         oppgaveService.lukkOppgave(søknad.oppgaveId)
                             .mapLeft {
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
-                                return ( if (lukketSøknad is LukketSøknad.UtenMangler) {
-                                    LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak)
-                                } else lukketSøknad ).right()
+                                return (
+                                    if (lukketSøknad is LukketSøknad.UtenMangler) {
+                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak)
+                                    } else lukketSøknad
+                                    ).right()
                             }.map {
                                 lukketSøknad
                             }
@@ -112,7 +117,7 @@ internal class LukkSøknadServiceImpl(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
     ) {
-        val lukketSøknad = søknad.lukk(request)
+        val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         søknadRepo.oppdaterSøknad(lukketSøknad)
     }
 
@@ -120,7 +125,7 @@ internal class LukkSøknadServiceImpl(
         request: LukkSøknadRequest.MedBrev,
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
-        val lukketSøknad = søknad.lukk(request)
+        val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         return brevService.journalførBrev(
             request = lagBrevRequest(lukketSøknad, request),
             sakId = søknad.sakId

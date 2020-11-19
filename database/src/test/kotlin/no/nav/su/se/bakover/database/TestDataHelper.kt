@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import com.nhaarman.mockitokotlin2.mock
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -54,6 +55,7 @@ internal class TestDataHelper(
         sakId = sakId,
         id = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        opprettet = Tidspunkt.EPOCH,
     ).also { søknadRepo.opprettSøknad(it) }
 
     fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling =

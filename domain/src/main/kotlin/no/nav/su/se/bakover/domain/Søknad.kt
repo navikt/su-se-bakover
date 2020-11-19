@@ -1,46 +1,49 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import java.util.UUID
 
 sealed class Søknad {
-    abstract val sakId: UUID
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
+    abstract val sakId: UUID
     abstract val søknadInnhold: SøknadInnhold
 
     abstract fun lukk(
         lukketAv: Saksbehandler,
-        type: LukketType
+        type: LukketType,
+        lukketTidspunkt: Tidspunkt,
     ): Lukket
 
     data class Ny(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
-        override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = now(),
         override val søknadInnhold: SøknadInnhold,
     ) : Søknad() {
 
         override fun lukk(
             lukketAv: Saksbehandler,
-            type: LukketType
+            type: LukketType,
+            lukketTidspunkt: Tidspunkt,
         ): Lukket {
             return Lukket(
-                sakId = sakId,
                 id = id,
                 opprettet = opprettet,
+                sakId = sakId,
                 søknadInnhold = søknadInnhold,
                 journalpostId = null,
                 oppgaveId = null,
                 lukketAv = lukketAv,
-                lukketType = type
+                lukketType = type,
+                lukketTidspunkt = lukketTidspunkt,
+                lukketBrevbestillingId = null,
+                lukketJournalpostId = null,
             )
         }
 
@@ -48,9 +51,9 @@ sealed class Søknad {
             journalpostId: JournalpostId,
         ): Journalført.UtenOppgave {
             return Journalført.UtenOppgave(
-                sakId = sakId,
                 id = id,
                 opprettet = opprettet,
+                sakId = sakId,
                 søknadInnhold = søknadInnhold,
                 journalpostId = journalpostId,
             )
@@ -58,18 +61,18 @@ sealed class Søknad {
     }
 
     data class Lukket(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
-        override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = now(),
         override val søknadInnhold: SøknadInnhold,
         // Det er mulig å lukke søknader uten at de er journalført og/eller laget oppgave.
         val journalpostId: JournalpostId?,
         val oppgaveId: OppgaveId?,
-        val lukketTidspunkt: Tidspunkt = Tidspunkt.now(),
-        val lukketAv: NavIdentBruker.Saksbehandler,
+        val lukketTidspunkt: Tidspunkt,
+        val lukketAv: Saksbehandler,
         val lukketType: LukketType,
-        val lukketJournalpostId: JournalpostId? = null,
-        val lukketBrevbestillingId: BrevbestillingId? = null
+        val lukketJournalpostId: JournalpostId?,
+        val lukketBrevbestillingId: BrevbestillingId?
     ) : Søknad() {
 
         enum class LukketType(val value: String) {
@@ -85,7 +88,8 @@ sealed class Søknad {
          */
         override fun lukk(
             lukketAv: Saksbehandler,
-            type: LukketType
+            type: LukketType,
+            lukketTidspunkt: Tidspunkt,
         ) = this
 
         fun medJournalpostId(journalpostId: JournalpostId): Lukket {
@@ -101,26 +105,30 @@ sealed class Søknad {
         abstract val journalpostId: JournalpostId
 
         data class UtenOppgave(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
             override val sakId: UUID,
-            override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = now(),
             override val søknadInnhold: SøknadInnhold,
             override val journalpostId: JournalpostId,
         ) : Journalført() {
 
             override fun lukk(
                 lukketAv: Saksbehandler,
-                type: LukketType
+                type: LukketType,
+                lukketTidspunkt: Tidspunkt,
             ): Lukket {
                 return Lukket(
-                    sakId = sakId,
                     id = id,
                     opprettet = opprettet,
+                    sakId = sakId,
                     søknadInnhold = søknadInnhold,
                     journalpostId = journalpostId,
                     oppgaveId = null,
                     lukketAv = lukketAv,
-                    lukketType = type
+                    lukketType = type,
+                    lukketTidspunkt = lukketTidspunkt,
+                    lukketBrevbestillingId = null,
+                    lukketJournalpostId = null,
                 )
             }
 
@@ -128,9 +136,9 @@ sealed class Søknad {
                 oppgaveId: OppgaveId,
             ): MedOppgave {
                 return MedOppgave(
-                    sakId = sakId,
                     id = id,
                     opprettet = opprettet,
+                    sakId = sakId,
                     søknadInnhold = søknadInnhold,
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId
@@ -139,26 +147,30 @@ sealed class Søknad {
         }
 
         data class MedOppgave(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
             override val sakId: UUID,
-            override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = now(),
             override val søknadInnhold: SøknadInnhold,
             override val journalpostId: JournalpostId,
             val oppgaveId: OppgaveId,
         ) : Journalført() {
             override fun lukk(
                 lukketAv: Saksbehandler,
-                type: LukketType
+                type: LukketType,
+                lukketTidspunkt: Tidspunkt
             ): Lukket {
                 return Lukket(
-                    sakId = sakId,
                     id = id,
                     opprettet = opprettet,
+                    sakId = sakId,
                     søknadInnhold = søknadInnhold,
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                     lukketAv = lukketAv,
-                    lukketType = type
+                    lukketType = type,
+                    lukketTidspunkt = lukketTidspunkt,
+                    lukketBrevbestillingId = null,
+                    lukketJournalpostId = null,
                 )
             }
         }

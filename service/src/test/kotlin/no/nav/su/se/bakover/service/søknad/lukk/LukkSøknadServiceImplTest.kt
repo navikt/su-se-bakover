@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
@@ -31,18 +32,22 @@ import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class LukkSøknadServiceImplTest {
+    private val fixedEpochClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
     private val sakId = UUID.randomUUID()
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val nySøknadJournalpostId = JournalpostId("nySøknadJournalpostId")
     private val lukketJournalpostId = JournalpostId("lukketJournalpostId")
     private val brevbestillingId = BrevbestillingId("brevbestillingId")
-    private val oppgaveId = OppgaveId("o")
+    private val oppgaveId = OppgaveId("oppgaveId")
     private val sak = Sak(
         id = sakId,
         opprettet = Tidspunkt.EPOCH,
@@ -62,12 +67,20 @@ internal class LukkSøknadServiceImplTest {
         opprettet = Tidspunkt.EPOCH,
         søknadInnhold = søknadInnhold,
     )
-    private val ikkeSåGammelSøknad = Søknad.Ny(
+    private val lukketSøknad = Søknad.Lukket(
         sakId = sakId,
-        id = UUID.randomUUID(),
-        opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(),
+        id = nySøknad.id,
+        opprettet = nySøknad.opprettet,
         søknadInnhold = søknadInnhold,
+        journalpostId = null,
+        oppgaveId = null,
+        lukketTidspunkt = Tidspunkt.EPOCH,
+        lukketAv = saksbehandler,
+        lukketType = Søknad.Lukket.LukketType.TRUKKET,
+        lukketJournalpostId = null,
+        lukketBrevbestillingId = null
     )
+
     private val journalførtSøknadMedOppgave = nySøknad
         .journalfør(nySøknadJournalpostId)
         .medOppgave(oppgaveId)
@@ -79,7 +92,7 @@ internal class LukkSøknadServiceImplTest {
     )
 
     @Test
-    fun `trekker en søknad og håndterer brev`() {
+    fun `trekker en søknad uten mangler`() {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
@@ -90,7 +103,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn JournalpostId("en id").right()
+            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
             on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -101,7 +114,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
@@ -109,26 +123,30 @@ internal class LukkSøknadServiceImplTest {
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+
+            verify(brevServiceMock).journalførBrev(
+                request = argThat {
+                    it shouldBe TrukketSøknadBrevRequest(
+                        søknad = lukketSøknad.copy(
+                            journalpostId = nySøknadJournalpostId,
+                            oppgaveId = oppgaveId,
+                        ),
+                        trukketDato = 1.januar(2020)
+                    )
+                },
+                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+            )
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
-                    it shouldBe Søknad.Lukket(
-                        sakId = sakId,
-                        id = journalførtSøknadMedOppgave.id,
-                        opprettet = journalførtSøknadMedOppgave.opprettet,
-                        søknadInnhold = søknadInnhold,
-                        journalpostId = nySøknadJournalpostId,
+                    it shouldBe lukketSøknad.copy(
                         oppgaveId = oppgaveId,
-                        lukketTidspunkt = it.lukketTidspunkt,
-                        lukketAv = saksbehandler,
-                        lukketType = Søknad.Lukket.LukketType.TRUKKET
+                        journalpostId = nySøknadJournalpostId,
+                        lukketJournalpostId = lukketJournalpostId,
+                        lukketBrevbestillingId = brevbestillingId
                     )
                 }
             )
-            verify(brevServiceMock).journalførBrev(
-                request = argThat { it shouldBe TrukketSøknadBrevRequest(journalførtSøknadMedOppgave, 1.januar(2020)) },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
-            )
-            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe JournalpostId("en id") })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
@@ -136,7 +154,7 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
-    fun `lukker søknad hvor brev ikke skal sendes`() {
+    fun `lukker avvist søknad uten brev`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { oppdaterSøknad(any()) }.doNothing()
@@ -157,7 +175,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.AvvistSøknad(
                 søknadId = journalførtSøknadMedOppgave.id,
@@ -172,16 +191,10 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
-                    it shouldBe Søknad.Lukket(
-                        sakId = sakId,
-                        id = journalførtSøknadMedOppgave.id,
-                        opprettet = journalførtSøknadMedOppgave.opprettet,
-                        søknadInnhold = søknadInnhold,
+                    it shouldBe lukketSøknad.copy(
                         journalpostId = nySøknadJournalpostId,
                         oppgaveId = oppgaveId,
-                        lukketTidspunkt = it.lukketTidspunkt,
-                        lukketAv = saksbehandler,
-                        lukketType = Søknad.Lukket.LukketType.AVVIST
+                        lukketType = AVVIST,
                     )
                 },
             )
@@ -193,8 +206,16 @@ internal class LukkSøknadServiceImplTest {
 
     @Test
     fun `en søknad kan ikke trekkes før den er opprettet`() {
+
+        val treDagerGammelSøknad = Søknad.Ny(
+            sakId = sakId,
+            id = UUID.randomUUID(),
+            opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(),
+            søknadInnhold = søknadInnhold,
+        )
+
         val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn ikkeSåGammelSøknad
+            on { hentSøknad(any()) } doReturn treDagerGammelSøknad
             on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
@@ -206,10 +227,11 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.MedBrev.TrekkSøknad(
-                søknadId = ikkeSåGammelSøknad.id,
+                søknadId = treDagerGammelSøknad.id,
                 saksbehandler = saksbehandler,
                 trukketDato = LocalDate.now().minusDays(4)
             )
@@ -218,7 +240,7 @@ internal class LukkSøknadServiceImplTest {
         inOrder(
             søknadRepoMock, sakServiceMock, brevServiceMock
         ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe ikkeSåGammelSøknad.id })
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe treDagerGammelSøknad.id })
         }
 
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
@@ -239,7 +261,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = nySøknad.id,
@@ -259,17 +282,7 @@ internal class LukkSøknadServiceImplTest {
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
-        val trukketSøknad = Søknad.Lukket(
-            sakId = sakId,
-            id = nySøknad.id,
-            opprettet = nySøknad.opprettet,
-            søknadInnhold = søknadInnhold,
-            journalpostId = null,
-            oppgaveId = null,
-            lukketTidspunkt = Tidspunkt.EPOCH,
-            lukketAv = saksbehandler,
-            lukketType = Søknad.Lukket.LukketType.TRUKKET
-        )
+        val trukketSøknad = lukketSøknad.copy()
         val trekkSøknadRequest = trekkSøknadRequest.copy(
             søknadId = trukketSøknad.id
         )
@@ -287,7 +300,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
 
         inOrder(søknadRepoMock) {
@@ -313,7 +327,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
 
         inOrder(
@@ -347,7 +362,8 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lagBrevutkast(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
                 søknadId = nySøknad.id,
@@ -365,7 +381,7 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
-    fun `svarer med feilmelding dersom distribusjon av brev feiler`() {
+    fun `Kan ikke sende brevbestilling`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn nySøknad
             on { oppdaterSøknad(any()) }.doNothing()
@@ -376,16 +392,18 @@ internal class LukkSøknadServiceImplTest {
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-
             on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
-        val oppgaveServiceMock = mock<OppgaveService>()
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
 
         LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak).right()
 
         inOrder(
@@ -396,7 +414,9 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe TrukketSøknadBrevRequest(
-                        nySøknad,
+                        lukketSøknad.copy(
+                            lukketJournalpostId = null,
+                        ),
                         1.januar(2020)
                     )
                 },
@@ -405,32 +425,25 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
-                    it shouldBe Søknad.Lukket(
-                        sakId = sakId,
-                        id = nySøknad.id,
-                        opprettet = nySøknad.opprettet,
-                        søknadInnhold = søknadInnhold,
-                        journalpostId = null,
-                        oppgaveId = null,
-                        lukketTidspunkt = it.lukketTidspunkt,
-                        lukketAv = saksbehandler,
-                        lukketType = Søknad.Lukket.LukketType.TRUKKET,
-                        lukketJournalpostId = lukketJournalpostId
+                    it shouldBe lukketSøknad.copy(
+                        lukketJournalpostId = lukketJournalpostId,
+                        lukketBrevbestillingId = null,
                     )
                 }
             )
 
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
         }
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
     }
 
     @Test
-    fun `lukker søknaden selv om den ikke har oppgave`() {
+    fun `lukker journalført søknad uten oppgave`() {
         val søknad = Søknad.Journalført.UtenOppgave(
-            sakId = sakId,
+            sakId = nySøknad.sakId,
             id = nySøknad.id,
             opprettet = nySøknad.opprettet,
-            søknadInnhold = søknadInnhold,
+            søknadInnhold = nySøknad.søknadInnhold,
             journalpostId = nySøknadJournalpostId,
         )
 
@@ -453,22 +466,9 @@ internal class LukkSøknadServiceImplTest {
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest)
-
-        val lukket = Søknad.Lukket(
-            sakId = sakId,
-            id = nySøknad.id,
-            opprettet = nySøknad.opprettet,
-            søknadInnhold = søknadInnhold,
-            journalpostId = nySøknadJournalpostId,
-            oppgaveId = null,
-            lukketTidspunkt = Tidspunkt.EPOCH,
-            lukketAv = saksbehandler,
-            lukketType = Søknad.Lukket.LukketType.TRUKKET,
-            lukketJournalpostId = lukketJournalpostId,
-            lukketBrevbestillingId = brevbestillingId
-        )
 
         actual shouldBe LukketSøknad.UtenMangler(sak).right()
 
@@ -480,7 +480,9 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
-                        lukket.copy(lukketBrevbestillingId = null, lukketJournalpostId = null),
+                        lukketSøknad.copy(
+                            journalpostId = nySøknadJournalpostId,
+                        ),
                         1.januar(2020)
                     )
                 },
@@ -491,7 +493,11 @@ internal class LukkSøknadServiceImplTest {
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
-                    it shouldBe lukket
+                    it shouldBe lukketSøknad.copy(
+                        journalpostId = nySøknadJournalpostId,
+                        lukketJournalpostId = lukketJournalpostId,
+                        lukketBrevbestillingId = brevbestillingId
+                    )
                 },
             )
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })

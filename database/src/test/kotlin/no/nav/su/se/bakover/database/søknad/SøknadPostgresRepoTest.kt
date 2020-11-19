@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.søknad
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.kotest.matchers.types.shouldNotBeTypeOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -34,6 +35,7 @@ internal class SøknadPostgresRepoTest {
                     sakId = sak.id,
                     id = UUID.randomUUID(),
                     søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                    opprettet = Tidspunkt.EPOCH,
                 ).also { repo.opprettSøknad(it) }
                 val hentet = repo.hentSøknad(søknad.id)
 
@@ -50,6 +52,7 @@ internal class SøknadPostgresRepoTest {
                 sakId = sak.id,
                 id = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                opprettet = Tidspunkt.EPOCH,
             ).also { repo.opprettSøknad(it) }
             val hentetSøknad: Søknad = repo.hentSøknad(søknad.id)!!
             hentetSøknad.id shouldBe søknad.id
@@ -65,7 +68,8 @@ internal class SøknadPostgresRepoTest {
             val saksbehandler = Saksbehandler("Z993156")
             val lukketSøknad = søknad.lukk(
                 lukketAv = saksbehandler,
-                type = Søknad.Lukket.LukketType.TRUKKET
+                type = Søknad.Lukket.LukketType.TRUKKET,
+                lukketTidspunkt = Tidspunkt.EPOCH
             )
             repo.oppdaterSøknad(lukketSøknad)
             val hentetSøknad = repo.hentSøknad(nySak.søknad.id)!!

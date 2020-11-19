@@ -47,7 +47,9 @@ internal fun Row.toSøknad(): Søknad {
             oppgaveId = oppgaveId,
             lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
             lukketTidspunkt = lukket.tidspunkt,
-            lukketType = lukket.type
+            lukketType = lukket.type,
+            lukketJournalpostId = null,
+            lukketBrevbestillingId = null,
         )
         journalpostId == null -> Søknad.Ny(
             sakId = sakId,

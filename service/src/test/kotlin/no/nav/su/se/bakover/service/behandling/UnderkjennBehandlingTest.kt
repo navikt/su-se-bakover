@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
@@ -42,6 +43,7 @@ import java.util.UUID
 
 class UnderkjennBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
@@ -64,6 +66,8 @@ class UnderkjennBehandlingTest {
     private val innvilgetBehandlingTilAttestering = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
+            id = søknadId,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,

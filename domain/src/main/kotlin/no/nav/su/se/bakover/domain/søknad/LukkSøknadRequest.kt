@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.søknad
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevConfig
@@ -11,7 +12,7 @@ sealed class LukkSøknadRequest {
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
     companion object {
-        fun Søknad.lukk(request: LukkSøknadRequest): Søknad.Lukket {
+        fun Søknad.lukk(request: LukkSøknadRequest, lukketTidspunkt: Tidspunkt): Søknad.Lukket {
             return lukk(
                 lukketAv = request.saksbehandler,
                 type = when (request) {
@@ -19,7 +20,8 @@ sealed class LukkSøknadRequest {
                     is MedBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
                     is UtenBrev.BortfaltSøknad -> Søknad.Lukket.LukketType.BORTFALT
                     is UtenBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
-                }
+                },
+                lukketTidspunkt = lukketTidspunkt,
             )
         }
     }

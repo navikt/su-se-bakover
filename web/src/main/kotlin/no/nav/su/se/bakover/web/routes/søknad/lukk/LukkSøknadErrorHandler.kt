@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 
 internal object LukkSøknadErrorHandler {

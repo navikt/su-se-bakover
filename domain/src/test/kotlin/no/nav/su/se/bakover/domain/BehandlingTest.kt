@@ -50,6 +50,8 @@ internal class BehandlingTest {
     private val id1 = UUID.randomUUID()
     private val id2 = UUID.randomUUID()
     private val søknad = Søknad.Journalført.MedOppgave(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.EPOCH,
         sakId = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         oppgaveId = OppgaveId("o"),

@@ -52,6 +52,8 @@ import java.util.UUID
 internal class BehandlingServiceImplTest {
 
     private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
+    private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val aktørId = AktørId("1234567890123")
@@ -451,7 +453,7 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).lagBrevutkast(UUID.randomUUID())
+        ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
         verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.AvslagsVedtak>() })
@@ -472,7 +474,7 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).lagBrevutkast(UUID.randomUUID())
+        ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
         verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.InnvilgetVedtak>() })
@@ -485,7 +487,7 @@ internal class BehandlingServiceImplTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-        ).lagBrevutkast(UUID.randomUUID())
+        ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
     }
@@ -504,7 +506,7 @@ internal class BehandlingServiceImplTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock
-        ).lagBrevutkast(UUID.randomUUID())
+        ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
     }
@@ -512,6 +514,8 @@ internal class BehandlingServiceImplTest {
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
+            id = søknadId,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,

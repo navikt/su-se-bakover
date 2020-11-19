@@ -69,6 +69,8 @@ internal class SøknadServiceImpl(
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
                 val søknad = Søknad.Ny(
                     sakId = it.id,
+                    id = UUID.randomUUID(),
+                    opprettet = it.opprettet,
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
                 søknadRepo.opprettSøknad(søknad)

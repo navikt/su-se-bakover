@@ -181,9 +181,8 @@ internal class SøknadJsonTest {
     fun `serialiserer og deserialiserer lukket`() {
         val trukket = søknad.lukk(
             lukketAv = saksbehandler,
-            type = Søknad.Lukket.LukketType.TRUKKET
-        ).copy(
-            lukketTidspunkt = 1.oktober(2020).startOfDay()
+            type = Søknad.Lukket.LukketType.TRUKKET,
+            lukketTidspunkt = 1.oktober(2020).startOfDay(),
         )
         //language=json
         val expectedJson = """
