@@ -9,7 +9,8 @@ internal sealed class BeregningStrategy {
         return BeregningFactory.ny(
             periode = beregningsgrunnlag.periode,
             sats = sats(),
-            fradrag = fradragStrategy().beregn(beregningsgrunnlag.fradrag)
+            fradrag = beregningsgrunnlag.fradrag,
+            fradragStrategy = fradragStrategy()
         )
     }
 

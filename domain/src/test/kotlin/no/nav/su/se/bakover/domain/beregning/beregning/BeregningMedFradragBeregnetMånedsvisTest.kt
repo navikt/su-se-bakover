@@ -2,26 +2,39 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
 
-internal class BeregningMedFradragFordeltOverHelePeriodenTest {
+internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory.ny(
             periode = periode,
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -35,12 +48,13 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.ForventetInntekt,
                     beløp = 12000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -55,9 +69,9 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.ForventetInntekt,
                     beløp = 6000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 PeriodeFradrag(
@@ -66,11 +80,12 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                     periode = Periode(1.juni(2020), 30.juni(2020)),
                     tilhører = FradragTilhører.BRUKER
                 ),
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
-        beregning.getSumYtelse() shouldBe 238116
-        beregning.getSumFradrag() shouldBe 12000
+        beregning.getSumYtelse() shouldBe 238616
+        beregning.getSumFradrag() shouldBe 11500
     }
 
     @Test
@@ -81,9 +96,9 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.ForventetInntekt,
                     beløp = 6000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 PeriodeFradrag(
@@ -92,7 +107,8 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -126,12 +142,13 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.ForventetInntekt,
                     beløp = 245117.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
         beregning.getSumYtelse() shouldBe 4996
@@ -152,12 +169,13 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
+                    type = Fradragstype.ForventetInntekt,
                     beløp = 60700.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
         beregning.getSumYtelse() shouldBe 1212
@@ -171,14 +189,23 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
         val beregning = BeregningFactory.ny(
             periode = Periode(1.januar(2020), 31.mars(2020)),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = Periode(1.januar(2020), 31.mars(2020)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
         beregning.getId() shouldBe beregning.getId()
         beregning.getOpprettet() shouldBe beregning.getOpprettet()
     }
 
     @Test
-    fun `alle fradrag blir fordelt over hele perioden`() {
+    fun `fradrag inkluderes kun i den måneden de er aktuelle`() {
         val periode = Periode(1.januar(2020), 31.mars(2020))
 
         val totaltFradrag = 100000.0
@@ -188,26 +215,34 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
-        val forventetTotaltFradrag = Sats.HØY.månedsbeløp(periode.getFraOgMed()) * 3
-
-        beregning.getSumYtelse() shouldBe 0
-        beregning.getSumFradrag() shouldBe forventetTotaltFradrag
-        beregning.getMånedsberegninger().forEach {
-            it.getSumFradrag() shouldBe (forventetTotaltFradrag / 3).plusOrMinus(0.5)
-            it.getSumYtelse() shouldBe 0
-        }
+        beregning.getSumYtelse() shouldBe 41274
+        beregning.getSumFradrag() shouldBe 20637.32
+        val grouped = beregning.getMånedsberegninger().groupBy { it.getPeriode() }
+        val januar = grouped[Periode(1.januar(2020), 31.januar(2020))]!!.first()
+        januar.getSumFradrag() shouldBe 20637.32
+        januar.getSumYtelse() shouldBe 0
+        val februar = grouped[Periode(1.februar(2020), 29.februar(2020))]!!.first()
+        februar.getSumFradrag() shouldBe 0
+        februar.getSumYtelse() shouldBe 20637
     }
 
     @Test
-    fun `To beregninger med samme totalsum for fradrag, men for forskjellige perioder skal fortsatt gi samme sluttverdier`() {
+    fun `To beregninger med samme totalsum for fradrag, men i forskjellige perioder gir ikke nødvendigvis samme resultat`() {
         val periode = Periode(1.januar(2020), 31.mars(2020))
 
         val totaltFradrag = 100000.0
@@ -217,12 +252,19 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
         val beregning2 = BeregningFactory.ny(
@@ -230,16 +272,23 @@ internal class BeregningMedFradragFordeltOverHelePeriodenTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 PeriodeFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                PeriodeFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = totaltFradrag,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
         )
 
-        beregning.getMånedsberegninger() shouldBe beregning2.getMånedsberegninger()
-        beregning.getSumFradrag() shouldBe beregning2.getSumFradrag()
-        beregning.getSumYtelse() shouldBe beregning2.getSumYtelse()
+        beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
+        beregning.getSumFradrag() shouldNotBe beregning2.getSumFradrag()
+        beregning.getSumYtelse() shouldNotBe beregning2.getSumYtelse()
     }
 }
