@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -57,7 +58,7 @@ internal class BrevServiceImpl(
         }.map { it }
     }
 
-    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, String> =
+    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
         dokDistFordeling.bestillDistribusjon(journalpostId)
             .mapLeft {
                 log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")

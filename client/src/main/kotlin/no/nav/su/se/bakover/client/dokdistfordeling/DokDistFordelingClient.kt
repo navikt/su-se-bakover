@@ -5,8 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -19,9 +19,9 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
 
     override fun bestillDistribusjon(
         journalPostId: JournalpostId
-    ): Either<ClientError, String> {
+    ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val body = byggDistribusjonPostJson(journalPostId)
-        val (_, response, result) = "$baseUrl$dokDistFordelingPath".httpPost()
+        val (_, _, result) = "$baseUrl$dokDistFordelingPath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
@@ -31,17 +31,21 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             ).responseString()
 
         return result.fold(
-            {
-                json ->
+            { json ->
                 JSONObject(json).let {
-                    val bestillingsId = it.optString("bestillingsId")
-                    log.info("Bestilt distribusjon med bestillingsId $bestillingsId")
-                    bestillingsId.right()
+                    val eksternId: String? = it.optString("bestillingsId", null)
+
+                    if (eksternId == null) {
+                        log.error("Bestilt distribusjon, men bestillingsId manglet i responsen. Dette må følges opp manuelt.")
+                    } else {
+                        log.info("Bestilt distribusjon med bestillingsId $eksternId")
+                    }
+                    BrevbestillingId(eksternId ?: "ikke_mottatt_fra_ekstern_tjeneste").right()
                 }
             },
             {
                 log.error("Feil ved bestilling av distribusjon.", it)
-                ClientError(response.statusCode, "Feil ved bestilling av distribusjon.").left()
+                KunneIkkeBestilleDistribusjon.left()
             }
         )
     }

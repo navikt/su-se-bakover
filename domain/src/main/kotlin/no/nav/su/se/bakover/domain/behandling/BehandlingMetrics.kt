@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.behandling
 
 interface BehandlingMetrics {
     fun behandlingsstatusChanged(old: Behandling.BehandlingsStatus, new: Behandling.BehandlingsStatus)
-    fun incrementUnderkjentCounter()
+    fun incrementUnderkjentCounter(handling: UnderkjentHandlinger)
     fun incrementInnvilgetCounter(handling: InnvilgetHandlinger)
     fun incrementAvslåttCounter(handling: AvslåttHandlinger)
     fun incrementTilAttesteringCounter(handling: TilAttesteringHandlinger)
@@ -10,7 +10,7 @@ interface BehandlingMetrics {
     enum class InnvilgetHandlinger {
         PERSISTERT,
         JOURNALFØRT,
-        OPPGAVE,
+        LUKKET_OPPGAVE,
         DISTRIBUERT_BREV
     }
 
@@ -23,6 +23,13 @@ interface BehandlingMetrics {
 
     enum class TilAttesteringHandlinger {
         PERSISTERT,
-        OPPGAVE,
+        OPPRETTET_OPPGAVE,
+        LUKKET_OPPGAVE,
+    }
+
+    enum class UnderkjentHandlinger {
+        PERSISTERT,
+        OPPRETTET_OPPGAVE,
+        LUKKET_OPPGAVE,
     }
 }

@@ -70,7 +70,6 @@ object Config {
         data class Avstemming(
             /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
             val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
-            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.AVSTEMMING_KVITTERING",
         )
     }
 

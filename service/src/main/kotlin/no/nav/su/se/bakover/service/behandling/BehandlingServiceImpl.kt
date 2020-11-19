@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -56,14 +57,17 @@ internal class BehandlingServiceImpl(
         begrunnelse: String
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
+            log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
             behandling.underkjenn(begrunnelse, attestant)
                 .mapLeft {
+                    log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                 }
                 .map {
                     val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                        log.error("Kunne ikke underkjenne behandling; fant ikke aktør id")
                         return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
 
@@ -77,21 +81,26 @@ internal class BehandlingServiceImpl(
                             tilordnetRessurs = behandling.saksbehandler()
                         )
                     ).getOrElse {
-                        log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning. Avbryter handlingen.")
+                        log.error("Behandling $behandlingId ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
                         return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+                    }.also {
+                        behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
                     behandlingRepo.oppdaterAttestant(behandlingId, attestant)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
-
+                    behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
+                    log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
+                    hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
+                    behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.PERSISTERT)
                     oppgaveService.lukkOppgave(eksisterendeOppgaveId)
                         .mapLeft {
-                            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId underkjenning. Dette må gjøres manuelt.")
+                            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
+                        }.map {
+                            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
+                            behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.LUKKET_OPPGAVE)
                         }
-                    behandlingMetrics.incrementUnderkjentCounter()
-                    behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
-                    hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
-                    behandlingRepo.hentBehandling(it.id)!!
+                    behandling
                 }
         }
     }
@@ -167,6 +176,8 @@ internal class BehandlingServiceImpl(
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
             return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        }.also {
+            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
         }
         behandlingTilAttestering.oppdaterOppgaveId(nyOppgaveId)
         behandlingRepo.oppdaterOppgaveId(behandlingTilAttestering.id, nyOppgaveId)
@@ -175,7 +186,7 @@ internal class BehandlingServiceImpl(
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
 
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
-            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPGAVE)
+            behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
         }.mapLeft {
             log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${behandlingTilAttestering.oppgaveId()} feilet")
         }
@@ -187,7 +198,7 @@ internal class BehandlingServiceImpl(
     override fun iverksett(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant
-    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)
             ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
@@ -198,9 +209,8 @@ internal class BehandlingServiceImpl(
             .map { iverksattBehandling ->
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
-                        behandlingId = behandlingId,
-                        attestant = attestant,
-                        behandling = iverksattBehandling
+                        behandling = iverksattBehandling,
+                        attestant = attestant
                     )
                     Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
                         behandling = iverksattBehandling,
@@ -216,44 +226,71 @@ internal class BehandlingServiceImpl(
     }
 
     private fun iverksettAvslag(
-        behandlingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-        behandling: Behandling
-    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+        behandling: Behandling,
+        attestant: NavIdentBruker.Attestant
+    ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
 
-        oppgaveService.lukkOppgave(behandling.oppgaveId())
-            .mapLeft {
-                log.error("Kunne ikke lukke oppgave ved iverksetting av avslag. Avbryter handlingen.")
-                return KunneIkkeIverksetteBehandling.KunneIkkeLukkeOppgave.left()
+        val journalpostId = brevService.journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
+            .map {
+                behandling.oppdaterIverksattJournalpostId(it)
+                it
             }
-            .map { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE) }
+            .getOrElse {
+                log.error("Behandling ${behandling.id} ble ikke avslått siden vi ikke klarte journalføre. Saksbehandleren må prøve på nytt.")
+                return KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
+            }
+        behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
-        behandlingRepo.oppdaterAttestant(behandlingId, attestant)
-        behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-
+        behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
+        behandlingRepo.oppdaterAttestant(behandling.id, attestant)
+        behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
+        log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-        // TODO: Nå sender vi 500 dersom en av disse feiler, men vil samtidig ha persistert iverksettingen. Da må vi gjøre 2 steg manuelt.
-        // Bør vi kanskje avbryte operasjonen dersom journalføringa feiler?
-        return journalførOgDistribuerBrev(
-            request = LagBrevRequest.AvslagsVedtak(behandling = behandling),
-            sakId = behandling.sakId,
-            incrementJournalførtCounter = { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT) },
-            incrementDistribuertBrevCounter = { behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV) }
-        ).map { behandling }
+        val brevResultat = brevService.distribuerBrev(journalpostId)
+            .mapLeft {
+                log.error("Kunne ikke bestille brev ved avslag for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
+            }
+            .map {
+                behandling.oppdaterIverksattBrevbestillingId(it)
+                behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, it)
+                log.info("Bestilt avslagsbrev for behandling ${behandling.id} med bestillingsid $it")
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+                IverksattBehandling.UtenMangler(behandling)
+            }
+
+        val oppgaveResultat = oppgaveService.lukkOppgave(behandling.oppgaveId())
+            .mapLeft {
+                log.error("Kunne ikke lukke oppgave ved avslag for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave(behandling)
+            }
+            .map {
+                log.info("Lukket oppgave ${behandling.oppgaveId()} ved avslag for behandling ${behandling.id}")
+                // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+                IverksattBehandling.UtenMangler(behandling)
+            }
+
+        return brevResultat.flatMap { oppgaveResultat }.fold(
+            { it.right() },
+            { it.right() }
+        )
     }
 
     private fun iverksettInnvilgning(
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID
-    ): Either<KunneIkkeIverksetteBehandling, Behandling> {
+    ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
+
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,
             beregning = behandling.beregning()!!,
             simulering = behandling.simulering()!!
         ).mapLeft {
+            log.error("Kunne ikke innvilge behandling ${behandling.id} siden utbetaling feilet. Feiltype: $it")
             when (it) {
                 KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                 KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
@@ -266,42 +303,51 @@ internal class BehandlingServiceImpl(
             )
             behandlingRepo.oppdaterAttestant(behandlingId, attestant)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+            log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-            oppgaveService.lukkOppgave(behandling.oppgaveId())
+            val journalføringOgBrevResultat = brevService.journalførBrev(LagBrevRequest.InnvilgetVedtak(behandling), behandling.sakId)
                 .mapLeft {
-                    log.error("Kunne ikke lukke oppgave ved innvilget iverksetting. Behandlingen er sendt til utbetaling og er iverksatt. Oppgaven må lukkes manuelt.")
+                    log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                    IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
+                }
+                .flatMap {
+                    behandling.oppdaterIverksattJournalpostId(it)
+                    behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it)
+                    log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
+                    brevService.distribuerBrev(it)
+                        .mapLeft {
+                            log.error("Bestilling av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                            IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
+                        }
+                        .map { brevbestillingId ->
+                            behandling.oppdaterIverksattBrevbestillingId(brevbestillingId)
+                            behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, brevbestillingId)
+                            log.info("Bestilt iverksettingsbrev $brevbestillingId for behandling ${behandling.id}")
+                            behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                            IverksattBehandling.UtenMangler(behandling)
+                        }
+                }
+
+            val oppgaveResultat = oppgaveService.lukkOppgave(behandling.oppgaveId())
+                .mapLeft {
+                    log.error("Kunne ikke lukke oppgave ved innvilgelse for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                    IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave(behandling)
                 }
                 .map {
-                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.OPPGAVE)
+                    log.info("Lukket oppgave ${behandling.oppgaveId()} ved innvilgelse for behandling ${behandling.id}")
+                    // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+                    IverksattBehandling.UtenMangler(behandling)
                 }
 
-            journalførOgDistribuerBrev(
-                request = LagBrevRequest.InnvilgetVedtak(behandling = behandling),
-                sakId = behandling.sakId,
-                incrementJournalførtCounter = { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT) },
-                incrementDistribuertBrevCounter = { behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV) }
-            ).map { behandling }
+            return journalføringOgBrevResultat.flatMap { oppgaveResultat }.fold(
+                { it.right() },
+                { it.right() }
+            )
         }
     }
-
-    private fun journalførOgDistribuerBrev(
-        request: LagBrevRequest,
-        sakId: UUID,
-        incrementJournalførtCounter: () -> Unit,
-        incrementDistribuertBrevCounter: () -> Unit,
-    ): Either<KunneIkkeIverksetteBehandling, Unit> =
-        brevService.journalførBrev(request, sakId)
-            .mapLeft { KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev }
-            .flatMap {
-                incrementJournalførtCounter()
-                brevService.distribuerBrev(it)
-                    .mapLeft { KunneIkkeIverksetteBehandling.KunneIkkeDistribuereBrev }
-                    .map {
-                        incrementDistribuertBrevCounter()
-                        Unit
-                    }
-            }
 
     override fun opprettSøknadsbehandling(
         søknadId: UUID

@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Test
 
@@ -31,7 +32,7 @@ internal class DokDistFordelingClientTest : WiremockBase {
                     )
                 )
         )
-        client.bestillDistribusjon(journalpostId) shouldBe "id på tingen".right()
+        client.bestillDistribusjon(journalpostId) shouldBe BrevbestillingId("id på tingen").right()
     }
     private val wiremockBuilder: MappingBuilder = WireMock.post(WireMock.urlPathEqualTo(dokDistFordelingPath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))

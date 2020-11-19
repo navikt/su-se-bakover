@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ikk
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ukjent
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.lang.IllegalStateException
 import java.time.LocalDate
 
 const val NAV_CONSUMER_TOKEN = "Nav-Consumer-Token"
@@ -42,9 +43,10 @@ internal class PdlClient(
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
             val hentPerson = response.hentPerson!!
-            val navn = hentPerson.navn.sortedBy {
+            val navn = hentPerson.navn.minByOrNull {
                 folkeregisteretAsMaster(it.metadata)
-            }.first()
+            }!!
+
             val alleAdresser = listOf(
                 hentPerson.bostedsadresse,
                 hentPerson.oppholdsadresse,
@@ -121,14 +123,24 @@ internal class PdlClient(
 
     private fun <T> håndtererPdlFeil(pdlResponse: PdlResponse<T>): KunneIkkeHentePerson {
         val feil = pdlResponse.toKunneIkkeHentePerson()
-        if (feil.size != 1) {
-            log.error("Mer enn 1 feil fra PDL: ${pdlResponse.errors}")
-            return Ukjent
-        }
-        if (feil.first() is Ukjent) {
+        if (feil.any { it is Ukjent }) {
+            // Vi ønsker å logge ukjente respons-koder i alle tilfeller.
             log.error("Ukjent feilresponskode fra PDL: ${pdlResponse.errors}")
         }
-        return feil.first()
+        if (feil.groupBy { it.javaClass.kotlin }.size > 1) {
+            // Greit å få oversikt om dette kan skje.
+            log.error("Feilrespons fra PDL inneholdt forskjellige feilkoder: ${pdlResponse.errors}")
+        }
+        if (feil.any { it is IkkeTilgangTilPerson }) {
+            return IkkeTilgangTilPerson
+        }
+        if (feil.any { it is Ukjent }) {
+            return Ukjent
+        }
+        if (feil.all { it is FantIkkePerson }) {
+            return FantIkkePerson
+        }
+        throw IllegalStateException("Implementation error - we didn't cover all the PDL error states.")
     }
 
     private fun specializedType(clazz: Class<*>) =

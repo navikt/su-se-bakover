@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -22,4 +24,6 @@ interface BehandlingRepo {
     fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant)
     fun opprettSøknadsbehandling(nySøknadsbehandling: NySøknadsbehandling)
     fun oppdaterOppgaveId(behandlingId: UUID, oppgaveId: OppgaveId)
+    fun oppdaterIverksattJournalpostId(behandlingId: UUID, journalpostId: JournalpostId)
+    fun oppdaterIverksattBrevbestillingId(behandlingId: UUID, bestillingId: BrevbestillingId)
 }

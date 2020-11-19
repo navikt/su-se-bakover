@@ -38,24 +38,29 @@ internal class SøknadServiceImpl(
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
 
-        val fnr: Fnr = søknadInnhold.personopplysninger.fnr
+        val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
-        val person = personOppslag.person(fnr).getOrHandle {
-            // Dette bør ikke skje i normal flyt, siden vi allerede har slått opp personen i PDL før vi begynte søknaden.
+        val person = personOppslag.person(innsendtFødselsnummer).getOrHandle {
+            // Dette bør ikke skje i normal flyt, siden vi allerede har gjort en tilgangssjekk mot PDL (kode6/7).
             log.error("Ny søknad: Fant ikke person med gitt fødselsnummer. Originalfeil: $it")
             return KunneIkkeOppretteSøknad.FantIkkePerson.left()
         }
+        val fnr = person.ident.fnr
+        val søknadsinnholdMedNyesteFødselsnummer = søknadInnhold.copy(
+            personopplysninger = søknadInnhold.personopplysninger.copy(
+                // Ønsker alltid å bruke det nyeste fødselsnummeret
+                fnr = fnr
+            )
+        )
 
-        if (person.ident.fnr != fnr) {
-            // TODO jah: Dersom disse ikke er like, bruker vi søknadens fnr alle steder bortsett fra i journalføringa, som bruker fnr fra PDL.
-            // Bør vi returnere Left her? Og heller sjekke dette bedre når man slår opp fødselsnummer ved starten av søknaden?
-            log.error("Personen har et nyere fødselsnummer i PDL enn det som var oppgitt.")
+        if (fnr != innsendtFødselsnummer) {
+            log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
 
         val (sak: Sak, søknad: Søknad) = sakService.hentSak(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySak(fnr, søknadInnhold).also {
+                val nySak = sakFactory.nySak(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
                     sakService.opprettSak(it)
                 }
                 Pair(nySak.toSak(), nySak.søknad)
@@ -64,7 +69,7 @@ internal class SøknadServiceImpl(
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
                 val søknad = Søknad.Ny(
                     sakId = it.id,
-                    søknadInnhold = søknadInnhold,
+                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
                 søknadRepo.opprettSøknad(søknad)
 
