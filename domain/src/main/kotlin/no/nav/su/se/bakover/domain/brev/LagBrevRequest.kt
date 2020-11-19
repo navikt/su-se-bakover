@@ -23,7 +23,7 @@ abstract class LagBrevRequest {
             personalia = personalia,
             satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt()
                 ?: 0, // TODO: avrunding
-            fradrag = behandling.beregning()?.getFradrag()?.toFradragPerMåned() ?: emptyList(),
+            fradrag = behandling.beregning()?.getFradrag()?.toTotaltFradragPerType() ?: emptyList(),
             // TODO: burde kanskje sende over doubles?
             fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
             avslagsgrunner = avslagsgrunnForBehandling(behandling),
@@ -52,10 +52,11 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
             val førsteMånedsberegning =
-                behandling.beregning()!!.getMånedsberegninger().firstOrNull()!! // Støtte för variende beløp i framtiden?
+                behandling.beregning()!!.getMånedsberegninger()
+                    .firstOrNull()!! // Støtte för variende beløp i framtiden?
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
-                månedsbeløp = førsteMånedsberegning.getSumYtelse().toInt(), // TODO: avrunding
+                månedsbeløp = førsteMånedsberegning.getSumYtelse(),
                 fradato = behandling.beregning()!!.getPeriode().getFraOgMed().formatMonthYear(),
                 tildato = behandling.beregning()!!.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = behandling.beregning()?.getSats().toString().toLowerCase(),
@@ -63,7 +64,10 @@ abstract class LagBrevRequest {
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
                 redusertStønadStatus = behandling.beregning()?.getFradrag()?.isNotEmpty() ?: false,
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                fradrag = behandling.beregning()!!.getFradrag().toFradragPerMåned(),
+                fradrag = behandling.beregning()!!
+                    .getMånedsberegninger()
+                    .flatMap { it.getFradrag() }
+                    .toTotaltFradragPerType(),
                 // TODO: burde kanskje sende over doubles?
                 fradragSum = behandling.beregning()!!.getSumFradrag().roundToInt(),
             )
@@ -92,13 +96,18 @@ enum class Satsgrunn {
     DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 }
 
-data class FradragPerMåned(val type: Fradragstype, val beløp: Int)
+data class TotaltFradragPerType(val type: Fradragstype, val beløp: Int)
 
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
 
-internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
-    this.map {
-        FradragPerMåned(it.getFradragstype(), it.getFradragPerMåned().toInt())
-    }
+internal fun List<Fradrag>.toTotaltFradragPerType(): List<TotaltFradragPerType> =
+    this
+        .groupBy { it.getFradragstype() }
+        .map { (type, fradrag) ->
+            TotaltFradragPerType(
+                type,
+                fradrag.sumByDouble { it.getTotaltFradrag() }.toInt()
+            )
+        }

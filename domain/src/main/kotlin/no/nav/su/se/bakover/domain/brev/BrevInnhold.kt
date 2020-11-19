@@ -17,7 +17,7 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val satsbeløp: Int,
         val fradragSum: Int,
-        val fradrag: List<FradragPerMåned>,
+        val fradrag: List<TotaltFradragPerType>,
         val avslagsgrunner: List<Avslagsgrunn>,
         val harFlereAvslagsgrunner: Boolean = avslagsgrunner.size > 1,
         val harEktefelle: Boolean,
@@ -37,7 +37,7 @@ abstract class BrevInnhold {
         val satsGrunn: Satsgrunn,
         val redusertStønadStatus: Boolean,
         val harEktefelle: Boolean,
-        val fradrag: List<FradragPerMåned>,
+        val fradrag: List<TotaltFradragPerType>,
     ) : BrevInnhold() {
         override fun brevTemplate(): BrevTemplate = BrevTemplate.InnvilgetVedtak
     }
