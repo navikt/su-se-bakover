@@ -11,8 +11,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -25,8 +23,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.PERSISTERT
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -39,6 +35,7 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -54,11 +51,7 @@ class UnderkjennBehandlingTest {
     private val attestant = NavIdentBruker.Attestant("a")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
-    private val beregning = BeregningFactory.ny(
-        periode = Periode(1.januar(2020), 31.januar(2020)),
-        sats = Sats.HØY,
-        fradrag = listOf()
-    )
+    private val beregning = TestBeregning
 
     private val simulering = Simulering(
         gjelderId = fnr,

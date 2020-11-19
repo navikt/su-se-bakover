@@ -265,24 +265,26 @@ internal class BehandlingRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
                        "fraOgMed":"$fraOgMed",
                        "tilOgMed":"$tilOgMed",
                        "sats":"${sats.name}",
                        "fradrag":[{
-                             "type":"Arbeidsinntekt",
-                             "beløp":200,
-                             "utenlandskInntekt":{
-                                "beløpIUtenlandskValuta":200,
-                                "valuta":"euro",
-                                "kurs":0.5
-                             },
-                             "periode" : {
-                                "fraOgMed":"$fraOgMed",
-                                "tilOgMed":"$tilOgMed"
-                             }
-                          }]
+                         "type":"Arbeidsinntekt",
+                         "beløp":200,
+                         "utenlandskInntekt":{
+                            "beløpIUtenlandskValuta":200,
+                            "valuta":"euro",
+                            "kurs":0.5
+                         },
+                         "periode" : {
+                            "fraOgMed":"$fraOgMed",
+                            "tilOgMed":"$tilOgMed"
+                         },
+                         "tilhører": "BRUKER"
+                      }]
                     }
                     """.trimIndent()
                 )
@@ -293,8 +295,8 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 1
-                behandlingJson.beregning.fradrag.all {
+                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
+                behandlingJson.beregning.fradrag.filter { it.type == "Arbeidsinntekt" }.all {
                     it.utenlandskInntekt == UtenlandskInntekt(
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
@@ -326,22 +328,22 @@ internal class BehandlingRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
                         "fraOgMed":"$fraOgMed",
                         "tilOgMed":"$tilOgMed",
                         "sats":"${sats.name}",
-                        "fradrag": [
-                                {
-                                "type": "Arbeidsinntekt",
-                                "beløp": 200,
-                                "utenlandskInntekt": null,
-                                "periode" : {
-                                    "fraOgMed":"$fraOgMed",
-                                    "tilOgMed":"$tilOgMed"
-                             }
-                            }
-                        ]
+                        "fradrag": [{
+                            "type": "Arbeidsinntekt",
+                            "beløp": 200,
+                            "utenlandskInntekt": null,
+                            "periode" : {
+                                "fraOgMed":"$fraOgMed",
+                                "tilOgMed":"$tilOgMed"
+                            },
+                            "tilhører": "BRUKER"
+                        }]
                     }
                     """.trimIndent()
                 )
@@ -352,7 +354,7 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
                 behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
             }
         }
@@ -419,21 +421,21 @@ internal class BehandlingRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """{
                            "fraOgMed":"$fraOgMed",
                            "tilOgMed":"$tilOgMed",
                            "sats":"${sats.name}",
-                           "fradrag":[
-                            {
-                                 "type":"Arbeidsinntekt",
-                                 "beløp":200,
-                                 "utenlandskInntekt":{
-                                    "beløpIUtenlandskValuta":-200,
-                                    "valuta":"euro",
-                                    "kurs":0.5
-                                 }
-                              }
-                            ]
+                           "fradrag":[{
+                             "type":"Arbeidsinntekt",
+                             "beløp":200,
+                             "utenlandskInntekt":{
+                                "beløpIUtenlandskValuta":-200,
+                                "valuta":"euro",
+                                "kurs":0.5
+                             },
+                             "tilhører": "BRUKER"
+                          }]
                         }
                     """.trimIndent()
                 )
@@ -885,7 +887,12 @@ internal class BehandlingRoutesKtTest {
         repos.behandling.opprettSøknadsbehandling(
             nySøknadsbehandling
         )
-        return Objects(repos.sak.hentSak(sak.id)!!, repos.søknad.hentSøknad(søknadId)!!, nySøknadsbehandling, repos.behandling.hentBehandling(nySøknadsbehandling.id)!!)
+        return Objects(
+            repos.sak.hentSak(sak.id)!!,
+            repos.søknad.hentSøknad(søknadId)!!,
+            nySøknadsbehandling,
+            repos.behandling.hentBehandling(nySøknadsbehandling.id)!!
+        )
     }
 
     val navIdentSaksbehandler = "random-saksbehandler-id"

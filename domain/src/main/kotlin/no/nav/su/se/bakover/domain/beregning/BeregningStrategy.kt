@@ -1,24 +1,16 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 
 internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {
-        val periode = Periode(
-            beregningsgrunnlag.fraOgMed,
-            beregningsgrunnlag.tilOgMed
-        )
         return BeregningFactory.ny(
-            periode = periode,
+            periode = beregningsgrunnlag.periode,
             sats = sats(),
-            fradrag = fradragStrategy().beregnFradrag(
-                beregningsgrunnlag.forventetInntekt,
-                beregningsgrunnlag.fradrag,
-                periode
-            )
+            fradrag = beregningsgrunnlag.fradrag,
+            fradragStrategy = fradragStrategy()
         )
     }
 

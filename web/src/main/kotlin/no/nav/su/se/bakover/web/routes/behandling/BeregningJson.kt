@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
@@ -26,27 +27,31 @@ internal fun Beregning.toJson() = BeregningJson(
     tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
     månedsberegninger = getMånedsberegninger().map { it.toJson() }, // TODO show fradrag/month
-    fradrag = getFradrag().map {
-        FradragJson(
-            type = it.getFradragstype().toString(),
-            beløp = it.getTotaltFradrag(),
-            utenlandskInntekt = it.getUtenlandskInntekt(),
-            periode = it.getPeriode().toJson()
-        )
-    }
+    fradrag = getFradrag().map { it.toJson() }
 )
+
+internal fun Fradrag.toJson() =
+    FradragJson(
+        type = getFradragstype().toString(),
+        beløp = getTotaltFradrag(),
+        utenlandskInntekt = getUtenlandskInntekt(),
+        periode = getPeriode().toJson(),
+        tilhører = getTilhører().toString()
+    )
 
 internal data class FradragJson(
     val periode: PeriodeJson?,
     val type: String,
     val beløp: Double,
-    val utenlandskInntekt: UtenlandskInntekt?
+    val utenlandskInntekt: UtenlandskInntekt?,
+    val tilhører: String
 ) {
     fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
-        periode = this.periode?.toPeriode() ?: periode,
         type = Fradragstype.valueOf(type),
         beløp = beløp,
-        utenlandskInntekt = utenlandskInntekt
+        periode = this.periode?.toPeriode() ?: periode,
+        utenlandskInntekt = utenlandskInntekt,
+        tilhører = FradragTilhører.valueOf(tilhører)
     )
 }
 

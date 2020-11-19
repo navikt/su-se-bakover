@@ -4,12 +4,16 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
@@ -228,10 +232,16 @@ data class Behandling internal constructor(
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    fraOgMed = fraOgMed,
-                    tilOgMed = tilOgMed,
-                    fradrag = fradrag,
-                    forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt ?: 0
+                    periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                    fradrag = fradrag.plus(
+                        FradragFactory.ny(
+                            type = Fradragstype.ForventetInntekt,
+                            beløp = behandlingsinformasjon.uførhet!!.forventetInntekt?.toDouble() ?: 0.0,
+                            periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER
+                        )
+                    )
                 )
 
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
 import org.junit.jupiter.api.Test
@@ -34,7 +35,8 @@ internal class PeriodeMånedsberegningTest {
                 PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 5000.0,
-                    periode = Periode(1.januar(2020), 31.januar(2020))
+                    periode = Periode(1.januar(2020), 31.januar(2020)),
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -52,7 +54,8 @@ internal class PeriodeMånedsberegningTest {
                     PeriodeFradrag(
                         type = Fradragstype.Kontantstøtte,
                         beløp = 5000.0,
-                        periode = Periode(1.desember(2020), 31.desember(2020))
+                        periode = Periode(1.desember(2020), 31.desember(2020)),
+                        tilhører = FradragTilhører.BRUKER
                     )
                 )
             )
@@ -80,7 +83,8 @@ internal class PeriodeMånedsberegningTest {
                 PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -97,7 +101,8 @@ internal class PeriodeMånedsberegningTest {
                 PeriodeFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
-                    periode = periode
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
@@ -128,7 +133,8 @@ internal class PeriodeMånedsberegningTest {
             type = Fradragstype.Arbeidsinntekt,
             beløp = 1234.56,
             periode = Periode(1.januar(2020), 31.januar(2020)),
-            utenlandskInntekt = null
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER
         )
         val m1 = MånedsberegningFactory.ny(
             periode = Periode(1.januar(2020), 31.januar(2020)),

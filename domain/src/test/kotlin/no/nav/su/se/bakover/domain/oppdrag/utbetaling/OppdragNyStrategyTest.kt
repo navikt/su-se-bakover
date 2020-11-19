@@ -14,6 +14,10 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
@@ -311,6 +315,15 @@ internal class OppdragNyStrategyTest {
     private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory.ny(
         periode = Periode(fraOgMed, tilOgMed),
         sats = Sats.HØY,
-        fradrag = emptyList()
+        fradrag = listOf(
+            FradragFactory.ny(
+                type = Fradragstype.ForventetInntekt,
+                beløp = 0.0,
+                periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER
+            )
+        ),
+        fradragStrategy = FradragStrategy.Enslig
     )
 }

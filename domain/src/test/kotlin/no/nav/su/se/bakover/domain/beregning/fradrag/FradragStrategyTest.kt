@@ -1,52 +1,84 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class FradragStrategyTest {
     @Test
-    fun `enslig velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
-        val periode = Periode(1.januar(2020), 31.januar(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 25000.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype.Kontantstøtte, 5000.0, periode)
-
-        FradragStrategy.Enslig.beregnFradrag(
-            forventetInntekt = 6000,
-            fradrag = listOf(arbeidsinntekt, kontantstøtte),
-            periode = periode
-        ).let {
-            it shouldBe listOf(arbeidsinntekt, kontantstøtte)
+    fun `hver delperiode må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
+        val periode = Periode(1.januar(2020), 31.desember(2020))
+        assertThrows<IllegalArgumentException> {
+            FradragStrategy.Enslig.beregn(
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
+            )
+        }.let {
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
+        }
+        assertThrows<IllegalArgumentException> {
+            FradragStrategy.EpsOver67År.beregn(
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
+            )
+        }.let {
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
+        }
+        assertThrows<IllegalArgumentException> {
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
+            )
+        }.let {
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
+        }
+        assertThrows<IllegalArgumentException> {
+            FradragStrategy.EpsUnder67År.beregn(
+                fradrag = listOf(
+                    lagFradrag(
+                        Fradragstype.ForventetInntekt,
+                        5000.0,
+                        Periode(1.januar(2020), 31.januar(2020))
+                    )
+                ),
+                beregningsperiode = periode
+            )
+        }.let {
+            it.message shouldContain "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet."
         }
     }
-
-    @Test
-    fun `enslig velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
-        val periode = Periode(1.januar(2020), 31.januar(2020))
-        val arbeidsinntekt = lagFradrag(Fradragstype.Arbeidsinntekt, 5000.0, periode)
-        val kontantstøtte = lagFradrag(Fradragstype.Kontantstøtte, 5000.0, periode)
-
-        FradragStrategy.Enslig.beregnFradrag(
-            forventetInntekt = 15000,
-            fradrag = listOf(arbeidsinntekt, kontantstøtte),
-            periode = periode
-        ).let { fradrag ->
-            fradrag shouldHaveSize 2
-            val (forventetInntekt, kontant) = fradrag.partition { it.getFradragstype() == Fradragstype.ForventetInntekt }
-            kontant shouldBe listOf(kontantstøtte)
-            forventetInntekt.first().let {
-                it.getFradragstype() shouldBe Fradragstype.ForventetInntekt
-                it.getTotaltFradrag() shouldBe 15000
-            }
-        }
-    }
-
-    private fun lagFradrag(type: Fradragstype, beløp: Double, periode: Periode) = FradragFactory.ny(
-        type = type,
-        beløp = beløp,
-        utenlandskInntekt = null,
-        periode = periode
-    )
 }
+
+internal fun lagFradrag(
+    type: Fradragstype,
+    beløp: Double,
+    periode: Periode,
+    tilhører: FradragTilhører = FradragTilhører.BRUKER
+) = FradragFactory.ny(
+    type = type,
+    beløp = beløp,
+    periode = periode,
+    utenlandskInntekt = null,
+    tilhører = tilhører
+)

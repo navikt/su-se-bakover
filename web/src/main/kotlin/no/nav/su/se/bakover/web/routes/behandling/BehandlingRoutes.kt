@@ -5,7 +5,6 @@ import arrow.core.flatMap
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
@@ -87,7 +87,7 @@ internal fun Route.behandlingRoutes(
                                     },
                                     {
                                         call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                        call.svar(HttpStatusCode.Created.jsonBody(it))
+                                        call.svar(Created.jsonBody(it))
                                     }
                                 )
                         }
@@ -141,7 +141,9 @@ internal fun Route.behandlingRoutes(
         fun valid() = fraOgMed.dayOfMonth == 1 &&
             tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
             fradrag.all {
-                Fradragstype.isValid(it.type) && it.utenlandskInntekt?.isValid() ?: true
+                Fradragstype.isValid(it.type) &&
+                    enumContains<FradragTilhører>(it.tilhører) &&
+                    it.utenlandskInntekt?.isValid() ?: true
             }
     }
 

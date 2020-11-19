@@ -3,15 +3,17 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import java.util.UUID
 
-internal data class BeregningMedFradragFordeltOverHelePerioden(
+internal data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
     private val opprettet: Tidspunkt = Tidspunkt.now(),
     private val periode: Periode,
     private val sats: Sats,
-    private val fradrag: List<Fradrag>
+    private val fradrag: List<Fradrag>,
+    private val fradragStrategy: FradragStrategy
 ) : Beregning {
     private val beregning = beregn()
 
@@ -26,24 +28,18 @@ internal data class BeregningMedFradragFordeltOverHelePerioden(
         .sumByDouble { it.getSumFradrag() }
 
     override fun getSumYtelseErUnderMinstebeløp() = getSumYtelse() < Sats.toProsentAvHøy(periode)
+    override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.tilMånedsperioder()
 
-        val periodiserteFradrag = fradrag.flatMap {
-            FradragFactory.ny(
-                type = it.getFradragstype(),
-                beløp = it.getTotaltFradrag(),
-                periode = periode,
-                utenlandskInntekt = it.getUtenlandskInntekt()
-            ).periodiser()
-        }.groupBy { it.getPeriode() }
+        val beregnetPeriodisertFradrag = fradragStrategy.beregn(fradrag, periode)
 
         return perioder.map {
             it to MånedsberegningFactory.ny(
                 periode = it,
                 sats = sats,
-                fradrag = periodiserteFradrag[it] ?: emptyList()
+                fradrag = beregnetPeriodisertFradrag[it] ?: emptyList()
             )
         }.toMap()
     }
