@@ -8,8 +8,6 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -17,8 +15,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -27,6 +23,7 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -39,11 +36,7 @@ class BehandlingTilAttesteringTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
 
-    private val beregning = BeregningFactory.ny(
-        periode = Periode(1.januar(2020), 31.januar(2020)),
-        sats = Sats.HØY,
-        fradrag = listOf()
-    )
+    private val beregning = TestBeregning
 
     private val simulering = Simulering(
         gjelderId = fnr,

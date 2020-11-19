@@ -3,22 +3,25 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.util.UUID
 
-object BeregningFactory {
+internal object BeregningFactory {
     fun ny(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(),
         periode: Periode,
         sats: Sats,
-        fradrag: List<Fradrag>
+        fradrag: List<Fradrag>,
+        fradragStrategy: FradragStrategy
     ): Beregning {
-        return BeregningMedFradragFordeltOverHelePerioden(
+        return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
             periode = periode,
             sats = sats,
-            fradrag = fradrag
+            fradrag = fradrag,
+            fradragStrategy = fradragStrategy
         )
     }
 }

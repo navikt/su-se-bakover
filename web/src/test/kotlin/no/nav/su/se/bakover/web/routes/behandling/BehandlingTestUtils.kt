@@ -100,7 +100,7 @@ object BehandlingTestUtils {
             )
         ),
         søknad = journalførtSøknadMedOppgave,
-        beregning = BeregningJsonTest.beregning,
+        beregning = TestBeregning,
         attestant = NavIdentBruker.Attestant("kjella"),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         sakId = sakId,

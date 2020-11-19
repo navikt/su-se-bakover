@@ -12,16 +12,12 @@ import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -31,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -337,11 +334,7 @@ internal class UtbetalingServiceImplTest {
         oppdrag = mock()
     )
 
-    private val beregning = BeregningFactory.ny(
-        periode = Periode(1.januar(2020), 31.desember(2020)),
-        sats = Sats.HØY,
-        fradrag = listOf(),
-    )
+    private val beregning: Beregning = TestBeregning
 
     private val attestant = NavIdentBruker.Attestant("SU")
 

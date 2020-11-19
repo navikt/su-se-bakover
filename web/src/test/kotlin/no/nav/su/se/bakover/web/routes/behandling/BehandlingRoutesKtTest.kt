@@ -293,8 +293,8 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 1
-                behandlingJson.beregning.fradrag.all {
+                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
+                behandlingJson.beregning.fradrag.filter { it.type == "Arbeidsinntekt" }.all {
                     it.utenlandskInntekt == UtenlandskInntekt(
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
@@ -352,7 +352,7 @@ internal class BehandlingRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 1
+                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
                 behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
             }
         }

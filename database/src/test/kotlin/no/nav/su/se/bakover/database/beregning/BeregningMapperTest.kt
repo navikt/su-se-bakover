@@ -1,61 +1,28 @@
 package no.nav.su.se.bakover.database.beregning
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.util.UUID
 
 internal class BeregningMapperTest {
 
-    private val periode = Periode(1.januar(2020), 31.januar(2020))
-    private val fradrag = FradragFactory.ny(
-        type = Fradragstype.Arbeidsinntekt,
-        beløp = 12000.0,
-        periode = periode,
-        utenlandskInntekt = null,
-        tilhører = FradragTilhører.BRUKER
-    )
-
-    private val månedsberegning = MånedsberegningFactory.ny(
-        periode = periode,
-        sats = Sats.HØY,
-        fradrag = listOf(fradrag)
-    )
-
-    private val beregning = BeregningFactory.ny(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        periode = periode,
-        sats = Sats.HØY,
-        fradrag = listOf(fradrag),
-    )
-
     @Test
     fun `mapper fradrag til snapshot`() {
-        fradrag.toSnapshot().let { assertFradragMapping(it, fradrag) }
+        TestFradrag.toSnapshot().let { assertFradragMapping(it, TestFradrag) }
     }
 
     @Test
     fun `mapper månedsberegning til snapshot`() {
-        månedsberegning.toSnapshot().let { assertMånedsberegningMapping(it, månedsberegning) }
+        TestMånedsberegning.toSnapshot().let { assertMånedsberegningMapping(it, TestMånedsberegning) }
     }
 
     @Test
     fun `mapper beregning til snapshot`() {
-        beregning.toSnapshot().let { assertBeregningMapping(it, beregning) }
+        TestBeregning.toSnapshot().let { assertBeregningMapping(it, TestBeregning) }
     }
 
     @Test
@@ -63,8 +30,8 @@ internal class BeregningMapperTest {
         //language=json
         val expectedJson = """
             {
-              "id": "${beregning.getId()}",
-              "opprettet": "${beregning.getOpprettet()}",
+              "id": "${TestBeregning.getId()}",
+              "opprettet": "${TestBeregning.getOpprettet()}",
               "sats": "HØY",
               "månedsberegninger": [
                 {
@@ -75,7 +42,7 @@ internal class BeregningMapperTest {
                   "satsbeløp": 20637.32,
                   "fradrag": [
                     {
-                      "fradragstype": "Arbeidsinntekt",
+                      "fradragstype": "ForventetInntekt",
                       "totaltFradrag": 12000.0,
                       "utenlandskInntekt": null,
                       "fradragPerMåned": 12000.0,
@@ -96,7 +63,7 @@ internal class BeregningMapperTest {
               ],
               "fradrag": [
                 {
-                  "fradragstype": "Arbeidsinntekt",
+                  "fradragstype": "ForventetInntekt",
                   "totaltFradrag": 12000.0,
                   "utenlandskInntekt": null,
                   "fradragPerMåned": 12000.0,
@@ -118,7 +85,7 @@ internal class BeregningMapperTest {
               }
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(beregning.toSnapshot()), true)
+        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
     }
 }
 
