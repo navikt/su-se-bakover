@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -24,6 +25,7 @@ internal object TestBeregning : Beregning {
     override fun getSumFradrag(): Double = 12000.0
     override fun getSumYtelseErUnderMinstebeløp(): Boolean = false
     override fun getPeriode(): Periode = Periode(1.januar(2020), 31.januar(2020))
+    override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
 }
 
 internal object TestMånedsberegning : Månedsberegning {

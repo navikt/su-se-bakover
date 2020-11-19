@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
@@ -20,7 +21,8 @@ internal data class Beregnet(
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val sumYtelseErUnderMinstebeløp: Boolean,
-    private val periode: Periode
+    private val periode: Periode,
+    private val fradragStrategyName: FradragStrategyName
 ) : Beregning {
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = opprettet
@@ -30,6 +32,8 @@ internal data class Beregnet(
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
     override fun getSumYtelseErUnderMinstebeløp(): Boolean = sumYtelseErUnderMinstebeløp
+    override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
+
     override fun getPeriode(): Periode = periode
 }
 
@@ -78,7 +82,8 @@ internal fun Beregning.toSnapshot() = Beregnet(
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
     sumYtelseErUnderMinstebeløp = getSumYtelseErUnderMinstebeløp(),
-    periode = getPeriode()
+    periode = getPeriode(),
+    fradragStrategyName = getFradragStrategyName()
 )
 
 internal fun Månedsberegning.toSnapshot() = BeregnetMåned(

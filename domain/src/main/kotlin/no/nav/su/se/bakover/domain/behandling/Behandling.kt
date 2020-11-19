@@ -209,7 +209,7 @@ data class Behandling internal constructor(
             override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-                    fradrag = fradrag.plus( // TODO Add forventet IEU for EPS if ufør flyktning
+                    fradrag = fradrag.plus(
                         FradragFactory.ny(
                             type = Fradragstype.ForventetInntekt,
                             beløp = behandlingsinformasjon.uførhet!!.forventetInntekt?.toDouble() ?: 0.0,
@@ -245,7 +245,7 @@ data class Behandling internal constructor(
         }
     }
 
-    private open inner class Beregnet : Behandling.Tilstand {
+    private open inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
         override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
@@ -278,7 +278,7 @@ data class Behandling internal constructor(
         }
     }
 
-    private inner class Simulert : Behandling.Tilstand {
+    private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(

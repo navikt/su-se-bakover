@@ -4,7 +4,16 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Minstepensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats
 
-internal sealed class FradragStrategy {
+enum class FradragStrategyName {
+    Enslig,
+    EpsOver67År,
+    EpsUnder67ÅrOgUførFlyktning,
+    EpsUnder67År
+}
+
+internal sealed class FradragStrategy(private val name: FradragStrategyName) {
+    fun getName() = name
+
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {
         val periodiserteFradrag = fradrag
             .flatMap { it.periodiser() }
@@ -23,14 +32,14 @@ internal sealed class FradragStrategy {
 
     protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
 
-    object Enslig : FradragStrategy() {
+    object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag.mapValues { it.value.filter { it.getTilhører() == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
     }
 
-    object EpsOver67År : FradragStrategy() {
+    object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -51,7 +60,7 @@ internal sealed class FradragStrategy {
         }
     }
 
-    object EpsUnder67ÅrOgUførFlyktning : FradragStrategy() {
+    object EpsUnder67ÅrOgUførFlyktning : FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -72,7 +81,7 @@ internal sealed class FradragStrategy {
         }
     }
 
-    object EpsUnder67År : FradragStrategy() {
+    object EpsUnder67År : FradragStrategy(FradragStrategyName.EpsUnder67År) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> =
             fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -142,6 +151,6 @@ internal sealed class FradragStrategy {
         )
     }
 
-    protected fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
+    private fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
         singleOrNull { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt } != null
 }

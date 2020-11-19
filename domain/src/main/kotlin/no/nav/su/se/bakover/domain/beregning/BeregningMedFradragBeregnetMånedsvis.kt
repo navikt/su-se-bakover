@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import java.util.UUID
 
 internal data class BeregningMedFradragBeregnetMånedsvis(
@@ -27,6 +28,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
         .sumByDouble { it.getSumFradrag() }
 
     override fun getSumYtelseErUnderMinstebeløp() = getSumYtelse() < Sats.toProsentAvHøy(periode)
+    override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.tilMånedsperioder()

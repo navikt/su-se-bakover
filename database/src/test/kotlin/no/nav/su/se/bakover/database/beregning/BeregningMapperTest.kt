@@ -82,7 +82,8 @@ internal class BeregningMapperTest {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-01-31",
                 "antallMåneder": 1
-              }
+              },
+              "fradragStrategyName": "Enslig"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
