@@ -22,7 +22,8 @@ internal class FradragJsonTest {
           },
           "type" : "Arbeidsinntekt",
           "beløp": 10.0,
-          "utenlandskInntekt": null
+          "utenlandskInntekt": null,
+          "tilhører": "BRUKER"
         }
         """.trimIndent()
 
@@ -30,7 +31,8 @@ internal class FradragJsonTest {
             periode = PeriodeJson("2020-01-01", "2020-01-31"),
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
-            utenlandskInntekt = null
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString()
         )
     }
 
@@ -41,7 +43,8 @@ internal class FradragJsonTest {
         {
           "type" : "Arbeidsinntekt",
           "beløp": 10.0,
-          "utenlandskInntekt": null
+          "utenlandskInntekt": null,
+          "tilhører": "BRUKER"
         }
         """.trimIndent()
 
@@ -49,7 +52,8 @@ internal class FradragJsonTest {
             periode = null,
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
-            utenlandskInntekt = null
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString()
         )
     }
 
@@ -67,7 +71,8 @@ internal class FradragJsonTest {
             periode = null,
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
-            utenlandskInntekt = null
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString()
         )
 
         json.toFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe expected

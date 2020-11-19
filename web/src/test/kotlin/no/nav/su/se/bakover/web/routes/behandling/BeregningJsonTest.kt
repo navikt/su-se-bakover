@@ -20,7 +20,17 @@ internal class BeregningJsonTest {
                     "tilOgMed":"2020-08-31",
                     "sats":"HØY",
                     "grunnbeløp":101351,
-                    "beløp":19946
+                    "beløp":19946,
+                    "fradrag": [{
+                      "periode": {
+                        "fraOgMed":"2020-08-01",
+                        "tilOgMed":"2020-08-31"
+                      },
+                      "type": "Arbeidsinntekt",
+                      "beløp": 1000.0,
+                      "tilhører": "BRUKER",
+                      "utenlandskInntekt": null
+                    }]
                 }],
                 "fradrag": [{
                   "type": "Arbeidsinntekt",
@@ -29,7 +39,8 @@ internal class BeregningJsonTest {
                   "periode" : {
                     "fraOgMed":"2020-08-01",
                     "tilOgMed":"2020-08-31"
-                  }
+                  },
+                  "tilhører": "BRUKER"
                 }]
             }
         """

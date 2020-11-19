@@ -27,28 +27,31 @@ internal fun Beregning.toJson() = BeregningJson(
     tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
     månedsberegninger = getMånedsberegninger().map { it.toJson() }, // TODO show fradrag/month
-    fradrag = getFradrag().map {
-        FradragJson(
-            type = it.getFradragstype().toString(),
-            beløp = it.getTotaltFradrag(),
-            utenlandskInntekt = it.getUtenlandskInntekt(),
-            periode = it.getPeriode().toJson()
-        )
-    }
+    fradrag = getFradrag().map { it.toJson() }
 )
+
+internal fun Fradrag.toJson() =
+    FradragJson(
+        type = getFradragstype().toString(),
+        beløp = getTotaltFradrag(),
+        utenlandskInntekt = getUtenlandskInntekt(),
+        periode = getPeriode().toJson(),
+        tilhører = getTilhører().toString()
+    )
 
 internal data class FradragJson(
     val periode: PeriodeJson?,
     val type: String,
     val beløp: Double,
-    val utenlandskInntekt: UtenlandskInntekt?
+    val utenlandskInntekt: UtenlandskInntekt?,
+    val tilhører: String
 ) {
     fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
         type = Fradragstype.valueOf(type),
         beløp = beløp,
         periode = this.periode?.toPeriode() ?: periode,
         utenlandskInntekt = utenlandskInntekt,
-        tilhører = FradragTilhører.BRUKER // TODO input bruker/eps from frontend
+        tilhører = FradragTilhører.valueOf(tilhører)
     )
 }
 
