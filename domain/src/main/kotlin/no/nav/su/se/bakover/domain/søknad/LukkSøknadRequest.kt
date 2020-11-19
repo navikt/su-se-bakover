@@ -15,7 +15,11 @@ sealed class LukkSøknadRequest {
             override val søknadId: UUID,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             val trukketDato: LocalDate
-        ) : MedBrev()
+        ) : MedBrev() {
+            fun erDatoGyldig(dato: LocalDate): Boolean {
+                return !trukketDato.isBefore(dato) && !trukketDato.isAfter(LocalDate.now())
+            }
+        }
 
         data class AvvistSøknad(
             override val søknadId: UUID,

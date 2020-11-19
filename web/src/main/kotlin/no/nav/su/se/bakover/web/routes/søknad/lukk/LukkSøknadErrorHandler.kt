@@ -18,5 +18,7 @@ internal object LukkSøknadErrorHandler {
             HttpStatusCode.InternalServerError.message("Kunne ikke journalføre brev")
         is KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev ->
             HttpStatusCode.InternalServerError.message("Kunne distribuere brev")
+        is KunneIkkeLukkeSøknad.UgyldigDato ->
+            HttpStatusCode.InternalServerError.message("Kan ikke trekke søknad før den er opprettet eller frem i tid")
     }
 }

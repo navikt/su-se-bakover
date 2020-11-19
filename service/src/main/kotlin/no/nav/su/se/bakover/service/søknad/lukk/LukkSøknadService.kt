@@ -13,6 +13,7 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object FantIkkeSøknad : KunneIkkeLukkeSøknad()
+    object UgyldigDato : KunneIkkeLukkeSøknad()
     object KunneIkkeJournalføreBrev : KunneIkkeLukkeSøknad()
     object KunneIkkeDistribuereBrev : KunneIkkeLukkeSøknad()
 }

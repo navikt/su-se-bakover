@@ -30,6 +30,11 @@ internal class LukkSøknadServiceImpl(
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
+        val opprettetDato = søknad.opprettet.toLocalDate()
+        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato)) {
+            log.info("Kan ikke lukke søknad. Dato ${request.trukketDato} må være mellom $opprettetDato og idag")
+            return KunneIkkeLukkeSøknad.UgyldigDato.left()
+        }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
             log.info("Kan ikke lukke søknad. Finnes en behandling")
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()

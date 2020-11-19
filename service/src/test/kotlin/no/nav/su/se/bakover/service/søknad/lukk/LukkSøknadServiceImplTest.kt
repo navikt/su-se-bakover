@@ -11,6 +11,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -30,6 +31,8 @@ import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class LukkSøknadServiceImplTest {
@@ -55,6 +58,12 @@ internal class LukkSøknadServiceImplTest {
         sakId = sakId,
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.EPOCH,
+        søknadInnhold = søknadInnhold,
+    )
+    private val ikkeSåGammelSøknad = Søknad.Ny(
+        sakId = sakId,
+        id = UUID.randomUUID(),
+        opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(),
         søknadInnhold = søknadInnhold,
     )
     private val journalførtSøknadMedOppgave = nySøknad
@@ -177,6 +186,39 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
+    fun `en søknad kan ikke trekkes før den er opprettet`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn ikkeSåGammelSøknad
+            on { oppdaterSøknad(any()) }.doNothing()
+            on { harSøknadPåbegyntBehandling(any()) } doReturn true
+        }
+        val sakServiceMock = mock<SakService>()
+        val brevServiceMock = mock<BrevService>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock
+        ).lukkSøknad(
+            LukkSøknadRequest.MedBrev.TrekkSøknad(
+                søknadId = ikkeSåGammelSøknad.id,
+                saksbehandler = saksbehandler,
+                trukketDato = LocalDate.now().minusDays(4)
+            )
+        ) shouldBe KunneIkkeLukkeSøknad.UgyldigDato.left()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe ikkeSåGammelSøknad.id })
+        }
+
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
     }
 
