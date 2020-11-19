@@ -34,8 +34,14 @@ internal fun Route.personRoutes(
                         {
                             when (it) {
                                 FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
-                                IkkeTilgangTilPerson -> Resultat.message(HttpStatusCode.Forbidden, "Ikke tilgang til å se person")
-                                Ukjent -> Resultat.message(HttpStatusCode.InternalServerError, "Feil ved oppslag på person")
+                                IkkeTilgangTilPerson -> Resultat.message(
+                                    HttpStatusCode.Forbidden,
+                                    "Ikke tilgang til å se person"
+                                )
+                                Ukjent -> Resultat.message(
+                                    HttpStatusCode.InternalServerError,
+                                    "Feil ved oppslag på person"
+                                )
                             }
                         },
                         { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
@@ -54,7 +60,7 @@ data class PersonResponseJson(
     val etternavn: String, // deprecated
     val navn: NavnJson,
     val telefonnummer: TelefonnummerJson?,
-    val adresse: AdresseJson?,
+    val adresse: List<AdresseJson>?,
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
@@ -75,14 +81,14 @@ data class PersonResponseJson(
     )
 
     data class AdresseJson(
-        val adressenavn: String?,
-        val husnummer: String?,
-        val husbokstav: String?,
+        val adresselinje: String?,
         val postnummer: String?,
         val poststed: String?,
         val bruksenhet: String?,
         val kommunenummer: String?,
-        val kommunenavn: String?
+        val kommunenavn: String?,
+        val adressetype: String,
+        val adresseformat: String,
     )
 
     data class KontaktinfoJson(
@@ -111,16 +117,16 @@ data class PersonResponseJson(
                     nummer = t.nummer
                 )
             },
-            adresse = this.adresse?.let {
+            adresse = this.adresse?.map {
                 AdresseJson(
-                    adressenavn = it.adressenavn,
-                    husnummer = it.husnummer,
-                    husbokstav = it.husbokstav,
+                    adresselinje = it.adresselinje,
                     postnummer = it.poststed?.postnummer,
                     poststed = it.poststed?.poststed,
                     bruksenhet = it.bruksenhet,
                     kommunenummer = it.kommune?.kommunenummer,
-                    kommunenavn = it.kommune?.kommunenavn
+                    kommunenavn = it.kommune?.kommunenavn,
+                    adressetype = it.adressetype,
+                    adresseformat = it.adresseformat
                 )
             },
             statsborgerskap = this.statsborgerskap,

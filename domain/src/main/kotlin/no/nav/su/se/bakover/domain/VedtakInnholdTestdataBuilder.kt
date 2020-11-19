@@ -14,11 +14,6 @@ object VedtakInnholdTestdataBuilder {
             fødselsnummer = Fnr("12345678901"),
             fornavn = "Tore",
             etternavn = "Strømøy",
-            adresse = "en Adresse",
-            husnummer = "4C",
-            bruksenhet = "H102",
-            postnummer = "0186",
-            poststed = "Oslo"
         ),
         månedsbeløp = 100,
         fradato = "01.01.2020",

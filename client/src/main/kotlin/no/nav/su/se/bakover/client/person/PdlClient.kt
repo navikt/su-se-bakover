@@ -1,15 +1,19 @@
 package no.nav.su.se.bakover.client.person
 
+import Bostedsadresse
+import Kontaktadresse
+import Oppholdsadresse
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.person.PdlData.Adresse
+import finnRiktigAdresseformatOgMapTilPdlAdresse
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -42,8 +46,15 @@ internal class PdlClient(
             val navn = hentPerson.navn.minByOrNull {
                 folkeregisteretAsMaster(it.metadata)
             }!!
-            val vegadresser =
-                hentPerson.bostedsadresse.map { it.vegadresse } + hentPerson.oppholdsadresse.map { it.vegadresse } + hentPerson.kontaktadresse.map { it.vegadresse }
+
+            val alleAdresser = listOf(
+                hentPerson.bostedsadresse,
+                hentPerson.oppholdsadresse,
+                hentPerson.kontaktadresse
+            )
+                .filterMap { it.firstOrNull() }
+                .finnRiktigAdresseformatOgMapTilPdlAdresse()
+
             // TODO jah: Don't throw exception if we can't find this person
             PdlData(
                 ident = Ident(hentIdent(response.hentIdenter!!).fnr, hentIdent(response.hentIdenter).aktørId),
@@ -55,16 +66,7 @@ internal class PdlClient(
                 telefonnummer = hentPerson.telefonnummer.firstOrNull()?.let {
                     Telefonnummer(landskode = it.landskode, nummer = it.nummer)
                 },
-                adresse = vegadresser.firstOrNull()?.let { adresse ->
-                    Adresse(
-                        adressenavn = adresse.adressenavn,
-                        husnummer = adresse.husnummer,
-                        husbokstav = adresse.husbokstav,
-                        postnummer = adresse.postnummer,
-                        bruksenhet = adresse.bruksenhetsnummer,
-                        kommunenummer = adresse.kommunenummer
-                    )
-                },
+                adresse = alleAdresser,
                 statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
                 kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
                 adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering,
@@ -209,31 +211,10 @@ data class TelefonnummerResponse(
     val prioritet: Int
 )
 
-data class Bostedsadresse(
-    val vegadresse: Vegadresse?
-)
-
-data class Kontaktadresse(
-    val vegadresse: Vegadresse?
-)
-
-data class Oppholdsadresse(
-    val vegadresse: Vegadresse?
-)
-
 data class Statsborgerskap(
     val land: String,
     val gyldigFraOgMed: LocalDate?,
     val gyldigTilOgMed: LocalDate?
-)
-
-data class Vegadresse(
-    val husnummer: String?,
-    val husbokstav: String?,
-    val adressenavn: String?,
-    val kommunenummer: String?,
-    val postnummer: String?,
-    val bruksenhetsnummer: String?
 )
 
 data class Metadata(

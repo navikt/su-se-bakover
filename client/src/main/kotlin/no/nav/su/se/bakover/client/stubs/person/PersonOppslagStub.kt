@@ -20,13 +20,15 @@ object PersonOppslagStub :
             etternavn = "Strømøy"
         ),
         telefonnummer = Telefonnummer(landskode = "+47", nummer = "12345678"),
-        adresse = Person.Adresse(
-            adressenavn = "Oslogata",
-            husnummer = "12",
-            husbokstav = null,
-            bruksenhet = "U1H20",
-            poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
-            kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO")
+        adresse = listOf(
+            Person.Adresse(
+                adresselinje = "Oslogata 12",
+                bruksenhet = "U1H20",
+                poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
+                kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO"),
+                adressetype = "Bostedsadresse",
+                adresseformat = "Vegadresse"
+            )
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",

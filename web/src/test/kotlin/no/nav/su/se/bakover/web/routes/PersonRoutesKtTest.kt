@@ -51,7 +51,7 @@ internal class PersonRoutesKtTest {
         val testIdent = "12345678910"
 
         //language=JSON
-        val excpectedResponseJson =
+        val expectedResponseJson =
             """
                 {
                     "fnr": "12345678910",
@@ -68,16 +68,16 @@ internal class PersonRoutesKtTest {
                         "landskode": "+47",
                         "nummer": "12345678"
                     },
-                    "adresse": {
-                        "adressenavn": "Oslogata",
-                        "husnummer": "12",
-                        "husbokstav": null,
+                    "adresse": [{
+                        "adresselinje": "Oslogata 12",
                         "postnummer": "0050",
                         "poststed": "OSLO",
                         "bruksenhet": "U1H20",
                         "kommunenavn": "OSLO",
-                        "kommunenummer":"0301"
-                    },
+                        "kommunenummer":"0301",
+                        "adressetype": "Bostedsadresse",
+                        "adresseformat": "Vegadresse"
+                    }],
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
                     "adressebeskyttelse": null,
@@ -100,7 +100,7 @@ internal class PersonRoutesKtTest {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
             assertEquals(OK, response.status())
-            JSONAssert.assertEquals(excpectedResponseJson, response.content!!, true)
+            JSONAssert.assertEquals(expectedResponseJson, response.content!!, true)
         }
     }
 

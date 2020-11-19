@@ -4,7 +4,7 @@ data class Person(
     val ident: Ident,
     val navn: Navn,
     val telefonnummer: Telefonnummer?,
-    val adresse: Adresse?,
+    val adresse: List<Adresse>?,
     val statsborgerskap: String?,
     val kjønn: String?,
     val adressebeskyttelse: String?,
@@ -20,12 +20,13 @@ data class Person(
     )
 
     data class Adresse(
-        val adressenavn: String?,
-        val husnummer: String?,
-        val husbokstav: String?,
+        val adresselinje: String?,
         val poststed: Poststed?,
         val bruksenhet: String?,
-        val kommune: Kommune?
+        val kommune: Kommune?,
+        val landkode: String? = null,
+        val adressetype: String,
+        val adresseformat: String
     )
 
     data class Kommune(
