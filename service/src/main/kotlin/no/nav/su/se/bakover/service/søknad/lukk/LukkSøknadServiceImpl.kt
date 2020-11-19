@@ -6,12 +6,12 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -26,7 +26,7 @@ internal class LukkSøknadServiceImpl(
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
+    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
@@ -54,20 +54,29 @@ internal class LukkSøknadServiceImpl(
             }
             is Søknad.Journalført.MedOppgave -> {
                 log.info("Lukker journalført søknad og tilhørende oppgave.")
-                lukkSøknad(request, søknad).map {
-                    oppgaveService.lukkOppgave(søknad.oppgaveId).mapLeft {
-                        log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
+                lukkSøknad(request, søknad)
+                    .flatMap { lukketSøknad ->
+                        oppgaveService.lukkOppgave(søknad.oppgaveId)
+                            .mapLeft {
+                                log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
+                                return ( if (lukketSøknad is LukketSøknad.UtenMangler) {
+                                    LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak)
+                                } else lukketSøknad ).right()
+                            }.map {
+                                lukketSøknad
+                            }
                     }
-                    it
-                }
             }
         }
     }
 
-    private fun lukkSøknad(request: LukkSøknadRequest, søknad: Søknad): Either<KunneIkkeLukkeSøknad, Sak> {
+    private fun lukkSøknad(request: LukkSøknadRequest, søknad: Søknad): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         return when (request) {
             is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(request, søknad)
-            is LukkSøknadRequest.UtenBrev -> lukkSøknadUtenBrev(request, søknad)
+            is LukkSøknadRequest.UtenBrev -> {
+                lukkSøknadUtenBrev(request, søknad)
+                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId)).right()
+            }
         }
     }
 
@@ -102,54 +111,39 @@ internal class LukkSøknadServiceImpl(
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request, søknad)
-        return sakService.hentSak(søknad.sakId).orNull()!!.right()
+    ) {
+        val lukketSøknad = søknad.lukk(request)
+        søknadRepo.oppdaterSøknad(lukketSøknad)
     }
 
     private fun lukkSøknadMedBrev(
         request: LukkSøknadRequest.MedBrev,
         søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Sak> {
-        lagreLukketSøknad(request, søknad)
-        return journalførOgDistribuerBrev(
-            request = lagBrevRequest(søknad, request),
-            søknad = søknad
-        ).mapLeft {
-            it
-        }.map {
-            return sakService.hentSak(søknad.sakId).orNull()!!.right()
-        }
-    }
-
-    private fun journalførOgDistribuerBrev(
-        request: LagBrevRequest,
-        søknad: Søknad
-    ): Either<KunneIkkeLukkeSøknad, Unit> {
+    ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+        val lukketSøknad = søknad.lukk(request)
         return brevService.journalførBrev(
-            request = request,
+            request = lagBrevRequest(lukketSøknad, request),
             sakId = søknad.sakId
         ).mapLeft {
-            // TODO: Her kan vi ende opp med å svare med feil, selvom vi har persistert søknaden som lukket
-            KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
-        }.map {
-            return brevService.distribuerBrev(it)
-                .mapLeft { KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev }
-                .map { Unit }
+            log.error("Kunne ikke lukke søknad ${søknad.id} fordi journalføring feilet")
+            return KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left()
+        }.flatMap { journalpostId ->
+            val lukketSøknadMedJournalpostId = lukketSøknad.medJournalpostId(journalpostId)
+
+            brevService.distribuerBrev(journalpostId)
+                .mapLeft {
+                    søknadRepo.oppdaterSøknad(lukketSøknadMedJournalpostId)
+                    log.error("Lukket søknad ${søknad.id} med journalpostId $journalpostId. Kunne ikke bestille brev for lukket søknad ${søknad.id}")
+                    return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId)).right()
+                }
+                .flatMap { brevbestillingId ->
+                    val lukketSøknadMedBrevbestillingId = lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
+                    søknadRepo.oppdaterSøknad(lukketSøknadMedBrevbestillingId)
+                    log.info("Lukket søknad ${søknad.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
+                    LukketSøknad.UtenMangler(hentSak(søknad.sakId)).right()
+                }
         }
     }
 
-    private fun lagreLukketSøknad(request: LukkSøknadRequest, søknad: Søknad) {
-        søknadRepo.oppdaterSøknad(
-            søknad.lukk(
-                lukketAv = request.saksbehandler,
-                type = when (request) {
-                    is LukkSøknadRequest.MedBrev.TrekkSøknad -> Søknad.Lukket.LukketType.TRUKKET
-                    is LukkSøknadRequest.MedBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
-                    is LukkSøknadRequest.UtenBrev.BortfaltSøknad -> Søknad.Lukket.LukketType.BORTFALT
-                    is LukkSøknadRequest.UtenBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
-                }
-            )
-        )
-    }
+    private fun hentSak(id: UUID) = sakService.hentSak(id).orNull()!!
 }

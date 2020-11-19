@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -236,7 +237,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lager en søknad, så trekker søknaden`() {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn sak.right()
+            on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak).right()
         }
 
         withTestApplication({

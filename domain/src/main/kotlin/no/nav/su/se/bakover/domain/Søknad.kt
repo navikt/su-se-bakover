@@ -4,8 +4,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import java.util.UUID
 
 sealed class Søknad {
@@ -66,6 +68,8 @@ sealed class Søknad {
         val lukketTidspunkt: Tidspunkt = Tidspunkt.now(),
         val lukketAv: NavIdentBruker.Saksbehandler,
         val lukketType: LukketType,
+        val lukketJournalpostId: JournalpostId? = null,
+        val lukketBrevbestillingId: BrevbestillingId? = null
     ) : Søknad() {
 
         enum class LukketType(val value: String) {
@@ -83,6 +87,14 @@ sealed class Søknad {
             lukketAv: Saksbehandler,
             type: LukketType
         ) = this
+
+        fun medJournalpostId(journalpostId: JournalpostId): Lukket {
+            return this.copy(lukketJournalpostId = journalpostId)
+        }
+
+        fun medBrevbestillingId(brevbestillingId: BrevbestillingId): Lukket {
+            return this.copy(lukketBrevbestillingId = brevbestillingId)
+        }
     }
 
     sealed class Journalført : Søknad() {

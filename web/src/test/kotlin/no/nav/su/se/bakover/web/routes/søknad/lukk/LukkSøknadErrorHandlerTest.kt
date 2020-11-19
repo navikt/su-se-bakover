@@ -18,7 +18,7 @@ internal class LukkSøknadErrorHandlerTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
             trukketDato = 1.oktober(2020)
         )
-        LukkSøknadErrorHandler.handle(
+        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
             request = medBrevRequest,
             error = KunneIkkeLukkeSøknad.SøknadErAlleredeLukket
         ) shouldBe Resultat.message(
@@ -26,7 +26,7 @@ internal class LukkSøknadErrorHandlerTest {
             "Søknad er allerede trukket"
         )
 
-        LukkSøknadErrorHandler.handle(
+        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
             request = medBrevRequest,
             error = KunneIkkeLukkeSøknad.SøknadHarEnBehandling
         ) shouldBe Resultat.message(
@@ -34,25 +34,17 @@ internal class LukkSøknadErrorHandlerTest {
             "Søknaden har en behandling"
         )
 
-        LukkSøknadErrorHandler.handle(medBrevRequest, KunneIkkeLukkeSøknad.FantIkkeSøknad) shouldBe Resultat.message(
+        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(medBrevRequest, KunneIkkeLukkeSøknad.FantIkkeSøknad) shouldBe Resultat.message(
             httpCode = HttpStatusCode.NotFound,
             message = "Fant ikke søknad for ${medBrevRequest.søknadId}"
         )
 
-        LukkSøknadErrorHandler.handle(
+        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
             request = medBrevRequest,
             error = KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
         ) shouldBe Resultat.message(
             HttpStatusCode.InternalServerError,
             "Kunne ikke journalføre brev"
-        )
-
-        LukkSøknadErrorHandler.handle(
-            request = medBrevRequest,
-            error = KunneIkkeLukkeSøknad.KunneIkkeDistribuereBrev
-        ) shouldBe Resultat.message(
-            HttpStatusCode.InternalServerError,
-            "Kunne distribuere brev"
         )
     }
 }
