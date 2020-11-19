@@ -4,6 +4,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import java.time.LocalDate
 import java.time.Month
 
+/**
+ * https://www.nav.no/no/nav-og-samfunn/kontakt-nav/oversikt-over-satser/minste-pensjonsniva_kap
+ */
 enum class Minstepensjonsnivå {
     // Dette er den eneste vi trenger p.t., men det finnes også lav og høy
     Ordinær;
@@ -17,7 +20,7 @@ enum class Minstepensjonsnivå {
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value.get(this)
 
-    fun periodiser(periode: Periode) = periode.tilMånedsperioder()
+    fun periodiser(periode: Periode): Map<Periode, Double> = periode.tilMånedsperioder()
         .map { it to minstepensjonsnivåSomMånedsbeløp(it.getTilOgMed()) }
         .toMap()
 
