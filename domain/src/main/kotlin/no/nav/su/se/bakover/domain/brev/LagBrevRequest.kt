@@ -21,25 +21,28 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
-            satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt() ?: 0, // TODO: avrunding
+            satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt()
+                ?: 0, // TODO: avrunding
+            fradragPerMåned = behandling.beregning()?.getFradrag()?.toFradragPerMåned() ?: emptyList(),
             // TODO: burde kanskje sende over doubles?
             fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
-            avslagsgrunn = avslagsgrunnForBehandling(behandling)!!,
+            avslagsgrunner = avslagsgrunnForBehandling(behandling),
+            harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
         )
 
-        private fun avslagsgrunnForBehandling(behandling: Behandling): Avslagsgrunn? {
-            return when {
-                behandling.beregning()?.getSumYtelse() ?: 0 <= 0 -> {
-                    Avslagsgrunn.FOR_HØY_INNTEKT
+        private fun avslagsgrunnForBehandling(behandling: Behandling): List<Avslagsgrunn> {
+            val avslagsgrunner = behandling.behandlingsinformasjon().utledAvslagsgrunner().toMutableList()
+
+            when {
+                behandling.beregning() != null && behandling.beregning()!!.getSumYtelse() <= 0 -> {
+                    avslagsgrunner.add(Avslagsgrunn.FOR_HØY_INNTEKT)
                 }
                 behandling.beregning()?.getSumYtelseErUnderMinstebeløp() == true -> {
-                    Avslagsgrunn.SU_UNDER_MINSTEGRENSE
-                }
-                else -> {
-                    behandling.behandlingsinformasjon().getAvslagsgrunn()
+                    avslagsgrunner.add(Avslagsgrunn.SU_UNDER_MINSTEGRENSE)
                 }
             }
+            return avslagsgrunner
         }
     }
 

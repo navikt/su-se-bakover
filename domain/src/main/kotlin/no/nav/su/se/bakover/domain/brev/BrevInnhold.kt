@@ -17,7 +17,10 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val satsbeløp: Int,
         val fradragSum: Int,
-        val avslagsgrunn: Avslagsgrunn,
+        val fradragPerMåned: List<FradragPerMåned>,
+        val avslagsgrunner: List<Avslagsgrunn>,
+        val avslagsgrunnerLength: String = avslagsgrunner.size.toString(),
+        val harEktefelle: Boolean,
         val halvGrunnbeløp: Int,
     ) : BrevInnhold() {
         override fun brevTemplate(): BrevTemplate = BrevTemplate.AvslagsVedtak
