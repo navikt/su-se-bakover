@@ -57,14 +57,17 @@ internal class BehandlingServiceImpl(
         begrunnelse: String
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
+            log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
             behandling.underkjenn(begrunnelse, attestant)
                 .mapLeft {
+                    log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                 }
                 .map {
                     val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                        log.error("Kunne ikke underkjenne behandling; fant ikke aktør id")
                         return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
 
@@ -78,7 +81,7 @@ internal class BehandlingServiceImpl(
                             tilordnetRessurs = behandling.saksbehandler()
                         )
                     ).getOrElse {
-                        log.error("Kunne ikke opprette behandlingsoppgave ved underkjenning. Avbryter handlingen.")
+                        log.error("Behandling $behandlingId ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
                         return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
                     }.also {
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
@@ -87,12 +90,14 @@ internal class BehandlingServiceImpl(
                     behandlingRepo.oppdaterAttestant(behandlingId, attestant)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
+                    log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
                     hendelsesloggRepo.oppdaterHendelseslogg(it.hendelseslogg)
                     behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.PERSISTERT)
                     oppgaveService.lukkOppgave(eksisterendeOppgaveId)
                         .mapLeft {
                             log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
                         }.map {
+                            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
                             behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.LUKKET_OPPGAVE)
                         }
                     behandling
