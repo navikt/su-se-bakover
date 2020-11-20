@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -371,6 +372,66 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
+    fun `lager brevutkast finner ikke søknad`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn null
+        }
+        val sakServiceMock = mock<SakService>()
+        val brevServiceMock = mock<BrevService> ()
+        val oppgaveServiceMock = mock<OppgaveService>()
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
+        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
+
+        inOrder(
+            søknadRepoMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+        }
+
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
+    fun `lager brevutkast klarer ikke lage brev`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn nySøknad
+        }
+        val sakServiceMock = mock<SakService>()
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService>()
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
+        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+
+        inOrder(
+            søknadRepoMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+
+            verify(brevServiceMock).lagBrev(
+                argThat {
+                    it shouldBe TrukketSøknadBrevRequest(nySøknad, 1.januar(2020))
+                }
+            )
+        }
+
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
     fun `svarer med ukjentBrevType når det ikke skal lages brev`() {
 
         val søknadRepoMock = mock<SøknadRepo> {
@@ -535,6 +596,63 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
+    fun `lukker søknad uten journalføring og oppgave`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn nySøknad
+            on { oppdaterSøknad(any()) }.doNothing()
+            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
+            on { distribuerBrev(lukketJournalpostId) } doReturn brevbestillingId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService>()
+
+        val actual = LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
+        ).lukkSøknad(trekkSøknadRequest)
+
+        actual shouldBe LukketSøknad.UtenMangler(sak).right()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
+            verify(brevServiceMock).journalførBrev(
+                request = argThat {
+                    it shouldBe TrukketSøknadBrevRequest(
+                        lukketSøknad,
+                        1.januar(2020)
+                    )
+                },
+                sakId = argThat {
+                    it shouldBe nySøknad.sakId
+                }
+            )
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
+            verify(søknadRepoMock).oppdaterSøknad(
+                argThat {
+                    it shouldBe lukketSøknad.copy(
+                        lukketJournalpostId = lukketJournalpostId,
+                        lukketBrevbestillingId = brevbestillingId
+                    )
+                },
+            )
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
+        }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
     fun `Kan ikke lukke oppgave`() {
 
         val søknadRepoMock = mock<SøknadRepo> {
@@ -638,5 +756,4 @@ internal class LukkSøknadServiceImplTest {
         }
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
     }
-
 }
