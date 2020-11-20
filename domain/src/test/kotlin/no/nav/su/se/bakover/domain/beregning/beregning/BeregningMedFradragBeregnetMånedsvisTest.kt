@@ -156,6 +156,62 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
     }
 
+    @Test
+    fun `sum under minstebeløp i én enkelt måned gir avslag`() {
+        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periodeMedFradrag = Periode(1.mars(2020), 31.mars(2020))
+
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                PeriodeFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                PeriodeFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = Sats.HØY.månedsbeløp(periodeMedFradrag.getFraOgMed()),
+                    periode = periodeMedFradrag,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
+        )
+
+        beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
+    }
+
+    @Test
+    fun `sum lik minstebeløp i én enkelt måned gir ikke avslag`() {
+        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periodeMedFradrag = Periode(1.mars(2020), 31.mars(2020))
+
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                PeriodeFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                PeriodeFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    beløp = Sats.HØY.månedsbeløp(periodeMedFradrag.getFraOgMed()) - Sats.toProsentAvHøy(periodeMedFradrag),
+                    periode = periodeMedFradrag,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            ),
+            fradragStrategy = FradragStrategy.Enslig
+        )
+
+        beregning.getSumYtelseErUnderMinstebeløp() shouldBe false
+    }
+
     /**
      * Justerer beløpsgrensen i forhold til antall måneder som beregnes.
      * Månedsbeløp: Jan-Mar = 20637.32 -> * 0.02 = 412,7464

@@ -334,12 +334,12 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            val inntektSomGirMinstebeløp = 245114.0
-
             val periode = Periode(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
             )
+
+            val inntektSomGirMinstebeløp = Sats.HØY.årsbeløp(periode.getFraOgMed()) * 0.98
 
             vilkårsvurdert.opprettBeregning(
                 fraOgMed = periode.getFraOgMed(),

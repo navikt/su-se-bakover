@@ -27,7 +27,10 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumFradrag() = beregning.values
         .sumByDouble { it.getSumFradrag() }
 
-    override fun getSumYtelseErUnderMinstebeløp() = getSumYtelse() < Sats.toProsentAvHøy(periode)
+    override fun getSumYtelseErUnderMinstebeløp() =
+        getMånedsberegninger()
+            .any { it.getSumYtelse() < Sats.toProsentAvHøy(it.getPeriode()) }
+
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 
     private fun beregn(): Map<Periode, Månedsberegning> {
