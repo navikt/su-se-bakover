@@ -12,7 +12,7 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -71,9 +71,9 @@ internal class OppgaveHttpClient(
         )
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
         return hentOppgave(oppgaveId).mapLeft {
-            KunneIkkeFerdigstilleOppgave
+            KunneIkkeLukkeOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
                 Unit.right()
@@ -104,7 +104,7 @@ internal class OppgaveHttpClient(
     private fun ferdigstillOppgave(
         oppgaveId: Long,
         versjon: Int
-    ): Either<KunneIkkeFerdigstilleOppgave, FerdigstillResponse> {
+    ): Either<KunneIkkeLukkeOppgave, FerdigstillResponse> {
         val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -130,7 +130,7 @@ internal class OppgaveHttpClient(
             {
                 log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
                 sikkerLogg.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
-                KunneIkkeFerdigstilleOppgave.left()
+                KunneIkkeLukkeOppgave.left()
             }
         )
     }
