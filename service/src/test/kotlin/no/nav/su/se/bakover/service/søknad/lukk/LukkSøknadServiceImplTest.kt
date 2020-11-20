@@ -20,7 +20,9 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -220,6 +222,79 @@ internal class LukkSøknadServiceImplTest {
                         journalpostId = nySøknadJournalpostId,
                         oppgaveId = oppgaveId,
                         lukketType = AVVIST,
+                    )
+                },
+            )
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+        }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
+    fun `lukker avvist søknad med brev`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
+            on { oppdaterSøknad(any()) }.doNothing()
+            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        }
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
+            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
+        ).lukkSøknad(
+            LukkSøknadRequest.MedBrev.AvvistSøknad(
+                søknadId = journalførtSøknadMedOppgave.id,
+                saksbehandler = saksbehandler,
+                brevConfig = BrevConfig.Fritekst("Fritekst")
+            )
+        ) shouldBe LukketSøknad.UtenMangler(sak).right()
+
+        inOrder(
+            søknadRepoMock, sakServiceMock, oppgaveServiceMock, brevServiceMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            verify(brevServiceMock).journalførBrev(
+                argThat {
+                    it shouldBe AvvistSøknadBrevRequest(
+                        lukketSøknad.copy(
+                            journalpostId = nySøknadJournalpostId,
+                            oppgaveId = oppgaveId,
+                            lukketJournalpostId = null,
+                            lukketBrevbestillingId = null,
+                            lukketType = AVVIST
+                        ),
+                        BrevConfig.Fritekst("Fritekst")
+                    )
+                },
+                argThat { it shouldBe nySøknad.sakId }
+            )
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
+            verify(søknadRepoMock).oppdaterSøknad(
+                argThat {
+                    it shouldBe lukketSøknad.copy(
+                        journalpostId = nySøknadJournalpostId,
+                        oppgaveId = oppgaveId,
+                        lukketType = AVVIST,
+                        lukketJournalpostId = lukketJournalpostId,
+                        lukketBrevbestillingId = brevbestillingId
                     )
                 },
             )
