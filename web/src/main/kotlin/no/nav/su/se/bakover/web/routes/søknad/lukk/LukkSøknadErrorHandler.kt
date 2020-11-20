@@ -20,7 +20,7 @@ internal object LukkSøknadErrorHandler {
         is KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev ->
             HttpStatusCode.InternalServerError.message("Kunne ikke journalføre brev")
         is KunneIkkeLukkeSøknad.UgyldigDato ->
-            HttpStatusCode.InternalServerError.message("Kan ikke trekke søknad før den er opprettet eller frem i tid")
+            HttpStatusCode.BadRequest.message("Kan ikke trekke søknad før den er opprettet eller frem i tid")
     }
 
     fun lukketSøknadResponse(error: LukketSøknad) = when (error) {

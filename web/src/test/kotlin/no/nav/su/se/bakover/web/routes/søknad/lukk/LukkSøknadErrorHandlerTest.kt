@@ -2,15 +2,43 @@ package no.nav.su.se.bakover.web.routes.søknad.lukk
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.Resultat
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class LukkSøknadErrorHandlerTest {
+
+    @Test
+    fun `mapping av lukket søknad til resultat`() {
+        val sakId = UUID.randomUUID()
+        val sak = Sak(
+            id = sakId,
+            opprettet = Tidspunkt.EPOCH,
+            fnr = Fnr("12345678901"),
+            søknader = emptyList(),
+            behandlinger = emptyList(),
+            oppdrag = Oppdrag(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.EPOCH,
+                sakId = sakId,
+                utbetalinger = emptyList()
+            )
+        )
+        LukkSøknadErrorHandler.lukketSøknadResponse(LukketSøknad.UtenMangler(sak)).httpCode shouldBe HttpStatusCode.OK
+        LukkSøknadErrorHandler.lukketSøknadResponse(LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak)).httpCode shouldBe HttpStatusCode.OK
+        LukkSøknadErrorHandler.lukketSøknadResponse(LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak)).httpCode shouldBe HttpStatusCode.OK
+    }
+
     @Test
     fun `returnerer feilmelding basert på oppstått feilsituasjon`() {
         val medBrevRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -45,6 +73,14 @@ internal class LukkSøknadErrorHandlerTest {
         ) shouldBe Resultat.message(
             HttpStatusCode.InternalServerError,
             "Kunne ikke journalføre brev"
+        )
+
+        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+            request = medBrevRequest,
+            error = KunneIkkeLukkeSøknad.UgyldigDato
+        ) shouldBe Resultat.message(
+            HttpStatusCode.BadRequest,
+            "Kan ikke trekke søknad før den er opprettet eller frem i tid"
         )
     }
 }

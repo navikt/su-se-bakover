@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
@@ -278,7 +279,7 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk?type=Trukket",
+                uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
@@ -295,6 +296,71 @@ internal class SøknadRoutesKtTest {
                 verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `Krever fritekst`() {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
+            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    objectMapper.writeValueAsString(
+                        LukketJson.AvvistJson(
+                            type = Søknad.Lukket.LukketType.AVVIST,
+                            brevConfig = LukketJson.AvvistJson.BrevConfigJson(
+                                brevtype = LukketJson.BrevType.FRITEKST,
+                                null
+                            )
+                        )
+                    )
+                )
+            }.apply {
+                response.status() shouldBe BadRequest
+                verifyNoMoreInteractions(lukkSøknadServiceMock)
+            }
+        }
+    }
+
+    @Test
+    fun `en søknad med ugyldig json gir badrequest og gjør ingen kall`() {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
+            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """
+                        {
+                        "type" : "ugyldigtype",
+                        "datoSøkerTrakkSøknad" : "2020-01-01"
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe BadRequest
+                verifyNoMoreInteractions(lukkSøknadServiceMock)
             }
         }
     }
