@@ -29,7 +29,6 @@ sealed class LukketSøknad {
     data class UtenMangler(override val sak: Sak) : LukketSøknad()
 
     sealed class MedMangler : LukketSøknad() {
-        data class KunneIkkeJournalføreBrev(override val sak: Sak) : MedMangler()
         data class KunneIkkeDistribuereBrev(override val sak: Sak) : MedMangler()
         data class KunneIkkeLukkeOppgave(override val sak: Sak) : MedMangler()
     }

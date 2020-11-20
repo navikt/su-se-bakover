@@ -25,7 +25,6 @@ internal object LukkSøknadErrorHandler {
 
     fun lukketSøknadResponse(error: LukketSøknad) = when (error) {
         is LukketSøknad.UtenMangler,
-        is LukketSøknad.MedMangler.KunneIkkeJournalføreBrev,
         is LukketSøknad.MedMangler.KunneIkkeDistribuereBrev,
         is LukketSøknad.MedMangler.KunneIkkeLukkeOppgave -> Resultat.json(HttpStatusCode.OK, serialize((error.sak.toJson())))
     }
