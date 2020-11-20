@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
@@ -62,15 +63,26 @@ internal class SøknadPostgresRepoTest {
 
     @Test
     fun `lagrer og henter lukket søknad`() {
+        val lukketBrevbestillingId = BrevbestillingId("lukketBrevbestillingId")
+        val lukketJournalpostId = JournalpostId("lukketJournalpostId")
+        val nySøknadJournalpostId = JournalpostId("nySøknadJournalpostId")
+        val nySøknadOppgaveId = OppgaveId("nySøknadOppgaveId")
+
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             val søknad: Søknad.Ny = nySak.søknad
             val saksbehandler = Saksbehandler("Z993156")
-            val lukketSøknad = søknad.lukk(
-                lukketAv = saksbehandler,
-                type = Søknad.Lukket.LukketType.TRUKKET,
-                lukketTidspunkt = Tidspunkt.EPOCH
-            )
+            val journalførtSøknadMedOppgave = søknad.journalfør(nySøknadJournalpostId).medOppgave(nySøknadOppgaveId)
+            repo.oppdaterOppgaveId(søknad.id, nySøknadOppgaveId)
+            repo.oppdaterjournalpostId(søknad.id, nySøknadJournalpostId)
+            val lukketSøknad = journalførtSøknadMedOppgave
+                .lukk(
+                    lukketAv = saksbehandler,
+                    type = Søknad.Lukket.LukketType.TRUKKET,
+                    lukketTidspunkt = Tidspunkt.EPOCH
+                )
+                .medBrevbestillingId(lukketBrevbestillingId)
+                .medJournalpostId(lukketJournalpostId)
             repo.oppdaterSøknad(lukketSøknad)
             val hentetSøknad = repo.hentSøknad(nySak.søknad.id)!!
             hentetSøknad shouldBe lukketSøknad
