@@ -23,7 +23,7 @@ abstract class LagBrevRequest {
             personalia = personalia,
             satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt()
                 ?: 0, // TODO: avrunding
-            fradragPerMåned = behandling.beregning()?.getFradrag()?.toFradragPerMåned() ?: emptyList(),
+            fradrag = behandling.beregning()?.getFradrag()?.toFradragPerMåned() ?: emptyList(),
             // TODO: burde kanskje sende over doubles?
             fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
             avslagsgrunner = avslagsgrunnForBehandling(behandling),

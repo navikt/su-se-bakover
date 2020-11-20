@@ -22,7 +22,7 @@ internal class BrevInnholdTest {
         fradragSum = 566,
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         halvGrunnbeløp = 10,
-        fradragPerMåned = emptyList(),
+        fradrag = emptyList(),
         avslagsgrunnerLength = "1",
         harEktefelle = false
 
@@ -106,7 +106,7 @@ internal class BrevInnholdTest {
               "avslagsgrunnerLength": "1",
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
-              "fradragPerMåned": []
+              "fradrag": []
             }
         """.trimIndent()
         JSONAssert.assertEquals(serialized, expectedJson, true)
