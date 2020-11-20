@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
-import arrow.core.Either
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Minstepensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats

@@ -15,15 +15,16 @@ object VedtakInnholdTestdataBuilder {
             fornavn = "Tore",
             etternavn = "Strømøy",
         ),
-        månedsbeløp = 100,
         fradato = "01.01.2020",
         tildato = "01.01.2020",
         sats = "100",
-        satsbeløp = 100,
         satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
-        redusertStønadStatus = true,
         harEktefelle = true,
-        fradrag = emptyList(),
-        fradragSum = 0,
+        beregning = BrevInnhold.Beregning(
+            ytelsePerMåned = 0,
+            satsbeløpPerMåned = 0.0,
+            epsFribeløp = 0.0,
+            fradrag = null
+        )
     )
 }
