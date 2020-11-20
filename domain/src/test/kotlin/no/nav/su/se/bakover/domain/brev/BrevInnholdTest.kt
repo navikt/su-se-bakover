@@ -23,7 +23,7 @@ internal class BrevInnholdTest {
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         halvGrunnbeløp = 10,
         fradrag = emptyList(),
-        harFlereAvslagsgrunner = "1",
+        harFlereAvslagsgrunner = false,
         harEktefelle = false
 
     )
@@ -103,7 +103,7 @@ internal class BrevInnholdTest {
               "satsbeløp": 31,
               "fradragSum": 566,
               "avslagsgrunner":["FLYKTNING"],
-              "avslagsgrunnerLength": "1",
+              "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
               "fradrag": []
