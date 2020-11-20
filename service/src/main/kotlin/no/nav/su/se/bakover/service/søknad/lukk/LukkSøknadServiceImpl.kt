@@ -35,28 +35,28 @@ internal class LukkSøknadServiceImpl(
         }
         val opprettetDato = søknad.opprettet.toLocalDate()
         if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato)) {
-            log.info("Kan ikke lukke søknad. Dato ${request.trukketDato} må være mellom $opprettetDato og idag")
+            log.info("Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag")
             return KunneIkkeLukkeSøknad.UgyldigDato.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
-            log.info("Kan ikke lukke søknad. Finnes en behandling")
+            log.info("Kan ikke lukke søknad ${søknad.id} siden det finnes en behandling")
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
         return when (søknad) {
             is Søknad.Lukket -> {
-                log.info("Søknad var allerede lukket.")
+                log.info("Søknad ${søknad.id} er allerede lukket")
                 KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
             }
             is Søknad.Ny -> {
-                log.info("Lukker ikke-journalført søknad.")
+                log.info("Lukker søknad ${søknad.id} som mangler journalføring og oppgave")
                 lukkSøknad(request, søknad)
             }
             is Søknad.Journalført.UtenOppgave -> {
-                log.info("Lukker journalført søknad uten oppgave.")
+                log.info("Lukker journalført søknad ${søknad.id} som mangler oppgave")
                 lukkSøknad(request, søknad)
             }
             is Søknad.Journalført.MedOppgave -> {
-                log.info("Lukker journalført søknad og tilhørende oppgave.")
+                log.info("Lukker journalført søknad ${søknad.id} og tilhørende oppgave ${søknad.oppgaveId}")
                 lukkSøknad(request, søknad)
                     .flatMap { lukketSøknad ->
                         oppgaveService.lukkOppgave(søknad.oppgaveId)
@@ -138,7 +138,7 @@ internal class LukkSøknadServiceImpl(
             brevService.distribuerBrev(journalpostId)
                 .mapLeft {
                     søknadRepo.oppdaterSøknad(lukketSøknadMedJournalpostId)
-                    log.error("Lukket søknad ${søknad.id} med journalpostId $journalpostId. Kunne ikke bestille brev for lukket søknad ${søknad.id}")
+                    log.error("Lukket søknad ${søknad.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
                     return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId)).right()
                 }
                 .flatMap { brevbestillingId ->
