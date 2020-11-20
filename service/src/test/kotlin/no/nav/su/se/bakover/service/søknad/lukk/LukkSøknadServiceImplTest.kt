@@ -6,6 +6,7 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -90,6 +91,27 @@ internal class LukkSøknadServiceImplTest {
         saksbehandler = saksbehandler,
         trukketDato = 1.januar(2020)
     )
+
+    @Test
+    fun `fant ikke søknad`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn null
+        }
+        val sakServiceMock = mock<SakService> ()
+        val brevServiceMock = mock<BrevService> ()
+        val oppgaveServiceMock = mock<OppgaveService> ()
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedEpochClock,
+        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+
+        verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock)
+    }
 
     @Test
     fun `trekker en søknad uten mangler`() {
