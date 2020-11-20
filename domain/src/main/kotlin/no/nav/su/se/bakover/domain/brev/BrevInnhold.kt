@@ -19,7 +19,7 @@ abstract class BrevInnhold {
         val fradragSum: Int,
         val fradrag: List<FradragPerMåned>,
         val avslagsgrunner: List<Avslagsgrunn>,
-        val avslagsgrunnerLength: String = avslagsgrunner.size.toString(),
+        val harFlereAvslagsgrunner: Boolean = avslagsgrunner.size > 1,
         val harEktefelle: Boolean,
         val halvGrunnbeløp: Int,
     ) : BrevInnhold() {
