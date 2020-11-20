@@ -40,7 +40,9 @@ object SøknadInnholdTestdataBuilder {
                 datoForInnleggelse = LocalDate.of(2020, JANUARY, 1),
                 datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
                 fortsattInnlagt = false
-            )
+            ),
+            borPåAdresse = null,
+            ingenAdresseGrunn = Boforhold.IngenAdresseGrunn.HAR_IKKE_FAST_BOSTED
         ),
 
         utenlandsopphold: Utenlandsopphold = Utenlandsopphold(

@@ -16,7 +16,7 @@ data class SøknadInnhold(
     val inntektOgPensjon: InntektOgPensjon,
     val formue: Formue,
     val forNav: ForNav,
-    val ektefelle: Ektefelle?
+    val ektefelle: Ektefelle?,
 )
 
 data class Uførevedtak(
@@ -49,12 +49,19 @@ data class Boforhold(
     val delerBolig: Boolean,
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
-    val innlagtPåInstitusjon: InnlagtPåInstitusjon?
+    val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
+    val borPåAdresse: AdresseFraSøknad?,
+    val ingenAdresseGrunn: IngenAdresseGrunn?
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
         VOKSNE_BARN,
         ANNEN_VOKSEN;
+    }
+
+    enum class IngenAdresseGrunn() {
+        BOR_PÅ_ANNEN_ADRESSE,
+        HAR_IKKE_FAST_BOSTED
     }
 
     @JsonTypeInfo(
@@ -172,4 +179,10 @@ data class InnlagtPåInstitusjon(
     val datoForInnleggelse: LocalDate,
     val datoForUtskrivelse: LocalDate?,
     val fortsattInnlagt: Boolean,
+)
+
+data class AdresseFraSøknad(
+    val adresselinje: String,
+    val postnummer: String,
+    val poststed: String?
 )

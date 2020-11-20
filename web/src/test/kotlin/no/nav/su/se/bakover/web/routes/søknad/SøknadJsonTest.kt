@@ -57,7 +57,9 @@ internal class SøknadJsonTest {
                     "datoForInnleggelse": "2020-01-01",
                     "datoForUtskrivelse": "2020-01-31",
                     "fortsattInnlagt": false
-                }
+                },
+                "borPåAdresse": null,
+                "ingenAdresseGrunn": "HAR_IKKE_FAST_BOSTED"
             },
             "utenlandsopphold":{
                 "registrertePerioder":[

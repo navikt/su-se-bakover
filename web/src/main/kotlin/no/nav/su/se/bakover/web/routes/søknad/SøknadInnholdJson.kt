@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.AdresseFraSøknad
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.Boforhold.IngenAdresseGrunn
 import no.nav.su.se.bakover.domain.Ektefelle
 import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
@@ -131,7 +133,9 @@ data class SøknadInnholdJson(
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektefellePartnerSamboer: EktefellePartnerSamboer?,
-        val innlagtPåInstitusjon: InnlagtPåInstitusjon?
+        val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
+        val borPåAdresse: AdresseFraSøknad?,
+        val ingenAdresseGrunn: IngenAdresseGrunn?
     ) {
         fun toBoforhold() = Boforhold(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -140,7 +144,9 @@ data class SøknadInnholdJson(
                 toBoforholdType(it)
             },
             ektefellePartnerSamboer = ektefellePartnerSamboer,
-            innlagtPåInstitusjon = innlagtPåInstitusjon
+            innlagtPåInstitusjon = innlagtPåInstitusjon,
+            borPåAdresse = borPåAdresse,
+            ingenAdresseGrunn = ingenAdresseGrunn
         )
 
         private fun toBoforholdType(str: String): DelerBoligMed {
@@ -159,7 +165,9 @@ data class SøknadInnholdJson(
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
-                    innlagtPåInstitusjon = this.innlagtPåInstitusjon
+                    innlagtPåInstitusjon = this.innlagtPåInstitusjon,
+                    borPåAdresse = this.borPåAdresse,
+                    ingenAdresseGrunn = this.ingenAdresseGrunn
                 )
         }
     }
