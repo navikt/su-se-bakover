@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.søknad
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -29,7 +28,6 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.receiveTextUTF8
-import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.svar
@@ -99,10 +97,10 @@ internal fun Route.søknadRoutes(
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).fold(
-                        { call.svar(LukkSøknadErrorHandler.handle(request, it)) },
+                        { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
                             call.audit("Lukket søknad for søknad: $søknadId")
-                            call.svar(Resultat.json(HttpStatusCode.OK, serialize((it.toJson()))))
+                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it))
                         }
                     )
                 }

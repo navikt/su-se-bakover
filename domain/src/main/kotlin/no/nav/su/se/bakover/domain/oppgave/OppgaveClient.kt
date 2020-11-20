@@ -4,8 +4,8 @@ import arrow.core.Either
 
 interface OppgaveClient {
     fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId>
-    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit>
+    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit>
 }
 
 object KunneIkkeOppretteOppgave
-object KunneIkkeFerdigstilleOppgave
+object KunneIkkeLukkeOppgave

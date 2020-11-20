@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.oppgave
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -15,7 +15,7 @@ internal class OppgaveServiceImpl(
         return oppgaveClient.opprettOppgave(config)
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleOppgave, Unit> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
         return oppgaveClient.lukkOppgave(oppgaveId)
     }
 }

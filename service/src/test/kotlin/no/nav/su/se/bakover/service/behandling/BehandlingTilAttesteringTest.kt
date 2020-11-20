@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -30,6 +31,7 @@ import java.util.UUID
 
 class BehandlingTilAttesteringTest {
     private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
@@ -49,6 +51,8 @@ class BehandlingTilAttesteringTest {
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
+            id = søknadId,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,

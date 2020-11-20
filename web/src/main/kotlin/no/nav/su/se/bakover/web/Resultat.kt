@@ -7,7 +7,7 @@ import io.ktor.response.respondText
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
 internal class Resultat private constructor(
-    private val httpCode: HttpStatusCode,
+    val httpCode: HttpStatusCode,
     private val json: String,
     private val contentType: ContentType
 ) {

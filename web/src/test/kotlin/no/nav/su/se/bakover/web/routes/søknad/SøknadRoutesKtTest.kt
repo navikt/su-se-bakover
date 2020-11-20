@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
@@ -54,6 +55,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -236,7 +238,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lager en søknad, så trekker søknaden`() {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn sak.right()
+            on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak).right()
         }
 
         withTestApplication({
@@ -277,7 +279,7 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk?type=Trukket",
+                uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
@@ -294,6 +296,71 @@ internal class SøknadRoutesKtTest {
                 verify(lukkSøknadServiceMock).lukkSøknad(
                     argThat { it shouldBe trekkSøknadRequest }
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `Krever fritekst`() {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
+            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    objectMapper.writeValueAsString(
+                        LukketJson.AvvistJson(
+                            type = Søknad.Lukket.LukketType.AVVIST,
+                            brevConfig = LukketJson.AvvistJson.BrevConfigJson(
+                                brevtype = LukketJson.BrevType.FRITEKST,
+                                null
+                            )
+                        )
+                    )
+                )
+            }.apply {
+                response.status() shouldBe BadRequest
+                verifyNoMoreInteractions(lukkSøknadServiceMock)
+            }
+        }
+    }
+
+    @Test
+    fun `en søknad med ugyldig json gir badrequest og gjør ingen kall`() {
+        val lukkSøknadServiceMock = mock<LukkSøknadService> {
+            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        }
+        withTestApplication({
+            testSusebakover(
+                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
+            )
+        }) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/lukk",
+                roller = listOf(Brukerrolle.Saksbehandler)
+            ) {
+                addHeader(ContentType, Json.toString())
+                setBody(
+                    """
+                        {
+                        "type" : "ugyldigtype",
+                        "datoSøkerTrakkSøknad" : "2020-01-01"
+                        }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe BadRequest
+                verifyNoMoreInteractions(lukkSøknadServiceMock)
             }
         }
     }

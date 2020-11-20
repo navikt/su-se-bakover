@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
@@ -27,7 +28,7 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeFerdigstilleOppgave
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -42,6 +43,7 @@ import java.util.UUID
 
 class UnderkjennBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
@@ -64,6 +66,8 @@ class UnderkjennBehandlingTest {
     private val innvilgetBehandlingTilAttestering = BehandlingFactory(mock()).createBehandling(
         sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
+            id = søknadId,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,
@@ -313,7 +317,7 @@ class UnderkjennBehandlingTest {
 
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn KunneIkkeFerdigstilleOppgave.left()
+            on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
