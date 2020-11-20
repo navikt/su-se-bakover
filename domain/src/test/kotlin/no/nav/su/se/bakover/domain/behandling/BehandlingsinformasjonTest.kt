@@ -23,17 +23,17 @@ internal class BehandlingsinformasjonTest {
     }
 
     @Test
-    fun `inkluderer bare den første avslagsgrunnen for vilkår som ikke er oppfylt`() {
+    fun `lister ut alle avslagsgrunner for vilkår som ikke er oppfylt`() {
         val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             uførhet = TestData.Uførhet.IkkeOppfylt,
             lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
         )
-        info.getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
+        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.OPPHOLDSTILLATELSE)
     }
 
     @Test
     fun `ingen avslagsgrunn dersom alle vilkår er oppfylt`() {
-        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.getAvslagsgrunn() shouldBe null
+        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.utledAvslagsgrunner() shouldBe emptyList()
     }
 
     @Test
@@ -43,7 +43,7 @@ internal class BehandlingsinformasjonTest {
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe true
-        info.getAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
+        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET)
     }
 
     @Test
@@ -53,7 +53,7 @@ internal class BehandlingsinformasjonTest {
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe true
-        info.getAvslagsgrunn() shouldBe Avslagsgrunn.FLYKTNING
+        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.FLYKTNING)
     }
 
     @Test
@@ -63,7 +63,7 @@ internal class BehandlingsinformasjonTest {
         )
         info.erInnvilget() shouldBe false
         info.erAvslag() shouldBe false
-        info.getAvslagsgrunn() shouldBe null
+        info.utledAvslagsgrunner() shouldBe emptyList()
     }
 
     @Test

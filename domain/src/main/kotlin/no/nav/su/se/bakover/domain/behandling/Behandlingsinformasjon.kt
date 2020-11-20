@@ -46,7 +46,7 @@ data class Behandlingsinformasjon(
     )
 
     fun erInnvilget() = alleVilkår.all { it !== null && it.erVilkårOppfylt() }
-    fun getAvslagsgrunn() = alleVilkår.mapNotNull { it?.avslagsgrunn() }.firstOrNull()
+    fun utledAvslagsgrunner() = alleVilkår.mapNotNull { it?.avslagsgrunn() }
     fun erAvslag(): Boolean {
         return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() ||
             (alleVilkår.all { it !== null } && alleVilkår.any { it!!.erVilkårIkkeOppfylt() })

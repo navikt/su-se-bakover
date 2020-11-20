@@ -20,8 +20,12 @@ internal class BrevInnholdTest {
         personalia = personalia,
         satsbeløp = 31,
         fradragSum = 566,
-        avslagsgrunn = Avslagsgrunn.FLYKTNING,
-        halvGrunnbeløp = 10
+        avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+        halvGrunnbeløp = 10,
+        fradrag = emptyList(),
+        harFlereAvslagsgrunner = false,
+        harEktefelle = false
+
     )
 
     private val innvilgetVedtak = BrevInnhold.InnvilgetVedtak(
@@ -98,8 +102,11 @@ internal class BrevInnholdTest {
               },
               "satsbeløp": 31,
               "fradragSum": 566,
-              "avslagsgrunn": "FLYKTNING",
-              "halvGrunnbeløp": 10
+              "avslagsgrunner":["FLYKTNING"],
+              "harFlereAvslagsgrunner": false,
+              "halvGrunnbeløp": 10,
+              "harEktefelle": false,
+              "fradrag": []
             }
         """.trimIndent()
         JSONAssert.assertEquals(serialized, expectedJson, true)
