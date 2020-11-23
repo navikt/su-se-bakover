@@ -152,5 +152,5 @@ object DummyRequest : LagBrevRequest() {
 }
 
 object DummyBrevInnhold : BrevInnhold() {
-    override fun brevTemplate(): BrevTemplate = BrevTemplate.AvslagsVedtak
+    override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
 }

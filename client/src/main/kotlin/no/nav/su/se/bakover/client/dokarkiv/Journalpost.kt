@@ -59,7 +59,7 @@ sealed class Journalpost {
         val brevInnhold: BrevInnhold,
         val pdf: ByteArray
     ) : Journalpost() {
-        override val tittel = brevInnhold.brevTemplate().tittel()
+        override val tittel = brevInnhold.brevTemplate.tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
@@ -89,7 +89,7 @@ sealed class Journalpost {
         val brevInnhold: BrevInnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
-        override val tittel = brevInnhold.brevTemplate().tittel()
+        override val tittel = brevInnhold.brevTemplate.tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)

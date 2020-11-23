@@ -10,7 +10,7 @@ data class TrukketSøknadBrevInnhold private constructor(
     val datoSøknadOpprettet: String,
     val trukketDato: String
 ) : BrevInnhold() {
-    override fun brevTemplate(): BrevTemplate = BrevTemplate.TrukketSøknad
+    override val brevTemplate: BrevTemplate = BrevTemplate.TrukketSøknad
 
     constructor(
         personalia: Personalia,

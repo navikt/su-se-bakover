@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
-import no.nav.su.se.bakover.domain.brev.Avslagsgrunn
-import no.nav.su.se.bakover.domain.brev.Satsgrunn
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -45,8 +48,8 @@ data class Behandlingsinformasjon(
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
-    fun erInnvilget() = alleVilkår.all { it !== null && it.erVilkårOppfylt() }
-    fun utledAvslagsgrunner() = alleVilkår.mapNotNull { it?.avslagsgrunn() }
+    fun erInnvilget(): Boolean = alleVilkår.all { it !== null && it.erVilkårOppfylt() }
+    fun utledAvslagsgrunner(): List<Avslagsgrunn> = alleVilkår.mapNotNull { it?.avslagsgrunn() }
     fun erAvslag(): Boolean {
         return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() ||
             (alleVilkår.all { it !== null } && alleVilkår.any { it!!.erVilkårIkkeOppfylt() })
@@ -59,6 +62,10 @@ data class Behandlingsinformasjon(
             }
         }
         return false
+    }
+
+    fun harEktefelle(): Boolean {
+        return ektefelle is EktefellePartnerSamboer.Ektefelle
     }
 
     abstract class Base {
@@ -290,17 +297,17 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
 
-        fun getSatsgrunn() = when {
-            delerBolig == false -> Satsgrunn.ENSLIG
-            delerBolig == true ->
-                Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-            epsFnr != null && epsFnr.getAlder() > 66 ->
-                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
-            epsFnr != null && epsFnr.getAlder() < 67 && ektemakeEllerSamboerUførFlyktning == false ->
-                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-            epsFnr != null && epsFnr.getAlder() < 67 && ektemakeEllerSamboerUførFlyktning == true ->
-                Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-            else -> null
+        fun getSatsgrunn(): Satsgrunn {
+            val epsOver66 = epsFnr != null && epsFnr.getAlder() > 66
+            val epsUnder67 = epsFnr != null && epsFnr.getAlder() < 67
+            return when {
+                delerBolig == false -> Satsgrunn.ENSLIG
+                delerBolig == true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+                epsOver66 -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67 // TODO jah: >66 != over 67
+                epsUnder67 && ektemakeEllerSamboerUførFlyktning == false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+                epsUnder67 && ektemakeEllerSamboerUførFlyktning == true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+                else -> throw IllegalStateException("Kunne ikke utlede satsgrunn")
+            }
         }
     }
 
