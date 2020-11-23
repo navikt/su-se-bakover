@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
 import java.time.LocalDate
 import java.time.Month.FEBRUARY
 import java.time.Month.JANUARY
@@ -41,8 +42,7 @@ object SøknadInnholdTestdataBuilder {
                 datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
                 fortsattInnlagt = false
             ),
-            borPåAdresse = null,
-            ingenAdresseGrunn = Boforhold.IngenAdresseGrunn.HAR_IKKE_FAST_BOSTED
+            oppgittAdresse = Boforhold.OppgittAdresse.IngenAdresse(IngenAdresseGrunn.HAR_IKKE_FAST_BOSTED)
         ),
 
         utenlandsopphold: Utenlandsopphold = Utenlandsopphold(

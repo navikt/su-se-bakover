@@ -2,11 +2,10 @@ package no.nav.su.se.bakover.web.routes.søknad
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.domain.AdresseFraSøknad
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
-import no.nav.su.se.bakover.domain.Boforhold.IngenAdresseGrunn
+import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
 import no.nav.su.se.bakover.domain.Ektefelle
 import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
@@ -137,17 +136,34 @@ data class SøknadInnholdJson(
         val borPåAdresse: AdresseFraSøknad?,
         val ingenAdresseGrunn: IngenAdresseGrunn?
     ) {
-        fun toBoforhold() = Boforhold(
-            borOgOppholderSegINorge = borOgOppholderSegINorge,
-            delerBolig = delerBoligMedVoksne,
-            delerBoligMed = delerBoligMed?.let {
-                toBoforholdType(it)
-            },
-            ektefellePartnerSamboer = ektefellePartnerSamboer,
-            innlagtPåInstitusjon = innlagtPåInstitusjon,
-            borPåAdresse = borPåAdresse,
-            ingenAdresseGrunn = ingenAdresseGrunn
+        data class AdresseFraSøknad(
+            val adresselinje: String,
+            val postnummer: String,
+            val poststed: String?
         )
+
+        fun toBoforhold(): Boforhold {
+            if (borPåAdresse == null && ingenAdresseGrunn == null) {
+                throw IllegalArgumentException("Adresse må vare satt.")
+            }
+
+            val oppgittAdresse = if (borPåAdresse != null) Boforhold.OppgittAdresse.BorPåAdresse(
+                adresselinje = borPåAdresse.adresselinje,
+                postnummer = borPåAdresse.postnummer,
+                poststed = borPåAdresse.poststed
+            ) else Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn!!)
+
+            return Boforhold(
+                borOgOppholderSegINorge = borOgOppholderSegINorge,
+                delerBolig = delerBoligMedVoksne,
+                delerBoligMed = delerBoligMed?.let {
+                    toBoforholdType(it)
+                },
+                ektefellePartnerSamboer = ektefellePartnerSamboer,
+                innlagtPåInstitusjon = innlagtPåInstitusjon,
+                oppgittAdresse = oppgittAdresse
+            )
+        }
 
         private fun toBoforholdType(str: String): DelerBoligMed {
             return when (str) {
@@ -159,16 +175,28 @@ data class SøknadInnholdJson(
         }
 
         companion object {
-            fun Boforhold.toBoforholdJson() =
-                BoforholdJson(
+            fun Boforhold.toBoforholdJson(): BoforholdJson {
+
+                return BoforholdJson(
                     borOgOppholderSegINorge = this.borOgOppholderSegINorge,
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
                     innlagtPåInstitusjon = this.innlagtPåInstitusjon,
-                    borPåAdresse = this.borPåAdresse,
-                    ingenAdresseGrunn = this.ingenAdresseGrunn
+                    borPåAdresse = when (val o = this.oppgittAdresse) {
+                        is Boforhold.OppgittAdresse.BorPåAdresse -> AdresseFraSøknad(
+                            adresselinje = o.adresselinje,
+                            postnummer = o.postnummer,
+                            poststed = o.poststed
+                        )
+                        is Boforhold.OppgittAdresse.IngenAdresse -> null
+                    },
+                    ingenAdresseGrunn = when (val o = this.oppgittAdresse) {
+                        is Boforhold.OppgittAdresse.BorPåAdresse -> null
+                        is Boforhold.OppgittAdresse.IngenAdresse -> o.grunn
+                    }
                 )
+            }
         }
     }
 

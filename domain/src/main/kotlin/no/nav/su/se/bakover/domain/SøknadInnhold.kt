@@ -50,8 +50,7 @@ data class Boforhold(
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
     val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
-    val borPåAdresse: AdresseFraSøknad?,
-    val ingenAdresseGrunn: IngenAdresseGrunn?
+    val oppgittAdresse: OppgittAdresse,
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
@@ -59,9 +58,31 @@ data class Boforhold(
         ANNEN_VOKSEN;
     }
 
-    enum class IngenAdresseGrunn() {
-        BOR_PÅ_ANNEN_ADRESSE,
-        HAR_IKKE_FAST_BOSTED
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = OppgittAdresse.BorPåAdresse::class, name = "BorPåAdresse"),
+        JsonSubTypes.Type(value = OppgittAdresse.IngenAdresse::class, name = "IngenAdresse"),
+    )
+    sealed class OppgittAdresse {
+        data class BorPåAdresse(
+            val adresselinje: String,
+            val postnummer: String,
+            val poststed: String?
+        ) : OppgittAdresse()
+
+        data class IngenAdresse(
+            val grunn: IngenAdresseGrunn
+        ) : OppgittAdresse() {
+
+            enum class IngenAdresseGrunn {
+                BOR_PÅ_ANNEN_ADRESSE,
+                HAR_IKKE_FAST_BOSTED
+            }
+        }
     }
 
     @JsonTypeInfo(
@@ -179,10 +200,4 @@ data class InnlagtPåInstitusjon(
     val datoForInnleggelse: LocalDate,
     val datoForUtskrivelse: LocalDate?,
     val fortsattInnlagt: Boolean,
-)
-
-data class AdresseFraSøknad(
-    val adresselinje: String,
-    val postnummer: String,
-    val poststed: String?
 )
