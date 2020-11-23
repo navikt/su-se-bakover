@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -141,8 +142,8 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfr
         .groupBy { it.getFradragstype() }
         .map { (type, fradrag) ->
             BrevInnhold.Månedsfradrag(
-                type,
-                fradrag
+                type = type.toReadableTypeName(),
+                beløp = fradrag
                     .sumByDouble { it.getFradragPerMåned() }
                     .roundToTwoDecimals()
             )
@@ -151,3 +152,31 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfr
 fun Double.roundToTwoDecimals() =
     BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
         .toDouble()
+
+fun Fradragstype.toReadableTypeName() =
+    when (this) {
+        Fradragstype.NAVytelserTilLivsopphold ->
+            "NAV-ytelser til livsopphold"
+        Fradragstype.Arbeidsinntekt ->
+            "Arbeidsinntekt"
+        Fradragstype.OffentligPensjon ->
+            "Offentlig pensjon"
+        Fradragstype.PrivatPensjon ->
+            "Privat pensjon"
+        Fradragstype.Sosialstønad ->
+            "Sosialstønad"
+        Fradragstype.Kontantstøtte ->
+            "Kontantstøtte"
+        Fradragstype.Introduksjonsstønad ->
+            "Introduksjonsstønad"
+        Fradragstype.Kvalifiseringsstønad ->
+            "Kvalifiseringsstønad"
+        Fradragstype.BidragEtterEkteskapsloven ->
+            "Bidrag etter ekteskapsloven"
+        Fradragstype.Kapitalinntekt ->
+            "Kapitalinntekt"
+        Fradragstype.ForventetInntekt ->
+            "Forventet inntekt"
+        Fradragstype.BeregnetFradragEPS ->
+            "Utregnet fradrag for ektefelle/samboers inntekter"
+    }

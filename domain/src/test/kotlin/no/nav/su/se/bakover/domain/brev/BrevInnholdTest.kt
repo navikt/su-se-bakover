@@ -79,11 +79,11 @@ internal class BrevInnholdTest {
                     bruker = BrevInnhold.Beregning.FradragForBruker(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt,
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(),
                                 beløp = 10.0
                             ),
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon,
+                                type = Fradragstype.OffentligPensjon.toReadableTypeName(),
                                 beløp = 35.0
                             )
                         ),
@@ -93,11 +93,11 @@ internal class BrevInnholdTest {
                     eps = BrevInnhold.Beregning.FradragForEps(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt,
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(),
                                 beløp = 20.0
                             ),
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon,
+                                type = Fradragstype.OffentligPensjon.toReadableTypeName(),
                                 beløp = 70.0
                             )
                         ),
@@ -135,7 +135,7 @@ internal class BrevInnholdTest {
                                     "beløp": 10.0
                                 },
                                 {
-                                    "type": "OffentligPensjon",
+                                    "type": "Offentlig pensjon",
                                     "beløp": 35.0
                                 }
                             ],
@@ -149,7 +149,7 @@ internal class BrevInnholdTest {
                                     "beløp": 20.0
                                 },
                                 {
-                                    "type": "OffentligPensjon",
+                                    "type": "Offentlig pensjon",
                                     "beløp": 70.0
                                 }
                             ],
