@@ -4,12 +4,15 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.roundToInt
 
 abstract class LagBrevRequest {
     abstract fun getFnr(): Fnr
@@ -21,14 +24,10 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
-            satsbeløp = behandling.beregning()?.getMånedsberegninger()?.firstOrNull()?.getSatsbeløp()?.toInt()
-                ?: 0, // TODO: avrunding
-            fradrag = behandling.beregning()?.getFradrag()?.toFradragPerMåned() ?: emptyList(),
-            // TODO: burde kanskje sende over doubles?
-            fradragSum = behandling.beregning()?.getSumFradrag()?.roundToInt() ?: 0,
             avslagsgrunner = avslagsgrunnForBehandling(behandling),
             harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt()
+            halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt(),
+            beregning = behandling.beregning()?.let { getBrevinnholdberegning(it) }
         )
 
         private fun avslagsgrunnForBehandling(behandling: Behandling): List<Avslagsgrunn> {
@@ -51,24 +50,62 @@ abstract class LagBrevRequest {
     ) : LagBrevRequest() {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
-            val førsteMånedsberegning =
-                behandling.beregning()!!.getMånedsberegninger().firstOrNull()!! // Støtte för variende beløp i framtiden?
+            val beregning = behandling.beregning()!!
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
-                månedsbeløp = førsteMånedsberegning.getSumYtelse().toInt(), // TODO: avrunding
-                fradato = behandling.beregning()!!.getPeriode().getFraOgMed().formatMonthYear(),
-                tildato = behandling.beregning()!!.getPeriode().getTilOgMed().formatMonthYear(),
-                sats = behandling.beregning()?.getSats().toString().toLowerCase(),
-                satsbeløp = førsteMånedsberegning.getSatsbeløp().toInt(), // TODO: avrunding
+                fradato = beregning.getPeriode().getFraOgMed().formatMonthYear(),
+                tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
+                sats = beregning.getSats().toString().toLowerCase(),
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
-                redusertStønadStatus = behandling.beregning()?.getFradrag()?.isNotEmpty() ?: false,
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                fradrag = behandling.beregning()!!.getFradrag().toFradragPerMåned(),
-                // TODO: burde kanskje sende over doubles?
-                fradragSum = behandling.beregning()!!.getSumFradrag().roundToInt(),
+                beregning = getBrevinnholdberegning(beregning)
             )
         }
     }
+}
+
+fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
+    val førsteMånedsberegning =
+        beregning.getMånedsberegninger()
+            .first() // Støtte for variende beløp i framtiden?
+
+    return BrevInnhold.Beregning(
+        ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
+        satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToTwoDecimals(),
+        epsFribeløp =
+            FradragStrategy.fromName(beregning.getFradragStrategyName())
+                .getEpsFribeløp(førsteMånedsberegning.getPeriode())
+                .roundToTwoDecimals(),
+        fradrag = when (beregning.getFradrag().isEmpty()) {
+            true ->
+                null
+            false ->
+                BrevInnhold.Beregning.Fradrag(
+                    bruker =
+                        førsteMånedsberegning.getFradrag()
+                            .filter { it.getTilhører() == FradragTilhører.BRUKER }
+                            .let {
+                                BrevInnhold.Beregning.FradragForPerson(
+                                    fradrag = it.toMånedsfradragPerType(),
+                                    sum = it.sumByDouble { f -> f.getFradragPerMåned() }
+                                        .roundToTwoDecimals()
+                                )
+                            },
+                    eps = beregning
+                        .getFradrag()
+                        .filter { it.getTilhører() == FradragTilhører.EPS }
+                        .let {
+                            BrevInnhold.Beregning.FradragForPerson(
+                                fradrag = it.toMånedsfradragPerType(),
+                                sum = førsteMånedsberegning.getFradrag()
+                                    .filter { f -> f.getTilhører() == FradragTilhører.EPS }
+                                    .sumByDouble { f -> f.getFradragPerMåned() }
+                                    .roundToTwoDecimals()
+                            )
+                        }
+                )
+        }
+    )
 }
 
 enum class Avslagsgrunn {
@@ -92,13 +129,22 @@ enum class Satsgrunn {
     DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 }
 
-data class FradragPerMåned(val type: Fradragstype, val beløp: Int)
-
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
 
-internal fun List<Fradrag>.toFradragPerMåned(): List<FradragPerMåned> =
-    this.map {
-        FradragPerMåned(it.getFradragstype(), it.getFradragPerMåned().toInt())
-    }
+internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfradrag> =
+    this
+        .groupBy { it.getFradragstype() }
+        .map { (type, fradrag) ->
+            BrevInnhold.Månedsfradrag(
+                type,
+                fradrag
+                    .sumByDouble { it.getFradragPerMåned() }
+                    .roundToTwoDecimals()
+            )
+        }
+
+fun Double.roundToTwoDecimals() =
+    BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
+        .toDouble()

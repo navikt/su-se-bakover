@@ -32,11 +32,16 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
 
+    object IngenEpsFribeløp
+    abstract fun getEpsFribeløp(periode: Periode): Double
+
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag.mapValues { it.value.filter { it.getTilhører() == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
+
+        override fun getEpsFribeløp(periode: Periode): Double = 0.0
     }
 
     object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
@@ -45,6 +50,8 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til minstepensjonsnivå`()
         }
+
+        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumMinstepensjonsnivå(periode)
 
         private fun periodisertSumMinstepensjonsnivå(periode: Periode) =
             Minstepensjonsnivå.Ordinær.periodiser(periode).values.sumByDouble { it }
@@ -67,6 +74,8 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
                 .`fjern EPS fradrag opp til satsbeløp`()
         }
 
+        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumSatsbeløp(periode)
+
         private fun periodisertSumSatsbeløp(periode: Periode) =
             Sats.ORDINÆR.periodiser(periode).values.sumByDouble { it }
 
@@ -86,6 +95,8 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
             fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`slå sammen eps sine fradrag til en og samme type`()
+
+        override fun getEpsFribeløp(periode: Periode): Double = 0.0
 
         private fun Map<Periode, List<Fradrag>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Periode, List<Fradrag>> {
             return mapValues { `slå sammen eps sine fradrag til en og samme type`(it.key, it.value) }
@@ -153,4 +164,14 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     private fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
         singleOrNull { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt } != null
+
+    companion object {
+        fun fromName(name: FradragStrategyName) =
+            when (name) {
+                FradragStrategyName.Enslig -> Enslig
+                FradragStrategyName.EpsOver67År -> EpsOver67År
+                FradragStrategyName.EpsUnder67ÅrOgUførFlyktning -> EpsUnder67ÅrOgUførFlyktning
+                FradragStrategyName.EpsUnder67År -> EpsUnder67År
+            }
+    }
 }
