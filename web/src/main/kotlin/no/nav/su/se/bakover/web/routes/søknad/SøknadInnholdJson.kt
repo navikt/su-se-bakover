@@ -143,15 +143,19 @@ data class SøknadInnholdJson(
         )
 
         fun toBoforhold(): Boforhold {
-            if (borPåAdresse == null && ingenAdresseGrunn == null) {
-                throw IllegalArgumentException("Adresse må vare satt.")
+            if (borPåAdresse != null && ingenAdresseGrunn != null) {
+                throw IllegalArgumentException("Ogyldig adresseinformasjon sendt!")
             }
 
-            val oppgittAdresse = if (borPåAdresse != null) Boforhold.OppgittAdresse.BorPåAdresse(
-                adresselinje = borPåAdresse.adresselinje,
-                postnummer = borPåAdresse.postnummer,
-                poststed = borPåAdresse.poststed
-            ) else Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn!!)
+            val oppgittAdresse = when {
+                borPåAdresse != null -> Boforhold.OppgittAdresse.BorPåAdresse(
+                    adresselinje = borPåAdresse.adresselinje,
+                    postnummer = borPåAdresse.postnummer,
+                    poststed = borPåAdresse.poststed
+                )
+                ingenAdresseGrunn != null -> Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
+                else -> null
+            }
 
             return Boforhold(
                 borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -190,10 +194,12 @@ data class SøknadInnholdJson(
                             poststed = o.poststed
                         )
                         is Boforhold.OppgittAdresse.IngenAdresse -> null
+                        null -> null
                     },
                     ingenAdresseGrunn = when (val o = this.oppgittAdresse) {
                         is Boforhold.OppgittAdresse.BorPåAdresse -> null
                         is Boforhold.OppgittAdresse.IngenAdresse -> o.grunn
+                        null -> null
                     }
                 )
             }

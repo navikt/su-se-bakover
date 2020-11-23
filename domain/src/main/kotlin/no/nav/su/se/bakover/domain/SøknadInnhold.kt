@@ -50,7 +50,7 @@ data class Boforhold(
     val delerBoligMed: DelerBoligMed? = null,
     val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
     val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
-    val oppgittAdresse: OppgittAdresse,
+    val oppgittAdresse: OppgittAdresse?,
 ) {
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
