@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.Boforhold.DelerBoligMed
 import no.nav.su.se.bakover.domain.Boforhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
 import no.nav.su.se.bakover.domain.Ektefelle
 import no.nav.su.se.bakover.domain.Flyktningsstatus
 import no.nav.su.se.bakover.domain.Fnr
@@ -131,17 +132,42 @@ data class SøknadInnholdJson(
         val delerBoligMedVoksne: Boolean,
         val delerBoligMed: String? = null,
         val ektefellePartnerSamboer: EktefellePartnerSamboer?,
-        val innlagtPåInstitusjon: InnlagtPåInstitusjon?
+        val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
+        val borPåAdresse: AdresseFraSøknad?,
+        val ingenAdresseGrunn: IngenAdresseGrunn?
     ) {
-        fun toBoforhold() = Boforhold(
-            borOgOppholderSegINorge = borOgOppholderSegINorge,
-            delerBolig = delerBoligMedVoksne,
-            delerBoligMed = delerBoligMed?.let {
-                toBoforholdType(it)
-            },
-            ektefellePartnerSamboer = ektefellePartnerSamboer,
-            innlagtPåInstitusjon = innlagtPåInstitusjon
+        data class AdresseFraSøknad(
+            val adresselinje: String,
+            val postnummer: String,
+            val poststed: String?
         )
+
+        fun toBoforhold(): Boforhold {
+            if (borPåAdresse != null && ingenAdresseGrunn != null) {
+                throw IllegalArgumentException("Ogyldig adresseinformasjon sendt!")
+            }
+
+            val oppgittAdresse = when {
+                borPåAdresse != null -> Boforhold.OppgittAdresse.BorPåAdresse(
+                    adresselinje = borPåAdresse.adresselinje,
+                    postnummer = borPåAdresse.postnummer,
+                    poststed = borPåAdresse.poststed
+                )
+                ingenAdresseGrunn != null -> Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
+                else -> null
+            }
+
+            return Boforhold(
+                borOgOppholderSegINorge = borOgOppholderSegINorge,
+                delerBolig = delerBoligMedVoksne,
+                delerBoligMed = delerBoligMed?.let {
+                    toBoforholdType(it)
+                },
+                ektefellePartnerSamboer = ektefellePartnerSamboer,
+                innlagtPåInstitusjon = innlagtPåInstitusjon,
+                oppgittAdresse = oppgittAdresse
+            )
+        }
 
         private fun toBoforholdType(str: String): DelerBoligMed {
             return when (str) {
@@ -153,14 +179,30 @@ data class SøknadInnholdJson(
         }
 
         companion object {
-            fun Boforhold.toBoforholdJson() =
-                BoforholdJson(
+            fun Boforhold.toBoforholdJson(): BoforholdJson {
+
+                return BoforholdJson(
                     borOgOppholderSegINorge = this.borOgOppholderSegINorge,
                     delerBoligMedVoksne = this.delerBolig,
                     delerBoligMed = this.delerBoligMed?.toJson(),
                     ektefellePartnerSamboer = this.ektefellePartnerSamboer,
-                    innlagtPåInstitusjon = this.innlagtPåInstitusjon
+                    innlagtPåInstitusjon = this.innlagtPåInstitusjon,
+                    borPåAdresse = when (val o = this.oppgittAdresse) {
+                        is Boforhold.OppgittAdresse.BorPåAdresse -> AdresseFraSøknad(
+                            adresselinje = o.adresselinje,
+                            postnummer = o.postnummer,
+                            poststed = o.poststed
+                        )
+                        is Boforhold.OppgittAdresse.IngenAdresse -> null
+                        null -> null
+                    },
+                    ingenAdresseGrunn = when (val o = this.oppgittAdresse) {
+                        is Boforhold.OppgittAdresse.BorPåAdresse -> null
+                        is Boforhold.OppgittAdresse.IngenAdresse -> o.grunn
+                        null -> null
+                    }
                 )
+            }
         }
     }
 

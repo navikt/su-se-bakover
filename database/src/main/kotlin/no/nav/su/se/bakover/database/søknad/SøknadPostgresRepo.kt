@@ -24,7 +24,7 @@ internal class SøknadPostgresRepo(
                     "id" to søknad.id,
                     "sakId" to søknad.sakId,
                     "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
-                    "opprettet" to søknad.opprettet
+                    "opprettet" to søknad.opprettet,
                 ),
                 session
             )
