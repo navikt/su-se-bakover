@@ -29,11 +29,12 @@ internal class BrevInnholdTest {
             satsbeløpPerMåned = 31.0,
             epsFribeløp = 0.0,
             fradrag = BrevInnhold.Beregning.Fradrag(
-                bruker = BrevInnhold.Beregning.FradragForPerson(
+                bruker = BrevInnhold.Beregning.FradragForBruker(
                     fradrag = emptyList(),
-                    sum = 0.0
+                    sum = 0.0,
+                    harBruktForventetInntektIStedetForArbeidsinntekt = false
                 ),
-                eps = BrevInnhold.Beregning.FradragForPerson(
+                eps = BrevInnhold.Beregning.FradragForEps(
                     fradrag = emptyList(),
                     sum = 0.0
                 )
@@ -75,7 +76,7 @@ internal class BrevInnholdTest {
                 satsbeløpPerMåned = 100.0,
                 epsFribeløp = 100.0,
                 fradrag = BrevInnhold.Beregning.Fradrag(
-                    bruker = BrevInnhold.Beregning.FradragForPerson(
+                    bruker = BrevInnhold.Beregning.FradragForBruker(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
                                 type = Fradragstype.Arbeidsinntekt,
@@ -86,9 +87,10 @@ internal class BrevInnholdTest {
                                 beløp = 35.0
                             )
                         ),
-                        sum = 45.0
+                        sum = 45.0,
+                        harBruktForventetInntektIStedetForArbeidsinntekt = false
                     ),
-                    eps = BrevInnhold.Beregning.FradragForPerson(
+                    eps = BrevInnhold.Beregning.FradragForEps(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
                                 type = Fradragstype.Arbeidsinntekt,
@@ -137,7 +139,8 @@ internal class BrevInnholdTest {
                                     "beløp": 35.0
                                 }
                             ],
-                            "sum": 45.0
+                            "sum": 45.0,
+                            "harBruktForventetInntektIStedetForArbeidsinntekt": false
                         },
                         "eps": {
                             "fradrag": [
@@ -182,7 +185,8 @@ internal class BrevInnholdTest {
                     "fradrag": {
                         "bruker": {
                             "fradrag": [],
-                            "sum": 0.0
+                            "sum": 0.0,
+                            "harBruktForventetInntektIStedetForArbeidsinntekt": false
                         },
                         "eps": {
                             "fradrag": [],

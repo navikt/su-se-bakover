@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 
 abstract class BrevInnhold {
     fun toJson() = objectMapper.writeValueAsString(this)
@@ -42,21 +41,27 @@ abstract class BrevInnhold {
         val ytelsePerMåned: Int,
         val satsbeløpPerMåned: Double,
         val epsFribeløp: Double,
-        val fradrag: Fradrag?
+        val fradrag: Fradrag?,
     ) {
         data class Fradrag(
-            val bruker: FradragForPerson,
-            val eps: FradragForPerson
+            val bruker: FradragForBruker,
+            val eps: FradragForEps,
         )
 
-        data class FradragForPerson(
+        data class FradragForBruker(
             val fradrag: List<Månedsfradrag>,
-            val sum: Double
+            val sum: Double,
+            val harBruktForventetInntektIStedetForArbeidsinntekt: Boolean,
+        )
+
+        data class FradragForEps(
+            val fradrag: List<Månedsfradrag>,
+            val sum: Double,
         )
     }
 
     data class Månedsfradrag(
-        val type: Fradragstype,
+        val type: String,
         val beløp: Double
     )
 }

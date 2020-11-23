@@ -85,17 +85,20 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
                         førsteMånedsberegning.getFradrag()
                             .filter { it.getTilhører() == FradragTilhører.BRUKER }
                             .let {
-                                BrevInnhold.Beregning.FradragForPerson(
+                                BrevInnhold.Beregning.FradragForBruker(
                                     fradrag = it.toMånedsfradragPerType(),
                                     sum = it.sumByDouble { f -> f.getFradragPerMåned() }
-                                        .roundToTwoDecimals()
+                                        .roundToTwoDecimals(),
+                                    harBruktForventetInntektIStedetForArbeidsinntekt =
+                                        it.any
+                                        { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
                                 )
                             },
                     eps = beregning
                         .getFradrag()
                         .filter { it.getTilhører() == FradragTilhører.EPS }
                         .let {
-                            BrevInnhold.Beregning.FradragForPerson(
+                            BrevInnhold.Beregning.FradragForEps(
                                 fradrag = it.toMånedsfradragPerType(),
                                 sum = førsteMånedsberegning.getFradrag()
                                     .filter { f -> f.getTilhører() == FradragTilhører.EPS }
