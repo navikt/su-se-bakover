@@ -30,6 +30,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = formue?.borSøkerMedEPS ?: false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 0,
                 verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,

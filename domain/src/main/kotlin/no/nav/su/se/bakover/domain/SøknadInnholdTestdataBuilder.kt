@@ -33,7 +33,7 @@ object SøknadInnholdTestdataBuilder {
             borOgOppholderSegINorge = true,
             delerBolig = true,
             delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-            ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer.EktefellePartnerSamboerMedFnr(
+            ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer(
                 erUførFlyktning = false,
                 fnr = fnrUnder67()
             ),

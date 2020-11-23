@@ -81,6 +81,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         formue = b.formue?.let { f ->
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
+                borSøkerMedEPS = f.borSøkerMedEPS,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
                     verdiKjøretøy = f.verdier?.verdiKjøretøy,
@@ -164,6 +165,7 @@ internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
         verdier = this.verdier?.toJson(),
+        borSøkerMedEPS = this.borSøkerMedEPS,
         ektefellesVerdier = this.ektefellesVerdier?.toJson(),
         begrunnelse = begrunnelse
     )
@@ -261,6 +263,7 @@ data class OppholdIUtlandetJson(
 data class FormueJson(
     val status: String,
     val verdier: VerdierJson?,
+    val borSøkerMedEPS: Boolean,
     val ektefellesVerdier: VerdierJson?,
     val begrunnelse: String?
 )
