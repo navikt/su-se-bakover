@@ -68,22 +68,33 @@ internal fun Route.behandlingRoutes(
                             behandlingService.opprettSøknadsbehandling(søknadId)
                                 .fold(
                                     {
-                                        call.svar(
-                                            when (it) {
-                                                is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message(
+                                        val error: Resultat = when (it) {
+                                            is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> {
+                                                log.info("Fant ikke søknad med id:$søknadId")
+                                                NotFound.message(
                                                     "Fant ikke søknad med id:$søknadId"
                                                 )
-                                                is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> {
+                                                log.info("Søknad med id $søknadId mangler oppgave")
+                                                InternalServerError.message(
                                                     "Søknad med id $søknadId mangler oppgave"
                                                 )
-                                                is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> {
+                                                log.info("Søknad med id $søknadId har allerede en behandling")
+                                                BadRequest.message(
                                                     "Søknad med id $søknadId har allerede en behandling"
                                                 )
-                                                is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message(
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> {
+                                                log.info("Søknad med id $søknadId er lukket")
+                                                BadRequest.message(
                                                     "Søknad med id $søknadId er lukket"
                                                 )
                                             }
-                                        )
+                                        }
+                                        call.svar(error)
                                     },
                                     {
                                         call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
@@ -169,7 +180,14 @@ internal fun Route.behandlingRoutes(
                                         behandlingId = behandling.id,
                                         fraOgMed = body.fraOgMed,
                                         tilOgMed = body.tilOgMed,
-                                        fradrag = body.fradrag.map { it.toFradrag(Periode(body.fraOgMed, body.tilOgMed)) }
+                                        fradrag = body.fradrag.map {
+                                            it.toFradrag(
+                                                Periode(
+                                                    body.fraOgMed,
+                                                    body.tilOgMed
+                                                )
+                                            )
+                                        }
                                     )
                                 )
                             )
@@ -246,7 +264,9 @@ internal fun Route.behandlingRoutes(
                 is KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
                 is KunneIkkeIverksetteBehandling.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
                 is KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message("Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres")
+                is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message(
+                    "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
+                )
                 is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
             }
