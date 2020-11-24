@@ -78,8 +78,8 @@ class UtbetalingXmlMappingTest {
                 <saksbehId>SU</saksbehId>
                 <avstemming-115>
                   <kodeKomponent>SU</kodeKomponent>
-                  <nokkelAvstemming>1577836800000000000</nokkelAvstemming>
-                  <tidspktMelding>2020-01-01-01.00.00.000000</tidspktMelding>
+                  <nokkelAvstemming>1577833200000000000</nokkelAvstemming>
+                  <tidspktMelding>2020-01-01-00.00.00.000000</tidspktMelding>
                 </avstemming-115>
                 <oppdrags-enhet-120>
                   <typeEnhet>BOS</typeEnhet>

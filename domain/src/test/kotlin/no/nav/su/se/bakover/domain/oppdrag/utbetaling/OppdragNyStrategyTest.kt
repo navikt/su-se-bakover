@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -161,7 +161,7 @@ internal class OppdragNyStrategyTest {
     @Test
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling.OversendtUtbetaling.MedKvittering(
-            opprettet = LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay().toTidspunkt(),
+            opprettet = LocalDate.of(2020, Month.JANUARY, 1).startOfDay(),
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
@@ -179,7 +179,7 @@ internal class OppdragNyStrategyTest {
         )
 
         val second = Utbetaling.OversendtUtbetaling.MedKvittering(
-            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).atStartOfDay().toTidspunkt(),
+            opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).startOfDay(),
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
@@ -197,7 +197,7 @@ internal class OppdragNyStrategyTest {
         )
 
         val third = Utbetaling.OversendtUtbetaling.MedKvittering(
-            opprettet = LocalDate.of(2020, Month.MARCH, 1).atStartOfDay().toTidspunkt(),
+            opprettet = LocalDate.of(2020, Month.MARCH, 1).startOfDay(),
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList(),
@@ -214,7 +214,7 @@ internal class OppdragNyStrategyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val fourth = Utbetaling.OversendtUtbetaling.MedKvittering(
-            opprettet = LocalDate.of(2020, Month.JULY, 1).atStartOfDay().toTidspunkt(),
+            opprettet = LocalDate.of(2020, Month.JULY, 1).startOfDay(),
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),

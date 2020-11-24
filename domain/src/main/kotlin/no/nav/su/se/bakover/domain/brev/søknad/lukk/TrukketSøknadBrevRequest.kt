@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
@@ -15,7 +16,7 @@ data class TrukketSøknadBrevRequest(
     override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
         return TrukketSøknadBrevInnhold(
             personalia = personalia,
-            datoSøknadOpprettet = søknad.opprettet.toLocalDate(),
+            datoSøknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
             trukketDato = trukketDato
         )
     }

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.now
-import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -43,8 +43,8 @@ class AvstemmingPublisherTest {
     }
 
     private val avstemming = Avstemming(
-        fraOgMed = 1.januar(2020).atStartOfDay().toTidspunkt(),
-        tilOgMed = 2.januar(2020).atStartOfDay().toTidspunkt(),
+        fraOgMed = 1.januar(2020).startOfDay(),
+        tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
                 utbetalingslinjer = listOf(),

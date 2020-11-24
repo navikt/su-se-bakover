@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -85,7 +84,7 @@ internal class AvstemmingPostgresRepoTest {
             val sak = testDataHelper.insertSak(FnrGenerator.random())
             val utbetaling = oversendtUtbetaling(
                 oppdragId = sak.oppdrag.id,
-                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).atStartOfDay().toTidspunkt())
+                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
             )
             utbetalingRepo.opprettUtbetaling(
                 utbetaling
@@ -105,7 +104,7 @@ internal class AvstemmingPostgresRepoTest {
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
                             Avstemmingsnøkkel(
-                                9.oktober(2020).atStartOfDay().toTidspunkt()
+                                9.oktober(2020).startOfDay()
                             )
                         ),
                         "simulering" to "{}",

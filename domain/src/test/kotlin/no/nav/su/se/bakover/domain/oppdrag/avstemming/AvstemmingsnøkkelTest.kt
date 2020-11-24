@@ -6,16 +6,17 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
 internal class AvstemmingsnøkkelTest {
 
-    private val sept15 = Avstemmingsnøkkel(15.september(2020).atStartOfDay().toTidspunkt())
-    private val okt1 = Avstemmingsnøkkel(1.oktober(2020).atStartOfDay().toTidspunkt())
-    private val nov29 = Avstemmingsnøkkel(29.november(2020).atStartOfDay().toTidspunkt())
-    private val jan12200 = Avstemmingsnøkkel(1.januar(2200).atStartOfDay().toTidspunkt())
+    private val sept15 = Avstemmingsnøkkel(15.september(2020).startOfDay())
+    private val okt1 = Avstemmingsnøkkel(1.oktober(2020).startOfDay())
+    private val nov29 = Avstemmingsnøkkel(29.november(2020).startOfDay())
+    private val jan12200 = Avstemmingsnøkkel(1.januar(2200).startOfDay())
 
     @Test
     fun `sammenligning av nøkler`() {

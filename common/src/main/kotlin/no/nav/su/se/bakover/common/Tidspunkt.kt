@@ -7,7 +7,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.Temporal
@@ -56,9 +56,9 @@ class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
 
     override fun hashCode() = instant.hashCode()
     fun plusSeconds(secondsToAdd: Long) = instant.plusSeconds(secondsToAdd).toTidspunkt()
-    fun toLocalDate() = LocalDate.ofInstant(instant, ZoneOffset.UTC)
+    fun toLocalDate(zoneId: ZoneId) = LocalDate.ofInstant(instant, zoneId)
 }
 
 fun Instant.toTidspunkt() = Tidspunkt(this)
-fun LocalDateTime.toTidspunkt(zoneOffset: ZoneOffset = ZoneOffset.UTC) = this.toInstant(zoneOffset).toTidspunkt()
+fun LocalDateTime.toTidspunkt(zoneId: ZoneId) = this.atZone(zoneId).toTidspunkt()
 fun ZonedDateTime.toTidspunkt() = this.toInstant().toTidspunkt()

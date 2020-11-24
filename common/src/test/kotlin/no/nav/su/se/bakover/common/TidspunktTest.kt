@@ -74,27 +74,41 @@ internal class TidspunktTest {
     fun `should serialize as instant`() {
         val start = 1.oktober(2020).endOfDay()
         val serialized = objectMapper.writeValueAsString(start)
-        serialized shouldBe "\"2020-10-01T23:59:59.999999Z\"" // TODO Spennende at denne serialiseres til double qoutes?
+        serialized shouldBe "\"2020-10-01T21:59:59.999999Z\"" // TODO Spennende at denne serialiseres til double qoutes?
         val deserialized = objectMapper.readValue(serialized, Tidspunkt::class.java)
         deserialized shouldBe start
 
         val objSerialized = objectMapper.writeValueAsString(NestedSerialization(start))
-        objSerialized shouldBe """{"tidspunkt":"2020-10-01T23:59:59.999999Z","other":"other values"}"""
+        objSerialized shouldBe """{"tidspunkt":"2020-10-01T21:59:59.999999Z","other":"other values"}"""
         val objDeserialized = objectMapper.readValue(objSerialized, NestedSerialization::class.java)
         objDeserialized shouldBe NestedSerialization(start, "other values")
     }
 
     @Test
     fun `now`() {
-        val fixed = Clock.fixed(1.januar(2020).endOfDay().instant, ZoneOffset.UTC)
-        val now = Tidspunkt.now(fixed)
-        now.toString() shouldBe "2020-01-01T23:59:59.999999Z"
+        val fixedUTC = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+        val nowUTC = Tidspunkt.now(fixedUTC)
+        nowUTC.toString() shouldBe "2020-01-01T23:59:59.999999Z"
+
+        val fixedOslo = Clock.fixed(1.januar(2020).endOfDay(zoneIdOslo).instant, zoneIdOslo)
+        val nowOslo = Tidspunkt.now(fixedOslo)
+        nowOslo.toString() shouldBe "2020-01-01T22:59:59.999999Z"
     }
 
     @Test
     fun `konverterer tidspunkt til localDate`() {
-        1.januar(2020).startOfDay().toLocalDate() shouldBe LocalDate.of(2020, Month.JANUARY, 1)
-        1.januar(2020).endOfDay().toLocalDate() shouldBe LocalDate.of(2020, Month.JANUARY, 1)
+        1.januar(2020).startOfDay(ZoneOffset.UTC).toLocalDate(ZoneOffset.UTC) shouldBe LocalDate.of(
+            2020,
+            Month.JANUARY,
+            1
+        )
+        1.januar(2020).endOfDay(ZoneOffset.UTC).toLocalDate(ZoneOffset.UTC) shouldBe LocalDate.of(
+            2020,
+            Month.JANUARY,
+            1
+        )
+        1.januar(2020).startOfDay(zoneIdOslo).toLocalDate(zoneIdOslo) shouldBe LocalDate.of(2020, Month.JANUARY, 1)
+        1.januar(2020).endOfDay(zoneIdOslo).toLocalDate(zoneIdOslo) shouldBe LocalDate.of(2020, Month.JANUARY, 1)
     }
 
     data class NestedSerialization(

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -310,7 +311,7 @@ internal class LukkSøknadServiceImplTest {
         val treDagerGammelSøknad = Søknad.Ny(
             sakId = sakId,
             id = UUID.randomUUID(),
-            opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(),
+            opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(zoneIdOslo),
             søknadInnhold = søknadInnhold,
         )
 

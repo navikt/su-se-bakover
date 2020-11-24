@@ -3,7 +3,10 @@ package no.nav.su.se.bakover.common
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+
+val zoneIdOslo = ZoneId.of("Europe/Oslo")
 
 fun Int.januar(year: Int) = LocalDate.of(year, Month.JANUARY, this)
 fun Int.februar(year: Int) = LocalDate.of(year, Month.FEBRUARY, this)
@@ -21,8 +24,8 @@ fun idag(clock: Clock = Clock.systemUTC()) = LocalDate.now(clock)
 
 fun now(clock: Clock = Clock.systemUTC()): Tidspunkt = Tidspunkt.now(clock)
 
-fun LocalDate.startOfDay() = this.atStartOfDay().toTidspunkt()
-fun LocalDate.endOfDay() = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt()
+fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
+fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
 

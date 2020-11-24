@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 internal class SøknadJsonTest {
@@ -184,7 +185,7 @@ internal class SøknadJsonTest {
         val trukket = søknad.lukk(
             lukketAv = saksbehandler,
             type = Søknad.Lukket.LukketType.TRUKKET,
-            lukketTidspunkt = 1.oktober(2020).startOfDay(),
+            lukketTidspunkt = 1.oktober(2020).startOfDay(ZoneOffset.UTC),
         )
         //language=json
         val expectedJson = """

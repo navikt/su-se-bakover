@@ -84,8 +84,8 @@ internal class UtbetalingRequestTest {
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
-                    nokkelAvstemming = "1577836800000000000",
-                    tidspktMelding = "2020-01-01-01.00.00.000000"
+                    nokkelAvstemming = "1577833200000000000",
+                    tidspktMelding = "2020-01-01-00.00.00.000000"
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(
@@ -217,8 +217,8 @@ internal class UtbetalingRequestTest {
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
-                    nokkelAvstemming = "1577836800000000000",
-                    tidspktMelding = "2020-01-01-01.00.00.000000"
+                    nokkelAvstemming = "1577833200000000000",
+                    tidspktMelding = "2020-01-01-00.00.00.000000"
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(

@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -33,7 +34,7 @@ internal class LukkSøknadServiceImpl(
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
-        val opprettetDato = søknad.opprettet.toLocalDate()
+        val opprettetDato = søknad.opprettet.toLocalDate(zoneIdOslo)
         if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato)) {
             log.info("Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag")
             return KunneIkkeLukkeSøknad.UgyldigDato.left()

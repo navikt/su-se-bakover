@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.ZoneId
 
 internal class AvstemmingDataBuilderTest {
     @Test
@@ -87,8 +87,8 @@ internal class AvstemmingDataBuilderTest {
             Avstemming(
                 id = avstemmingId,
                 opprettet = now(),
-                fraOgMed = 1.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
-                tilOgMed = 2.mars(2020).atStartOfDay(zoneId).toTidspunkt(),
+                fraOgMed = 1.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
+                tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null
             ),
@@ -96,10 +96,9 @@ internal class AvstemmingDataBuilderTest {
     }
 }
 
-private val zoneId = ZoneId.of("Europe/Oslo")
 fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
     id = UUID30.randomUUID(),
-    opprettet = fraOgMed.atStartOfDay(zoneId).toTidspunkt(),
+    opprettet = fraOgMed.atStartOfDay(zoneIdOslo).toTidspunkt(),
     fraOgMed = fraOgMed,
     tilOgMed = tilOgMed,
     forrigeUtbetalingslinjeId = null,
@@ -117,7 +116,7 @@ fun lagUtbetaling(
 ): Utbetaling.OversendtUtbetaling = when (status) {
     null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
-        opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
+        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
         simulering = simulering,
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
@@ -128,7 +127,7 @@ fun lagUtbetaling(
     )
     else -> Utbetaling.OversendtUtbetaling.MedKvittering(
         id = id,
-        opprettet = opprettet.atStartOfDay(zoneId).toTidspunkt(),
+        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
         simulering = simulering,
         kvittering = Kvittering(
             utbetalingsstatus = status,

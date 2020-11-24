@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneOffset
 
 internal class UtilsKtTest {
 
@@ -31,8 +32,11 @@ internal class UtilsKtTest {
 
     @Test
     fun `start and end of day`() {
-        1.januar(2020).startOfDay().toString() shouldBe "2020-01-01T00:00:00Z"
-        1.januar(2020).endOfDay().toString() shouldBe "2020-01-01T23:59:59.999999Z"
+        1.januar(2020).startOfDay(ZoneOffset.UTC).toString() shouldBe "2020-01-01T00:00:00Z"
+        1.januar(2020).endOfDay(ZoneOffset.UTC).toString() shouldBe "2020-01-01T23:59:59.999999Z"
+        // Oslo default
+        1.januar(2020).startOfDay().toString() shouldBe "2019-12-31T23:00:00Z"
+        1.januar(2020).endOfDay().toString() shouldBe "2020-01-01T22:59:59.999999Z"
     }
 
     @Test

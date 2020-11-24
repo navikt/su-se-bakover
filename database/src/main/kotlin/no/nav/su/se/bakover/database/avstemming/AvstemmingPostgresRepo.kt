@@ -87,7 +87,7 @@ internal class AvstemmingPostgresRepo(
                     session
                 ) {
                     it.toUtbetaling(session)
-                }.filterIsInstance<Utbetaling.OversendtUtbetaling>()
+                }
         }
 }
 

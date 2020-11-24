@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.client.oppdrag
 
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object OppdragDefaults {
@@ -30,13 +30,11 @@ object OppdragslinjeDefaults {
     val typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND
 }
 
-private val zoneId = ZoneId.of("Europe/Oslo")
-
 fun LocalDate.toOppdragDate() = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    .withZone(zoneId).format(this)
+    .withZone(zoneIdOslo).format(this)
 
 fun Tidspunkt.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
-    .withZone(zoneId).format(this)
+    .withZone(zoneIdOslo).format(this)
 
 fun Tidspunkt.toAvstemmingsdatoFormat() = DateTimeFormatter.ofPattern("yyyyMMddHH")
-    .withZone(zoneId).format(this)
+    .withZone(zoneIdOslo).format(this)
