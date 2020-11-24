@@ -96,6 +96,13 @@ data class Behandling internal constructor(
         BehandlingsStatus.IVERKSATT_INNVILGET
     ).contains(status)
 
+    fun erAvslag() = listOf(
+        BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
+        BehandlingsStatus.BEREGNET_AVSLAG,
+        BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
+        BehandlingsStatus.IVERKSATT_AVSLAG
+    ).contains(status)
+
     fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon): Behandling {
         tilstand.oppdaterBehandlingsinformasjon(oppdatert)
         return this

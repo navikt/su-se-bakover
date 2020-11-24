@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -41,9 +40,6 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
 import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -257,24 +253,14 @@ class AccessCheckProxy(
                 }
             },
             brev = object : BrevService {
-                override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-                    assertHarTilgangTilPerson(request.getFnr())
-
-                    return services.brev.lagBrev(request)
-                }
+                override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
                 override fun journalførBrev(
                     request: LagBrevRequest,
                     sakId: UUID
-                ): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-                    assertHarTilgangTilSak(sakId)
+                ) = kastKanKunKallesFraAnnenService()
 
-                    return services.brev.journalførBrev(request, sakId)
-                }
-
-                override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> {
-                    return services.brev.distribuerBrev(journalpostId)
-                }
+                override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()
             },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {

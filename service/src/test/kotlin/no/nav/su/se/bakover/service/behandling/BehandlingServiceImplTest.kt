@@ -16,14 +16,21 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.InnvilgetHandlinger
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -37,6 +44,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
@@ -50,16 +58,30 @@ import org.mockito.internal.verification.Times
 import java.util.UUID
 
 internal class BehandlingServiceImplTest {
-
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
-    private val aktørId = AktørId("1234567890123")
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     private val brevbestillingId = BrevbestillingId("2")
+    private val person = Person(
+        ident = Ident(
+            fnr = Fnr(fnr = "12345678901"),
+            aktørId = AktørId(aktørId = "123")
+        ),
+        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        telefonnummer = null,
+        adresse = null,
+        statsborgerskap = null,
+        kjønn = null,
+        adressebeskyttelse = null,
+        skjermet = null,
+        kontaktinfo = null,
+        vergemål = null,
+        fullmakt = null,
+    )
 
     @Test
     fun `simuler behandling`() {
@@ -127,7 +149,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+            on { person(any()) } doReturn person.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -146,14 +168,26 @@ internal class BehandlingServiceImplTest {
             utbetalingService = utbetalingServiceMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).iverksett(behandling.id, attestant)
 
         response shouldBe IverksattBehandling.UtenMangler(behandling).right()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
-                argThat { it shouldBe LagBrevRequest.AvslagsVedtak(behandling) },
+                argThat {
+                    it shouldBe AvslagBrevRequest(
+                        person,
+                        Avslag(
+                            opprettet = tidspunkt,
+                            avslagsgrunner = listOf(),
+                            harEktefelle = false,
+                            beregning = beregning
+
+                        )
+                    )
+                },
                 argThat { it shouldBe behandling.sakId }
             )
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
@@ -182,7 +216,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+            on { person(any()) } doReturn person.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -206,7 +240,22 @@ internal class BehandlingServiceImplTest {
         response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
         inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
-            verify(brevServiceMock).journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(brevServiceMock).journalførBrev(
+                request = argThat {
+                    it shouldBe AvslagBrevRequest(
+                        person,
+                        Avslag(
+                            opprettet = tidspunkt,
+                            avslagsgrunner = listOf(),
+                            harEktefelle = false,
+                            beregning = beregning
+
+                        )
+                    )
+                },
+                sakId = argThat { it shouldBe behandling.sakId }
+            )
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock, utbetalingServiceMock)
     }
@@ -228,7 +277,9 @@ internal class BehandlingServiceImplTest {
             on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
 
-        val personOppslagMock: PersonOppslag = mock()
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
 
         val oppgaveServiceMock: OppgaveService = mock {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -246,6 +297,7 @@ internal class BehandlingServiceImplTest {
 
         inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(
                 sakId = argThat { it shouldBe sakId },
                 attestant = argThat { it shouldBe attestant },
@@ -259,7 +311,7 @@ internal class BehandlingServiceImplTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(brevServiceMock).journalførBrev(
-                request = argThat { it shouldBe LagBrevRequest.InnvilgetVedtak(behandling) },
+                request = argThat { it shouldBe LagBrevRequest.InnvilgetVedtak(person, behandling) },
                 sakId = argThat { it shouldBe behandling.sakId }
             )
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
@@ -294,11 +346,9 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+            on { person(any()) } doReturn person.right()
         }
-
         val oppgaveServiceMock: OppgaveService = mock {
-            // TODO jah: Trekk ut dette til en OppgaveService i egen PR og mock OppgaveService istedet. Legg da på verifisering
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
@@ -318,7 +368,8 @@ internal class BehandlingServiceImplTest {
         inOrder(
             behandlingRepoMock, utbetalingServiceMock, personOppslagMock, brevServiceMock, behandlingMetricsMock, oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(
                 sakId = argThat { it shouldBe behandling.sakId },
                 attestant = argThat { it shouldBe attestant },
@@ -332,7 +383,7 @@ internal class BehandlingServiceImplTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
-            verify(brevServiceMock).journalførBrev(LagBrevRequest.InnvilgetVedtak(behandling), behandling.sakId)
+            verify(brevServiceMock).journalførBrev(LagBrevRequest.InnvilgetVedtak(person, behandling), behandling.sakId)
 
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
                 behandlingId = argThat { it shouldBe behandling.id },
@@ -361,7 +412,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+            on { person(any()) } doReturn person.right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -385,6 +436,7 @@ internal class BehandlingServiceImplTest {
 
         inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(behandling.sakId, attestant, beregning, simulering)
             verify(behandlingRepoMock, Times(0)).oppdaterBehandlingStatus(any(), any())
         }
@@ -400,7 +452,7 @@ internal class BehandlingServiceImplTest {
         }
 
         val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+            on { person(any()) } doReturn person.right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -428,6 +480,7 @@ internal class BehandlingServiceImplTest {
                     it shouldBe behandling.id
                 }
             )
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(
                 sakId = argThat { it shouldBe behandling.sakId },
                 attestant = argThat { it shouldBe attestant },
@@ -441,42 +494,47 @@ internal class BehandlingServiceImplTest {
     @Test
     fun `lager brevutkast for avslag`() {
         val pdf = "pdf-doc".toByteArray()
-        val behandlingMock = mock<Behandling>() {
-            on { erInnvilget() } doReturn false
-        }
+        val behandling = beregnetBehandling().copy(status = BEREGNET_AVSLAG)
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandlingMock
+            on { hentBehandling(any()) } doReturn behandling
         }
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn pdf.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock,
         ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
-        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.AvslagsVedtak>() })
+        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<AvslagBrevRequest>() })
     }
 
     @Test
     fun `lager brevutkast for innvilgelse`() {
         val pdf = "pdf-doc".toByteArray()
-        val behandlingMock = mock<Behandling>() {
-            on { erInnvilget() } doReturn true
-        }
+        val behandling = behandlingTilAttestering(IVERKSATT_INNVILGET)
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandlingMock
+            on { hentBehandling(any()) } doReturn behandling
         }
         val brevServiceMock = mock<BrevService>() {
             on { lagBrev(any()) } doReturn pdf.right()
         }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock,
         ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
+        verify(personOppslagMock).person(argThat { it shouldBe fnr })
         verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.InnvilgetVedtak>() })
     }
 
@@ -494,18 +552,20 @@ internal class BehandlingServiceImplTest {
 
     @Test
     fun `svarer med feil dersom laging av brev feiler`() {
-        val behandlingMock = mock<Behandling>() {
-            on { erInnvilget() } doReturn true
-        }
+        val behandling = behandlingTilAttestering(IVERKSATT_INNVILGET)
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandlingMock
+            on { hentBehandling(any()) } doReturn behandling
         }
         val brevServiceMock = mock<BrevService>() {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            personOppslag = personOppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()

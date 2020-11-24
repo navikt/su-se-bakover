@@ -12,7 +12,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -75,7 +74,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
             originalKvittering = xmlMessage,
-            mottattTidspunkt = now(clock)
+            mottattTidspunkt = Tidspunkt.now(clock)
         )
 
         val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)

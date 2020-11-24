@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
@@ -48,7 +47,7 @@ internal class AvstemmingPostgresRepoTest {
                         Kvittering(
                             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                             originalKvittering = "hallo",
-                            mottattTidspunkt = now()
+                            mottattTidspunkt = Tidspunkt.now()
                         )
                     )
                 }
@@ -184,9 +183,9 @@ internal class AvstemmingPostgresRepoTest {
 
             val avstemming = Avstemming(
                 id = UUID30.randomUUID(),
-                opprettet = now(),
-                fraOgMed = now(),
-                tilOgMed = now(),
+                opprettet = Tidspunkt.now(),
+                fraOgMed = Tidspunkt.now(),
+                tilOgMed = Tidspunkt.now(),
                 utbetalinger = listOf(utbetaling),
                 avstemmingXmlRequest = "some xml"
             )

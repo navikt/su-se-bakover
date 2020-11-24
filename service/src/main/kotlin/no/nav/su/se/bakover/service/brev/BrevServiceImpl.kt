@@ -7,39 +7,30 @@ import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.UUID
 
 internal class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
-    private val personOppslag: PersonOppslag,
     private val dokArkiv: DokArkiv,
     private val dokDistFordeling: DokDistFordeling
 ) : BrevService {
+
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-        val person = hentPersonFraFnr(request.getFnr()).fold(
-            { return KunneIkkeLageBrev.FantIkkePerson.left() },
-            { it }
-        )
-        return lagPdf(lagBrevInnhold(request, person))
+        return lagPdf(lagBrevInnhold(request))
     }
 
     override fun journalførBrev(request: LagBrevRequest, sakId: UUID): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-        val person = hentPersonFraFnr(request.getFnr()).fold(
-            { return KunneIkkeJournalføreBrev.FantIkkePerson.left() },
-            { it }
-        )
-        val brevInnhold = lagBrevInnhold(request, person)
+
+        val brevInnhold = lagBrevInnhold(request)
         val brevPdf = lagPdf(brevInnhold).fold(
             { return KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left() },
             { it }
@@ -47,7 +38,7 @@ internal class BrevServiceImpl(
 
         return dokArkiv.opprettJournalpost(
             JournalpostFactory.lagJournalpost(
-                person = person,
+                person = request.getPerson(),
                 sakId = sakId,
                 brevInnhold = brevInnhold,
                 pdf = brevPdf
@@ -65,8 +56,8 @@ internal class BrevServiceImpl(
                 KunneIkkeDistribuereBrev
             }
 
-    private fun lagBrevInnhold(request: LagBrevRequest, person: Person): BrevInnhold {
-        val personalia = lagPersonalia(person)
+    private fun lagBrevInnhold(request: LagBrevRequest): BrevInnhold {
+        val personalia = lagPersonalia(request.getPerson())
         return request.lagBrevInnhold(personalia)
     }
 
@@ -82,13 +73,4 @@ internal class BrevServiceImpl(
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }
             .map { it }
     }
-
-    private fun hentPersonFraFnr(fnr: Fnr) = personOppslag.person(fnr)
-        .mapLeft {
-            log.error("Fant ikke person i eksternt system basert på sakens fødselsnummer.")
-            it
-        }.map {
-            log.info("Hentet person fra eksternt system OK")
-            it
-        }
 }
