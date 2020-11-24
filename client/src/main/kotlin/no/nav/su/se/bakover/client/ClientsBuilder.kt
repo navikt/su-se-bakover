@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -33,6 +34,7 @@ data class Clients(
     val avstemmingPublisher: AvstemmingPublisher,
     val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
+    val leaderPodLookup: LeaderPodLookup
 ) {
     init {
         // https://fuel.gitbook.io/documentation/core/fuel
