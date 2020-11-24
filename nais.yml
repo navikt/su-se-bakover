@@ -24,6 +24,7 @@ spec:
     path: /metrics
   secureLogs:
     enabled: true
+  leaderElection: true
   vault:
     enabled: true
     paths:
