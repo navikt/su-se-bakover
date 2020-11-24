@@ -41,7 +41,6 @@ internal class AvvistSøknadBrevRequestTest {
             personaliaMock
         ) shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = personaliaMock,
-            tittel = "Info om avvist søknad",
             fritekst = "jeg er fritekst"
         )
     }

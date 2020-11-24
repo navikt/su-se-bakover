@@ -27,7 +27,8 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumFradrag() = beregning.values
         .sumByDouble { it.getSumFradrag() }
 
-    override fun getSumYtelseErUnderMinstebeløp() =
+    // TODO jah: Jakob nevnte at han ønsket å flytte ut denne av Beregning. Gjelder det da og toProsentAvHøy?
+    override fun getSumYtelseErUnderMinstebeløp(): Boolean =
         getMånedsberegninger()
             .any { it.getSumYtelse() < Sats.toProsentAvHøy(it.getPeriode()) }
 

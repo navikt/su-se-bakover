@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
@@ -22,7 +24,6 @@ internal class BrevInnholdTest {
         personalia = personalia,
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         halvGrunnbeløp = 10,
-        harFlereAvslagsgrunner = false,
         harEktefelle = false,
         beregning = BrevInnhold.Beregning(
             ytelsePerMåned = 0,
@@ -49,7 +50,7 @@ internal class BrevInnholdTest {
 
     @Test
     fun `jsonformat for personalia stemmer overens med det som forventes av pdfgenerator`() {
-        val serialized = objectMapper.writeValueAsString(personalia)
+        val actualJson = objectMapper.writeValueAsString(personalia)
         //language=json
         val expectedJson = """
             {
@@ -59,7 +60,7 @@ internal class BrevInnholdTest {
               "etternavn": "Strømøy"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(serialized, expectedJson, true)
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 
     @Test
@@ -107,7 +108,7 @@ internal class BrevInnholdTest {
             )
         )
 
-        val serialized = objectMapper.writeValueAsString(innvilgetVedtak)
+        val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
         //language=json
         val expectedJson =
             """
@@ -159,12 +160,12 @@ internal class BrevInnholdTest {
                 }
             }
             """.trimIndent()
-        JSONAssert.assertEquals(serialized, expectedJson, true)
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 
     @Test
     fun `jsonformat for avslagsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val serialized = objectMapper.writeValueAsString(avslagsvedtak)
+        val actualJson = objectMapper.writeValueAsString(avslagsvedtak)
         //language=json
         val expectedJson = """
             {
@@ -196,12 +197,12 @@ internal class BrevInnholdTest {
                 }
             }
         """.trimIndent()
-        JSONAssert.assertEquals(serialized, expectedJson, true)
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 
     @Test
     fun `jsonformat for trukket søknad stemmer overens med det som forventes av pdfgenerator`() {
-        val serialized = objectMapper.writeValueAsString(trukketSøknad)
+        val actualJson = objectMapper.writeValueAsString(trukketSøknad)
         //language=json
         val expectedJson = """
             {
@@ -215,6 +216,6 @@ internal class BrevInnholdTest {
               "trukketDato": "01.02.2020"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(serialized, expectedJson, true)
+        JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }

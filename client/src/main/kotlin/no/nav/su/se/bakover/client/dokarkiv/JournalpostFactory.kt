@@ -12,7 +12,7 @@ object JournalpostFactory {
         brevInnhold: BrevInnhold,
         pdf: ByteArray
     ): Journalpost {
-        return when (brevInnhold.brevTemplate()) {
+        return when (brevInnhold.brevTemplate) {
             BrevTemplate.InnvilgetVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevInnhold, pdf)
             BrevTemplate.AvslagsVedtak -> Journalpost.Vedtakspost(person, sakId.toString(), brevInnhold, pdf)
             BrevTemplate.TrukketSøknad -> Journalpost.Info(person, sakId.toString(), brevInnhold, pdf)

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -143,6 +144,10 @@ data class Behandling internal constructor(
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
+    fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+        return tilstand.utledAvslagsgrunner()
+    }
+
     interface Tilstand {
 
         val status: BehandlingsStatus
@@ -194,6 +199,10 @@ data class Behandling internal constructor(
             attestant: NavIdentBruker.Attestant
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
+        }
+
+        fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+            throw TilstandException(status, this::utledAvslagsgrunner.toString())
         }
     }
 
@@ -266,6 +275,10 @@ data class Behandling internal constructor(
                 nyTilstand(TilAttestering().Avslag())
                 return this@Behandling
             }
+
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+                return behandlingsinformasjon().utledAvslagsgrunner()
+            }
         }
     }
 
@@ -298,6 +311,13 @@ data class Behandling internal constructor(
                 this@Behandling.saksbehandler = saksbehandler
                 nyTilstand(TilAttestering().Avslag())
                 return this@Behandling
+            }
+
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+                return behandlingsinformasjon().utledAvslagsgrunner() + (
+                    beregning?.utledAvslagsgrunner()
+                        ?: emptyList()
+                    )
             }
         }
     }
@@ -361,6 +381,13 @@ data class Behandling internal constructor(
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
+
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+                return behandlingsinformasjon().utledAvslagsgrunner() + (
+                    beregning?.utledAvslagsgrunner()
+                        ?: emptyList()
+                    )
+            }
         }
 
         override fun underkjenn(
@@ -384,7 +411,8 @@ data class Behandling internal constructor(
         }
     }
 
-    private open inner class Iverksatt : Tilstand {
+    private open inner class
+    Iverksatt : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
         override fun oppdaterIverksattJournalpostId(journalpostId: JournalpostId): Behandling {
@@ -400,6 +428,13 @@ data class Behandling internal constructor(
         inner class Innvilget : Iverksatt()
         inner class Avslag : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
+
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
+                return behandlingsinformasjon().utledAvslagsgrunner() + (
+                    beregning?.utledAvslagsgrunner()
+                        ?: emptyList()
+                    )
+            }
         }
     }
 
@@ -424,4 +459,13 @@ data class Behandling internal constructor(
         RuntimeException(msg)
 
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+
+    companion object {
+        fun Beregning.utledAvslagsgrunner(): List<Avslagsgrunn> {
+            return listOfNotNull(
+                if (getSumYtelse() <= 0) Avslagsgrunn.FOR_HØY_INNTEKT else null,
+                if (getSumYtelseErUnderMinstebeløp()) Avslagsgrunn.SU_UNDER_MINSTEGRENSE else null,
+            )
+        }
+    }
 }
