@@ -10,16 +10,15 @@ import org.junit.jupiter.api.Test
 
 internal class LeaderPodLookupClientTest : WiremockBase {
 
+    private val endpoint = "/am/i/the/leader"
+    private val localHostName = "localhost"
+
     @Test
     fun `sier ja når leader elector-pod svarer at vårt hostname er leader`() {
-        val endpoint = "/am/i/the/leader"
-        val localHostName = "jacob.local"
-
         wireMockServer.stubFor(
             WireMock.get(WireMock.urlPathEqualTo(endpoint))
                 .willReturn(
                     WireMock.ok(
-                        //language=JSON
                         """
                             {
                               "name": $localHostName
@@ -34,14 +33,10 @@ internal class LeaderPodLookupClientTest : WiremockBase {
 
     @Test
     fun `sier nei når leader elector-pod svarer at noen andre er leader`() {
-        val endpoint = "/am/i/the/leader"
-        val localHostName = "jacob.local"
-
         wireMockServer.stubFor(
             WireMock.get(WireMock.urlPathEqualTo(endpoint))
                 .willReturn(
                     WireMock.ok(
-                        //language=JSON
                         """
                             {
                               "name": "foooooo"
@@ -56,14 +51,10 @@ internal class LeaderPodLookupClientTest : WiremockBase {
 
     @Test
     fun `håndterer ugyldig json`() {
-        val endpoint = "/am/i/the/leader"
-        val localHostName = "jacob"
-
         wireMockServer.stubFor(
             WireMock.get(WireMock.urlPathEqualTo(endpoint))
                 .willReturn(
                     WireMock.ok(
-                        //language=JSON
                         """
                             {
                               "foo": "bar"
@@ -73,6 +64,8 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                 )
         )
 
-        LeaderPodLookupClient.amITheLeader("${wireMockServer.baseUrl()}$endpoint", localHostName) shouldBeLeft LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer
+        LeaderPodLookupClient.amITheLeader(
+            "${wireMockServer.baseUrl()}$endpoint", localHostName
+        ) shouldBeLeft LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer
     }
 }
