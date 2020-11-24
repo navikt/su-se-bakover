@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import arrow.core.Either
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -20,6 +21,8 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
+import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -50,7 +53,10 @@ object StubClientsBuilder : ClientsBuilder {
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
             microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
-            digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") }
+            digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") },
+            leaderPodLookup = object : LeaderPodLookup {
+                override fun amITheLeader(electorPath: String, localHostName: String): Either<LeaderPodLookupFeil, Boolean> = Either.right(true)
+            }.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") }
         )
     }
 }
