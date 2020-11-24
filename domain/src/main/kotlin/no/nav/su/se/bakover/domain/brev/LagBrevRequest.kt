@@ -25,25 +25,11 @@ abstract class LagBrevRequest {
         override fun getFnr(): Fnr = behandling.fnr
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
             personalia = personalia,
-            avslagsgrunner = avslagsgrunnForBehandling(behandling),
-            harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+            avslagsgrunner = behandling.utledAvslagsgrunner(),
+            harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
             halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt(),
             beregning = behandling.beregning()?.let { getBrevinnholdberegning(it) }
         )
-
-        private fun avslagsgrunnForBehandling(behandling: Behandling): List<Avslagsgrunn> {
-            val avslagsgrunner = behandling.behandlingsinformasjon().utledAvslagsgrunner().toMutableList()
-
-            when {
-                behandling.beregning() != null && behandling.beregning()!!.getSumYtelse() <= 0 -> {
-                    avslagsgrunner.add(Avslagsgrunn.FOR_HØY_INNTEKT)
-                }
-                behandling.beregning()?.getSumYtelseErUnderMinstebeløp() == true -> {
-                    avslagsgrunner.add(Avslagsgrunn.SU_UNDER_MINSTEGRENSE)
-                }
-            }
-            return avslagsgrunner
-        }
     }
 
     data class InnvilgetVedtak(
@@ -57,7 +43,7 @@ abstract class LagBrevRequest {
                 fradato = beregning.getPeriode().getFraOgMed().formatMonthYear(),
                 tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn()!!,
+                satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn(),
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                 beregning = getBrevinnholdberegning(beregning)
             )
@@ -110,27 +96,6 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
                 )
         }
     )
-}
-
-enum class Avslagsgrunn {
-    UFØRHET,
-    FLYKTNING,
-    OPPHOLDSTILLATELSE,
-    PERSONLIG_OPPMØTE,
-    FORMUE,
-    BOR_OG_OPPHOLDER_SEG_I_NORGE,
-    FOR_HØY_INNTEKT,
-    SU_UNDER_MINSTEGRENSE,
-    UTENLANDSOPPHOLD_OVER_90_DAGER,
-    INNLAGT_PÅ_INSTITUSJON
-}
-
-enum class Satsgrunn {
-    ENSLIG,
-    DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
-    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67,
-    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67,
-    DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 }
 
 // TODO Hente Locale fra brukerens målform

@@ -25,8 +25,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for avslagsvedtak`() {
-        val brevdata = mock<BrevInnhold>() {
-            on { brevTemplate() } doReturn BrevTemplate.AvslagsVedtak
+        val brevdata = mock<BrevInnhold> {
+            on { brevTemplate } doReturn BrevTemplate.AvslagsVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -37,8 +37,8 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for innvilget vedtak`() {
-        val brevdata = mock<BrevInnhold>() {
-            on { brevTemplate() } doReturn BrevTemplate.InnvilgetVedtak
+        val brevdata = mock<BrevInnhold> {
+            on { brevTemplate } doReturn BrevTemplate.InnvilgetVedtak
             on { toJson() } doReturn ""
         }
 
@@ -51,7 +51,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en trukket søknad`() {
         val brevdata = mock<BrevInnhold>() {
-            on { brevTemplate() } doReturn BrevTemplate.TrukketSøknad
+            on { brevTemplate } doReturn BrevTemplate.TrukketSøknad
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -63,7 +63,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en avvist søknad med vedtak`() {
         val brevdata = mock<BrevInnhold>() {
-            on { brevTemplate() } doReturn BrevTemplate.AvvistSøknadVedtak
+            on { brevTemplate } doReturn BrevTemplate.AvvistSøknadVedtak
             on { toJson() } doReturn ""
         }
         JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
@@ -75,7 +75,7 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager journalpost for en avvist søknad med fritekst`() {
         val brevdata = mock<BrevInnhold>() {
-            on { brevTemplate() } doReturn BrevTemplate.AvvistSøknadFritekst
+            on { brevTemplate } doReturn BrevTemplate.AvvistSøknadFritekst
             on { toJson() } doReturn ""
         }
 
@@ -92,7 +92,7 @@ internal class JournalpostFactoryTest {
         assertJournalpost(journalpost, brevInnhold, DokumentKategori.IB)
 
     private fun assertJournalpost(journalpost: Journalpost, brevInnhold: BrevInnhold, dokumentKategori: DokumentKategori) {
-        journalpost.tittel shouldBe brevInnhold.brevTemplate().tittel()
+        journalpost.tittel shouldBe brevInnhold.brevTemplate.tittel()
         journalpost.avsenderMottaker shouldBe AvsenderMottaker(
             id = personMock.ident.fnr.toString(),
             navn = "${personMock.navn.etternavn}, ${personMock.navn.fornavn} ${personMock.navn.mellomnavn}"
@@ -106,7 +106,7 @@ internal class JournalpostFactoryTest {
         journalpost.sak shouldBe Fagsak(sakId.toString())
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
-                tittel = brevInnhold.brevTemplate().tittel(),
+                tittel = brevInnhold.brevTemplate.tittel(),
                 dokumentKategori = dokumentKategori,
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),

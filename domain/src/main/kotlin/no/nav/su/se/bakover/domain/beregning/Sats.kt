@@ -9,7 +9,7 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
     HØY(Grunnbeløp.`2,48G`);
 
     fun årsbeløp(dato: LocalDate) = satsSomÅrsbeløp(dato)
-    fun månedsbeløp(dato: LocalDate) = satsSomMånedsbeløp(dato)
+    fun månedsbeløp(dato: LocalDate): Double = satsSomMånedsbeløp(dato)
     fun periodiser(periode: Periode): Map<Periode, Double> = periode.tilMånedsperioder()
         .map { it to satsSomMånedsbeløp(it.getFraOgMed()) }
         .toMap()
@@ -19,7 +19,7 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
     private fun satsSomMånedsbeløp(dato: LocalDate) = grunnbeløp.fraDato(dato) / 12
 
     companion object {
-        fun toProsentAvHøy(periode: Periode) = periode.tilMånedsperioder()
+        fun toProsentAvHøy(periode: Periode): Double = periode.tilMånedsperioder()
             .sumByDouble { HØY.månedsbeløp(it.getFraOgMed()) * 0.02 }
     }
 }

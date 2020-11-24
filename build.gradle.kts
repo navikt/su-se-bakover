@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.10"
+    id("org.jetbrains.kotlin.jvm") version "1.4.20"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
     id("com.github.ben-manes.versions") version "0.31.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.14"
@@ -40,8 +40,8 @@ allprojects {
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.10")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.0")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.20")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

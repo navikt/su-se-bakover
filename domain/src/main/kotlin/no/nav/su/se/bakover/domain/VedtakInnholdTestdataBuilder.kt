@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
-import no.nav.su.se.bakover.domain.brev.Satsgrunn
 
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
