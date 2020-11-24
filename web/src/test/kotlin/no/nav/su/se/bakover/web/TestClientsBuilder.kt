@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
+import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
@@ -33,7 +34,8 @@ object TestClientsBuilder : ClientsBuilder {
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
-        digitalKontaktinformasjon = DkifClientStub
+        digitalKontaktinformasjon = DkifClientStub,
+        leaderPodLookup = LeaderPodLookupStub
     )
 
     override fun build(): Clients = testClients

@@ -8,7 +8,7 @@ object Config {
     private val env by lazy { init() }
 
     val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
-    val electorPath = env["ELECTOR_PATH"]
+    val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
     val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 

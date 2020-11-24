@@ -72,7 +72,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
-            leaderPodLookup = LeaderPodLookupClient
+            leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath)
         )
     }
 }
