@@ -75,6 +75,7 @@ import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
+import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.json.JSONObject
@@ -268,6 +269,10 @@ internal fun Application.susebakover(
                 utbetalingService = services.utbetaling
             )
         )
+        AvstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup
+        ).schedule()
     }
 }
 
