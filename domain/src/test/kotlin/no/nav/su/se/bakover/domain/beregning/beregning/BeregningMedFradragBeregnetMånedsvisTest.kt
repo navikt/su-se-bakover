@@ -135,7 +135,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
      * Total (uten avrunding) - "det vi mister pga avrunding" = 4996
      */
     @Test
-    fun `sum under minstebeløp for utbetaling (2% av høy sats)`() {
+    fun `sum under minstebeløp for utbetaling (2 prosent av høy sats)`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
         val beregning = BeregningFactory.ny(
             periode = periode,
@@ -218,7 +218,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
      * Beløpsgrense regnet måned for måned: (412,7464 * 3) = 1238,2392 -> rund til nærmeste hele = 1238
      */
     @Test
-    fun `sum under minstebeløp for utbetaling (2% av høy sats) for færre enn 12 måneder`() {
+    fun `sum under minstebeløp for utbetaling (2 prosent av høy sats) for færre enn 12 måneder`() {
         val periode = Periode(1.januar(2020), 31.mars(2020))
         val beregning = BeregningFactory.ny(
             periode = periode,

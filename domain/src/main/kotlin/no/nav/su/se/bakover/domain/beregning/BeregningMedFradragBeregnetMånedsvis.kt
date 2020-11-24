@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
@@ -28,18 +27,12 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSumFradrag() = beregning.values
         .sumByDouble { it.getSumFradrag() }
 
+    // TODO jah: Jakob nevnte at han ønsket å flytte ut denne av Beregning. Gjelder det da og toProsentAvHøy?
     override fun getSumYtelseErUnderMinstebeløp(): Boolean =
         getMånedsberegninger()
             .any { it.getSumYtelse() < Sats.toProsentAvHøy(it.getPeriode()) }
 
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
-
-    override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
-        return listOfNotNull(
-            if (getSumYtelse() <= 0) Avslagsgrunn.FOR_HØY_INNTEKT else null,
-            if (getSumYtelseErUnderMinstebeløp()) Avslagsgrunn.SU_UNDER_MINSTEGRENSE else null,
-        )
-    }
 
     private fun beregn(): Map<Periode, Månedsberegning> {
         val perioder = periode.tilMånedsperioder()

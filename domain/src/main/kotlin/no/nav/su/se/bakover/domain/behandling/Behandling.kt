@@ -459,4 +459,13 @@ data class Behandling internal constructor(
         RuntimeException(msg)
 
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+
+    companion object {
+        fun Beregning.utledAvslagsgrunner(): List<Avslagsgrunn> {
+            return listOfNotNull(
+                if (getSumYtelse() <= 0) Avslagsgrunn.FOR_HØY_INNTEKT else null,
+                if (getSumYtelseErUnderMinstebeløp()) Avslagsgrunn.SU_UNDER_MINSTEGRENSE else null,
+            )
+        }
+    }
 }

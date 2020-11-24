@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toTidspunkt
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -29,7 +28,6 @@ internal object TestBeregning : Beregning {
     override fun getSumYtelseErUnderMinstebeløp(): Boolean = false
     override fun getPeriode(): Periode = Periode(1.august(2020), 31.august(2020))
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
-    override fun utledAvslagsgrunner(): List<Avslagsgrunn> = emptyList()
 }
 
 internal object TestMånedsberegning : Månedsberegning {
