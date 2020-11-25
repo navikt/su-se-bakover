@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.hendelseslogg
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 internal class HendelseTest {
 
-    private val tidspunkt = now()
+    private val tidspunkt = Tidspunkt.now()
     private val underkjentAttestering = UnderkjentAttestering(
         attestant = "attestant",
         begrunnelse = "Dette er feil vurdering",

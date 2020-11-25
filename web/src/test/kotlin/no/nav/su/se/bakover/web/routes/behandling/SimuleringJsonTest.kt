@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -19,8 +18,6 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class SimuleringJsonTest {
-    private val id = UUID30.randomUUID()
-    private val opprettet = now()
     private val FNR = Fnr("12345678910")
 
     @Test

@@ -29,7 +29,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.FantIkkePerson
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.FantIkkeBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
@@ -216,8 +224,9 @@ internal fun Route.behandlingRoutes(
                 behandlingService.lagBrevutkast(behandlingId).fold(
                     {
                         when (it) {
-                            KunneIkkeLageBrevutkast.FantIkkeBehandling -> call.respond(InternalServerError.message("Fant ikke behandling"))
-                            KunneIkkeLageBrevutkast.KunneIkkeLageBrev -> call.respond(InternalServerError.message("Kunne ikke lage brev"))
+                            FantIkkeBehandling -> call.respond(NotFound.message("Fant ikke behandling"))
+                            KunneIkkeLageBrev -> call.respond(InternalServerError.message("Kunne ikke lage brev"))
+                            is KanIkkeLageBrevutkastForStatus -> call.respond(BadRequest.message("Kunne ikke lage brev for behandlingstatus: ${it.status}"))
                         }
                     },
                     { call.respondBytes(it, ContentType.Application.Pdf) }
@@ -273,14 +282,15 @@ internal fun Route.behandlingRoutes(
 
         fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksetteBehandling): Resultat {
             return when (value) {
-                is KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
-                is KunneIkkeIverksetteBehandling.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
-                is KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                is KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message(
+                is AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
+                is KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
+                is KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message(
                     "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
                 )
-                is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
+                is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                is FantIkkePerson -> NotFound.message("Fant ikke person")
             }
         }
 

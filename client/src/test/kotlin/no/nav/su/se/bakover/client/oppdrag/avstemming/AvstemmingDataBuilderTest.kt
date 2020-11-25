@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
@@ -86,7 +86,7 @@ internal class AvstemmingDataBuilderTest {
         AvstemmingDataBuilder(
             Avstemming(
                 id = avstemmingId,
-                opprettet = now(),
+                opprettet = Tidspunkt.now(),
                 fraOgMed = 1.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
@@ -132,7 +132,7 @@ fun lagUtbetaling(
         kvittering = Kvittering(
             utbetalingsstatus = status,
             originalKvittering = "hallo",
-            mottattTidspunkt = now()
+            mottattTidspunkt = Tidspunkt.now()
         ),
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,

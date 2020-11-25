@@ -42,7 +42,6 @@ class ServiceBuilder(
         )
         val brevService = BrevServiceImpl(
             pdfGenerator = clients.pdfGenerator,
-            personOppslag = clients.personOppslag,
             dokArkiv = clients.dokArkiv,
             dokDistFordeling = clients.dokDistFordeling
         )
@@ -86,7 +85,8 @@ class ServiceBuilder(
                 søknadRepo = databaseRepos.søknad,
                 sakService = sakService,
                 brevService = brevService,
-                oppgaveService = oppgaveService
+                oppgaveService = oppgaveService,
+                personOppslag = clients.personOppslag
             ),
             oppgave = OppgaveServiceImpl(
                 oppgaveClient = clients.oppgaveClient

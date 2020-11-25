@@ -5,10 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -62,7 +62,7 @@ class AvstemmingPublisherTest {
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
-                    mottattTidspunkt = now()
+                    mottattTidspunkt = Tidspunkt.now()
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
                 oppdragId = UUID30.randomUUID(),

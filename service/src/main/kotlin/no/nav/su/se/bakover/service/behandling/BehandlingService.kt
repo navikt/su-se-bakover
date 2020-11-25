@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import java.time.LocalDate
@@ -41,8 +42,10 @@ interface BehandlingService {
 }
 
 sealed class KunneIkkeLageBrevutkast {
+    data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrevutkast()
     object FantIkkeBehandling : KunneIkkeLageBrevutkast()
     object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
+    object FantIkkePerson : KunneIkkeLageBrevutkast()
 }
 
 object FantIkkeBehandling
@@ -80,6 +83,7 @@ sealed class KunneIkkeIverksetteBehandling {
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
     object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
     object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
+    object FantIkkePerson : KunneIkkeIverksetteBehandling()
 }
 
 sealed class IverksattBehandling {

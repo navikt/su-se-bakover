@@ -9,7 +9,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
-import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
@@ -59,7 +59,7 @@ data class UtbetalingKvitteringResponse(
             ALVORLIG_FEIL, SQL_FEIL -> Utbetalingsstatus.FEIL
         },
         originalKvittering = originalKvittering,
-        mottattTidspunkt = now(clock)
+        mottattTidspunkt = Tidspunkt.now(clock)
     )
 
     companion object {

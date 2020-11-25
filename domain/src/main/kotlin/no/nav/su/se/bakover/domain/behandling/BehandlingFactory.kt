@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -22,7 +21,7 @@ class BehandlingFactory(
 ) {
     fun createBehandling(
         id: UUID = uuidFactory.newUUID(),
-        opprettet: Tidspunkt = now(clock),
+        opprettet: Tidspunkt = Tidspunkt.now(clock),
         behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         søknad: Søknad.Journalført.MedOppgave,
         beregning: Beregning? = null,

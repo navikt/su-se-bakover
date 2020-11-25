@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.hendelseslogg
 
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.now
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -18,7 +18,7 @@ internal class HendelsesloggPostgresRepoTest {
     @Test
     fun `hent hendelseslogg`() {
         withMigratedDb {
-            val tidspunkt = now()
+            val tidspunkt = Tidspunkt.now()
             val underkjentAttestering = UnderkjentAttestering(
                 attestant = "attestant",
                 begrunnelse = "Dette er feil begrunnelse",

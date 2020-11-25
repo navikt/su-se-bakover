@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -27,7 +26,7 @@ sealed class Utbetaling {
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = now(),
+        override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
@@ -51,7 +50,7 @@ sealed class Utbetaling {
 
     data class SimulertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = now(),
+        override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
@@ -81,7 +80,7 @@ sealed class Utbetaling {
 
         data class UtenKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = now(),
+            override val opprettet: Tidspunkt = Tidspunkt.now(),
             override val fnr: Fnr,
             override val utbetalingslinjer: List<Utbetalingslinje>,
             override val type: UtbetalingsType,
@@ -109,7 +108,7 @@ sealed class Utbetaling {
 
         data class MedKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = now(),
+            override val opprettet: Tidspunkt = Tidspunkt.now(),
             override val fnr: Fnr,
             override val utbetalingslinjer: List<Utbetalingslinje>,
             override val type: UtbetalingsType,
