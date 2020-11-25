@@ -103,12 +103,12 @@ data class Behandling internal constructor(
     }
 
     fun opprettBeregning(
+        saksbehandler: Saksbehandler,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         fradrag: List<Fradrag> = emptyList()
-    ): Behandling {
-        tilstand.opprettBeregning(fraOgMed, tilOgMed, fradrag)
-        return this
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        return tilstand.opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
     }
 
     fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
@@ -161,10 +161,11 @@ data class Behandling internal constructor(
         }
 
         fun opprettBeregning(
+            saksbehandler: Saksbehandler,
             fraOgMed: LocalDate,
             tilOgMed: LocalDate,
             fradrag: List<Fradrag>
-        ) {
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
@@ -243,7 +244,15 @@ data class Behandling internal constructor(
         }
 
         inner class Innvilget : Vilkårsvurdert() {
-            override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
+            override fun opprettBeregning(
+                saksbehandler: Saksbehandler,
+                fraOgMed: LocalDate,
+                tilOgMed: LocalDate,
+                fradrag: List<Fradrag>
+            ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+                if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
+                    return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                }
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                     fradrag = fradrag.plus(
@@ -262,10 +271,11 @@ data class Behandling internal constructor(
 
                 if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
                     nyTilstand(Beregnet().Avslag())
-                    return
+                    return this@Behandling.right()
                 }
 
                 nyTilstand(Beregnet())
+                return this@Behandling.right()
             }
         }
 
@@ -289,8 +299,13 @@ data class Behandling internal constructor(
     private open inner class Beregnet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
-        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
+        override fun opprettBeregning(
+            saksbehandler: Saksbehandler,
+            fraOgMed: LocalDate,
+            tilOgMed: LocalDate,
+            fradrag: List<Fradrag>
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
@@ -359,8 +374,13 @@ data class Behandling internal constructor(
             return this@Behandling
         }
 
-        override fun opprettBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate, fradrag: List<Fradrag>) {
-            nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(fraOgMed, tilOgMed, fradrag)
+        override fun opprettBeregning(
+            saksbehandler: Saksbehandler,
+            fraOgMed: LocalDate,
+            tilOgMed: LocalDate,
+            fradrag: List<Fradrag>
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
         override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {

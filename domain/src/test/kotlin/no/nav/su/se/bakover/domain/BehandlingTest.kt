@@ -143,7 +143,7 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal ge tidig avslag om uførhet er ikke oppfylt`() {
+        fun `skal gi tidlig avslag om uførhet er ikke oppfylt`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
                 oppdatert = Behandlingsinformasjon(
@@ -163,7 +163,7 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal ge tidig avslag om flyktning er ikke oppfylt`() {
+        fun `skal gi tidlig avslag om flyktning er ikke oppfylt`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
                 oppdatert = Behandlingsinformasjon(
@@ -183,7 +183,7 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `både uførhet og flyktning må vare vurdert innen tidig avslag kan ges`() {
+        fun `både uførhet og flyktning må vare vurdert innen tidlig avslag kan gis`() {
             opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
                 oppdatert = Behandlingsinformasjon(
@@ -211,7 +211,7 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { opprettet.opprettBeregning(1.januar(2020), 31.desember(2020)) }
+            assertThrows<Behandling.TilstandException> { opprettet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020)) }
                 .also {
                     it.msg shouldContain "Illegal operation"
                     it.msg shouldContain "opprettBeregning"
@@ -251,7 +251,7 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            vilkårsvurdert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            vilkårsvurdert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
         }
 
@@ -260,6 +260,7 @@ internal class BehandlingTest {
             val fraOgMed = 1.januar(2020)
             val tilOgMed = 31.desember(2020)
             vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
                 fraOgMed = fraOgMed,
                 tilOgMed = tilOgMed
             )
@@ -281,6 +282,7 @@ internal class BehandlingTest {
         fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
             val periode = Periode(fraOgMed = 1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
                 fraOgMed = periode.getFraOgMed(),
                 tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
@@ -307,6 +309,7 @@ internal class BehandlingTest {
             vilkårsvurdert.oppdaterBehandlingsinformasjon(updatedUførhet)
 
             vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
             )
@@ -323,6 +326,7 @@ internal class BehandlingTest {
             )
 
             vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
                 fraOgMed = periode.getFraOgMed(),
                 tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
@@ -349,6 +353,7 @@ internal class BehandlingTest {
             val inntektSomGirMinstebeløp = Sats.HØY.årsbeløp(periode.getFraOgMed()) * 0.98
 
             vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
                 fraOgMed = periode.getFraOgMed(),
                 tilOgMed = periode.getTilOgMed(),
                 fradrag = listOf(
@@ -421,6 +426,7 @@ internal class BehandlingTest {
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.opprettBeregning(
+                    saksbehandler,
                     1.januar(2020),
                     31.desember(2020)
                 )
@@ -447,7 +453,7 @@ internal class BehandlingTest {
             beregnet.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
-            beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+            beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
@@ -459,7 +465,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne beregne på nytt`() {
-            beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+            beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
@@ -499,6 +505,7 @@ internal class BehandlingTest {
                     tilOgMed = 31.desember(2020),
                 )
                 beregnet.opprettBeregning(
+                    saksbehandler = saksbehandler,
                     fraOgMed = periode.getFraOgMed(),
                     tilOgMed = periode.getTilOgMed(),
                     fradrag = listOf(
@@ -517,7 +524,7 @@ internal class BehandlingTest {
 
             @Test
             fun `skal kunne beregne på nytt`() {
-                beregnet.opprettBeregning(1.januar(2020), 31.desember(2020))
+                beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
                 beregnet.status() shouldBe BEREGNET_INNVILGET
             }
 
@@ -567,7 +574,7 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(simulert)
                     .withAlleVilkårOppfylt()
             )
-            simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             simulert.leggTilSimulering(saksbehandler, defaultSimulering())
             simulert.status() shouldBe SIMULERT
         }
@@ -583,13 +590,13 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne beregne på nytt`() {
-            simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             simulert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
         fun `skal fjerne beregning hvis behandlingsinformasjon endres`() {
-            simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             simulert.oppdaterBehandlingsinformasjon(simulert.behandlingsinformasjon())
 
             simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -643,7 +650,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
+                avslått.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
                 avslått.leggTilSimulering(saksbehandler, defaultSimulering())
@@ -661,7 +668,7 @@ internal class BehandlingTest {
             tilAttestering.oppdaterBehandlingsinformasjon(
                 extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
-            tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+            tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
             tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
 
@@ -688,7 +695,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+                tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
@@ -733,7 +740,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
+                tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())

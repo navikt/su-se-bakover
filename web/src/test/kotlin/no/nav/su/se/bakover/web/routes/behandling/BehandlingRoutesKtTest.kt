@@ -143,6 +143,7 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
+                saksbehandler,
                 objects.nySøknadsbehandling.id,
                 1.januar(2020),
                 31.desember(2020),
@@ -185,6 +186,7 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
+                saksbehandler,
                 objects.nySøknadsbehandling.id,
                 1.januar(2020),
                 31.desember(2020),
@@ -489,6 +491,7 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
+                saksbehandler,
                 objects.nySøknadsbehandling.id,
                 1.januar(2020),
                 31.desember(2020),
@@ -551,6 +554,7 @@ internal class BehandlingRoutesKtTest {
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
+                        saksbehandler,
                         nySøknadsbehandling.id,
                         1.januar(2020),
                         31.desember(2020),
@@ -668,6 +672,7 @@ internal class BehandlingRoutesKtTest {
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
+                        saksbehandler,
                         nySøknadsbehandling.id,
                         1.januar(2020),
                         31.desember(2020),
@@ -835,6 +840,7 @@ internal class BehandlingRoutesKtTest {
                     extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
                 )
                 services.behandling.opprettBeregning(
+                    saksbehandler,
                     objects.nySøknadsbehandling.id,
                     1.januar(2020),
                     31.desember(2020),

@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
@@ -168,14 +169,15 @@ class AccessCheckProxy(
                 }
 
                 override fun opprettBeregning(
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                     behandlingId: UUID,
                     fraOgMed: LocalDate,
                     tilOgMed: LocalDate,
                     fradrag: List<Fradrag>
-                ): Behandling {
+                ): Either<KunneIkkeBeregne, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.opprettBeregning(behandlingId, fraOgMed, tilOgMed, fradrag)
+                    return services.behandling.opprettBeregning(saksbehandler, behandlingId, fraOgMed, tilOgMed, fradrag)
                 }
 
                 override fun simuler(
