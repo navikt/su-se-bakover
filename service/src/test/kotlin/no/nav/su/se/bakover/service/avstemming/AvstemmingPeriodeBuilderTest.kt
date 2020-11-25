@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.avstemming
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -26,7 +26,7 @@ internal class AvstemmingPeriodeBuilderTest {
     fun `periode for påfølgende avstemming`() {
         val periode = AvstemmingPeriodeBuilder(
             Avstemming(
-                opprettet = now(fixedClock),
+                opprettet = Tidspunkt.now(fixedClock),
                 fraOgMed = 1.januar(2020).startOfDay(),
                 tilOgMed = 4.januar(2020).endOfDay(),
                 utbetalinger = emptyList()

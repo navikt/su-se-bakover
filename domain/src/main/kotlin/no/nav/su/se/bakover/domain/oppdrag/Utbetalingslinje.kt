@@ -2,12 +2,11 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.now
 import java.time.LocalDate
 
 data class Utbetalingslinje(
     val id: UUID30 = UUID30.randomUUID(), // delytelseId,
-    val opprettet: Tidspunkt = now(),
+    val opprettet: Tidspunkt = Tidspunkt.now(),
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     var forrigeUtbetalingslinjeId: UUID30?,

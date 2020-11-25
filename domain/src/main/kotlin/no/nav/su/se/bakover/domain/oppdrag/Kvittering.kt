@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.now
 
 data class Kvittering(
     val utbetalingsstatus: Utbetalingsstatus,
     val originalKvittering: String,
-    val mottattTidspunkt: Tidspunkt = now(),
-
+    val mottattTidspunkt: Tidspunkt = Tidspunkt.now(),
 ) {
     enum class Utbetalingsstatus {
         OK,

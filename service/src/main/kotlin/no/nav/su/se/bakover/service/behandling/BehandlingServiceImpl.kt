@@ -6,18 +6,21 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
-import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -30,6 +33,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -42,7 +46,8 @@ internal class BehandlingServiceImpl(
     private val søknadRepo: SøknadRepo, // TODO use services or repos? probably services
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
-    private val behandlingMetrics: BehandlingMetrics
+    private val behandlingMetrics: BehandlingMetrics,
+    private val clock: Clock = Clock.systemUTC(),
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -220,6 +225,10 @@ internal class BehandlingServiceImpl(
         val behandling = behandlingRepo.hentBehandling(behandlingId)
             ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
+        val person: Person = personOppslag.person(behandling.fnr).getOrElse {
+            log.error("Kunne ikke iverksette behandling; fant ikke person")
+            return KunneIkkeIverksetteBehandling.FantIkkePerson.left()
+        }
         return behandling.iverksett(attestant) // invoke first to perform state-check
             .mapLeft {
                 KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -227,13 +236,15 @@ internal class BehandlingServiceImpl(
             .map { iverksattBehandling ->
                 return when (iverksattBehandling.status()) {
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
-                        behandling = iverksattBehandling,
-                        attestant = attestant
-                    )
-                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
+                        person = person,
                         behandling = iverksattBehandling,
                         attestant = attestant,
-                        behandlingId = behandlingId
+                    )
+                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
+                        person = person,
+                        behandling = iverksattBehandling,
+                        attestant = attestant,
+                        behandlingId = behandlingId,
                     )
                     else -> throw Behandling.TilstandException(
                         state = iverksattBehandling.status(),
@@ -244,11 +255,19 @@ internal class BehandlingServiceImpl(
     }
 
     private fun iverksettAvslag(
+        person: Person,
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
 
-        val journalpostId = brevService.journalførBrev(LagBrevRequest.AvslagsVedtak(behandling), behandling.sakId)
+        val avslag = Avslag(
+            opprettet = Tidspunkt.now(clock),
+            avslagsgrunner = behandling.utledAvslagsgrunner(),
+            harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
+            beregning = behandling.beregning()
+
+        )
+        val journalpostId = brevService.journalførBrev(AvslagBrevRequest(person, avslag), behandling.sakId)
             .map {
                 behandling.oppdaterIverksattJournalpostId(it)
                 it
@@ -297,9 +316,10 @@ internal class BehandlingServiceImpl(
     }
 
     private fun iverksettInnvilgning(
+        person: Person,
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
-        behandlingId: UUID
+        behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
 
         return utbetalingService.utbetal(
@@ -325,7 +345,7 @@ internal class BehandlingServiceImpl(
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
             val journalføringOgBrevResultat =
-                brevService.journalførBrev(LagBrevRequest.InnvilgetVedtak(behandling), behandling.sakId)
+                brevService.journalførBrev(LagBrevRequest.InnvilgetVedtak(person, behandling), behandling.sakId)
                     .mapLeft {
                         log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
                         IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
@@ -387,7 +407,7 @@ internal class BehandlingServiceImpl(
         }
         val nySøknadsbehandling = NySøknadsbehandling(
             id = UUID.randomUUID(),
-            opprettet = now(),
+            opprettet = Tidspunkt.now(clock),
             sakId = søknad.sakId,
             søknadId = søknad.id,
             oppgaveId = søknad.oppgaveId
@@ -402,14 +422,34 @@ internal class BehandlingServiceImpl(
         return hentBehandling(behandlingId)
             .mapLeft { KunneIkkeLageBrevutkast.FantIkkeBehandling }
             .flatMap { behandling ->
-                brevService.lagBrev(lagBrevRequest(behandling))
-                    .mapLeft { KunneIkkeLageBrevutkast.KunneIkkeLageBrev }
-                    .map { it }
+                personOppslag.person(behandling.fnr)
+                    .mapLeft {
+                        KunneIkkeLageBrevutkast.FantIkkePerson
+                    }.flatMap { person ->
+                        lagBrevRequest(person, behandling).flatMap {
+                            brevService.lagBrev(it)
+                                .mapLeft { KunneIkkeLageBrevutkast.KunneIkkeLageBrev }
+                        }
+                    }
             }
     }
 
-    private fun lagBrevRequest(behandling: Behandling) = when (behandling.erInnvilget()) {
-        true -> LagBrevRequest.InnvilgetVedtak(behandling)
-        false -> LagBrevRequest.AvslagsVedtak(behandling)
+    private fun lagBrevRequest(person: Person, behandling: Behandling): Either<KunneIkkeLageBrevutkast, LagBrevRequest> {
+        if (behandling.erInnvilget()) {
+            return LagBrevRequest.InnvilgetVedtak(person, behandling).right()
+        }
+        if (behandling.erAvslag()) {
+            return AvslagBrevRequest(
+                person,
+                Avslag(
+                    opprettet = Tidspunkt.now(clock),
+                    avslagsgrunner = behandling.utledAvslagsgrunner(),
+                    harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
+                    beregning = behandling.beregning()
+
+                )
+            ).right()
+        }
+        return KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(behandling.status()).left()
     }
 }

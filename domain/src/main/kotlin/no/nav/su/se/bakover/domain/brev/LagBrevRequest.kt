@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Grunnbeløp
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -15,27 +14,15 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-abstract class LagBrevRequest {
-    abstract fun getFnr(): Fnr
-    abstract fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold
-
-    data class AvslagsVedtak(
-        private val behandling: Behandling
-    ) : LagBrevRequest() {
-        override fun getFnr(): Fnr = behandling.fnr
-        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsVedtak = BrevInnhold.AvslagsVedtak(
-            personalia = personalia,
-            avslagsgrunner = behandling.utledAvslagsgrunner(),
-            harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
-            halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(LocalDate.now()).toInt(),
-            beregning = behandling.beregning()?.let { getBrevinnholdberegning(it) }
-        )
-    }
+interface LagBrevRequest {
+    fun getPerson(): Person
+    fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold
 
     data class InnvilgetVedtak(
+        private val person: Person,
         private val behandling: Behandling
-    ) : LagBrevRequest() {
-        override fun getFnr(): Fnr = behandling.fnr
+    ) : LagBrevRequest {
+        override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
             val beregning = behandling.beregning()!!
             return BrevInnhold.InnvilgetVedtak(

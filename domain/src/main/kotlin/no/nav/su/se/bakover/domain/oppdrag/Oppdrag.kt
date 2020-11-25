@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -102,7 +101,7 @@ data class Oppdrag(
                     type = Utbetaling.UtbetalingsType.STANS,
                     oppdragId = id,
                     behandler = behandler,
-                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
                 )
             }
         }
@@ -128,7 +127,7 @@ data class Oppdrag(
                     type = Utbetaling.UtbetalingsType.NY,
                     oppdragId = id,
                     behandler = behandler,
-                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
                 )
             }
 
@@ -197,7 +196,7 @@ data class Oppdrag(
                     type = Utbetaling.UtbetalingsType.GJENOPPTA,
                     oppdragId = id,
                     behandler = behandler,
-                    avstemmingsnøkkel = Avstemmingsnøkkel(now(clock))
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
                 )
             }
         }

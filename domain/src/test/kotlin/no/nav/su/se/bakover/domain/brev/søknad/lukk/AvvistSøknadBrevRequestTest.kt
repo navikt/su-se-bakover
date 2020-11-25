@@ -1,46 +1,67 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
+import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class AvvistSøknadBrevRequestTest {
 
-    private val personaliaMock = mock<BrevInnhold.Personalia>()
-    private val søknadMock = mock<Søknad>() {
-        on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build()
-    }
+    private val expectedPersonalia = Personalia(
+        dato = LocalDate.now().toString(),
+        fødselsnummer = Fnr(fnr = "12345678901"),
+        fornavn = "Tore",
+        etternavn = "Strømøy",
+    )
+
+    private val person = Person(
+        ident = Ident(
+            fnr = Fnr(fnr = "12345678901"),
+            aktørId = AktørId(aktørId = "123")
+        ),
+        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        telefonnummer = null,
+        adresse = null,
+        statsborgerskap = null,
+        kjønn = null,
+        adressebeskyttelse = null,
+        skjermet = null,
+        kontaktinfo = null,
+        vergemål = null,
+        fullmakt = null,
+    )
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak(null)).lagBrevInnhold(
-            personaliaMock
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock, null)
+        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak(null)).lagBrevInnhold(
+            expectedPersonalia
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, null)
     }
 
     @Test
     fun `lager vedtaks-brevdata med fritekst`() {
-        AvvistSøknadBrevRequest(søknadMock, BrevConfig.Vedtak("jeg er fritekst")).lagBrevInnhold(
-            personaliaMock
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(personaliaMock, "jeg er fritekst")
+        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak("jeg er fritekst")).lagBrevInnhold(
+            expectedPersonalia
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "jeg er fritekst")
     }
 
     @Test
     fun `lager fritekst-brevdata`() {
         AvvistSøknadBrevRequest(
-            søknadMock,
+            person,
             BrevConfig.Fritekst(
                 "jeg er fritekst"
             )
         ).lagBrevInnhold(
-            personaliaMock
+            expectedPersonalia
         ) shouldBe AvvistSøknadFritekstBrevInnhold(
-            personalia = personaliaMock,
+            personalia = expectedPersonalia,
             fritekst = "jeg er fritekst"
         )
     }

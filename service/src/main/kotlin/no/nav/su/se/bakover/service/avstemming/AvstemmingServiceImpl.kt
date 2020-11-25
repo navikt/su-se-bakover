@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.now
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -27,7 +26,7 @@ internal class AvstemmingServiceImpl(
         val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
 
         val avstemming = Avstemming(
-            opprettet = now(),
+            opprettet = Tidspunkt.now(),
             fraOgMed = periode.fraOgMed,
             tilOgMed = periode.tilOgMed,
             utbetalinger = utbetalinger
