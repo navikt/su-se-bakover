@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class BehandlingServiceImplTest {
+internal class LagBrevUtkastForBehandlingTest {
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
