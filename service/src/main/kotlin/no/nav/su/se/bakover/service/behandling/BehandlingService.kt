@@ -20,8 +20,8 @@ interface BehandlingService {
 
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
     fun opprettBeregning(
-        saksbehandler: Saksbehandler,
         behandlingId: UUID,
+        saksbehandler: Saksbehandler,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         fradrag: List<Fradrag>

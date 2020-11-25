@@ -165,15 +165,15 @@ class AccessCheckProxy(
                 }
 
                 override fun opprettBeregning(
-                    saksbehandler: NavIdentBruker.Saksbehandler,
                     behandlingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                     fraOgMed: LocalDate,
                     tilOgMed: LocalDate,
                     fradrag: List<Fradrag>
                 ): Either<KunneIkkeBeregne, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.opprettBeregning(saksbehandler, behandlingId, fraOgMed, tilOgMed, fradrag)
+                    return services.behandling.opprettBeregning(behandlingId, saksbehandler, fraOgMed, tilOgMed, fradrag)
                 }
 
                 override fun simuler(

@@ -127,16 +127,19 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     override fun opprettBeregning(
-        saksbehandler: NavIdentBruker.Saksbehandler,
         behandlingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         fradrag: List<Fradrag>
     ): Either<KunneIkkeBeregne, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId) ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
+        val behandling = behandlingRepo.hentBehandling(behandlingId)
+            ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return behandling.opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag) // invoke first to perform state-check
-            .mapLeft { KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson }
+            .mapLeft {
+                KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            }
             .map {
                 behandlingRepo.leggTilBeregning(it.id, it.beregning()!!)
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())

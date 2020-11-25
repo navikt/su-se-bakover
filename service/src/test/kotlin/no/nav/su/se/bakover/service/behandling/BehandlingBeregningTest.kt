@@ -4,7 +4,10 @@ import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -12,14 +15,17 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -31,110 +37,93 @@ class BehandlingBeregningTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
-    private fun behandlingUtenBeregning(): Behandling = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
-        søknad = Søknad.Journalført.MedOppgave(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
+    private val behandlingMetricsMock = mock<BehandlingMetrics>()
+    private fun vilkårsvurdertBehandling(): Behandling {
+
+        return BehandlingFactory(behandlingMetricsMock).createBehandling(
+            id = behandlingId,
+            opprettet = tidspunkt,
             sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknad = Søknad.Journalført.MedOppgave(
+                id = søknadId,
+                opprettet = Tidspunkt.EPOCH,
+                sakId = sakId,
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                oppgaveId = oppgaveId,
+                journalpostId = journalpostId,
+            ),
+            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
+            fnr = fnr,
             oppgaveId = oppgaveId,
-            journalpostId = journalpostId,
-        ),
-        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-        fnr = fnr,
-        oppgaveId = oppgaveId,
-        id = behandlingId,
-        behandlingsinformasjon = Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                uføregrad = 20,
-                forventetInntekt = 10
-            ),
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = null
-            ),
-            formue = Behandlingsinformasjon.Formue(
-                status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0
-                ),
-                ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0
-                ),
-                begrunnelse = null
-            ),
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = null
-            ),
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                epsFnr = null,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = null
-            ),
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                fnr = Fnr("17087524256"),
-                navn = Person.Navn("fornavn", null, "etternavn"),
-                kjønn = null,
-                adressebeskyttelse = null,
-                skjermet = null
-            )
+            behandlingsinformasjon = behandlingsinformasjon,
+            simulering = null,
+            beregning = null,
         )
-    )
+    }
 
     @Test
-    fun `beregn en behandling happy case`() {
-        val behandling = behandlingUtenBeregning()
+    fun `oppretter  beregning`() {
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandling
+            on { hentBehandling(any()) } doReturn vilkårsvurdertBehandling()
         }
 
         val response = BehandlingTestUtils.createService(
-            behandlingRepo = behandlingRepoMock
-        ).opprettBeregning(saksbehandler, behandling.id, 1.desember(2020), 31.mars(2021), emptyList())
+            behandlingRepo = behandlingRepoMock,
+            behandlingMetrics = behandlingMetricsMock,
+        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
 
-        response shouldBe behandling.right()
+        response shouldBe vilkårsvurdertBehandling().copy(
+            status = BEREGNET_INNVILGET,
+            beregning = response.orNull()!!.beregning(), // Ønsker ikke teste beregning her
+        ).right()
+
+        inOrder(behandlingRepoMock) {
+            verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandlingId })
+            verify(behandlingRepoMock).leggTilBeregning(
+                behandlingId = argThat { it shouldBe behandlingId },
+                beregning = argThat { it shouldBe response.orNull()!!.beregning() }, // Ønsker ikke teste beregning her
+            )
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(
+                behandlingId = argThat { it shouldBe behandlingId },
+                status = argThat { it shouldBe BEREGNET_INNVILGET },
+            )
+        }
+        verifyNoMoreInteractions(behandlingRepoMock)
+    }
+
+    @Test
+    fun `kan ikke hente behandling`() {
+
+        val behandlingRepoMock = mock<BehandlingRepo>()
+
+        val response = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            behandlingMetrics = behandlingMetricsMock,
+        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+
+        response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
+
+        verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandlingId })
+        verifyNoMoreInteractions(behandlingRepoMock)
     }
 
     @Test
     fun `attestant og saksbehandler kan ikke være like ved opprettelse av beregning`() {
-        val behandling = behandlingUtenBeregning().copy(attestant = NavIdentBruker.Attestant(saksbehandler.navIdent))
-
+        val behandling = vilkårsvurdertBehandling().copy(
+            attestant = NavIdentBruker.Attestant(saksbehandler.navIdent)
+        )
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn behandling
+            on { hentBehandling(any()) } doReturn behandling.copy()
         }
 
         val response = BehandlingTestUtils.createService(
-            behandlingRepo = behandlingRepoMock
-        ).opprettBeregning(saksbehandler, behandling.id, 1.desember(2020), 31.mars(2021), emptyList())
+            behandlingRepo = behandlingRepoMock,
+            behandlingMetrics = behandlingMetricsMock,
+        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
 
         response shouldBe KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+
+        verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandlingId })
+        verifyNoMoreInteractions(behandlingRepoMock)
     }
 }
