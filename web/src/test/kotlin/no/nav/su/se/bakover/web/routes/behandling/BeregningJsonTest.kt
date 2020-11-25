@@ -21,6 +21,7 @@ internal class BeregningJsonTest {
                     "sats":"HØY",
                     "grunnbeløp":101351,
                     "beløp":19946,
+                    "satsbeløp": 20637.32,
                     "fradrag": [{
                       "periode": {
                         "fraOgMed":"2020-08-01",

@@ -9,7 +9,8 @@ internal data class MånedsberegningJson(
     val sats: String,
     val grunnbeløp: Int,
     val beløp: Int,
-    val fradrag: List<FradragJson>
+    val fradrag: List<FradragJson>,
+    val satsbeløp: Double
 )
 internal fun Månedsberegning.toJson() = MånedsberegningJson(
     fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
@@ -17,5 +18,6 @@ internal fun Månedsberegning.toJson() = MånedsberegningJson(
     sats = getSats().name,
     grunnbeløp = getBenyttetGrunnbeløp(),
     beløp = getSumYtelse(),
-    fradrag = getFradrag().map { it.toJson() }
+    fradrag = getFradrag().map { it.toJson() },
+    satsbeløp = getSatsbeløp()
 )

@@ -22,7 +22,8 @@ internal class MånedsberegningJsonTest {
                 "sats":"HØY",
                 "grunnbeløp":99858,
                 "beløp":20637,
-                "fradrag": []
+                "fradrag": [],
+                "satsbeløp": 20637.32
             }
         """
 
