@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -137,16 +137,26 @@ internal class BehandlingServiceImpl(
     }
 
     // TODO need to define responsibilities for domain and services.
-    override fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId)!!
+    override fun simuler(
+        behandlingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeSimulereBehandling, Behandling> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)
+            ?: return KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
 
-        return utbetalingService.simulerUtbetaling(behandling.sakId, saksbehandler, behandling.beregning()!!)
-            .map { simulertUtbetaling ->
-                behandling.leggTilSimulering(simulertUtbetaling.simulering)
-                behandlingRepo.leggTilSimulering(behandlingId, simulertUtbetaling.simulering)
-                behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
-                behandlingRepo.hentBehandling(behandlingId)!!
+        return behandling.leggTilSimulering(saksbehandler) {
+            utbetalingService.simulerUtbetaling(behandling.sakId, saksbehandler, behandling.beregning()!!)
+                .map { it.simulering }.orNull()
+        }.mapLeft {
+            when (it) {
+                Behandling.KunneIkkeLeggeTilSimulering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                Behandling.KunneIkkeLeggeTilSimulering.KunneIkkeSimulere -> KunneIkkeSimulereBehandling.KunneIkkeSimulere
             }
+        }.map { simulertBehandling ->
+            behandlingRepo.leggTilSimulering(behandlingId, simulertBehandling.simulering()!!)
+            behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
+            behandlingRepo.hentBehandling(behandlingId)!!
+        }
     }
 
     // TODO need to define responsibilities for domain and services.
@@ -156,8 +166,13 @@ internal class BehandlingServiceImpl(
     ): Either<KunneIkkeSendeTilAttestering, Behandling> {
 
         val behandlingTilAttestering: Behandling =
-            behandlingRepo.hentBehandling(behandlingId)?.sendTilAttestering(saksbehandler)
-                ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
+            behandlingRepo.hentBehandling(behandlingId).rightIfNotNull {
+                return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
+            }.flatMap {
+                it.sendTilAttestering(saksbehandler)
+            }.getOrElse {
+                return KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
 
         val aktørId = personOppslag.aktørId(behandlingTilAttestering.fnr).getOrElse {
             log.error("Fant ikke aktør-id med for fødselsnummer : ${behandlingTilAttestering.fnr}")
@@ -306,29 +321,30 @@ internal class BehandlingServiceImpl(
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-            val journalføringOgBrevResultat = brevService.journalførBrev(LagBrevRequest.InnvilgetVedtak(behandling), behandling.sakId)
-                .mapLeft {
-                    log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
-                    IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
-                }
-                .flatMap {
-                    behandling.oppdaterIverksattJournalpostId(it)
-                    behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it)
-                    log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
-                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-                    brevService.distribuerBrev(it)
-                        .mapLeft {
-                            log.error("Bestilling av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
-                            IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
-                        }
-                        .map { brevbestillingId ->
-                            behandling.oppdaterIverksattBrevbestillingId(brevbestillingId)
-                            behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, brevbestillingId)
-                            log.info("Bestilt iverksettingsbrev $brevbestillingId for behandling ${behandling.id}")
-                            behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-                            IverksattBehandling.UtenMangler(behandling)
-                        }
-                }
+            val journalføringOgBrevResultat =
+                brevService.journalførBrev(LagBrevRequest.InnvilgetVedtak(behandling), behandling.sakId)
+                    .mapLeft {
+                        log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                        IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
+                    }
+                    .flatMap {
+                        behandling.oppdaterIverksattJournalpostId(it)
+                        behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it)
+                        log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
+                        behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
+                        brevService.distribuerBrev(it)
+                            .mapLeft {
+                                log.error("Bestilling av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                                IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
+                            }
+                            .map { brevbestillingId ->
+                                behandling.oppdaterIverksattBrevbestillingId(brevbestillingId)
+                                behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, brevbestillingId)
+                                log.info("Bestilt iverksettingsbrev $brevbestillingId for behandling ${behandling.id}")
+                                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                                IverksattBehandling.UtenMangler(behandling)
+                            }
+                    }
 
             val oppgaveResultat = oppgaveService.lukkOppgave(behandling.oppgaveId())
                 .mapLeft {

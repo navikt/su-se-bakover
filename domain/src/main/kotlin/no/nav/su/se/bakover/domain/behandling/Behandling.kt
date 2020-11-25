@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -34,7 +35,7 @@ data class Behandling internal constructor(
     private var beregning: Beregning?,
     private var simulering: Simulering?,
     private var status: BehandlingsStatus,
-    private var saksbehandler: NavIdentBruker.Saksbehandler?,
+    private var saksbehandler: Saksbehandler?,
     private var attestant: NavIdentBruker.Attestant?,
     val sakId: UUID,
     val hendelseslogg: Hendelseslogg,
@@ -110,13 +111,13 @@ data class Behandling internal constructor(
         return this
     }
 
-    fun leggTilSimulering(simulering: Simulering): Behandling {
-        return tilstand.leggTilSimulering(simulering)
+    fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+        return tilstand.leggTilSimulering(saksbehandler, simulering)
     }
 
     fun sendTilAttestering(
-        saksbehandler: NavIdentBruker.Saksbehandler
-    ): Behandling {
+        saksbehandler: Saksbehandler
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.sendTilAttestering(saksbehandler)
     }
 
@@ -140,7 +141,10 @@ data class Behandling internal constructor(
         return tilstand.oppdaterIverksattBrevbestillingId(brevbestillingId)
     }
 
-    fun underkjenn(begrunnelse: String, attestant: NavIdentBruker.Attestant): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+    fun underkjenn(
+        begrunnelse: String,
+        attestant: NavIdentBruker.Attestant
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.underkjenn(begrunnelse, attestant)
     }
 
@@ -164,13 +168,13 @@ data class Behandling internal constructor(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun leggTilSimulering(simulering: Simulering): Behandling {
+        fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
             throw TilstandException(status, this::leggTilSimulering.toString())
         }
 
         fun sendTilAttestering(
-            saksbehandler: NavIdentBruker.Saksbehandler
-        ): Behandling {
+            saksbehandler: Saksbehandler
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::sendTilAttestering.toString())
         }
 
@@ -269,11 +273,11 @@ data class Behandling internal constructor(
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override fun sendTilAttestering(
-                saksbehandler: NavIdentBruker.Saksbehandler,
-            ): Behandling {
+                saksbehandler: Saksbehandler,
+            ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 this@Behandling.saksbehandler = saksbehandler
                 nyTilstand(TilAttestering().Avslag())
-                return this@Behandling
+                return this@Behandling.right()
             }
 
             override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -293,24 +297,31 @@ data class Behandling internal constructor(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun leggTilSimulering(simulering: Simulering): Behandling {
-            this@Behandling.simulering = simulering
-            nyTilstand(Simulert())
-            return this@Behandling
+        override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+            if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
+                return KunneIkkeLeggeTilSimulering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+
+            simulering()?.let {
+                this@Behandling.simulering = it
+                nyTilstand(Simulert())
+                return this@Behandling.right()
+            }
+                ?: return KunneIkkeLeggeTilSimulering.KunneIkkeSimulere.left()
         }
 
         inner class Avslag : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
-            override fun leggTilSimulering(simulering: Simulering): Behandling {
+            override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
                 throw TilstandException(status, this::leggTilSimulering.toString())
             }
 
             override fun sendTilAttestering(
-                saksbehandler: NavIdentBruker.Saksbehandler,
-            ): Behandling {
+                saksbehandler: Saksbehandler,
+            ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 this@Behandling.saksbehandler = saksbehandler
                 nyTilstand(TilAttestering().Avslag())
-                return this@Behandling
+                return this@Behandling.right()
             }
 
             override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -322,15 +333,23 @@ data class Behandling internal constructor(
         }
     }
 
+    sealed class KunneIkkeLeggeTilSimulering {
+        object KunneIkkeSimulere : KunneIkkeLeggeTilSimulering()
+        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeLeggeTilSimulering()
+    }
+
     private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
-            saksbehandler: NavIdentBruker.Saksbehandler
-        ): Behandling {
+            saksbehandler: Saksbehandler
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
+                return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
             this@Behandling.saksbehandler = saksbehandler
             nyTilstand(TilAttestering().Innvilget())
-            return this@Behandling
+            return this@Behandling.right()
         }
 
         override fun oppdaterOppgaveId(
@@ -348,9 +367,15 @@ data class Behandling internal constructor(
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
         }
 
-        override fun leggTilSimulering(simulering: Simulering): Behandling {
-            return nyTilstand(Beregnet()).leggTilSimulering(simulering)
+        override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+            return nyTilstand(Beregnet()).leggTilSimulering(saksbehandler, simulering)
         }
+    }
+
+    private fun erAttestantOgSakbehandlerSammePerson(saksbehandler: Saksbehandler): Boolean {
+        return this@Behandling.attestant?.let {
+            it.navIdent == saksbehandler.navIdent
+        } ?: false
     }
 
     private open inner class TilAttestering : Tilstand {

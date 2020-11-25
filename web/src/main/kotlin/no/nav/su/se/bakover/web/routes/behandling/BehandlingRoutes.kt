@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -229,8 +231,12 @@ internal fun Route.behandlingRoutes(
             call.withBehandling(behandlingService) { behandling ->
                 behandlingService.simuler(behandling.id, Saksbehandler(call.suUserContext.getNAVIdent())).fold(
                     {
-                        log.info("Feil ved simulering: ", it)
-                        call.svar(InternalServerError.message("Kunne ikke gjennomføre simulering"))
+                        val resultat = when (it) {
+                            KunneIkkeSimulereBehandling.KunneIkkeSimulere -> InternalServerError.message("Kunne ikke gjennomføre simulering")
+                            KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                            KunneIkkeSimulereBehandling.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
+                        }
+                        call.svar(resultat)
                     },
                     { call.svar(OK.jsonBody(it)) }
                 )
@@ -245,7 +251,13 @@ internal fun Route.behandlingRoutes(
                     val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
                     behandlingService.sendTilAttestering(behandlingId, saksBehandler).fold(
                         {
-                            call.svar(InternalServerError.message("Kunne ikke opprette oppgave for attestering"))
+                            val resultat = when (it) {
+                                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave for attestering")
+                                KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> InternalServerError.message("Kunne ikke finne person")
+                                KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                KunneIkkeSendeTilAttestering.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
+                            }
+                            call.svar(resultat)
                         },
                         {
                             call.audit("Sender behandling med id: ${it.id} til attestering")
