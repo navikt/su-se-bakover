@@ -145,6 +145,36 @@ internal class LukkSøknadServiceImplTest {
     }
 
     @Test
+    fun `fant ikke person`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn nySøknad
+        }
+        val sakServiceMock = mock<SakService>()
+        val brevServiceMock = mock<BrevService>()
+        val oppgaveServiceMock = mock<OppgaveService>()
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn PersonOppslag.KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            personOppslag = personOppslagMock,
+            clock = fixedEpochClock,
+        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
+
+        inOrder(
+            søknadRepoMock, personOppslagMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+        }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+    }
+
+    @Test
     fun `trekker en søknad uten mangler`() {
 
         val søknadRepoMock = mock<SøknadRepo> {
@@ -501,6 +531,39 @@ internal class LukkSøknadServiceImplTest {
                     it shouldBe TrukketSøknadBrevRequest(person, nySøknad, 1.januar(2020))
                 }
             )
+        }
+
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+    }
+
+    @Test
+    fun `lager brevutkast finner ikke person`() {
+        val søknadRepoMock = mock<SøknadRepo> {
+            on { hentSøknad(any()) } doReturn nySøknad
+        }
+        val sakServiceMock = mock<SakService>()
+        val brevServiceMock = mock<BrevService> ()
+
+        val oppgaveServiceMock = mock<OppgaveService>()
+
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn PersonOppslag.KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        LukkSøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            personOppslag = personOppslagMock,
+            clock = fixedEpochClock,
+        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
+
+        inOrder(
+            søknadRepoMock, personOppslagMock
+        ) {
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
         }
 
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
