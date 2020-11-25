@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -373,16 +374,20 @@ internal class BehandlingRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {}.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ikke en gyldig UUID"
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "ikke en gyldig UUID"
+                }
             }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke behandling med behandlingId"
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Ugyldig body"
+                }
             }
             defaultRequest(
                 HttpMethod.Post,

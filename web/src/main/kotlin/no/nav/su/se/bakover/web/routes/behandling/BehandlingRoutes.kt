@@ -177,7 +177,7 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
-            call.withBehandling(behandlingService) { behandling ->
+            call.withBehandlingId { behandlingId ->
                 Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig behandling-body: ", it)
@@ -187,7 +187,7 @@ internal fun Route.behandlingRoutes(
                         if (body.valid()) {
                             behandlingService.opprettBeregning(
                                 saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                behandlingId = behandling.id,
+                                behandlingId = behandlingId,
                                 fraOgMed = body.fraOgMed,
                                 tilOgMed = body.tilOgMed,
                                 fradrag = body.fradrag.map {
