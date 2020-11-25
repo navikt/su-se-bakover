@@ -48,7 +48,7 @@ import java.util.UUID
 internal class BehandlingTest {
 
     private val id1 = UUID.randomUUID()
-    private val id2 = UUID.randomUUID()
+    private val saksbehandler = Saksbehandler("Z12345")
     private val søknad = Søknad.Journalført.MedOppgave(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.EPOCH,
@@ -217,7 +217,12 @@ internal class BehandlingTest {
                     it.msg shouldContain "opprettBeregning"
                     it.msg shouldContain "state: OPPRETTET"
                 }
-            assertThrows<Behandling.TilstandException> { opprettet.leggTilSimulering(defaultSimulering()) }
+            assertThrows<Behandling.TilstandException> {
+                opprettet.leggTilSimulering(
+                    saksbehandler,
+                    defaultSimulering()
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 opprettet.sendTilAttestering(
                     Saksbehandler("S123456")
@@ -363,7 +368,12 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.leggTilSimulering(defaultSimulering()) }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.leggTilSimulering(
+                    saksbehandler,
+                    defaultSimulering()
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.sendTilAttestering(
                     Saksbehandler("S123456")
@@ -415,7 +425,12 @@ internal class BehandlingTest {
                     31.desember(2020)
                 )
             }
-            assertThrows<Behandling.TilstandException> { vilkårsvurdert.leggTilSimulering(defaultSimulering()) }
+            assertThrows<Behandling.TilstandException> {
+                vilkårsvurdert.leggTilSimulering(
+                    saksbehandler,
+                    defaultSimulering()
+                )
+            }
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.iverksett(Attestant("A123456"))
             }
@@ -438,7 +453,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne simuleres`() {
-            beregnet.leggTilSimulering(defaultSimulering())
+            beregnet.leggTilSimulering(saksbehandler, defaultSimulering())
             beregnet.status() shouldBe SIMULERT
         }
 
@@ -526,7 +541,12 @@ internal class BehandlingTest {
 
             @Test
             fun `illegal operations`() {
-                assertThrows<Behandling.TilstandException> { beregnet.leggTilSimulering(defaultSimulering()) }
+                assertThrows<Behandling.TilstandException> {
+                    beregnet.leggTilSimulering(
+                        saksbehandler,
+                        defaultSimulering()
+                    )
+                }
                 assertThrows<Behandling.TilstandException> {
                     beregnet.iverksett(
                         Attestant("A123456")
@@ -548,7 +568,7 @@ internal class BehandlingTest {
                     .withAlleVilkårOppfylt()
             )
             simulert.opprettBeregning(1.januar(2020), 31.desember(2020))
-            simulert.leggTilSimulering(defaultSimulering())
+            simulert.leggTilSimulering(saksbehandler, defaultSimulering())
             simulert.status() shouldBe SIMULERT
         }
 
@@ -587,7 +607,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne simulere på nytt`() {
-            simulert.leggTilSimulering(defaultSimulering())
+            simulert.leggTilSimulering(saksbehandler, defaultSimulering())
             simulert.status() shouldBe SIMULERT
         }
 
@@ -626,7 +646,7 @@ internal class BehandlingTest {
                 avslått.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                avslått.leggTilSimulering(defaultSimulering())
+                avslått.leggTilSimulering(saksbehandler, defaultSimulering())
             }
         }
     }
@@ -642,7 +662,7 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
             tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
-            tilAttestering.leggTilSimulering(defaultSimulering())
+            tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
             tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
 
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
@@ -671,7 +691,7 @@ internal class BehandlingTest {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.leggTilSimulering(defaultSimulering())
+                tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
@@ -716,7 +736,7 @@ internal class BehandlingTest {
                 tilAttestering.opprettBeregning(1.januar(2020), 31.desember(2020))
             }
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.leggTilSimulering(defaultSimulering())
+                tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
@@ -736,11 +756,13 @@ internal class BehandlingTest {
         oppgaveId = OppgaveId("1234")
     )
 
-    private fun defaultSimulering() = Simulering(
-        gjelderId = Fnr("12345678910"),
-        gjelderNavn = "NAVN NAVN",
-        datoBeregnet = LocalDate.now(),
-        nettoBeløp = 54600,
-        periodeList = listOf()
-    )
+    private fun defaultSimulering(): () -> Simulering = {
+        Simulering(
+            gjelderId = Fnr("12345678910"),
+            gjelderNavn = "NAVN NAVN",
+            datoBeregnet = LocalDate.now(),
+            nettoBeløp = 54600,
+            periodeList = listOf()
+        )
+    }
 }

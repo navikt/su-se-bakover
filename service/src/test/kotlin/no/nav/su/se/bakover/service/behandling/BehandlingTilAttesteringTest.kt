@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.service.behandling
 
+import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -116,6 +118,30 @@ class BehandlingTilAttesteringTest {
 
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
+        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
+    }
+
+    @Test
+    fun `attestant kan ikke saksbehandle underkjent behandling`() {
+        val behandling = simulertBehandling.copy(attestant = NavIdentBruker.Attestant(saksbehandler.navIdent))
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val personOppslagMock: PersonOppslag = mock()
+
+        val oppgaveServiceMock = mock<OppgaveService> ()
+
+        val actual = createService(
+            behandlingRepo = behandlingRepoMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock
+        ).sendTilAttestering(behandling.id, saksbehandler)
+
+        actual shouldBe KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+
+        verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
         verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
     }
 }

@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,7 +26,7 @@ interface BehandlingService {
         fradrag: List<Fradrag>
     ): Behandling
 
-    fun simuler(behandlingId: UUID, saksbehandler: NavIdentBruker): Either<SimuleringFeilet, Behandling>
+    fun simuler(behandlingId: UUID, saksbehandler: Saksbehandler): Either<KunneIkkeSimulereBehandling, Behandling>
     fun sendTilAttestering(
         behandlingId: UUID,
         saksbehandler: Saksbehandler
@@ -57,10 +55,18 @@ sealed class KunneIkkeOppretteSøknadsbehandling {
     object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
     object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
 }
-sealed class KunneIkkeSendeTilAttestering() {
+
+sealed class KunneIkkeSimulereBehandling {
+    object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeSimulereBehandling()
+    object FantIkkeBehandling : KunneIkkeSimulereBehandling()
+}
+
+sealed class KunneIkkeSendeTilAttestering {
     object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
     object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeSendeTilAttestering()
 }
 
 sealed class KunneIkkeUnderkjenneBehandling {

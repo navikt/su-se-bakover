@@ -116,6 +116,48 @@ internal class BehandlingServiceImplTest {
     }
 
     @Test
+    fun `simuler behandling gir feilmelding hvis vi ikke finner behandling`() {
+        val behandling = beregnetBehandling()
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn null
+        }
+        val utbetalingServiceMock = mock<UtbetalingService> ()
+
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        ).simuler(behandling.id, saksbehandler)
+
+        response shouldBe KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
+        verify(behandlingRepoMock).hentBehandling(
+            argThat { it shouldBe behandling.id }
+        )
+        verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
+    }
+
+    @Test
+    fun `simuler behandling gir feilmelding hvis attestant og saksbehandler er samme person`() {
+        val behandling = beregnetBehandling().copy(attestant = Attestant(saksbehandler.navIdent))
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+        val utbetalingServiceMock = mock<UtbetalingService> ()
+
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        ).simuler(behandling.id, saksbehandler)
+
+        response shouldBe KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        verify(behandlingRepoMock).hentBehandling(
+            argThat { it shouldBe behandling.id }
+        )
+        verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
+    }
+
+    @Test
     fun `simuler behandling gir feilmelding hvis simulering ikke går bra`() {
         val behandling = beregnetBehandling()
 
@@ -131,7 +173,7 @@ internal class BehandlingServiceImplTest {
             utbetalingService = utbetalingServiceMock,
         ).simuler(behandling.id, saksbehandler)
 
-        response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+        response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
         verify(behandlingRepoMock).hentBehandling(
             argThat { it shouldBe behandling.id }
         )
@@ -140,7 +182,7 @@ internal class BehandlingServiceImplTest {
             saksbehandler = argThat { it shouldBe saksbehandler },
             beregning = argThat { it shouldBe beregning }
         )
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
     }
 
     @Test

@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
@@ -175,8 +176,8 @@ class AccessCheckProxy(
 
                 override fun simuler(
                     behandlingId: UUID,
-                    saksbehandler: NavIdentBruker
-                ): Either<SimuleringFeilet, Behandling> {
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeSimulereBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
                     return services.behandling.simuler(behandlingId, saksbehandler)
