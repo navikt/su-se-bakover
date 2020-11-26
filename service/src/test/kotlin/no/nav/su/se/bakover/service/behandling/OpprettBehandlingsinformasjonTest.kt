@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsin
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class BehandlingServiceImplTest {
+internal class OpprettBehandlingsinformasjonTest {
 
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
