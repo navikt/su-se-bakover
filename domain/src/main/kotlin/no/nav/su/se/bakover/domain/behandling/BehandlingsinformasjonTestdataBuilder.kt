@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import org.jetbrains.annotations.TestOnly
+
 /**
  * Dette er kanskje ikke den beste plassen å legge ting som kun skal brukes i tester.
  * Se også SøknadInnholdTestdataBuilder
  */
-
+@TestOnly
 fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
         uførhet = Behandlingsinformasjon.Uførhet(
@@ -63,6 +65,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
     )
 
+@TestOnly
 fun Behandlingsinformasjon.withVilkårAvslått() =
     this.withAlleVilkårOppfylt().patch(
         Behandlingsinformasjon(
@@ -74,6 +77,7 @@ fun Behandlingsinformasjon.withVilkårAvslått() =
         )
     )
 
+@TestOnly
 fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
     Behandlingsinformasjon(
         uførhet = null,
@@ -87,5 +91,6 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
         ektefelle = null
     )
 
+@TestOnly
 fun extractBehandlingsinformasjon(behandling: Behandling) =
     behandling.behandlingsinformasjon()
