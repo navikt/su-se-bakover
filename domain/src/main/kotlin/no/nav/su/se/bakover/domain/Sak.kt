@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID
 
-data class Saksnummer(val nummer: Int)
+data class Saksnummer(val nummer: Long)
 data class Sak(
     val id: UUID = UUID.randomUUID(),
     val saksnummer: Saksnummer,

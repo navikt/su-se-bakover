@@ -225,7 +225,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),
-            saksnummer = Saksnummer(Math.random().toInt()),
+            saksnummer = Saksnummer(Math.random().toLong()),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),

@@ -245,7 +245,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     private val sak: Sak = Sak(
         id = sakId,
-        saksnummer = Saksnummer(Math.random().toInt()),
+        saksnummer = Saksnummer(Math.random().toLong()),
         opprettet = tidspunkt,
         fnr = fnr,
         oppdrag = oppdrag

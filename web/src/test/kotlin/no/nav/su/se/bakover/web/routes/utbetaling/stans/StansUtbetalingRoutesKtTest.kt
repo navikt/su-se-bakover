@@ -29,7 +29,7 @@ internal class StansUtbetalingRoutesKtTest {
 
     private val fnr = Fnr("12345678911")
     private val sakId: UUID = UUID.randomUUID()
-    private val saksnummer = Math.random().toInt()
+    private val saksnummer = Math.random().toLong()
     private val tidspunkt = Tidspunkt.EPOCH
     private val sak: Sak = Sak(
         id = sakId,

@@ -81,7 +81,7 @@ internal class SøknadRoutesKtTest {
     )
 
     private val sakId: UUID = UUID.randomUUID()
-    private val saksnummer = Math.random().toInt()
+    private val saksnummer = Math.random().toLong()
     private val tidspunkt = Tidspunkt.EPOCH
 
     private val sak = Sak(

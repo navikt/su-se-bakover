@@ -331,7 +331,7 @@ internal class UtbetalingServiceImplTest {
     private val fnr = Fnr("12345678910")
     private val sak = Sak(
         id = sakId,
-        saksnummer = Saksnummer(Math.random().toInt()),
+        saksnummer = Saksnummer(Math.random().toLong()),
         fnr = fnr,
         oppdrag = mock()
     )

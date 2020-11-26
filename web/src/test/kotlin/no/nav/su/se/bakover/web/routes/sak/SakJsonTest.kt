@@ -17,7 +17,7 @@ import java.util.UUID
 internal class SakJsonTest {
 
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Math.random().toInt()
+    private val saksnummer = Math.random().toLong()
     private val sak = Sak(
         id = sakId,
         saksnummer = Saksnummer(saksnummer),

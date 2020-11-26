@@ -22,7 +22,7 @@ internal class LukkSøknadErrorHandlerTest {
     @Test
     fun `mapping av lukket søknad til resultat`() {
         val sakId = UUID.randomUUID()
-        val saksnummer = Math.random().toInt()
+        val saksnummer = Math.random().toLong()
         val sak = Sak(
             id = sakId,
             saksnummer = Saksnummer(saksnummer),

@@ -102,7 +102,6 @@ class NySøknadTest {
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }
-        val sak = sak.copy()
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left() doReturn sak.right()
             on { opprettSak(any()) }.doNothing()
@@ -174,7 +173,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor journalføring feiler`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }
@@ -253,7 +251,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }
@@ -349,7 +346,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgavekallet går bra`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }

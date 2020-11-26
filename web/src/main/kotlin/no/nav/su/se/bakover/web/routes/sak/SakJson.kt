@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.routes.søknad.toJson
 
 internal data class SakJson(
     val id: String,
-    val saksnummer: Int,
+    val saksnummer: Long,
     val fnr: String,
     val søknader: List<SøknadJson>,
     val behandlinger: List<BehandlingJson>,

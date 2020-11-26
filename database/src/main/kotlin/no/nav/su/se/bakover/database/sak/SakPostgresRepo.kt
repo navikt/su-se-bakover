@@ -54,7 +54,7 @@ internal class SakPostgresRepo(
         val sakId = UUID.fromString(string("id"))
         return Sak(
             id = sakId,
-            saksnummer = Saksnummer(int("saksnummer")),
+            saksnummer = Saksnummer(long("saksnummer")),
             fnr = Fnr(string("fnr")),
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
