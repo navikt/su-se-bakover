@@ -10,6 +10,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = null
         ).erGyldig() shouldBe true
@@ -20,6 +21,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).erGyldig() shouldBe false
@@ -29,6 +31,7 @@ internal class FormueTest {
     fun `er ugyldig dersom status er oppfylt men brukers verdier mangler enkeltfelter1`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = null,
                 verdiKjøretøy = 100,
@@ -47,6 +50,7 @@ internal class FormueTest {
     fun `er ugyldig dersom status er oppfylt men brukers verdier mangler enkeltfelter2`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 100,
                 verdiKjøretøy = 100,
@@ -65,6 +69,7 @@ internal class FormueTest {
     fun `er gyldig dersom status er oppfylt men ektefelles verdier mangler`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 100,
                 verdiKjøretøy = 100,
@@ -83,6 +88,7 @@ internal class FormueTest {
     fun `er gyldig dersom status er oppfylt men ektefelles verdier er med mangler`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 100,
                 verdiKjøretøy = 100,
@@ -110,6 +116,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).let {
@@ -123,6 +130,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe true
@@ -133,6 +141,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
@@ -140,6 +149,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
@@ -150,6 +160,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe Avslagsgrunn.FORMUE
@@ -160,6 +171,7 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe null

@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
@@ -169,6 +170,90 @@ class NySøknadTest {
             oppgaveServiceMock
         )
         actual shouldBe expected.right()
+    }
+
+    @Test
+    fun `nye søknader bortsett fra den første skal ha en annerledes opprettet tidspunkt`() {
+        val sak = sak.copy(
+            søknader = listOf<Søknad>(
+                Søknad.Ny(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.EPOCH,
+                    sakId = sak.id,
+                    søknadInnhold = søknadInnhold
+                )
+            )
+        )
+        val personOppslagMock: PersonOppslag = mock {
+            on { person(any()) } doReturn person.right()
+        }
+        val sakServiceMock: SakService = mock {
+            on { hentSak(any<Fnr>()) } doReturn sak.right()
+        }
+        val søknadRepoMock: SøknadRepo = mock {
+            on { opprettSøknad(any()) }.doNothing()
+            on { oppdaterjournalpostId(any(), any()) }.doNothing()
+            on { oppdaterOppgaveId(any(), any()) }.doNothing()
+        }
+        val pdfGeneratorMock: PdfGenerator = mock {
+            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+        }
+        val dokArkivMock: DokArkiv = mock {
+            on { opprettJournalpost(any()) } doReturn journalpostId.right()
+        }
+
+        val oppgaveServiceMock: OppgaveService = mock {
+            on { opprettOppgave(any()) } doReturn oppgaveId.right()
+        }
+
+        val søknadService = SøknadServiceImpl(
+            søknadRepo = søknadRepoMock,
+            sakService = sakServiceMock,
+            sakFactory = sakFactory,
+            pdfGenerator = pdfGeneratorMock,
+            dokArkiv = dokArkivMock,
+            personOppslag = personOppslagMock,
+            oppgaveService = oppgaveServiceMock,
+            søknadMetrics = mock()
+        )
+
+        val nySøknad = søknadService.nySøknad(søknadInnhold)
+
+        inOrder(
+            personOppslagMock,
+            sakServiceMock,
+            søknadRepoMock,
+            pdfGeneratorMock,
+            dokArkivMock
+        ) {
+            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
+            verify(søknadRepoMock).opprettSøknad(
+                argThat {
+                    it shouldBe Søknad.Ny(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        sakId = sakId,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
+            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(dokArkivMock).opprettJournalpost(
+                argThat {
+                    it shouldBe Journalpost.Søknadspost(
+                        person = person,
+                        sakId = sakId.toString(),
+                        søknadInnhold = søknadInnhold,
+                        pdf = pdf
+                    )
+                }
+            )
+        }
+
+        nySøknad.map {
+            it.opprettet shouldNotBe sak.søknader().first().opprettet
+        }
     }
 
     @Test

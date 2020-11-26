@@ -95,6 +95,7 @@ object BehandlingsinformasjonTestData {
     object Formue {
         val Oppfylt = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 0,
                 verdiKjøretøy = 12000,
@@ -117,6 +118,7 @@ object BehandlingsinformasjonTestData {
         )
         val IkkeOppfylt = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
+            borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 999999999,
                 verdiKjøretøy = 12000,
@@ -140,6 +142,7 @@ object BehandlingsinformasjonTestData {
         val Uavklart = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
+            borSøkerMedEPS = false,
             ektefellesVerdier = null,
             begrunnelse = null
         )

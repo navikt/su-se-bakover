@@ -50,7 +50,6 @@ internal class SøknadJsonTest {
                 "delerBoligMedVoksne":true,
                 "delerBoligMed":"EKTEMAKE_SAMBOER",
                 "ektefellePartnerSamboer":{
-                    "type": "MedFnr",
                     "erUførFlyktning": false,
                     "fnr": "${fnrUnder67()}"
                 },

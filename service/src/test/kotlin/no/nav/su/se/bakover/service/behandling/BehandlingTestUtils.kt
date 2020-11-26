@@ -85,6 +85,7 @@ object BehandlingTestUtils {
         ),
         formue = Formue(
             status = Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = true,
             verdier = Verdier(
                 verdiIkkePrimærbolig = 0,
                 verdiKjøretøy = 0,

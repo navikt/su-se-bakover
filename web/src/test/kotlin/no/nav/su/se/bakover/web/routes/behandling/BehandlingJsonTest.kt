@@ -53,6 +53,7 @@ internal class BehandlingJsonTest {
                 },
                 "formue": {
                     "status": "VilkårOppfylt",
+                    "borSøkerMedEPS": true,
                     "verdier": {
                         "verdiIkkePrimærbolig": 0,
                         "verdiKjøretøy": 0,
