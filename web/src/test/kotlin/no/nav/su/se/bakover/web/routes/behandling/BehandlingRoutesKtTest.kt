@@ -881,9 +881,11 @@ internal class BehandlingRoutesKtTest {
 
     private fun setup(): Objects {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-        val sak: Sak = SakFactory().nySak(FnrGenerator.random(), søknadInnhold).also {
+        val fnr = FnrGenerator.random()
+        SakFactory().nySak(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
-        }.toSak()
+        }
+        val sak: Sak = repos.sak.hentSak(fnr)!!
 
         val søknadId: UUID = sak.søknader()[0].id
 

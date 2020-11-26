@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import org.junit.jupiter.api.Test
@@ -16,8 +17,10 @@ import java.util.UUID
 internal class SakJsonTest {
 
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Math.random().toInt()
     private val sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(saksnummer),
         fnr = Fnr("12345678910"),
         oppdrag = Oppdrag(
             id = UUID30.randomUUID(),
@@ -31,6 +34,7 @@ internal class SakJsonTest {
         """
             {
                 "id": "$sakId",
+                "saksnummer": $saksnummer,
                 "fnr": "12345678910",
                 "søknader": [],
                 "behandlinger" : [],

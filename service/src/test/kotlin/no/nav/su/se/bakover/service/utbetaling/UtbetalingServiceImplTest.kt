@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
@@ -330,6 +331,7 @@ internal class UtbetalingServiceImplTest {
     private val fnr = Fnr("12345678910")
     private val sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(Math.random().toInt()),
         fnr = fnr,
         oppdrag = mock()
     )

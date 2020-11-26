@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.web.routes.søknad.toJson
 
 internal data class SakJson(
     val id: String,
+    val saksnummer: Int,
     val fnr: String,
     val søknader: List<SøknadJson>,
     val behandlinger: List<BehandlingJson>,
@@ -39,6 +40,7 @@ internal data class SakJson(
     companion object {
         internal fun Sak.toJson() = SakJson(
             id = id.toString(),
+            saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
             søknader = søknader().map { it.toJson() },
             behandlinger = behandlinger().map { it.toJson() },

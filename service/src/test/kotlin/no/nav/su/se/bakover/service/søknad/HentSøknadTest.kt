@@ -26,6 +26,7 @@ class HentSøknadTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn null
         }
+
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = mock(),
@@ -54,6 +55,7 @@ class HentSøknadTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn søknad
         }
+
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = mock(),

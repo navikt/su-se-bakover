@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -244,6 +245,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     private val sak: Sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(Math.random().toInt()),
         opprettet = tidspunkt,
         fnr = fnr,
         oppdrag = oppdrag

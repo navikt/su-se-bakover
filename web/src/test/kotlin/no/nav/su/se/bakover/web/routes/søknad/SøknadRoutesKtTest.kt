@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -80,10 +81,12 @@ internal class SøknadRoutesKtTest {
     )
 
     private val sakId: UUID = UUID.randomUUID()
+    private val saksnummer = Math.random().toInt()
     private val tidspunkt = Tidspunkt.EPOCH
 
-    val sak = Sak(
+    private val sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
         fnr = FnrGenerator.random(),
         oppdrag = Oppdrag(
