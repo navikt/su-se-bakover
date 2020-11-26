@@ -87,13 +87,13 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
         }
 
         @Test
         fun `should update behandlingsinformasjon`() {
             val expected = extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
-            opprettet.oppdaterBehandlingsinformasjon(expected)
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, expected)
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
@@ -119,33 +119,34 @@ internal class BehandlingTest {
                 )
             )
 
-            val oppdatert = opprettet.oppdaterBehandlingsinformasjon(expected)
+            val oppdatert = opprettet.oppdaterBehandlingsinformasjon(saksbehandler, expected).orNull()!!
 
             oppdatert.behandlingsinformasjon() shouldBe expected
         }
 
         @Test
         fun `transition to Vilkårsvurdert`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `transition to Avslått`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
             opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
         }
 
         @Test
         fun `dont transition if vilkårsvurdering not completed`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.status() shouldBe OPPRETTET
         }
 
         @Test
         fun `skal gi tidlig avslag om uførhet er ikke oppfylt`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 oppdatert = Behandlingsinformasjon(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
@@ -164,8 +165,9 @@ internal class BehandlingTest {
 
         @Test
         fun `skal gi tidlig avslag om flyktning er ikke oppfylt`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 oppdatert = Behandlingsinformasjon(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
@@ -184,8 +186,9 @@ internal class BehandlingTest {
 
         @Test
         fun `både uførhet og flyktning må vare vurdert innen tidlig avslag kan gis`() {
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 oppdatert = Behandlingsinformasjon(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
@@ -197,8 +200,9 @@ internal class BehandlingTest {
 
             opprettet.status() shouldBe OPPRETTET
 
-            opprettet.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
             opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 oppdatert = Behandlingsinformasjon(
                     flyktning = Behandlingsinformasjon.Flyktning(
                         Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
@@ -244,6 +248,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             vilkårsvurdert = createBehandling(id1, OPPRETTET)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -273,6 +278,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
             vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -306,7 +312,7 @@ internal class BehandlingTest {
                 uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
             )
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
-            vilkårsvurdert.oppdaterBehandlingsinformasjon(updatedUførhet)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
 
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
@@ -400,6 +406,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             vilkårsvurdert = createBehandling(id1, OPPRETTET)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(vilkårsvurdert).withVilkårAvslått()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_AVSLAG
@@ -417,6 +424,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne vilkårsvudere på nytt`() {
             vilkårsvurdert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             )
             vilkårsvurdert.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -451,6 +459,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             beregnet = createBehandling(id1, OPPRETTET)
             beregnet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
             beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
@@ -472,6 +481,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne vilkårsvudere på nytt og skal slette eksisterende beregning`() {
             beregnet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(beregnet)
             )
             beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -498,6 +508,7 @@ internal class BehandlingTest {
             fun beforeEach() {
                 beregnet = createBehandling(id1, OPPRETTET)
                 beregnet.oppdaterBehandlingsinformasjon(
+                    saksbehandler,
                     extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
                 )
                 val periode = Periode(
@@ -531,6 +542,7 @@ internal class BehandlingTest {
             @Test
             fun `skal kunne vilkårsvudere på nytt og skal slette eksisterende beregning`() {
                 beregnet.oppdaterBehandlingsinformasjon(
+                    saksbehandler,
                     extractBehandlingsinformasjon(beregnet)
                 )
                 beregnet.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -571,6 +583,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             simulert = createBehandling(id1, OPPRETTET)
             simulert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(simulert)
                     .withAlleVilkårOppfylt()
             )
@@ -597,7 +610,7 @@ internal class BehandlingTest {
         @Test
         fun `skal fjerne beregning hvis behandlingsinformasjon endres`() {
             simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
-            simulert.oppdaterBehandlingsinformasjon(simulert.behandlingsinformasjon())
+            simulert.oppdaterBehandlingsinformasjon(saksbehandler, simulert.behandlingsinformasjon())
 
             simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
             simulert.beregning() shouldBe null
@@ -606,6 +619,7 @@ internal class BehandlingTest {
         @Test
         fun `skal kunne vilkårsvurdere på nytt`() {
             simulert.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(simulert)
                     .withAlleVilkårOppfylt()
             )
@@ -636,6 +650,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             avslått = createBehandling(id1, OPPRETTET)
             avslått.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(avslått).withVilkårAvslått()
             )
             avslått.status() shouldBe VILKÅRSVURDERT_AVSLAG
@@ -643,7 +658,7 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            avslått.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(avslått).withAlleVilkårOppfylt())
+            avslått.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(avslått).withAlleVilkårOppfylt())
             avslått.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
@@ -666,6 +681,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             tilAttestering = createBehandling(id1, OPPRETTET)
             tilAttestering.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
             tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
@@ -714,6 +730,7 @@ internal class BehandlingTest {
         fun beforeEach() {
             tilAttestering = createBehandling(id1, OPPRETTET)
             tilAttestering.oppdaterBehandlingsinformasjon(
+                saksbehandler,
                 extractBehandlingsinformasjon(tilAttestering).withVilkårAvslått()
             )
             tilAttestering.sendTilAttestering(Saksbehandler("S123456"))

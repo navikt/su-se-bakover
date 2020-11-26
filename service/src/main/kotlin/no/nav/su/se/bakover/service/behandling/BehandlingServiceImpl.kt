@@ -113,11 +113,17 @@ internal class BehandlingServiceImpl(
     // TODO need to define responsibilities for domain and services.
     override fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
         behandlingsinformasjon: Behandlingsinformasjon
-    ): Behandling {
-        return behandlingRepo.hentBehandling(behandlingId)!!
-            .oppdaterBehandlingsinformasjon(behandlingsinformasjon) // invoke first to perform state-check
-            .let {
+    ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)
+            ?: return KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
+
+        return behandling.oppdaterBehandlingsinformasjon(saksbehandler, behandlingsinformasjon) // invoke first to perform state-check
+            .mapLeft {
+                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            }
+            .map {
                 behandlingRepo.slettBeregning(behandlingId)
                 behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it.behandlingsinformasjon())
                 behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
@@ -136,7 +142,12 @@ internal class BehandlingServiceImpl(
         val behandling = behandlingRepo.hentBehandling(behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        return behandling.opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag) // invoke first to perform state-check
+        return behandling.opprettBeregning(
+            saksbehandler,
+            fraOgMed,
+            tilOgMed,
+            fradrag
+        ) // invoke first to perform state-check
             .mapLeft {
                 KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
             }
@@ -437,7 +448,10 @@ internal class BehandlingServiceImpl(
             }
     }
 
-    private fun lagBrevRequest(person: Person, behandling: Behandling): Either<KunneIkkeLageBrevutkast, LagBrevRequest> {
+    private fun lagBrevRequest(
+        person: Person,
+        behandling: Behandling
+    ): Either<KunneIkkeLageBrevutkast, LagBrevRequest> {
         if (behandling.erInnvilget()) {
             return LagBrevRequest.InnvilgetVedtak(person, behandling).right()
         }

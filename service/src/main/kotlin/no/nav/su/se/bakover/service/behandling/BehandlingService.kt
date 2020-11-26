@@ -18,7 +18,11 @@ interface BehandlingService {
         begrunnelse: String
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling>
 
-    fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
+    fun oppdaterBehandlingsinformasjon(
+        behandlingId: UUID,
+        saksbehandler: Saksbehandler,
+        behandlingsinformasjon: Behandlingsinformasjon
+    ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling>
     fun opprettBeregning(
         behandlingId: UUID,
         saksbehandler: Saksbehandler,
@@ -92,6 +96,10 @@ sealed class KunneIkkeIverksetteBehandling {
     object FantIkkePerson : KunneIkkeIverksetteBehandling()
 }
 
+sealed class KunneIkkeOppdatereBehandlingsinformasjon {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOppdatereBehandlingsinformasjon()
+    object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
+}
 sealed class IverksattBehandling {
     abstract val behandling: Behandling
 

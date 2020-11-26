@@ -104,9 +104,8 @@ data class Behandling internal constructor(
         BehandlingsStatus.IVERKSATT_AVSLAG
     ).contains(status)
 
-    fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon): Behandling {
-        tilstand.oppdaterBehandlingsinformasjon(oppdatert)
-        return this
+    fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        return tilstand.oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
     }
 
     fun opprettBeregning(
@@ -163,7 +162,7 @@ data class Behandling internal constructor(
 
         val status: BehandlingsStatus
 
-        fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+        fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::oppdaterBehandlingsinformasjon.toString())
         }
 
@@ -228,7 +227,8 @@ data class Behandling internal constructor(
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
-        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
+        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             if (this@Behandling.beregning != null) {
                 this@Behandling.beregning = null
             }
@@ -240,14 +240,16 @@ data class Behandling internal constructor(
             } else if (behandlingsinformasjon.erAvslag()) {
                 nyTilstand(Vilkårsvurdert().Avslag())
             }
+            return this@Behandling.right()
         }
     }
 
     private open inner class Vilkårsvurdert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
-        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
-            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
+        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
+            return this@Behandling.right()
         }
 
         inner class Innvilget : Vilkårsvurdert() {
@@ -315,8 +317,8 @@ data class Behandling internal constructor(
             return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
-        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
-            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
+        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
         }
 
         override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
@@ -390,8 +392,8 @@ data class Behandling internal constructor(
             return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
-        override fun oppdaterBehandlingsinformasjon(oppdatert: Behandlingsinformasjon) {
-            nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(oppdatert)
+        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
         }
 
         override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {

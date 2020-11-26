@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
@@ -157,11 +158,12 @@ class AccessCheckProxy(
 
                 override fun oppdaterBehandlingsinformasjon(
                     behandlingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                     behandlingsinformasjon: Behandlingsinformasjon
-                ): Behandling {
+                ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.oppdaterBehandlingsinformasjon(behandlingId, behandlingsinformasjon)
+                    return services.behandling.oppdaterBehandlingsinformasjon(behandlingId, saksbehandler, behandlingsinformasjon)
                 }
 
                 override fun opprettBeregning(

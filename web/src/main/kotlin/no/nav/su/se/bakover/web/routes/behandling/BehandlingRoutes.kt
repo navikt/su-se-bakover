@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.Sim
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.FantIkkeBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
@@ -136,18 +137,20 @@ internal fun Route.behandlingRoutes(
                     },
                     ifRight = { body ->
                         call.audit("Oppdater behandlingsinformasjon for id: ${behandling.id}")
-                        if (body.isValid()) {
+                        behandlingService.oppdaterBehandlingsinformasjon(
+                            behandlingId = behandling.id,
+                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                            behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                        ).mapLeft {
+                            val resultat = when (it) {
+                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Data i behandlingsinformasjon er ugyldig")
+                                KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> BadRequest.message("Data i behandlingsinformasjon er ugyldig")
+                            }
+                            call.svar(resultat)
+                        }.map {
                             call.svar(
-                                OK.jsonBody(
-                                    behandlingService.oppdaterBehandlingsinformasjon(
-                                        behandlingId = behandling.id,
-                                        behandlingsinformasjon = behandlingsinformasjonFromJson(body)
-                                    )
-                                )
+                                OK.jsonBody(it)
                             )
-                        } else {
-                            // TODO (CHM): Her burde vi prøve å logge ut hvilken del av body som ikke er gyldig
-                            call.svar(BadRequest.message("Data i behandlingsinformasjon er ugyldig"))
                         }
                     }
                 )

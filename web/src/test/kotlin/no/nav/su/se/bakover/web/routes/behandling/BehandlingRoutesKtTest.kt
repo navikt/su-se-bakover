@@ -141,6 +141,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
@@ -184,6 +185,7 @@ internal class BehandlingRoutesKtTest {
             val objects = setup()
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
@@ -218,6 +220,7 @@ internal class BehandlingRoutesKtTest {
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
@@ -259,6 +262,7 @@ internal class BehandlingRoutesKtTest {
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
@@ -322,6 +326,7 @@ internal class BehandlingRoutesKtTest {
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
 
@@ -420,7 +425,7 @@ internal class BehandlingRoutesKtTest {
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            objects.behandling.oppdaterBehandlingsinformasjon(extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            objects.behandling.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
 
             defaultRequest(
                 HttpMethod.Post,
@@ -493,6 +498,7 @@ internal class BehandlingRoutesKtTest {
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
+                saksbehandler,
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
@@ -556,6 +562,7 @@ internal class BehandlingRoutesKtTest {
                 {
                     services.behandling.oppdaterBehandlingsinformasjon(
                         nySøknadsbehandling.id,
+                        saksbehandler,
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
@@ -674,6 +681,7 @@ internal class BehandlingRoutesKtTest {
                 {
                     services.behandling.oppdaterBehandlingsinformasjon(
                         nySøknadsbehandling.id,
+                        saksbehandler,
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
@@ -842,6 +850,7 @@ internal class BehandlingRoutesKtTest {
                 val objects = setup()
                 services.behandling.oppdaterBehandlingsinformasjon(
                     objects.nySøknadsbehandling.id,
+                    saksbehandler,
                     extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
                 )
                 services.behandling.opprettBeregning(
