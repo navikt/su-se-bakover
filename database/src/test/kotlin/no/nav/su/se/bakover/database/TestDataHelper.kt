@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import java.lang.RuntimeException
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -41,10 +42,11 @@ internal class TestDataHelper(
         val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
             søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
         }
-        val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId).also {
+        journalførtSøknad.medOppgave(oppgaveId).also {
             søknadRepo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
         }
-        return nySak.toSak().copy(søknader = listOf(journalførtSøknadMedOppgave))
+
+        return sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
     }
 
     internal fun insertSak(fnr: Fnr): NySak = SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {

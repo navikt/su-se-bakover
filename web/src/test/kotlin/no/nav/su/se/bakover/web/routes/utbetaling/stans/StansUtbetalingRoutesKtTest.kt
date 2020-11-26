@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -28,9 +29,11 @@ internal class StansUtbetalingRoutesKtTest {
 
     private val fnr = Fnr("12345678911")
     private val sakId: UUID = UUID.randomUUID()
+    private val saksnummer = Math.random().toLong()
     private val tidspunkt = Tidspunkt.EPOCH
     private val sak: Sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
         fnr = fnr,
         oppdrag = Oppdrag(

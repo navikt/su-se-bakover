@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -53,6 +54,7 @@ import java.util.UUID
 internal class LukkSøknadServiceImplTest {
     private val fixedEpochClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(2021)
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val nySøknadJournalpostId = JournalpostId("nySøknadJournalpostId")
@@ -78,6 +80,7 @@ internal class LukkSøknadServiceImplTest {
     )
     private val sak = Sak(
         id = sakId,
+        saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         søknader = emptyList(),

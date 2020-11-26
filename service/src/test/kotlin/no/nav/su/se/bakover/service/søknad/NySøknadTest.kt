@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -49,6 +50,7 @@ class NySøknadTest {
     private val sakId = UUID.randomUUID()
     private val sak: Sak = Sak(
         id = sakId,
+        saksnummer = Saksnummer(2021),
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         oppdrag = Oppdrag(
@@ -101,7 +103,7 @@ class NySøknadTest {
             on { person(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left()
+            on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left() doReturn sak.right()
             on { opprettSak(any()) }.doNothing()
         }
 
@@ -151,10 +153,11 @@ class NySøknadTest {
                             utbetalinger = emptyList()
                         )
                     ).also { nySak ->
-                        expected = nySak.toSak().søknader().first()
+                        expected = nySak.søknad
                     }
                 }
             )
+            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
         }
         verifyNoMoreInteractions(
@@ -170,7 +173,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor journalføring feiler`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }
@@ -249,7 +251,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }
@@ -345,7 +346,6 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgavekallet går bra`() {
-        val sak = sak.copy()
         val personOppslagMock: PersonOppslag = mock {
             on { person(any()) } doReturn person.right()
         }

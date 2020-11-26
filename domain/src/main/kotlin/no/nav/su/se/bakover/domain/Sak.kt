@@ -7,8 +7,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID
 
+data class Saksnummer(val nummer: Long)
 data class Sak(
     val id: UUID = UUID.randomUUID(),
+    val saksnummer: Saksnummer,
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
     private val søknader: List<Søknad> = emptyList(),
@@ -26,16 +28,7 @@ data class NySak(
     val fnr: Fnr,
     val søknad: Søknad.Ny,
     val oppdrag: Oppdrag
-) {
-    fun toSak() = Sak(
-        id = id,
-        opprettet = opprettet,
-        fnr = fnr,
-        søknader = listOf(søknad),
-        behandlinger = listOf(),
-        oppdrag = oppdrag
-    )
-}
+)
 
 class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),

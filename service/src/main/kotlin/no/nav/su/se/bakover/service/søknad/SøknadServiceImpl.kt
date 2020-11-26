@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -63,7 +64,8 @@ internal class SøknadServiceImpl(
                 val nySak = sakFactory.nySak(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
                     sakService.opprettSak(it)
                 }
-                Pair(nySak.toSak(), nySak.søknad)
+                val opprettetSak = sakService.hentSak(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                Pair(opprettetSak, nySak.søknad)
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")

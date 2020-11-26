@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknad
 
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.kotest.matchers.types.shouldNotBeTypeOf
@@ -8,6 +9,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -25,20 +27,22 @@ internal class SøknadPostgresRepoTest {
 
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = SøknadPostgresRepo(EmbeddedDatabase.instance())
+    private val søknadRepo = SøknadPostgresRepo(EmbeddedDatabase.instance())
+    private val sakRepo = SakPostgresRepo(EmbeddedDatabase.instance(), mock())
 
     @Test
     fun `opprett og hent søknad`() {
         withMigratedDb {
             EmbeddedDatabase.instance().withSession {
-                val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+                testDataHelper.insertSak(FNR)
+                val sak: Sak = sakRepo.hentSak(FNR)!!
                 val søknad: Søknad = Søknad.Ny(
                     sakId = sak.id,
                     id = UUID.randomUUID(),
                     søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                     opprettet = Tidspunkt.EPOCH,
-                ).also { repo.opprettSøknad(it) }
-                val hentet = repo.hentSøknad(søknad.id)
+                ).also { søknadRepo.opprettSøknad(it) }
+                val hentet = søknadRepo.hentSøknad(søknad.id)
 
                 søknad shouldBe hentet
             }
@@ -48,14 +52,15 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `nyopprettet søknad skal ikke være trukket`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.insertSak(FNR).toSak()
+            testDataHelper.insertSak(FNR)
+            val sak: Sak = sakRepo.hentSak(FNR)!!
             val søknad: Søknad = Søknad.Ny(
                 sakId = sak.id,
                 id = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 opprettet = Tidspunkt.EPOCH,
-            ).also { repo.opprettSøknad(it) }
-            val hentetSøknad: Søknad = repo.hentSøknad(søknad.id)!!
+            ).also { søknadRepo.opprettSøknad(it) }
+            val hentetSøknad: Søknad = søknadRepo.hentSøknad(søknad.id)!!
             hentetSøknad.id shouldBe søknad.id
             hentetSøknad.shouldNotBeTypeOf<Søknad.Lukket>()
         }
@@ -73,8 +78,8 @@ internal class SøknadPostgresRepoTest {
             val søknad: Søknad.Ny = nySak.søknad
             val saksbehandler = Saksbehandler("Z993156")
             val journalførtSøknadMedOppgave = søknad.journalfør(nySøknadJournalpostId).medOppgave(nySøknadOppgaveId)
-            repo.oppdaterOppgaveId(søknad.id, nySøknadOppgaveId)
-            repo.oppdaterjournalpostId(søknad.id, nySøknadJournalpostId)
+            søknadRepo.oppdaterOppgaveId(søknad.id, nySøknadOppgaveId)
+            søknadRepo.oppdaterjournalpostId(søknad.id, nySøknadJournalpostId)
             val lukketSøknad = journalførtSøknadMedOppgave
                 .lukk(
                     lukketAv = saksbehandler,
@@ -83,8 +88,8 @@ internal class SøknadPostgresRepoTest {
                 )
                 .medBrevbestillingId(lukketBrevbestillingId)
                 .medJournalpostId(lukketJournalpostId)
-            repo.oppdaterSøknad(lukketSøknad)
-            val hentetSøknad = repo.hentSøknad(nySak.søknad.id)!!
+            søknadRepo.oppdaterSøknad(lukketSøknad)
+            val hentetSøknad = søknadRepo.hentSøknad(nySak.søknad.id)!!
             hentetSøknad shouldBe lukketSøknad
         }
     }
@@ -93,7 +98,7 @@ internal class SøknadPostgresRepoTest {
     fun `søknad har ikke påbegynt behandling`() {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
-            repo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe false
+            søknadRepo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe false
         }
     }
 
@@ -102,7 +107,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             testDataHelper.insertBehandling(nySak.id, nySak.søknad)
-            repo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe true
+            søknadRepo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe true
         }
     }
 
@@ -111,7 +116,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb {
             val nySak: NySak = testDataHelper.insertSak(FNR)
             val journalpostId = JournalpostId("2")
-            repo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
+            søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
             EmbeddedDatabase.instance().withSession { session ->
                 "select journalpostId from søknad where id='${nySak.søknad.id}'".hentListe(
                     session = session
@@ -127,8 +132,8 @@ internal class SøknadPostgresRepoTest {
             val journalpostId = JournalpostId("j")
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR, oppgaveId, journalpostId)
             val søknadId = sak.søknader()[0].id
-            repo.oppdaterOppgaveId(søknadId, oppgaveId)
-            val hentetSøknad = repo.hentSøknad(søknadId)!!
+            søknadRepo.oppdaterOppgaveId(søknadId, oppgaveId)
+            val hentetSøknad = søknadRepo.hentSøknad(søknadId)!!
             hentetSøknad.shouldBeTypeOf<Søknad.Journalført.MedOppgave>()
             hentetSøknad.oppgaveId shouldBe oppgaveId
         }

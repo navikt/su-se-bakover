@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -224,6 +225,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         )
         val sak = Sak(
             fnr = FnrGenerator.random(),
+            saksnummer = Saksnummer(Math.random().toLong()),
             oppdrag = Oppdrag(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
@@ -21,8 +22,10 @@ internal class LukkSøknadErrorHandlerTest {
     @Test
     fun `mapping av lukket søknad til resultat`() {
         val sakId = UUID.randomUUID()
+        val saksnummer = Math.random().toLong()
         val sak = Sak(
             id = sakId,
+            saksnummer = Saksnummer(saksnummer),
             opprettet = Tidspunkt.EPOCH,
             fnr = Fnr("12345678901"),
             søknader = emptyList(),

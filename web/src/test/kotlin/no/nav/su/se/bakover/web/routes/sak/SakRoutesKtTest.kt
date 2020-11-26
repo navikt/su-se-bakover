@@ -36,9 +36,10 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            val opprettetSakId: Sak = SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
+            SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
                 repos.sak.opprettSak(it)
-            }.toSak()
+            }
+            val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01))!!
 
             defaultRequest(
                 Get,

@@ -31,6 +31,7 @@ class HentSøknadPdfTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn null
         }
+
         val pdfGeneratorMock = mock<PdfGenerator>()
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -65,6 +66,7 @@ class HentSøknadPdfTest {
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<SøknadInnhold>()) } doReturn ClientError(0, "").left()
         }
+
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = mock(),
@@ -104,6 +106,7 @@ class HentSøknadPdfTest {
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
         }
+
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = mock(),
