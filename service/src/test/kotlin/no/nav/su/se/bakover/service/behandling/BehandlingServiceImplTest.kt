@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -98,69 +98,7 @@ internal class BehandlingServiceImplTest {
 
     @Test
     fun `happy case`() {
-        val behandlingInformasjon = Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                uføregrad = 20,
-                forventetInntekt = 10
-            ),
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = null
-            ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = null
-            ),
-            formue = Behandlingsinformasjon.Formue(
-                status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0
-                ),
-                ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0
-                ),
-                begrunnelse = null
-            ),
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = null
-            ),
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                epsFnr = null,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = null
-            ),
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                fnr = Fnr("17087524256"),
-                navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
-                kjønn = null,
-                adressebeskyttelse = null,
-                skjermet = null
-            )
-        )
-
+        val behandlingInformasjon = behandlingsinformasjon
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn opprettetBehandling()
         }
