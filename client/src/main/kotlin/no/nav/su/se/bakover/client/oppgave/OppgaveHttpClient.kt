@@ -78,7 +78,7 @@ internal class OppgaveHttpClient(
             if (it.erFerdigstilt()) {
                 Unit.right()
             } else {
-                ferdigstillOppgave(oppgaveId.toString().toLong(), it.versjon).map { Unit }
+                lukkOppgave(it).map { }
             }
         }
     }
@@ -92,7 +92,9 @@ internal class OppgaveHttpClient(
             .responseString()
         return result.fold(
             { responseJson ->
+                println(responseJson)
                 val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
+                println(oppgave)
                 oppgave.right()
             },
             {
@@ -101,11 +103,10 @@ internal class OppgaveHttpClient(
         )
     }
 
-    private fun ferdigstillOppgave(
-        oppgaveId: Long,
-        versjon: Int
-    ): Either<KunneIkkeLukkeOppgave, FerdigstillResponse> {
-        val (_, response, result) = "$baseUrl$oppgavePath/$oppgaveId".httpPatch()
+    private fun lukkOppgave(
+        oppgave: OppgaveResponse
+    ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
+        val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -113,19 +114,20 @@ internal class OppgaveHttpClient(
             .body(
                 objectMapper.writeValueAsString(
                     EndreOppgaveRequest(
-                        id = oppgaveId,
-                        versjon = versjon,
+                        id = oppgave.id,
+                        versjon = oppgave.versjon,
+                        beskrivelse = "Lukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}",
                         status = "FERDIGSTILT"
                     )
                 )
-            ).responseString()
+            ).responseString().also { println(it) }
 
         return result.fold(
             { json ->
-                val loggmelding = "Endret oppgave $oppgaveId med versjon $versjon sin status til FERDIGSTILT"
+                val loggmelding = "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                 log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                 sikkerLogg.info("$loggmelding. Response-json: $json")
-                objectMapper.readValue(json, FerdigstillResponse::class.java).right()
+                objectMapper.readValue(json, LukkOppgaveResponse::class.java).right()
             },
             {
                 log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)

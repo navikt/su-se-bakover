@@ -9,7 +9,7 @@ internal data class OppgaveSøkResponse(
     val oppgaver: List<OppgaveSøkeResultat>
 )
 
-internal data class FerdigstillResponse(
+internal data class LukkOppgaveResponse(
     val id: Long,
     val versjon: Int,
     val status: String

@@ -250,6 +250,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "endretAvEnhetsnr": "1234",
                                       "opprettetAvEnhetsnr": "1234",
                                       "aktoerId": "1000012345678",
+                                      "saksreferanse": "$sakId",
                                       "tilordnetRessurs": "Z123456",
                                       "beskrivelse": "MASKERT",
                                       "tema": "SUP",
@@ -286,6 +287,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
+                              "beskrivelse": "Lukket av Supplerende Stønad\n\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -307,6 +309,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
+                              "beskrivelse": "Lukket av Supplerende Stønad\n\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
