@@ -1,10 +1,7 @@
-package no.nav.su.se.bakover.domain.hendelseslogg
+package no.nav.su.se.bakover.domain.hendelseslogg.hendelse
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListReader
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import org.junit.jupiter.api.Test
 
