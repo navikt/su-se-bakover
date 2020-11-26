@@ -42,11 +42,11 @@ internal class TestDataHelper(
         val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
             søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
         }
-        val journalførtSøknadMedOppgave = journalførtSøknad.medOppgave(oppgaveId).also {
+        journalførtSøknad.medOppgave(oppgaveId).also {
             søknadRepo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
         }
-        val sak = sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
-        return sak.copy(søknader = listOf(journalførtSøknadMedOppgave))
+
+        return sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
     }
 
     internal fun insertSak(fnr: Fnr): NySak = SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
