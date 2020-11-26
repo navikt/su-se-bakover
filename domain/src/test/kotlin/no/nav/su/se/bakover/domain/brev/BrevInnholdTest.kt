@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
@@ -18,30 +17,6 @@ internal class BrevInnholdTest {
         fødselsnummer = Fnr("12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
-    )
-
-    private val avslagsvedtak = BrevInnhold.AvslagsVedtak(
-        personalia = personalia,
-        avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
-        halvGrunnbeløp = 10,
-        harEktefelle = false,
-        beregning = BrevInnhold.Beregning(
-            ytelsePerMåned = 0,
-            satsbeløpPerMåned = 31.0,
-            epsFribeløp = 0.0,
-            fradrag = BrevInnhold.Beregning.Fradrag(
-                bruker = BrevInnhold.Beregning.FradragForBruker(
-                    fradrag = emptyList(),
-                    sum = 0.0,
-                    harBruktForventetInntektIStedetForArbeidsinntekt = false
-                ),
-                eps = BrevInnhold.Beregning.FradragForEps(
-                    fradrag = emptyList(),
-                    sum = 0.0
-                )
-            )
-        )
-
     )
 
     private val trukketSøknad = TrukketSøknadBrevInnhold(
@@ -160,43 +135,6 @@ internal class BrevInnholdTest {
                 }
             }
             """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, actualJson, true)
-    }
-
-    @Test
-    fun `jsonformat for avslagsvedtak stemmer overens med det som forventes av pdfgenerator`() {
-        val actualJson = objectMapper.writeValueAsString(avslagsvedtak)
-        //language=json
-        val expectedJson = """
-            {
-              "personalia": {
-                  "dato":"01.01.2020",
-                  "fødselsnummer": "12345678901",
-                  "fornavn": "Tore",
-                  "etternavn": "Strømøy"
-              },
-              "avslagsgrunner":["FLYKTNING"],
-              "harFlereAvslagsgrunner": false,
-              "halvGrunnbeløp": 10,
-              "harEktefelle": false,
-              "beregning": {
-                    "ytelsePerMåned": 0,
-                    "satsbeløpPerMåned": 31.0,
-                    "epsFribeløp": 0,
-                    "fradrag": {
-                        "bruker": {
-                            "fradrag": [],
-                            "sum": 0.0,
-                            "harBruktForventetInntektIStedetForArbeidsinntekt": false
-                        },
-                        "eps": {
-                            "fradrag": [],
-                            "sum": 0.0
-                        }
-                    }
-                }
-            }
-        """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 

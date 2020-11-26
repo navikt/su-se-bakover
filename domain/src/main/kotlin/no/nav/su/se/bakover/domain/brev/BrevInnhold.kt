@@ -13,7 +13,7 @@ abstract class BrevInnhold {
     @get:JsonIgnore
     abstract val brevTemplate: BrevTemplate
 
-    data class AvslagsVedtak(
+    data class AvslagsBrevInnhold(
         val personalia: Personalia,
         val avslagsgrunner: List<Avslagsgrunn>,
         val harEktefelle: Boolean,
@@ -23,6 +23,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val harFlereAvslagsgrunner: Boolean = avslagsgrunner.size > 1
+
+        @Suppress("unused")
+        @JsonInclude
+        val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
         override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
     }
@@ -73,4 +77,18 @@ abstract class BrevInnhold {
         val type: String,
         val beløp: Double
     )
+}
+
+fun List<Avslagsgrunn>.getDistinkteParagrafer() = this.map { it.getParagrafer() }.flatten().distinct().sorted()
+fun Avslagsgrunn.getParagrafer() = when (this) {
+    Avslagsgrunn.UFØRHET -> listOf(1, 2)
+    Avslagsgrunn.FLYKTNING -> listOf(1, 2)
+    Avslagsgrunn.OPPHOLDSTILLATELSE -> listOf(1, 2)
+    Avslagsgrunn.PERSONLIG_OPPMØTE -> listOf(17)
+    Avslagsgrunn.FORMUE -> listOf(8)
+    Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
+    Avslagsgrunn.FOR_HØY_INNTEKT -> listOf(5, 6, 7)
+    Avslagsgrunn.SU_UNDER_MINSTEGRENSE -> listOf(5, 6, 9)
+    Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER -> listOf(1, 2, 4)
+    Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON -> listOf(12)
 }
