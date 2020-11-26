@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.FantIkkePerson
@@ -176,7 +177,7 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
-            call.withBehandling(behandlingService) { behandling ->
+            call.withBehandlingId { behandlingId ->
                 Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig behandling-body: ", it)
@@ -184,23 +185,32 @@ internal fun Route.behandlingRoutes(
                     },
                     ifRight = { body ->
                         if (body.valid()) {
-                            call.svar(
-                                Created.jsonBody(
-                                    behandlingService.opprettBeregning(
-                                        behandlingId = behandling.id,
-                                        fraOgMed = body.fraOgMed,
-                                        tilOgMed = body.tilOgMed,
-                                        fradrag = body.fradrag.map {
-                                            it.toFradrag(
-                                                Periode(
-                                                    body.fraOgMed,
-                                                    body.tilOgMed
-                                                )
-                                            )
-                                        }
+                            behandlingService.opprettBeregning(
+                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                behandlingId = behandlingId,
+                                fraOgMed = body.fraOgMed,
+                                tilOgMed = body.tilOgMed,
+                                fradrag = body.fradrag.map {
+                                    it.toFradrag(
+                                        Periode(
+                                            body.fraOgMed,
+                                            body.tilOgMed
+                                        )
+                                    )
+                                }
+                            ).mapLeft {
+                                val resultat = when (it) {
+                                    KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                    KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være like")
+                                }
+                                call.svar(resultat)
+                            }.map {
+                                call.svar(
+                                    Created.jsonBody(
+                                        it
                                     )
                                 )
-                            )
+                            }
                         } else {
                             call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
                         }

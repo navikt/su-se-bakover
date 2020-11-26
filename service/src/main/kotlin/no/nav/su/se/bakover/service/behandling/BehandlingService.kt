@@ -21,10 +21,11 @@ interface BehandlingService {
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon): Behandling
     fun opprettBeregning(
         behandlingId: UUID,
+        saksbehandler: Saksbehandler,
         fraOgMed: LocalDate,
         tilOgMed: LocalDate,
         fradrag: List<Fradrag>
-    ): Behandling
+    ): Either<KunneIkkeBeregne, Behandling>
 
     fun simuler(behandlingId: UUID, saksbehandler: Saksbehandler): Either<KunneIkkeSimulereBehandling, Behandling>
     fun sendTilAttestering(
@@ -54,6 +55,11 @@ sealed class KunneIkkeOppretteSøknadsbehandling {
     object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
     object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
     object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
+}
+
+sealed class KunneIkkeBeregne {
+    object FantIkkeBehandling : KunneIkkeBeregne()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeBeregne()
 }
 
 sealed class KunneIkkeSimulereBehandling {

@@ -6,7 +6,24 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Bosituasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verdier
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -30,7 +47,7 @@ object BehandlingTestUtils {
         søknadRepo: SøknadRepo = mock(),
         personOppslag: PersonOppslag = mock(),
         brevService: BrevService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock()
+        behandlingMetrics: BehandlingMetrics = mock(),
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -42,5 +59,68 @@ object BehandlingTestUtils {
         brevService = brevService,
         behandlingMetrics = behandlingMetrics,
         clock = fixedClock
+    )
+
+    internal val behandlingsinformasjon = Behandlingsinformasjon(
+        uførhet = Uførhet(
+            status = VilkårOppfylt,
+            uføregrad = 20,
+            forventetInntekt = 10
+        ),
+        flyktning = Flyktning(
+            status = Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        lovligOpphold = LovligOpphold(
+            status = LovligOpphold.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        fastOppholdINorge = FastOppholdINorge(
+            status = FastOppholdINorge.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        oppholdIUtlandet = OppholdIUtlandet(
+            status = SkalHoldeSegINorge,
+            begrunnelse = null
+        ),
+        formue = Formue(
+            status = Formue.Status.VilkårOppfylt,
+            verdier = Verdier(
+                verdiIkkePrimærbolig = 0,
+                verdiKjøretøy = 0,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0
+            ),
+            ektefellesVerdier = Verdier(
+                verdiIkkePrimærbolig = 0,
+                verdiKjøretøy = 0,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0
+            ),
+            begrunnelse = null
+        ),
+        personligOppmøte = PersonligOppmøte(
+            status = MøttPersonlig,
+            begrunnelse = null
+        ),
+        bosituasjon = Bosituasjon(
+            epsFnr = null,
+            delerBolig = false,
+            ektemakeEllerSamboerUførFlyktning = false,
+            begrunnelse = null
+        ),
+        ektefelle = Ektefelle(
+            fnr = Fnr("17087524256"),
+            navn = Navn("fornavn", null, "etternavn"),
+            kjønn = null,
+            adressebeskyttelse = null,
+            skjermet = null
+        )
     )
 }
