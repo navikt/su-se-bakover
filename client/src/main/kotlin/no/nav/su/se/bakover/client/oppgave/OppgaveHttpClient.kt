@@ -9,7 +9,9 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
+import no.nav.su.se.bakover.client.oppdrag.toOppgaveFormat
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
@@ -65,7 +67,10 @@ internal class OppgaveHttpClient(
             },
             {
                 log.error("Feil i kallet mot oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                sikkerLogg.error(
+                    "Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}",
+                    it
+                )
                 KunneIkkeOppretteOppgave.left()
             }
         )
@@ -92,9 +97,7 @@ internal class OppgaveHttpClient(
             .responseString()
         return result.fold(
             { responseJson ->
-                println(responseJson)
                 val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
-                println(oppgave)
                 oppgave.right()
             },
             {
@@ -106,6 +109,8 @@ internal class OppgaveHttpClient(
     private fun lukkOppgave(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
+        val beskrivelse =
+            "--- ${now().toOppgaveFormat()} Fornavn Etternavn (Z12345, 4815) ---\n\nLukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}\n\n"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -116,25 +121,36 @@ internal class OppgaveHttpClient(
                     EndreOppgaveRequest(
                         id = oppgave.id,
                         versjon = oppgave.versjon,
-                        beskrivelse = "Lukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}",
+                        beskrivelse = oppgave.beskrivelse?.let { beskrivelse.plus(oppgave.beskrivelse) } ?: beskrivelse,
                         status = "FERDIGSTILT"
                     )
                 )
-            ).responseString().also { println(it) }
+            ).responseString()
 
         return result.fold(
             { json ->
-                val loggmelding = "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
+                val loggmelding =
+                    "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                 log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                 sikkerLogg.info("$loggmelding. Response-json: $json")
                 objectMapper.readValue(json, LukkOppgaveResponse::class.java).right()
             },
             {
-                log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error(
+                    "Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer",
+                    it
+                )
+                sikkerLogg.error(
+                    "Feil i kallet for å endre oppgave. status=${response.statusCode} body=${
+                        String(
+                            response.data
+                        )
+                    }", it
+                )
                 KunneIkkeLukkeOppgave.left()
             }
         )
     }
+
     private object KunneIkkeSøkeEtterOppgave
 }
