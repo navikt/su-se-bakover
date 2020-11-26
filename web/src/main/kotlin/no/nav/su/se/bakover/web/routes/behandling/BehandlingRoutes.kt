@@ -122,8 +122,12 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}") {
-            call.withBehandling(behandlingService) {
-                call.svar(OK.jsonBody(it))
+            call.withBehandlingId { behandlingId ->
+                behandlingService.hentBehandling(behandlingId).mapLeft {
+                    call.svar(NotFound.message("Fant ikke behandling for id $behandlingId"))
+                }.map {
+                    call.svar(OK.jsonBody(it))
+                }
             }
         }
     }
