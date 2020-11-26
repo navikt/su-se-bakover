@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -90,7 +92,14 @@ internal class SøknadServiceImpl(
     private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {
         // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
+        pdfGenerator.genererPdf(
+            SøknadPdfInnhold(
+                sakId = sakId,
+                navn = person.navn,
+                søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
+                søknadInnhold = søknad.søknadInnhold
+            )
+        ).fold(
             {
                 log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             },
@@ -139,12 +148,23 @@ internal class SøknadServiceImpl(
             log.error("Hent søknad-PDF: Fant ikke søknad")
             return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
         }
-            .flatMap {
-                pdfGenerator.genererPdf(it.søknadInnhold)
-                    .mapLeft {
+            .flatMap { søknad ->
+                personOppslag.person(søknad.søknadInnhold.personopplysninger.fnr).mapLeft {
+                    log.error("Hent søknad-PDF: Fant ikke person")
+                    return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
+                }.flatMap { person ->
+                    pdfGenerator.genererPdf(
+                        SøknadPdfInnhold(
+                            sakId = søknad.sakId,
+                            navn = person.navn,
+                            søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
+                            søknadInnhold = søknad.søknadInnhold
+                        )
+                    ).mapLeft {
                         log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
                         KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
                     }
+                }
             }
     }
 }

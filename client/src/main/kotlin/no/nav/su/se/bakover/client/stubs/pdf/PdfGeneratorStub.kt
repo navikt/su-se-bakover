@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 
 object PdfGeneratorStub : PdfGenerator {
 
@@ -25,7 +26,7 @@ object PdfGeneratorStub : PdfGenerator {
                 %EOF
         """.trimIndent()
 
-    override fun genererPdf(søknad: SøknadInnhold): Either<ClientError, ByteArray> {
+    override fun genererPdf(søknadPdfInnhold: SøknadPdfInnhold): Either<ClientError, ByteArray> {
         return pdf.toByteArray().right()
     }
 

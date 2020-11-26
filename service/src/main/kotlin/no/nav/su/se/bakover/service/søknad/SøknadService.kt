@@ -21,4 +21,5 @@ sealed class KunneIkkeOppretteSøknad {
 sealed class KunneIkkeLageSøknadPdf {
     object FantIkkeSøknad : KunneIkkeLageSøknadPdf()
     object KunneIkkeLagePdf : KunneIkkeLageSøknadPdf()
+    object FantIkkePerson : KunneIkkeLageSøknadPdf()
 }

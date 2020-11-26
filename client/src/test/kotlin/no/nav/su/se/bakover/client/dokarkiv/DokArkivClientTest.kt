@@ -11,22 +11,32 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
 import java.util.Base64
+import java.util.UUID
 
 internal class DokArkivClientTest : WiremockBase {
 
     private val sakId = "1"
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadPdfInnhold = SøknadPdfInnhold(
+        sakId = UUID.randomUUID(),
+        navn = Person.Navn("Tore", null, "Strømøy"),
+        søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo),
+        søknadInnhold = søknadInnhold
+    )
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
 
-    private val pdf = PdfGeneratorStub.genererPdf(søknadInnhold).orNull()!!
+    private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).orNull()!!
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")
@@ -74,8 +84,9 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-        Base64.getEncoder()
-            .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())}",
+            Base64.getEncoder()
+                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
+        }",
                               "variantformat": "ORIGINAL"
                             }
                           ]
@@ -133,6 +144,9 @@ internal class DokArkivClientTest : WiremockBase {
 
     @Test
     fun `should send pdf to journal`() {
+        val kek = objectMapper.writeValueAsString(søknadPdfInnhold)
+        println(kek)
+
         wireMockServer.stubFor(
             wiremockBuilder
                 .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest))
@@ -213,7 +227,7 @@ internal class DokArkivClientTest : WiremockBase {
                 brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 person = person,
                 pdf = pdf,
-                sakId = sakId
+                sakId = sakId.toString()
             )
         ) shouldBe(
             JournalpostId("1").right()
