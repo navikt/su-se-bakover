@@ -179,6 +179,7 @@ data class Behandlingsinformasjon(
     data class Formue(
         val status: Status,
         val verdier: Verdier?,
+        val borSøkerMedEPS: Boolean,
         val ektefellesVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {

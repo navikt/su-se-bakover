@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -38,7 +39,6 @@ internal class SøknadServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
-
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         val person = personOppslag.person(innsendtFødselsnummer).getOrHandle {
@@ -72,7 +72,7 @@ internal class SøknadServiceImpl(
                 val søknad = Søknad.Ny(
                     sakId = it.id,
                     id = UUID.randomUUID(),
-                    opprettet = it.opprettet,
+                    opprettet = Tidspunkt.now(),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
                 søknadRepo.opprettSøknad(søknad)

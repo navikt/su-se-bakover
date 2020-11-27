@@ -104,6 +104,7 @@ internal class BehandlingTest {
                 Behandlingsinformasjon(
                     formue = Behandlingsinformasjon.Formue(
                         status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+                        borSøkerMedEPS = false,
                         verdier = Behandlingsinformasjon.Formue.Verdier(
                             verdiIkkePrimærbolig = 52889,
                             verdiKjøretøy = 8823,

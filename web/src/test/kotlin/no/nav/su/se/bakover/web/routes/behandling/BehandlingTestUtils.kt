@@ -61,6 +61,7 @@ object BehandlingTestUtils {
             ),
             formue = Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+                borSøkerMedEPS = true,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = 0,
                     verdiKjøretøy = 0,
