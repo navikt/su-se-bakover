@@ -13,6 +13,8 @@ import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class OppgaveHttpClientTest : WiremockBase {
@@ -233,6 +236,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `lukker en oppgave med en oppgaveId`() {
         val oppgaveId = 12345L
         val versjon = 2
+        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(now())
         wireMockServer.stubFor(
             get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
@@ -252,7 +257,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "aktoerId": "1000012345678",
                                       "saksreferanse": "$sakId",
                                       "tilordnetRessurs": "Z123456",
-                                      "beskrivelse": "MASKERT",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
                                       "behandlingstype": "ae0245",
@@ -287,7 +291,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "Lukket av Supplerende Stønad\n\nSaksid : $sakId",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -309,7 +313,98 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "Lukket av Supplerende Stønad\n\nSaksid : $sakId",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
+                              "status": "FERDIGSTILT"
+                            }
+                        """.trimIndent()
+                    )
+                )
+        )
+    }
+
+    @Test
+    fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
+        val oppgaveId = 12345L
+        val versjon = 2
+        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(now())
+        wireMockServer.stubFor(
+            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                                      "id": $oppgaveId,
+                                      "tildeltEnhetsnr": "1234",
+                                      "endretAvEnhetsnr": "1234",
+                                      "opprettetAvEnhetsnr": "1234",
+                                      "aktoerId": "1000012345678",
+                                      "saksreferanse": "$sakId",
+                                      "tilordnetRessurs": "Z123456",
+                                      "beskrivelse": "--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                                      "tema": "SUP",
+                                      "oppgavetype": "BEH_SAK",
+                                      "behandlingstype": "ae0245",
+                                      "versjon": $versjon,
+                                      "opprettetAv": "supstonad",
+                                      "endretAv": "supstonad",
+                                      "prioritet": "NORM",
+                                      "status": "AAPNET",
+                                      "metadata": {},
+                                      "fristFerdigstillelse": "2019-01-04",
+                                      "aktivDato": "2019-01-04",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "endretTidspunkt": "2019-08-25T11:45:38+02:00"
+                                    }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        wireMockServer.stubFor(
+            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                              "id": $oppgaveId,
+                              "versjon": ${versjon + 1},
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "status": "FERDIGSTILT"
+                            }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        client.lukkOppgave(OppgaveId(oppgaveId.toString()))
+
+        WireMock.configureFor(wireMockServer.port())
+        verify(
+            1,
+            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+                .withRequestBody(
+                    equalToJson(
+                        //language=JSON
+                        """
+                            {
+                              "id": $oppgaveId,
+                              "versjon": $versjon,
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
