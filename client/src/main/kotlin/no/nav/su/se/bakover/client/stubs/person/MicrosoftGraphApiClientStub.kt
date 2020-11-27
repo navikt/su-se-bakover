@@ -19,4 +19,18 @@ class MicrosoftGraphApiClientStub :
             jobTitle = "jt"
         )
     )
+
+    override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> = Either.Right(
+        MicrosoftGraphResponse(
+            onPremisesSamAccountName = "navident",
+            displayName = "dn",
+            givenName = "gn",
+            mail = "m",
+            officeLocation = "ol",
+            surname = "sn",
+            userPrincipalName = "upn",
+            id = "id",
+            jobTitle = "jt"
+        )
+    )
 }

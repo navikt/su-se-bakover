@@ -25,6 +25,8 @@ object VedtakInnholdTestdataBuilder {
             satsbeløpPerMåned = 0.0,
             epsFribeløp = 0.0,
             fradrag = null
-        )
+        ),
+        saksbehandlerNavn = "Nei Josbø",
+        attestantNavn = "Morge R. R. Gartin"
     )
 }

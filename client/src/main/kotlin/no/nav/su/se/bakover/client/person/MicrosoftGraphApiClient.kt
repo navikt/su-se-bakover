@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.Either
 import arrow.core.flatMap
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.azure.OAuth
@@ -26,6 +27,7 @@ data class MicrosoftGraphResponse(
 
 interface MicrosoftGraphApiOppslag {
     fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse>
+    fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse>
 }
 
 class MicrosoftGraphApiClient(
@@ -33,26 +35,48 @@ class MicrosoftGraphApiClient(
 ) : MicrosoftGraphApiOppslag {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
+    private val graphApiAppId = "https://graph.microsoft.com"
+    private val userFields = "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
+    private val baseUrl = "https://graph.microsoft.com/v1.0"
+
     override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> {
         val onBehalfOfToken = Either.unsafeCatch {
-            exchange.onBehalfOFToken(userToken, "https://graph.microsoft.com")
+            exchange.onBehalfOFToken(userToken, graphApiAppId)
         }.let {
             when (it) {
                 is Either.Left -> return Either.left(it.a.message ?: "Feil ved henting av onBehalfOfToken")
                 is Either.Right -> it.b
             }
         }
-        val query =
-            "onPremisesSamAccountName,displayName,givenName,mail,officeLocation,surname,userPrincipalName,id,jobTitle"
-        val graphUrl = "https://graph.microsoft.com/v1.0/me"
 
-        val (_, _, result) = graphUrl.httpGet(
-            listOf(
-                "\$select" to query
+        return doReq(
+            "$baseUrl/me".httpGet(
+                listOf(
+                    "\$select" to userFields
+                )
             )
+                .authentication()
+                .bearer(onBehalfOfToken)
         )
-            .authentication()
-            .bearer(onBehalfOfToken)
+    }
+
+    override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+        val token = exchange.getSystemToken(graphApiAppId)
+
+        return doReq(
+            "$baseUrl/users".httpGet(
+                listOf(
+                    "\$select" to userFields,
+                    "\$filter" to "mailNickname eq '$navIdent'"
+                )
+            )
+                .authentication()
+                .bearer(token)
+        )
+    }
+
+    private fun doReq(req: Request): Either<String, MicrosoftGraphResponse> {
+        val (_, _, result) = req
             .header("Accept", "application/json")
             .responseString()
 

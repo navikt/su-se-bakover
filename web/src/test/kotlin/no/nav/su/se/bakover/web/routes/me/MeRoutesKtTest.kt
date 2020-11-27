@@ -39,6 +39,9 @@ internal class MeRoutesKtTest {
                 clients = TestClientsBuilder.testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
                         override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )

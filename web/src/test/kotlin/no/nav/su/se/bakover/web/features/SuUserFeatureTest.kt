@@ -37,6 +37,10 @@ internal class SuUserFeatureTest {
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
                         override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> =
                             Either.right(response)
+
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )
@@ -59,6 +63,9 @@ internal class SuUserFeatureTest {
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
                         override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )
@@ -80,6 +87,9 @@ internal class SuUserFeatureTest {
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
                         override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )

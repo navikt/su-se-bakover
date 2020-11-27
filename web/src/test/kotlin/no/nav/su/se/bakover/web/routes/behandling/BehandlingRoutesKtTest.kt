@@ -936,6 +936,21 @@ internal class BehandlingRoutesKtTest {
                         jobTitle = "jobTitle",
                     )
                 )
+
+            override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> =
+                Either.right(
+                    MicrosoftGraphResponse(
+                        onPremisesSamAccountName = navIdent,
+                        displayName = "displayName",
+                        givenName = "givenName",
+                        mail = "mail",
+                        officeLocation = "officeLocation",
+                        surname = "surname",
+                        userPrincipalName = "userPrincipalName",
+                        id = "id",
+                        jobTitle = "jobTitle",
+                    )
+                )
         }
 
     fun <R> withSetupForBruker(

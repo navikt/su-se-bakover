@@ -304,6 +304,7 @@ internal fun Route.behandlingRoutes(
                 is KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
                 is FantIkkePerson -> NotFound.message("Fant ikke person")
+                is KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
             }
         }
 
