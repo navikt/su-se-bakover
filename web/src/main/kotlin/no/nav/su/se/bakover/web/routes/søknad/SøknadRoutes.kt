@@ -61,9 +61,11 @@ internal fun Route.søknadRoutes(
                             call.svar(
                                 Resultat.json(
                                     Created,
-                                    serialize(hashMapOf(
-                                        "saksnummer" to saksnummer,
-                                        "søknad" to søknad.toJson())
+                                    serialize(
+                                        OpprettetSøknadJson(
+                                            saksnummer = saksnummer.nummer,
+                                            søknad = søknad.toJson()
+                                        )
                                     )
                                 )
                             )

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -239,7 +240,7 @@ class AccessCheckProxy(
                 }
             },
             søknad = object : SøknadService {
-                override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
+                override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
                     assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
                     return services.søknad.nySøknad(søknadInnhold)
