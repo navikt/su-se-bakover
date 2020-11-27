@@ -12,9 +12,9 @@ import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.oppdrag.toOppgaveFormat
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class OppgaveHttpClientTest : WiremockBase {
@@ -235,7 +236,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `lukker en oppgave med en oppgaveId`() {
         val oppgaveId = 12345L
         val versjon = 2
-        val oppgaveTidspunkt = now().toOppgaveFormat()
+        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(now())
         wireMockServer.stubFor(
             get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
@@ -289,7 +291,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "Lukket av Supplerende Stønad\n\nSaksid : $sakId",
+                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -311,7 +313,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt Fornavn Etternavn (Z12345, 4815) ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n",
+                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -324,7 +326,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
         val oppgaveId = 12345L
         val versjon = 2
-        val oppgaveTidspunkt = now().toOppgaveFormat()
+        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(now())
         wireMockServer.stubFor(
             get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
@@ -379,7 +382,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- $oppgaveTidspunkt Fornavn Etternavn (Z12345, 4815) ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
+                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -401,7 +404,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt Fornavn Etternavn (Z12345, 4815) ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
+                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()

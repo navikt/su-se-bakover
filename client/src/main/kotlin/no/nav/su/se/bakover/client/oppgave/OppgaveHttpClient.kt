@@ -9,11 +9,12 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.oppdrag.toOppgaveFormat
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -23,6 +24,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 internal const val oppgavePath = "/api/v1/oppgaver"
 
@@ -110,7 +112,7 @@ internal class OppgaveHttpClient(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
         val beskrivelse =
-            "--- ${now().toOppgaveFormat()} Fornavn Etternavn (Z12345, 4815) ---\n\nLukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}\n\n"
+            "--- ${now().toOppgaveFormat()} ---\n\nLukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -121,7 +123,7 @@ internal class OppgaveHttpClient(
                     EndreOppgaveRequest(
                         id = oppgave.id,
                         versjon = oppgave.versjon,
-                        beskrivelse = oppgave.beskrivelse?.let { beskrivelse.plus(oppgave.beskrivelse) } ?: beskrivelse,
+                        beskrivelse = oppgave.beskrivelse?.let { beskrivelse.plus("\n\n").plus(oppgave.beskrivelse) } ?: beskrivelse,
                         status = "FERDIGSTILT"
                     )
                 )
@@ -141,15 +143,17 @@ internal class OppgaveHttpClient(
                     it
                 )
                 sikkerLogg.error(
-                    "Feil i kallet for å endre oppgave. status=${response.statusCode} body=${
-                        String(
-                            response.data
-                        )
-                    }", it
+                    "Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}",
+                    it
                 )
                 KunneIkkeLukkeOppgave.left()
             }
         )
+    }
+
+    companion object {
+        private fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(this)
     }
 
     private object KunneIkkeSøkeEtterOppgave

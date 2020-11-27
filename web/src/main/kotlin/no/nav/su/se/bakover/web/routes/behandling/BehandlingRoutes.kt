@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.Kun
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.FantIkkeBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast.KunneIkkeLageBrev
@@ -240,6 +241,7 @@ internal fun Route.behandlingRoutes(
                             FantIkkeBehandling -> call.respond(NotFound.message("Fant ikke behandling"))
                             KunneIkkeLageBrev -> call.respond(InternalServerError.message("Kunne ikke lage brev"))
                             is KanIkkeLageBrevutkastForStatus -> call.respond(BadRequest.message("Kunne ikke lage brev for behandlingstatus: ${it.status}"))
+                            KunneIkkeLageBrevutkast.FantIkkePerson -> call.respond(NotFound.message("Fant ikke person"))
                         }
                     },
                     { call.respondBytes(it, ContentType.Application.Pdf) }

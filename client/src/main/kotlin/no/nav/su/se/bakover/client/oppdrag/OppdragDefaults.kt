@@ -38,6 +38,3 @@ fun Tidspunkt.toOppdragTimestamp() = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.
 
 fun Tidspunkt.toAvstemmingsdatoFormat() = DateTimeFormatter.ofPattern("yyyyMMddHH")
     .withZone(zoneIdOslo).format(this)
-
-fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-    .withZone(zoneIdOslo).format(this)
