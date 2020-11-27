@@ -56,10 +56,16 @@ internal fun Route.søknadRoutes(
                                 }
                             )
                         },
-                        { søknad ->
-                            call.audit("Lagrer søknad for person: $søknad")
+                        { (saksnummer, søknad) ->
+                            call.audit("Lagrer søknad for person: ${søknad.id}")
                             call.svar(
-                                Resultat.json(Created, serialize(søknad.toJson()))
+                                Resultat.json(
+                                    Created,
+                                    serialize(hashMapOf(
+                                        "saksnummer" to saksnummer,
+                                        "søknad" to søknad.toJson())
+                                    )
+                                )
                             )
                         }
                     )
@@ -125,10 +131,10 @@ internal fun Route.søknadRoutes(
                             when (it) {
                                 KunneIkkeLageBrevutkast.FantIkkeSøknad ->
                                     call.svar(NotFound.message("Fant Ikke Søknad"))
-                                KunneIkkeLageBrevutkast.KunneIkkeLageBrev ->
-                                    call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
                                 KunneIkkeLageBrevutkast.UkjentBrevtype ->
                                     call.svar(BadRequest.message("Kunne ikke lage brev for ukjent brevtype"))
+                                else ->
+                                    call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
                             }
                         },
                         { call.respondBytes(it, ContentType.Application.Pdf) }
