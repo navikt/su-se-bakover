@@ -112,7 +112,7 @@ internal class OppgaveHttpClient(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
         val beskrivelse =
-            "--- ${now().toOppgaveFormat()} ---\n\nLukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}"
+            "--- ${now().toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")

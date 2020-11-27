@@ -291,7 +291,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -313,7 +313,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -347,7 +347,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "aktoerId": "1000012345678",
                                       "saksreferanse": "$sakId",
                                       "tilordnetRessurs": "Z123456",
-                                      "beskrivelse": "--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
+                                      "beskrivelse": "--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
                                       "behandlingstype": "ae0245",
@@ -382,7 +382,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -404,7 +404,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt ---\n\nLukket av Supplerende Stønad\n\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\n\nforrige melding",
+                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
