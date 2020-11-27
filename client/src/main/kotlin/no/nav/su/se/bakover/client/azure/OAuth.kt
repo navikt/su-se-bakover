@@ -6,4 +6,5 @@ interface OAuth {
     fun onBehalfOFToken(originalToken: String, otherAppId: String): String
     fun refreshTokens(refreshToken: String): JSONObject
     fun jwkConfig(): JSONObject
+    fun getSystemToken(otherAppId: String): String
 }
