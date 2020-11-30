@@ -137,6 +137,7 @@ class HentSøknadPdfTest {
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold(
                         saksnummer = sak.saksnummer,
+                        søknadsId = søknad.id,
                         navn = person.navn,
                         søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                         søknadInnhold = søknadInnhold
@@ -186,6 +187,7 @@ class HentSøknadPdfTest {
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold(
                         saksnummer = sak.saksnummer,
+                        søknadsId = søknad.id,
                         navn = person.navn,
                         søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                         søknadInnhold = søknadInnhold

@@ -95,6 +95,7 @@ internal class SøknadServiceImpl(
         pdfGenerator.genererPdf(
             SøknadPdfInnhold(
                 saksnummer = saksnummer,
+                søknadsId = søknad.id,
                 navn = person.navn,
                 søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                 søknadInnhold = søknad.søknadInnhold
@@ -159,6 +160,7 @@ internal class SøknadServiceImpl(
                         pdfGenerator.genererPdf(
                             SøknadPdfInnhold(
                                 saksnummer = sak.saksnummer,
+                                søknadsId = søknad.id,
                                 navn = person.navn,
                                 søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                                 søknadInnhold = søknad.søknadInnhold

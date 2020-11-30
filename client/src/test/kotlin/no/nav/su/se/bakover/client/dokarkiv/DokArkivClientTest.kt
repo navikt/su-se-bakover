@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
 import java.util.Base64
+import java.util.UUID
 import kotlin.random.Random
 
 internal class DokArkivClientTest : WiremockBase {
@@ -32,6 +33,7 @@ internal class DokArkivClientTest : WiremockBase {
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadPdfInnhold = SøknadPdfInnhold(
         saksnummer = Saksnummer(Random.nextLong()),
+        søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo).ddMMyyyy(),
         søknadInnhold = søknadInnhold

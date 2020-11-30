@@ -15,12 +15,14 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import kotlin.random.Random
 
 internal class PdfClientTest : WiremockBase {
 
     private val søknadPdfInnhold = SøknadPdfInnhold(
         saksnummer = Saksnummer(Random.nextLong()),
+        søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo).ddMMyyyy(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build()
