@@ -94,7 +94,7 @@ internal fun Route.behandlingRoutes(
                 behandlingService.hentBehandling(behandlingId).mapLeft {
                     call.svar(NotFound.message("Fant ikke behandling med id $behandlingId"))
                 }.map {
-                    call.audit("Hentet behandling med i $behandlingId")
+                    call.audit("Hentet behandling med id $behandlingId")
                     call.svar(OK.jsonBody(it))
                 }
             }
@@ -219,7 +219,7 @@ internal fun Route.behandlingRoutes(
                         call.respond(resultat)
                     },
                     {
-                        call.audit("Hentet behandling med i $behandlingId")
+                        call.audit("Hentet behandling med id $behandlingId")
                         call.respondBytes(it, ContentType.Application.Pdf)
                     }
                 )
