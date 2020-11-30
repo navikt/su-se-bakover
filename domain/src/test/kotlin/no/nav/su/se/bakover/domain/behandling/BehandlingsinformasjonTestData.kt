@@ -105,7 +105,7 @@ object BehandlingsinformasjonTestData {
                 kontanter = 1500,
                 depositumskonto = 0
             ),
-            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+            epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 74500,
                 verdiKjøretøy = 0,
                 innskudd = 13000,
@@ -128,7 +128,7 @@ object BehandlingsinformasjonTestData {
                 kontanter = 1500,
                 depositumskonto = 0
             ),
-            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+            epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 74500,
                 verdiKjøretøy = 0,
                 innskudd = 13000,
@@ -143,7 +143,7 @@ object BehandlingsinformasjonTestData {
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = null
         )
     }
