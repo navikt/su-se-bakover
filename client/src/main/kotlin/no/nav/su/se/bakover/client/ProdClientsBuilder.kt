@@ -39,7 +39,12 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(Config.pdfgenUrl),
             dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),
-            oppgaveClient = OppgaveHttpClient(Config.oppgaveUrl, tokenOppslag, Clock.systemUTC()),
+            oppgaveClient = OppgaveHttpClient(
+                baseUrl = Config.oppgaveUrl,
+                exchange = oAuth,
+                oppgaveClientId = Config.oppgaveClientId,
+                clock = Clock.systemUTC(),
+            ),
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 SimuleringConfig(

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -9,10 +10,11 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
-import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
@@ -30,16 +32,31 @@ internal const val oppgavePath = "/api/v1/oppgaver"
 
 internal class OppgaveHttpClient(
     private val baseUrl: String,
-    private val tokenOppslag: TokenOppslag,
+    private val exchange: OAuth,
+    private val oppgaveClientId: String,
     private val clock: Clock
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
+    private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
+        return Either.unsafeCatch {
+            exchange.onBehalfOFToken(MDC.get("Authorization"), oppgaveClientId)
+        }.mapLeft {
+            log.error("OppgaveClient kunne ikke lage on behalfOfToken")
+            KunneIkkeLageToken
+        }.map {
+            it
+        }
+    }
+
     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         val aktivDato = LocalDate.now(clock)
+        val onBehalfOfToken = onBehalfOfToken().getOrElse {
+            return KunneIkkeOppretteOppgave.left()
+        }
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
@@ -92,8 +109,11 @@ internal class OppgaveHttpClient(
     }
 
     private fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
+        val onBehalfOfToken = onBehalfOfToken().getOrElse {
+            return KunneIkkeSøkeEtterOppgave.left()
+        }
         val (_, _, result) = "$baseUrl$oppgavePath/$oppgaveId".httpGet()
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
@@ -112,10 +132,13 @@ internal class OppgaveHttpClient(
     private fun lukkOppgave(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
+        val onBehalfOfToken = onBehalfOfToken().getOrElse {
+            return KunneIkkeLukkeOppgave.left()
+        }
         val beskrivelse =
             "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
@@ -158,4 +181,5 @@ internal class OppgaveHttpClient(
     }
 
     private object KunneIkkeSøkeEtterOppgave
+    private object KunneIkkeLageToken
 }
