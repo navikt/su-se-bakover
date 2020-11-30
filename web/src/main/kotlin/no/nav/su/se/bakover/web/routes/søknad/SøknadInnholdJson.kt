@@ -351,11 +351,11 @@ data class SøknadInnholdJson(
             pensjon = pensjon.toPensjonList()
         )
 
-        fun List<PensjonsOrdningBeløpJson>?.toPensjonList() = this?.map {
+        private fun List<PensjonsOrdningBeløpJson>?.toPensjonList() = this?.map {
             it.toPensjonsOrdningBeløp()
         }
 
-        fun List<TrygdeytelserIUtlandetJson>?.toTrygdeytelseList() = this?.map {
+        private fun List<TrygdeytelserIUtlandetJson>?.toTrygdeytelseList() = this?.map {
             it.toTrygdeytelseIUtlandet()
         }
 
@@ -371,11 +371,11 @@ data class SøknadInnholdJson(
                     pensjon = pensjon.toPensjonsOrdningBeløpListJson()
                 )
 
-            fun List<PensjonsOrdningBeløp>?.toPensjonsOrdningBeløpListJson() = this?.map {
+            private fun List<PensjonsOrdningBeløp>?.toPensjonsOrdningBeløpListJson() = this?.map {
                 it.toPensjonsOrdningBeløpJson()
             }
 
-            fun List<TrygdeytelseIUtlandet>?.toTrygdeytelseIUtlandetJson() = this?.map {
+            private fun List<TrygdeytelseIUtlandet>?.toTrygdeytelseIUtlandetJson() = this?.map {
                 it.toTrygdeytelseIUtlandetJson()
             }
         }
@@ -410,7 +410,7 @@ data class SøknadInnholdJson(
             kontanterBeløp = kontanterBeløp
         )
 
-        fun List<KjøretøyJson>?.toKjøretøyList() = this?.map {
+        private fun List<KjøretøyJson>?.toKjøretøyList() = this?.map {
             it.toKjøretøy()
         }
 
@@ -516,7 +516,7 @@ data class SøknadInnholdJson(
                 inntektOgPensjon = inntektOgPensjon.toInntektOgPensjonJson(),
                 formue = formue.toFormueJson(),
                 forNav = forNav.toForNavJson(),
-                ektefelle = ektefelle?.let { it.toJson() }
+                ektefelle = ektefelle?.toJson()
             )
     }
 }

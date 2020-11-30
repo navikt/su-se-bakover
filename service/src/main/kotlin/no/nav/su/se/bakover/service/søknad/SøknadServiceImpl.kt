@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -38,7 +39,7 @@ internal class SøknadServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
+    override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         val person = personOppslag.person(innsendtFødselsnummer).getOrHandle {
@@ -83,7 +84,7 @@ internal class SøknadServiceImpl(
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak.id, person, søknad)
-        return søknad.right()
+        return Pair(sak.saksnummer, søknad).right()
     }
 
     private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {

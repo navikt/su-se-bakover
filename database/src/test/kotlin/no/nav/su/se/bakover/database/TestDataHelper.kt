@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -73,4 +74,19 @@ internal class TestDataHelper(
         utbetalingRepo.opprettUtbetaling(utbetaling)
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
+
+    fun insertBehandlingsinformasjonMedEps(behandlingId: UUID, eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?): Behandlingsinformasjon =
+        Behandlingsinformasjon(
+            uførhet = null,
+            flyktning = null,
+            lovligOpphold = null,
+            fastOppholdINorge = null,
+            oppholdIUtlandet = null,
+            formue = null,
+            personligOppmøte = null,
+            bosituasjon = null,
+            ektefelle = eps
+        ).also {
+            behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it)
+        }
 }

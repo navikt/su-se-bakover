@@ -11,7 +11,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = null
         ).erGyldig() shouldBe true
     }
@@ -22,7 +22,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erGyldig() shouldBe false
     }
@@ -41,7 +41,7 @@ internal class FormueTest {
                 kontanter = 100,
                 depositumskonto = 100
             ),
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erGyldig() shouldBe false
     }
@@ -60,7 +60,7 @@ internal class FormueTest {
                 kontanter = 100,
                 depositumskonto = null
             ),
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erGyldig() shouldBe false
     }
@@ -79,7 +79,7 @@ internal class FormueTest {
                 kontanter = 100,
                 depositumskonto = 100
             ),
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erGyldig() shouldBe true
     }
@@ -98,7 +98,7 @@ internal class FormueTest {
                 kontanter = 100,
                 depositumskonto = 100
             ),
-            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
+            epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 100,
                 verdiKjøretøy = 100,
                 innskudd = 100,
@@ -117,7 +117,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).let {
             it.erVilkårOppfylt() shouldBe false
@@ -131,7 +131,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe true
     }
@@ -142,7 +142,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
 
@@ -150,7 +150,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
     }
@@ -161,7 +161,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe Avslagsgrunn.FORMUE
     }
@@ -172,7 +172,7 @@ internal class FormueTest {
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
             borSøkerMedEPS = false,
-            ektefellesVerdier = null,
+            epsVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe null
     }

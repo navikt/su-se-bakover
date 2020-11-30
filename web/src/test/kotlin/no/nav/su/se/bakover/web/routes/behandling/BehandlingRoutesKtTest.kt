@@ -399,8 +399,10 @@ internal class BehandlingRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Ugyldig body"
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Ugyldig body"
+                }
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -463,37 +465,26 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/missing/behandlinger/${objects.nySøknadsbehandling.id}/simuler",
-                listOf(Brukerrolle.Saksbehandler)
-            ) {}.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ikke en gyldig UUID"
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${objects.nySøknadsbehandling.id}/simuler",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Ugyldig kombinasjon av sak og behandling"
-            }
+
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler",
                 listOf(Brukerrolle.Saksbehandler)
             ) {}.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ikke en gyldig UUID"
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "ikke en gyldig UUID"
+                }
             }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain "Fant ikke behandling med behandlingId"
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.NotFound
+                    response.content shouldContain "Kunne ikke finne behandling"
+                }
             }
 
             services.behandling.oppdaterBehandlingsinformasjon(

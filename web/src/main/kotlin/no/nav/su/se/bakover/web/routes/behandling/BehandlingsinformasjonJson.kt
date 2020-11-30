@@ -91,15 +91,15 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                     kontanter = f.verdier?.kontanter,
                     depositumskonto = f.verdier?.depositumskonto
                 ),
-                ektefellesVerdier = b.ektefelle?.fnr?.let {
+                epsVerdier = b.ektefelle?.fnr?.let {
                     Behandlingsinformasjon.Formue.Verdier(
-                        verdiIkkePrimærbolig = f.ektefellesVerdier?.verdiIkkePrimærbolig,
-                        verdiKjøretøy = f.ektefellesVerdier?.verdiKjøretøy,
-                        innskudd = f.ektefellesVerdier?.innskudd,
-                        verdipapir = f.ektefellesVerdier?.verdipapir,
-                        pengerSkyldt = f.ektefellesVerdier?.pengerSkyldt,
-                        kontanter = f.ektefellesVerdier?.kontanter,
-                        depositumskonto = f.ektefellesVerdier?.depositumskonto
+                        verdiIkkePrimærbolig = f.epsVerdier?.verdiIkkePrimærbolig,
+                        verdiKjøretøy = f.epsVerdier?.verdiKjøretøy,
+                        innskudd = f.epsVerdier?.innskudd,
+                        verdipapir = f.epsVerdier?.verdipapir,
+                        pengerSkyldt = f.epsVerdier?.pengerSkyldt,
+                        kontanter = f.epsVerdier?.kontanter,
+                        depositumskonto = f.epsVerdier?.depositumskonto
                     )
                 },
                 begrunnelse = f.begrunnelse
@@ -166,7 +166,7 @@ internal fun Behandlingsinformasjon.Formue.toJson() =
         status = status.name,
         verdier = this.verdier?.toJson(),
         borSøkerMedEPS = this.borSøkerMedEPS,
-        ektefellesVerdier = this.ektefellesVerdier?.toJson(),
+        epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse
     )
 
@@ -264,7 +264,7 @@ data class FormueJson(
     val status: String,
     val verdier: VerdierJson?,
     val borSøkerMedEPS: Boolean,
-    val ektefellesVerdier: VerdierJson?,
+    val epsVerdier: VerdierJson?,
     val begrunnelse: String?
 )
 

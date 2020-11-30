@@ -63,7 +63,7 @@ internal class BehandlingJsonTest {
                         "kontanter": 0,
                         "depositumskonto": 0
                     },
-                    "ektefellesVerdier": {
+                    "epsVerdier": {
                         "verdiIkkePrimærbolig": 0,
                         "verdiKjøretøy": 0,
                         "innskudd": 0,

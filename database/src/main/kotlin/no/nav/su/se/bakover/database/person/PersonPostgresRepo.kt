@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.person
 
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import java.util.UUID
@@ -10,63 +10,98 @@ import javax.sql.DataSource
 internal class PersonPostgresRepo(
     private val dataSource: DataSource
 ) : PersonRepo {
-    override fun hentFnrForSak(sakId: UUID): Fnr? {
+    override fun hentFnrForSak(sakId: UUID): List<Fnr> {
         return dataSource.withSession { session ->
             """
-               SELECT fnr
+               SELECT
+                   sak.fnr søkersFnr,
+                   behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
                FROM sak
-               WHERE id=:sakId
+               LEFT JOIN behandling ON behandling.sakid = sak.id
+               WHERE sak.id=:sakId
 |           """
                 .trimMargin()
-                .hent(mapOf("sakId" to sakId), session) {
-                    Fnr(it.string("fnr"))
+                .hentListe(mapOf("sakId" to sakId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr")
+                    )
                 }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
         }
     }
 
-    override fun hentFnrForSøknad(søknadId: UUID): Fnr? {
+    override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
         return dataSource.withSession { session ->
             """
-                SELECT sak.fnr
+                SELECT
+                    sak.fnr søkersFnr,
+                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
                 FROM søknad
                 INNER JOIN sak ON søknad.sakid = sak.id
+                LEFT JOIN behandling ON behandling.sakid = sak.id
                 WHERE søknad.id=:soknadId
             """
                 .trimMargin()
-                .hent(mapOf("soknadId" to søknadId), session) {
-                    Fnr(it.string("fnr"))
+                .hentListe(mapOf("soknadId" to søknadId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr")
+                    )
                 }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
         }
     }
 
-    override fun hentFnrForBehandling(behandlingId: UUID): Fnr? {
+    override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
         return dataSource.withSession { session ->
             """
-               SELECT s.fnr
-               FROM behandling b
-               INNER JOIN sak s ON b.sakid = s.id
-               WHERE b.id=:behandlingId
+               SELECT
+                    sak.fnr søkersFnr,
+                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+               FROM behandling
+               INNER JOIN sak ON behandling.sakid = sak.id
+               WHERE behandling.id=:behandlingId
             """
                 .trimMargin()
-                .hent(mapOf("behandlingId" to behandlingId), session) {
-                    Fnr(it.string("fnr"))
+                .hentListe(mapOf("behandlingId" to behandlingId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr")
+                    )
                 }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
         }
     }
 
-    override fun hentFnrForUtbetaling(utbetalingId: UUID30): Fnr? {
+    override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
         return dataSource.withSession { session ->
             """
-               SELECT s.fnr
-               FROM utbetaling u
-               INNER JOIN oppdrag o ON u.oppdragid = o.id
-               INNER JOIN sak s ON o.sakid = s.id
-               WHERE u.id=:utbetalingId
+               SELECT
+                    sak.fnr søkersFnr,
+                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+               FROM utbetaling
+               INNER JOIN oppdrag ON utbetaling.oppdragid = oppdrag.id
+               INNER JOIN sak ON oppdrag.sakid = sak.id
+               LEFT JOIN behandling ON behandling.sakid = sak.id
+               WHERE utbetaling.id=:utbetalingId
             """
                 .trimMargin()
-                .hent(mapOf("utbetalingId" to utbetalingId), session) {
-                    Fnr(it.string("fnr"))
+                .hentListe(mapOf("utbetalingId" to utbetalingId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr")
+                    )
                 }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
         }
     }
 }

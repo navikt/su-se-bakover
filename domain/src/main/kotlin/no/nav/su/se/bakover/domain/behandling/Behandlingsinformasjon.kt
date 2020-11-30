@@ -22,7 +22,7 @@ data class Behandlingsinformasjon(
     val bosituasjon: Bosituasjon? = null,
     val ektefelle: EktefellePartnerSamboer? = null,
 ) {
-    private val alleVilkår = listOf(
+    private val vilkår = listOf(
         uførhet,
         flyktning,
         lovligOpphold,
@@ -30,9 +30,11 @@ data class Behandlingsinformasjon(
         oppholdIUtlandet,
         formue,
         personligOppmøte,
-        bosituasjon,
-        ektefelle,
     )
+    private val allBehandlingsinformasjon: List<Base?>
+        get() {
+            return vilkår + bosituasjon + ektefelle
+        }
 
     fun patch(
         b: Behandlingsinformasjon
@@ -48,11 +50,11 @@ data class Behandlingsinformasjon(
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
 
-    fun erInnvilget(): Boolean = alleVilkår.all { it !== null && it.erVilkårOppfylt() }
-    fun utledAvslagsgrunner(): List<Avslagsgrunn> = alleVilkår.mapNotNull { it?.avslagsgrunn() }
+    fun erInnvilget(): Boolean = allBehandlingsinformasjon.all { it !== null && it.erVilkårOppfylt() }
+    fun utledAvslagsgrunner(): List<Avslagsgrunn> = allBehandlingsinformasjon.mapNotNull { it?.avslagsgrunn() }
     fun erAvslag(): Boolean {
         return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() ||
-            (alleVilkår.all { it !== null } && alleVilkår.any { it!!.erVilkårIkkeOppfylt() })
+            (vilkår.all { it !== null } && vilkår.any { it!!.erVilkårIkkeOppfylt() })
     }
 
     private fun uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt(): Boolean {
@@ -180,7 +182,7 @@ data class Behandlingsinformasjon(
         val status: Status,
         val verdier: Verdier?,
         val borSøkerMedEPS: Boolean,
-        val ektefellesVerdier: Verdier?,
+        val epsVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {
         data class Verdier(
