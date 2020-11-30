@@ -11,7 +11,6 @@ import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -30,13 +30,14 @@ internal const val oppgavePath = "/api/v1/oppgaver"
 
 internal class OppgaveHttpClient(
     private val baseUrl: String,
-    private val tokenOppslag: TokenOppslag
+    private val tokenOppslag: TokenOppslag,
+    private val clock: Clock
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-        val aktivDato = LocalDate.now()
+        val aktivDato = LocalDate.now(clock)
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -112,7 +113,7 @@ internal class OppgaveHttpClient(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
         val beskrivelse =
-            "--- ${now().toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
+            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")

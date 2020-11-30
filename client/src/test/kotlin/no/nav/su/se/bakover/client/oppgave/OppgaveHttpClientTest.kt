@@ -13,7 +13,6 @@ import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
-import no.nav.su.se.bakover.common.Tidspunkt.Companion.now
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -22,15 +21,17 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 
 internal class OppgaveHttpClientTest : WiremockBase {
 
+    private val fixedEpochClock = Clock.fixed(Instant.EPOCH, zoneIdOslo)
     private val client = OppgaveHttpClient(
         wireMockServer.baseUrl(),
-        TokenOppslagStub
+        TokenOppslagStub,
+        fixedEpochClock
     )
 
     private val saksbehandler = Saksbehandler("Z12345")
@@ -52,8 +53,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
-                    "aktivDato": "${LocalDate.now()}",
-                    "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
+                    "aktivDato": "1970-01-01",
+                    "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -113,8 +114,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
-                    "aktivDato": "${LocalDate.now()}",
-                    "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
+                    "aktivDato": "1970-01-01",
+                    "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": "$saksbehandler"
                 }""".trimMargin()
@@ -175,8 +176,8 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "oppgavetype": "ATT",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
-                    "aktivDato": "${LocalDate.now()}",
-                    "fristFerdigstillelse": "${LocalDate.now().plusDays(30)}",
+                    "aktivDato": "1970-01-01",
+                    "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -236,8 +237,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `lukker en oppgave med en oppgaveId`() {
         val oppgaveId = 12345L
         val versjon = 2
-        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-            .withZone(zoneIdOslo).format(now())
         wireMockServer.stubFor(
             get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
@@ -291,7 +290,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -313,7 +312,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -326,8 +325,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `Legger til lukket beskrivelse på starten av beskrivelse`() {
         val oppgaveId = 12345L
         val versjon = 2
-        val oppgaveTidspunkt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-            .withZone(zoneIdOslo).format(now())
         wireMockServer.stubFor(
             get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
                 .withHeader("Authorization", WireMock.equalTo("Bearer token"))
@@ -382,7 +379,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -404,7 +401,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- $oppgaveTidspunkt - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()

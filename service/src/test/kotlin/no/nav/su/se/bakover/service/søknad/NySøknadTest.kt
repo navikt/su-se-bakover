@@ -169,7 +169,7 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        actual shouldBe expected.right()
+        actual shouldBe Pair(sak.saksnummer, expected).right()
     }
 
     @Test
@@ -251,8 +251,8 @@ class NySøknadTest {
             )
         }
 
-        nySøknad.map {
-            it.opprettet shouldNotBe sak.søknader().first().opprettet
+        nySøknad.map { (_, søknad) ->
+            søknad.opprettet shouldNotBe sak.søknader().first().opprettet
         }
     }
 
@@ -331,7 +331,7 @@ class NySøknadTest {
             oppgaveServiceMock
         )
 
-        actual shouldBe expectedSøknad.right()
+        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
     }
 
     @Test
@@ -426,7 +426,7 @@ class NySøknadTest {
             oppgaveServiceMock
         )
 
-        actual shouldBe expectedSøknad.right()
+        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
     }
 
     @Test
@@ -526,6 +526,6 @@ class NySøknadTest {
             oppgaveServiceMock
         )
 
-        actual shouldBe expectedSøknad.right()
+        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
     }
 }
