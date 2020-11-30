@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.OpprettVedtakService
 import java.time.Clock
 import java.time.ZoneOffset
 
@@ -47,6 +48,7 @@ object BehandlingTestUtils {
         søknadRepo: SøknadRepo = mock(),
         personOppslag: PersonOppslag = mock(),
         brevService: BrevService = mock(),
+        opprettVedtakService: OpprettVedtakService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
@@ -57,6 +59,7 @@ object BehandlingTestUtils {
         søknadRepo = søknadRepo,
         personOppslag = personOppslag,
         brevService = brevService,
+        opprettVedtakService = opprettVedtakService,
         behandlingMetrics = behandlingMetrics,
         clock = fixedClock
     )
