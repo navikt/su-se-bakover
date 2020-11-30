@@ -114,7 +114,7 @@ internal class BehandlingTest {
                             kontanter = 49,
                             depositumskonto = 315177
                         ),
-                        ektefellesVerdier = null,
+                        epsVerdier = null,
                         begrunnelse = null
                     )
                 )

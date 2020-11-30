@@ -182,7 +182,7 @@ data class Behandlingsinformasjon(
         val status: Status,
         val verdier: Verdier?,
         val borSøkerMedEPS: Boolean,
-        val ektefellesVerdier: Verdier?,
+        val epsVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {
         data class Verdier(
