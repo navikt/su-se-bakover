@@ -55,7 +55,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på sakId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSak(any()) } doReturn FnrGenerator.random()
+                    on { hentFnrForSak(any()) } doReturn listOf(FnrGenerator.random())
                 },
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
@@ -76,7 +76,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på søknadId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSøknad(any()) } doReturn FnrGenerator.random()
+                    on { hentFnrForSøknad(any()) } doReturn listOf(FnrGenerator.random())
                 },
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
@@ -97,7 +97,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på behandlingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForBehandling(any()) } doReturn FnrGenerator.random()
+                    on { hentFnrForBehandling(any()) } doReturn listOf(FnrGenerator.random())
                 },
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
@@ -118,7 +118,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på utbetalingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForUtbetaling(any()) } doReturn FnrGenerator.random()
+                    on { hentFnrForUtbetaling(any()) } doReturn listOf(FnrGenerator.random())
                 },
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
@@ -140,20 +140,20 @@ internal class AccessCheckProxyTest {
     inner class `Kaller videre til underliggende service` {
         private val proxied = AccessCheckProxy(
             personRepo = object : PersonRepo {
-                override fun hentFnrForSak(sakId: UUID): Fnr? {
-                    return FnrGenerator.random()
+                override fun hentFnrForSak(sakId: UUID): List<Fnr> {
+                    return listOf(FnrGenerator.random())
                 }
 
-                override fun hentFnrForSøknad(søknadId: UUID): Fnr? {
-                    return FnrGenerator.random()
+                override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
+                    return listOf(FnrGenerator.random())
                 }
 
-                override fun hentFnrForBehandling(behandlingId: UUID): Fnr? {
-                    return FnrGenerator.random()
+                override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
+                    return listOf(FnrGenerator.random())
                 }
 
-                override fun hentFnrForUtbetaling(utbetalingId: UUID30): Fnr? {
-                    return FnrGenerator.random()
+                override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
+                    return listOf(FnrGenerator.random())
                 }
             },
             clients = StubClientsBuilder.build()

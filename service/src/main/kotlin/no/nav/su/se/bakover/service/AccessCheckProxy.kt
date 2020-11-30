@@ -308,31 +308,23 @@ class AccessCheckProxy(
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
-        val fnr = personRepo.hentFnrForSak(sakId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForSak(sakId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilSøknad(søknadId: UUID) {
-        val fnr = personRepo.hentFnrForSøknad(søknadId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForSøknad(søknadId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilBehandling(behandlingId: UUID) {
-        val fnr = personRepo.hentFnrForBehandling(behandlingId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForBehandling(behandlingId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
-        val fnr = personRepo.hentFnrForUtbetaling(utbetalingId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForUtbetaling(utbetalingId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 }
 
