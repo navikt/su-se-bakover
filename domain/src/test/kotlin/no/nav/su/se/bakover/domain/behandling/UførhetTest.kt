@@ -11,7 +11,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = null,
-            forventetInntekt = 150
+            forventetInntekt = 150,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -20,7 +21,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = 10,
-            forventetInntekt = null
+            forventetInntekt = null,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -29,7 +31,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = 10,
-            forventetInntekt = 150
+            forventetInntekt = 150,
+            begrunnelse = null,
         ).erGyldig() shouldBe true
     }
 
@@ -38,7 +41,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = 10,
-            forventetInntekt = null
+            forventetInntekt = null,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -47,7 +51,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = null,
-            forventetInntekt = 1500
+            forventetInntekt = 1500,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -56,7 +61,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = null,
-            forventetInntekt = null
+            forventetInntekt = null,
+            begrunnelse = null,
         ).erGyldig() shouldBe true
     }
 
@@ -65,7 +71,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = null,
-            forventetInntekt = 206
+            forventetInntekt = 206,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -74,7 +81,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 150,
-            forventetInntekt = null
+            forventetInntekt = null,
+            begrunnelse = null,
         ).erGyldig() shouldBe false
     }
 
@@ -83,7 +91,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 150,
-            forventetInntekt = 512
+            forventetInntekt = 512,
+            begrunnelse = null,
         ).erGyldig() shouldBe true
     }
 
@@ -92,7 +101,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).let {
             it.erVilkårOppfylt() shouldBe false
             it.erVilkårIkkeOppfylt() shouldBe false
@@ -104,7 +114,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).erVilkårOppfylt() shouldBe true
     }
 
@@ -113,7 +124,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).erVilkårOppfylt() shouldBe false
     }
 
@@ -122,7 +134,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).erVilkårOppfylt() shouldBe false
     }
 
@@ -131,7 +144,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).avslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
     }
 
@@ -140,7 +154,8 @@ internal class UførhetTest {
         Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = 100,
-            forventetInntekt = 100
+            forventetInntekt = 100,
+            begrunnelse = null,
         ).avslagsgrunn() shouldBe null
     }
 }
