@@ -12,16 +12,18 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
 import java.util.Base64
-import java.util.UUID
+import kotlin.random.Random
 
 internal class DokArkivClientTest : WiremockBase {
 
@@ -29,9 +31,9 @@ internal class DokArkivClientTest : WiremockBase {
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadPdfInnhold = SøknadPdfInnhold(
-        sakId = UUID.randomUUID(),
+        saksnummer = Saksnummer(Random.nextLong()),
         navn = Person.Navn("Tore", null, "Strømøy"),
-        søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo),
+        søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo).ddMMyyyy(),
         søknadInnhold = søknadInnhold
     )
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
@@ -84,8 +86,8 @@ internal class DokArkivClientTest : WiremockBase {
                             {
                               "filtype": "JSON",
                               "fysiskDokument": "${
-            Base64.getEncoder()
-                .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
+        Base64.getEncoder()
+            .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray())
         }",
                               "variantformat": "ORIGINAL"
                             }

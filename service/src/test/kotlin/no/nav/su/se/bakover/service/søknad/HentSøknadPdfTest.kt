@@ -12,22 +12,72 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
+import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 class HentSøknadPdfTest {
 
+    private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
+    private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknad = Søknad.Ny(
+        id = søknadId,
+        opprettet = Tidspunkt.EPOCH,
+        sakId = sakId,
+        søknadInnhold = søknadInnhold,
+    )
+
+    private val sak = Sak(
+        id = sakId,
+        saksnummer = Saksnummer(2021),
+        opprettet = Tidspunkt.EPOCH,
+        fnr = Fnr(fnr = "12345678901"),
+        søknader = listOf(søknad),
+        oppdrag = Oppdrag(
+            id = UUID30.randomUUID(),
+            opprettet = Tidspunkt.EPOCH,
+            sakId = sakId,
+            utbetalinger = listOf()
+        )
+    )
+    private val person = Person(
+        ident = Ident(
+            fnr = Fnr(fnr = "12345678901"),
+            aktørId = AktørId(aktørId = "1234")
+        ),
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        telefonnummer = null,
+        adresse = listOf(),
+        statsborgerskap = null,
+        kjønn = null,
+        adressebeskyttelse = null,
+        skjermet = null,
+        kontaktinfo = null,
+        vergemål = null,
+        fullmakt = null
+    )
+
     @Test
     fun `fant ikke søknad`() {
-
-        val søknadId = UUID.randomUUID()
-
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn null
         }
@@ -52,28 +102,26 @@ class HentSøknadPdfTest {
 
     @Test
     fun `kunne ikke generere PDF`() {
-        val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
-        val søknadId = UUID.randomUUID()
-        val søknad = Søknad.Ny(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
-            sakId = UUID.randomUUID(),
-            søknadInnhold = søknadInnhold,
-        )
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn søknad
         }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn ClientError(0, "").left()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
         }
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = mock(),
+            sakService = sakServiceMock,
             sakFactory = mock(),
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = mock(),
-            personOppslag = mock(),
+            personOppslag = personOppslagMock,
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
@@ -81,49 +129,69 @@ class HentSøknadPdfTest {
         val actual = søknadService.hentSøknadPdf(søknadId)
         actual shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
 
-        inOrder(søknadRepoMock, pdfGeneratorMock) {
+        inOrder(søknadRepoMock, sakServiceMock, personOppslagMock, pdfGeneratorMock) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
+            verify(personOppslagMock).person(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        navn = person.navn,
+                        søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
+                        søknadInnhold = søknadInnhold
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(søknadRepoMock, pdfGeneratorMock)
     }
 
     @Test
     fun `henter PDF`() {
-        val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
-        val søknadId = UUID.randomUUID()
-        val søknad = Søknad.Ny(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
-            sakId = UUID.randomUUID(),
-            søknadInnhold = søknadInnhold,
-        )
+        val pdf = "".toByteArray(StandardCharsets.UTF_8)
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn søknad
         }
-        val pdf = "".toByteArray(StandardCharsets.UTF_8)
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+        val personOppslagMock = mock<PersonOppslag> {
+            on { person(any()) } doReturn person.right()
+        }
         val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
-            sakService = mock(),
+            sakService = sakServiceMock,
             sakFactory = mock(),
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = mock(),
-            personOppslag = mock(),
+            personOppslag = personOppslagMock,
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
 
         val actual = søknadService.hentSøknadPdf(søknadId)
         actual shouldBe pdf.right()
-        inOrder(søknadRepoMock, pdfGeneratorMock) {
+        inOrder(søknadRepoMock, sakServiceMock, personOppslagMock, pdfGeneratorMock) {
 
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
+            verify(personOppslagMock).person(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        navn = person.navn,
+                        søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
+                        søknadInnhold = søknadInnhold
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(søknadRepoMock, pdfGeneratorMock)
     }

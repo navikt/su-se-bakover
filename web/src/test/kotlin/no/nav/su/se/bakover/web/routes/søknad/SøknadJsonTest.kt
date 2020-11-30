@@ -116,6 +116,7 @@ internal class SøknadJsonTest {
                 ]
             },
             "formue":{
+                "eierBolig": true,
                 "borIBolig":false,
                 "verdiPåBolig":600000,
                 "boligBrukesTil":"Mine barn bor der",
@@ -140,6 +141,7 @@ internal class SøknadJsonTest {
             },
             "ektefelle": {
                 "formue": {
+                "eierBolig": true,
                 "borIBolig":false,
                 "verdiPåBolig": 0,
                 "boligBrukesTil":"",

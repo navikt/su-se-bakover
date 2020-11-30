@@ -143,7 +143,7 @@ data class InntektOgPensjon(
     val pensjon: List<PensjonsOrdningBeløp>? = null
 )
 
-data class  Formue(
+data class Formue(
     val eierBolig: Boolean,
     val borIBolig: Boolean? = null,
     val verdiPåBolig: Number? = null,
