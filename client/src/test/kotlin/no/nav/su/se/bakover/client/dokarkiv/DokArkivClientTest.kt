@@ -148,9 +148,6 @@ internal class DokArkivClientTest : WiremockBase {
 
     @Test
     fun `should send pdf to journal`() {
-        val kek = objectMapper.writeValueAsString(søknadPdfInnhold)
-        println(kek)
-
         wireMockServer.stubFor(
             wiremockBuilder
                 .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest))
