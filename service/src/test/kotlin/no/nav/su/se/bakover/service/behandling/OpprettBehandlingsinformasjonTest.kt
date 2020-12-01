@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -84,7 +85,7 @@ internal class OpprettBehandlingsinformasjonTest {
         val behandlingInformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestant = Attestant(saksbehandler.navIdent))
+            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestering = Attestering(Attestant(saksbehandler.navIdent)))
         }
 
         val response = BehandlingTestUtils.createService(

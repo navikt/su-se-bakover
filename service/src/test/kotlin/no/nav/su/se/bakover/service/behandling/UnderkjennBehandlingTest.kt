@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -50,7 +51,7 @@ class UnderkjennBehandlingTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val begrunnelse = "begrunnelse"
-    private val attestant = NavIdentBruker.Attestant("a")
+    private val attestant = NavIdentBruker.Attestant("a") // TODO ai: make moar smuuud
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
     private val beregning = TestBeregning
@@ -78,7 +79,7 @@ class UnderkjennBehandlingTest {
         fnr = fnr,
         simulering = simulering,
         oppgaveId = oppgaveId,
-        attestant = null,
+        attestering = null,
         saksbehandler = saksbehandler
     )
 
@@ -342,7 +343,7 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestant = attestant
+            attestering = Attestering(attestant)
         ).right()
 
         inOrder(
@@ -362,7 +363,7 @@ class UnderkjennBehandlingTest {
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
             verify(behandlingRepoMock).oppdaterAttestering(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                attestering = argThat { it shouldBe attestant }
+                attestering = argThat { it shouldBe Attestering(attestant) }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -435,7 +436,7 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestant = attestant
+            attestering = Attestering(attestant)
         ).right()
 
         inOrder(
@@ -456,7 +457,7 @@ class UnderkjennBehandlingTest {
 
             verify(behandlingRepoMock).oppdaterAttestering(
                 argThat { it shouldBe behandling.id },
-                argThat { it shouldBe attestant }
+                argThat { it shouldBe Attestering(attestant) }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },

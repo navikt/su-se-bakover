@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -257,7 +258,7 @@ internal class IverksettBehandlingTest {
                 behandlingId = argThat { it shouldBe behandling.id },
                 journalpostId = argThat { it shouldBe journalpostId }
             )
-            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -435,7 +436,7 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering },
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
@@ -526,7 +527,7 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering }
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET

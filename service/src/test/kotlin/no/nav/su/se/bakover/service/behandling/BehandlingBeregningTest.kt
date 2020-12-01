@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -112,7 +113,7 @@ class BehandlingBeregningTest {
     @Test
     fun `attestant og saksbehandler kan ikke være like ved opprettelse av beregning`() {
         val behandling = vilkårsvurdertBehandling().copy(
-            attestant = NavIdentBruker.Attestant(saksbehandler.navIdent)
+            attestering = Attestering(NavIdentBruker.Attestant(saksbehandler.navIdent))
         )
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling.copy()

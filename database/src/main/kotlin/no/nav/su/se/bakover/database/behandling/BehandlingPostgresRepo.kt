@@ -138,10 +138,10 @@ internal class BehandlingPostgresRepo(
 
     override fun oppdaterAttestering(behandlingId: UUID, attestering: Attestering) {
         dataSource.withSession { session ->
-            "update behandling set attestant = :attestant where id=:id".oppdatering(
+            "update behandling set attestering = to_json(:attestering::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to behandlingId,
-                    "attestant" to attestering.attestant.navIdent
+                    "attestering" to objectMapper.writeValueAsString(attestering)
                 ),
                 session
             )
