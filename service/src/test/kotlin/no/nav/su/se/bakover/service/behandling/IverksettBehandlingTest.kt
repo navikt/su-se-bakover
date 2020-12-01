@@ -239,14 +239,16 @@ internal class IverksettBehandlingTest {
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe AvslagBrevRequest(
-                        person,
-                        Avslag(
+                        person = person,
+                        avslag = Avslag(
                             opprettet = tidspunkt,
                             avslagsgrunner = listOf(),
                             harEktefelle = false,
                             beregning = beregning
 
-                        )
+                        ),
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
                 argThat { it shouldBe behandling.sakId }
@@ -364,14 +366,15 @@ internal class IverksettBehandlingTest {
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe AvslagBrevRequest(
-                        person,
-                        Avslag(
+                        person = person,
+                        avslag = Avslag(
                             opprettet = tidspunkt,
                             avslagsgrunner = listOf(),
                             harEktefelle = false,
                             beregning = beregning
-
-                        )
+                        ),
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
                 sakId = argThat { it shouldBe behandling.sakId }
@@ -438,7 +441,14 @@ internal class IverksettBehandlingTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(brevServiceMock).journalførBrev(
-                request = argThat { it shouldBe LagBrevRequest.InnvilgetVedtak(person, behandling, "heisann", "heisann") },
+                request = argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person,
+                        behandling = behandling,
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
+                    )
+                },
                 sakId = argThat { it shouldBe behandling.sakId }
             )
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
@@ -523,7 +533,12 @@ internal class IverksettBehandlingTest {
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
             verify(brevServiceMock).journalførBrev(
-                LagBrevRequest.InnvilgetVedtak(person, behandling, "heisann", "heisann"),
+                LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    behandling = behandling,
+                    attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                    saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
+                ),
                 behandling.sakId
             )
 

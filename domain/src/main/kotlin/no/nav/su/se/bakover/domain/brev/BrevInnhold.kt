@@ -18,7 +18,9 @@ abstract class BrevInnhold {
         val avslagsgrunner: List<Avslagsgrunn>,
         val harEktefelle: Boolean,
         val halvGrunnbeløp: Int,
-        val beregning: Beregning?
+        val beregning: Beregning?,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
