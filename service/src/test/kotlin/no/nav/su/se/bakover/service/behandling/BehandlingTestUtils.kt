@@ -133,9 +133,9 @@ object BehandlingTestUtils {
     )
 
     internal object microsoftGraphMock {
-        private val response = MicrosoftGraphResponse(
+        val response = MicrosoftGraphResponse(
             onPremisesSamAccountName = "",
-            displayName = "heisann",
+            displayName = "Nav Navesen",
             givenName = "",
             mail = "",
             officeLocation = "",

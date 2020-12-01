@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -38,8 +39,8 @@ internal class MeRoutesKtTest {
             testSusebakover(
                 clients = TestClientsBuilder.testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
-                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<String, MicrosoftGraphResponse> {
+                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
                             TODO("Not yet implemented")
                         }
                     }
