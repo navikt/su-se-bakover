@@ -4,13 +4,13 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 
 data class Attestering(
     val attestant: NavIdentBruker.Attestant,
-    val underkjennelsesGrunn: UnderkjennelsesGrunn? = null,
+    val underkjennelse: Underkjennelse? = null,
 ) {
-    data class UnderkjennelsesGrunn(
-        val grunn: UnderkjentGrunn,
-        val kommentar: String?
+    data class Underkjennelse(
+        val grunn: Grunn,
+        val kommentar: String
     ) {
-        enum class UnderkjentGrunn {
+        enum class Grunn {
             INNGANGSVILKÅRENE_ER_FEILVURDERT,
             BEREGNINGEN_ER_FEIL,
             DOKUMENTASJON_MANGLER_VEDTAKSBREVET_ER_FEIL,

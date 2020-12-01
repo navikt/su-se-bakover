@@ -64,13 +64,13 @@ internal class BehandlingServiceImpl(
     override fun underkjenn(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        begrunnelse: String
+        underkjennelse: Attestering.Underkjennelse
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
             log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
-            behandling.underkjenn(begrunnelse, attestant)
+            behandling.underkjenn(underkjennelse, attestant)
                 .mapLeft {
                     log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson

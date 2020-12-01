@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -316,9 +317,10 @@ internal fun Route.behandlingRoutes(
         }
     }
     data class UnderkjennBody(
-        val begrunnelse: String
+        val grunn: String,
+        val kommentar: String
     ) {
-        fun valid() = begrunnelse.isNotBlank()
+        fun valid() = enumContains<Attestering.Underkjennelse.Grunn>(grunn) && kommentar.isNotBlank()
     }
 
     authorize(Brukerrolle.Attestant) {
@@ -336,7 +338,10 @@ internal fun Route.behandlingRoutes(
                             behandlingService.underkjenn(
                                 behandlingId = behandlingId,
                                 attestant = Attestant(navIdent),
-                                begrunnelse = body.begrunnelse
+                                underkjennelse = Attestering.Underkjennelse(
+                                    grunn = Attestering.Underkjennelse.Grunn.valueOf(body.grunn),
+                                    kommentar = body.kommentar
+                                )
                             ).fold(
                                 ifLeft = {
                                     val resultat = when (it) {

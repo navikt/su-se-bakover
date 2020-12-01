@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
@@ -699,7 +700,13 @@ internal class BehandlingTest {
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
-            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+            tilAttestering.underkjenn(
+                Attestering.Underkjennelse(
+                    kommentar = "Detta skal ikke gå.",
+                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD
+                ),
+                Attestant("S123456")
+            )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null
@@ -745,7 +752,13 @@ internal class BehandlingTest {
         fun `skal ikke kunne attestera sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
-            tilAttestering.underkjenn("Detta skal ikke gå.", Attestant("S123456"))
+            tilAttestering.underkjenn(
+                Attestering.Underkjennelse(
+                    kommentar = "Detta skal ikke gå.",
+                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD
+                ),
+                Attestant("S123456")
+            )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
             tilAttestering.attestant() shouldBe null

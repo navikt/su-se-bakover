@@ -50,7 +50,10 @@ class UnderkjennBehandlingTest {
     private val journalpostId = JournalpostId("j")
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val begrunnelse = "begrunnelse"
+    private val underkjennelse = Attestering.Underkjennelse(
+        grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
+        kommentar = "begrunnelse"
+    )
     private val attestant = NavIdentBruker.Attestant("a") // TODO ai: make moar smuuud
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
@@ -113,7 +116,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
@@ -156,7 +159,7 @@ class UnderkjennBehandlingTest {
             ).underkjenn(
                 behandlingId = behandling.id,
                 attestant = attestant,
-                begrunnelse = begrunnelse
+                underkjennelse = underkjennelse
             )
         }.msg shouldContain "for state: SIMULERT"
 
@@ -199,7 +202,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestantSomErLikSaksbehandler,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -242,7 +245,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
@@ -289,7 +292,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
@@ -338,12 +341,18 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestering = Attestering(attestant)
+            attestering = Attestering(
+                attestant,
+                Attestering.Underkjennelse(
+                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
+                    kommentar = "begrunnelse"
+                )
+            )
         ).right()
 
         inOrder(
@@ -380,7 +389,7 @@ class UnderkjennBehandlingTest {
                         hendelser = mutableListOf(
                             UnderkjentAttestering(
                                 attestant.navIdent,
-                                begrunnelse,
+                                underkjennelse.kommentar,
                                 it.hendelser()[0].tidspunkt
                             )
                         )
@@ -431,12 +440,18 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestering = Attestering(attestant)
+            attestering = Attestering(
+                attestant,
+                Attestering.Underkjennelse(
+                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
+                    kommentar = "begrunnelse"
+                )
+            )
         ).right()
 
         inOrder(
@@ -474,7 +489,7 @@ class UnderkjennBehandlingTest {
                         hendelser = mutableListOf(
                             UnderkjentAttestering(
                                 attestant.navIdent,
-                                begrunnelse,
+                                underkjennelse.kommentar,
                                 it.hendelser()[0].tidspunkt
                             )
                         )
