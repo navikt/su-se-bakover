@@ -79,6 +79,7 @@ internal class LagBrevUtkastForBehandlingTest {
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
@@ -102,6 +103,7 @@ internal class LagBrevUtkastForBehandlingTest {
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
@@ -116,6 +118,7 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
@@ -136,7 +139,8 @@ internal class LagBrevUtkastForBehandlingTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
-            personOppslag = personOppslagMock
+            personOppslag = personOppslagMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
@@ -155,7 +159,8 @@ internal class LagBrevUtkastForBehandlingTest {
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        saksbehandler = Saksbehandler("ZZ992299")
     )
 
     private fun behandlingTilAttestering() = beregnetBehandling().copy(

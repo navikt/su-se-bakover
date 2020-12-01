@@ -215,6 +215,7 @@ internal fun Route.behandlingRoutes(
                             is KunneIkkeLageBrevutkast.KunneIkkeLageBrev -> InternalServerError.message("Kunne ikke lage brev")
                             is KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus -> BadRequest.message("Kunne ikke lage brev for behandlingstatus: ${it.status}")
                             is KunneIkkeLageBrevutkast.FantIkkePerson -> NotFound.message("Fant ikke person")
+                            is KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
                         }
                         call.respond(resultat)
                     },
@@ -286,6 +287,7 @@ internal fun Route.behandlingRoutes(
                 is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
                 is KunneIkkeIverksetteBehandling.FantIkkePerson -> NotFound.message("Fant ikke person")
+                is KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
             }
         }
 

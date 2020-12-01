@@ -60,6 +60,7 @@ internal class BehandlingssimuleringTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).simuler(behandling.id, saksbehandler)
 
         response shouldBe behandling.right()
@@ -85,6 +86,7 @@ internal class BehandlingssimuleringTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).simuler(behandling.id, saksbehandler)
 
         response shouldBe KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
@@ -106,6 +108,7 @@ internal class BehandlingssimuleringTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).simuler(behandling.id, saksbehandler)
 
         response shouldBe KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -129,6 +132,7 @@ internal class BehandlingssimuleringTest {
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).simuler(behandling.id, saksbehandler)
 
         response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
