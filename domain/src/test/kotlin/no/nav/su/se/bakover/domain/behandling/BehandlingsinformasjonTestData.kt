@@ -18,17 +18,20 @@ object BehandlingsinformasjonTestData {
         val Oppfylt = Behandlingsinformasjon.Uførhet(
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = 100,
-            forventetInntekt = 5000
+            forventetInntekt = 5000,
+            begrunnelse = null
         )
         val IkkeOppfylt = Behandlingsinformasjon.Uførhet(
             Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
             uføregrad = null,
-            forventetInntekt = null
+            forventetInntekt = null,
+            begrunnelse = null
         )
         val Uavklart = Behandlingsinformasjon.Uførhet(
             Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
             uføregrad = 1,
-            forventetInntekt = 1
+            forventetInntekt = 1,
+            begrunnelse = null
         )
     }
 
