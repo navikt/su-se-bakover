@@ -5,23 +5,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class LovligOppholdTest {
-    @Test
-    fun `er gyldig uansett hva man putter inn`() {
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).erGyldig() shouldBe true
-
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = null
-        ).erGyldig() shouldBe true
-
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = "neh"
-        ).erGyldig() shouldBe true
-    }
 
     @Test
     fun `er ikke ferdigbehandlet hvis status er uavklart`() {
