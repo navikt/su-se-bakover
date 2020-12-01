@@ -12,7 +12,8 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         uførhet = Behandlingsinformasjon.Uførhet(
             status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
             uføregrad = uførhet?.uføregrad ?: 20,
-            forventetInntekt = uførhet?.forventetInntekt ?: 10
+            forventetInntekt = uførhet?.forventetInntekt ?: 10,
+            begrunnelse = uførhet?.begrunnelse,
         ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
@@ -73,7 +74,8 @@ fun Behandlingsinformasjon.withVilkårAvslått() =
             uførhet = Behandlingsinformasjon.Uførhet(
                 status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
                 uføregrad = null,
-                forventetInntekt = null
+                forventetInntekt = null,
+                begrunnelse = null
             )
         )
     )

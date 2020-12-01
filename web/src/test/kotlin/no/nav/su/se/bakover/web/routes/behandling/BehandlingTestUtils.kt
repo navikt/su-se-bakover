@@ -41,7 +41,8 @@ object BehandlingTestUtils {
             uførhet = Behandlingsinformasjon.Uførhet(
                 status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                 uføregrad = 20,
-                forventetInntekt = 10
+                forventetInntekt = 10,
+                begrunnelse = null
             ),
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,

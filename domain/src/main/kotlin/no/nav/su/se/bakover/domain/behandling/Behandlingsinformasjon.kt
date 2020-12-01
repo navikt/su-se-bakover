@@ -80,7 +80,8 @@ data class Behandlingsinformasjon(
     data class Uførhet(
         val status: Status,
         val uføregrad: Int?,
-        val forventetInntekt: Int?
+        val forventetInntekt: Int?,
+        val begrunnelse: String?
     ) : Base() {
         enum class Status {
             VilkårOppfylt,

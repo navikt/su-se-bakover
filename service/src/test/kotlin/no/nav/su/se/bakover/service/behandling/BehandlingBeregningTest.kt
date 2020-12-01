@@ -70,6 +70,7 @@ class BehandlingBeregningTest {
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
 
         response shouldBe vilkårsvurdertBehandling().copy(
@@ -99,6 +100,7 @@ class BehandlingBeregningTest {
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
 
         response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
@@ -119,6 +121,7 @@ class BehandlingBeregningTest {
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
 
         response shouldBe KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()

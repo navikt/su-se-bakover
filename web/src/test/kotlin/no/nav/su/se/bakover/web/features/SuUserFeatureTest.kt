@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.web.features
 
 import arrow.core.Either
+import arrow.core.left
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -35,8 +37,12 @@ internal class SuUserFeatureTest {
             testSusebakover(
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> =
+                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                             Either.right(response)
+
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )
@@ -50,15 +56,16 @@ internal class SuUserFeatureTest {
 
     @Test
     fun `should not respond with 500 if fetching from Microsoft Graph API fails but endpoint does not access it`() {
-        val response = Either.left(
-            "Feil"
-        )
-
         withTestApplication({
             testSusebakover(
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
+                            MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet.left()
+
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )
@@ -71,15 +78,16 @@ internal class SuUserFeatureTest {
 
     @Test
     fun `should respond with 500 if fetching from Microsoft Graph API and endpoint needs that data`() {
-        val response = Either.left(
-            "Feil"
-        )
-
         withTestApplication({
             testSusebakover(
                 clients = testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> = response
+                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
+                            MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
+
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+                            TODO("Not yet implemented")
+                        }
                     }
                 )
             )

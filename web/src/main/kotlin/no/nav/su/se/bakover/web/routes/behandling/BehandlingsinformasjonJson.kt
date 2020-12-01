@@ -51,7 +51,8 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             Behandlingsinformasjon.Uførhet(
                 status = Behandlingsinformasjon.Uførhet.Status.valueOf(u.status),
                 uføregrad = u.uføregrad,
-                forventetInntekt = u.forventetInntekt
+                forventetInntekt = u.forventetInntekt,
+                begrunnelse = u.begrunnelse
             )
         },
         flyktning = b.flyktning?.let { f ->
@@ -134,7 +135,8 @@ internal fun Behandlingsinformasjon.Uførhet.toJson() =
     UførhetJson(
         status = status.name,
         uføregrad = uføregrad,
-        forventetInntekt = forventetInntekt
+        forventetInntekt = forventetInntekt,
+        begrunnelse = begrunnelse
     )
 
 internal fun Behandlingsinformasjon.Flyktning.toJson() =
@@ -237,7 +239,8 @@ internal fun EktefelleJson.isValid() = true
 data class UførhetJson(
     val status: String,
     val uføregrad: Int?,
-    val forventetInntekt: Int?
+    val forventetInntekt: Int?,
+    val begrunnelse: String?,
 )
 
 data class FlyktningJson(

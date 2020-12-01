@@ -55,5 +55,7 @@ object TestClientsBuilder : ClientsBuilder {
             }
             """.trimIndent()
         )
+
+        override fun getSystemToken(otherAppId: String): String = "supert systemtoken"
     }
 }

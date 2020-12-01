@@ -18,6 +18,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -913,7 +914,22 @@ internal class BehandlingRoutesKtTest {
 
     fun graphApiClientForNavIdent(navIdent: String) =
         object : MicrosoftGraphApiOppslag {
-            override fun hentBrukerinformasjon(userToken: String): Either<String, MicrosoftGraphResponse> =
+            override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
+                Either.right(
+                    MicrosoftGraphResponse(
+                        onPremisesSamAccountName = navIdent,
+                        displayName = "displayName",
+                        givenName = "givenName",
+                        mail = "mail",
+                        officeLocation = "officeLocation",
+                        surname = "surname",
+                        userPrincipalName = "userPrincipalName",
+                        id = "id",
+                        jobTitle = "jobTitle",
+                    )
+                )
+
+            override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                 Either.right(
                     MicrosoftGraphResponse(
                         onPremisesSamAccountName = navIdent,

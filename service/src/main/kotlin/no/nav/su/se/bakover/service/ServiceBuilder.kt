@@ -79,8 +79,9 @@ class ServiceBuilder(
                 søknadRepo = databaseRepos.søknad,
                 personOppslag = clients.personOppslag,
                 brevService = brevService,
-                opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 behandlingMetrics = behandlingMetrics,
+                microsoftGraphApiClient = clients.microsoftGraphApiClient,
+                opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 clock = Clock.systemUTC()
             ),
             sak = sakService,

@@ -20,7 +20,9 @@ interface LagBrevRequest {
 
     data class InnvilgetVedtak(
         private val person: Person,
-        private val behandling: Behandling
+        private val behandling: Behandling,
+        private val saksbehandlerNavn: String,
+        private val attestantNavn: String
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
@@ -32,7 +34,9 @@ interface LagBrevRequest {
                 sats = beregning.getSats().toString().toLowerCase(),
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn(),
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                beregning = getBrevinnholdberegning(beregning)
+                beregning = getBrevinnholdberegning(beregning),
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn
             )
         }
     }

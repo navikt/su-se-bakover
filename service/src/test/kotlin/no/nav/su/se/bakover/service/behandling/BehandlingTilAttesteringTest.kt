@@ -89,7 +89,8 @@ class BehandlingTilAttesteringTest {
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).sendTilAttestering(behandling.id, saksbehandler)
 
         actual shouldBe simulertBehandling.copy(
@@ -136,7 +137,8 @@ class BehandlingTilAttesteringTest {
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
             personOppslag = personOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).sendTilAttestering(behandling.id, saksbehandler)
 
         actual shouldBe KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()

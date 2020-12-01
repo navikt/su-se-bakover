@@ -6,14 +6,28 @@ import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
+import java.util.UUID
+import kotlin.random.Random
 
 internal class PdfClientTest : WiremockBase {
 
-    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    private val søknadInnholdJson = objectMapper.writeValueAsString(søknadInnhold)
+    private val søknadPdfInnhold = SøknadPdfInnhold(
+        saksnummer = Saksnummer(Random.nextLong()),
+        søknadsId = UUID.randomUUID(),
+        navn = Person.Navn("Tore", null, "Strømøy"),
+        søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo).ddMMyyyy(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    )
+    private val søknadPdfInnholdJson = objectMapper.writeValueAsString(søknadPdfInnhold)
 
     @Test
     fun `should generate pdf successfully`() {
@@ -24,7 +38,7 @@ internal class PdfClientTest : WiremockBase {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(søknadInnhold).map { String(it) } shouldBeRight String("pdf-byte-array-here".toByteArray())
+        client.genererPdf(søknadPdfInnhold).map { String(it) } shouldBeRight String("pdf-byte-array-here".toByteArray())
     }
 
     @Test
@@ -37,7 +51,7 @@ internal class PdfClientTest : WiremockBase {
         )
         val client = PdfClient(wireMockServer.baseUrl())
 
-        client.genererPdf(søknadInnhold) shouldBeLeft ClientError(
+        client.genererPdf(søknadPdfInnhold) shouldBeLeft ClientError(
             403,
             "Kall mot PdfClient feilet"
         )
@@ -46,5 +60,5 @@ internal class PdfClientTest : WiremockBase {
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
-        .withRequestBody(WireMock.equalTo(søknadInnholdJson))
+        .withRequestBody(WireMock.equalTo(søknadPdfInnholdJson))
 }

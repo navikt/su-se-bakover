@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.service.behandling
 
+import arrow.core.Either
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
@@ -50,6 +55,7 @@ object BehandlingTestUtils {
         brevService: BrevService = mock(),
         opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -61,14 +67,16 @@ object BehandlingTestUtils {
         brevService = brevService,
         opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         behandlingMetrics = behandlingMetrics,
-        clock = fixedClock
+        clock = fixedClock,
+        microsoftGraphApiClient = microsoftGraphApiOppslag
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = Uførhet(
             status = VilkårOppfylt,
             uføregrad = 20,
-            forventetInntekt = 10
+            forventetInntekt = 10,
+            begrunnelse = null
         ),
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
@@ -127,4 +135,23 @@ object BehandlingTestUtils {
             skjermet = null
         )
     )
+
+    internal object microsoftGraphMock {
+        val response = MicrosoftGraphResponse(
+            onPremisesSamAccountName = "",
+            displayName = "Nav Navesen",
+            givenName = "",
+            mail = "",
+            officeLocation = "",
+            surname = "",
+            userPrincipalName = "",
+            id = "",
+            jobTitle = ""
+        )
+
+        val oppslagMock: MicrosoftGraphApiOppslag = mock {
+            on { hentBrukerinformasjon(any()) } doReturn Either.right(response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(response)
+        }
+    }
 }

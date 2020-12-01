@@ -84,7 +84,7 @@ allprojects {
             implementation("junit:junit:4.13.1") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
             }
-            implementation("org.eclipse.jetty:jetty-webapp:9.4.33.v20201020") {
+            implementation("org.eclipse.jetty:jetty-server@9.4.35.v20201120") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1021614")
             }
         }

@@ -6,7 +6,6 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -108,7 +107,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
@@ -150,7 +150,8 @@ class UnderkjennBehandlingTest {
                 personOppslag = personOppslagMock,
                 oppgaveService = oppgaveServiceMock,
                 behandlingMetrics = behandlingMetricsMock,
-                hendelsesloggRepo = hendelsesloggRepoMock
+                hendelsesloggRepo = hendelsesloggRepoMock,
+                microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
             ).underkjenn(
                 behandlingId = behandling.id,
                 attestant = attestant,
@@ -192,7 +193,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestantSomErLikSaksbehandler,
@@ -234,7 +236,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
@@ -280,7 +283,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
@@ -328,7 +332,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
@@ -420,7 +425,8 @@ class UnderkjennBehandlingTest {
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            hendelsesloggRepo = hendelsesloggRepoMock
+            hendelsesloggRepo = hendelsesloggRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,

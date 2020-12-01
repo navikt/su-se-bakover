@@ -35,8 +35,9 @@ class AvslagsBrevInnholdTest {
                     sum = 0.0
                 )
             )
-        )
-
+        ),
+        saksbehandlerNavn = "Sak Sakesen",
+        attestantNavn = "Att Attestantsen"
     )
 
     @Test
@@ -71,7 +72,9 @@ class AvslagsBrevInnholdTest {
                         }
                     }
                 },
-              "avslagsparagrafer": [1,2]  
+              "avslagsparagrafer": [1,2],
+              "saksbehandlerNavn": "Sak Sakesen",
+              "attestantNavn": "Att Attestantsen"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)

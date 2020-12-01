@@ -51,6 +51,7 @@ sealed class KunneIkkeLageBrevutkast {
     object FantIkkeBehandling : KunneIkkeLageBrevutkast()
     object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
     object FantIkkePerson : KunneIkkeLageBrevutkast()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkast()
 }
 
 object FantIkkeBehandling
@@ -94,6 +95,7 @@ sealed class KunneIkkeIverksetteBehandling {
     object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
     object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
     object FantIkkePerson : KunneIkkeIverksetteBehandling()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksetteBehandling()
 }
 
 sealed class KunneIkkeOppdatereBehandlingsinformasjon {
