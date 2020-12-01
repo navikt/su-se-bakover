@@ -27,13 +27,13 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.OpprettVedtakService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -48,7 +48,7 @@ internal class BehandlingServiceImpl(
     private val søknadRepo: SøknadRepo, // TODO use services or repos? probably services
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
-    private val opprettVedtakService: OpprettVedtakService,
+    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock,
 ) : BehandlingService {
@@ -300,8 +300,8 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-        opprettVedtakService.opprettVedtak(
-            vedtak = Vedtak.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
+        opprettVedtakssnapshotService.opprettVedtak(
+            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
         )
         val brevResultat = brevService.distribuerBrev(journalpostId)
             .mapLeft {

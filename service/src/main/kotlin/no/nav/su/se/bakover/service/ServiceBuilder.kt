@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
-import no.nav.su.se.bakover.service.vedtak.OpprettVedtakService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
 class ServiceBuilder(
@@ -60,7 +60,7 @@ class ServiceBuilder(
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics
         )
-        val opprettVedtakService = OpprettVedtakService(databaseRepos.vedtak)
+        val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -79,7 +79,7 @@ class ServiceBuilder(
                 søknadRepo = databaseRepos.søknad,
                 personOppslag = clients.personOppslag,
                 brevService = brevService,
-                opprettVedtakService = opprettVedtakService,
+                opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 behandlingMetrics = behandlingMetrics,
                 clock = Clock.systemUTC()
             ),

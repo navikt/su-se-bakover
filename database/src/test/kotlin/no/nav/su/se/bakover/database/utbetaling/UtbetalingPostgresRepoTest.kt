@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -31,7 +32,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `hent utbetaling`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
             repo.opprettUtbetaling(utbetaling)
             val hentet = repo.hentUtbetaling(utbetaling.id)
 
@@ -43,7 +44,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `hent utbetaling fra avstemmingsnøkkel`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val oversendtUtbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            val oversendtUtbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
             repo.opprettUtbetaling(oversendtUtbetaling)
             val kvittert = repo.oppdaterMedKvittering(
                 utbetalingId = oversendtUtbetaling.id,
@@ -62,7 +63,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `oppdater med kvittering`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
             repo.opprettUtbetaling(utbetaling)
 
             val kvittering = Kvittering(
@@ -80,10 +81,11 @@ internal class UtbetalingPostgresRepoTest {
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id)
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
             repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
-            val utbetalingslinje2 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
+            val utbetalingslinje2 =
+                repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje(utbetalingslinje1.id))
             EmbeddedDatabase.instance().withSession {
                 val hentet = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.id, it)
                 listOf(utbetalingslinje1, utbetalingslinje2) shouldBe hentet
@@ -91,30 +93,33 @@ internal class UtbetalingPostgresRepoTest {
         }
     }
 
-    private fun defaultOversendtUtbetaling(oppdragId: UUID30) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = UUID30.randomUUID(),
-        utbetalingslinjer = listOf(),
-        fnr = FNR,
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
-        simulering = Simulering(
-            gjelderId = FNR,
-            gjelderNavn = "",
-            datoBeregnet = idag(),
-            nettoBeløp = 0,
-            periodeList = listOf()
-        ),
-        utbetalingsrequest = Utbetalingsrequest(
-            value = ""
-        ),
-        type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = oppdragId,
-        behandler = NavIdentBruker.Attestant("Z123")
-    )
+    companion object {
+        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr) =
+            Utbetaling.OversendtUtbetaling.UtenKvittering(
+                id = UUID30.randomUUID(),
+                utbetalingslinjer = listOf(),
+                fnr = fnr,
+                avstemmingsnøkkel = Avstemmingsnøkkel(),
+                simulering = Simulering(
+                    gjelderId = fnr,
+                    gjelderNavn = "",
+                    datoBeregnet = idag(),
+                    nettoBeløp = 0,
+                    periodeList = listOf()
+                ),
+                utbetalingsrequest = Utbetalingsrequest(
+                    value = ""
+                ),
+                type = Utbetaling.UtbetalingsType.NY,
+                oppdragId = oppdragId,
+                behandler = NavIdentBruker.Attestant("Z123")
+            )
 
-    private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
-        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        beløp = 25000
-    )
+        private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.desember(2020),
+            forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+            beløp = 25000
+        )
+    }
 }
