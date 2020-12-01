@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
@@ -96,7 +97,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterAttestant(behandlingId, attestant)
+                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering(attestant))
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -313,7 +314,7 @@ internal class BehandlingServiceImpl(
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
-        behandlingRepo.oppdaterAttestant(behandling.id, attestant)
+        behandlingRepo.oppdaterAttestering(behandling.id, Attestering(attestant))
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -377,7 +378,7 @@ internal class BehandlingServiceImpl(
                 behandlingId = behandlingId,
                 utbetalingId = oversendtUtbetaling.id
             )
-            behandlingRepo.oppdaterAttestant(behandlingId, attestant)
+            behandlingRepo.oppdaterAttestering(behandlingId, Attestering(attestant))
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)

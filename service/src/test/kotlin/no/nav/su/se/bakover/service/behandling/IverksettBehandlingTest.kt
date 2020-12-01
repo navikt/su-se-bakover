@@ -257,7 +257,7 @@ internal class IverksettBehandlingTest {
                 behandlingId = argThat { it shouldBe behandling.id },
                 journalpostId = argThat { it shouldBe journalpostId }
             )
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -435,7 +435,7 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering },
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
@@ -526,7 +526,7 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering }
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, attestant)
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET

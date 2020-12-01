@@ -144,12 +144,6 @@ internal fun Route.behandlingRoutes(
             }
     }
 
-    data class UnderkjennBody(
-        val begrunnelse: String
-    ) {
-        fun valid() = begrunnelse.isNotBlank()
-    }
-
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
@@ -320,6 +314,11 @@ internal fun Route.behandlingRoutes(
                 )
             }
         }
+    }
+    data class UnderkjennBody(
+        val begrunnelse: String
+    ) {
+        fun valid() = begrunnelse.isNotBlank()
     }
 
     authorize(Brukerrolle.Attestant) {
