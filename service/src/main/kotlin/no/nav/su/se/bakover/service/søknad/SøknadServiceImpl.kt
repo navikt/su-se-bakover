@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
@@ -36,7 +39,6 @@ internal class SøknadServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics
 ) : SøknadService {
-
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
@@ -83,14 +85,22 @@ internal class SøknadServiceImpl(
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(sak.id, person, søknad)
+        opprettJournalpostOgOppgave(sak.id, sak.saksnummer, person, søknad)
         return Pair(sak.saksnummer, søknad).right()
     }
 
-    private fun opprettJournalpostOgOppgave(sakId: UUID, person: Person, søknad: Søknad) {
+    private fun opprettJournalpostOgOppgave(sakId: UUID, saksnummer: Saksnummer, person: Person, søknad: Søknad) {
         // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        pdfGenerator.genererPdf(søknad.søknadInnhold).fold(
+        pdfGenerator.genererPdf(
+            SøknadPdfInnhold(
+                saksnummer = saksnummer,
+                søknadsId = søknad.id,
+                navn = person.navn,
+                søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
+                søknadInnhold = søknad.søknadInnhold
+            )
+        ).fold(
             {
                 log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             },
@@ -139,12 +149,28 @@ internal class SøknadServiceImpl(
             log.error("Hent søknad-PDF: Fant ikke søknad")
             return KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
         }
-            .flatMap {
-                pdfGenerator.genererPdf(it.søknadInnhold)
-                    .mapLeft {
-                        log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
-                        KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+            .flatMap { søknad ->
+                sakService.hentSak(søknad.sakId).mapLeft {
+                    return KunneIkkeLageSøknadPdf.FantIkkeSak.left()
+                }.flatMap { sak ->
+                    personOppslag.person(søknad.søknadInnhold.personopplysninger.fnr).mapLeft {
+                        log.error("Hent søknad-PDF: Fant ikke person")
+                        return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
+                    }.flatMap { person ->
+                        pdfGenerator.genererPdf(
+                            SøknadPdfInnhold(
+                                saksnummer = sak.saksnummer,
+                                søknadsId = søknad.id,
+                                navn = person.navn,
+                                søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
+                                søknadInnhold = søknad.søknadInnhold
+                            )
+                        ).mapLeft {
+                            log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf
+                        }
                     }
+                }
             }
     }
 }

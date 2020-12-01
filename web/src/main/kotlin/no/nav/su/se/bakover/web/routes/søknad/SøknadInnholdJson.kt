@@ -382,6 +382,7 @@ data class SøknadInnholdJson(
     }
 
     data class FormueJson(
+        val eierBolig: Boolean,
         val borIBolig: Boolean? = null,
         val verdiPåBolig: Number? = null,
         val boligBrukesTil: String? = null,
@@ -396,6 +397,7 @@ data class SøknadInnholdJson(
         val kontanterBeløp: Number? = null
     ) {
         fun toFormue() = Formue(
+            eierBolig = eierBolig,
             borIBolig = borIBolig,
             verdiPåBolig = verdiPåBolig,
             boligBrukesTil = boligBrukesTil,
@@ -417,6 +419,7 @@ data class SøknadInnholdJson(
         companion object {
             fun Formue.toFormueJson() =
                 FormueJson(
+                    eierBolig = eierBolig,
                     borIBolig = borIBolig,
                     verdiPåBolig = verdiPåBolig,
                     boligBrukesTil = boligBrukesTil,

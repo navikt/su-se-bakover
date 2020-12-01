@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -109,7 +110,7 @@ class NySøknadTest {
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn ClientError(1, "").left()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(1, "").left()
         }
         val dokArkivMock: DokArkiv = mock()
         val søknadRepoMock: SøknadRepo = mock()
@@ -159,7 +160,17 @@ class NySøknadTest {
                 }
             )
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        søknadsId = it.søknadsId,
+                        navn = person.navn,
+                        søknadOpprettet = it.søknadOpprettet,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             personOppslagMock,
@@ -196,7 +207,7 @@ class NySøknadTest {
             on { oppdaterOppgaveId(any(), any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
         val dokArkivMock: DokArkiv = mock {
             on { opprettJournalpost(any()) } doReturn journalpostId.right()
@@ -238,7 +249,17 @@ class NySøknadTest {
                     )
                 }
             )
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        søknadsId = it.søknadsId,
+                        navn = person.navn,
+                        søknadOpprettet = it.søknadOpprettet,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
@@ -268,7 +289,7 @@ class NySøknadTest {
             on { opprettSøknad(any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
         val dokArkivMock: DokArkiv = mock {
             on { opprettJournalpost(any()) } doReturn ClientError(1, "").left()
@@ -288,6 +309,7 @@ class NySøknadTest {
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
+
         lateinit var expectedSøknad: Søknad
         inOrder(
             personOppslagMock,
@@ -310,7 +332,17 @@ class NySøknadTest {
                     }
                 }
             )
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        søknadsId = it.søknadsId,
+                        navn = person.navn,
+                        søknadOpprettet = it.søknadOpprettet,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
@@ -347,7 +379,7 @@ class NySøknadTest {
             on { oppdaterjournalpostId(any(), any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
         val dokArkivMock: DokArkiv = mock {
             on { opprettJournalpost(any()) } doReturn journalpostId.right()
@@ -392,7 +424,17 @@ class NySøknadTest {
                     }
                 }
             )
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        søknadsId = it.søknadsId,
+                        navn = person.navn,
+                        søknadOpprettet = it.søknadOpprettet,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
@@ -443,7 +485,7 @@ class NySøknadTest {
             on { oppdaterOppgaveId(any(), any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadInnhold>()) } doReturn pdf.right()
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
         val dokArkivMock: DokArkiv = mock {
             on { opprettJournalpost(any()) } doReturn journalpostId.right()
@@ -488,7 +530,17 @@ class NySøknadTest {
                     }
                 }
             )
-            verify(pdfGeneratorMock).genererPdf(argThat<SøknadInnhold> { it shouldBe søknadInnhold })
+            verify(pdfGeneratorMock).genererPdf(
+                argThat<SøknadPdfInnhold> {
+                    it shouldBe SøknadPdfInnhold(
+                        saksnummer = sak.saksnummer,
+                        søknadsId = it.søknadsId,
+                        navn = person.navn,
+                        søknadOpprettet = it.søknadOpprettet,
+                        søknadInnhold = søknadInnhold,
+                    )
+                }
+            )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
                     it shouldBe Journalpost.Søknadspost(

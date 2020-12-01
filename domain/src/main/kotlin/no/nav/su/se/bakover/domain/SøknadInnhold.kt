@@ -144,6 +144,7 @@ data class InntektOgPensjon(
 )
 
 data class Formue(
+    val eierBolig: Boolean,
     val borIBolig: Boolean? = null,
     val verdiPåBolig: Number? = null,
     val boligBrukesTil: String? = null,
