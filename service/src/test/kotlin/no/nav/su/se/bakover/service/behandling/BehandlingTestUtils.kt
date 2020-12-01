@@ -102,7 +102,7 @@ object BehandlingTestUtils {
                 kontanter = 0,
                 depositumskonto = 0
             ),
-            ektefellesVerdier = Verdier(
+            epsVerdier = Verdier(
                 verdiIkkePrimærbolig = 0,
                 verdiKjøretøy = 0,
                 innskudd = 0,

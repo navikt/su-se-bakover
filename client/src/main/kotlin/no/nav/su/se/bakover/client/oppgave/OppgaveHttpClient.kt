@@ -10,8 +10,10 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -20,19 +22,22 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.time.Clock
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 internal const val oppgavePath = "/api/v1/oppgaver"
 
 internal class OppgaveHttpClient(
     private val baseUrl: String,
-    private val tokenOppslag: TokenOppslag
+    private val tokenOppslag: TokenOppslag,
+    private val clock: Clock
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-        val aktivDato = LocalDate.now()
+        val aktivDato = LocalDate.now(clock)
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -65,7 +70,10 @@ internal class OppgaveHttpClient(
             },
             {
                 log.error("Feil i kallet mot oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error("Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                sikkerLogg.error(
+                    "Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}",
+                    it
+                )
                 KunneIkkeOppretteOppgave.left()
             }
         )
@@ -92,9 +100,7 @@ internal class OppgaveHttpClient(
             .responseString()
         return result.fold(
             { responseJson ->
-                println(responseJson)
                 val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
-                println(oppgave)
                 oppgave.right()
             },
             {
@@ -106,6 +112,8 @@ internal class OppgaveHttpClient(
     private fun lukkOppgave(
         oppgave: OppgaveResponse
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
+        val beskrivelse =
+            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
@@ -116,25 +124,38 @@ internal class OppgaveHttpClient(
                     EndreOppgaveRequest(
                         id = oppgave.id,
                         versjon = oppgave.versjon,
-                        beskrivelse = "Lukket av Supplerende Stønad\n\nSaksid : ${oppgave.saksreferanse}",
+                        beskrivelse = oppgave.beskrivelse?.let { beskrivelse.plus("\n\n").plus(oppgave.beskrivelse) } ?: beskrivelse,
                         status = "FERDIGSTILT"
                     )
                 )
-            ).responseString().also { println(it) }
+            ).responseString()
 
         return result.fold(
             { json ->
-                val loggmelding = "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
+                val loggmelding =
+                    "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                 log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                 sikkerLogg.info("$loggmelding. Response-json: $json")
                 objectMapper.readValue(json, LukkOppgaveResponse::class.java).right()
             },
             {
-                log.error("Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error("Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}", it)
+                log.error(
+                    "Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer",
+                    it
+                )
+                sikkerLogg.error(
+                    "Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}",
+                    it
+                )
                 KunneIkkeLukkeOppgave.left()
             }
         )
     }
+
+    companion object {
+        private fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(zoneIdOslo).format(this)
+    }
+
     private object KunneIkkeSøkeEtterOppgave
 }

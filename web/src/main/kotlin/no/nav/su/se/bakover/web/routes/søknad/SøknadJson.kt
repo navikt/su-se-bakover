@@ -4,6 +4,10 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import java.time.format.DateTimeFormatter
 
+internal data class OpprettetSøknadJson(
+    val saksnummer: Long,
+    val søknad: SøknadJson
+)
 internal data class SøknadJson(
     val id: String,
     val sakId: String,

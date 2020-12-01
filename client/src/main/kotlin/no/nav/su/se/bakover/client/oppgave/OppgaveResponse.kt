@@ -21,6 +21,7 @@ internal data class OppgaveResponse(
     val behandlesAvApplikasjon: String?,
     val saksreferanse: String?,
     val aktoerId: String?,
+    val beskrivelse: String?,
     val tema: String?,
     val behandlingstema: String?,
     val oppgavetype: String,

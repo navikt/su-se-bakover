@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -239,7 +240,7 @@ class AccessCheckProxy(
                 }
             },
             søknad = object : SøknadService {
-                override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Søknad> {
+                override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
                     assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
                     return services.søknad.nySøknad(søknadInnhold)
@@ -307,31 +308,23 @@ class AccessCheckProxy(
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
-        val fnr = personRepo.hentFnrForSak(sakId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForSak(sakId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilSøknad(søknadId: UUID) {
-        val fnr = personRepo.hentFnrForSøknad(søknadId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForSøknad(søknadId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilBehandling(behandlingId: UUID) {
-        val fnr = personRepo.hentFnrForBehandling(behandlingId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForBehandling(behandlingId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
-        val fnr = personRepo.hentFnrForUtbetaling(utbetalingId)
-            ?: return
-
-        assertHarTilgangTilPerson(fnr)
+        personRepo.hentFnrForUtbetaling(utbetalingId)
+            .forEach { assertHarTilgangTilPerson(it) }
     }
 }
 

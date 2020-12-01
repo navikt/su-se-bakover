@@ -132,7 +132,7 @@ fun Fradragstype.toReadableTypeName() =
         Fradragstype.Kapitalinntekt ->
             "Kapitalinntekt"
         Fradragstype.ForventetInntekt ->
-            "Forventet inntekt"
+            "Forventet inntekt etter uførhet"
         Fradragstype.BeregnetFradragEPS ->
             "Utregnet fradrag for ektefelle/samboers inntekter"
     }

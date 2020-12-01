@@ -42,14 +42,14 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
                 kontanter = formue?.verdier?.kontanter ?: 0,
                 depositumskonto = formue?.verdier?.depositumskonto ?: 0,
             ),
-            ektefellesVerdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = formue?.ektefellesVerdier?.verdiIkkePrimærbolig ?: 0,
-                verdiKjøretøy = formue?.ektefellesVerdier?.verdiKjøretøy ?: 0,
-                innskudd = formue?.ektefellesVerdier?.innskudd ?: 0,
-                verdipapir = formue?.ektefellesVerdier?.verdipapir ?: 0,
-                pengerSkyldt = formue?.ektefellesVerdier?.pengerSkyldt ?: 0,
-                kontanter = formue?.ektefellesVerdier?.kontanter ?: 0,
-                depositumskonto = formue?.ektefellesVerdier?.depositumskonto ?: 0,
+            epsVerdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = formue?.epsVerdier?.verdiIkkePrimærbolig ?: 0,
+                verdiKjøretøy = formue?.epsVerdier?.verdiKjøretøy ?: 0,
+                innskudd = formue?.epsVerdier?.innskudd ?: 0,
+                verdipapir = formue?.epsVerdier?.verdipapir ?: 0,
+                pengerSkyldt = formue?.epsVerdier?.pengerSkyldt ?: 0,
+                kontanter = formue?.epsVerdier?.kontanter ?: 0,
+                depositumskonto = formue?.epsVerdier?.depositumskonto ?: 0,
             ),
             begrunnelse = formue?.begrunnelse
         ),

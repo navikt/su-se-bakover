@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.Config
+import java.time.Clock
 import javax.jms.JMSContext
 
 data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuilder {
@@ -38,7 +39,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             tokenOppslag = tokenOppslag,
             pdfGenerator = PdfClient(Config.pdfgenUrl),
             dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),
-            oppgaveClient = OppgaveHttpClient(Config.oppgaveUrl, tokenOppslag),
+            oppgaveClient = OppgaveHttpClient(Config.oppgaveUrl, tokenOppslag, Clock.systemUTC()),
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 SimuleringConfig(
