@@ -89,7 +89,7 @@ allprojects {
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "12"
+            jvmTarget = "15"
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
             allWarningsAsErrors = true
         }
