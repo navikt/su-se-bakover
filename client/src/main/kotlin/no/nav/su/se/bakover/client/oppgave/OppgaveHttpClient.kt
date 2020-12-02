@@ -55,6 +55,8 @@ internal class OppgaveHttpClient(
         val onBehalfOfToken = onBehalfOfToken().getOrElse {
             return KunneIkkeOppretteOppgave.left()
         }
+        val beskrivelse =
+            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSaksid : ${config.sakId}"
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
@@ -68,6 +70,7 @@ internal class OppgaveHttpClient(
                         aktoerId = config.aktørId.toString(),
                         tema = "SUP",
                         behandlesAvApplikasjon = "SUPSTONAD",
+                        beskrivelse = beskrivelse,
                         oppgavetype = config.oppgavetype.toString(),
                         behandlingstema = config.behandlingstema?.toString(),
                         behandlingstype = config.behandlingstype.toString(),
