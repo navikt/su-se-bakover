@@ -28,8 +28,8 @@ internal class EpsOver67StrategyTest {
     @Test
     fun `inkluderer ikke fradrag for EPS som er lavere enn ordinært minstepensjonsnivå for aktuell måned`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
-        val epsArbeidsinntekt = lagFradrag(Arbeidsinntekt, 5000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 5000.0, periode, tilhører = EPS)
 
         FradragStrategy.EpsOver67År.beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntekt),
@@ -43,10 +43,10 @@ internal class EpsOver67StrategyTest {
     @Test
     fun `inkluderer fradrag for EPS som overstiger ordinært minstepensjonsnivå for aktuell måned`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
-        val epsArbeidsinntekt = lagFradrag(Arbeidsinntekt, 20000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 20000.0, periode, tilhører = EPS)
 
-        val expectedEpsFradrag = lagFradrag(BeregnetFradragEPS, 20000.0 - 15159, periode, tilhører = EPS)
+        val expectedEpsFradrag = lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 15159, periode, tilhører = EPS)
 
         FradragStrategy.EpsOver67År.beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntekt),
@@ -67,15 +67,15 @@ internal class EpsOver67StrategyTest {
             lagFradrag(Arbeidsinntekt, 20000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = EPS)
 
         val expectedFradragBrukerJan =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = BRUKER)
         val expectedFradragBrukerMars =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.mars(2020), 31.mars(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.mars(2020), 31.mars(2020)), tilhører = BRUKER)
         val expectedFradragBrukerJuli =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
         val expectedEpsFradragJan =
-            lagFradrag(BeregnetFradragEPS, 20000.0 - 15159, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
+            lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 15159, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
         val expectedEpsFradragJuli =
-            lagFradrag(
+            lagPeriodisertFradrag(
                 BeregnetFradragEPS,
                 20000.0 - 15298.916666666666,
                 Periode(1.juli(2020), 31.juli(2020)),

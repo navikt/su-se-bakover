@@ -18,4 +18,15 @@ object FradragFactory {
             tilhører = tilhører
         )
     }
+
+    fun periodiser(fradrag: Fradrag): List<Fradrag> =
+        fradrag.getPeriode().tilMånedsperioder().map {
+            PeriodisertFradrag(
+                type = fradrag.getFradragstype(),
+                beløp = fradrag.getTotaltFradrag() / fradrag.getPeriode().getAntallMåneder(),
+                periode = it,
+                utenlandskInntekt = fradrag.getUtenlandskInntekt(),
+                tilhører = fradrag.getTilhører()
+            )
+        }
 }

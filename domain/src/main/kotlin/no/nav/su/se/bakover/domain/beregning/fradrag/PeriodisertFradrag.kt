@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Periode
 
-internal data class PeriodeFradrag(
+internal data class PeriodisertFradrag(
     private val type: Fradragstype,
     private val beløp: Double,
     private val periode: Periode,
@@ -11,6 +11,7 @@ internal data class PeriodeFradrag(
 ) : Fradrag {
     init {
         require(beløp >= 0) { "Fradrag kan ikke være negative" }
+        require(periode.getAntallMåneder() == 1) { "Periodiserte fradrag kan bare gjelde for en enkelt måned" }
     }
 
     override fun getFradragPerMåned() = beløp / periode.getAntallMåneder()

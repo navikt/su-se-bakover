@@ -66,7 +66,6 @@ internal data class BeregnetFradrag(
     override fun getFradragstype(): Fradragstype = fradragstype
     override fun getTotaltFradrag(): Double = totaltFradrag
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-    override fun periodiser(): List<Fradrag> = listOf(this) // TODO probably refactor
     override fun getFradragPerMåned(): Double = fradragPerMåned
     override fun getTilhører(): FradragTilhører = tilhører
 
