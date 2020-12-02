@@ -482,8 +482,10 @@ internal class BehandlingServiceImpl(
                     hentNavnForNavIdent(it.navIdent)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
-                val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
-                    .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+                val saksbehandlerNavn = behandling.saksbehandler()?.let {
+                    hentNavnForNavIdent(it.navIdent)
+                        .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+                }
                 personOppslag.person(behandling.fnr)
                     .mapLeft {
                         KunneIkkeLageBrevutkast.FantIkkePerson
@@ -504,14 +506,14 @@ internal class BehandlingServiceImpl(
     private fun lagBrevRequestForBrevutkast(
         person: Person,
         behandling: Behandling,
-        saksbehandlerNavn: String,
+        saksbehandlerNavn: String?,
         attestantNavn: String?
     ): Either<KunneIkkeLageBrevutkast, LagBrevRequest> {
         if (behandling.erInnvilget()) {
             return LagBrevRequest.InnvilgetVedtak(
                 person = person,
                 behandling = behandling,
-                saksbehandlerNavn = saksbehandlerNavn,
+                saksbehandlerNavn = saksbehandlerNavn ?: "-",
                 attestantNavn = attestantNavn ?: "-"
             ).right()
         }
@@ -524,7 +526,7 @@ internal class BehandlingServiceImpl(
                     harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
                     beregning = behandling.beregning()
                 ),
-                saksbehandlerNavn = saksbehandlerNavn,
+                saksbehandlerNavn = saksbehandlerNavn ?: "-",
                 attestantNavn = attestantNavn ?: "-"
             ).right()
         }
