@@ -1,5 +1,5 @@
 name: Build non-master/main branches. And deploy specific ones only.
-# If you want to deploy your branch to master, replace with your branch name: if: github.ref == 'refs/heads/branch_name'
+# If you want to deploy your branch to master, replace with your branch name: if: github.ref == 'refs/heads/BRANCH_NAME'
 # TODO: Have to replace two places. Github actions does not support env vars in conditions
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
             ORG_GRADLE_PROJECT_githubUser: x-access-token
             ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
         - name: Build and publish Docker image
-          if: github.ref == 'refs/heads/OppgaveOnBehalfOfToken'
+          if: github.ref == 'refs/heads/BRANCH_NAME'
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
@@ -52,7 +52,7 @@ jobs:
       name: Deploy specific branch-name to dev
       needs: build
       runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/OppgaveOnBehalfOfToken'
+      if: github.ref == 'refs/heads/BRANCH_NAME'
       steps:
         - uses: actions/checkout@v2
         - uses: nais/deploy/actions/deploy@v1

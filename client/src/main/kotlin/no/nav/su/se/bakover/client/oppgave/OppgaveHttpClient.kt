@@ -43,7 +43,7 @@ internal class OppgaveHttpClient(
         return Either.unsafeCatch {
             exchange.onBehalfOFToken(MDC.get("Authorization"), oppgaveClientId)
         }.mapLeft {
-            log.error("OppgaveClient kunne ikke lage on behalfOfToken")
+            log.error("Kunne ikke lage onBehalfOfToken for oppgave med klient id $oppgaveClientId")
             KunneIkkeLageToken
         }.map {
             it
