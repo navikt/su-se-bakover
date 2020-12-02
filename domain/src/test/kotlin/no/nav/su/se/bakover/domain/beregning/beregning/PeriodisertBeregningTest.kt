@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class PeriodeMånedsberegningTest {
+internal class PeriodisertBeregningTest {
     @Test
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(

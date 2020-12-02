@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import kotlin.math.roundToInt
 
-internal data class PeriodeMånedsberegning(
+internal data class PeriodisertBeregning(
     private val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>

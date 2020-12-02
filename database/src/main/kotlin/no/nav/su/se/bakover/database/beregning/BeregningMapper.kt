@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.util.UUID
 
-internal data class Beregnet(
+internal data class PersistertBeregning(
     private val id: UUID,
     private val opprettet: Tidspunkt,
     private val sats: Sats,
-    private val månedsberegninger: List<BeregnetMåned>,
-    private val fradrag: List<BeregnetFradrag>,
+    private val månedsberegninger: List<PersistertMånedsberegning>,
+    private val fradrag: List<PersistertFradrag>,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val sumYtelseErUnderMinstebeløp: Boolean,
@@ -37,13 +37,13 @@ internal data class Beregnet(
     override fun getPeriode(): Periode = periode
 }
 
-internal data class BeregnetMåned(
+internal data class PersistertMånedsberegning(
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val benyttetGrunnbeløp: Int,
     private val sats: Sats,
     private val satsbeløp: Double,
-    private val fradrag: List<BeregnetFradrag>,
+    private val fradrag: List<PersistertFradrag>,
     private val periode: Periode
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
@@ -55,7 +55,7 @@ internal data class BeregnetMåned(
     override fun getPeriode(): Periode = periode
 }
 
-internal data class BeregnetFradrag(
+internal data class PersistertFradrag(
     private val fradragstype: Fradragstype,
     private val totaltFradrag: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
@@ -70,7 +70,7 @@ internal data class BeregnetFradrag(
     override fun getPeriode(): Periode = periode
 }
 
-internal fun Beregning.toSnapshot() = Beregnet(
+internal fun Beregning.toSnapshot() = PersistertBeregning(
     id = getId(),
     opprettet = getOpprettet(),
     sats = getSats(),
@@ -83,7 +83,7 @@ internal fun Beregning.toSnapshot() = Beregnet(
     fradragStrategyName = getFradragStrategyName()
 )
 
-internal fun Månedsberegning.toSnapshot() = BeregnetMåned(
+internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
     benyttetGrunnbeløp = getBenyttetGrunnbeløp(),
@@ -93,7 +93,7 @@ internal fun Månedsberegning.toSnapshot() = BeregnetMåned(
     periode = getPeriode()
 )
 
-internal fun Fradrag.toSnapshot() = BeregnetFradrag(
+internal fun Fradrag.toSnapshot() = PersistertFradrag(
     fradragstype = getFradragstype(),
     totaltFradrag = getTotaltFradrag(),
     utenlandskInntekt = getUtenlandskInntekt(),
