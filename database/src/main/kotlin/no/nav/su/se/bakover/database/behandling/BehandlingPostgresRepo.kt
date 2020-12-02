@@ -136,7 +136,18 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun oppdaterAttestering(behandlingId: UUID, attestering: Attestering) {
+    override fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
+        oppdaterAttestering(behandlingId, Attestering(attestant))
+    }
+    override fun oppdaterUnderkjentAttestering(
+        behandlingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+        underkjennelse: Attestering.Underkjennelse
+    ) {
+        oppdaterAttestering(behandlingId, Attestering(attestant, underkjennelse))
+    }
+
+    private fun oppdaterAttestering(behandlingId: UUID, attestering: Attestering) {
         dataSource.withSession { session ->
             "update behandling set attestering = to_json(:attestering::json) where id=:id".oppdatering(
                 mapOf(

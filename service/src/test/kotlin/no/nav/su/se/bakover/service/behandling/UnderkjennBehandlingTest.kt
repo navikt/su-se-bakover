@@ -370,9 +370,10 @@ class UnderkjennBehandlingTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
-            verify(behandlingRepoMock).oppdaterAttestering(
+            verify(behandlingRepoMock).oppdaterUnderkjentAttestering(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                attestering = argThat { it shouldBe Attestering(attestant) }
+                attestant = argThat { it shouldBe attestant },
+                underkjennelse = argThat { it shouldBe underkjennelse },
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -470,9 +471,10 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
 
-            verify(behandlingRepoMock).oppdaterAttestering(
+            verify(behandlingRepoMock).oppdaterUnderkjentAttestering(
                 argThat { it shouldBe behandling.id },
-                argThat { it shouldBe Attestering(attestant) }
+                argThat { it shouldBe attestant },
+                argThat { it shouldBe underkjennelse }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },

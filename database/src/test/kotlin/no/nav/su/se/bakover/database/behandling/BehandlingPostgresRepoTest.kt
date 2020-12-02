@@ -123,10 +123,36 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val attestant = NavIdentBruker.Attestant("kjella")
-            repo.oppdaterAttestering(nySøknadsbehandling.id, Attestering(attestant))
+            repo.oppdaterAttestant(nySøknadsbehandling.id, attestant)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.attestering()?.attestant shouldBe attestant
+        }
+    }
+
+    @Test
+    fun `attestant underkjenner saksbehandling`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = sak.søknader()[0].id,
+                oppgaveId = oppgaveId
+            )
+
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            val attestant = NavIdentBruker.Attestant("kjella")
+            val underkjennelse = Attestering.Underkjennelse(
+                grunn = Attestering.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
+                kommentar = "1+1 er ikke 3"
+            )
+            repo.oppdaterUnderkjentAttestering(nySøknadsbehandling.id, attestant, underkjennelse)
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
+
+            hentet.attestering()?.attestant shouldBe attestant
+            hentet.attestering()?.underkjennelse shouldBe underkjennelse
         }
     }
 

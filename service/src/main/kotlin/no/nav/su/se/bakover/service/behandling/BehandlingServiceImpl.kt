@@ -97,7 +97,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering(attestant))
+                    behandlingRepo.oppdaterUnderkjentAttestering(behandlingId, attestant, underkjennelse)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -314,7 +314,7 @@ internal class BehandlingServiceImpl(
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
-        behandlingRepo.oppdaterAttestering(behandling.id, Attestering(attestant))
+        behandlingRepo.oppdaterAttestant(behandling.id, attestant)
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -378,7 +378,7 @@ internal class BehandlingServiceImpl(
                 behandlingId = behandlingId,
                 utbetalingId = oversendtUtbetaling.id
             )
-            behandlingRepo.oppdaterAttestering(behandlingId, Attestering(attestant))
+            behandlingRepo.oppdaterAttestant(behandlingId, attestant)
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
