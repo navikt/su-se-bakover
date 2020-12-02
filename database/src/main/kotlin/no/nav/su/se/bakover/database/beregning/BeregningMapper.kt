@@ -59,14 +59,12 @@ internal data class BeregnetFradrag(
     private val fradragstype: Fradragstype,
     private val totaltFradrag: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
-    private val fradragPerMåned: Double,
     private val periode: Periode,
     private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
     override fun getTotaltFradrag(): Double = totaltFradrag
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-    override fun getFradragPerMåned(): Double = fradragPerMåned
     override fun getTilhører(): FradragTilhører = tilhører
 
     override fun getPeriode(): Periode = periode
@@ -99,7 +97,6 @@ internal fun Fradrag.toSnapshot() = BeregnetFradrag(
     fradragstype = getFradragstype(),
     totaltFradrag = getTotaltFradrag(),
     utenlandskInntekt = getUtenlandskInntekt(),
-    fradragPerMåned = getFradragPerMåned(),
     periode = getPeriode(),
     tilhører = getTilhører()
 )

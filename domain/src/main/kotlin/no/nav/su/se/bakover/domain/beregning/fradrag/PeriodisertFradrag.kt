@@ -14,9 +14,7 @@ internal data class PeriodisertFradrag(
         require(periode.getAntallMåneder() == 1) { "Periodiserte fradrag kan bare gjelde for en enkelt måned" }
     }
 
-    override fun getFradragPerMåned() = beløp / periode.getAntallMåneder()
     override fun getTilhører(): FradragTilhører = tilhører
-
     override fun getFradragstype(): Fradragstype = type
     override fun getTotaltFradrag(): Double = beløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt

@@ -6,7 +6,6 @@ interface Fradrag : PeriodisertInformasjon {
     fun getFradragstype(): Fradragstype
     fun getTotaltFradrag(): Double
     fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
-    fun getFradragPerMåned(): Double
     fun getTilhører(): FradragTilhører
 }
 

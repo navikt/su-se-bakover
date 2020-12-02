@@ -30,7 +30,6 @@ internal class IkkePeriodisertFradragTest {
             tilhører = FradragTilhører.BRUKER
         )
         f1.getTotaltFradrag() shouldBe 12000.0
-        f1.getFradragPerMåned() shouldBe 12000.0
 
         val f2 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
@@ -39,7 +38,6 @@ internal class IkkePeriodisertFradragTest {
             tilhører = FradragTilhører.BRUKER
         )
         f2.getTotaltFradrag() shouldBe 12000.0
-        f2.getFradragPerMåned() shouldBe 1000.0
     }
 
     @Test

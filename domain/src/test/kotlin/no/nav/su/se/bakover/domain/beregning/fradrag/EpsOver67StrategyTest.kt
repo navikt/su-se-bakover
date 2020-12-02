@@ -73,7 +73,12 @@ internal class EpsOver67StrategyTest {
         val expectedFradragBrukerJuli =
             lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
         val expectedEpsFradragJan =
-            lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 15159, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
+            lagPeriodisertFradrag(
+                BeregnetFradragEPS,
+                20000.0 - 15159,
+                Periode(1.januar(2020), 31.januar(2020)),
+                tilhører = EPS
+            )
         val expectedEpsFradragJuli =
             lagPeriodisertFradrag(
                 BeregnetFradragEPS,
@@ -134,7 +139,10 @@ internal class EpsOver67StrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getFradragPerMåned() }
+            it.values.forEach {
+                it.sumByDouble { it.getTotaltFradrag() } shouldBe
+                    arbeidsinntekt.getTotaltFradrag() / arbeidsinntekt.getPeriode().getAntallMåneder()
+            }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }

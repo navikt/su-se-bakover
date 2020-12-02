@@ -162,7 +162,10 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getFradragPerMåned() }
+            it.values.forEach {
+                it.sumByDouble { it.getTotaltFradrag() } shouldBe
+                    arbeidsinntekt.getTotaltFradrag() / arbeidsinntekt.getPeriode().getAntallMåneder()
+            }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }
