@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.domain.brev.getBrevinnholdberegning
 data class AvslagBrevRequest(
     private val person: Person,
     private val avslag: Avslag,
+    private val saksbehandlerNavn: String,
+    private val attestantNavn: String
 ) : LagBrevRequest {
     override fun getPerson(): Person = person
     override fun lagBrevInnhold(personalia: Personalia): AvslagsBrevInnhold = AvslagsBrevInnhold(
@@ -16,6 +18,8 @@ data class AvslagBrevRequest(
         avslagsgrunner = avslag.avslagsgrunner,
         harEktefelle = avslag.harEktefelle,
         halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-        beregning = avslag.beregning?.let { getBrevinnholdberegning(it) }
+        beregning = avslag.beregning?.let { getBrevinnholdberegning(it) },
+        saksbehandlerNavn = saksbehandlerNavn,
+        attestantNavn = attestantNavn
     )
 }

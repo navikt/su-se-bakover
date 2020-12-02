@@ -54,7 +54,7 @@ internal class OpprettBehandlingsinformasjonTest {
             status = Behandling.BehandlingsStatus.OPPRETTET,
             fnr = fnr,
             oppgaveId = oppgaveId,
-            behandlingsinformasjon = BehandlingTestUtils.behandlingsinformasjon,
+            behandlingsinformasjon = behandlingsinformasjon,
             simulering = null,
             beregning = null,
         )
@@ -70,6 +70,7 @@ internal class OpprettBehandlingsinformasjonTest {
 
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).oppdaterBehandlingsinformasjon(behandlingId, saksbehandler, behandlingInformasjon)
 
         response shouldBe KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
@@ -88,6 +89,7 @@ internal class OpprettBehandlingsinformasjonTest {
 
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).oppdaterBehandlingsinformasjon(behandlingId, saksbehandler, behandlingInformasjon)
 
         response shouldBe KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -105,6 +107,7 @@ internal class OpprettBehandlingsinformasjonTest {
 
         val response = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).oppdaterBehandlingsinformasjon(behandlingId, saksbehandler, behandlingInformasjon)
 
         response shouldBe opprettetBehandling().copy(status = VILKÅRSVURDERT_INNVILGET).right()

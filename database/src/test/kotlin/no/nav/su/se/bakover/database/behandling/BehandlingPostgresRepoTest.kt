@@ -73,7 +73,8 @@ internal class BehandlingPostgresRepoTest {
                 uførhet = Behandlingsinformasjon.Uførhet(
                     status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                     uføregrad = 40,
-                    forventetInntekt = 200
+                    forventetInntekt = 200,
+                    begrunnelse = null
                 )
             ).also {
                 repo.oppdaterBehandlingsinformasjon(nySøknadsbehandling.id, it)

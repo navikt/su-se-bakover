@@ -20,6 +20,7 @@ import io.ktor.util.KtorExperimentalAPI
 import io.ktor.util.pipeline.PipelineContext
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 
 /**
@@ -78,7 +79,8 @@ internal sealed class SuUserFeaturefeil(override val message: String) : RuntimeE
 
 internal object ManglerAuthHeader : SuUserFeaturefeil("Mangler auth header")
 internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
-internal data class KallMotMicrosoftGraphApiFeilet(override val message: String) : SuUserFeaturefeil(message)
+internal data class KallMotMicrosoftGraphApiFeilet(val feil: MicrosoftGraphApiOppslagFeil) :
+    SuUserFeaturefeil("Kall mot Microsoft Graph Api feilet")
 internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
 
 class SuUserContext(val call: ApplicationCall) {

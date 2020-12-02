@@ -1,6 +1,11 @@
 package no.nav.su.se.bakover.service.behandling
 
+import arrow.core.Either
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
@@ -29,6 +34,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 import java.time.ZoneOffset
 
@@ -47,7 +53,9 @@ object BehandlingTestUtils {
         søknadRepo: SøknadRepo = mock(),
         personOppslag: PersonOppslag = mock(),
         brevService: BrevService = mock(),
+        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -57,15 +65,18 @@ object BehandlingTestUtils {
         søknadRepo = søknadRepo,
         personOppslag = personOppslag,
         brevService = brevService,
+        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         behandlingMetrics = behandlingMetrics,
-        clock = fixedClock
+        clock = fixedClock,
+        microsoftGraphApiClient = microsoftGraphApiOppslag
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = Uførhet(
             status = VilkårOppfylt,
             uføregrad = 20,
-            forventetInntekt = 10
+            forventetInntekt = 10,
+            begrunnelse = null
         ),
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
@@ -124,4 +135,23 @@ object BehandlingTestUtils {
             skjermet = null
         )
     )
+
+    internal object microsoftGraphMock {
+        val response = MicrosoftGraphResponse(
+            onPremisesSamAccountName = "",
+            displayName = "Nav Navesen",
+            givenName = "",
+            mail = "",
+            officeLocation = "",
+            surname = "",
+            userPrincipalName = "",
+            id = "",
+            jobTitle = ""
+        )
+
+        val oppslagMock: MicrosoftGraphApiOppslag = mock {
+            on { hentBrukerinformasjon(any()) } doReturn Either.right(response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(response)
+        }
+    }
 }

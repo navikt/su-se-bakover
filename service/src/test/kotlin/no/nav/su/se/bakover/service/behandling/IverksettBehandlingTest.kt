@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
@@ -50,6 +51,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -96,12 +98,16 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock = mock<UtbetalingService>()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
@@ -113,7 +119,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -135,12 +142,16 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock = mock<UtbetalingService>()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.FantIkkePerson.left()
@@ -153,7 +164,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -175,12 +187,16 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock = mock<UtbetalingService>()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock,
         ).iverksett(behandling.id, Attestant(behandling.saksbehandler()!!.navIdent))
 
         response shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -193,7 +209,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -220,29 +237,41 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock = mock<UtbetalingService>()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe IverksattBehandling.UtenMangler(behandling).right()
-        inOrder(behandlingRepoMock, brevServiceMock, personOppslagMock, oppgaveServiceMock) {
+        inOrder(
+            behandlingRepoMock,
+            brevServiceMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
+        ) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe AvslagBrevRequest(
-                        person,
-                        Avslag(
+                        person = person,
+                        avslag = Avslag(
                             opprettet = tidspunkt,
                             avslagsgrunner = listOf(),
                             harEktefelle = false,
                             beregning = beregning
 
-                        )
+                        ),
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
                 argThat { it shouldBe behandling.sakId }
@@ -255,6 +284,16 @@ internal class IverksettBehandlingTest {
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+            )
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Avslag(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        avslagsgrunner = listOf()
+                    )
+                }
             )
 
             verify(brevServiceMock).distribuerBrev(journalpostId)
@@ -269,7 +308,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -294,6 +334,8 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock = mock<UtbetalingService>()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val exception = shouldThrow<Behandling.TilstandException> {
             createService(
                 behandlingRepo = behandlingRepoMock,
@@ -301,6 +343,8 @@ internal class IverksettBehandlingTest {
                 brevService = brevServiceMock,
                 personOppslag = personOppslagMock,
                 oppgaveService = oppgaveServiceMock,
+                microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+                opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
             ).iverksett(behandlingId, attestant)
         }
 
@@ -317,7 +361,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -342,13 +387,16 @@ internal class IverksettBehandlingTest {
         }
 
         val utbetalingServiceMock: UtbetalingService = mock()
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
             personOppslag = personOppslagMock,
             oppgaveService = oppgaveServiceMock,
-            utbetalingService = utbetalingServiceMock
+            utbetalingService = utbetalingServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
@@ -358,14 +406,15 @@ internal class IverksettBehandlingTest {
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe AvslagBrevRequest(
-                        person,
-                        Avslag(
+                        person = person,
+                        avslag = Avslag(
                             opprettet = tidspunkt,
                             avslagsgrunner = listOf(),
                             harEktefelle = false,
                             beregning = beregning
-
-                        )
+                        ),
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
                 sakId = argThat { it shouldBe behandling.sakId }
@@ -376,7 +425,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -405,12 +455,16 @@ internal class IverksettBehandlingTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             oppgaveService = oppgaveServiceMock,
             personOppslag = personOppslagMock,
             brevService = brevServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling).right()
@@ -431,7 +485,14 @@ internal class IverksettBehandlingTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(brevServiceMock).journalførBrev(
-                request = argThat { it shouldBe LagBrevRequest.InnvilgetVedtak(person, behandling) },
+                request = argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person,
+                        behandling = behandling,
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
+                    )
+                },
                 sakId = argThat { it shouldBe behandling.sakId }
             )
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
@@ -446,7 +507,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             personOppslagMock,
             oppgaveServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -480,13 +542,17 @@ internal class IverksettBehandlingTest {
 
         val behandlingMetricsMock: BehandlingMetrics = mock()
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             oppgaveService = oppgaveServiceMock,
             personOppslag = personOppslagMock,
             brevService = brevServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
         ).iverksett(behandling.id, attestant)
 
         response shouldBe IverksattBehandling.UtenMangler(behandling).right()
@@ -514,7 +580,15 @@ internal class IverksettBehandlingTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
-            verify(brevServiceMock).journalførBrev(LagBrevRequest.InnvilgetVedtak(person, behandling), behandling.sakId)
+            verify(brevServiceMock).journalførBrev(
+                LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    behandling = behandling,
+                    attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                    saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
+                ),
+                behandling.sakId
+            )
 
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
                 behandlingId = argThat { it shouldBe behandling.id },
@@ -536,7 +610,8 @@ internal class IverksettBehandlingTest {
             utbetalingServiceMock,
             personOppslagMock,
             behandlingMetricsMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
         )
     }
 
@@ -563,10 +638,14 @@ internal class IverksettBehandlingTest {
             } doReturn KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
         }
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
-            personOppslag = personOppslagMock
+            personOppslag = personOppslagMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
@@ -577,7 +656,12 @@ internal class IverksettBehandlingTest {
             verify(utbetalingServiceMock).utbetal(behandling.sakId, attestant, beregning, simulering)
             verify(behandlingRepoMock, Times(0)).oppdaterBehandlingStatus(any(), any())
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
+        )
     }
 
     @Test
@@ -603,15 +687,18 @@ internal class IverksettBehandlingTest {
             } doReturn KunneIkkeUtbetale.Protokollfeil.left()
         }
 
+        val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
-            personOppslag = personOppslagMock
+            personOppslag = personOppslagMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
 
-        inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock) {
+        inOrder(behandlingRepoMock, personOppslagMock, utbetalingServiceMock, opprettVedtakssnapshotServiceMock) {
             verify(behandlingRepoMock).hentBehandling(
                 argThat {
                     it shouldBe behandling.id
@@ -625,7 +712,12 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering }
             )
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            personOppslagMock,
+            utbetalingServiceMock,
+            opprettVedtakssnapshotServiceMock
+        )
     }
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(

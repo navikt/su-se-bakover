@@ -33,7 +33,8 @@ internal class BehandlingJsonTest {
                 "uførhet": {
                     "status": "VilkårOppfylt",
                     "uføregrad": 20,
-                    "forventetInntekt": 10
+                    "forventetInntekt": 10,
+                    "begrunnelse": null
                 },
                 "flyktning": {
                     "status" : "VilkårOppfylt",

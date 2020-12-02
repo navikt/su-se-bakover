@@ -5,18 +5,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class OppholdIUtlandetTest {
-    @Test
-    fun `er gyldig uansett hva man putter inn`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "neh"
-        ).erGyldig() shouldBe true
-
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = null
-        ).erGyldig() shouldBe true
-    }
 
     @Test
     fun `er ikke ferdigbehandlet hvis status er uavklart`() {

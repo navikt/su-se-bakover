@@ -152,7 +152,8 @@ internal class BehandlingTest {
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
                         1,
-                        1
+                        1,
+                        null
                     ),
                     flyktning = Behandlingsinformasjon.Flyktning(
                         Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
@@ -173,7 +174,8 @@ internal class BehandlingTest {
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                         1,
-                        1
+                        1,
+                        null
                     ),
                     flyktning = Behandlingsinformasjon.Flyktning(
                         Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
@@ -194,7 +196,8 @@ internal class BehandlingTest {
                     uførhet = Behandlingsinformasjon.Uførhet(
                         Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
                         1,
-                        1
+                        1,
+                        null
                     )
                 )
             )
@@ -310,7 +313,7 @@ internal class BehandlingTest {
         fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
             val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             val behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000)
+                uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000, null)
             )
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)

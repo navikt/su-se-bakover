@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
+import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import javax.sql.DataSource
 
@@ -52,7 +54,8 @@ object DatabaseBuilder {
             behandling = behandlingRepo,
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
             sak = SakPostgresRepo(dataSource, behandlingRepo),
-            person = PersonPostgresRepo(dataSource)
+            person = PersonPostgresRepo(dataSource),
+            vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource)
         )
     }
 }
@@ -65,5 +68,6 @@ data class DatabaseRepos(
     val behandling: BehandlingRepo,
     val hendelseslogg: HendelsesloggRepo,
     val sak: SakRepo,
-    val person: PersonRepo
+    val person: PersonRepo,
+    val vedtakssnapshot: VedtakssnapshotRepo
 )

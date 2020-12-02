@@ -71,7 +71,6 @@ data class Behandlingsinformasjon(
     }
 
     abstract class Base {
-        abstract fun erGyldig(): Boolean
         abstract fun erVilkårOppfylt(): Boolean
         abstract fun erVilkårIkkeOppfylt(): Boolean
         abstract fun avslagsgrunn(): Avslagsgrunn?
@@ -80,20 +79,14 @@ data class Behandlingsinformasjon(
     data class Uførhet(
         val status: Status,
         val uføregrad: Int?,
-        val forventetInntekt: Int?
+        val forventetInntekt: Int?,
+        val begrunnelse: String?
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
             VilkårIkkeOppfylt,
             HarUføresakTilBehandling
         }
-
-        override fun erGyldig(): Boolean =
-            when (status) {
-                Status.VilkårOppfylt -> uføregrad != null && forventetInntekt != null
-                Status.VilkårIkkeOppfylt -> uføregrad == null && forventetInntekt == null
-                Status.HarUføresakTilBehandling -> uføregrad != null && uføregrad > 0 && forventetInntekt != null && forventetInntekt > 0
-            }
 
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
@@ -112,8 +105,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
-
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
@@ -130,8 +121,6 @@ data class Behandlingsinformasjon(
             VilkårIkkeOppfylt,
             Uavklart
         }
-
-        override fun erGyldig(): Boolean = true
 
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
@@ -150,8 +139,6 @@ data class Behandlingsinformasjon(
             Uavklart
         }
 
-        override fun erGyldig(): Boolean = true
-
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
@@ -168,8 +155,6 @@ data class Behandlingsinformasjon(
             SkalHoldeSegINorge,
             Uavklart
         }
-
-        override fun erGyldig(): Boolean = true
 
         override fun erVilkårOppfylt(): Boolean = status == Status.SkalHoldeSegINorge
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.SkalVæreMerEnn90DagerIUtlandet
@@ -201,19 +186,6 @@ data class Behandlingsinformasjon(
             MåInnhenteMerInformasjon
         }
 
-        override fun erGyldig(): Boolean =
-            when (status) {
-                Status.MåInnhenteMerInformasjon -> true
-                else ->
-                    verdier?.verdiIkkePrimærbolig != null &&
-                        verdier.verdiKjøretøy != null &&
-                        verdier.innskudd != null &&
-                        verdier.verdipapir != null &&
-                        verdier.pengerSkyldt != null &&
-                        verdier.kontanter != null &&
-                        verdier.depositumskonto != null
-            }
-
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
@@ -234,8 +206,6 @@ data class Behandlingsinformasjon(
             IkkeMøttPersonlig,
             Uavklart
         }
-
-        override fun erGyldig(): Boolean = true
 
         override fun erVilkårOppfylt(): Boolean =
             status.let {
@@ -280,7 +250,7 @@ data class Behandlingsinformasjon(
             }
         }
 
-        override fun erGyldig(): Boolean {
+        override fun erVilkårOppfylt(): Boolean {
             if (epsFnr == null && delerBolig == null) {
                 return false
             }
@@ -295,7 +265,6 @@ data class Behandlingsinformasjon(
             return delerBolig != null
         }
 
-        override fun erVilkårOppfylt(): Boolean = erGyldig()
         override fun erVilkårIkkeOppfylt(): Boolean = false
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
@@ -334,7 +303,6 @@ data class Behandlingsinformasjon(
 
         object IngenEktefelle : EktefellePartnerSamboer()
 
-        override fun erGyldig(): Boolean = true
         override fun erVilkårOppfylt(): Boolean = true
         override fun erVilkårIkkeOppfylt(): Boolean = false
         override fun avslagsgrunn(): Avslagsgrunn? = null

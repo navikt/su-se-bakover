@@ -6,17 +6,6 @@ import no.nav.su.se.bakover.domain.Person
 import org.junit.jupiter.api.Test
 
 internal class EktefelleTest {
-    @Test
-    fun `er gyldig uansett hva man putter inn`() {
-        Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
-            navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
-            kjønn = null,
-            adressebeskyttelse = null,
-            skjermet = null,
-        ).erGyldig() shouldBe true
-        Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle.erGyldig() shouldBe true
-    }
 
     @Test
     fun `er aldri ikke-oppfylt`() {

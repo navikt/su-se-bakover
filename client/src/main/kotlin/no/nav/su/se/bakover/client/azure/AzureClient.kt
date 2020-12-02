@@ -35,6 +35,23 @@ internal class AzureClient(
         )
     }
 
+    override fun getSystemToken(otherAppId: String): String {
+        val (_, _, result) = tokenEndpoint.httpPost(
+            listOf(
+                "grant_type" to "client_credentials",
+                "client_id" to thisClientId,
+                "client_secret" to thisClientSecret,
+                "scope" to "$otherAppId/.default",
+            )
+        )
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .responseString()
+        return result.fold(
+            { JSONObject(it).getString("access_token") },
+            { throw RuntimeException("Error while exchanging token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
+        )
+    }
+
     override fun refreshTokens(refreshToken: String): JSONObject {
         val (_, _, result) = tokenEndpoint.httpPost(
             listOf(

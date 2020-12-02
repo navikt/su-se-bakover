@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
@@ -176,8 +177,8 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
         val pdfGenerator: PdfGenerator = mock {
-            val captor = ArgumentCaptor.forClass(SøknadInnhold::class.java)
-            on { genererPdf(capture<SøknadInnhold>(captor)) } doAnswer { PdfGeneratorStub.genererPdf(captor.value) }
+            val captor = ArgumentCaptor.forClass(SøknadPdfInnhold::class.java)
+            on { genererPdf(capture<SøknadPdfInnhold>(captor)) } doAnswer { PdfGeneratorStub.genererPdf(captor.value) }
         }
         val dokArkiv: DokArkiv = mock {
             val captor = ArgumentCaptor.forClass(Journalpost.Søknadspost::class.java)
@@ -233,7 +234,7 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 response.status() shouldBe Created
-                verify(pdfGenerator, Times(1)).genererPdf(any<SøknadInnhold>())
+                verify(pdfGenerator, Times(1)).genererPdf(any<SøknadPdfInnhold>())
                 verify(dokArkiv, Times(1)).opprettJournalpost(any())
                 // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
                 verify(personOppslag, Times(2)).person(any())

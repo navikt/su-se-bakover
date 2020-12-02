@@ -95,6 +95,7 @@ object SøknadInnholdTestdataBuilder {
             )
         ),
         formue: Formue = Formue(
+            eierBolig = true,
             borIBolig = false,
             verdiPåBolig = 600000,
             boligBrukesTil = "Mine barn bor der",
@@ -119,6 +120,7 @@ object SøknadInnholdTestdataBuilder {
         ),
         ektefelle: Ektefelle = Ektefelle(
             formue = Formue(
+                eierBolig = true,
                 borIBolig = false,
                 verdiPåBolig = 0,
                 boligBrukesTil = "",
