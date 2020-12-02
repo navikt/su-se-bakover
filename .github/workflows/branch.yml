@@ -1,5 +1,5 @@
 name: Build non-master/main branches. And deploy specific ones only.
-# If you want to deploy your branch to master, replace with your branch name: if: github.ref == 'refs/heads/branch_name'
+# If you want to deploy your branch to master, replace with your branch name: if: github.ref == 'refs/heads/BRANCH_NAME'
 # TODO: Have to replace two places. Github actions does not support env vars in conditions
 on:
   push:
