@@ -5,23 +5,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class FlyktningTest {
-    @Test
-    fun `er gyldig uansett hva man putter inn`() {
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).erGyldig() shouldBe true
-
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = null
-        ).erGyldig() shouldBe true
-
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = "neh"
-        ).erGyldig() shouldBe true
-    }
 
     @Test
     fun `er ikke ferdigbehandlet hvis status er uavklart`() {
