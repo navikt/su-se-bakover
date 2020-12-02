@@ -216,7 +216,7 @@ internal class BehandlingServiceImpl(
                 behandlingTilAttestering.sakId,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                tilordnetRessurs = behandlingTilAttestering.attestant()
+                tilordnetRessurs = behandlingTilAttestering.attestering()?.attestant
             )
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
@@ -474,8 +474,8 @@ internal class BehandlingServiceImpl(
         return hentBehandling(behandlingId)
             .mapLeft { KunneIkkeLageBrevutkast.FantIkkeBehandling }
             .flatMap { behandling ->
-                val attestantNavn = behandling.attestant()?.let {
-                    hentNavnForNavIdent(it.navIdent)
+                val attestantNavn = behandling.attestering()?.let {
+                    hentNavnForNavIdent(it.attestant.navIdent)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
                 val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)

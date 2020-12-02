@@ -709,7 +709,7 @@ internal class BehandlingTest {
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
-            tilAttestering.attestant() shouldBe null
+            tilAttestering.attestering() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
 
@@ -761,7 +761,7 @@ internal class BehandlingTest {
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
-            tilAttestering.attestant() shouldBe null
+            tilAttestering.attestering() shouldBe null
             tilAttestering.status() shouldBe TIL_ATTESTERING_AVSLAG
         }
 

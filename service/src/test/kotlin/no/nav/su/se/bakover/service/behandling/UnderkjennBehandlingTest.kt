@@ -54,7 +54,7 @@ class UnderkjennBehandlingTest {
         grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
         kommentar = "begrunnelse"
     )
-    private val attestant = NavIdentBruker.Attestant("a") // TODO ai: make moar smuuud
+    private val attestant = NavIdentBruker.Attestant("a")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
     private val beregning = TestBeregning
@@ -349,8 +349,8 @@ class UnderkjennBehandlingTest {
             attestering = Attestering(
                 attestant,
                 Attestering.Underkjennelse(
-                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
-                    kommentar = "begrunnelse"
+                    grunn = underkjennelse.grunn,
+                    kommentar = underkjennelse.kommentar
                 )
             )
         ).right()
@@ -448,8 +448,8 @@ class UnderkjennBehandlingTest {
             attestering = Attestering(
                 attestant,
                 Attestering.Underkjennelse(
-                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
-                    kommentar = "begrunnelse"
+                    grunn = underkjennelse.grunn,
+                    kommentar = underkjennelse.kommentar
                 )
             )
         ).right()

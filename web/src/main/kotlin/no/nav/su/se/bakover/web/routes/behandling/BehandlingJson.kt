@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import AttesteringJson
+import UnderkjennelseJson
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -21,7 +23,7 @@ internal data class BehandlingJson(
     val status: String,
     val simulering: SimuleringJson?,
     val opprettet: String,
-    val attestant: String?,
+    val attestering: AttesteringJson?,
     val saksbehandler: String?,
     val sakId: UUID,
     val hendelser: List<HendelseJson>?
@@ -35,7 +37,18 @@ internal fun Behandling.toJson() = BehandlingJson(
     status = status().toString(),
     simulering = simulering()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    attestant = attestant()?.navIdent,
+    attestering = attestering()?.let {
+        val attestering = attestering()!!
+        AttesteringJson(
+            attestant = attestering.attestant.navIdent,
+            underkjennelse = attestering.underkjennelse?.let {
+                UnderkjennelseJson(
+                    grunn = attestering.underkjennelse!!.grunn.toString(),
+                    kommentar = attestering.underkjennelse!!.kommentar
+                )
+            }
+        )
+    },
     saksbehandler = saksbehandler()?.navIdent,
     sakId = sakId,
     hendelser = hendelser().toJson(),

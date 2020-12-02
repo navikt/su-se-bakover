@@ -13,7 +13,8 @@ data class Attestering(
         enum class Grunn {
             INNGANGSVILKÅRENE_ER_FEILVURDERT,
             BEREGNINGEN_ER_FEIL,
-            DOKUMENTASJON_MANGLER_VEDTAKSBREVET_ER_FEIL,
+            DOKUMENTASJON_MANGLER,
+            VEDTAKSBREVET_ER_FEIL,
             ANDRE_FORHOLD,
         }
     }

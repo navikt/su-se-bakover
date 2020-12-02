@@ -51,7 +51,7 @@ data class Behandling internal constructor(
 
     fun saksbehandler() = saksbehandler
 
-    fun attestant() = attestering?.attestant
+    fun attestering(): Attestering? = attestering
 
     fun beregning() = beregning
 
