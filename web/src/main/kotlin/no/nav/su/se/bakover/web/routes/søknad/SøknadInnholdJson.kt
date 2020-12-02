@@ -109,7 +109,7 @@ data class SøknadInnholdJson(
 
         private fun toOppholdstillatelseType(str: String): Oppholdstillatelse.OppholdstillatelseType {
             return when (str) {
-                "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG
+                "midlertidig" -> Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG
                 "permanent" -> Oppholdstillatelse.OppholdstillatelseType.PERMANENT
                 else -> throw IllegalArgumentException("Ikke gyldig oppholdstillatelse type")
             }
@@ -526,7 +526,7 @@ data class SøknadInnholdJson(
 
 private fun Oppholdstillatelse.OppholdstillatelseType.toJson(): String {
     return when (this) {
-        Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG -> "midlertidig"
+        Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG -> "midlertidig"
         Oppholdstillatelse.OppholdstillatelseType.PERMANENT -> "permanent"
     }
 }
