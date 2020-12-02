@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.defaultOversendtUtbetaling
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
@@ -35,6 +37,19 @@ internal class VedtakPostgresRepoTest {
                     opprettet = Tidspunkt.now(),
                     behandling = opprettBehandling(),
                     avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
+                )
+            )
+        }
+    }
+    @Test
+    fun `insert innvilgelse`() {
+        withMigratedDb {
+            repo.opprettVedtakssnapshot(
+                Vedtakssnapshot.Innvilgelse(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    behandling = opprettBehandling(),
+                    utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), fnr),
                 )
             )
         }

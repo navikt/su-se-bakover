@@ -18,6 +18,7 @@ class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotR
                     "opprettet" to vedtakssnapshot.opprettet,
                     "vedtakstype" to when (vedtakssnapshot) {
                         is Avslag -> "avslag"
+                        is Vedtakssnapshot.Innvilgelse -> "innvilgelse"
                     },
                     "vedtak" to objectMapper.writeValueAsString(vedtakssnapshot)
                 ),

@@ -365,6 +365,12 @@ internal class BehandlingServiceImpl(
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
+
+        val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,
@@ -386,11 +392,9 @@ internal class BehandlingServiceImpl(
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-            val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-            val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+            opprettVedtakssnapshotService.opprettVedtak(
+                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
+            )
 
             val journalføringOgBrevResultat =
                 brevService.journalførBrev(

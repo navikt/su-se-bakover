@@ -469,7 +469,14 @@ internal class IverksettBehandlingTest {
 
         response shouldBe IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling).right()
 
-        inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
+        inOrder(
+            behandlingRepoMock,
+            brevServiceMock,
+            utbetalingServiceMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
+        ) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(
@@ -483,6 +490,16 @@ internal class IverksettBehandlingTest {
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            )
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
             )
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
@@ -563,7 +580,8 @@ internal class IverksettBehandlingTest {
             personOppslagMock,
             brevServiceMock,
             behandlingMetricsMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
@@ -580,6 +598,16 @@ internal class IverksettBehandlingTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
+            )
             verify(brevServiceMock).journalførBrev(
                 LagBrevRequest.InnvilgetVedtak(
                     person = person,
