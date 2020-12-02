@@ -10,7 +10,7 @@ object FradragFactory {
         utenlandskInntekt: UtenlandskInntekt? = null,
         tilhører: FradragTilhører
     ): Fradrag {
-        return PeriodeFradrag(
+        return IkkePeriodisertFradrag(
             periode = periode,
             type = type,
             beløp = beløp,

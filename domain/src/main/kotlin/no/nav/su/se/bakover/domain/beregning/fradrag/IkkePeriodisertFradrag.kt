@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Periode
 
-internal data class PeriodeFradrag(
+internal data class IkkePeriodisertFradrag(
     private val type: Fradragstype,
     private val beløp: Double,
     private val periode: Periode,

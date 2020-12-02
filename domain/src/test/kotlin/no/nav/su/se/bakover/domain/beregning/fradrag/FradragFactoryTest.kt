@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 internal class FradragFactoryTest {
     @Test
     fun `periodiserer fradrag for enkel måned`() {
-        val f1 = PeriodeFradrag(
+        val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020)),
@@ -28,7 +28,7 @@ internal class FradragFactoryTest {
 
     @Test
     fun `periodiserer fradrag for flere måneder`() {
-        val f1 = PeriodeFradrag(
+        val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             beløp = 12000.0,
             periode = Periode(1.januar(2020), 30.april(2020)),
