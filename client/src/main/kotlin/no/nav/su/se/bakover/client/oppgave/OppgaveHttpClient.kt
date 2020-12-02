@@ -77,7 +77,7 @@ internal class OppgaveHttpClient(
                         tilordnetRessurs = config.tilordnetRessurs?.toString()
                     )
                 )
-            ).also { log.info("Opprett oppgave: $it") }.responseString()
+            ).responseString()
 
         return result.fold(
             { json ->
@@ -151,7 +151,7 @@ internal class OppgaveHttpClient(
                         status = "FERDIGSTILT"
                     )
                 )
-            ).also { log.info("Lukk oppgave: $it") }.responseString()
+            ).responseString()
 
         return result.fold(
             { json ->
