@@ -1,0 +1,2 @@
+update søknad set søknadinnhold = jsonb_set(søknadinnhold, '{oppholdstillatelse, oppholdstillatelseType}', to_jsonb('MIDLERTIDIG'::text))
+where søknadinnhold #>> '{oppholdstillatelse, oppholdstillatelseType}' = 'MIDLERTIG';

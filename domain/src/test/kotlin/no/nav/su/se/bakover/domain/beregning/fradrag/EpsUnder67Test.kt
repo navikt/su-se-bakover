@@ -26,9 +26,9 @@ internal class EpsUnder67Test {
         val forventetInntekt = lagFradrag(ForventetInntekt, 6000.0, periode)
 
         val expectedArbeidsinntekt =
-            lagFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -53,9 +53,9 @@ internal class EpsUnder67Test {
         val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, periode)
 
         val expectedForventetInntekt =
-            lagFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -80,12 +80,9 @@ internal class EpsUnder67Test {
         val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode)
 
         val expectedBrukerInntekt =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)))
-        val expectedEpsInntekt = lagFradrag(
-            BeregnetFradragEPS,
-            2000.0,
-            Periode(1.januar(2020), 31.januar(2020)),
-            tilhører = EPS
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)))
+        val expectedEpsInntekt = lagPeriodisertFradrag(
+            BeregnetFradragEPS, 2000.0, Periode(1.januar(2020), 31.januar(2020)), EPS
         )
 
         FradragStrategy.EpsUnder67År.beregn(

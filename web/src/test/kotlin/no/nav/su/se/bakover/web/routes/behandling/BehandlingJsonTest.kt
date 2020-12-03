@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalfø
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import org.junit.jupiter.api.Test
@@ -128,6 +129,7 @@ internal class BehandlingJsonTest {
             behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = journalførtSøknadMedOppgave,
             sakId = sakId,
+            saksnummer = saksnummer,
             fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId
         )

@@ -31,11 +31,13 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -50,8 +52,9 @@ internal class BehandlingServiceImpl(
     private val søknadRepo: SøknadRepo, // TODO use services or repos? probably services
     private val personOppslag: PersonOppslag,
     private val brevService: BrevService,
+    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val behandlingMetrics: BehandlingMetrics,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag
 ) : BehandlingService {
 
@@ -318,7 +321,9 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-
+        opprettVedtakssnapshotService.opprettVedtak(
+            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
+        )
         val brevResultat = brevService.distribuerBrev(journalpostId)
             .mapLeft {
                 log.error("Kunne ikke bestille brev ved avslag for behandling ${behandling.id}. Dette må gjøres manuelt.")
@@ -361,6 +366,12 @@ internal class BehandlingServiceImpl(
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
+
+        val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,
@@ -382,11 +393,9 @@ internal class BehandlingServiceImpl(
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-            val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-            val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+            opprettVedtakssnapshotService.opprettVedtak(
+                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
+            )
 
             val journalføringOgBrevResultat =
                 brevService.journalførBrev(
@@ -478,8 +487,10 @@ internal class BehandlingServiceImpl(
                     hentNavnForNavIdent(it.attestant.navIdent)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
-                val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
-                    .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+                val saksbehandlerNavn = behandling.saksbehandler()?.let {
+                    hentNavnForNavIdent(it.navIdent)
+                        .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+                }
                 personOppslag.person(behandling.fnr)
                     .mapLeft {
                         KunneIkkeLageBrevutkast.FantIkkePerson
@@ -500,14 +511,14 @@ internal class BehandlingServiceImpl(
     private fun lagBrevRequestForBrevutkast(
         person: Person,
         behandling: Behandling,
-        saksbehandlerNavn: String,
+        saksbehandlerNavn: String?,
         attestantNavn: String?
     ): Either<KunneIkkeLageBrevutkast, LagBrevRequest> {
         if (behandling.erInnvilget()) {
             return LagBrevRequest.InnvilgetVedtak(
                 person = person,
                 behandling = behandling,
-                saksbehandlerNavn = saksbehandlerNavn,
+                saksbehandlerNavn = saksbehandlerNavn ?: "-",
                 attestantNavn = attestantNavn ?: "-"
             ).right()
         }
@@ -520,7 +531,7 @@ internal class BehandlingServiceImpl(
                     harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
                     beregning = behandling.beregning()
                 ),
-                saksbehandlerNavn = saksbehandlerNavn,
+                saksbehandlerNavn = saksbehandlerNavn ?: "-",
                 attestantNavn = attestantNavn ?: "-"
             ).right()
         }

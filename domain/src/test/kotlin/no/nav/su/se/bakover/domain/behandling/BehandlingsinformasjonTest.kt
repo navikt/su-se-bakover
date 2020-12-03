@@ -1,7 +1,16 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.behandling.Behandling.Companion.utledAvslagsgrunner
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
@@ -149,5 +158,60 @@ internal class BehandlingsinformasjonTest {
 
         uferdig.erInnvilget() shouldBe false
         uferdig.erAvslag() shouldBe false
+    }
+
+    @Test
+    fun `beregningen skal kunne gi en eller ingen avslagsgrunn`() {
+        val periode = Periode(1.januar(2020), 31.januar(2020))
+
+        val underMinstegrense = BeregningStrategy.BorAlene.beregn(
+            Beregningsgrunnlag(
+                periode = periode,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        periode = periode,
+                        type = Fradragstype.ForventetInntekt,
+                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) - 200,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        )
+        underMinstegrense.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.SU_UNDER_MINSTEGRENSE)
+
+        val forHøyInntekt = BeregningStrategy.BorAlene.beregn(
+            Beregningsgrunnlag(
+                periode = periode,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        periode = periode,
+                        type = Fradragstype.ForventetInntekt,
+                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) * 4,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        )
+
+        forHøyInntekt.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.FOR_HØY_INNTEKT)
+
+        val ingen = BeregningStrategy.BorAlene.beregn(
+            Beregningsgrunnlag(
+                periode = periode,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        periode = periode,
+                        type = Fradragstype.ForventetInntekt,
+                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) - 5000,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        )
+
+        ingen.utledAvslagsgrunner() shouldBe emptyList()
     }
 }

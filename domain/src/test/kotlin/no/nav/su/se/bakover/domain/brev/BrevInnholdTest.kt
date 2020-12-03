@@ -49,7 +49,7 @@ internal class BrevInnholdTest {
             harEktefelle = true,
             beregning = BrevInnhold.Beregning(
                 ytelsePerMåned = 100,
-                satsbeløpPerMåned = 100.0,
+                satsbeløpPerMåned = 100,
                 epsFribeløp = 100.0,
                 fradrag = BrevInnhold.Beregning.Fradrag(
                     bruker = BrevInnhold.Beregning.FradragForBruker(
@@ -103,7 +103,7 @@ internal class BrevInnholdTest {
                 "harEktefelle": true,
                 "beregning": {
                     "ytelsePerMåned": 100,
-                    "satsbeløpPerMåned": 100.0,
+                    "satsbeløpPerMåned": 100,
                     "epsFribeløp": 100.0,
                     "fradrag": {
                         "bruker": {

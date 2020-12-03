@@ -3,6 +3,7 @@ val wireMockVersion = "2.27.2"
 val orgJsonVersion = "20200518"
 val tjenestespesifikasjonVersion = "1.2020.07.06-13.56-22258ab2afe2"
 val cxfVersion = "3.4.0"
+val jettyVersion = "9.4.35.v20201120"
 
 dependencies {
     implementation(project(":common"))
@@ -26,6 +27,9 @@ dependencies {
     implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.11.3")
 
+    implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion")) {
+        because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
+    }
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }

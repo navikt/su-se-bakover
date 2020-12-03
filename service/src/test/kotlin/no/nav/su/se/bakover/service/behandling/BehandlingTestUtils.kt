@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 import java.time.ZoneOffset
 
@@ -52,6 +53,7 @@ object BehandlingTestUtils {
         søknadRepo: SøknadRepo = mock(),
         personOppslag: PersonOppslag = mock(),
         brevService: BrevService = mock(),
+        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag
     ) = BehandlingServiceImpl(
@@ -63,6 +65,7 @@ object BehandlingTestUtils {
         søknadRepo = søknadRepo,
         personOppslag = personOppslag,
         brevService = brevService,
+        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         behandlingMetrics = behandlingMetrics,
         clock = fixedClock,
         microsoftGraphApiClient = microsoftGraphApiOppslag

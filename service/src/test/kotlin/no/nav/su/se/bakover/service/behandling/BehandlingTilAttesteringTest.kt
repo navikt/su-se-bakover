@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -34,6 +35,7 @@ import java.util.UUID
 
 class BehandlingTilAttesteringTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
@@ -52,7 +54,6 @@ class BehandlingTilAttesteringTest {
     )
 
     private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -61,10 +62,12 @@ class BehandlingTilAttesteringTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId
         ),
-        status = Behandling.BehandlingsStatus.SIMULERT,
         beregning = beregning,
-        fnr = fnr,
         simulering = simulering,
+        status = Behandling.BehandlingsStatus.SIMULERT,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
         oppgaveId = oppgaveId
     )
 

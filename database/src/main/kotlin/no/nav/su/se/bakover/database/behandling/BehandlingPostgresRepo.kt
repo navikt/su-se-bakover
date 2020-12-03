@@ -5,7 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.beregning.Beregnet
+import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal
 import no.nav.su.se.bakover.database.hent
@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -209,13 +210,13 @@ internal class BehandlingPostgresRepo(
     }
 
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
-        "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
+        "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
                 row.toBehandling(session)
             }
 
     internal fun hentBehandlingerForSak(sakId: UUID, session: Session): List<Behandling> =
-        "select b.*, s.fnr from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
+        "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toBehandling(session)
             }
@@ -228,15 +229,16 @@ internal class BehandlingPostgresRepo(
         }
         return behandlingFactory.createBehandling(
             id = behandlingId,
-            behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             opprettet = tidspunkt("opprettet"),
+            behandlingsinformasjon = objectMapper.readValue(string("behandlingsinformasjon")),
             søknad = søknad,
-            beregning = stringOrNull("beregning")?.let { objectMapper.readValue<Beregnet>(it) },
+            beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) },
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
             attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) },
             sakId = uuid("sakId"),
+            saksnummer = Saksnummer(long("saksnummer")),
             hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)
                 ?: Hendelseslogg(
                     behandlingId.toString()

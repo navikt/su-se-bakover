@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import java.lang.RuntimeException
 import java.util.UUID
 import javax.sql.DataSource
 

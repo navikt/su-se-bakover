@@ -827,6 +827,7 @@ internal class BehandlingTest {
         søknad = søknad,
         status = status,
         sakId = id1,
+        saksnummer = Saksnummer(0),
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("1234")
     )

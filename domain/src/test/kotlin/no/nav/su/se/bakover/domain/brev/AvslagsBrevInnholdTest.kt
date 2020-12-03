@@ -22,7 +22,7 @@ class AvslagsBrevInnholdTest {
         halvGrunnbeløp = 10,
         beregning = BrevInnhold.Beregning(
             ytelsePerMåned = 0,
-            satsbeløpPerMåned = 31.0,
+            satsbeløpPerMåned = 31,
             epsFribeløp = 0.0,
             fradrag = BrevInnhold.Beregning.Fradrag(
                 bruker = BrevInnhold.Beregning.FradragForBruker(
@@ -58,7 +58,7 @@ class AvslagsBrevInnholdTest {
               "harEktefelle": false,
               "beregning": {
                     "ytelsePerMåned": 0,
-                    "satsbeløpPerMåned": 31.0,
+                    "satsbeløpPerMåned": 31,
                     "epsFribeløp": 0,
                     "fradrag": {
                         "bruker": {

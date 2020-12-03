@@ -8,11 +8,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.verify
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -20,7 +23,9 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
@@ -28,12 +33,6 @@ import java.util.UUID
 internal class OppgaveHttpClientTest : WiremockBase {
 
     private val fixedEpochClock = Clock.fixed(Instant.EPOCH, zoneIdOslo)
-    private val client = OppgaveHttpClient(
-        wireMockServer.baseUrl(),
-        TokenOppslagStub,
-        fixedEpochClock
-    )
-
     private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
@@ -90,6 +89,18 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     .withStatus(201)
             )
         )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
+        )
+
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
                 journalpostId,
@@ -101,7 +112,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
     @Test
     fun `opprett sakbehandling oppgave med tilordnet ressurs`() {
-
         //language=JSON
         val expectedSaksbehandlingRequest =
             """
@@ -151,6 +161,16 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     )
                     .withStatus(201)
             )
+        )
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
         )
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
@@ -212,6 +232,16 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     .withStatus(201)
             )
         )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
+        )
         client.opprettOppgave(
             OppgaveConfig.Attestering(
                 sakId = sakId,
@@ -224,6 +254,15 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `returns KunneIkkeOppretteOppgave`() {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
+        )
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
                 journalpostId,
@@ -299,6 +338,15 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 )
         )
 
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
+        )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
         WireMock.configureFor(wireMockServer.port())
@@ -388,6 +436,15 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 )
         )
 
+        val oathMock = mock<OAuth> {
+            on { onBehalfOFToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            baseUrl = wireMockServer.baseUrl(),
+            exchange = oathMock,
+            oppgaveClientId = "oppgaveClientId",
+            clock = fixedEpochClock,
+        )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
         WireMock.configureFor(wireMockServer.port())
@@ -415,4 +472,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
+
+    @BeforeEach
+    fun beforeEach() {
+        MDC.put("Authorization", "Bearer token")
+    }
 }
