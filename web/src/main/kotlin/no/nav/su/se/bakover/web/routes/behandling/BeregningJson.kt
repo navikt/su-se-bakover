@@ -24,6 +24,7 @@ internal data class BeregningJson(
 internal fun Beregning.toJson(): BeregningJson {
     val epsInputFradragMap = getFradrag()
         .filter { it.getTilhører() == FradragTilhører.EPS }
+        .flatMap { FradragFactory.periodiser(it) }
         .groupBy { it.getPeriode() }
 
     return BeregningJson(
