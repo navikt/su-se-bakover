@@ -29,7 +29,7 @@ class BehandlingFactory(
         simulering: Simulering? = null,
         status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET,
         saksbehandler: NavIdentBruker.Saksbehandler? = null,
-        attestant: NavIdentBruker.Attestant? = null,
+        attestering: Attestering? = null,
         sakId: UUID,
         saksnummer: Saksnummer,
         hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
@@ -47,7 +47,7 @@ class BehandlingFactory(
         simulering = simulering,
         status = status,
         saksbehandler = saksbehandler,
-        attestant = attestant,
+        attestering = attestering,
         sakId = sakId,
         saksnummer = saksnummer,
         hendelseslogg = hendelseslogg, // TODO create when behandling created by service probably also move out from behandling alltogether.

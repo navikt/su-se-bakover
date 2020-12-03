@@ -104,7 +104,7 @@ internal class BehandlingJsonTest {
           "beregning": $expectedBeregningJson,
           "status": "OPPRETTET",
           "simulering": null,
-          "attestant" : "kjella",
+          "attestering" : { "attestant" : "kjella", "underkjennelse":  null},
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
           "hendelser": []
@@ -157,7 +157,7 @@ internal class BehandlingJsonTest {
           "status": "OPPRETTET",
           "simulering": null,
           "opprettet": "$opprettetTidspunkt",
-          "attestant": null,
+          "attestering": null,
           "saksbehandler": null,
           "sakId": "$sakId",
           "hendelser": []

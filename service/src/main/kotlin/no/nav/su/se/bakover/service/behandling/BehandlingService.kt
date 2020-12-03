@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.behandling
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -15,7 +16,7 @@ interface BehandlingService {
     fun underkjenn(
         behandlingId: UUID,
         attestant: Attestant,
-        begrunnelse: String
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling>
 
     fun oppdaterBehandlingsinformasjon(

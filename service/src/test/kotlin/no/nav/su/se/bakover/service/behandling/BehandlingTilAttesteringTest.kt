@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -127,7 +128,7 @@ class BehandlingTilAttesteringTest {
 
     @Test
     fun `attestant kan ikke saksbehandle underkjent behandling`() {
-        val behandling = simulertBehandling.copy(attestant = NavIdentBruker.Attestant(saksbehandler.navIdent))
+        val behandling = simulertBehandling.copy(attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling

@@ -37,7 +37,7 @@ data class Behandling internal constructor(
     private var simulering: Simulering?,
     private var status: BehandlingsStatus,
     private var saksbehandler: Saksbehandler?,
-    private var attestant: NavIdentBruker.Attestant?,
+    private var attestering: Attestering?,
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val hendelseslogg: Hendelseslogg,
@@ -53,7 +53,7 @@ data class Behandling internal constructor(
 
     fun saksbehandler() = saksbehandler
 
-    fun attestant() = attestant
+    fun attestering(): Attestering? = attestering
 
     fun beregning() = beregning
 
@@ -156,10 +156,10 @@ data class Behandling internal constructor(
     }
 
     fun underkjenn(
-        begrunnelse: String,
-        attestant: NavIdentBruker.Attestant
+        attestant: NavIdentBruker.Attestant,
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.underkjenn(begrunnelse, attestant)
+        return tilstand.underkjenn(attestant, underkjennelse)
     }
 
     fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -220,8 +220,8 @@ data class Behandling internal constructor(
         }
 
         fun underkjenn(
-            begrunnelse: String,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
@@ -437,8 +437,8 @@ data class Behandling internal constructor(
     }
 
     private fun erAttestantOgSakbehandlerSammePerson(saksbehandler: Saksbehandler): Boolean {
-        return this@Behandling.attestant?.let {
-            it.navIdent == saksbehandler.navIdent
+        return this@Behandling.attestering?.let {
+            it.attestant.navIdent == saksbehandler.navIdent
         } ?: false
     }
 
@@ -452,7 +452,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestant = attestant
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Innvilget())
                 return this@Behandling.right()
             }
@@ -466,7 +466,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestant = attestant
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
@@ -480,14 +480,20 @@ data class Behandling internal constructor(
         }
 
         override fun underkjenn(
-            begrunnelse: String,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
-            this@Behandling.attestant = attestant
+
+            hendelseslogg.hendelse(
+                UnderkjentAttestering(
+                    attestant.navIdent,
+                    underkjennelse.kommentar
+                )
+            )
+            this@Behandling.attestering = Attestering.Underkjent(attestant, underkjennelse)
             nyTilstand(Simulert())
             return this@Behandling.right()
         }

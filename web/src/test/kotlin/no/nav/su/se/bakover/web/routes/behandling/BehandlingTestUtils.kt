@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -105,8 +106,8 @@ object BehandlingTestUtils {
         ),
         søknad = journalførtSøknadMedOppgave,
         beregning = TestBeregning,
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
-        attestant = NavIdentBruker.Attestant("kjella"),
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = FnrGenerator.random(),
