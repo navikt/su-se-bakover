@@ -45,8 +45,6 @@ internal object TestFradrag : Fradrag {
     override fun getFradragstype(): Fradragstype = Fradragstype.Arbeidsinntekt
     override fun getTotaltFradrag(): Double = 1000.0
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
-    override fun periodiser(): List<Fradrag> = listOf(this)
-    override fun getFradragPerMåned(): Double = 1000.0
     override fun getTilhører(): FradragTilhører = FradragTilhører.BRUKER
     override fun getPeriode(): Periode = Periode(1.august(2020), 31.august(2020))
 }

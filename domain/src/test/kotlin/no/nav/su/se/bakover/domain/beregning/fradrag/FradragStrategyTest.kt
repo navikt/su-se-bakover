@@ -114,3 +114,18 @@ internal fun lagFradrag(
     utenlandskInntekt = null,
     tilhører = tilhører
 )
+
+internal fun lagPeriodisertFradrag(
+    type: Fradragstype,
+    beløp: Double,
+    periode: Periode,
+    tilhører: FradragTilhører = FradragTilhører.BRUKER
+) = PeriodisertFradrag(
+    type = type,
+    beløp = beløp,
+    periode = periode,
+    utenlandskInntekt = null,
+    tilhører = tilhører
+)
+
+internal fun Fradrag.toPeriodisertFradrag() = FradragFactory.periodiser(this)
