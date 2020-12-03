@@ -31,8 +31,8 @@ class BehandlingFactory(
         saksbehandler: NavIdentBruker.Saksbehandler? = null,
         attestant: NavIdentBruker.Attestant? = null,
         sakId: UUID,
-        saksnummer: Saksnummer, // TODO create when behandling created by service probably also move out from behandling alltogether.
-        hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()),
+        saksnummer: Saksnummer,
+        hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
         fnr: Fnr,
         oppgaveId: OppgaveId,
         iverksattJournalpostId: JournalpostId? = null,
