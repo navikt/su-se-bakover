@@ -23,7 +23,7 @@ internal object TestBeregning : Beregning {
     override fun getOpprettet(): Tidspunkt = LocalDateTime.of(2020, Month.AUGUST, 1, 12, 15, 15).toTidspunkt(ZoneOffset.UTC)
     override fun getSats(): Sats = Sats.HØY
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
-    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
+    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
     override fun getSumYtelseErUnderMinstebeløp(): Boolean = false
@@ -37,7 +37,7 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getBenyttetGrunnbeløp(): Int = 101351
     override fun getSats(): Sats = Sats.HØY
     override fun getSatsbeløp(): Double = 20637.32
-    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
+    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getPeriode(): Periode = Periode(1.august(2020), 31.august(2020))
 }
 
@@ -46,5 +46,13 @@ internal object TestFradrag : Fradrag {
     override fun getTotaltFradrag(): Double = 1000.0
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
     override fun getTilhører(): FradragTilhører = FradragTilhører.BRUKER
+    override fun getPeriode(): Periode = Periode(1.august(2020), 31.august(2020))
+}
+
+internal object TestFradragEps : Fradrag {
+    override fun getFradragstype(): Fradragstype = Fradragstype.Arbeidsinntekt
+    override fun getTotaltFradrag(): Double = 20000.0
+    override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
+    override fun getTilhører(): FradragTilhører = FradragTilhører.EPS
     override fun getPeriode(): Periode = Periode(1.august(2020), 31.august(2020))
 }

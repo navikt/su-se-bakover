@@ -23,14 +23,16 @@ internal class MånedsberegningJsonTest {
                 "grunnbeløp":99858,
                 "beløp":20637,
                 "fradrag": [],
-                "satsbeløp": 20637.32
+                "satsbeløp": 20637.32,
+                "epsFribeløp": 100,
+                "epsInputFradrag": []
             }
         """
 
         internal val månedsberegning = MånedsberegningFactory.ny(
             periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
-            fradrag = emptyList()
+            fradrag = emptyList(),
         )
     }
 
@@ -38,7 +40,7 @@ internal class MånedsberegningJsonTest {
     fun json() {
         JSONAssert.assertEquals(
             expectedMånedsberegningJson.trimIndent(),
-            serialize(månedsberegning.toJson()),
+            serialize(månedsberegning.toJson(100.0, emptyList())),
             true
         )
     }

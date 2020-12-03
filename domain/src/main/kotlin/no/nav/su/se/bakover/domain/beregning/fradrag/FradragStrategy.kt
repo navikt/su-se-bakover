@@ -11,6 +11,9 @@ enum class FradragStrategyName {
     EpsUnder67År
 }
 
+fun getEpsFribeløp(strategyName: FradragStrategyName, periode: Periode) =
+    FradragStrategy.fromName(strategyName).getEpsFribeløp(periode)
+
 internal sealed class FradragStrategy(private val name: FradragStrategyName) {
     fun getName() = name
 
