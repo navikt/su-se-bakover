@@ -113,7 +113,7 @@ class BehandlingBeregningTest {
     @Test
     fun `attestant og saksbehandler kan ikke være like ved opprettelse av beregning`() {
         val behandling = vilkårsvurdertBehandling().copy(
-            attestering = Attestering(NavIdentBruker.Attestant(saksbehandler.navIdent))
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(saksbehandler.navIdent))
         )
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling.copy()

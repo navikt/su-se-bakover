@@ -104,7 +104,7 @@ object BehandlingTestUtils {
         ),
         søknad = journalførtSøknadMedOppgave,
         beregning = TestBeregning,
-        attestering = Attestering(NavIdentBruker.Attestant("kjella")),
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         sakId = sakId,
         fnr = FnrGenerator.random(),

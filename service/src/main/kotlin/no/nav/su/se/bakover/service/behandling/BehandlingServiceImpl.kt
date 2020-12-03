@@ -64,13 +64,13 @@ internal class BehandlingServiceImpl(
     override fun underkjenn(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        underkjennelse: Attestering.Underkjennelse
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
             log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
-            behandling.underkjenn(underkjennelse, attestant)
+            behandling.underkjenn(attestant, underkjennelse)
                 .mapLeft {
                     log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -97,7 +97,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterUnderkjentAttestering(behandlingId, attestant, underkjennelse)
+                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Underkjent(attestant, underkjennelse))
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -314,7 +314,7 @@ internal class BehandlingServiceImpl(
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
-        behandlingRepo.oppdaterAttestant(behandling.id, attestant)
+        behandlingRepo.oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -378,7 +378,7 @@ internal class BehandlingServiceImpl(
                 behandlingId = behandlingId,
                 utbetalingId = oversendtUtbetaling.id
             )
-            behandlingRepo.oppdaterAttestant(behandlingId, attestant)
+            behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Iverksatt(attestant))
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)

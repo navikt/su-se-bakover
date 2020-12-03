@@ -16,7 +16,7 @@ interface BehandlingService {
     fun underkjenn(
         behandlingId: UUID,
         attestant: Attestant,
-        underkjennelse: Attestering.Underkjennelse
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling>
 
     fun oppdaterBehandlingsinformasjon(

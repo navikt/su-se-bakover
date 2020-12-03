@@ -125,7 +125,7 @@ class BehandlingTilAttesteringTest {
 
     @Test
     fun `attestant kan ikke saksbehandle underkjent behandling`() {
-        val behandling = simulertBehandling.copy(attestering = Attestering(NavIdentBruker.Attestant(saksbehandler.navIdent)))
+        val behandling = simulertBehandling.copy(attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling

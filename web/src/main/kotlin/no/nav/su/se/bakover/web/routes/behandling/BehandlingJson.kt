@@ -4,6 +4,7 @@ import AttesteringJson
 import UnderkjennelseJson
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
@@ -38,16 +39,19 @@ internal fun Behandling.toJson() = BehandlingJson(
     simulering = simulering()?.toJson(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     attestering = attestering()?.let {
-        val attestering = attestering()!!
-        AttesteringJson(
-            attestant = attestering.attestant.navIdent,
-            underkjennelse = attestering.underkjennelse?.let {
-                UnderkjennelseJson(
-                    grunn = attestering.underkjennelse!!.grunn.toString(),
-                    kommentar = attestering.underkjennelse!!.kommentar
+        when (val attestering = attestering() as Attestering) {
+            is Attestering.Iverksatt -> AttesteringJson(
+                attestant = attestering.attestant.navIdent,
+                underkjennelse = null
+            )
+            is Attestering.Underkjent -> AttesteringJson(
+                attestant = attestering.attestant.navIdent,
+                underkjennelse = UnderkjennelseJson(
+                    grunn = attestering.underkjennelse.grunn.toString(),
+                    kommentar = attestering.underkjennelse.kommentar
                 )
-            }
-        )
+            )
+        }
     },
     saksbehandler = saksbehandler()?.navIdent,
     sakId = sakId,

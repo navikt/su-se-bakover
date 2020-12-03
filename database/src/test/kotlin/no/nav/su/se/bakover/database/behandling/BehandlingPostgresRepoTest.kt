@@ -123,7 +123,7 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val attestant = NavIdentBruker.Attestant("kjella")
-            repo.oppdaterAttestant(nySøknadsbehandling.id, attestant)
+            repo.oppdaterAttestering(nySøknadsbehandling.id, Attestering.Iverksatt(attestant))
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.attestering()?.attestant shouldBe attestant
@@ -144,15 +144,21 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val attestant = NavIdentBruker.Attestant("kjella")
-            val underkjennelse = Attestering.Underkjennelse(
-                grunn = Attestering.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
+            val underkjennelse = Attestering.Underkjent.Underkjennelse(
+                grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
                 kommentar = "1+1 er ikke 3"
             )
-            repo.oppdaterUnderkjentAttestering(nySøknadsbehandling.id, attestant, underkjennelse)
-            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
+            repo.oppdaterAttestering(
+                nySøknadsbehandling.id,
+                Attestering.Underkjent(
+                    attestant = attestant,
+                    underkjennelse = underkjennelse
+                )
+            )
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!.attestering() as Attestering.Underkjent
 
-            hentet.attestering()?.attestant shouldBe attestant
-            hentet.attestering()?.underkjennelse shouldBe underkjennelse
+            hentet.attestant shouldBe attestant
+            hentet.underkjennelse shouldBe underkjennelse
         }
     }
 

@@ -88,7 +88,10 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
+            )
         }
 
         @Test
@@ -128,25 +131,37 @@ internal class BehandlingTest {
 
         @Test
         fun `transition to Vilkårsvurdert`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withAlleVilkårOppfylt()
+            )
             opprettet.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
         @Test
         fun `transition to Avslått`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårAvslått())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårAvslått()
+            )
             opprettet.status() shouldBe VILKÅRSVURDERT_AVSLAG
         }
 
         @Test
         fun `dont transition if vilkårsvurdering not completed`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert()
+            )
             opprettet.status() shouldBe OPPRETTET
         }
 
         @Test
         fun `skal gi tidlig avslag om uførhet er ikke oppfylt`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert()
+            )
             opprettet.oppdaterBehandlingsinformasjon(
                 saksbehandler,
                 oppdatert = Behandlingsinformasjon(
@@ -168,7 +183,10 @@ internal class BehandlingTest {
 
         @Test
         fun `skal gi tidlig avslag om flyktning er ikke oppfylt`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert()
+            )
             opprettet.oppdaterBehandlingsinformasjon(
                 saksbehandler,
                 oppdatert = Behandlingsinformasjon(
@@ -190,7 +208,10 @@ internal class BehandlingTest {
 
         @Test
         fun `både uførhet og flyktning må vare vurdert innen tidlig avslag kan gis`() {
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert()
+            )
             opprettet.oppdaterBehandlingsinformasjon(
                 saksbehandler,
                 oppdatert = Behandlingsinformasjon(
@@ -205,7 +226,10 @@ internal class BehandlingTest {
 
             opprettet.status() shouldBe OPPRETTET
 
-            opprettet.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert())
+            opprettet.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(opprettet).withVilkårIkkeVurdert()
+            )
             opprettet.oppdaterBehandlingsinformasjon(
                 saksbehandler,
                 oppdatert = Behandlingsinformasjon(
@@ -220,7 +244,13 @@ internal class BehandlingTest {
 
         @Test
         fun `illegal operations`() {
-            assertThrows<Behandling.TilstandException> { opprettet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020)) }
+            assertThrows<Behandling.TilstandException> {
+                opprettet.opprettBeregning(
+                    saksbehandler,
+                    1.januar(2020),
+                    31.desember(2020)
+                )
+            }
                 .also {
                     it.msg shouldContain "Illegal operation"
                     it.msg shouldContain "opprettBeregning"
@@ -238,9 +268,7 @@ internal class BehandlingTest {
                 )
             }
             assertThrows<Behandling.TilstandException> {
-                opprettet.iverksett(
-                    Attestant("A123456")
-                )
+                opprettet.iverksett(Attestant("A123456"))
             }
         }
     }
@@ -314,7 +342,12 @@ internal class BehandlingTest {
         fun `skal avslå hvis utbetaling er 0 for forventetInntekt`() {
             val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
             val behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = Behandlingsinformasjon.Uførhet(Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt, 1, 600000, null)
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    1,
+                    600000,
+                    null
+                )
             )
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
@@ -396,9 +429,7 @@ internal class BehandlingTest {
                 )
             }
             assertThrows<Behandling.TilstandException> {
-                vilkårsvurdert.iverksett(
-                    Attestant("A123456")
-                )
+                vilkårsvurdert.iverksett(Attestant("A123456"))
             }
         }
     }
@@ -663,7 +694,10 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            avslått.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(avslått).withAlleVilkårOppfylt())
+            avslått.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(avslått).withAlleVilkårOppfylt()
+            )
             avslått.status() shouldBe VILKÅRSVURDERT_INNVILGET
         }
 
@@ -697,15 +731,15 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal ikke kunne attestera sin egen saksbehandling`() {
+        fun `skal ikke kunne attestere sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                Attestering.Underkjennelse(
+                underkjennelse = Attestering.Underkjent.Underkjennelse(
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD
+                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
                 ),
-                Attestant("S123456")
+                attestant = Attestant("S123456")
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
@@ -749,15 +783,15 @@ internal class BehandlingTest {
         }
 
         @Test
-        fun `skal ikke kunne attestera sin egen saksbehandling`() {
+        fun `skal ikke kunne attestere sin egen saksbehandling`() {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                Attestering.Underkjennelse(
+                underkjennelse = Attestering.Underkjent.Underkjennelse(
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD
+                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
                 ),
-                Attestant("S123456")
+                attestant = Attestant("S123456")
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 

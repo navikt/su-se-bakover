@@ -154,10 +154,10 @@ data class Behandling internal constructor(
     }
 
     fun underkjenn(
-        underkjennelse: Attestering.Underkjennelse,
-        attestant: NavIdentBruker.Attestant
+        attestant: NavIdentBruker.Attestant,
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.underkjenn(underkjennelse, attestant)
+        return tilstand.underkjenn(attestant, underkjennelse)
     }
 
     fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -218,8 +218,8 @@ data class Behandling internal constructor(
         }
 
         fun underkjenn(
-            underkjennelse: Attestering.Underkjennelse,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
@@ -450,7 +450,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestering = Attestering(attestant = attestant)
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Innvilget())
                 return this@Behandling.right()
             }
@@ -464,7 +464,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestering = Attestering(attestant = attestant)
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
@@ -478,18 +478,20 @@ data class Behandling internal constructor(
         }
 
         override fun underkjenn(
-            underkjennelse: Attestering.Underkjennelse,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-            hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, underkjennelse.kommentar))
-            this@Behandling.attestering = Attestering(
-                attestant = attestant,
-                underkjennelse = underkjennelse
+            hendelseslogg.hendelse(
+                UnderkjentAttestering(
+                    attestant.navIdent,
+                    underkjennelse.kommentar
+                )
             )
+            this@Behandling.attestering = Attestering.Underkjent(attestant, underkjennelse)
             nyTilstand(Simulert())
             return this@Behandling.right()
         }

@@ -50,8 +50,8 @@ class UnderkjennBehandlingTest {
     private val journalpostId = JournalpostId("j")
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val underkjennelse = Attestering.Underkjennelse(
-        grunn = Attestering.Underkjennelse.Grunn.ANDRE_FORHOLD,
+    private val underkjennelse = Attestering.Underkjent.Underkjennelse(
+        grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD,
         kommentar = "begrunnelse"
     )
     private val attestant = NavIdentBruker.Attestant("a")
@@ -346,9 +346,9 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestering = Attestering(
+            attestering = Attestering.Underkjent(
                 attestant,
-                Attestering.Underkjennelse(
+                Attestering.Underkjent.Underkjennelse(
                     grunn = underkjennelse.grunn,
                     kommentar = underkjennelse.kommentar
                 )
@@ -370,10 +370,14 @@ class UnderkjennBehandlingTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
-            verify(behandlingRepoMock).oppdaterUnderkjentAttestering(
+            verify(behandlingRepoMock).oppdaterAttestering(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                attestant = argThat { it shouldBe attestant },
-                underkjennelse = argThat { it shouldBe underkjennelse },
+                attestering = argThat {
+                    it shouldBe Attestering.Underkjent(
+                        attestant,
+                        underkjennelse
+                    )
+                }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -446,9 +450,9 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestering = Attestering(
+            attestering = Attestering.Underkjent(
                 attestant,
-                Attestering.Underkjennelse(
+                Attestering.Underkjent.Underkjennelse(
                     grunn = underkjennelse.grunn,
                     kommentar = underkjennelse.kommentar
                 )
@@ -471,10 +475,9 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
 
-            verify(behandlingRepoMock).oppdaterUnderkjentAttestering(
+            verify(behandlingRepoMock).oppdaterAttestering(
                 argThat { it shouldBe behandling.id },
-                argThat { it shouldBe attestant },
-                argThat { it shouldBe underkjennelse }
+                argThat { it shouldBe Attestering.Underkjent(attestant, underkjennelse) },
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },

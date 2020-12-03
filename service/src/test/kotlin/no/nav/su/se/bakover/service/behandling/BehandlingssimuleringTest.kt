@@ -99,7 +99,7 @@ internal class BehandlingssimuleringTest {
 
     @Test
     fun `simuler behandling gir feilmelding hvis attestant og saksbehandler er samme person`() {
-        val behandling = beregnetBehandling().copy(attestering = Attestering(Attestant(saksbehandler.navIdent)))
+        val behandling = beregnetBehandling().copy(attestering = Attestering.Iverksatt(Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling

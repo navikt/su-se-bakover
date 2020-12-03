@@ -85,7 +85,7 @@ internal class OpprettBehandlingsinformasjonTest {
         val behandlingInformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestering = Attestering(Attestant(saksbehandler.navIdent)))
+            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestering = Attestering.Iverksatt(Attestant(saksbehandler.navIdent)))
         }
 
         val response = BehandlingTestUtils.createService(
