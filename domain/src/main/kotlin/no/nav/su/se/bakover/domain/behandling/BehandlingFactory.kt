@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -30,7 +31,8 @@ class BehandlingFactory(
         saksbehandler: NavIdentBruker.Saksbehandler? = null,
         attestant: NavIdentBruker.Attestant? = null,
         sakId: UUID,
-        hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()), // TODO create when behandling created by service probably also move out from behandling alltogether.
+        saksnummer: Saksnummer, // TODO create when behandling created by service probably also move out from behandling alltogether.
+        hendelseslogg: Hendelseslogg = Hendelseslogg(id.toString()),
         fnr: Fnr,
         oppgaveId: OppgaveId,
         iverksattJournalpostId: JournalpostId? = null,
@@ -47,6 +49,7 @@ class BehandlingFactory(
         saksbehandler = saksbehandler,
         attestant = attestant,
         sakId = sakId,
+        saksnummer = saksnummer,
         hendelseslogg = hendelseslogg, // TODO create when behandling created by service probably also move out from behandling alltogether.
         fnr = fnr,
         oppgaveId = oppgaveId,
