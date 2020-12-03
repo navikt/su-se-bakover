@@ -13,6 +13,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 interface LagBrevRequest {
     fun getPerson(): Person
@@ -49,7 +50,7 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
 
     return BrevInnhold.Beregning(
         ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
-        satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToTwoDecimals(),
+        satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToInt(),
         epsFribeløp =
             FradragStrategy.fromName(beregning.getFradragStrategyName())
                 .getEpsFribeløp(førsteMånedsberegning.getPeriode())
