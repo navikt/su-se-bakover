@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -150,11 +151,11 @@ class AccessCheckProxy(
                 override fun underkjenn(
                     behandlingId: UUID,
                     attestant: NavIdentBruker.Attestant,
-                    begrunnelse: String
+                    underkjennelse: Attestering.Underkjent.Underkjennelse
                 ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.underkjenn(behandlingId, attestant, begrunnelse)
+                    return services.behandling.underkjenn(behandlingId, attestant, underkjennelse)
                 }
 
                 override fun oppdaterBehandlingsinformasjon(

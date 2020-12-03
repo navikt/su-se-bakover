@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -100,7 +101,7 @@ internal class BehandlingssimuleringTest {
 
     @Test
     fun `simuler behandling gir feilmelding hvis attestant og saksbehandler er samme person`() {
-        val behandling = beregnetBehandling().copy(attestant = Attestant(saksbehandler.navIdent))
+        val behandling = beregnetBehandling().copy(attestering = Attestering.Iverksatt(Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling

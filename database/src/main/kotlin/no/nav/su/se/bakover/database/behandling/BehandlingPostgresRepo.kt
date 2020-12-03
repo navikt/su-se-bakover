@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -136,12 +137,12 @@ internal class BehandlingPostgresRepo(
         }
     }
 
-    override fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant) {
+    override fun oppdaterAttestering(behandlingId: UUID, attestering: Attestering) {
         dataSource.withSession { session ->
-            "update behandling set attestant = :attestant where id=:id".oppdatering(
+            "update behandling set attestering = to_json(:attestering::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to behandlingId,
-                    "attestant" to attestant.navIdent
+                    "attestering" to objectMapper.writeValueAsString(attestering)
                 ),
                 session
             )
@@ -234,8 +235,8 @@ internal class BehandlingPostgresRepo(
             beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) },
             simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) },
             status = Behandling.BehandlingsStatus.valueOf(string("status")),
+            attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) },
             saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) },
-            attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) },
             sakId = uuid("sakId"),
             saksnummer = Saksnummer(long("saksnummer")),
             hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)

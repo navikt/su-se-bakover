@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Avslag.
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.BehandlingSnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Innvilgelse.Companion.toInnvilgelseJson
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -88,7 +89,7 @@ internal sealed class VedtakssnapshotJson {
         val fnr: String,
         val status: String,
         val saksbehandler: String?,
-        val attestant: String?,
+        val attestering: Attestering?,
         val oppgaveId: String,
         val iverksattJournalpostId: String?,
         val iverksattBrevbestillingId: String?,
@@ -106,7 +107,7 @@ internal sealed class VedtakssnapshotJson {
                     fnr = fnr.toString(),
                     status = status().toString(),
                     saksbehandler = saksbehandler()?.toString(),
-                    attestant = attestant()?.toString(),
+                    attestering = attestering(),
                     oppgaveId = oppgaveId().toString(),
                     iverksattJournalpostId = iverksattJournalpostId()?.toString(),
                     iverksattBrevbestillingId = iverksattBrevbestillingId()?.toString(),

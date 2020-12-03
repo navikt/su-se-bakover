@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -56,8 +57,7 @@ internal class VedtakssnapshotJsonTest {
         simulering = null,
         status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-        attestant = NavIdentBruker.Attestant("attestant"),
-
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
         saksnummer = Saksnummer(1234),
         hendelseslogg = Hendelseslogg("ignoreMe"),
         fnr = Fnr("12345678910"),
@@ -91,7 +91,10 @@ internal class VedtakssnapshotJsonTest {
                   "fnr":"12345678910",
                   "status":"IVERKSATT_AVSLAG",
                   "saksbehandler":"saksbehandler",
-                  "attestant":"attestant",
+                  "attestering":{
+                     "type": "Iverksatt",
+                     "attestant": "attestant"
+                  },
                   "oppgaveId":"oppgaveId",
                   "iverksattJournalpostId":"iverksattJournalpostId",
                   "iverksattBrevbestillingId":"iverksattBrevbestillingId",
@@ -332,7 +335,10 @@ internal class VedtakssnapshotJsonTest {
                   "fnr":"12345678910",
                   "status":"IVERKSATT_AVSLAG",
                   "saksbehandler":"saksbehandler",
-                  "attestant":"attestant",
+                  "attestering":{
+                     "type": "Iverksatt",
+                     "attestant": "attestant"
+                  },
                   "oppgaveId":"oppgaveId",
                   "iverksattJournalpostId":"iverksattJournalpostId",
                   "iverksattBrevbestillingId":"iverksattBrevbestillingId",

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.behandling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
@@ -21,7 +22,7 @@ interface BehandlingRepo {
     fun leggTilBeregning(behandlingId: UUID, beregning: Beregning)
     fun slettBeregning(behandlingId: UUID)
     fun settSaksbehandler(behandlingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler)
-    fun oppdaterAttestant(behandlingId: UUID, attestant: NavIdentBruker.Attestant)
+    fun oppdaterAttestering(behandlingId: UUID, attestering: Attestering)
     fun opprettSøknadsbehandling(nySøknadsbehandling: NySøknadsbehandling)
     fun oppdaterOppgaveId(behandlingId: UUID, oppgaveId: OppgaveId)
     fun oppdaterIverksattJournalpostId(behandlingId: UUID, journalpostId: JournalpostId)

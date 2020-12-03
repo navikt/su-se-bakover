@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -123,10 +124,42 @@ internal class BehandlingPostgresRepoTest {
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
 
             val attestant = NavIdentBruker.Attestant("kjella")
-            repo.oppdaterAttestant(nySøknadsbehandling.id, attestant)
+            repo.oppdaterAttestering(nySøknadsbehandling.id, Attestering.Iverksatt(attestant))
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
-            hentet.attestant() shouldBe attestant
+            hentet.attestering()?.attestant shouldBe attestant
+        }
+    }
+
+    @Test
+    fun `attestant underkjenner saksbehandling`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = sak.søknader()[0].id,
+                oppgaveId = oppgaveId
+            )
+
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            val attestant = NavIdentBruker.Attestant("kjella")
+            val underkjennelse = Attestering.Underkjent.Underkjennelse(
+                grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
+                kommentar = "1+1 er ikke 3"
+            )
+            repo.oppdaterAttestering(
+                nySøknadsbehandling.id,
+                Attestering.Underkjent(
+                    attestant = attestant,
+                    underkjennelse = underkjennelse
+                )
+            )
+            val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!.attestering() as Attestering.Underkjent
+
+            hentet.attestant shouldBe attestant
+            hentet.underkjennelse shouldBe underkjennelse
         }
     }
 
