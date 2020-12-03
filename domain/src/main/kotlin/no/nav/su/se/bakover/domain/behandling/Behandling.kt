@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -38,6 +39,7 @@ data class Behandling internal constructor(
     private var saksbehandler: Saksbehandler?,
     private var attestant: NavIdentBruker.Attestant?,
     val sakId: UUID,
+    val saksnummer: Saksnummer,
     val hendelseslogg: Hendelseslogg,
     val fnr: Fnr,
     private var oppgaveId: OppgaveId,

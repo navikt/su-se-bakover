@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -43,6 +44,7 @@ import java.util.UUID
 
 class UnderkjennBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
@@ -64,7 +66,6 @@ class UnderkjennBehandlingTest {
     )
 
     private val innvilgetBehandlingTilAttestering = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -73,13 +74,15 @@ class UnderkjennBehandlingTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId
         ),
-        status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
         beregning = beregning,
-        fnr = fnr,
         simulering = simulering,
-        oppgaveId = oppgaveId,
+        status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+        saksbehandler = saksbehandler,
         attestant = null,
-        saksbehandler = saksbehandler
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        oppgaveId = oppgaveId
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(

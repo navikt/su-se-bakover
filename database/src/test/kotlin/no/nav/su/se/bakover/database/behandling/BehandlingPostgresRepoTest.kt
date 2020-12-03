@@ -48,9 +48,10 @@ internal class BehandlingPostgresRepoTest {
             hentet shouldBe behandlingFactory.createBehandling(
                 id = nySøknadsbehandling.id,
                 opprettet = nySøknadsbehandling.opprettet,
-                fnr = fnr,
                 søknad = søknad,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = fnr,
                 oppgaveId = oppgaveId
             )
         }

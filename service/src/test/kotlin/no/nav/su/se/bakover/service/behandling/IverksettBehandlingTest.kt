@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -58,6 +59,7 @@ import java.util.UUID
 
 internal class IverksettBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
@@ -749,7 +751,6 @@ internal class IverksettBehandlingTest {
     }
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -758,8 +759,10 @@ internal class IverksettBehandlingTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId,
         ),
-        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
+        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+        sakId = sakId,
+        saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId
     )
