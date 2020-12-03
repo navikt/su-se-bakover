@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.common
 
+import com.fasterxml.jackson.annotation.JsonValue
 import java.util.UUID
 
 data class UUID30(
+    @JsonValue
     val value: String
 ) {
     init {
