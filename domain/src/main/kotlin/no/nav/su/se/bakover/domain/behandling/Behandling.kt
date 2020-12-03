@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
+import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -49,25 +50,25 @@ data class Behandling internal constructor(
 
     private var tilstand: Tilstand = resolve(status)
 
-    fun status() = tilstand.status
+    fun status(): BehandlingsStatus = tilstand.status
 
-    fun saksbehandler() = saksbehandler
+    fun saksbehandler(): Saksbehandler? = saksbehandler
 
-    fun attestant() = attestant
+    fun attestant(): NavIdentBruker.Attestant? = attestant
 
-    fun beregning() = beregning
+    fun beregning(): Beregning? = beregning
 
-    fun behandlingsinformasjon() = behandlingsinformasjon
+    fun behandlingsinformasjon(): Behandlingsinformasjon = behandlingsinformasjon
 
-    fun simulering() = simulering
+    fun simulering(): Simulering? = simulering
 
-    fun hendelser() = hendelseslogg.hendelser()
+    fun hendelser(): List<Hendelse> = hendelseslogg.hendelser()
 
-    fun oppgaveId() = oppgaveId
+    fun oppgaveId(): OppgaveId = oppgaveId
 
-    fun iverksattJournalpostId() = iverksattJournalpostId
+    fun iverksattJournalpostId(): JournalpostId? = iverksattJournalpostId
 
-    fun iverksattBrevbestillingId() = iverksattBrevbestillingId
+    fun iverksattBrevbestillingId(): BrevbestillingId? = iverksattBrevbestillingId
 
     fun getUtledetSatsBeløp(fraDato: LocalDate): Int? {
         if (status == BehandlingsStatus.VILKÅRSVURDERT_INNVILGET ||

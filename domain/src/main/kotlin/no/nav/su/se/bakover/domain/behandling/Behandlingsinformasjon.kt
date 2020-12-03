@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
@@ -10,6 +12,7 @@ import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Sats
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -228,8 +231,11 @@ data class Behandlingsinformasjon(
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
     ) : Base() {
-        fun utledSats() = getBeregningStrategy().sats()
 
+        @JsonProperty("sats")
+        fun utledSats(): Sats = getBeregningStrategy().sats()
+
+        @JsonIgnore
         internal fun getBeregningStrategy(): BeregningStrategy {
             if (epsFnr == null && delerBolig == false) {
                 return BeregningStrategy.BorAlene
@@ -269,6 +275,7 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
 
+        @JsonProperty("satsgrunn")
         fun getSatsgrunn(): Satsgrunn {
             val epsOver66 = epsFnr != null && epsFnr.getAlder() > 66
             val epsUnder67 = epsFnr != null && epsFnr.getAlder() < 67

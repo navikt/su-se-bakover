@@ -41,6 +41,7 @@ internal class VedtakPostgresRepoTest {
             )
         }
     }
+
     @Test
     fun `insert innvilgelse`() {
         withMigratedDb {
