@@ -21,9 +21,9 @@ internal class EnsligStrategyTest {
         val forventetInntekt = lagFradrag(ForventetInntekt, 6000.0, periode)
 
         val expectedArbeidsinntekt =
-            lagFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -48,9 +48,9 @@ internal class EnsligStrategyTest {
         val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, periode)
 
         val expectedForventetInntekt =
-            lagFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
@@ -89,9 +89,9 @@ internal class EnsligStrategyTest {
         val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, Periode(1.januar(2020), 31.desember(2020)))
 
         val expectedInntektJanuar =
-            lagFradrag(Arbeidsinntekt, 6000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Arbeidsinntekt, 6000.0, Periode(1.januar(2020), 31.januar(2020)))
         val expectedInntektJuni =
-            lagFradrag(ForventetInntekt, 2000.0, Periode(1.juni(2020), 30.juni(2020)))
+            lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.juni(2020), 30.juni(2020)))
 
         FradragStrategy.Enslig.beregn(
             fradrag = listOf(arbeidsinntektJanuar, forventetInntekt, arbeidsinntektJuni),

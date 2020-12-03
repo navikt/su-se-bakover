@@ -9,7 +9,7 @@ object MånedsberegningFactory {
         sats: Sats,
         fradrag: List<Fradrag>
     ): Månedsberegning {
-        return PeriodeMånedsberegning(
+        return PeriodisertBeregning(
             periode = periode,
             sats = sats,
             fradrag = fradrag

@@ -2,9 +2,10 @@ package no.nav.su.se.bakover.common
 
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
+import io.kotest.matchers.comparables.shouldNotBeLessThan
+import io.kotest.matchers.ints.shouldBeBetween
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -15,28 +16,36 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 internal class TidspunktTest {
+
+    private val instant = Instant.parse("1970-01-01T01:01:01.123456789Z")
+
     @Test
     fun `truncate instant to same format as repo, precision in micros`() {
-        val instant = Instant.now()
+
         val tidspunkt = instant.toTidspunkt()
-        instant.toEpochMilli() - tidspunkt.toEpochMilli() shouldBe 0
-        instant.toString() shouldHaveLength tidspunkt.toString().length
+        ChronoUnit.MICROS.between(instant, tidspunkt) shouldBe 0
+        instant.toString().length.shouldNotBeLessThan(tidspunkt.toString().length)
+        tidspunkt.nano % 1000 shouldBe 0
 
-        val addedMicros = instant.plus(251, ChronoUnit.MICROS)
-        val microAddedMicros = addedMicros.toTidspunkt()
-        addedMicros shouldBe microAddedMicros.instant
-        microAddedMicros shouldBe addedMicros
+        val addedMicrosInstant = instant.plus(251, ChronoUnit.MICROS)
+        val addedMicrosTidspunkt = addedMicrosInstant.toTidspunkt()
+        ChronoUnit.MICROS.between(addedMicrosInstant, addedMicrosTidspunkt) shouldBe 0
+        addedMicrosInstant.toString().length.shouldNotBeLessThan(addedMicrosTidspunkt.toString().length)
+        addedMicrosTidspunkt.nano % 1000 shouldBe 0
 
-        val addedNanos = instant.plusNanos(378)
-        val microAddedNanos = addedNanos.toTidspunkt()
-        addedNanos.nano - microAddedNanos.nano shouldBeGreaterThan 0
-        addedNanos shouldNotBe microAddedNanos.instant
-        microAddedNanos shouldBe addedNanos
+        val addedNanosInstant = instant.plusNanos(378)
+        val addedNanosTidspunkt = addedNanosInstant.toTidspunkt()
+        (addedNanosInstant.nano - addedNanosTidspunkt.nano).shouldBeBetween(1, 1000)
+        addedNanosInstant shouldNotBe addedNanosTidspunkt.instant
+        addedNanosTidspunkt shouldBe addedNanosInstant
+        ChronoUnit.MICROS.between(addedNanosInstant, addedNanosTidspunkt) shouldBe 0
+        addedNanosInstant.toString().length.shouldNotBeLessThan(addedNanosTidspunkt.toString().length)
+        addedNanosTidspunkt.nano % 1000 shouldBe 0
     }
 
     @Test
     fun `should equal instant truncated to same precision`() {
-        val instant = Instant.now().plusNanos(515)
+        val instant = instant.plusNanos(515)
         val tidspunkt = instant.toTidspunkt()
         instant shouldNotBe tidspunkt.instant
         instant.truncatedTo(Tidspunkt.unit) shouldBe tidspunkt.instant

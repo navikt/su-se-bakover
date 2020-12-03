@@ -45,7 +45,6 @@ internal class BeregningMapperTest {
                       "fradragstype": "ForventetInntekt",
                       "totaltFradrag": 12000.0,
                       "utenlandskInntekt": null,
-                      "fradragPerMåned": 12000.0,
                       "periode": {
                         "fraOgMed": "2020-01-01",
                         "tilOgMed": "2020-01-31",
@@ -66,7 +65,6 @@ internal class BeregningMapperTest {
                   "fradragstype": "ForventetInntekt",
                   "totaltFradrag": 12000.0,
                   "utenlandskInntekt": null,
-                  "fradragPerMåned": 12000.0,
                   "periode": {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-01-31",
@@ -94,7 +92,6 @@ internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {
     mapped.getPeriode() shouldBe original.getPeriode()
     mapped.getUtenlandskInntekt() shouldBe original.getUtenlandskInntekt()
     mapped.getTotaltFradrag() shouldBe original.getTotaltFradrag()
-    mapped.getFradragPerMåned() shouldBe original.getFradragPerMåned()
 }
 
 internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: Månedsberegning) {

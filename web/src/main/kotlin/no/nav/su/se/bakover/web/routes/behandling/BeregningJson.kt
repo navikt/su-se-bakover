@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.getEpsFribeløp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -20,15 +21,27 @@ internal data class BeregningJson(
     val fradrag: List<FradragJson> = emptyList()
 )
 
-internal fun Beregning.toJson() = BeregningJson(
-    id = getId().toString(),
-    opprettet = getOpprettet().toString(),
-    fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
-    sats = getSats().name,
-    månedsberegninger = getMånedsberegninger().map { it.toJson() }, // TODO show fradrag/month
-    fradrag = getFradrag().map { it.toJson() }
-)
+internal fun Beregning.toJson(): BeregningJson {
+    val epsInputFradragMap = getFradrag()
+        .filter { it.getTilhører() == FradragTilhører.EPS }
+        .flatMap { FradragFactory.periodiser(it) }
+        .groupBy { it.getPeriode() }
+
+    return BeregningJson(
+        id = getId().toString(),
+        opprettet = getOpprettet().toString(),
+        fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
+        tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
+        sats = getSats().name,
+        månedsberegninger = getMånedsberegninger().map {
+            it.toJson(
+                getEpsFribeløp(getFradragStrategyName(), it.getPeriode()),
+                epsInputFradrag = epsInputFradragMap[it.getPeriode()] ?: emptyList()
+            )
+        }, // TODO show fradrag/month
+        fradrag = getFradrag().map { it.toJson() }
+    )
+}
 
 internal fun Fradrag.toJson() =
     FradragJson(

@@ -1,4 +1,4 @@
-FROM navikt/java:12
+FROM navikt/java:15
 
 COPY init-scripts/* /init-scripts/
 COPY web/build/libs/*.jar ./

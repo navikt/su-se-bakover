@@ -37,7 +37,7 @@ data class Oppholdstillatelse(
     val statsborgerskapAndreLandFritekst: String? = null
 ) {
     enum class OppholdstillatelseType() {
-        MIDLERTIG,
+        MIDLERTIDIG,
         PERMANENT;
     }
 }
