@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -15,18 +13,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 
-/**
- * Visse felter er implisitt nullable for å støtte Behandling i nåværende tilstand.
- */
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(value = VedtakssnapshotJson.Avslag::class, name = "Avslag"),
-    JsonSubTypes.Type(value = VedtakssnapshotJson.Innvilgelse::class, name = "Innvilgelse"),
-)
 internal sealed class VedtakssnapshotJson {
     abstract val id: String
     abstract val opprettet: String // Vi har latt Jackson formatere denne i andre tilfeller.
@@ -81,6 +67,9 @@ internal sealed class VedtakssnapshotJson {
         }
     }
 
+    /**
+     * Mange felter må være nullable for å støtte Behandling i nåværende tilstand.
+     */
     data class BehandlingSnapshotJson(
         val id: String,
         val opprettet: Tidspunkt,
