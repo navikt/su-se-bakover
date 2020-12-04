@@ -816,11 +816,11 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                Attestering.Underkjent(
+                    attestant = Attestant("S123456"),
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
-                ),
-                attestant = Attestant("S123456")
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                )
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
@@ -868,11 +868,11 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                Attestering.Underkjent(
+                    attestant = Attestant("S123456"),
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
-                ),
-                attestant = Attestant("S123456")
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                )
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 

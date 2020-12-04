@@ -19,19 +19,15 @@ sealed class Attestering {
     data class Iverksatt(override val attestant: NavIdentBruker.Attestant) : Attestering()
     data class Underkjent(
         override val attestant: NavIdentBruker.Attestant,
-        val underkjennelse: Underkjennelse,
+        val grunn: Grunn,
+        val kommentar: String
     ) : Attestering() {
-        data class Underkjennelse(
-            val grunn: Grunn,
-            val kommentar: String
-        ) {
-            enum class Grunn {
-                INNGANGSVILKÅRENE_ER_FEILVURDERT,
-                BEREGNINGEN_ER_FEIL,
-                DOKUMENTASJON_MANGLER,
-                VEDTAKSBREVET_ER_FEIL,
-                ANDRE_FORHOLD,
-            }
+        enum class Grunn {
+            INNGANGSVILKÅRENE_ER_FEILVURDERT,
+            BEREGNINGEN_ER_FEIL,
+            DOKUMENTASJON_MANGLER,
+            VEDTAKSBREVET_ER_FEIL,
+            ANDRE_FORHOLD,
         }
     }
 }

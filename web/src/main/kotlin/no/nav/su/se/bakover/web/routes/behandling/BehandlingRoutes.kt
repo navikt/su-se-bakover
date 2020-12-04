@@ -320,7 +320,7 @@ internal fun Route.behandlingRoutes(
         val grunn: String,
         val kommentar: String
     ) {
-        fun valid() = enumContains<Attestering.Underkjent.Underkjennelse.Grunn>(grunn) && kommentar.isNotBlank()
+        fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
     }
 
     authorize(Brukerrolle.Attestant) {
@@ -337,9 +337,9 @@ internal fun Route.behandlingRoutes(
                         if (body.valid()) {
                             behandlingService.underkjenn(
                                 behandlingId = behandlingId,
-                                attestant = Attestant(navIdent),
-                                underkjennelse = Attestering.Underkjent.Underkjennelse(
-                                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.valueOf(body.grunn),
+                                attestering = Attestering.Underkjent(
+                                    attestant = Attestant(navIdent),
+                                    grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
                                     kommentar = body.kommentar
                                 )
                             ).fold(

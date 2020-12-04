@@ -66,14 +66,13 @@ internal class BehandlingServiceImpl(
 
     override fun underkjenn(
         behandlingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-        underkjennelse: Attestering.Underkjent.Underkjennelse
+        attestering: Attestering.Underkjent
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
             log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
-            behandling.underkjenn(attestant, underkjennelse)
+            behandling.underkjenn(attestering)
                 .mapLeft {
                     log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -100,7 +99,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Underkjent(attestant, underkjennelse))
+                    behandlingRepo.oppdaterAttestering(behandlingId, attestering)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")

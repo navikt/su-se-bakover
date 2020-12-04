@@ -47,8 +47,8 @@ internal fun Behandling.toJson() = BehandlingJson(
             is Attestering.Underkjent -> AttesteringJson(
                 attestant = attestering.attestant.navIdent,
                 underkjennelse = UnderkjennelseJson(
-                    grunn = attestering.underkjennelse.grunn.toString(),
-                    kommentar = attestering.underkjennelse.kommentar
+                    grunn = attestering.grunn.toString(),
+                    kommentar = attestering.kommentar
                 )
             )
         }
