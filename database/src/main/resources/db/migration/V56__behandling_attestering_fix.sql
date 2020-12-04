@@ -1,1 +1,1 @@
-select jsonb_set(attestering, '{attestant}', attestering #> '{attestant, navIdent}') from behandling
+update behandling set attestering = jsonb_set(attestering, '{attestant}', attestering #> '{attestant, navIdent}')
