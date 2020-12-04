@@ -21,7 +21,7 @@ internal class BeregningJsonTest {
                     "sats":"HØY",
                     "grunnbeløp":101351,
                     "beløp":19946,
-                    "satsbeløp": 20637.32,
+                    "satsbeløp": 20637,
                     "fradrag": [{
                       "periode": {
                         "fraOgMed":"2020-08-01",
@@ -30,6 +30,26 @@ internal class BeregningJsonTest {
                       "type": "Arbeidsinntekt",
                       "beløp": 1000.0,
                       "tilhører": "BRUKER",
+                      "utenlandskInntekt": null
+                    }, {
+                      "periode": {
+                        "fraOgMed":"2020-08-01",
+                        "tilOgMed":"2020-08-31"
+                      },
+                      "type": "Arbeidsinntekt",
+                      "beløp": 20000.0,
+                      "tilhører": "EPS",
+                      "utenlandskInntekt": null
+                    }],
+                    "epsFribeløp": 0.0,
+                    "epsInputFradrag": [{
+                      "periode": {
+                        "fraOgMed":"2020-08-01",
+                        "tilOgMed":"2020-08-31"
+                      },
+                      "type": "Arbeidsinntekt",
+                      "beløp": 20000.0,
+                      "tilhører": "EPS",
                       "utenlandskInntekt": null
                     }]
                 }],
@@ -42,6 +62,15 @@ internal class BeregningJsonTest {
                     "tilOgMed":"2020-08-31"
                   },
                   "tilhører": "BRUKER"
+                }, {
+                  "type": "Arbeidsinntekt",
+                  "beløp": 20000.0,
+                  "utenlandskInntekt": null,
+                  "periode" : {
+                    "fraOgMed":"2020-08-01",
+                    "tilOgMed":"2020-08-31"
+                  },
+                  "tilhører": "EPS"
                 }]
             }
         """

@@ -14,8 +14,10 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -31,6 +33,7 @@ import java.util.UUID
 internal class OpprettBehandlingsinformasjonTest {
 
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
@@ -42,7 +45,7 @@ internal class OpprettBehandlingsinformasjonTest {
         return BehandlingFactory(behandlingMetricsMock).createBehandling(
             id = behandlingId,
             opprettet = BehandlingTestUtils.tidspunkt,
-            sakId = sakId,
+            behandlingsinformasjon = behandlingsinformasjon,
             søknad = Søknad.Journalført.MedOppgave(
                 id = søknadId,
                 opprettet = Tidspunkt.EPOCH,
@@ -51,12 +54,13 @@ internal class OpprettBehandlingsinformasjonTest {
                 oppgaveId = oppgaveId,
                 journalpostId = journalpostId,
             ),
+            beregning = null,
+            simulering = null,
             status = Behandling.BehandlingsStatus.OPPRETTET,
+            sakId = sakId,
+            saksnummer = saksnummer,
             fnr = fnr,
             oppgaveId = oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjon,
-            simulering = null,
-            beregning = null,
         )
     }
 
@@ -84,7 +88,7 @@ internal class OpprettBehandlingsinformasjonTest {
         val behandlingInformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 
         val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestant = Attestant(saksbehandler.navIdent))
+            on { hentBehandling(any()) } doReturn opprettetBehandling().copy(attestering = Attestering.Iverksatt(Attestant(saksbehandler.navIdent)))
         }
 
         val response = BehandlingTestUtils.createService(

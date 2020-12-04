@@ -15,8 +15,10 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -38,6 +40,7 @@ import java.util.UUID
 internal class BehandlingssimuleringTest {
 
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
@@ -98,7 +101,7 @@ internal class BehandlingssimuleringTest {
 
     @Test
     fun `simuler behandling gir feilmelding hvis attestant og saksbehandler er samme person`() {
-        val behandling = beregnetBehandling().copy(attestant = Attestant(saksbehandler.navIdent))
+        val behandling = beregnetBehandling().copy(attestering = Attestering.Iverksatt(Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -148,7 +151,6 @@ internal class BehandlingssimuleringTest {
     }
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -157,8 +159,10 @@ internal class BehandlingssimuleringTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId,
         ),
-        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
+        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+        sakId = sakId,
+        saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId
     )

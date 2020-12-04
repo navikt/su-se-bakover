@@ -10,11 +10,11 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodeFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class PeriodeMånedsberegningTest {
+internal class PeriodisertBeregningTest {
     @Test
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
@@ -32,7 +32,7 @@ internal class PeriodeMånedsberegningTest {
             periode = Periode(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = listOf(
-                PeriodeFradrag(
+                IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 5000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
@@ -51,7 +51,7 @@ internal class PeriodeMånedsberegningTest {
                 periode = Periode(1.januar(2020), 31.januar(2020)),
                 sats = Sats.HØY,
                 fradrag = listOf(
-                    PeriodeFradrag(
+                    IkkePeriodisertFradrag(
                         type = Fradragstype.Kontantstøtte,
                         beløp = 5000.0,
                         periode = Periode(1.desember(2020), 31.desember(2020)),
@@ -80,7 +80,7 @@ internal class PeriodeMånedsberegningTest {
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                PeriodeFradrag(
+                IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
                     periode = periode,
@@ -98,7 +98,7 @@ internal class PeriodeMånedsberegningTest {
             periode = periode,
             sats = Sats.ORDINÆR,
             fradrag = listOf(
-                PeriodeFradrag(
+                IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 123000.0,
                     periode = periode,

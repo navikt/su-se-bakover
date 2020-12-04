@@ -16,8 +16,10 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -43,13 +45,17 @@ import java.util.UUID
 
 class UnderkjennBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val begrunnelse = "begrunnelse"
+    private val underkjennelse = Attestering.Underkjent.Underkjennelse(
+        grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD,
+        kommentar = "begrunnelse"
+    )
     private val attestant = NavIdentBruker.Attestant("a")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
@@ -64,7 +70,6 @@ class UnderkjennBehandlingTest {
     )
 
     private val innvilgetBehandlingTilAttestering = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -73,13 +78,15 @@ class UnderkjennBehandlingTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId
         ),
-        status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
         beregning = beregning,
-        fnr = fnr,
         simulering = simulering,
-        oppgaveId = oppgaveId,
-        attestant = null,
-        saksbehandler = saksbehandler
+        status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+        saksbehandler = saksbehandler,
+        attestering = null,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        oppgaveId = oppgaveId
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -112,7 +119,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
@@ -155,7 +162,7 @@ class UnderkjennBehandlingTest {
             ).underkjenn(
                 behandlingId = behandling.id,
                 attestant = attestant,
-                begrunnelse = begrunnelse
+                underkjennelse = underkjennelse
             )
         }.msg shouldContain "for state: SIMULERT"
 
@@ -198,7 +205,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestantSomErLikSaksbehandler,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -241,7 +248,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
@@ -288,7 +295,7 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
@@ -337,12 +344,18 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestant = attestant
+            attestering = Attestering.Underkjent(
+                attestant,
+                Attestering.Underkjent.Underkjennelse(
+                    grunn = underkjennelse.grunn,
+                    kommentar = underkjennelse.kommentar
+                )
+            )
         ).right()
 
         inOrder(
@@ -360,9 +373,14 @@ class UnderkjennBehandlingTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
-            verify(behandlingRepoMock).oppdaterAttestant(
+            verify(behandlingRepoMock).oppdaterAttestering(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                attestant = argThat { it shouldBe attestant }
+                attestering = argThat {
+                    it shouldBe Attestering.Underkjent(
+                        attestant,
+                        underkjennelse
+                    )
+                }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -379,7 +397,7 @@ class UnderkjennBehandlingTest {
                         hendelser = mutableListOf(
                             UnderkjentAttestering(
                                 attestant.navIdent,
-                                begrunnelse,
+                                underkjennelse.kommentar,
                                 it.hendelser()[0].tidspunkt
                             )
                         )
@@ -430,12 +448,18 @@ class UnderkjennBehandlingTest {
         ).underkjenn(
             behandlingId = behandling.id,
             attestant = attestant,
-            begrunnelse = begrunnelse
+            underkjennelse = underkjennelse
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestant = attestant
+            attestering = Attestering.Underkjent(
+                attestant,
+                Attestering.Underkjent.Underkjennelse(
+                    grunn = underkjennelse.grunn,
+                    kommentar = underkjennelse.kommentar
+                )
+            )
         ).right()
 
         inOrder(
@@ -454,9 +478,9 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(OPPRETTET_OPPGAVE)
 
-            verify(behandlingRepoMock).oppdaterAttestant(
+            verify(behandlingRepoMock).oppdaterAttestering(
                 argThat { it shouldBe behandling.id },
-                argThat { it shouldBe attestant }
+                argThat { it shouldBe Attestering.Underkjent(attestant, underkjennelse) },
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -473,7 +497,7 @@ class UnderkjennBehandlingTest {
                         hendelser = mutableListOf(
                             UnderkjentAttestering(
                                 attestant.navIdent,
-                                begrunnelse,
+                                underkjennelse.kommentar,
                                 it.hendelser()[0].tidspunkt
                             )
                         )

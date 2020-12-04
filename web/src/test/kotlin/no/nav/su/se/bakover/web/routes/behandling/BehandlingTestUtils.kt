@@ -5,8 +5,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -17,6 +19,7 @@ import java.util.UUID
 
 object BehandlingTestUtils {
     internal val sakId = UUID.randomUUID()
+    internal val saksnummer = Saksnummer(0)
     internal val søknadId = UUID.randomUUID()
     internal val behandlingId = UUID.randomUUID()
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
@@ -103,9 +106,10 @@ object BehandlingTestUtils {
         ),
         søknad = journalførtSøknadMedOppgave,
         beregning = TestBeregning,
-        attestant = NavIdentBruker.Attestant("kjella"),
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         sakId = sakId,
+        saksnummer = saksnummer,
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId
     )

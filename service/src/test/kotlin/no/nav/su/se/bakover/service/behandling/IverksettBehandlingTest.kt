@@ -21,8 +21,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -58,6 +60,7 @@ import java.util.UUID
 
 internal class IverksettBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
@@ -280,7 +283,7 @@ internal class IverksettBehandlingTest {
                 behandlingId = argThat { it shouldBe behandling.id },
                 journalpostId = argThat { it shouldBe journalpostId }
             )
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -469,7 +472,14 @@ internal class IverksettBehandlingTest {
 
         response shouldBe IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling).right()
 
-        inOrder(behandlingRepoMock, brevServiceMock, utbetalingServiceMock, personOppslagMock, oppgaveServiceMock) {
+        inOrder(
+            behandlingRepoMock,
+            brevServiceMock,
+            utbetalingServiceMock,
+            personOppslagMock,
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
+        ) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(
@@ -479,10 +489,20 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering },
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            )
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
             )
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
@@ -563,7 +583,8 @@ internal class IverksettBehandlingTest {
             personOppslagMock,
             brevServiceMock,
             behandlingMetricsMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            opprettVedtakssnapshotServiceMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
@@ -574,12 +595,22 @@ internal class IverksettBehandlingTest {
                 simulering = argThat { it shouldBe simulering }
             )
             verify(behandlingRepoMock).leggTilUtbetaling(behandling.id, utbetalingForSimulering.id)
-            verify(behandlingRepoMock).oppdaterAttestant(behandling.id, attestant)
+            verify(behandlingRepoMock).oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
+            )
             verify(brevServiceMock).journalførBrev(
                 LagBrevRequest.InnvilgetVedtak(
                     person = person,
@@ -721,7 +752,6 @@ internal class IverksettBehandlingTest {
     }
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
-        sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
@@ -730,8 +760,10 @@ internal class IverksettBehandlingTest {
             oppgaveId = oppgaveId,
             journalpostId = journalpostId,
         ),
-        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
+        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+        sakId = sakId,
+        saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId
     )

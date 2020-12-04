@@ -28,8 +28,8 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     @Test
     fun `inkluderer ikke fradrag for EPS som er lavere enn ordinær sats for uføretrygd for aktuell måned`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
-        val epsForventetInntekt = lagFradrag(ForventetInntekt, 5000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsForventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 5000.0, periode, tilhører = EPS)
 
         FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
             fradrag = listOf(forventetInntekt, epsForventetInntekt),
@@ -43,10 +43,10 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     @Test
     fun `inkluderer fradrag for EPS som overstiger ordinær sats for uføretrygd for aktuell måned`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
-        val epsForventetInntekt = lagFradrag(ForventetInntekt, 20000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
+        val epsForventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 20000.0, periode, tilhører = EPS)
 
-        val expectedEpsFradrag = lagFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, periode, tilhører = EPS)
+        val expectedEpsFradrag = lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, periode, tilhører = EPS)
 
         FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
             fradrag = listOf(forventetInntekt, epsForventetInntekt),
@@ -67,15 +67,20 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             lagFradrag(Arbeidsinntekt, 20000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = EPS)
 
         val expectedFradragBrukerJan =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = BRUKER)
         val expectedFradragBrukerMars =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.mars(2020), 31.mars(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.mars(2020), 31.mars(2020)), tilhører = BRUKER)
         val expectedFradragBrukerJuli =
-            lagFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.juli(2020), 31.juli(2020)), tilhører = BRUKER)
         val expectedEpsFradragJan =
-            lagFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
+            lagPeriodisertFradrag(
+                BeregnetFradragEPS,
+                20000.0 - 18973.02,
+                Periode(1.januar(2020), 31.januar(2020)),
+                tilhører = EPS
+            )
         val expectedEpsFradragJuli =
-            lagFradrag(
+            lagPeriodisertFradrag(
                 BeregnetFradragEPS, 20000.0 - 19256.69, Periode(1.juli(2020), 31.juli(2020)), tilhører = EPS
             )
 
@@ -124,11 +129,11 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     @Test
     fun `kan beregne fradrag for EPS uten forventet inntekt og arbeidsinntekt`() {
         val periode = Periode(1.januar(2020), 31.januar(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 10000.0, periode)
-        val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 10000.0, periode, tilhører = EPS)
-        val epsPrivatPensjon = lagFradrag(PrivatPensjon, 10000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 10000.0, periode)
+        val epsKapitalinntekt = lagPeriodisertFradrag(Kapitalinntekt, 10000.0, periode, tilhører = EPS)
+        val epsPrivatPensjon = lagPeriodisertFradrag(PrivatPensjon, 10000.0, periode, tilhører = EPS)
 
-        val expectedBeregnetEpsFradrag = lagFradrag(
+        val expectedBeregnetEpsFradrag = lagPeriodisertFradrag(
             type = BeregnetFradragEPS,
             beløp = (epsKapitalinntekt.getTotaltFradrag() + epsPrivatPensjon.getTotaltFradrag() - 18973.02),
             periode,
@@ -157,7 +162,10 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getFradragPerMåned() }
+            it.values.forEach {
+                it.sumByDouble { it.getTotaltFradrag() } shouldBe
+                    arbeidsinntekt.getTotaltFradrag() / arbeidsinntekt.getPeriode().getAntallMåneder()
+            }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }

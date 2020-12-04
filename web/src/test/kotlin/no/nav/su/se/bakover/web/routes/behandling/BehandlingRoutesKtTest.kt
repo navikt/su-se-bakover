@@ -653,7 +653,7 @@ internal class BehandlingRoutesKtTest {
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
                         deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
-                            behandlingJson.attestant shouldBe navIdentAttestant
+                            behandlingJson.attestering?.attestant shouldBe navIdentAttestant
                             behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
                             behandlingJson.saksbehandler shouldBe navIdentSaksbehandler
                         }
@@ -748,7 +748,7 @@ internal class BehandlingRoutesKtTest {
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
                 ) {
-                    setBody("""{"begrunnelse":"b"}""")
+                    setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
                 }.apply {
                     response.content shouldContain "Fant ikke behandling"
                     response.status() shouldBe HttpStatusCode.NotFound
@@ -757,7 +757,7 @@ internal class BehandlingRoutesKtTest {
         }
 
         @Test
-        fun `BadRequest når begrunnelse ikke er oppgitt`() {
+        fun `BadRequest når kommentar ikke er oppgitt`() {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
@@ -766,7 +766,8 @@ internal class BehandlingRoutesKtTest {
                     setBody(
                         """
                     {
-                        "begrunnelse":""
+                        "grunn":"BEREGNINGEN_ER_FEIL",
+                        "kommentar":""
                     }
                         """.trimIndent()
                     )
@@ -794,7 +795,8 @@ internal class BehandlingRoutesKtTest {
                     setBody(
                         """
                     {
-                        "begrunnelse": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
+                        "grunn": "BEREGNINGEN_ER_FEIL",
+                        "kommentar": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
                     }
                         """.trimIndent()
                     )
@@ -811,12 +813,12 @@ internal class BehandlingRoutesKtTest {
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
                 ) {
-                    setBody("""{"begrunnelse":"begrunnelse" }""")
+                    setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                 }.apply {
                     response.status() shouldBe HttpStatusCode.OK
                     deserialize<BehandlingJson>(response.content!!).let {
                         it.status shouldBe "SIMULERT"
-                        it.hendelser?.last()?.melding shouldBe "begrunnelse"
+                        it.hendelser?.last()?.melding shouldBe "kommentar"
                     }
                 }
             }

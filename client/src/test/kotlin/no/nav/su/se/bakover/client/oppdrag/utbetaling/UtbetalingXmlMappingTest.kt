@@ -73,7 +73,7 @@ class UtbetalingXmlMappingTest {
                 <kodeFagomraade>SUUFORE</kodeFagomraade>
                 <fagsystemId>${oppdrag.id}</fagsystemId>
                 <utbetFrekvens>MND</utbetFrekvens>
-                <oppdragGjelderId>${fnr.fnr}</oppdragGjelderId>
+                <oppdragGjelderId>$fnr</oppdragGjelderId>
                 <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
                 <saksbehId>SU</saksbehId>
                 <avstemming-115>
@@ -97,7 +97,7 @@ class UtbetalingXmlMappingTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
+                  <utbetalesTilId>$fnr</utbetalesTilId>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
@@ -113,7 +113,7 @@ class UtbetalingXmlMappingTest {
                   <typeSats>MND</typeSats>
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
-                  <utbetalesTilId>${fnr.fnr}</utbetalesTilId>
+                  <utbetalesTilId>$fnr</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>${oppdrag.id}</refFagsystemId>
                   <attestant-180>

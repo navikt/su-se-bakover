@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -36,8 +37,9 @@ data class Behandling internal constructor(
     private var simulering: Simulering?,
     private var status: BehandlingsStatus,
     private var saksbehandler: Saksbehandler?,
-    private var attestant: NavIdentBruker.Attestant?,
+    private var attestering: Attestering?,
     val sakId: UUID,
+    val saksnummer: Saksnummer,
     val hendelseslogg: Hendelseslogg,
     val fnr: Fnr,
     private var oppgaveId: OppgaveId,
@@ -51,7 +53,7 @@ data class Behandling internal constructor(
 
     fun saksbehandler() = saksbehandler
 
-    fun attestant() = attestant
+    fun attestering(): Attestering? = attestering
 
     fun beregning() = beregning
 
@@ -104,7 +106,10 @@ data class Behandling internal constructor(
         BehandlingsStatus.IVERKSATT_AVSLAG
     ).contains(status)
 
-    fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+    fun oppdaterBehandlingsinformasjon(
+        saksbehandler: Saksbehandler,
+        oppdatert: Behandlingsinformasjon
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
         return tilstand.oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
     }
 
@@ -117,7 +122,10 @@ data class Behandling internal constructor(
         return tilstand.opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
     }
 
-    fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+    fun leggTilSimulering(
+        saksbehandler: Saksbehandler,
+        simulering: () -> Simulering?
+    ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
         return tilstand.leggTilSimulering(saksbehandler, simulering)
     }
 
@@ -148,10 +156,10 @@ data class Behandling internal constructor(
     }
 
     fun underkjenn(
-        begrunnelse: String,
-        attestant: NavIdentBruker.Attestant
+        attestant: NavIdentBruker.Attestant,
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.underkjenn(begrunnelse, attestant)
+        return tilstand.underkjenn(attestant, underkjennelse)
     }
 
     fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -162,7 +170,10 @@ data class Behandling internal constructor(
 
         val status: BehandlingsStatus
 
-        fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::oppdaterBehandlingsinformasjon.toString())
         }
 
@@ -175,7 +186,10 @@ data class Behandling internal constructor(
             throw TilstandException(status, this::opprettBeregning.toString())
         }
 
-        fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+        fun leggTilSimulering(
+            saksbehandler: Saksbehandler,
+            simulering: () -> Simulering?
+        ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
             throw TilstandException(status, this::leggTilSimulering.toString())
         }
 
@@ -206,8 +220,8 @@ data class Behandling internal constructor(
         }
 
         fun underkjenn(
-            begrunnelse: String,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
@@ -227,7 +241,10 @@ data class Behandling internal constructor(
     private inner class Opprettet : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
-        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        override fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             if (this@Behandling.beregning != null) {
                 this@Behandling.beregning = null
@@ -247,7 +264,10 @@ data class Behandling internal constructor(
     private open inner class Vilkårsvurdert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
-        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        override fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
             return this@Behandling.right()
         }
@@ -262,15 +282,14 @@ data class Behandling internal constructor(
                 if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
+
+                val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                    periode = beregningsperiode,
                     fradrag = fradrag.plus(
-                        FradragFactory.ny(
-                            type = Fradragstype.ForventetInntekt,
-                            beløp = behandlingsinformasjon.uførhet!!.forventetInntekt?.toDouble() ?: 0.0,
-                            periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER
+                        lagFradragForForventetInntekt(
+                            beregningsperiode = beregningsperiode,
+                            uføreInformasjon = behandlingsinformasjon.uførhet!!
                         )
                     )
                 )
@@ -285,6 +304,23 @@ data class Behandling internal constructor(
 
                 nyTilstand(Beregnet())
                 return this@Behandling.right()
+            }
+
+            private fun lagFradragForForventetInntekt(
+                beregningsperiode: Periode,
+                uføreInformasjon: Behandlingsinformasjon.Uførhet
+            ): Fradrag {
+                val forventetInntektPrÅr = uføreInformasjon.forventetInntekt ?: 0
+                val forventetInntektPrMnd = forventetInntektPrÅr / 12.0
+                val forventetInntektPrMndForBeregningsperiode =
+                    forventetInntektPrMnd * beregningsperiode.getAntallMåneder()
+                return FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = forventetInntektPrMndForBeregningsperiode,
+                    periode = beregningsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
             }
         }
 
@@ -317,11 +353,17 @@ data class Behandling internal constructor(
             return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
-        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        override fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             return nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
         }
 
-        override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+        override fun leggTilSimulering(
+            saksbehandler: Saksbehandler,
+            simulering: () -> Simulering?
+        ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
             if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
                 return KunneIkkeLeggeTilSimulering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
@@ -336,7 +378,10 @@ data class Behandling internal constructor(
 
         inner class Avslag : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
-            override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+            override fun leggTilSimulering(
+                saksbehandler: Saksbehandler,
+                simulering: () -> Simulering?
+            ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
                 throw TilstandException(status, this::leggTilSimulering.toString())
             }
 
@@ -392,18 +437,24 @@ data class Behandling internal constructor(
             return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
         }
 
-        override fun oppdaterBehandlingsinformasjon(saksbehandler: Saksbehandler, oppdatert: Behandlingsinformasjon): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+        override fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             return nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
         }
 
-        override fun leggTilSimulering(saksbehandler: Saksbehandler, simulering: () -> Simulering?): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+        override fun leggTilSimulering(
+            saksbehandler: Saksbehandler,
+            simulering: () -> Simulering?
+        ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
             return nyTilstand(Beregnet()).leggTilSimulering(saksbehandler, simulering)
         }
     }
 
     private fun erAttestantOgSakbehandlerSammePerson(saksbehandler: Saksbehandler): Boolean {
-        return this@Behandling.attestant?.let {
-            it.navIdent == saksbehandler.navIdent
+        return this@Behandling.attestering?.let {
+            it.attestant.navIdent == saksbehandler.navIdent
         } ?: false
     }
 
@@ -417,7 +468,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestant = attestant
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Innvilget())
                 return this@Behandling.right()
             }
@@ -431,7 +482,7 @@ data class Behandling internal constructor(
                 if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
-                this@Behandling.attestant = attestant
+                this@Behandling.attestering = Attestering.Iverksatt(attestant)
                 nyTilstand(Iverksatt().Avslag())
                 return this@Behandling.right()
             }
@@ -445,14 +496,20 @@ data class Behandling internal constructor(
         }
 
         override fun underkjenn(
-            begrunnelse: String,
-            attestant: NavIdentBruker.Attestant
+            attestant: NavIdentBruker.Attestant,
+            underkjennelse: Attestering.Underkjent.Underkjennelse
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            hendelseslogg.hendelse(UnderkjentAttestering(attestant.navIdent, begrunnelse))
-            this@Behandling.attestant = attestant
+
+            hendelseslogg.hendelse(
+                UnderkjentAttestering(
+                    attestant.navIdent,
+                    underkjennelse.kommentar
+                )
+            )
+            this@Behandling.attestering = Attestering.Underkjent(attestant, underkjennelse)
             nyTilstand(Simulert())
             return this@Behandling.right()
         }
@@ -517,8 +574,11 @@ data class Behandling internal constructor(
     companion object {
         fun Beregning.utledAvslagsgrunner(): List<Avslagsgrunn> {
             return listOfNotNull(
-                if (getSumYtelse() <= 0) Avslagsgrunn.FOR_HØY_INNTEKT else null,
-                if (getSumYtelseErUnderMinstebeløp()) Avslagsgrunn.SU_UNDER_MINSTEGRENSE else null,
+                when {
+                    getSumYtelse() <= 0 -> Avslagsgrunn.FOR_HØY_INNTEKT
+                    getSumYtelseErUnderMinstebeløp() -> Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+                    else -> null
+                }
             )
         }
     }

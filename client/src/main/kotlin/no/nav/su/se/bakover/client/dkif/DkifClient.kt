@@ -29,9 +29,9 @@ class DkifClient(val baseUrl: String, val tokenOppslag: TokenOppslag, val consum
         return result.fold(
             { json ->
                 val resultat: DkifResultat = objectMapper.readValue(json)
-                return resultat.kontaktinfo?.get(fnr.fnr)?.toKontaktinformasjon()?.right()
+                return resultat.kontaktinfo?.get(fnr.toString())?.toKontaktinformasjon()?.right()
                     ?: DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon.left().also {
-                        log.error("Feil i kontaktinfo: ${resultat.feil?.get(fnr.fnr)?.melding ?: "Ukjent"}")
+                        log.error("Feil i kontaktinfo: ${resultat.feil?.get(fnr.toString())?.melding ?: "Ukjent"}")
                     }
             },
             {

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -39,6 +40,7 @@ import java.util.UUID
 
 internal class LagBrevUtkastForBehandlingTest {
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val fnr = Fnr("12345678910")
@@ -159,6 +161,7 @@ internal class LagBrevUtkastForBehandlingTest {
         status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
         beregning = beregning,
         fnr = fnr,
+        saksnummer = saksnummer,
         oppgaveId = oppgaveId,
         saksbehandler = Saksbehandler("ZZ992299")
     )

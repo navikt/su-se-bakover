@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import com.fasterxml.jackson.annotation.JsonValue
 import java.time.LocalDate
 import java.time.Month
 
@@ -21,4 +22,7 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         val `1G` = Grunnbeløp(1.0)
         val `0,5G` = Grunnbeløp(0.5)
     }
+
+    @JsonValue
+    override fun toString() = multiplier.toString()
 }

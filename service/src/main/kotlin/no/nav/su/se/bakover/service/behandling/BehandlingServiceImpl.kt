@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
@@ -66,13 +67,13 @@ internal class BehandlingServiceImpl(
     override fun underkjenn(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        begrunnelse: String
+        underkjennelse: Attestering.Underkjent.Underkjennelse
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
             log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
-            behandling.underkjenn(begrunnelse, attestant)
+            behandling.underkjenn(attestant, underkjennelse)
                 .mapLeft {
                     log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -99,7 +100,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterAttestant(behandlingId, attestant)
+                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Underkjent(attestant, underkjennelse))
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -218,7 +219,7 @@ internal class BehandlingServiceImpl(
                 behandlingTilAttestering.sakId,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                tilordnetRessurs = behandlingTilAttestering.attestant()
+                tilordnetRessurs = behandlingTilAttestering.attestering()?.attestant
             )
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
@@ -316,7 +317,7 @@ internal class BehandlingServiceImpl(
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
-        behandlingRepo.oppdaterAttestant(behandling.id, attestant)
+        behandlingRepo.oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -365,6 +366,12 @@ internal class BehandlingServiceImpl(
         attestant: NavIdentBruker.Attestant,
         behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
+
+        val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
+            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
             attestant = attestant,
@@ -382,15 +389,13 @@ internal class BehandlingServiceImpl(
                 behandlingId = behandlingId,
                 utbetalingId = oversendtUtbetaling.id
             )
-            behandlingRepo.oppdaterAttestant(behandlingId, attestant)
+            behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Iverksatt(attestant))
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-            val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-            val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
-                .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+            opprettVedtakssnapshotService.opprettVedtak(
+                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
+            )
 
             val journalføringOgBrevResultat =
                 brevService.journalførBrev(
@@ -478,8 +483,8 @@ internal class BehandlingServiceImpl(
         return hentBehandling(behandlingId)
             .mapLeft { KunneIkkeLageBrevutkast.FantIkkeBehandling }
             .flatMap { behandling ->
-                val attestantNavn = behandling.attestant()?.let {
-                    hentNavnForNavIdent(it.navIdent)
+                val attestantNavn = behandling.attestering()?.let {
+                    hentNavnForNavIdent(it.attestant.navIdent)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
                 val saksbehandlerNavn = behandling.saksbehandler()?.let {

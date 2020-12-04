@@ -56,7 +56,7 @@ abstract class BrevInnhold {
 
     data class Beregning(
         val ytelsePerMåned: Int,
-        val satsbeløpPerMåned: Double,
+        val satsbeløpPerMåned: Int,
         val epsFribeløp: Double,
         val fradrag: Fradrag?,
     ) {

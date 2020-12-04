@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -142,12 +143,6 @@ internal fun Route.behandlingRoutes(
                     enumContains<FradragTilhører>(it.tilhører) &&
                     it.utenlandskInntekt?.isValid() ?: true
             }
-    }
-
-    data class UnderkjennBody(
-        val begrunnelse: String
-    ) {
-        fun valid() = begrunnelse.isNotBlank()
     }
 
     authorize(Brukerrolle.Saksbehandler) {
@@ -321,6 +316,12 @@ internal fun Route.behandlingRoutes(
             }
         }
     }
+    data class UnderkjennBody(
+        val grunn: String,
+        val kommentar: String
+    ) {
+        fun valid() = enumContains<Attestering.Underkjent.Underkjennelse.Grunn>(grunn) && kommentar.isNotBlank()
+    }
 
     authorize(Brukerrolle.Attestant) {
         patch("$behandlingPath/{behandlingId}/underkjenn") {
@@ -337,7 +338,10 @@ internal fun Route.behandlingRoutes(
                             behandlingService.underkjenn(
                                 behandlingId = behandlingId,
                                 attestant = Attestant(navIdent),
-                                begrunnelse = body.begrunnelse
+                                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.valueOf(body.grunn),
+                                    kommentar = body.kommentar
+                                )
                             ).fold(
                                 ifLeft = {
                                     val resultat = when (it) {

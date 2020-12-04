@@ -11,12 +11,15 @@ enum class FradragStrategyName {
     EpsUnder67År
 }
 
+fun getEpsFribeløp(strategyName: FradragStrategyName, periode: Periode) =
+    FradragStrategy.fromName(strategyName).getEpsFribeløp(periode)
+
 internal sealed class FradragStrategy(private val name: FradragStrategyName) {
     fun getName() = name
 
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {
         val periodiserteFradrag = fradrag
-            .flatMap { it.periodiser() }
+            .flatMap { FradragFactory.periodiser(it) }
             .groupBy { it.getPeriode() }
         val beregningsperiodeMedFradrag = beregningsperiode.tilMånedsperioder()
             .map { it to (periodiserteFradrag[it] ?: emptyList()) }
@@ -33,6 +36,7 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
     protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
 
     object IngenEpsFribeløp
+
     abstract fun getEpsFribeløp(periode: Periode): Double
 
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
@@ -108,12 +112,14 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
         ): List<Fradrag> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
             if (epsFradrag.isEmpty()) return søkersFradrag
-            val sammenslått = FradragFactory.ny(
-                type = Fradragstype.BeregnetFradragEPS,
-                beløp = epsFradrag.sumByDouble { it.getTotaltFradrag() },
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+            val sammenslått = FradragFactory.periodiser(
+                FradragFactory.ny(
+                    type = Fradragstype.BeregnetFradragEPS,
+                    beløp = epsFradrag.sumByDouble { it.getTotaltFradrag() },
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                )
             )
             return søkersFradrag.plus(sammenslått)
         }
@@ -152,12 +158,14 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
 
         return søkersFradrag.plus(
-            FradragFactory.ny(
-                type = Fradragstype.BeregnetFradragEPS,
-                beløp = beregnetFradragEps,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+            FradragFactory.periodiser(
+                FradragFactory.ny(
+                    type = Fradragstype.BeregnetFradragEPS,
+                    beløp = beregnetFradragEps,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                )
             )
         )
     }

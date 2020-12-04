@@ -22,7 +22,7 @@ object VedtakInnholdTestdataBuilder {
         harEktefelle = true,
         beregning = BrevInnhold.Beregning(
             ytelsePerMåned = 0,
-            satsbeløpPerMåned = 0.0,
+            satsbeløpPerMåned = 0,
             epsFribeløp = 0.0,
             fradrag = null
         ),

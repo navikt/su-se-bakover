@@ -75,7 +75,7 @@ object SøknadInnholdTestdataBuilder {
         oppholdstillatelse: Oppholdstillatelse = Oppholdstillatelse(
             erNorskStatsborger = false,
             harOppholdstillatelse = true,
-            oppholdstillatelseType = Oppholdstillatelse.OppholdstillatelseType.MIDLERTIG,
+            oppholdstillatelseType = Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG,
             statsborgerskapAndreLand = false,
             statsborgerskapAndreLandFritekst = null
         ),

@@ -68,7 +68,7 @@ internal class UtbetalingRequestTest {
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
             oppdragRequest = UtbetalingRequest.OppdragRequest(
-                oppdragGjelderId = FNR.fnr,
+                oppdragGjelderId = FNR.toString(),
                 saksbehId = SAKSBEHANDLER,
                 fagsystemId = oppdragId.toString(),
                 kodeEndring = UtbetalingRequest.KodeEndring.NY,
@@ -100,7 +100,7 @@ internal class UtbetalingRequestTest {
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
                         brukKjoreplan = "N",
                         saksbehId = "SU",
-                        utbetalesTilId = FNR.fnr,
+                        utbetalesTilId = FNR.toString(),
                         refDelytelseId = null,
                         refFagsystemId = null,
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
@@ -116,7 +116,7 @@ internal class UtbetalingRequestTest {
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
                         brukKjoreplan = "N",
                         saksbehId = "SU",
-                        utbetalesTilId = FNR.fnr,
+                        utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
                         refFagsystemId = oppdrag.id.toString(),
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
@@ -201,7 +201,7 @@ internal class UtbetalingRequestTest {
 
         utbetalingRequest shouldBe UtbetalingRequest(
             oppdragRequest = UtbetalingRequest.OppdragRequest(
-                oppdragGjelderId = FNR.fnr,
+                oppdragGjelderId = FNR.toString(),
                 saksbehId = SAKSBEHANDLER,
                 fagsystemId = oppdragId.toString(),
                 kodeEndring = UtbetalingRequest.KodeEndring.ENDRING,
@@ -233,7 +233,7 @@ internal class UtbetalingRequestTest {
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
                         brukKjoreplan = "N",
                         saksbehId = "SU",
-                        utbetalesTilId = FNR.fnr,
+                        utbetalesTilId = FNR.toString(),
                         refDelytelseId = eksisterendeOppdragslinjeId.toString(),
                         refFagsystemId = eksisterendeOppdrag.id.toString(),
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
@@ -249,7 +249,7 @@ internal class UtbetalingRequestTest {
                         typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
                         brukKjoreplan = "N",
                         saksbehId = "SU",
-                        utbetalesTilId = FNR.fnr,
+                        utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyOppdragslinjeid1.toString(),
                         refFagsystemId = eksisterendeOppdrag.id.toString(),
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
