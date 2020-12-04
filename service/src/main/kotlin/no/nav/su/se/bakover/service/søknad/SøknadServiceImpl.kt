@@ -124,7 +124,7 @@ internal class SøknadServiceImpl(
                         oppgaveService.opprettOppgave(
                             OppgaveConfig.Saksbehandling(
                                 journalpostId = journalpostId,
-                                sakId = sakId,
+                                søknadId = søknad.id,
                                 aktørId = person.ident.aktørId
                             )
                         ).mapLeft {

@@ -10,7 +10,7 @@ import java.util.UUID
  */
 sealed class OppgaveConfig {
     abstract val journalpostId: JournalpostId?
-    abstract val sakId: UUID
+    abstract val søknadId: UUID
     abstract val aktørId: AktørId
     abstract val behandlingstema: Behandlingstema?
     abstract val oppgavetype: Oppgavetype
@@ -19,7 +19,7 @@ sealed class OppgaveConfig {
 
     data class Saksbehandling(
         override val journalpostId: JournalpostId,
-        override val sakId: UUID,
+        override val søknadId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
@@ -29,7 +29,7 @@ sealed class OppgaveConfig {
     }
 
     data class Attestering(
-        override val sakId: UUID,
+        override val søknadId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
