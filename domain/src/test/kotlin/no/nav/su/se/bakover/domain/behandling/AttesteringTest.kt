@@ -18,7 +18,7 @@ internal class AttesteringTest {
            "type": "Iverksatt",
            "attestant": "I1337"
            }
-       """.trimIndent()
+        """.trimIndent()
         val actual = objectMapper.writeValueAsString(Attestering.Iverksatt(attestant))
 
         JSONAssert.assertEquals(expected, actual, true)
@@ -32,7 +32,7 @@ internal class AttesteringTest {
            "type": "Iverksatt",
            "attestant": "I1337"
            }
-       """.trimIndent()
+        """.trimIndent()
         val deserialized: Attestering = objectMapper.readValue(json)
         val expected = Attestering.Iverksatt(NavIdentBruker.Attestant("I1337"))
 
@@ -51,14 +51,16 @@ internal class AttesteringTest {
              "kommentar": "Kan ikke dele på 0"
              }
            }
-       """.trimIndent()
-        val actual = objectMapper.writeValueAsString(Attestering.Underkjent(
-            attestant = NavIdentBruker.Attestant("I1337"),
-            underkjennelse = Attestering.Underkjent.Underkjennelse(
-                grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
-                kommentar = "Kan ikke dele på 0"
+        """.trimIndent()
+        val actual = objectMapper.writeValueAsString(
+            Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant("I1337"),
+                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
+                    kommentar = "Kan ikke dele på 0"
+                )
             )
-        ))
+        )
 
         JSONAssert.assertEquals(expected, actual, true)
     }
@@ -75,7 +77,7 @@ internal class AttesteringTest {
              "kommentar": "Kan ikke dele på 0"
              }
            }
-       """.trimIndent()
+        """.trimIndent()
         val actual: Attestering = objectMapper.readValue(json)
         val expected = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("I1337"),
