@@ -282,15 +282,14 @@ data class Behandling internal constructor(
                 if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
+
+                val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                    periode = beregningsperiode,
                     fradrag = fradrag.plus(
-                        FradragFactory.ny(
-                            type = Fradragstype.ForventetInntekt,
-                            beløp = behandlingsinformasjon.uførhet!!.forventetInntekt?.toDouble() ?: 0.0,
-                            periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER
+                        lagFradragForForventetInntekt(
+                            beregningsperiode = beregningsperiode,
+                            uføreInformasjon = behandlingsinformasjon.uførhet!!
                         )
                     )
                 )
@@ -305,6 +304,23 @@ data class Behandling internal constructor(
 
                 nyTilstand(Beregnet())
                 return this@Behandling.right()
+            }
+
+            private fun lagFradragForForventetInntekt(
+                beregningsperiode: Periode,
+                uføreInformasjon: Behandlingsinformasjon.Uførhet
+            ): Fradrag {
+                val forventetInntektPrÅr = uføreInformasjon.forventetInntekt ?: 0
+                val forventetInntektPrMnd = forventetInntektPrÅr / 12.0
+                val forventetInntektPrMndForBeregningsperiode =
+                    forventetInntektPrMnd * beregningsperiode.getAntallMåneder()
+                return FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = forventetInntektPrMndForBeregningsperiode,
+                    periode = beregningsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
             }
         }
 
