@@ -453,7 +453,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId,
+                        søknadId = expectedSøknad.id,
                         aktørId = person.ident.aktørId
                     )
                 }
@@ -559,7 +559,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalpostId,
-                        sakId = sakId,
+                        søknadId = expectedSøknad.id,
                         aktørId = person.ident.aktørId
                     )
                 }

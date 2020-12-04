@@ -91,7 +91,7 @@ class UnderkjennBehandlingTest {
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
         journalpostId = journalpostId,
-        sakId = sakId,
+        søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler
     )

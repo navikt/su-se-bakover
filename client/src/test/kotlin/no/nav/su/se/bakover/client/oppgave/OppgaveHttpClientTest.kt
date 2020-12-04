@@ -36,7 +36,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
-    private val sakId = UUID.randomUUID()
+    private val søknadId = UUID.randomUUID()
 
     @Test
     fun `opprett sakbehandling oppgave`() {
@@ -45,11 +45,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
             """
                 {
                     "journalpostId": "$journalpostId",
-                    "saksreferanse": "$sakId",
+                    "saksreferanse": "$søknadId",
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId",
+                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
@@ -69,11 +69,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
                                                       "journalpostId": "$journalpostId",
-                                                      "saksreferanse": "$sakId",
+                                                      "saksreferanse": "$søknadId",
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId ",
+                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "BEH_SAK",
                                                       "behandlingstype": "ae0245",
@@ -106,7 +106,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
                 journalpostId,
-                sakId,
+                søknadId,
                 AktørId(aktørId)
             )
         ) shouldBeRight OppgaveId("111")
@@ -119,11 +119,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
             """
                 {
                     "journalpostId": "$journalpostId",
-                    "saksreferanse": "$sakId",
+                    "saksreferanse": "$søknadId",
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId",
+                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
@@ -143,13 +143,13 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
                                                       "journalpostId": "$journalpostId",
-                                                      "saksreferanse": "$sakId",
+                                                      "saksreferanse": "$søknadId",
                                                       "aktoerId": "$aktørId",
                                                       "tilordnetRessurs": "$saksbehandler",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
                                                       "behandlingstema": "ab0431",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId",
+                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                                                       "oppgavetype": "BEH_SAK",
                                                       "behandlingstype": "ae0245",
                                                       "versjon": 1,
@@ -179,7 +179,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
                 journalpostId = journalpostId,
-                sakId = sakId,
+                søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = saksbehandler
             )
@@ -193,11 +193,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
             """
                 {
                     "journalpostId": null,
-                    "saksreferanse": "$sakId",
+                    "saksreferanse": "$søknadId",
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId",
+                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "ATT",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0245",
@@ -216,11 +216,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                     {
                                                       "id": 111,
                                                       "tildeltEnhetsnr": "4811",
-                                                      "saksreferanse": "$sakId",
+                                                      "saksreferanse": "$søknadId",
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksid : $sakId ",
+                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "ATT",
                                                       "behandlingstype": "ae0245",
@@ -250,7 +250,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Attestering(
-                sakId = sakId,
+                søknadId = søknadId,
                 aktørId = AktørId(aktørId)
             )
         ) shouldBeRight OppgaveId("111")
@@ -272,7 +272,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         client.opprettOppgave(
             OppgaveConfig.Saksbehandling(
                 journalpostId,
-                sakId,
+                søknadId,
                 AktørId(aktørId)
             )
         ) shouldBeLeft KunneIkkeOppretteOppgave
@@ -299,7 +299,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "endretAvEnhetsnr": "1234",
                                       "opprettetAvEnhetsnr": "1234",
                                       "aktoerId": "1000012345678",
-                                      "saksreferanse": "$sakId",
+                                      "saksreferanse": "$søknadId",
                                       "tilordnetRessurs": "Z123456",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
@@ -335,7 +335,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -366,7 +366,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -396,7 +396,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "endretAvEnhetsnr": "1234",
                                       "opprettetAvEnhetsnr": "1234",
                                       "aktoerId": "1000012345678",
-                                      "saksreferanse": "$sakId",
+                                      "saksreferanse": "$søknadId",
                                       "tilordnetRessurs": "Z123456",
                                       "beskrivelse": "--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                                       "tema": "SUP",
@@ -433,7 +433,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -464,7 +464,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSaksid : $sakId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()

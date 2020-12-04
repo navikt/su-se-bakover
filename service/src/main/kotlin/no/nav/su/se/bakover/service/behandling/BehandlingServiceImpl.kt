@@ -89,7 +89,7 @@ internal class BehandlingServiceImpl(
                     val nyOppgaveId = oppgaveService.opprettOppgave(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            sakId = behandling.sakId,
+                            søknadId = behandling.søknad.id,
                             aktørId = aktørId,
                             tilordnetRessurs = behandling.saksbehandler()
                         )
@@ -216,7 +216,7 @@ internal class BehandlingServiceImpl(
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
-                behandlingTilAttestering.sakId,
+                behandlingTilAttestering.søknad.id,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                 tilordnetRessurs = behandlingTilAttestering.attestering()?.attestant

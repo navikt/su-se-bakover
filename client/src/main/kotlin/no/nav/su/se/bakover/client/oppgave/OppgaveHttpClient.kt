@@ -56,7 +56,7 @@ internal class OppgaveHttpClient(
             return KunneIkkeOppretteOppgave.left()
         }
         val beskrivelse =
-            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSaksid : ${config.sakId}"
+            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
         val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
@@ -66,7 +66,7 @@ internal class OppgaveHttpClient(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
                         journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.sakId.toString(),
+                        saksreferanse = config.søknadId.toString(),
                         aktoerId = config.aktørId.toString(),
                         tema = "SUP",
                         behandlesAvApplikasjon = "SUPSTONAD",
@@ -139,7 +139,7 @@ internal class OppgaveHttpClient(
             return KunneIkkeLukkeOppgave.left()
         }
         val beskrivelse =
-            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSaksid : ${oppgave.saksreferanse}"
+            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
         val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
