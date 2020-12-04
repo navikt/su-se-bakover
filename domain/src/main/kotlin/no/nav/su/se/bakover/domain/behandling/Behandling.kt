@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -156,10 +155,9 @@ data class Behandling internal constructor(
     }
 
     fun underkjenn(
-        attestant: NavIdentBruker.Attestant,
-        underkjennelse: Attestering.Underkjent.Underkjennelse
+        attestering: Attestering.Underkjent
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.underkjenn(attestant, underkjennelse)
+        return tilstand.underkjenn(attestering)
     }
 
     fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -220,8 +218,7 @@ data class Behandling internal constructor(
         }
 
         fun underkjenn(
-            attestant: NavIdentBruker.Attestant,
-            underkjennelse: Attestering.Underkjent.Underkjennelse
+            attestering: Attestering.Underkjent
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
@@ -496,20 +493,13 @@ data class Behandling internal constructor(
         }
 
         override fun underkjenn(
-            attestant: NavIdentBruker.Attestant,
-            underkjennelse: Attestering.Underkjent.Underkjennelse
+            attestering: Attestering.Underkjent
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-            if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
+            if (attestering.attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-            hendelseslogg.hendelse(
-                UnderkjentAttestering(
-                    attestant.navIdent,
-                    underkjennelse.kommentar
-                )
-            )
-            this@Behandling.attestering = Attestering.Underkjent(attestant, underkjennelse)
+            this@Behandling.attestering = attestering
             nyTilstand(Simulert())
             return this@Behandling.right()
         }

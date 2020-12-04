@@ -45,20 +45,16 @@ internal class AttesteringTest {
         val expected = """
            {
            "type": "Underkjent",
-           "attestant": "I1337",
-           "underkjennelse": {
-             "grunn": "BEREGNINGEN_ER_FEIL",
-             "kommentar": "Kan ikke dele på 0"
-             }
+           "attestant": "I1337", 
+           "grunn": "BEREGNINGEN_ER_FEIL", 
+           "kommentar": "Kan ikke dele på 0"
            }
         """.trimIndent()
         val actual = objectMapper.writeValueAsString(
             Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("I1337"),
-                underkjennelse = Attestering.Underkjent.Underkjennelse(
-                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
-                    kommentar = "Kan ikke dele på 0"
-                )
+                grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+                kommentar = "Kan ikke dele på 0"
             )
         )
 
@@ -71,20 +67,17 @@ internal class AttesteringTest {
         val json = """
            {
            "type": "Underkjent",
-           "attestant": "I1337",
-           "underkjennelse": {
-             "grunn": "BEREGNINGEN_ER_FEIL",
-             "kommentar": "Kan ikke dele på 0"
+           "attestant": "I1337", 
+           "grunn": "BEREGNINGEN_ER_FEIL", 
+           "kommentar": "Kan ikke dele på 0"
              }
-           }
+        
         """.trimIndent()
         val actual: Attestering = objectMapper.readValue(json)
         val expected = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("I1337"),
-            underkjennelse = Attestering.Underkjent.Underkjennelse(
-                grunn = Attestering.Underkjent.Underkjennelse.Grunn.BEREGNINGEN_ER_FEIL,
-                kommentar = "Kan ikke dele på 0"
-            )
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "Kan ikke dele på 0"
         )
 
         actual shouldBe expected

@@ -150,12 +150,11 @@ class AccessCheckProxy(
 
                 override fun underkjenn(
                     behandlingId: UUID,
-                    attestant: NavIdentBruker.Attestant,
-                    underkjennelse: Attestering.Underkjent.Underkjennelse
+                    attestering: Attestering.Underkjent
                 ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.underkjenn(behandlingId, attestant, underkjennelse)
+                    return services.behandling.underkjenn(behandlingId, attestering)
                 }
 
                 override fun oppdaterBehandlingsinformasjon(
