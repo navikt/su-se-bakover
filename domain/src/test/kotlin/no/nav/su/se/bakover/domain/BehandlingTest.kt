@@ -7,8 +7,10 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -389,22 +391,30 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            val periode = Periode(
+            val p1 = Periode(
                 fraOgMed = 1.januar(2020),
+                tilOgMed = 30.april(2020),
+            )
+            val p2 = Periode(
+                fraOgMed = 1.mai(2020),
                 tilOgMed = 31.desember(2020),
             )
-
-            val inntektSomGirMinstebeløp = Sats.HØY.årsbeløp(periode.getFraOgMed()) * 0.98
-
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = periode.getFraOgMed(),
-                tilOgMed = periode.getTilOgMed(),
+                fraOgMed = p1.getFraOgMed(),
+                tilOgMed = p2.getTilOgMed(),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = inntektSomGirMinstebeløp,
-                        periode = periode,
+                        beløp = Sats.HØY.månedsbeløp(p1.getFraOgMed()) * 0.98,
+                        periode = p1,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        beløp = Sats.HØY.månedsbeløp(p2.getFraOgMed()) * 0.98,
+                        periode = p2,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
                     )

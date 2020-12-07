@@ -7,7 +7,7 @@ internal sealed class BeregningStrategy {
     abstract fun sats(): Sats
     fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {
         return BeregningFactory.ny(
-            periode = beregningsgrunnlag.periode,
+            periode = beregningsgrunnlag.beregningsperiode,
             sats = sats(),
             fradrag = beregningsgrunnlag.fradrag,
             fradragStrategy = fradragStrategy()
