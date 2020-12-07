@@ -32,35 +32,36 @@ internal class EnsligBorMedVoksneBeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-
-        val arbeidsinntektPrÅr = 20000.0
-        val folketrygdPrÅr = 14256.0
-        val utenlandskInntektPrÅr = 40927.0
-
-        val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
-        val folketrygdPrMnd = folketrygdPrÅr / 12
-        val utenlandskInntektPrMnd = utenlandskInntektPrÅr / 12
-
+        val arbeidsinntekt = 20000.0
+        val folketrygd = 14256.0
+        val utenlandskInntekt = 40927.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            beregningsperiode = periode,
-            fradragFraSaksbehandler = listOf(
+            periode = periode,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntektPrMnd,
+                    beløp = arbeidsinntekt,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygdPrMnd,
+                    beløp = folketrygd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = utenlandskInntektPrMnd,
+                    beløp = utenlandskInntekt,
                     periode = periode,
                     utenlandskInntekt = UtenlandskInntekt(
                         beløpIUtenlandskValuta = 10,
@@ -69,13 +70,12 @@ internal class EnsligBorMedVoksneBeregningTest {
                     ),
                     tilhører = FradragTilhører.BRUKER
                 )
-            ),
-            forventetInntektPrÅr = 0.0
+            )
         )
 
         BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 155892
-            it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)
+            it.getSumFradrag() shouldBe (arbeidsinntekt + folketrygd + utenlandskInntekt).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 12991
             }

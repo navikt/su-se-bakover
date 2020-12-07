@@ -22,17 +22,23 @@ internal class BeregningStrategyTest {
             tilOgMed = 31.desember(2020)
         )
         val beregningsgrunnlag = Beregningsgrunnlag(
-            beregningsperiode = periode,
-            fradragFraSaksbehandler = listOf(
+            periode = periode,
+            fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 1500.0,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 12000.0,
+                    periode = Periode(fraOgMed = periode.getFraOgMed(), tilOgMed = periode.getTilOgMed()),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
                 )
-            ),
-            forventetInntektPrÅr = 12000.0
+            )
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
             it.getPeriode().getFraOgMed() shouldBe periode.getFraOgMed()

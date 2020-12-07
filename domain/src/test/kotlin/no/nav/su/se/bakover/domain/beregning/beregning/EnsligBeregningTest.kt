@@ -28,37 +28,38 @@ internal class EnsligBeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-
-        val arbeidsinntektPrÅr = 180000.0
-        val folketrygdPrÅr = 66323.0
-
-        val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
-        val folketrydPrMnd = folketrygdPrÅr / 12
-
+        val arbeidsinntekt = 180000.0
+        val folketrygd = 66323.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            beregningsperiode = periode,
-            fradragFraSaksbehandler = listOf(
+            periode = periode,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = 0.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntektPrMnd,
+                    beløp = arbeidsinntekt,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrydPrMnd,
+                    beløp = folketrygd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
-            ),
-            forventetInntektPrÅr = 0.0
+            )
         )
 
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 5028
-            it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr).plusOrMinus(0.5)
+            it.getSumFradrag() shouldBe (arbeidsinntekt + folketrygd).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 419
             }
