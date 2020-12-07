@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -330,7 +331,11 @@ internal class VedtakssnapshotJsonTest {
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
                 totaltFradrag = 155.9,
-                utenlandskInntekt = null,
+                utenlandskInntekt = UtenlandskInntekt(
+                    beløpIUtenlandskValuta = 12345,
+                    valuta = "Simoleons",
+                    kurs = 129.0
+                ),
                 periode = beregningsPeriode,
                 tilhører = BRUKER
             )
@@ -387,7 +392,7 @@ internal class VedtakssnapshotJsonTest {
                   "iverksattJournalpostId":"iverksattJournalpostId",
                   "iverksattBrevbestillingId":"iverksattBrevbestillingId",
                   "beregning":{
-                    "id":"4111d5ee-0215-4d0f-94fc-0959f900ef2e",
+                    "id":"$beregningId",
                     "opprettet":"1970-01-01T01:02:03.456789Z",
                     "sats":"ORDINÆR",
                     "månedsberegninger":[
@@ -401,7 +406,11 @@ internal class VedtakssnapshotJsonTest {
                                 {
                                     "fradragstype":"Arbeidsinntekt",
                                     "totaltFradrag":155.9,
-                                    "utenlandskInntekt":null,
+                                    "utenlandskInntekt": {
+                                        "beløpIUtenlandskValuta": 12345,
+                                        "valuta": "Simoleons",
+                                        "kurs": 129.0
+                                    },
                                     "periode":{
                                         "fraOgMed":"1970-01-01",
                                         "tilOgMed":"1970-01-31",
@@ -421,7 +430,11 @@ internal class VedtakssnapshotJsonTest {
                       {
                         "fradragstype":"Arbeidsinntekt",
                         "totaltFradrag":155.9,
-                        "utenlandskInntekt":null,
+                        "utenlandskInntekt":{
+                            "beløpIUtenlandskValuta": 12345,
+                            "valuta": "Simoleons",
+                            "kurs": 129.0
+                        },
                         "periode":{
                             "fraOgMed":"1970-01-01",
                             "tilOgMed":"1970-01-31",
@@ -649,7 +662,16 @@ internal class VedtakssnapshotJsonTest {
                       "id":"${utbetaling.id}",
                       "opprettet":"${utbetaling.opprettet}",
                       "fnr":"12345678910",
-                      "utbetalingslinjer":[],
+                      "utbetalingslinjer":[
+                         {
+                            "id" : "${utbetaling.utbetalingslinjer[0].id}",
+                            "opprettet" :"${utbetaling.utbetalingslinjer[0].opprettet}",
+                            "fraOgMed" : "1970-01-01",
+                            "tilOgMed" :"1970-01-31",
+                            "forrigeUtbetalingslinjeId" : null,
+                            "beløp" : 3
+                         }
+                      ],
                       "type":"NY",
                       "oppdragId":"${utbetaling.oppdragId}",
                       "behandler":"Z123",
@@ -665,7 +687,7 @@ internal class VedtakssnapshotJsonTest {
                          "periodeList":[]
                       },
                       "utbetalingsrequest":{
-                         "value":""
+                         "value":"<xml></xml>"
                       }
                }
             }
