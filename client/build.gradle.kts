@@ -23,6 +23,8 @@ dependencies {
     implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("javax.jws:javax.jws-api:1.1")
+    // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
+    implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.0")
 
