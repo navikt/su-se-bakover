@@ -10,6 +10,7 @@ data class BehandlingsinformasjonJson(
     val flyktning: FlyktningJson? = null,
     val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
+    val institusjonsopphold: InstitusjonsoppholdJson? = null,
     val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
@@ -24,6 +25,7 @@ data class BehandlingsinformasjonJson(
                 flyktning = flyktning?.toJson(),
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
+                institusjonsopphold = institusjonsopphold?.toJson(),
                 oppholdIUtlandet = oppholdIUtlandet?.toJson(),
                 formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
@@ -71,6 +73,12 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.valueOf(f.status),
                 begrunnelse = f.begrunnelse
+            )
+        },
+        institusjonsopphold = b.institusjonsopphold?.let { i ->
+            Behandlingsinformasjon.Institusjonsopphold(
+                status = Behandlingsinformasjon.Institusjonsopphold.Status.valueOf(i.status),
+                begrunnelse = i.begrunnelse
             )
         },
         oppholdIUtlandet = b.oppholdIUtlandet?.let { o ->
@@ -153,6 +161,12 @@ internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
 
 internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
     FastOppholdINorgeJson(
+        status = status.name,
+        begrunnelse = begrunnelse
+    )
+
+internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
+    InstitusjonsoppholdJson(
         status = status.name,
         begrunnelse = begrunnelse
     )
@@ -254,6 +268,11 @@ data class LovligOppholdJson(
 )
 
 data class FastOppholdINorgeJson(
+    val status: String,
+    val begrunnelse: String?
+)
+
+data class InstitusjonsoppholdJson(
     val status: String,
     val begrunnelse: String?
 )

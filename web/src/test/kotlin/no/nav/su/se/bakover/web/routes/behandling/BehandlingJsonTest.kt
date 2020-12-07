@@ -49,6 +49,10 @@ internal class BehandlingJsonTest {
                     "status": "VilkårOppfylt",
                     "begrunnelse": null
                 },
+                "institusjonsopphold": {
+                    "status": "VilkårOppfylt",
+                    "begrunnelse": null
+                },
                 "oppholdIUtlandet": {
                     "status": "SkalHoldeSegINorge",
                     "begrunnelse": null
@@ -145,6 +149,7 @@ internal class BehandlingJsonTest {
             "flyktning": null,
             "lovligOpphold": null,
             "fastOppholdINorge": null,
+            "institusjonsopphold": null,
             "oppholdIUtlandet": null,
             "formue": null,
             "personligOppmøte": null,

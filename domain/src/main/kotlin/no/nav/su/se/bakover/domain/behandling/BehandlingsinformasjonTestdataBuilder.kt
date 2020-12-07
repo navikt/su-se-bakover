@@ -27,6 +27,10 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
             begrunnelse = fastOppholdINorge?.begrunnelse
         ),
+        institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
+            begrunnelse = institusjonsopphold?.begrunnelse,
+        ),
         oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
             status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
             begrunnelse = oppholdIUtlandet?.begrunnelse
@@ -87,6 +91,7 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
         flyktning = null,
         lovligOpphold = null,
         fastOppholdINorge = null,
+        institusjonsopphold = null,
         oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,

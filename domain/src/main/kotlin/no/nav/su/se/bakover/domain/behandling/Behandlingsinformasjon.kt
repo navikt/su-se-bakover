@@ -16,6 +16,7 @@ data class Behandlingsinformasjon(
     val flyktning: Flyktning? = null,
     val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
+    val institusjonsopphold: Institusjonsopphold? = null,
     val oppholdIUtlandet: OppholdIUtlandet? = null,
     val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
@@ -27,6 +28,7 @@ data class Behandlingsinformasjon(
         flyktning,
         lovligOpphold,
         fastOppholdINorge,
+        institusjonsopphold,
         oppholdIUtlandet,
         formue,
         personligOppmøte,
@@ -43,6 +45,7 @@ data class Behandlingsinformasjon(
         flyktning = b.flyktning ?: this.flyktning,
         lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
         fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
+        institusjonsopphold = b.institusjonsopphold ?: this.institusjonsopphold,
         oppholdIUtlandet = b.oppholdIUtlandet ?: this.oppholdIUtlandet,
         formue = b.formue ?: this.formue,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
@@ -144,6 +147,22 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? =
             if (erVilkårIkkeOppfylt()) Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE else null
+    }
+
+    data class Institusjonsopphold(
+        val status: Status,
+        val begrunnelse: String?
+    ) : Base() {
+        enum class Status {
+            VilkårOppfylt,
+            VilkårIkkeOppfylt,
+            Uavklart,
+        }
+
+        override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
+        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
+        override fun avslagsgrunn(): Avslagsgrunn? =
+            if (erVilkårIkkeOppfylt()) Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON else null
     }
 
     data class OppholdIUtlandet(
@@ -314,6 +333,7 @@ data class Behandlingsinformasjon(
             flyktning = null,
             lovligOpphold = null,
             fastOppholdINorge = null,
+            institusjonsopphold = null,
             oppholdIUtlandet = null,
             formue = null,
             personligOppmøte = null,
