@@ -129,13 +129,15 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             )
         },
         ektefelle = b.ektefelle?.let { e ->
-            if (e.fnr != null && e.navn != null) Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                fnr = e.fnr,
-                navn = e.navn,
-                kjønn = e.kjønn,
-                adressebeskyttelse = e.adressebeskyttelse,
-                skjermet = e.skjermet,
-            ) else Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+            if (e.fnr != null) {
+                Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+                    fnr = e.fnr,
+                    navn = e.navn,
+                    kjønn = e.kjønn,
+                    adressebeskyttelse = e.adressebeskyttelse,
+                    skjermet = e.skjermet,
+                )
+            } else Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
         }
     )
 

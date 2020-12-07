@@ -47,6 +47,7 @@ object Config {
     }
 
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
+    val fnrForPersonMedSkjerming = env["DEV_FNR_WITH_SKJERMING"]
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
