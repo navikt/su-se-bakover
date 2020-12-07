@@ -18,7 +18,7 @@ internal class BeregningsgrunnlagTest {
         val forventetInntektPrÅr = 120_000.0
         val tolvMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-            fraSaksbehandler = listOf(),
+            fradragFraSaksbehandler = listOf(),
             forventetInntektPrÅr = forventetInntektPrÅr
         )
         tolvMnd.fradrag shouldBe listOf(
@@ -33,7 +33,7 @@ internal class BeregningsgrunnlagTest {
 
         val enMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
-            fraSaksbehandler = listOf(),
+            fradragFraSaksbehandler = listOf(),
             forventetInntektPrÅr = forventetInntektPrÅr
         )
         enMnd.fradrag shouldBe listOf(
@@ -48,7 +48,7 @@ internal class BeregningsgrunnlagTest {
 
         val fireMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
-            fraSaksbehandler = listOf(),
+            fradragFraSaksbehandler = listOf(),
             forventetInntektPrÅr = forventetInntektPrÅr
         )
         fireMnd.fradrag shouldBe listOf(
@@ -67,7 +67,7 @@ internal class BeregningsgrunnlagTest {
         val forventetInntektPrÅr = 0.0
         val tolvMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-            fraSaksbehandler = listOf(),
+            fradragFraSaksbehandler = listOf(),
             forventetInntektPrÅr = forventetInntektPrÅr
         )
         tolvMnd.fradrag shouldBe listOf(
@@ -86,7 +86,7 @@ internal class BeregningsgrunnlagTest {
         val tolvMndPeriode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val tolvMnd = Beregningsgrunnlag(
             beregningsperiode = tolvMndPeriode,
-            fraSaksbehandler = listOf(
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     beløp = 10_000.0,
@@ -111,7 +111,7 @@ internal class BeregningsgrunnlagTest {
         val enMndPeriode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         val enMnd = Beregningsgrunnlag(
             beregningsperiode = enMndPeriode,
-            fraSaksbehandler = listOf(
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     beløp = 10_000.0,
@@ -138,7 +138,7 @@ internal class BeregningsgrunnlagTest {
     fun `oppjusterer beløp for fradrag basert på fradragets periode`() {
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = Periode(1.januar(2020), 31.desember(2020)),
-            fraSaksbehandler = listOf(
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     beløp = 10_000.0,

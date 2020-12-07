@@ -280,7 +280,7 @@ data class Behandling internal constructor(
                 val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     beregningsperiode = beregningsperiode,
-                    fraSaksbehandler = fradrag,
+                    fradragFraSaksbehandler = fradrag,
                     forventetInntektPrÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0
                 )
 

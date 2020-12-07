@@ -169,7 +169,7 @@ internal class BehandlingsinformasjonTest {
         val underMinstegrense = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 beregningsperiode = periode,
-                fraSaksbehandler = emptyList(),
+                fradragFraSaksbehandler = emptyList(),
                 forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) - 200) * 12
             )
         )
@@ -178,7 +178,7 @@ internal class BehandlingsinformasjonTest {
         val forHøyInntekt = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 beregningsperiode = periode,
-                fraSaksbehandler = emptyList(),
+                fradragFraSaksbehandler = emptyList(),
                 forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) * 4) * 12
             )
         )
@@ -188,7 +188,7 @@ internal class BehandlingsinformasjonTest {
         val ingen = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 beregningsperiode = periode,
-                fraSaksbehandler = emptyList(),
+                fradragFraSaksbehandler = emptyList(),
                 forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) - 5000) * 12
             )
         )

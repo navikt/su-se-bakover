@@ -37,7 +37,7 @@ internal class EnsligBeregningTest {
 
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = periode,
-            fraSaksbehandler = listOf(
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = arbeidsinntektPrMnd,

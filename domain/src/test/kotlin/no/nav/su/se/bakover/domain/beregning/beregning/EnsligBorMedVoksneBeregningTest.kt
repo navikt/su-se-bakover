@@ -43,7 +43,7 @@ internal class EnsligBorMedVoksneBeregningTest {
 
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = periode,
-            fraSaksbehandler = listOf(
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = arbeidsinntektPrMnd,
