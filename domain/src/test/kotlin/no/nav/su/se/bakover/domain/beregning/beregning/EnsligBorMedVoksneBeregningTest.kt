@@ -32,29 +32,35 @@ internal class EnsligBorMedVoksneBeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-        val arbeidsinntekt = 20000.0
-        val folketrygd = 14256.0
-        val utenlandskInntekt = 40927.0
+
+        val arbeidsinntektPrÅr = 20000.0
+        val folketrygdPrÅr = 14256.0
+        val utenlandskInntektPrÅr = 40927.0
+
+        val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
+        val folketrygdPrMnd = folketrygdPrÅr / 12
+        val utenlandskInntektPrMnd = utenlandskInntektPrÅr / 12
+
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntekt,
+                    beløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygd,
+                    beløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = utenlandskInntekt,
+                    beløp = utenlandskInntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = UtenlandskInntekt(
                         beløpIUtenlandskValuta = 10,
@@ -69,7 +75,7 @@ internal class EnsligBorMedVoksneBeregningTest {
 
         BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 155892
-            it.getSumFradrag() shouldBe (arbeidsinntekt + folketrygd + utenlandskInntekt).plusOrMinus(0.5)
+            it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 12991
             }

@@ -30,24 +30,32 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-        val arbeidsinntekt = 12000.0
-        val folketrygd = 128592.0
-        val epsFolketryd = 190000.0
-        val epsAnnenNorsk = 45000.0
+
+        val arbeidsinntektPrÅr = 12000.0
+        val folketrygdPrÅr = 128592.0
+        val epsFolketrydPrÅr = 190000.0
+        val epsAnnenNorskPrÅr = 45000.0
+
+        val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
+        val folketrygdPrMnd = folketrygdPrÅr / 12
+        val epsFolketrygdPrMnd = epsFolketrydPrÅr / 12
+        val epsAnnenNorskPrMnd = epsAnnenNorskPrÅr / 12
+
         val uføreOrdinærSatsbeløp = 231080.0
+
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntekt,
+                    beløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygd,
+                    beløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -61,14 +69,14 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = epsFolketryd,
+                    beløp = epsFolketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.PrivatPensjon,
-                    beløp = epsAnnenNorsk,
+                    beløp = epsAnnenNorskPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -79,7 +87,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
 
         BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 86568
-            it.getSumFradrag() shouldBe (arbeidsinntekt + folketrygd + (epsFolketryd + epsAnnenNorsk - uføreOrdinærSatsbeløp))
+            it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrydPrÅr + epsAnnenNorskPrÅr - uføreOrdinærSatsbeløp))
                 .plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 7214

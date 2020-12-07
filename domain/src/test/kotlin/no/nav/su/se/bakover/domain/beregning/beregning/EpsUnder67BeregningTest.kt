@@ -29,21 +29,26 @@ internal class EpsUnder67BeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-        val folketrygd = 68772.0
-        val folketrygdEps = 98880.0
+
+        val folketrygdPrÅr = 68772.0
+        val folketrygdEpsPrÅr = 98880.0
+
+        val folketrygdPrMnd = folketrygdPrÅr / 12
+        val folketrygdEpsPrMnd = folketrygdEpsPrÅr / 12
+
         val beregningsgrunnlag = Beregningsgrunnlag(
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygd,
+                    beløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygdEps,
+                    beløp = folketrygdEpsPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -54,7 +59,7 @@ internal class EpsUnder67BeregningTest {
 
         BeregningStrategy.EpsUnder67År.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 83700
-            it.getSumFradrag() shouldBe (folketrygd + folketrygdEps).plusOrMinus(0.5)
+            it.getSumFradrag() shouldBe (folketrygdPrÅr + folketrygdEpsPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 6975
             }

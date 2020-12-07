@@ -11,11 +11,22 @@ internal data class Beregningsgrunnlag(
     private val fraSaksbehandler: List<Fradrag>,
     private val forventetInntekt: Double
 ) {
-    val fradrag: List<Fradrag> = fraSaksbehandler.plus(lagFradragForForventetInntekt())
+    val fradrag: List<Fradrag> = oppjusterFradragForAntallMåneder()
+        .plus(lagFradragForForventetInntekt())
+
+    private fun oppjusterFradragForAntallMåneder(): List<Fradrag> =
+        fraSaksbehandler.map {
+            FradragFactory.ny(
+                type = it.getFradragstype(),
+                beløp = it.getTotaltFradrag() * it.getPeriode().getAntallMåneder(),
+                periode = it.getPeriode(),
+                utenlandskInntekt = it.getUtenlandskInntekt(),
+                tilhører = it.getTilhører()
+            )
+        }
 
     private fun lagFradragForForventetInntekt(): Fradrag {
-        val prÅr = forventetInntekt
-        val prMnd = prÅr / 12.0
+        val prMnd = forventetInntekt / 12.0
         val totaltForBeregningsperiode = prMnd * beregningsperiode.getAntallMåneder()
         return FradragFactory.ny(
             type = Fradragstype.ForventetInntekt,
