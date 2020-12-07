@@ -314,7 +314,7 @@ data class Behandlingsinformasjon(
     sealed class EktefellePartnerSamboer : Base() {
         data class Ektefelle(
             val fnr: Fnr,
-            val navn: Person.Navn,
+            val navn: Person.Navn?,
             val kjønn: String?,
             val adressebeskyttelse: String?,
             val skjermet: Boolean?
