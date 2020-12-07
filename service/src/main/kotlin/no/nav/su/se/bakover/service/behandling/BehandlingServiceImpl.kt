@@ -318,11 +318,8 @@ internal class BehandlingServiceImpl(
         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, journalpostId)
         behandlingRepo.oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
-        log.info("Iversatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
+        log.info("Iverksatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-        opprettVedtakssnapshotService.opprettVedtak(
-            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
-        )
         val brevResultat = brevService.distribuerBrev(journalpostId)
             .mapLeft {
                 log.error("Kunne ikke bestille brev ved avslag for behandling ${behandling.id}. Dette må gjøres manuelt.")
@@ -347,6 +344,10 @@ internal class BehandlingServiceImpl(
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
                 IverksattBehandling.UtenMangler(behandling)
             }
+
+        opprettVedtakssnapshotService.opprettVedtak(
+            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
+        )
 
         return brevResultat.flatMap { oppgaveResultat }.fold(
             { it.right() },
@@ -392,9 +393,6 @@ internal class BehandlingServiceImpl(
             behandlingRepo.oppdaterBehandlingStatus(behandlingId, behandling.status())
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-            opprettVedtakssnapshotService.opprettVedtak(
-                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
-            )
 
             val journalføringOgBrevResultat =
                 brevService.journalførBrev(
@@ -440,6 +438,10 @@ internal class BehandlingServiceImpl(
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
                     IverksattBehandling.UtenMangler(behandling)
                 }
+
+            opprettVedtakssnapshotService.opprettVedtak(
+                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
+            )
 
             return journalføringOgBrevResultat.flatMap { oppgaveResultat }.fold(
                 { it.right() },

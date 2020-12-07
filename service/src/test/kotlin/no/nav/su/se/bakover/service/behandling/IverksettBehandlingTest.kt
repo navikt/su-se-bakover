@@ -288,6 +288,12 @@ internal class IverksettBehandlingTest {
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
             )
+            verify(brevServiceMock).distribuerBrev(journalpostId)
+            verify(behandlingRepoMock).oppdaterIverksattBrevbestillingId(
+                behandlingId = argThat { it shouldBe behandling.id },
+                bestillingId = argThat { it shouldBe brevbestillingId }
+            )
+            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
                 argThat {
                     it shouldBe Vedtakssnapshot.Avslag(
@@ -298,13 +304,6 @@ internal class IverksettBehandlingTest {
                     )
                 }
             )
-
-            verify(brevServiceMock).distribuerBrev(journalpostId)
-            verify(behandlingRepoMock).oppdaterIverksattBrevbestillingId(
-                behandlingId = argThat { it shouldBe behandling.id },
-                bestillingId = argThat { it shouldBe brevbestillingId }
-            )
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -494,16 +493,7 @@ internal class IverksettBehandlingTest {
                 behandling.id,
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
-            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
-                argThat {
-                    it shouldBe Vedtakssnapshot.Innvilgelse(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        behandling = behandling,
-                        utbetaling = oversendtUtbetaling
-                    )
-                }
-            )
+
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
@@ -521,6 +511,16 @@ internal class IverksettBehandlingTest {
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe journalpostId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -601,16 +601,7 @@ internal class IverksettBehandlingTest {
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.PERSISTERT)
-            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
-                argThat {
-                    it shouldBe Vedtakssnapshot.Innvilgelse(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        behandling = behandling,
-                        utbetaling = oversendtUtbetaling
-                    )
-                }
-            )
+
             verify(brevServiceMock).journalførBrev(
                 LagBrevRequest.InnvilgetVedtak(
                     person = person,
@@ -635,6 +626,17 @@ internal class IverksettBehandlingTest {
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.DISTRIBUERT_BREV)
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(behandlingMetricsMock).incrementInnvilgetCounter(InnvilgetHandlinger.LUKKET_OPPGAVE)
+
+            verify(opprettVedtakssnapshotServiceMock).opprettVedtak(
+                argThat {
+                    it shouldBe Vedtakssnapshot.Innvilgelse(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        behandling = behandling,
+                        utbetaling = oversendtUtbetaling
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
