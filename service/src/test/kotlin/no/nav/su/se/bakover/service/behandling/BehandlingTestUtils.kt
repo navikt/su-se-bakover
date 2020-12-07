@@ -90,6 +90,10 @@ object BehandlingTestUtils {
             status = FastOppholdINorge.Status.VilkårOppfylt,
             begrunnelse = null
         ),
+        institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
         oppholdIUtlandet = OppholdIUtlandet(
             status = SkalHoldeSegINorge,
             begrunnelse = null
