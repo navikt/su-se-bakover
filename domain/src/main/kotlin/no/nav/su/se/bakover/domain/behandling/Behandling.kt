@@ -14,9 +14,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -283,12 +280,8 @@ data class Behandling internal constructor(
                 val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     beregningsperiode = beregningsperiode,
-                    fraSaksbehandler = fradrag.plus(
-                        lagFradragForForventetInntekt(
-                            beregningsperiode = beregningsperiode,
-                            uføreInformasjon = behandlingsinformasjon.uførhet!!
-                        )
-                    )
+                    fraSaksbehandler = fradrag,
+                    forventetInntekt = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0
                 )
 
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
@@ -301,23 +294,6 @@ data class Behandling internal constructor(
 
                 nyTilstand(Beregnet())
                 return this@Behandling.right()
-            }
-
-            private fun lagFradragForForventetInntekt(
-                beregningsperiode: Periode,
-                uføreInformasjon: Behandlingsinformasjon.Uførhet
-            ): Fradrag {
-                val forventetInntektPrÅr = uføreInformasjon.forventetInntekt ?: 0
-                val forventetInntektPrMnd = forventetInntektPrÅr / 12.0
-                val forventetInntektPrMndForBeregningsperiode =
-                    forventetInntektPrMnd * beregningsperiode.getAntallMåneder()
-                return FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = forventetInntektPrMndForBeregningsperiode,
-                    periode = beregningsperiode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
             }
         }
 

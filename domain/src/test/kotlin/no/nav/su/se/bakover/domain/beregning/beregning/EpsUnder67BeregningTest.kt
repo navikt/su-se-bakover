@@ -35,13 +35,6 @@ internal class EpsUnder67BeregningTest {
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
                     beløp = folketrygd,
                     periode = periode,
@@ -55,7 +48,8 @@ internal class EpsUnder67BeregningTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 )
-            )
+            ),
+            forventetInntekt = 0.0
         )
 
         BeregningStrategy.EpsUnder67År.beregn(beregningsgrunnlag).let {

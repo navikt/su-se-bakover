@@ -39,13 +39,6 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = arbeidsinntekt,
                     periode = periode,
@@ -80,7 +73,8 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 )
-            )
+            ),
+            forventetInntekt = 0.0
         )
 
         BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(beregningsgrunnlag).let {

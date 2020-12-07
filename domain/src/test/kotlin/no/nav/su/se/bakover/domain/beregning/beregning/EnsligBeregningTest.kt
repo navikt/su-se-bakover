@@ -34,13 +34,6 @@ internal class EnsligBeregningTest {
             beregningsperiode = periode,
             fraSaksbehandler = listOf(
                 FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     beløp = arbeidsinntekt,
                     periode = periode,
@@ -54,7 +47,8 @@ internal class EnsligBeregningTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
-            )
+            ),
+            forventetInntekt = 0.0
         )
 
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
