@@ -108,7 +108,7 @@ class BehandlingTilAttesteringTest {
             verify(personOppslagMock).aktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
-                    sakId = sakId,
+                    søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null
                 )

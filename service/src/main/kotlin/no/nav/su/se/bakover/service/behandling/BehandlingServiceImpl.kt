@@ -66,14 +66,13 @@ internal class BehandlingServiceImpl(
 
     override fun underkjenn(
         behandlingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-        underkjennelse: Attestering.Underkjent.Underkjennelse
+        attestering: Attestering.Underkjent
     ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
         return hentBehandling(behandlingId).mapLeft {
             log.info("Kunne ikke underkjenne ukjent behandling $behandlingId")
             KunneIkkeUnderkjenneBehandling.FantIkkeBehandling
         }.flatMap { behandling ->
-            behandling.underkjenn(attestant, underkjennelse)
+            behandling.underkjenn(attestering)
                 .mapLeft {
                     log.warn("Kunne ikke underkjenne behandling siden attestant og saksbehandler var samme person")
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -89,7 +88,7 @@ internal class BehandlingServiceImpl(
                     val nyOppgaveId = oppgaveService.opprettOppgave(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            sakId = behandling.sakId,
+                            søknadId = behandling.søknad.id,
                             aktørId = aktørId,
                             tilordnetRessurs = behandling.saksbehandler()
                         )
@@ -100,7 +99,7 @@ internal class BehandlingServiceImpl(
                         behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.OPPRETTET_OPPGAVE)
                     }
                     behandling.oppdaterOppgaveId(nyOppgaveId)
-                    behandlingRepo.oppdaterAttestering(behandlingId, Attestering.Underkjent(attestant, underkjennelse))
+                    behandlingRepo.oppdaterAttestering(behandlingId, attestering)
                     behandlingRepo.oppdaterOppgaveId(behandling.id, nyOppgaveId)
                     behandlingRepo.oppdaterBehandlingStatus(it.id, it.status())
                     log.info("Behandling $behandlingId ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -216,7 +215,7 @@ internal class BehandlingServiceImpl(
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
-                behandlingTilAttestering.sakId,
+                behandlingTilAttestering.søknad.id,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                 tilordnetRessurs = behandlingTilAttestering.attestering()?.attestant

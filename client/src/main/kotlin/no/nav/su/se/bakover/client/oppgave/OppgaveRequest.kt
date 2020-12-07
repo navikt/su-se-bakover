@@ -8,6 +8,7 @@ internal data class OppgaveRequest(
     val aktoerId: String,
     val tema: String,
     val behandlesAvApplikasjon: String,
+    val beskrivelse: String,
     val oppgavetype: String,
     val behandlingstema: String?,
     val behandlingstype: String,

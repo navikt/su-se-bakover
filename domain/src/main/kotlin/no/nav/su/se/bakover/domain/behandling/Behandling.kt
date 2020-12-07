@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -157,10 +156,9 @@ data class Behandling internal constructor(
     }
 
     fun underkjenn(
-        attestant: NavIdentBruker.Attestant,
-        underkjennelse: Attestering.Underkjent.Underkjennelse
+        attestering: Attestering.Underkjent
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.underkjenn(attestant, underkjennelse)
+        return tilstand.underkjenn(attestering)
     }
 
     fun utledAvslagsgrunner(): List<Avslagsgrunn> {
@@ -221,8 +219,7 @@ data class Behandling internal constructor(
         }
 
         fun underkjenn(
-            attestant: NavIdentBruker.Attestant,
-            underkjennelse: Attestering.Underkjent.Underkjennelse
+            attestering: Attestering.Underkjent
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::underkjenn.toString())
         }
@@ -283,15 +280,14 @@ data class Behandling internal constructor(
                 if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
+
+                val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                    periode = beregningsperiode,
                     fradrag = fradrag.plus(
-                        FradragFactory.ny(
-                            type = Fradragstype.ForventetInntekt,
-                            beløp = behandlingsinformasjon.uførhet!!.forventetInntekt?.toDouble() ?: 0.0,
-                            periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER
+                        lagFradragForForventetInntekt(
+                            beregningsperiode = beregningsperiode,
+                            uføreInformasjon = behandlingsinformasjon.uførhet!!
                         )
                     )
                 )
@@ -306,6 +302,23 @@ data class Behandling internal constructor(
 
                 nyTilstand(Beregnet())
                 return this@Behandling.right()
+            }
+
+            private fun lagFradragForForventetInntekt(
+                beregningsperiode: Periode,
+                uføreInformasjon: Behandlingsinformasjon.Uførhet
+            ): Fradrag {
+                val forventetInntektPrÅr = uføreInformasjon.forventetInntekt ?: 0
+                val forventetInntektPrMnd = forventetInntektPrÅr / 12.0
+                val forventetInntektPrMndForBeregningsperiode =
+                    forventetInntektPrMnd * beregningsperiode.getAntallMåneder()
+                return FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    beløp = forventetInntektPrMndForBeregningsperiode,
+                    periode = beregningsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
             }
         }
 
@@ -481,20 +494,13 @@ data class Behandling internal constructor(
         }
 
         override fun underkjenn(
-            attestant: NavIdentBruker.Attestant,
-            underkjennelse: Attestering.Underkjent.Underkjennelse
+            attestering: Attestering.Underkjent
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-            if (attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
+            if (attestering.attestant.navIdent == this@Behandling.saksbehandler?.navIdent) {
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-            hendelseslogg.hendelse(
-                UnderkjentAttestering(
-                    attestant.navIdent,
-                    underkjennelse.kommentar
-                )
-            )
-            this@Behandling.attestering = Attestering.Underkjent(attestant, underkjennelse)
+            this@Behandling.attestering = attestering
             nyTilstand(Simulert())
             return this@Behandling.right()
         }

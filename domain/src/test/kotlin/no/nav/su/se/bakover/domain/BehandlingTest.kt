@@ -344,9 +344,9 @@ internal class BehandlingTest {
             val behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = Behandlingsinformasjon.Uførhet(
                     Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                    1,
-                    600000,
-                    null
+                    uføregrad = 1,
+                    forventetInntekt = 600000,
+                    begrunnelse = null
                 )
             )
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
@@ -413,6 +413,87 @@ internal class BehandlingTest {
 
             vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
             vilkårsvurdert.beregning() shouldNotBe null
+        }
+
+        @Test
+        fun `fradrag for forventet inntekt gir det samme månedsbeløpet uavhengig av perioden på beregningen`() {
+            val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            val behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    uføregrad = 1,
+                    forventetInntekt = 120_000, // Oppgis som årsbeløp
+                    begrunnelse = null
+                )
+            )
+            val expectedForventetInntektPerMonth = behandlingsinformasjon.uførhet!!.forventetInntekt?.div(12)
+
+            val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
+
+            val heleÅret = Periode(1.januar(2020), 31.desember(2020))
+            vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = heleÅret.getFraOgMed(),
+                tilOgMed = heleÅret.getTilOgMed(),
+            )
+
+            vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
+                it.getFradrag().single { it.getFradragstype() == Fradragstype.ForventetInntekt }
+                it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
+            }
+
+            val enMåned = Periode(1.januar(2020), 31.januar(2020))
+            vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = enMåned.getFraOgMed(),
+                tilOgMed = enMåned.getTilOgMed(),
+            )
+
+            vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
+                it.getFradrag().single { it.getFradragstype() == Fradragstype.ForventetInntekt }
+                it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
+            }
+        }
+
+        @Test
+        fun `fradrag når forventet inntekt er lik 0`() {
+            val vilkårsvurdertInnvilget = extractBehandlingsinformasjon(vilkårsvurdert).withAlleVilkårOppfylt()
+            val behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    uføregrad = 1,
+                    forventetInntekt = 0,
+                    begrunnelse = null
+                )
+            )
+            val expectedForventetInntektPerMonth = 0
+            val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
+            vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
+
+            val heleÅret = Periode(1.januar(2020), 31.desember(2020))
+            vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = heleÅret.getFraOgMed(),
+                tilOgMed = heleÅret.getTilOgMed(),
+            )
+
+            vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
+                it.getFradrag().single { it.getFradragstype() == Fradragstype.ForventetInntekt }
+                it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
+            }
+
+            val enMåned = Periode(1.januar(2020), 31.januar(2020))
+            vilkårsvurdert.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = enMåned.getFraOgMed(),
+                tilOgMed = enMåned.getTilOgMed(),
+            )
+
+            vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
+                it.getFradrag().single { it.getFradragstype() == Fradragstype.ForventetInntekt }
+                it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
+            }
         }
 
         @Test
@@ -735,11 +816,11 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                Attestering.Underkjent(
+                    attestant = Attestant("S123456"),
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
-                ),
-                attestant = Attestant("S123456")
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                )
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 
@@ -787,11 +868,11 @@ internal class BehandlingTest {
             tilAttestering.iverksett(Attestant("S123456"))
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
             tilAttestering.underkjenn(
-                underkjennelse = Attestering.Underkjent.Underkjennelse(
+                Attestering.Underkjent(
+                    attestant = Attestant("S123456"),
                     kommentar = "Detta skal ikke gå.",
-                    grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD
-                ),
-                attestant = Attestant("S123456")
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                )
             )
                 .shouldBeLeftOfType<AttestantOgSaksbehandlerKanIkkeVæreSammePerson>()
 

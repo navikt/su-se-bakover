@@ -26,8 +26,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.PERSISTERT
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
-import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
@@ -52,13 +50,15 @@ class UnderkjennBehandlingTest {
     private val journalpostId = JournalpostId("j")
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val underkjennelse = Attestering.Underkjent.Underkjennelse(
-        grunn = Attestering.Underkjent.Underkjennelse.Grunn.ANDRE_FORHOLD,
-        kommentar = "begrunnelse"
-    )
+
     private val attestant = NavIdentBruker.Attestant("a")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
 
+    private val underkjentAttestering = Attestering.Underkjent(
+        attestant = attestant,
+        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+        kommentar = "begrunnelse"
+    )
     private val beregning = TestBeregning
 
     private val simulering = Simulering(
@@ -91,7 +91,7 @@ class UnderkjennBehandlingTest {
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
         journalpostId = journalpostId,
-        sakId = sakId,
+        søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler
     )
@@ -118,8 +118,7 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestant,
-            underkjennelse = underkjennelse
+            attestering = underkjentAttestering
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
@@ -161,8 +160,7 @@ class UnderkjennBehandlingTest {
                 microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
             ).underkjenn(
                 behandlingId = behandling.id,
-                attestant = attestant,
-                underkjennelse = underkjennelse
+                attestering = underkjentAttestering
             )
         }.msg shouldContain "for state: SIMULERT"
 
@@ -204,8 +202,11 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestantSomErLikSaksbehandler,
-            underkjennelse = underkjennelse
+            attestering = Attestering.Underkjent(
+                attestant = attestantSomErLikSaksbehandler,
+                grunn = underkjentAttestering.grunn,
+                kommentar = underkjentAttestering.kommentar
+            )
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -247,8 +248,7 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestant,
-            underkjennelse = underkjennelse
+            attestering = underkjentAttestering
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
@@ -294,8 +294,7 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestant,
-            underkjennelse = underkjennelse
+            attestering = underkjentAttestering
         )
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
@@ -343,18 +342,15 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestant,
-            underkjennelse = underkjennelse
+            attestering = underkjentAttestering
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
             attestering = Attestering.Underkjent(
-                attestant,
-                Attestering.Underkjent.Underkjennelse(
-                    grunn = underkjennelse.grunn,
-                    kommentar = underkjennelse.kommentar
-                )
+                attestant = attestant,
+                grunn = underkjentAttestering.grunn,
+                kommentar = underkjentAttestering.kommentar
             )
         ).right()
 
@@ -363,7 +359,6 @@ class UnderkjennBehandlingTest {
             personOppslagMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
@@ -376,10 +371,7 @@ class UnderkjennBehandlingTest {
             verify(behandlingRepoMock).oppdaterAttestering(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 attestering = argThat {
-                    it shouldBe Attestering.Underkjent(
-                        attestant,
-                        underkjennelse
-                    )
+                    it shouldBe underkjentAttestering
                 }
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
@@ -390,20 +382,7 @@ class UnderkjennBehandlingTest {
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
             )
-            verify(hendelsesloggRepoMock).oppdaterHendelseslogg(
-                argThat {
-                    it shouldBe Hendelseslogg(
-                        id = innvilgetBehandlingTilAttestering.id.toString(),
-                        hendelser = mutableListOf(
-                            UnderkjentAttestering(
-                                attestant.navIdent,
-                                underkjennelse.kommentar,
-                                it.hendelser()[0].tidspunkt
-                            )
-                        )
-                    )
-                }
-            )
+
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe PERSISTERT })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
@@ -413,7 +392,6 @@ class UnderkjennBehandlingTest {
             personOppslagMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         )
     }
 
@@ -447,19 +425,12 @@ class UnderkjennBehandlingTest {
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
-            attestant = attestant,
-            underkjennelse = underkjennelse
+            attestering = underkjentAttestering
         )
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.SIMULERT,
-            attestering = Attestering.Underkjent(
-                attestant,
-                Attestering.Underkjent.Underkjennelse(
-                    grunn = underkjennelse.grunn,
-                    kommentar = underkjennelse.kommentar
-                )
-            )
+            attestering = underkjentAttestering
         ).right()
 
         inOrder(
@@ -467,7 +438,6 @@ class UnderkjennBehandlingTest {
             personOppslagMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
@@ -480,7 +450,7 @@ class UnderkjennBehandlingTest {
 
             verify(behandlingRepoMock).oppdaterAttestering(
                 argThat { it shouldBe behandling.id },
-                argThat { it shouldBe Attestering.Underkjent(attestant, underkjennelse) },
+                argThat { it shouldBe underkjentAttestering },
             )
             verify(behandlingRepoMock).oppdaterOppgaveId(
                 argThat { it shouldBe behandling.id },
@@ -490,20 +460,7 @@ class UnderkjennBehandlingTest {
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
                 status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
             )
-            verify(hendelsesloggRepoMock).oppdaterHendelseslogg(
-                argThat {
-                    it shouldBe Hendelseslogg(
-                        id = innvilgetBehandlingTilAttestering.id.toString(),
-                        hendelser = mutableListOf(
-                            UnderkjentAttestering(
-                                attestant.navIdent,
-                                underkjennelse.kommentar,
-                                it.hendelser()[0].tidspunkt
-                            )
-                        )
-                    )
-                }
-            )
+
             verify(behandlingMetricsMock).incrementUnderkjentCounter(PERSISTERT)
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(behandlingMetricsMock).incrementUnderkjentCounter(LUKKET_OPPGAVE)
@@ -514,7 +471,6 @@ class UnderkjennBehandlingTest {
             personOppslagMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            hendelsesloggRepoMock
         )
     }
 }

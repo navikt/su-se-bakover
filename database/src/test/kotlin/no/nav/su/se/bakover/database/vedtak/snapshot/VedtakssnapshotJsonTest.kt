@@ -137,6 +137,10 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårOppfylt",
                         "begrunnelse":null
                      },
+                     "institusjonsopphold":{
+                        "status":"VilkårOppfylt",
+                        "begrunnelse":null
+                     },
                      "oppholdIUtlandet":{
                         "status":"SkalHoldeSegINorge",
                         "begrunnelse":null
@@ -518,6 +522,10 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "fastOppholdINorge":{
+                        "status":"VilkårOppfylt",
+                        "begrunnelse":null
+                     },
+                     "institusjonsopphold":{
                         "status":"VilkårOppfylt",
                         "begrunnelse":null
                      },

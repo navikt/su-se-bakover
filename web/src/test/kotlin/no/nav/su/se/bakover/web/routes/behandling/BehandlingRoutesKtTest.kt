@@ -818,7 +818,6 @@ internal class BehandlingRoutesKtTest {
                     response.status() shouldBe HttpStatusCode.OK
                     deserialize<BehandlingJson>(response.content!!).let {
                         it.status shouldBe "SIMULERT"
-                        it.hendelser?.last()?.melding shouldBe "kommentar"
                     }
                 }
             }
