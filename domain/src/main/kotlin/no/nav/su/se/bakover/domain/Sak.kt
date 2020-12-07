@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -7,7 +8,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import java.time.Clock
 import java.util.UUID
 
-data class Saksnummer(val nummer: Long)
+data class Saksnummer(@JsonValue val nummer: Long) {
+    override fun toString() = nummer.toString()
+}
+
 data class Sak(
     val id: UUID = UUID.randomUUID(),
     val saksnummer: Saksnummer,

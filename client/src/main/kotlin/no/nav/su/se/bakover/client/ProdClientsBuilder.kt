@@ -48,8 +48,8 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 SimuleringConfig(
-                    simuleringServiceUrl = Config.Simulering().url,
-                    stsSoapUrl = Config.Simulering().stsSoapUrl,
+                    simuleringServiceUrl = Config.oppdrag.simulering.url,
+                    stsSoapUrl = Config.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
                     serviceUser = Config.serviceUser
                 ).wrapWithSTSSimulerFpService()

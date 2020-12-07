@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class UtbetalingPostgresRepoTest {
 
@@ -81,7 +82,7 @@ internal class UtbetalingPostgresRepoTest {
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
             val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
+            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR).copy(utbetalingslinjer = emptyList())
             repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
@@ -94,25 +95,34 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     companion object {
-        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr) =
+        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr, datoBeregnet: LocalDate = idag()) =
             Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = UUID30.randomUUID(),
-                utbetalingslinjer = listOf(),
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        id = UUID30.randomUUID(),
+                        opprettet = Tidspunkt.EPOCH,
+                        fraOgMed = LocalDate.EPOCH,
+                        tilOgMed = LocalDate.EPOCH.plusDays(30),
+                        forrigeUtbetalingslinjeId = null,
+                        beløp = 3
+                    )
+                ),
                 fnr = fnr,
                 avstemmingsnøkkel = Avstemmingsnøkkel(),
                 simulering = Simulering(
                     gjelderId = fnr,
-                    gjelderNavn = "",
-                    datoBeregnet = idag(),
+                    gjelderNavn = "gjelderNavn",
+                    datoBeregnet = datoBeregnet,
                     nettoBeløp = 0,
                     periodeList = listOf()
                 ),
                 utbetalingsrequest = Utbetalingsrequest(
-                    value = ""
+                    value = "<xml></xml>"
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
                 oppdragId = oppdragId,
-                behandler = NavIdentBruker.Attestant("Z123")
+                behandler = NavIdentBruker.Attestant("Z123"),
             )
 
         private fun defaultUtbetalingslinje(forrigeUtbetalingslinjeId: UUID30? = null) = Utbetalingslinje(

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.domain.Fnr
 import java.time.LocalDate
 
@@ -76,6 +77,7 @@ data class SimulertDetaljer(
     val klassekodeBeskrivelse: String,
     val klasseType: KlasseType
 ) {
+    @JsonIgnore
     fun isYtelse() = KlasseType.YTEL == klasseType
 }
 
@@ -93,12 +95,14 @@ enum class KlasseType {
 internal abstract class SimuleringValidering {
     abstract val simulering: Simulering
     abstract val message: String
+    @JsonIgnore
     abstract fun isValid(): Boolean
 
     class SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
         override val simulering: Simulering,
         override val message: String = "Simulerte utbetalinger med flere detaljer av typen ${KlasseType.YTEL} indikerer endring av utbetalinger tilbake i tid. Systemet mangler støtte for håndtering av slike tilfeller."
     ) : SimuleringValidering() {
+        @JsonIgnore
         override fun isValid() = simulering.periodeList
             .flatMap { it.utbetaling }
             .all { it.detaljer.count { it.isYtelse() } == 1 }

@@ -13,8 +13,10 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
@@ -31,24 +33,31 @@ internal class VedtakPostgresRepoTest {
     @Test
     fun `insert avslag`() {
         withMigratedDb {
+            val behandling = opprettBehandling().copy(
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+            )
             repo.opprettVedtakssnapshot(
                 Vedtakssnapshot.Avslag(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    behandling = opprettBehandling(),
+                    behandling = behandling,
                     avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
                 )
             )
         }
     }
+
     @Test
     fun `insert innvilgelse`() {
         withMigratedDb {
+            val behandling = opprettBehandling().copy(
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+            )
             repo.opprettVedtakssnapshot(
                 Vedtakssnapshot.Innvilgelse(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    behandling = opprettBehandling(),
+                    behandling = behandling,
                     utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), fnr),
                 )
             )
