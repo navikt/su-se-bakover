@@ -82,7 +82,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
                     tilhører = FradragTilhører.EPS
                 )
             ),
-            forventetInntekt = 0.0
+            forventetInntektPrÅr = 0.0
         )
 
         BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(beregningsgrunnlag).let {

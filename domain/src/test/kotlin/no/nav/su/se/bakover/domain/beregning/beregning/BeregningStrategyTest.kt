@@ -32,7 +32,7 @@ internal class BeregningStrategyTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             ),
-            forventetInntekt = 12000.0
+            forventetInntektPrÅr = 12000.0
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
             it.getPeriode().getFraOgMed() shouldBe periode.getFraOgMed()

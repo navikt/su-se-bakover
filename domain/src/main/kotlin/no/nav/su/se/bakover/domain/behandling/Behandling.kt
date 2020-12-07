@@ -281,7 +281,7 @@ data class Behandling internal constructor(
                 val beregningsgrunnlag = Beregningsgrunnlag(
                     beregningsperiode = beregningsperiode,
                     fraSaksbehandler = fradrag,
-                    forventetInntekt = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0
+                    forventetInntektPrÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0
                 )
 
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()

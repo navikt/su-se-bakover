@@ -53,7 +53,7 @@ internal class EnsligBeregningTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             ),
-            forventetInntekt = 0.0
+            forventetInntektPrÅr = 0.0
         )
 
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {

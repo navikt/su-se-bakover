@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 internal data class Beregningsgrunnlag(
     val beregningsperiode: Periode,
     private val fraSaksbehandler: List<Fradrag>,
-    private val forventetInntekt: Double
+    private val forventetInntektPrÅr: Double
 ) {
     val fradrag: List<Fradrag> = oppjusterFradragForAntallMåneder()
         .plus(lagFradragForForventetInntekt())
@@ -26,7 +26,7 @@ internal data class Beregningsgrunnlag(
         }
 
     private fun lagFradragForForventetInntekt(): Fradrag {
-        val prMnd = forventetInntekt / 12.0
+        val prMnd = forventetInntektPrÅr / 12.0
         val totaltForBeregningsperiode = prMnd * beregningsperiode.getAntallMåneder()
         return FradragFactory.ny(
             type = Fradragstype.ForventetInntekt,

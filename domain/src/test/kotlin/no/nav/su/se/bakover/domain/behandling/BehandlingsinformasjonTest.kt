@@ -170,7 +170,7 @@ internal class BehandlingsinformasjonTest {
             Beregningsgrunnlag(
                 beregningsperiode = periode,
                 fraSaksbehandler = emptyList(),
-                forventetInntekt = (Sats.HØY.månedsbeløp(1.januar(2020)) - 200) * 12
+                forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) - 200) * 12
             )
         )
         underMinstegrense.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.SU_UNDER_MINSTEGRENSE)
@@ -179,7 +179,7 @@ internal class BehandlingsinformasjonTest {
             Beregningsgrunnlag(
                 beregningsperiode = periode,
                 fraSaksbehandler = emptyList(),
-                forventetInntekt = (Sats.HØY.månedsbeløp(1.januar(2020)) * 4) * 12
+                forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) * 4) * 12
             )
         )
 
@@ -189,7 +189,7 @@ internal class BehandlingsinformasjonTest {
             Beregningsgrunnlag(
                 beregningsperiode = periode,
                 fraSaksbehandler = emptyList(),
-                forventetInntekt = (Sats.HØY.månedsbeløp(1.januar(2020)) - 5000) * 12
+                forventetInntektPrÅr = (Sats.HØY.månedsbeløp(1.januar(2020)) - 5000) * 12
             )
         )
 

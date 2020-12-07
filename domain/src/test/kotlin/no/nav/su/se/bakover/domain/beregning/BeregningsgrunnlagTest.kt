@@ -19,7 +19,7 @@ internal class BeregningsgrunnlagTest {
         val tolvMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
             fraSaksbehandler = listOf(),
-            forventetInntekt = forventetInntektPrÅr
+            forventetInntektPrÅr = forventetInntektPrÅr
         )
         tolvMnd.fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -34,7 +34,7 @@ internal class BeregningsgrunnlagTest {
         val enMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
             fraSaksbehandler = listOf(),
-            forventetInntekt = forventetInntektPrÅr
+            forventetInntektPrÅr = forventetInntektPrÅr
         )
         enMnd.fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -49,7 +49,7 @@ internal class BeregningsgrunnlagTest {
         val fireMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
             fraSaksbehandler = listOf(),
-            forventetInntekt = forventetInntektPrÅr
+            forventetInntektPrÅr = forventetInntektPrÅr
         )
         fireMnd.fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -68,7 +68,7 @@ internal class BeregningsgrunnlagTest {
         val tolvMnd = Beregningsgrunnlag(
             beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
             fraSaksbehandler = listOf(),
-            forventetInntekt = forventetInntektPrÅr
+            forventetInntektPrÅr = forventetInntektPrÅr
         )
         tolvMnd.fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -95,7 +95,7 @@ internal class BeregningsgrunnlagTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             ),
-            forventetInntekt = 0.0
+            forventetInntektPrÅr = 0.0
         )
 
         tolvMnd.fradrag.filterNot { it.getFradragstype() == Fradragstype.ForventetInntekt } shouldBe listOf(
@@ -120,7 +120,7 @@ internal class BeregningsgrunnlagTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             ),
-            forventetInntekt = 0.0
+            forventetInntektPrÅr = 0.0
         )
 
         enMnd.fradrag.filterNot { it.getFradragstype() == Fradragstype.ForventetInntekt } shouldBe listOf(
@@ -154,7 +154,7 @@ internal class BeregningsgrunnlagTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             ),
-            forventetInntekt = 0.0
+            forventetInntektPrÅr = 0.0
         )
 
         beregningsgrunnlag.fradrag
