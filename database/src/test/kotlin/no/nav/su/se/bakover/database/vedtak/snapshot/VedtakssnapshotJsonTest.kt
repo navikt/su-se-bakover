@@ -4,6 +4,10 @@ import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.beregning.PersistertFradrag
+import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.defaultOversendtUtbetaling
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
@@ -18,6 +22,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -25,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -35,7 +44,9 @@ internal class VedtakssnapshotJsonTest {
     private val behandlingId = "62478b8d-8c5a-4da4-8fcf-b48c9b426698"
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
     private val avslagId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
+    private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
+    private val beregningsPeriode = Periode(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(30))
 
     private val behandling = BehandlingFactory(mock()).createBehandling(
         id = UUID.fromString(behandlingId),
@@ -313,11 +324,44 @@ internal class VedtakssnapshotJsonTest {
 
     @Test
     fun `kan serialisere innvilgelse`() {
-        val utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), behandling.fnr)
+
+        val utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), behandling.fnr, LocalDate.EPOCH)
+        val fradrag = listOf(
+            PersistertFradrag(
+                fradragstype = Arbeidsinntekt,
+                totaltFradrag = 155.9,
+                utenlandskInntekt = null,
+                periode = beregningsPeriode,
+                tilhører = BRUKER
+            )
+        )
         val avslag = Vedtakssnapshot.Innvilgelse(
             id = UUID.fromString(avslagId),
             opprettet = tidspunkt,
-            behandling = behandling,
+            behandling = behandling.copy(
+                beregning = PersistertBeregning(
+                    id = UUID.fromString(beregningId),
+                    opprettet = tidspunkt,
+                    sats = ORDINÆR,
+                    månedsberegninger = listOf(
+                        PersistertMånedsberegning(
+                            periode = beregningsPeriode,
+                            sats = ORDINÆR,
+                            fradrag = fradrag,
+                            sumYtelse = 3,
+                            sumFradrag = 1.2,
+                            benyttetGrunnbeløp = 66,
+                            satsbeløp = 4.1,
+                        )
+                    ),
+                    fradrag = fradrag,
+                    sumYtelse = 3,
+                    sumFradrag = 2.1,
+                    sumYtelseErUnderMinstebeløp = false,
+                    periode = beregningsPeriode,
+                    fradragStrategyName = Enslig,
+                )
+            ),
             utbetaling = utbetaling
         )
 
@@ -342,7 +386,60 @@ internal class VedtakssnapshotJsonTest {
                   "oppgaveId":"oppgaveId",
                   "iverksattJournalpostId":"iverksattJournalpostId",
                   "iverksattBrevbestillingId":"iverksattBrevbestillingId",
-                  "beregning":null,
+                  "beregning":{
+                    "id":"4111d5ee-0215-4d0f-94fc-0959f900ef2e",
+                    "opprettet":"1970-01-01T01:02:03.456789Z",
+                    "sats":"ORDINÆR",
+                    "månedsberegninger":[
+                        {
+                            "sumYtelse":3,
+                            "sumFradrag":1.2,
+                            "benyttetGrunnbeløp":66,
+                            "sats":"ORDINÆR",
+                            "satsbeløp":4.1,
+                            "fradrag":[
+                                {
+                                    "fradragstype":"Arbeidsinntekt",
+                                    "totaltFradrag":155.9,
+                                    "utenlandskInntekt":null,
+                                    "periode":{
+                                        "fraOgMed":"1970-01-01",
+                                        "tilOgMed":"1970-01-31",
+                                        "antallMåneder":1
+                                    },
+                                    "tilhører":"BRUKER"
+                                }
+                            ],
+                            "periode":{
+                                "fraOgMed":"1970-01-01",
+                                "tilOgMed":"1970-01-31",
+                                "antallMåneder":1
+                            }
+                        }
+                    ],
+                    "fradrag":[
+                      {
+                        "fradragstype":"Arbeidsinntekt",
+                        "totaltFradrag":155.9,
+                        "utenlandskInntekt":null,
+                        "periode":{
+                            "fraOgMed":"1970-01-01",
+                            "tilOgMed":"1970-01-31",
+                            "antallMåneder":1
+                        },
+                        "tilhører":"BRUKER"
+                      }                        
+                    ],
+                    "sumYtelse":3,
+                    "sumFradrag":2.1,
+                    "sumYtelseErUnderMinstebeløp":false,
+                    "periode":{
+                        "fraOgMed":"1970-01-01",
+                        "tilOgMed":"1970-01-31",
+                        "antallMåneder":1
+                    },
+                    "fradragStrategyName":"Enslig"
+                },
                   "behandlingsinformasjon":{
                      "uførhet":{
                         "status":"VilkårIkkeOppfylt",
@@ -563,7 +660,7 @@ internal class VedtakssnapshotJsonTest {
                       "simulering":{
                          "gjelderId":"12345678910",
                          "gjelderNavn":"",
-                         "datoBeregnet":"2020-12-03",
+                         "datoBeregnet":"1970-01-01",
                          "nettoBeløp":0,
                          "periodeList":[]
                       },

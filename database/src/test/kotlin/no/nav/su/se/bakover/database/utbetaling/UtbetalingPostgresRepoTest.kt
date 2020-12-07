@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class UtbetalingPostgresRepoTest {
 
@@ -94,7 +95,7 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     companion object {
-        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr) =
+        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr, datoBeregnet: LocalDate = idag()) =
             Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = UUID30.randomUUID(),
                 utbetalingslinjer = listOf(),
@@ -103,7 +104,7 @@ internal class UtbetalingPostgresRepoTest {
                 simulering = Simulering(
                     gjelderId = fnr,
                     gjelderNavn = "",
-                    datoBeregnet = idag(),
+                    datoBeregnet = datoBeregnet,
                     nettoBeløp = 0,
                     periodeList = listOf()
                 ),
