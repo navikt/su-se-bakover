@@ -232,7 +232,7 @@ data class Behandlingsinformasjon(
         val begrunnelse: String?
     ) : Base() {
 
-        @JsonProperty("sats")
+        @JsonIgnore
         fun utledSats(): Sats = getBeregningStrategy().sats()
 
         @JsonIgnore
@@ -275,7 +275,7 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
 
-        @JsonProperty("satsgrunn")
+        @JsonIgnore
         fun getSatsgrunn(): Satsgrunn {
             val epsOver66 = epsFnr != null && epsFnr.getAlder() > 66
             val epsUnder67 = epsFnr != null && epsFnr.getAlder() < 67

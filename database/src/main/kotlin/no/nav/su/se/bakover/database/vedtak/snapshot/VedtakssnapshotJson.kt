@@ -85,6 +85,7 @@ internal sealed class VedtakssnapshotJson {
         val iverksattBrevbestillingId: String?,
         val beregning: PersistertBeregning?,
         val behandlingsinformasjon: Behandlingsinformasjon,
+        val behandlingsresultat: BehandlingsresultatJson,
         val søknad: Søknad.Journalført.MedOppgave,
         val simulering: Simulering?,
     ) {
@@ -104,10 +105,20 @@ internal sealed class VedtakssnapshotJson {
                     iverksattBrevbestillingId = iverksattBrevbestillingId()?.toString(),
                     beregning = beregning()?.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon(),
+                    behandlingsresultat = BehandlingsresultatJson(
+                        sats = behandlingsinformasjon().bosituasjon!!.utledSats().toString(),
+                        satsgrunn = behandlingsinformasjon().bosituasjon!!.getSatsgrunn().toString()
+
+                    ),
                     søknad = søknad,
                     simulering = simulering(),
                 )
             }
         }
+
+        data class BehandlingsresultatJson(
+            val sats: String,
+            val satsgrunn: String
+        )
     }
 }

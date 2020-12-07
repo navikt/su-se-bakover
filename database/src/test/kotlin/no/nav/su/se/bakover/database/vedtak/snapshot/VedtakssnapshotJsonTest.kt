@@ -172,13 +172,15 @@ internal class VedtakssnapshotJsonTest {
                         "epsFnr":null,
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
-                        "begrunnelse":null,
-                        "sats": "HØY",
-                        "satsgrunn":"ENSLIG"
+                        "begrunnelse":null
                      },
                      "ektefelle":{
                         "type":"IngenEktefelle"
                      }
+                  },
+                  "behandlingsresultat": {
+                      "sats": "HØY",
+                      "satsgrunn":"ENSLIG"
                   },
                   "søknad":{
                      "id":"$søknadId",
@@ -554,13 +556,15 @@ internal class VedtakssnapshotJsonTest {
                         "epsFnr":null,
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
-                        "begrunnelse":null,
-                        "sats": "HØY",
-                        "satsgrunn":"ENSLIG"
+                        "begrunnelse":null
                      },
                      "ektefelle":{
                         "type":"IngenEktefelle"
                      }
+                  },
+                  "behandlingsresultat": {
+                    "sats": "HØY",
+                    "satsgrunn":"ENSLIG"
                   },
                   "søknad":{
                      "id":"$søknadId",
