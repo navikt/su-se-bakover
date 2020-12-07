@@ -3,8 +3,8 @@ repositories {
 }
 
 val ktorVersion = "1.4.1"
-val orgJsonVersion = "20200518"
-val micrometerRegistryPrometheusVersion = "1.6.0"
+val orgJsonVersion = "20201115"
+val micrometerRegistryPrometheusVersion = "1.6.1"
 
 dependencies {
     implementation(project(":common"))
@@ -24,7 +24,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.11.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.0")
     implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
