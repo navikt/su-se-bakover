@@ -11,11 +11,12 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 
 internal sealed class VedtakssnapshotJson {
     abstract val id: String
-    abstract val opprettet: String // Vi har latt Jackson formatere denne i andre tilfeller.
+    abstract val opprettet: String
     abstract val behandling: BehandlingSnapshotJson
     abstract val type: String
 
@@ -85,6 +86,7 @@ internal sealed class VedtakssnapshotJson {
         val beregning: PersistertBeregning?,
         val behandlingsinformasjon: Behandlingsinformasjon,
         val søknad: Søknad.Journalført.MedOppgave,
+        val simulering: Simulering?,
     ) {
         companion object {
             fun Behandling.toJson(): BehandlingSnapshotJson {
@@ -102,7 +104,8 @@ internal sealed class VedtakssnapshotJson {
                     iverksattBrevbestillingId = iverksattBrevbestillingId()?.toString(),
                     beregning = beregning()?.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon(),
-                    søknad = søknad
+                    søknad = søknad,
+                    simulering = simulering(),
                 )
             }
         }

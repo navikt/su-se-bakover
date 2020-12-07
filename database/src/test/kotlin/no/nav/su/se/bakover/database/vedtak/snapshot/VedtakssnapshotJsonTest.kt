@@ -30,6 +30,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
@@ -48,6 +53,8 @@ internal class VedtakssnapshotJsonTest {
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
     private val beregningsPeriode = Periode(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(30))
+
+    private val fnr = Fnr("12345678910")
 
     private val behandling = BehandlingFactory(mock()).createBehandling(
         id = UUID.fromString(behandlingId),
@@ -72,7 +79,7 @@ internal class VedtakssnapshotJsonTest {
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
         saksnummer = Saksnummer(1234),
         hendelseslogg = Hendelseslogg("ignoreMe"),
-        fnr = Fnr("12345678910"),
+        fnr = fnr,
         oppgaveId = OppgaveId("oppgaveId"),
         iverksattJournalpostId = JournalpostId("iverksattJournalpostId"),
         iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
@@ -314,7 +321,8 @@ internal class VedtakssnapshotJsonTest {
                      },
                      "journalpostId":"journalpostId",
                      "oppgaveId":"oppgaveId"
-                  }
+                  },
+                  "simulering": null
                }
             }
         """.trimIndent()
@@ -365,6 +373,45 @@ internal class VedtakssnapshotJsonTest {
                     sumYtelseErUnderMinstebeløp = false,
                     periode = beregningsPeriode,
                     fradragStrategyName = Enslig,
+                ),
+                simulering = Simulering(
+                    gjelderId = fnr,
+                    gjelderNavn = "gjelderNavn",
+                    datoBeregnet = LocalDate.EPOCH,
+                    nettoBeløp = 42,
+                    periodeList = listOf(
+                        SimulertPeriode(
+                            fraOgMed = LocalDate.EPOCH,
+                            tilOgMed = LocalDate.EPOCH.plusDays(30),
+                            utbetaling = listOf(
+                                SimulertUtbetaling(
+                                    fagSystemId = "fagSystemId",
+                                    utbetalesTilId = fnr,
+                                    utbetalesTilNavn = "utbetalesTilNavn",
+                                    forfall = LocalDate.EPOCH,
+                                    feilkonto = false,
+                                    detaljer = listOf(
+                                        SimulertDetaljer(
+                                            faktiskFraOgMed = LocalDate.EPOCH,
+                                            faktiskTilOgMed = LocalDate.EPOCH.plusDays(30),
+                                            konto = "konto",
+                                            belop = 1,
+                                            tilbakeforing = false,
+                                            sats = 2,
+                                            typeSats = "typeSats",
+                                            antallSats = 3,
+                                            uforegrad = 4,
+                                            klassekode = "klassekode",
+                                            klassekodeBeskrivelse = "klassekodeBeskrivelse",
+                                            klasseType = YTEL
+
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+
                 )
             ),
             utbetaling = utbetaling
@@ -656,6 +703,43 @@ internal class VedtakssnapshotJsonTest {
                      },
                      "journalpostId":"journalpostId",
                      "oppgaveId":"oppgaveId"
+                  },
+                  "simulering": {
+                      "gjelderId":"12345678910",
+                      "gjelderNavn":"gjelderNavn",
+                      "datoBeregnet":"1970-01-01",
+                      "nettoBeløp":42,
+                      "periodeList":[
+                          {
+                              "fraOgMed":"1970-01-01",
+                              "tilOgMed":"1970-01-31",
+                              "utbetaling":[
+                                  {
+                                      "fagSystemId":"fagSystemId",
+                                      "utbetalesTilId":"12345678910",
+                                      "utbetalesTilNavn":"utbetalesTilNavn",
+                                      "forfall":"1970-01-01",
+                                      "feilkonto":false,
+                                      "detaljer":[
+                                          {
+                                              "faktiskFraOgMed":"1970-01-01",
+                                              "faktiskTilOgMed":"1970-01-31",
+                                              "konto":"konto",
+                                              "belop":1,
+                                              "tilbakeforing":false,
+                                              "sats":2,
+                                              "typeSats":"typeSats",
+                                              "antallSats":3,
+                                              "uforegrad":4,
+                                              "klassekode":"klassekode",
+                                              "klassekodeBeskrivelse":"klassekodeBeskrivelse",
+                                              "klasseType":"YTEL"
+                                          }
+                                      ]
+                                  }
+                              ]
+                          }
+                      ]
                   }
                },
                "utbetaling": {
@@ -681,7 +765,7 @@ internal class VedtakssnapshotJsonTest {
                       },
                       "simulering":{
                          "gjelderId":"12345678910",
-                         "gjelderNavn":"",
+                         "gjelderNavn":"gjelderNavn",
                          "datoBeregnet":"1970-01-01",
                          "nettoBeløp":0,
                          "periodeList":[]

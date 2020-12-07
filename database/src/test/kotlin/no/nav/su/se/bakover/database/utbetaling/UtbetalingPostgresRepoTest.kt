@@ -112,7 +112,7 @@ internal class UtbetalingPostgresRepoTest {
                 avstemmingsnøkkel = Avstemmingsnøkkel(),
                 simulering = Simulering(
                     gjelderId = fnr,
-                    gjelderNavn = "",
+                    gjelderNavn = "gjelderNavn",
                     datoBeregnet = datoBeregnet,
                     nettoBeløp = 0,
                     periodeList = listOf()
