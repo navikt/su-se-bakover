@@ -106,8 +106,8 @@ internal sealed class VedtakssnapshotJson {
                     beregning = beregning()?.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon(),
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon().bosituasjon!!.utledSats().toString(),
-                        satsgrunn = behandlingsinformasjon().bosituasjon!!.getSatsgrunn().toString()
+                        sats = behandlingsinformasjon().bosituasjon?.utledSats()?.toString(),
+                        satsgrunn = behandlingsinformasjon().bosituasjon?.getSatsgrunn()?.toString()
 
                     ),
                     søknad = søknad,
@@ -117,8 +117,8 @@ internal sealed class VedtakssnapshotJson {
         }
 
         data class BehandlingsresultatJson(
-            val sats: String,
-            val satsgrunn: String
+            val sats: String?,
+            val satsgrunn: String?
         )
     }
 }
