@@ -36,8 +36,8 @@ internal class EnsligBorMedVoksneBeregningTest {
         val folketrygd = 14256.0
         val utenlandskInntekt = 40927.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
-            fradrag = listOf(
+            beregningsperiode = periode,
+            fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     beløp = 0.0,

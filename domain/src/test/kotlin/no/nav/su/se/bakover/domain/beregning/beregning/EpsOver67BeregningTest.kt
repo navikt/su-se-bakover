@@ -35,8 +35,8 @@ internal class EpsOver67BeregningTest {
         val epsFolketryd = 190000.0
         val mpnOrdinær = 183587.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
-            fradrag = listOf(
+            beregningsperiode = periode,
+            fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     beløp = 0.0,

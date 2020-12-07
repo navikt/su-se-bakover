@@ -22,8 +22,8 @@ internal class BeregningStrategyTest {
             tilOgMed = 31.desember(2020)
         )
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
-            fradrag = listOf(
+            beregningsperiode = periode,
+            fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 1500.0,

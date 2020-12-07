@@ -32,8 +32,8 @@ internal class EpsUnder67BeregningTest {
         val folketrygd = 68772.0
         val folketrygdEps = 98880.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
-            fradrag = listOf(
+            beregningsperiode = periode,
+            fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     beløp = 0.0,

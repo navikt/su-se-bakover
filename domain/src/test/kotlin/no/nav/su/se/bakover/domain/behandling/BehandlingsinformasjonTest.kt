@@ -166,8 +166,8 @@ internal class BehandlingsinformasjonTest {
 
         val underMinstegrense = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
-                periode = periode,
-                fradrag = listOf(
+                beregningsperiode = periode,
+                fraSaksbehandler = listOf(
                     FradragFactory.ny(
                         periode = periode,
                         type = Fradragstype.ForventetInntekt,
@@ -182,8 +182,8 @@ internal class BehandlingsinformasjonTest {
 
         val forHøyInntekt = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
-                periode = periode,
-                fradrag = listOf(
+                beregningsperiode = periode,
+                fraSaksbehandler = listOf(
                     FradragFactory.ny(
                         periode = periode,
                         type = Fradragstype.ForventetInntekt,
@@ -199,8 +199,8 @@ internal class BehandlingsinformasjonTest {
 
         val ingen = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
-                periode = periode,
-                fradrag = listOf(
+                beregningsperiode = periode,
+                fraSaksbehandler = listOf(
                     FradragFactory.ny(
                         periode = periode,
                         type = Fradragstype.ForventetInntekt,

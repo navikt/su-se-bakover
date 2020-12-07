@@ -282,8 +282,8 @@ data class Behandling internal constructor(
 
                 val beregningsperiode = Periode(fraOgMed, tilOgMed)
                 val beregningsgrunnlag = Beregningsgrunnlag(
-                    periode = beregningsperiode,
-                    fradrag = fradrag.plus(
+                    beregningsperiode = beregningsperiode,
+                    fraSaksbehandler = fradrag.plus(
                         lagFradragForForventetInntekt(
                             beregningsperiode = beregningsperiode,
                             uføreInformasjon = behandlingsinformasjon.uførhet!!

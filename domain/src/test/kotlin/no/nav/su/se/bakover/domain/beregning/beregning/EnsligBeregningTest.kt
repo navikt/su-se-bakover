@@ -31,8 +31,8 @@ internal class EnsligBeregningTest {
         val arbeidsinntekt = 180000.0
         val folketrygd = 66323.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
-            fradrag = listOf(
+            beregningsperiode = periode,
+            fraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     beløp = 0.0,
