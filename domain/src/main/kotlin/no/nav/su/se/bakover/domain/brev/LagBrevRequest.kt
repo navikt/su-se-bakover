@@ -52,27 +52,26 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
         ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
         satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToInt(),
         epsFribeløp =
-        FradragStrategy.fromName(beregning.getFradragStrategyName())
-            .getEpsFribeløp(førsteMånedsberegning.getPeriode())
-            .roundToTwoDecimals(),
+            FradragStrategy.fromName(beregning.getFradragStrategyName())
+                .getEpsFribeløp(førsteMånedsberegning.getPeriode())
+                .roundToTwoDecimals(),
         fradrag = when (beregning.getFradrag().isEmpty()) {
             true ->
                 null
             false ->
                 BrevInnhold.Beregning.Fradrag(
                     bruker =
-                    førsteMånedsberegning.getFradrag()
-                        .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                        .let {
-                            BrevInnhold.Beregning.FradragForBruker(
-                                fradrag = it.toMånedsfradragPerType(),
-                                sum = it.sumByDouble { f -> f.getTotaltFradrag() }
-                                    .roundToTwoDecimals(),
-                                harBruktForventetInntektIStedetForArbeidsinntekt =
-                                it.any
-                                { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
-                            )
-                        },
+                        førsteMånedsberegning.getFradrag()
+                            .filter { it.getTilhører() == FradragTilhører.BRUKER }
+                            .let {
+                                BrevInnhold.Beregning.FradragForBruker(
+                                    fradrag = it.toMånedsfradragPerType(),
+                                    sum = it.sumByDouble { f -> f.getTotaltFradrag() }
+                                        .roundToTwoDecimals(),
+                                    harBruktForventetInntektIStedetForArbeidsinntekt = it
+                                        .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
+                                )
+                            },
                     eps = beregning
                         .getFradrag()
                         .filter { it.getTilhører() == FradragTilhører.EPS }
@@ -96,13 +95,25 @@ fun LocalDate.formatMonthYear(): String =
 
 internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfradrag> =
     this
-        .groupBy { it.getFradragstype() }
-        .map { (type, fradrag) ->
+        .groupBy {
+            "${it.getFradragstype()}${
+            it.getUtenlandskInntekt()
+                ?.let { u ->
+                    "${u.valuta}${u.beløpIUtenlandskValuta}"
+                }
+            }"
+        }
+        .map { (_, fradrag) ->
             BrevInnhold.Månedsfradrag(
-                type = type.toReadableTypeName(),
+                type = fradrag[0]
+                    .getFradragstype()
+                    .toReadableTypeName(
+                        utenlandsk = fradrag[0].getUtenlandskInntekt() != null
+                    ),
                 beløp = fradrag
                     .sumByDouble { it.getTotaltFradrag() }
-                    .roundToTwoDecimals()
+                    .roundToTwoDecimals(),
+                utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )
         }
 
@@ -110,7 +121,7 @@ fun Double.roundToTwoDecimals() =
     BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
         .toDouble()
 
-fun Fradragstype.toReadableTypeName() =
+fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
     when (this) {
         Fradragstype.NAVytelserTilLivsopphold ->
             "NAV-ytelser til livsopphold"
@@ -136,4 +147,10 @@ fun Fradragstype.toReadableTypeName() =
             "Forventet inntekt etter uførhet"
         Fradragstype.BeregnetFradragEPS ->
             "Utregnet fradrag for ektefelle/samboers inntekter"
+    }.let { fradragsnavn ->
+        if (utenlandsk) {
+            "$fradragsnavn — fra utlandet"
+        } else {
+            fradragsnavn
+        }
     }
