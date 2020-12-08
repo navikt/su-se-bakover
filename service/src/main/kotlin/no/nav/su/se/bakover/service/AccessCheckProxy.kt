@@ -164,7 +164,11 @@ class AccessCheckProxy(
                 ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.oppdaterBehandlingsinformasjon(behandlingId, saksbehandler, behandlingsinformasjon)
+                    return services.behandling.oppdaterBehandlingsinformasjon(
+                        behandlingId,
+                        saksbehandler,
+                        behandlingsinformasjon
+                    )
                 }
 
                 override fun opprettBeregning(
@@ -176,7 +180,13 @@ class AccessCheckProxy(
                 ): Either<KunneIkkeBeregne, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
 
-                    return services.behandling.opprettBeregning(behandlingId, saksbehandler, fraOgMed, tilOgMed, fradrag)
+                    return services.behandling.opprettBeregning(
+                        behandlingId,
+                        saksbehandler,
+                        fraOgMed,
+                        tilOgMed,
+                        fradrag
+                    )
                 }
 
                 override fun simuler(
@@ -228,9 +238,12 @@ class AccessCheckProxy(
                 }
 
                 override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
-                    assertHarTilgangTilPerson(fnr)
-
+                    // Siden vi også vil kontrollere på EPS må vi hente ut saken først
+                    // og sjekke på hele den (i stedet for å gjøre assertHarTilgangTilPerson(fnr))
                     return services.sak.hentSak(fnr)
+                        .also {
+                            it.map { sak -> assertHarTilgangTilSak(sak.id) }
+                        }
                 }
 
                 override fun opprettSak(sak: NySak) {
