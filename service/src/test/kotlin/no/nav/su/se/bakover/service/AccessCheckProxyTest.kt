@@ -7,10 +7,14 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import org.junit.jupiter.api.Nested
@@ -34,8 +38,15 @@ internal class AccessCheckProxyTest {
     inner class `Kaster feil når PDL sier at man ikke har tilgang` {
         @Test
         fun `Når man gjør oppslag på fnr`() {
+            val fnr = FnrGenerator.random()
+            val sakId = UUID.randomUUID()
+
             val proxied = AccessCheckProxy(
-                personRepo = mock(),
+                personRepo = mock {
+                    on {
+                        hentFnrForSak(sakId)
+                    } doReturn listOf(fnr)
+                },
                 clients = StubClientsBuilder.build().copy(
                     personOppslag = object : PersonOppslag {
                         override fun person(fnr: Fnr) =
@@ -46,9 +57,28 @@ internal class AccessCheckProxyTest {
                         }
                     }
                 )
-            ).proxy(services)
+            ).proxy(
+                services.copy(
+                    sak = mock {
+                        on {
+                            hentSak(fnr)
+                        } doReturn Either.right(
+                            Sak(
+                                id = sakId,
+                                saksnummer = Saksnummer(1234),
+                                fnr = fnr,
+                                oppdrag = Oppdrag(
+                                    id = UUID30.randomUUID(),
+                                    opprettet = Tidspunkt.EPOCH,
+                                    sakId = sakId
+                                )
+                            )
+                        )
+                    }
+                )
+            )
 
-            shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(FnrGenerator.random()) }
+            shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr) }
         }
 
         @Test
@@ -138,6 +168,26 @@ internal class AccessCheckProxyTest {
 
     @Nested
     inner class `Kaller videre til underliggende service` {
+        private val fnr = FnrGenerator.random()
+
+        private val servicesReturningSak = services.copy(
+            sak = mock {
+                on {
+                    hentSak(fnr)
+                } doReturn Either.right(
+                    Sak(
+                        id = UUID.randomUUID(),
+                        saksnummer = Saksnummer(1234),
+                        fnr = fnr,
+                        oppdrag = Oppdrag(
+                            id = UUID30.randomUUID(),
+                            opprettet = Tidspunkt.EPOCH,
+                            sakId = UUID.randomUUID()
+                        )
+                    )
+                )
+            }
+        )
         private val proxied = AccessCheckProxy(
             personRepo = object : PersonRepo {
                 override fun hentFnrForSak(sakId: UUID): List<Fnr> {
@@ -157,41 +207,40 @@ internal class AccessCheckProxyTest {
                 }
             },
             clients = StubClientsBuilder.build()
-        ).proxy(services)
+        ).proxy(servicesReturningSak)
 
         @Test
         fun `Når man gjør oppslag på fnr`() {
-            val fnr = FnrGenerator.random()
             proxied.sak.hentSak(fnr)
-            verify(services.sak).hentSak(fnr = argShouldBe(fnr))
+            verify(servicesReturningSak.sak).hentSak(fnr = argShouldBe(fnr))
         }
 
         @Test
         fun `Når man gjør oppslag på sakId`() {
             val id = UUID.randomUUID()
             proxied.sak.hentSak(id)
-            verify(services.sak).hentSak(sakId = id)
+            verify(servicesReturningSak.sak).hentSak(sakId = id)
         }
 
         @Test
         fun `Når man gjør oppslag på søknadId`() {
             val id = UUID.randomUUID()
             proxied.søknad.hentSøknad(id)
-            verify(services.søknad).hentSøknad(søknadId = id)
+            verify(servicesReturningSak.søknad).hentSøknad(søknadId = id)
         }
 
         @Test
         fun `Når man gjør oppslag på behandlingId`() {
             val id = UUID.randomUUID()
             proxied.behandling.hentBehandling(id)
-            verify(services.behandling).hentBehandling(behandlingId = id)
+            verify(servicesReturningSak.behandling).hentBehandling(behandlingId = id)
         }
 
         @Test
         fun `Når man gjør oppslag på utbetalingId`() {
             val id = UUID30.randomUUID()
             proxied.utbetaling.hentUtbetaling(id)
-            verify(services.utbetaling).hentUtbetaling(utbetalingId = id)
+            verify(servicesReturningSak.utbetaling).hentUtbetaling(utbetalingId = id)
         }
     }
 }
