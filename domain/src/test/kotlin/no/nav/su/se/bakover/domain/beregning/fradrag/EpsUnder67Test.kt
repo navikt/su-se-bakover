@@ -21,9 +21,9 @@ internal class EpsUnder67Test {
     @Test
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 24000.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 6000.0, periode)
-        val forventetInntekt = lagFradrag(ForventetInntekt, 6000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
+        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 500.0, periode)
 
         val expectedArbeidsinntekt =
             lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -35,12 +35,10 @@ internal class EpsUnder67Test {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll (
-                listOf(
-                    expectedArbeidsinntekt,
-                    expectedKontantstøtte
-                )
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                expectedArbeidsinntekt,
+                expectedKontantstøtte
+            )
             it.values.forEach { it.none { it.getFradragstype() == ForventetInntekt } }
         }
     }
@@ -48,9 +46,9 @@ internal class EpsUnder67Test {
     @Test
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 6000.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 6000.0, periode)
-        val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 500.0, periode)
+        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
 
         val expectedForventetInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -62,12 +60,10 @@ internal class EpsUnder67Test {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll (
-                listOf(
-                    expectedForventetInntekt,
-                    expectedKontantstøtte
-                )
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                expectedForventetInntekt,
+                expectedKontantstøtte
+            )
             it.values.forEach { it.none { it.getFradragstype() == Arbeidsinntekt } }
         }
     }
@@ -75,9 +71,8 @@ internal class EpsUnder67Test {
     @Test
     fun `tar med fradrag som tilhører EPS`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val epsArbeidsinntekt =
-            lagFradrag(Arbeidsinntekt, 24000.0, periode, tilhører = EPS)
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode)
+        val epsArbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode, tilhører = EPS)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
 
         val expectedBrukerInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -90,12 +85,10 @@ internal class EpsUnder67Test {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldBe (
-                listOf(
-                    expectedBrukerInntekt,
-                    expectedEpsInntekt
-                )
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldBe listOf(
+                expectedBrukerInntekt,
+                expectedEpsInntekt
+            )
             it.values.forEach { it.any { it.getTilhører() == BRUKER } shouldBe true }
             it.values.forEach { it.any { it.getTilhører() == EPS } shouldBe true }
         }

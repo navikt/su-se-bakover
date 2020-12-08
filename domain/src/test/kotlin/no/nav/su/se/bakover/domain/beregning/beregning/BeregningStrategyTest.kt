@@ -23,18 +23,12 @@ internal class BeregningStrategyTest {
         )
         val beregningsgrunnlag = Beregningsgrunnlag(
             periode = periode,
-            fradrag = listOf(
+            forventetInntektPerÅr = 12000.0,
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     beløp = 1500.0,
                     periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 12000.0,
-                    periode = Periode(fraOgMed = periode.getFraOgMed(), tilOgMed = periode.getTilOgMed()),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )

@@ -8,9 +8,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
@@ -172,15 +169,8 @@ internal class BehandlingsinformasjonTest {
         val underMinstegrense = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 periode = periode,
-                fradrag = listOf(
-                    FradragFactory.ny(
-                        periode = periode,
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) - 200,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
+                forventetInntektPerÅr = Sats.HØY.årsbeløp(1.januar(2020)) - 200,
+                fradragFraSaksbehandler = emptyList()
             )
         )
         underMinstegrense.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.SU_UNDER_MINSTEGRENSE)
@@ -188,15 +178,8 @@ internal class BehandlingsinformasjonTest {
         val forHøyInntekt = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 periode = periode,
-                fradrag = listOf(
-                    FradragFactory.ny(
-                        periode = periode,
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) * 4,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
+                forventetInntektPerÅr = Sats.HØY.årsbeløp(1.januar(2020)) * 4,
+                fradragFraSaksbehandler = emptyList()
             )
         )
 
@@ -205,15 +188,8 @@ internal class BehandlingsinformasjonTest {
         val ingen = BeregningStrategy.BorAlene.beregn(
             Beregningsgrunnlag(
                 periode = periode,
-                fradrag = listOf(
-                    FradragFactory.ny(
-                        periode = periode,
-                        type = Fradragstype.ForventetInntekt,
-                        beløp = Sats.HØY.månedsbeløp(1.januar(2020)) - 5000,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
+                forventetInntektPerÅr = Sats.HØY.årsbeløp(1.januar(2020)) - 5000,
+                fradragFraSaksbehandler = emptyList()
             )
         )
 

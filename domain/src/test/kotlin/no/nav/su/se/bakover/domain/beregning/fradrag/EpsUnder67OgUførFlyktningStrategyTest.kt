@@ -60,7 +60,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     @Test
     fun `varierer mellom å inkludere og ikke inkludere EPS sine fradrag`() {
         val forventetInntekt =
-            lagFradrag(ForventetInntekt, 12000.0, Periode(1.januar(2020), 31.desember(2020)), tilhører = BRUKER)
+            lagFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.desember(2020)), tilhører = BRUKER)
         val epsArbeidsinntektJan =
             lagFradrag(ForventetInntekt, 20000.0, Periode(1.januar(2020), 31.januar(2020)), tilhører = EPS)
         val epsArbeidsinntektJuli =
@@ -154,18 +154,15 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     @Test
     fun `fungerer uavhengig av om EPS har fradrag`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 12000.0, periode)
-        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 24000.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
 
         FradragStrategy.EpsUnder67ÅrOgUførFlyktning.beregn(
             fradrag = listOf(forventetInntekt, arbeidsinntekt),
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach {
-                it.sumByDouble { it.getTotaltFradrag() } shouldBe
-                    arbeidsinntekt.getTotaltFradrag() / arbeidsinntekt.getPeriode().getAntallMåneder()
-            }
+            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getTotaltFradrag() }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }

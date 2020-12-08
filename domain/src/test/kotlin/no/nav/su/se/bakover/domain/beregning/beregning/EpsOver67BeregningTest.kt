@@ -30,37 +30,37 @@ internal class EpsOver67BeregningTest {
     @Test
     fun `beregningseksempel fra fagsiden`() {
         val periode = Periode(1.mai(2020), 30.april(2021))
-        val arbeidsinntekt = 71081.0
-        val folketrygd = 120000.0
-        val epsFolketryd = 190000.0
+
+        val arbeidsinntektPrÅr = 71081.0
+        val folketrygdPrÅr = 120000.0
+        val epsFolketrydPrÅr = 190000.0
+
+        val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
+        val folketrygdPrMnd = folketrygdPrÅr / 12
+        val epsFolketrygdPrMnd = epsFolketrydPrÅr / 12
+
         val mpnOrdinær = 183587.0
         val beregningsgrunnlag = Beregningsgrunnlag(
             periode = periode,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
+            forventetInntektPerÅr = 0.0,
+            fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntekt,
+                    beløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygd,
+                    beløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = epsFolketryd,
+                    beløp = epsFolketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -70,7 +70,7 @@ internal class EpsOver67BeregningTest {
 
         BeregningStrategy.EpsOver67År.beregn(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 33588
-            it.getSumFradrag() shouldBe (arbeidsinntekt + folketrygd + (epsFolketryd - mpnOrdinær)).plusOrMinus(0.5)
+            it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrydPrÅr - mpnOrdinær)).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 2799
             }
