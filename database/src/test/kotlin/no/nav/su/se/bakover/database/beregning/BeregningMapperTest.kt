@@ -75,7 +75,6 @@ internal class BeregningMapperTest {
               ],
               "sumYtelse": 8637,
               "sumFradrag": 12000.0,
-              "sumYtelseErUnderMinstebeløp": false,
               "periode": {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-01-31",
@@ -112,7 +111,6 @@ internal fun assertBeregningMapping(mapped: Beregning, original: Beregning) {
     mapped.getSats() shouldBe original.getSats()
     mapped.getSumFradrag() shouldBe original.getSumFradrag()
     mapped.getSumYtelse() shouldBe original.getSumYtelse()
-    mapped.getSumYtelseErUnderMinstebeløp() shouldBe original.getSumYtelseErUnderMinstebeløp()
     mapped.getFradrag().forEachIndexed { index, fradrag ->
         assertFradragMapping(fradrag, original.getFradrag()[index])
     }

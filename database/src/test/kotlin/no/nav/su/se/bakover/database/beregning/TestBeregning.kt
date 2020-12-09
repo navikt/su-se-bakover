@@ -23,7 +23,6 @@ internal object TestBeregning : Beregning {
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
-    override fun getSumYtelseErUnderMinstebeløp(): Boolean = false
     override fun getPeriode(): Periode = Periode(1.januar(2020), 31.januar(2020))
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
 }
