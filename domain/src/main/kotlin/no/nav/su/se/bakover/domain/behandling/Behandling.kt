@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -288,7 +289,7 @@ data class Behandling internal constructor(
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
                 beregning = strategy.beregn(beregningsgrunnlag)
 
-                if (beregning!!.getSumYtelse() <= 0 || beregning!!.getSumYtelseErUnderMinstebeløp()) {
+                if (vurderAvslagGrunnetBeregning(beregning!!) is AvslagGrunnetBeregning.Ja) {
                     nyTilstand(Beregnet().Avslag())
                     return this@Behandling.right()
                 }
@@ -367,12 +368,8 @@ data class Behandling internal constructor(
                 return this@Behandling.right()
             }
 
-            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
-                return behandlingsinformasjon().utledAvslagsgrunner() + (
-                    beregning?.utledAvslagsgrunner()
-                        ?: emptyList()
-                    )
-            }
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> =
+                behandlingsinformasjon().utledAvslagsgrunner() + utledAvslagsgrunnForBeregning()
         }
     }
 
@@ -461,12 +458,8 @@ data class Behandling internal constructor(
                 return this@Behandling.right()
             }
 
-            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
-                return behandlingsinformasjon().utledAvslagsgrunner() + (
-                    beregning?.utledAvslagsgrunner()
-                        ?: emptyList()
-                    )
-            }
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> =
+                behandlingsinformasjon().utledAvslagsgrunner() + utledAvslagsgrunnForBeregning()
         }
 
         override fun underkjenn(
@@ -507,14 +500,16 @@ data class Behandling internal constructor(
         inner class Avslag : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
 
-            override fun utledAvslagsgrunner(): List<Avslagsgrunn> {
-                return behandlingsinformasjon().utledAvslagsgrunner() + (
-                    beregning?.utledAvslagsgrunner()
-                        ?: emptyList()
-                    )
-            }
+            override fun utledAvslagsgrunner(): List<Avslagsgrunn> =
+                behandlingsinformasjon().utledAvslagsgrunner() + utledAvslagsgrunnForBeregning()
         }
     }
+
+    private fun utledAvslagsgrunnForBeregning(): List<Avslagsgrunn> =
+        when (val vurdering = vurderAvslagGrunnetBeregning(beregning)) {
+            is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+            AvslagGrunnetBeregning.Nei -> emptyList()
+        }
 
     enum class BehandlingsStatus {
         OPPRETTET,
@@ -537,16 +532,4 @@ data class Behandling internal constructor(
         RuntimeException(msg)
 
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-
-    companion object {
-        fun Beregning.utledAvslagsgrunner(): List<Avslagsgrunn> {
-            return listOfNotNull(
-                when {
-                    getSumYtelse() <= 0 -> Avslagsgrunn.FOR_HØY_INNTEKT
-                    getSumYtelseErUnderMinstebeløp() -> Avslagsgrunn.SU_UNDER_MINSTEGRENSE
-                    else -> null
-                }
-            )
-        }
-    }
 }
