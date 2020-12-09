@@ -36,7 +36,7 @@ import java.time.Month
 import java.time.ZoneOffset
 import java.util.UUID
 
-internal class OppdragNyStrategyTest {
+internal class UtbetalingsstrategiNyTest {
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(1234)
 

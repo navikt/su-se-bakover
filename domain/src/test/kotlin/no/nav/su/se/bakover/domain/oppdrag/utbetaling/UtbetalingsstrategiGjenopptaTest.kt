@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-internal class OppdragGjenopptaStrategyTest {
+internal class UtbetalingsstrategiGjenopptaTest {
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
