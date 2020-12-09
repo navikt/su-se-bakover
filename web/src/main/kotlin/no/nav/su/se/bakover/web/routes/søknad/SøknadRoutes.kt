@@ -81,10 +81,13 @@ internal fun Route.søknadRoutes(
             call.withSøknadId { søknadId ->
                 søknadService.hentSøknadPdf(søknadId).fold(
                     {
-                        when (it) {
-                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> call.respond(NotFound.message("Fant ikke søknad"))
-                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> call.respond(InternalServerError.message("Kunne ikke lage PDF"))
+                        val responseMessage = when (it) {
+                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.message("Fant ikke søknad")
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.message("Kunne ikke lage PDF")
+                            KunneIkkeLageSøknadPdf.FantIkkePerson -> NotFound.message("Fant ikke person")
+                            KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.message("Fant ikke sak")
                         }
+                        call.respond(responseMessage)
                     },
                     {
                         call.respondBytes(it, ContentType.Application.Pdf)

@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -47,6 +46,8 @@ class AvstemmingPublisherTest {
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
+                saksnummer = saksnummer,
+                sakId = sakId,
                 utbetalingslinjer = listOf(),
                 fnr = Fnr("12345678910"),
                 simulering = Simulering(
@@ -65,7 +66,6 @@ class AvstemmingPublisherTest {
                     mottattTidspunkt = Tidspunkt.now()
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
-                oppdragId = UUID30.randomUUID(),
                 behandler = NavIdentBruker.Saksbehandler("Z123")
             )
         )

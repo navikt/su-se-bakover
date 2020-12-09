@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -19,11 +20,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Ny
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.BeforeEach
@@ -37,30 +38,41 @@ import java.util.UUID
 
 internal class OppdragNyStrategyTest {
     private val sakId = UUID.randomUUID()
-    private lateinit var oppdrag: Oppdrag
+    private val saksnummer = Saksnummer(1234)
+
+    //    private lateinit var oppdrag: Oppdrag
     private val fnr = Fnr("12345678910")
 
     private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
     @BeforeEach
     fun beforeEach() {
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId
-        )
+//        oppdrag = Oppdrag(
+//            id = UUID30.randomUUID(),
+//            opprettet = Tidspunkt.EPOCH,
+//            sakId = sakId
+//        )
     }
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
-        val actual = oppdrag.genererUtbetaling(
-            Ny(
-                NavIdentBruker.Saksbehandler("Z123"),
-                createBeregning(1.januar(2020), 30.april(2020)),
-                fixedClock
-            ),
-            fnr = fnr
-        )
+        val actual = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            beregning = createBeregning(1.januar(2020), 30.april(2020)),
+            utbetalinger = listOf(),
+            clock = fixedClock,
+        ).generate()
+//        val actual = oppdrag.genererUtbetaling(
+//            Utbetalingsstrategi.Ny(
+//                NavIdentBruker.Saksbehandler("Z123"),
+//                createBeregning(1.januar(2020), 30.april(2020)),
+//                fixedClock
+//            ),
+//            fnr = fnr
+//        )
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(
@@ -82,56 +94,55 @@ internal class OppdragNyStrategyTest {
     fun `nye utbetalingslinjer skal refere til forutgående utbetalingslinjer`() {
         val forrigeUtbetalingslinjeId = UUID30.randomUUID()
 
-        val eksisterendeOppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = oppdrag.sakId,
-            utbetalinger = listOf(
-                Utbetaling.OversendtUtbetaling.MedKvittering(
-                    simulering = Simulering(
-                        gjelderId = fnr,
-                        gjelderNavn = "navn",
-                        datoBeregnet = idag(),
-                        nettoBeløp = 0,
-                        periodeList = listOf()
-                    ),
-                    kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
-                    utbetalingsrequest = Utbetalingsrequest(
-                        value = ""
-                    ),
-                    utbetalingslinjer = listOf(
-                        Utbetalingslinje(
-                            id = forrigeUtbetalingslinjeId,
-                            opprettet = Tidspunkt.MIN,
-                            fraOgMed = 1.januar(2018),
-                            tilOgMed = 1.desember(2018),
-                            forrigeUtbetalingslinjeId = null,
-                            beløp = 5000
-                        )
-                    ),
-                    fnr = fnr,
-                    type = Utbetaling.UtbetalingsType.NY,
-                    oppdragId = UUID30.randomUUID(),
-                    behandler = NavIdentBruker.Saksbehandler("Z123")
-                )
+        val eksisterendeUtbetalinger = listOf(
+            Utbetaling.OversendtUtbetaling.MedKvittering(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                simulering = Simulering(
+                    gjelderId = fnr,
+                    gjelderNavn = "navn",
+                    datoBeregnet = idag(),
+                    nettoBeløp = 0,
+                    periodeList = listOf()
+                ),
+                kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+                utbetalingsrequest = Utbetalingsrequest(
+                    value = ""
+                ),
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        id = forrigeUtbetalingslinjeId,
+                        opprettet = Tidspunkt.MIN,
+                        fraOgMed = 1.januar(2018),
+                        tilOgMed = 1.desember(2018),
+                        forrigeUtbetalingslinjeId = null,
+                        beløp = 5000
+                    )
+                ),
+                fnr = fnr,
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123")
             )
         )
 
-        val nyUtbetaling = eksisterendeOppdrag.genererUtbetaling(
-            Ny(
-                NavIdentBruker.Saksbehandler("Z123"),
-                createBeregning(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020)
-                ),
-                fixedClock
+        val nyUtbetaling = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = eksisterendeUtbetalinger,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            beregning = createBeregning(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.desember(2020)
             ),
-            fnr = fnr
-        )
+            clock = fixedClock
+        ).generate()
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = nyUtbetaling.id,
             opprettet = nyUtbetaling.opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingslinjer = listOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
@@ -152,7 +163,6 @@ internal class OppdragNyStrategyTest {
             ),
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = eksisterendeOppdrag.id,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )
@@ -161,7 +171,10 @@ internal class OppdragNyStrategyTest {
     @Test
     fun `tar utgangspunkt i nyeste utbetalte ved opprettelse av nye utbetalinger`() {
         val first = Utbetaling.OversendtUtbetaling.MedKvittering(
+            id = UUID30.randomUUID(),
             opprettet = LocalDate.of(2020, Month.JANUARY, 1).startOfDay(),
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
             utbetalingslinjer = emptyList(),
@@ -174,12 +187,14 @@ internal class OppdragNyStrategyTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val second = Utbetaling.OversendtUtbetaling.MedKvittering(
+            id = UUID30.randomUUID(),
             opprettet = LocalDate.of(2020, Month.FEBRUARY, 1).startOfDay(),
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
@@ -192,12 +207,14 @@ internal class OppdragNyStrategyTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val third = Utbetaling.OversendtUtbetaling.MedKvittering(
+            id = UUID30.randomUUID(),
             opprettet = LocalDate.of(2020, Month.MARCH, 1).startOfDay(),
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = emptyList(),
@@ -210,11 +227,13 @@ internal class OppdragNyStrategyTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val fourth = Utbetaling.OversendtUtbetaling.MedKvittering(
+            id = UUID30.randomUUID(),
             opprettet = LocalDate.of(2020, Month.JULY, 1).startOfDay(),
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
             utbetalingslinjer = emptyList(),
@@ -227,31 +246,28 @@ internal class OppdragNyStrategyTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
-        val oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            utbetalinger = listOf(first, second, third, fourth)
-        )
-        oppdrag.hentOversendteUtbetalingerUtenFeil()[1] shouldBe third
+        val utbetalinger = listOf(first, second, third, fourth)
+        utbetalinger.hentOversendteUtbetalingerUtenFeil()[1] shouldBe third
     }
 
     @Test
     fun `konverterer beregning til utbetalingsperioder`() {
-        val actualUtbetaling = oppdrag.genererUtbetaling(
-            strategy = Ny(
-                NavIdentBruker.Saksbehandler("Z123"),
-                beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-                fixedClock
-            ),
-            fnr = fnr
-        )
+        val actualUtbetaling = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = emptyList(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            clock = fixedClock
+        ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
@@ -272,7 +288,6 @@ internal class OppdragNyStrategyTest {
             ),
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = oppdrag.id,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )
@@ -285,10 +300,11 @@ internal class OppdragNyStrategyTest {
         return Utbetaling.UtbetalingForSimulering(
             id = actual.id,
             opprettet = actual.opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingslinjer = oppdragslinjer,
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = oppdrag.id,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
         )

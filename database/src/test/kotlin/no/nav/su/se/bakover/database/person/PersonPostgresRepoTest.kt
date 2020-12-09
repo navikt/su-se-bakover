@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
@@ -113,6 +114,8 @@ internal class PersonPostgresRepoTest {
             val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = UUID30.randomUUID(),
                 utbetalingslinjer = listOf(),
+                sakId = sak.id,
+                saksnummer = Saksnummer(-99),
                 fnr = FNR,
                 avstemmingsnøkkel = Avstemmingsnøkkel(),
                 simulering = Simulering(
@@ -122,11 +125,8 @@ internal class PersonPostgresRepoTest {
                     nettoBeløp = 0,
                     periodeList = listOf()
                 ),
-                utbetalingsrequest = Utbetalingsrequest(
-                    value = ""
-                ),
+                utbetalingsrequest = Utbetalingsrequest(""),
                 type = Utbetaling.UtbetalingsType.NY,
-                oppdragId = sak.oppdrag.id,
                 behandler = NavIdentBruker.Attestant("Z123")
             )
             testDataHelper.opprettUtbetaling(utbetaling)

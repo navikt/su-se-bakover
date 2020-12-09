@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.oppdatering
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test
 
 internal class AvstemmingPostgresRepoTest {
 
-    private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
     private val utbetalingRepo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
@@ -38,8 +37,8 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `henter siste avstemming`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FnrGenerator.random())
-            val utbetaling = oversendtUtbetaling(oppdragId = sak.oppdrag.id)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val utbetaling = oversendtUtbetaling(sak)
             utbetalingRepo.opprettUtbetaling(utbetaling)
                 .also {
                     utbetalingRepo.oppdaterMedKvittering(
@@ -80,9 +79,9 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FnrGenerator.random())
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val utbetaling = oversendtUtbetaling(
-                oppdragId = sak.oppdrag.id,
+                sak = sak,
                 avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
             )
             utbetalingRepo.opprettUtbetaling(
@@ -91,14 +90,14 @@ internal class AvstemmingPostgresRepoTest {
 
             EmbeddedDatabase.instance().withSession { session ->
                 """
-                    insert into utbetaling (id, opprettet, oppdragId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
+                    insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to Tidspunkt.now(),
-                        "oppdragId" to sak.oppdrag.id,
-                        "fnr" to FNR,
+                        "sakId" to sak.id.toString(),
+                        "fnr" to sak.fnr,
                         "type" to "NY",
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
@@ -133,22 +132,22 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming tidspunkt test`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val utbetaling1 = oversendtUtbetaling(
-                oppdragId = sak.oppdrag.id,
+                sak = sak,
                 avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
             )
             utbetalingRepo.opprettUtbetaling(utbetaling1)
 
             val utbetaling2 = oversendtUtbetaling(
-                oppdragId = sak.oppdrag.id,
+                sak = sak,
                 avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
             )
             utbetalingRepo.opprettUtbetaling(utbetaling2)
 
             utbetalingRepo.opprettUtbetaling(
                 oversendtUtbetaling(
-                    oppdragId = sak.oppdrag.id,
+                    sak = sak,
                     avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
                 )
             )
@@ -166,10 +165,8 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = oversendtUtbetaling(
-                oppdragId = sak.oppdrag.id
-            )
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val utbetaling = oversendtUtbetaling(sak)
             utbetalingRepo.opprettUtbetaling(utbetaling)
 
             utbetalingRepo.oppdaterMedKvittering(
@@ -200,14 +197,16 @@ internal class AvstemmingPostgresRepoTest {
     }
 
     private fun oversendtUtbetaling(
-        oppdragId: UUID30,
+        sak: Sak,
         avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel()
     ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = UUID30.randomUUID(),
         utbetalingslinjer = listOf(),
-        fnr = FNR,
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+        fnr = sak.fnr,
         simulering = Simulering(
-            gjelderId = FNR,
+            gjelderId = sak.fnr,
             gjelderNavn = "",
             datoBeregnet = idag(),
             nettoBeløp = 0,
@@ -215,7 +214,6 @@ internal class AvstemmingPostgresRepoTest {
         ),
         utbetalingsrequest = Utbetalingsrequest(""),
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = oppdragId,
         behandler = NavIdentBruker.Attestant("Z123"),
         avstemmingsnøkkel = avstemmingsnøkkel
     )

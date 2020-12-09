@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -43,7 +43,6 @@ internal class GjenopptaUtbetalingRoutesKtTest {
     private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),
@@ -208,10 +207,11 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
             id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),
             opprettet = Tidspunkt.EPOCH,
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678911"),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Attestant("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
@@ -226,12 +226,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         val sak = Sak(
             fnr = FnrGenerator.random(),
             saksnummer = Saksnummer(Math.random().toLong()),
-            oppdrag = Oppdrag(
-                id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                utbetalinger = listOf(utbetaling)
-            )
+            utbetalinger = listOf(utbetaling)
         )
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { gjenopptaUtbetalinger(sakId, saksbehandler) } doReturn sak.right()

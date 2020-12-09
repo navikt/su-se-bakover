@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 
 object UtbetalingStub : UtbetalingPublisher {
     override fun publish(
-        utbetaling: Utbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling
     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> = Utbetalingsrequest(
         value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
     ).right()

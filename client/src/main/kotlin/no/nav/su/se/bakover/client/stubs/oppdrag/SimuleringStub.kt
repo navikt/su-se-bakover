@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -21,12 +21,12 @@ import kotlin.math.roundToInt
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
         when (utbetaling.type) {
-            Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.oppdragId).right()
+            Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
             Utbetaling.UtbetalingsType.STANS -> simulerStans(utbetaling).right()
-            Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.oppdragId).right()
+            Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
         }
 
-    private fun simulerNyUtbetaling(utbetaling: Utbetaling, oppdragId: UUID30): Simulering {
+    private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
         val months = utbetaling.tidligsteDato().monthValue..utbetaling.senesteDato().monthValue
         val perioder = months.map {
             val fraOgMed = LocalDate.of(utbetaling.tidligsteDato().year, Month.of((it)), 1)
@@ -37,7 +37,7 @@ object SimuleringStub : SimuleringClient {
                 tilOgMed = tilOgMed,
                 utbetaling = listOf(
                     SimulertUtbetaling(
-                        fagSystemId = oppdragId.toString(),
+                        fagSystemId = saksnummer.toString(),
                         feilkonto = false,
                         forfall = idag(),
                         utbetalesTilId = utbetaling.fnr,

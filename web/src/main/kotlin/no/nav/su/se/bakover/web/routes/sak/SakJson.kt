@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingslinjeJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
@@ -25,7 +25,7 @@ internal data class SakJson(
         INGEN;
 
         companion object {
-            internal fun Oppdrag.kanStansesEllerGjenopptas(): KanStansesEllerGjenopptas {
+            internal fun List<Utbetaling>.kanStansesEllerGjenopptas(): KanStansesEllerGjenopptas {
                 // TODO jah: Dette er en ad-hoc algoritme, kun for å få noe front-end. Bør bruke det samme som stans/gjenoppta endepunktene.
                 val oversendteUtbetalinger = this.hentOversendteUtbetalingerUtenFeil()
                 return when {
@@ -44,7 +44,7 @@ internal data class SakJson(
             fnr = fnr.toString(),
             søknader = søknader().map { it.toJson() },
             behandlinger = behandlinger().map { it.toJson() },
-            utbetalinger = oppdrag.hentOversendteUtbetalingerUtenFeil()
+            utbetalinger = utbetalinger.hentOversendteUtbetalingerUtenFeil()
                 .flatMap { utbetaling ->
                     utbetaling.utbetalingslinjer.map { utbetalingslinje ->
                         UtbetalingslinjeJson(
@@ -56,7 +56,7 @@ internal data class SakJson(
                         )
                     }
                 },
-            utbetalingerKanStansesEllerGjenopptas = oppdrag.kanStansesEllerGjenopptas()
+            utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas()
         )
     }
 }

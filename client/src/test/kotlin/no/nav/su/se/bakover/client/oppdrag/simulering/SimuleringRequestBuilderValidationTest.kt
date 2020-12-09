@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
+import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
@@ -20,18 +22,19 @@ import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 
 internal class SimuleringRequestBuilderValidationTest {
-    val jaxbContext =
+    private val jaxbContext: JAXBContext =
         JAXBContext.newInstance(no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest::class.java)
-    val marshaller = jaxbContext.createMarshaller().apply {
+    private val marshaller: Marshaller = jaxbContext.createMarshaller().apply {
         setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
     }
 
     @Test
     fun `valider soap xml mot xsd skjema`() {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
-        val oppdragId = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
             utbetaling = Utbetaling.UtbetalingForSimulering(
+                saksnummer = saksnummer,
+                sakId = sakId,
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
                         fraOgMed = 1.januar(2020),
@@ -42,7 +45,7 @@ internal class SimuleringRequestBuilderValidationTest {
                 ),
                 fnr = Fnr("12345678910"),
                 type = Utbetaling.UtbetalingsType.NY,
-                oppdragId = oppdragId,
+
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 avstemmingsnøkkel = Avstemmingsnøkkel()
             )

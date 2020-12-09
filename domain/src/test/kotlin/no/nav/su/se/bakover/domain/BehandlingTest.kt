@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -36,7 +35,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
@@ -59,15 +57,6 @@ internal class BehandlingTest {
         journalpostId = JournalpostId("j")
     )
     private val behandlingFactory = BehandlingFactory(mock())
-
-    companion object {
-        val oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = UUID.randomUUID(),
-            utbetalinger = emptyList()
-        )
-    }
 
     private lateinit var behandling: Behandling
 

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -22,8 +23,10 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 internal class AvstemmingDataBuilderTest {
+
     @Test
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
         val avstemmingId = UUID30.randomUUID()
@@ -96,7 +99,10 @@ internal class AvstemmingDataBuilderTest {
     }
 }
 
-fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
+internal val saksnummer = Saksnummer(1234)
+internal val sakId = UUID.randomUUID()
+
+internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
     id = UUID30.randomUUID(),
     opprettet = fraOgMed.atStartOfDay(zoneIdOslo).toTidspunkt(),
     fraOgMed = fraOgMed,
@@ -105,7 +111,7 @@ fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = 
     beløp = beløp
 )
 
-fun lagUtbetaling(
+internal fun lagUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
     opprettet: LocalDate,
     status: Kvittering.Utbetalingsstatus?,
@@ -117,17 +123,20 @@ fun lagUtbetaling(
     null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+        sakId = sakId,
+        saksnummer = saksnummer,
         simulering = simulering,
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123")
     )
     else -> Utbetaling.OversendtUtbetaling.MedKvittering(
         id = id,
         opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+        saksnummer = saksnummer,
+        sakId = sakId,
         simulering = simulering,
         kvittering = Kvittering(
             utbetalingsstatus = status,
@@ -138,17 +147,16 @@ fun lagUtbetaling(
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }
 
-val fnr = Fnr("12345678910")
-val ok1Id = UUID30.randomUUID()
-val ok2Id = UUID30.randomUUID()
-val okMedVarselId = UUID30.randomUUID()
-val feildId = UUID30.randomUUID()
-val manglerKvitteringId = UUID30.randomUUID()
+internal val fnr = Fnr("12345678910")
+internal val ok1Id = UUID30.randomUUID()
+internal val ok2Id = UUID30.randomUUID()
+internal val okMedVarselId = UUID30.randomUUID()
+internal val feildId = UUID30.randomUUID()
+internal val manglerKvitteringId = UUID30.randomUUID()
 private val simulering = Simulering(
     gjelderId = fnr,
     gjelderNavn = "",
@@ -156,7 +164,8 @@ private val simulering = Simulering(
     nettoBeløp = 0,
     periodeList = listOf()
 )
-fun alleUtbetalinger() = listOf(
+
+internal fun alleUtbetalinger() = listOf(
     lagUtbetaling(
         id = ok1Id,
         opprettet = 1.mars(2020),

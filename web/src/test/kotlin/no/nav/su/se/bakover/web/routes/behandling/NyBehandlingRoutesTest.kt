@@ -32,7 +32,6 @@ class NyBehandlingRoutesTest {
     private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),

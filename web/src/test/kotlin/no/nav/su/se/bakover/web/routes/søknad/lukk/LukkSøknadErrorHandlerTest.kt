@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.web.routes.søknad.lukk
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
@@ -30,12 +28,7 @@ internal class LukkSøknadErrorHandlerTest {
             fnr = Fnr("12345678901"),
             søknader = emptyList(),
             behandlinger = emptyList(),
-            oppdrag = Oppdrag(
-                id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                utbetalinger = emptyList()
-            )
+            utbetalinger = emptyList()
         )
         LukkSøknadErrorHandler.lukketSøknadResponse(LukketSøknad.UtenMangler(sak)).httpCode shouldBe HttpStatusCode.OK
         LukkSøknadErrorHandler.lukketSøknadResponse(LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak)).httpCode shouldBe HttpStatusCode.OK

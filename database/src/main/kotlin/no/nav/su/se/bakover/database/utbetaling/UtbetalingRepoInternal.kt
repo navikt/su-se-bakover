@@ -8,32 +8,35 @@ import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.util.UUID
 
 internal object UtbetalingInternalRepo {
     fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
-        "select * from utbetaling where id = :id".hent(
+        "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId
             ),
             session
         ) { it.toUtbetaling(session) }
 
-    fun hentUtbetalinger(oppdragId: UUID30, session: Session): List<Utbetaling.OversendtUtbetaling> =
-        "select * from utbetaling where oppdragId=:oppdragId".hentListe(
-            mapOf("oppdragId" to oppdragId.toString()),
+    fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
+        "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
+            mapOf(
+                "id" to sakId
+            ),
             session
-        ) {
-            it.toUtbetaling(session)
-        }
+        ) { it.toUtbetaling(session) }
 
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
         "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
@@ -54,9 +57,10 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     }
     val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
     val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
+    val sakId = uuid("sakId")
+    val saksnummer = Saksnummer(long("saksnummer"))
     val fnr = Fnr(string("fnr"))
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
-    val oppdragId = uuid30("oppdragId")
     val behandler = NavIdentBruker.Attestant(string("behandler"))
     val avstemmingsnøkkel =
         string("avstemmingsnøkkel").let { objectMapper.readValue(it, Avstemmingsnøkkel::class.java) }
@@ -64,6 +68,8 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     return UtbetalingMapper(
         id = utbetalingId,
         opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
         type = type,
@@ -72,7 +78,6 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         utbetalingsrequest = utbetalingsrequest,
         kvittering = kvittering,
         avstemmingId = avstemmingId,
-        oppdragId = oppdragId,
         behandler = behandler
     ).map()
 }

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 
 interface UtbetalingPublisher {
     fun publish(
-        utbetaling: Utbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest>
 
     data class KunneIkkeSendeUtbetaling(

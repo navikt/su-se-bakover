@@ -6,7 +6,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
-import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
+import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -52,6 +53,8 @@ internal class UtbetalingPublisherTest {
     }
 
     private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
+        sakId = sakId,
+        saksnummer = saksnummer,
         fnr = Fnr("12345678910"),
         utbetalingslinjer = listOf(),
         type = Utbetaling.UtbetalingsType.NY,
@@ -61,7 +64,6 @@ internal class UtbetalingPublisherTest {
             ),
             gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
         ),
-        oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }

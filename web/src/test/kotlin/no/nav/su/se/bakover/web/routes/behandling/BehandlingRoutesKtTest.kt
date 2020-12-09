@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -830,7 +831,7 @@ internal class BehandlingRoutesKtTest {
                     testClients.copy(
                         utbetalingPublisher = object : UtbetalingPublisher {
                             override fun publish(
-                                utbetaling: Utbetaling
+                                utbetaling: Utbetaling.SimulertUtbetaling
                             ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
                                 UtbetalingPublisher.KunneIkkeSendeUtbetaling(
                                     Utbetalingsrequest("")
@@ -883,7 +884,7 @@ internal class BehandlingRoutesKtTest {
 
     private fun setup(): Objects {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-        val fnr = FnrGenerator.random()
+        val fnr: Fnr = FnrGenerator.random()
         SakFactory().nySak(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }

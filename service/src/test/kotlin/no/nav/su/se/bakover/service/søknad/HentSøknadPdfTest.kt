@@ -12,7 +12,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
@@ -52,12 +50,7 @@ class HentSøknadPdfTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = Fnr(fnr = "12345678901"),
         søknader = listOf(søknad),
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            utbetalinger = listOf()
-        )
+        utbetalinger = emptyList()
     )
     private val person = Person(
         ident = Ident(

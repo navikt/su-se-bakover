@@ -8,12 +8,13 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -22,30 +23,38 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 internal class UtbetalingPostgresRepoTest {
 
-    private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
 
     @Test
     fun `hent utbetaling`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
-            repo.opprettUtbetaling(utbetaling)
-            val hentet = repo.hentUtbetaling(utbetaling.id)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            utbetaling shouldBe hentet
+            val expected = defaultOversendtUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            )
+            repo.opprettUtbetaling(expected)
+            repo.hentUtbetaling(expected.id) shouldBe expected
         }
     }
 
     @Test
     fun `hent utbetaling fra avstemmingsnøkkel`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val oversendtUtbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+
+            val oversendtUtbetaling = defaultOversendtUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            )
             repo.opprettUtbetaling(oversendtUtbetaling)
             val kvittert = repo.oppdaterMedKvittering(
                 utbetalingId = oversendtUtbetaling.id,
@@ -55,7 +64,8 @@ internal class UtbetalingPostgresRepoTest {
                     mottattTidspunkt = Tidspunkt.EPOCH
                 )
             )
-            val hentet = repo.hentUtbetaling(oversendtUtbetaling.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
+            val hentet =
+                repo.hentUtbetaling(oversendtUtbetaling.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
             kvittert shouldBe hentet
         }
     }
@@ -63,8 +73,13 @@ internal class UtbetalingPostgresRepoTest {
     @Test
     fun `oppdater med kvittering`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR)
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+
+            val utbetaling = defaultOversendtUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            )
             repo.opprettUtbetaling(utbetaling)
 
             val kvittering = Kvittering(
@@ -81,8 +96,13 @@ internal class UtbetalingPostgresRepoTest {
     @Test
     fun `opprett og hent utbetalingslinjer`() {
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val utbetaling = defaultOversendtUtbetaling(sak.oppdrag.id, FNR).copy(utbetalingslinjer = emptyList())
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+
+            val utbetaling = defaultOversendtUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            ).copy(utbetalingslinjer = emptyList())
             repo.opprettUtbetaling(utbetaling)
             val utbetalingslinje1 = repo.opprettUtbetalingslinje(utbetaling.id, defaultUtbetalingslinje())
             val utbetalingslinje2 =
@@ -95,9 +115,17 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     companion object {
-        internal fun defaultOversendtUtbetaling(oppdragId: UUID30, fnr: Fnr, datoBeregnet: LocalDate = idag()) =
+        internal fun defaultOversendtUtbetaling(
+            sakId: UUID = UUID.randomUUID(),
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            datoBeregnet: LocalDate = idag()
+        ) =
             Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                sakId = sakId,
+                saksnummer = saksnummer,
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
                         id = UUID30.randomUUID(),
@@ -121,7 +149,6 @@ internal class UtbetalingPostgresRepoTest {
                     value = "<xml></xml>"
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
-                oppdragId = oppdragId,
                 behandler = NavIdentBruker.Attestant("Z123"),
             )
 

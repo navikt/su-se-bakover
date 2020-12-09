@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -10,6 +9,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.defaultOversendtUtbetaling
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -26,6 +26,7 @@ import java.util.UUID
 internal class VedtakPostgresRepoTest {
 
     private val fnr = FnrGenerator.random()
+    private val saksnummer = Saksnummer(1234)
     private val behandlingRepo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val repo = VedtakssnapshotPostgresRepo(EmbeddedDatabase.instance())
     private val testDataHelper = TestDataHelper()
@@ -58,7 +59,7 @@ internal class VedtakPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     behandling = behandling,
-                    utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), fnr),
+                    utbetaling = defaultOversendtUtbetaling(saksnummer = saksnummer, fnr = fnr),
                 )
             )
         }

@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
-import no.nav.su.se.bakover.service.oppdrag.OppdragService
-import no.nav.su.se.bakover.service.oppdrag.OppdragServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
@@ -67,9 +65,6 @@ class ServiceBuilder(
                 publisher = clients.avstemmingPublisher
             ),
             utbetaling = utbetalingService,
-            oppdrag = OppdragServiceImpl(
-                repo = databaseRepos.oppdrag
-            ),
             behandling = BehandlingServiceImpl(
                 behandlingRepo = databaseRepos.behandling,
                 hendelsesloggRepo = databaseRepos.hendelseslogg,
@@ -104,7 +99,6 @@ class ServiceBuilder(
 data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,
-    val oppdrag: OppdragService,
     val behandling: BehandlingService,
     val sak: SakService,
     val søknad: SøknadService,

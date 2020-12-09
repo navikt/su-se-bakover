@@ -1,14 +1,13 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
+import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
-import java.util.UUID
 
 class UtbetalingXmlMappingTest {
 
@@ -43,21 +41,17 @@ class UtbetalingXmlMappingTest {
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
     )
-    private val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.EPOCH,
-        sakId = UUID.randomUUID(),
-        utbetalinger = emptyList()
-    )
+
     private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
+        sakId = sakId,
+        saksnummer = saksnummer,
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
         ),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = oppdrag.id,
         behandler = NavIdentBruker.Attestant("A123456"),
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
@@ -71,7 +65,7 @@ class UtbetalingXmlMappingTest {
                 <kodeAksjon>1</kodeAksjon>
                 <kodeEndring>NY</kodeEndring>
                 <kodeFagomraade>SUUFORE</kodeFagomraade>
-                <fagsystemId>${oppdrag.id}</fagsystemId>
+                <fagsystemId>$saksnummer</fagsystemId>
                 <utbetFrekvens>MND</utbetFrekvens>
                 <oppdragGjelderId>$fnr</oppdragGjelderId>
                 <datoOppdragGjelderFom>1970-01-01</datoOppdragGjelderFom>
@@ -115,7 +109,7 @@ class UtbetalingXmlMappingTest {
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
-                  <refFagsystemId>${oppdrag.id}</refFagsystemId>
+                  <refFagsystemId>$saksnummer</refFagsystemId>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>

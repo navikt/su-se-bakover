@@ -4,16 +4,19 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.util.UUID
 
 sealed class Utbetaling {
     abstract val id: UUID30
     abstract val opprettet: Tidspunkt
+    abstract val sakId: UUID
+    abstract val saksnummer: Saksnummer
     abstract val fnr: Fnr
     abstract val utbetalingslinjer: List<Utbetalingslinje>
     abstract val type: UtbetalingsType
-    abstract val oppdragId: UUID30
     abstract val behandler: NavIdentBruker
     abstract val avstemmingsnøkkel: Avstemmingsnøkkel
 
@@ -27,10 +30,11 @@ sealed class Utbetaling {
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
-        override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel
     ) : Utbetaling() {
@@ -38,10 +42,11 @@ sealed class Utbetaling {
             SimulertUtbetaling(
                 id = id,
                 opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = utbetalingslinjer,
                 type = type,
-                oppdragId = oppdragId,
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering
@@ -51,10 +56,11 @@ sealed class Utbetaling {
     data class SimulertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val utbetalingslinjer: List<Utbetalingslinje>,
         override val type: UtbetalingsType,
-        override val oppdragId: UUID30,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
         val simulering: Simulering,
@@ -63,10 +69,11 @@ sealed class Utbetaling {
             OversendtUtbetaling.UtenKvittering(
                 id = id,
                 opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = utbetalingslinjer,
                 type = type,
-                oppdragId = oppdragId,
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
@@ -81,10 +88,11 @@ sealed class Utbetaling {
         data class UtenKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
             override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
             override val fnr: Fnr,
             override val utbetalingslinjer: List<Utbetalingslinje>,
             override val type: UtbetalingsType,
-            override val oppdragId: UUID30,
             override val behandler: NavIdentBruker,
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
@@ -94,10 +102,11 @@ sealed class Utbetaling {
                 MedKvittering(
                     id = id,
                     opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
                     fnr = fnr,
                     utbetalingslinjer = utbetalingslinjer,
                     type = type,
-                    oppdragId = oppdragId,
                     behandler = behandler,
                     avstemmingsnøkkel = avstemmingsnøkkel,
                     simulering = simulering,
@@ -109,10 +118,11 @@ sealed class Utbetaling {
         data class MedKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
             override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
             override val fnr: Fnr,
             override val utbetalingslinjer: List<Utbetalingslinje>,
             override val type: UtbetalingsType,
-            override val oppdragId: UUID30,
             override val behandler: NavIdentBruker,
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
@@ -131,5 +141,15 @@ sealed class Utbetaling {
         NY,
         STANS,
         GJENOPPTA
+    }
+
+    companion object {
+        /**
+         * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
+         * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
+         */
+        fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
+            this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+                .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
     }
 }

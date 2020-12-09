@@ -11,9 +11,11 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 internal class UtbetalingTest {
 
@@ -58,11 +60,12 @@ internal class UtbetalingTest {
         opprettet: Tidspunkt = Tidspunkt.now(),
         utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
     ) = Utbetaling.UtbetalingForSimulering(
+        sakId = UUID.randomUUID(),
+        saksnummer = Saksnummer(1234),
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
         opprettet = opprettet,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = UUID30.randomUUID(),
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )

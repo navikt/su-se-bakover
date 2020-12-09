@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -55,12 +53,7 @@ class NySøknadTest {
         saksnummer = Saksnummer(2021),
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            utbetalinger = emptyList()
-        )
+        utbetalinger = emptyList()
     )
     private val pdf = "pdf-data".toByteArray()
     private val journalpostId = JournalpostId("1")
@@ -148,12 +141,6 @@ class NySøknadTest {
                             sakId = it.id,
                             søknadInnhold = søknadInnhold,
                         ),
-                        oppdrag = Oppdrag(
-                            id = it.oppdrag.id,
-                            opprettet = it.oppdrag.opprettet,
-                            sakId = it.id,
-                            utbetalinger = emptyList()
-                        )
                     ).also { nySak ->
                         expected = nySak.søknad
                     }

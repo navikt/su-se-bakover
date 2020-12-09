@@ -1,5 +1,4 @@
 package no.nav.su.se.bakover.service.søknad.lukk
-
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -10,7 +9,6 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -30,7 +28,6 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -85,12 +82,7 @@ internal class LukkSøknadServiceImplTest {
         fnr = fnr,
         søknader = emptyList(),
         behandlinger = emptyList(),
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            utbetalinger = emptyList()
-        )
+        utbetalinger = emptyList()
     )
     private val nySøknad = Søknad.Ny(
         sakId = sakId,
@@ -545,7 +537,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn nySøknad
         }
         val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService> ()
+        val brevServiceMock = mock<BrevService>()
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
