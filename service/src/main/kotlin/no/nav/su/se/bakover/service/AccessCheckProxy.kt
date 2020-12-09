@@ -276,7 +276,7 @@ class AccessCheckProxy(
 
                 override fun journalførBrev(
                     request: LagBrevRequest,
-                    sakId: UUID
+                    saksnummer: Saksnummer
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()

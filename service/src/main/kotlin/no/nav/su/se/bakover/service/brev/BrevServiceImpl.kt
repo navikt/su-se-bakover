@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.util.UUID
 
 internal class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
@@ -28,7 +28,7 @@ internal class BrevServiceImpl(
         return lagPdf(lagBrevInnhold(request))
     }
 
-    override fun journalførBrev(request: LagBrevRequest, sakId: UUID): Either<KunneIkkeJournalføreBrev, JournalpostId> {
+    override fun journalførBrev(request: LagBrevRequest, saksnummer: Saksnummer): Either<KunneIkkeJournalføreBrev, JournalpostId> {
 
         val brevInnhold = lagBrevInnhold(request)
         val brevPdf = lagPdf(brevInnhold).fold(
@@ -39,7 +39,7 @@ internal class BrevServiceImpl(
         return dokArkiv.opprettJournalpost(
             JournalpostFactory.lagJournalpost(
                 person = request.getPerson(),
-                sakId = sakId,
+                saksnummer = saksnummer,
                 brevInnhold = brevInnhold,
                 pdf = brevPdf
             )

@@ -227,7 +227,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -805,7 +805,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat {
+                saksnummer = argThat {
                     it shouldBe søknad.sakId
                 }
             )
@@ -869,7 +869,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020),
                     )
                 },
-                sakId = argThat {
+                saksnummer = argThat {
                     it shouldBe nySøknad.sakId
                 }
             )
@@ -936,7 +936,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020),
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -999,7 +999,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
             )
         }
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)

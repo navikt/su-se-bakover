@@ -28,7 +28,7 @@ import kotlin.random.Random
 
 internal class DokArkivClientTest : WiremockBase {
 
-    private val sakId = "1"
+    private val saksnummer: Long = 1
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadPdfInnhold = SøknadPdfInnhold(
@@ -70,7 +70,7 @@ internal class DokArkivClientTest : WiremockBase {
                         "idType": "FNR"
                       },
                       "sak": {
-                        "fagsakId": "$sakId",
+                        "fagsakId": "$saksnummer",
                         "fagsaksystem": "SUPSTONAD",
                         "sakstype": "FAGSAK"
                       },
@@ -118,7 +118,7 @@ internal class DokArkivClientTest : WiremockBase {
                         "idType": "FNR"
                       },
                       "sak": {
-                        "fagsakId": "$sakId",
+                        "fagsakId": "$saksnummer",
                         "fagsaksystem": "SUPSTONAD",
                         "sakstype": "FAGSAK"
                       },
@@ -170,7 +170,7 @@ internal class DokArkivClientTest : WiremockBase {
         )
         client.opprettJournalpost(
             Journalpost.Søknadspost(
-                sakId = "1",
+                saksnummer = Saksnummer(1),
                 person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf
@@ -190,7 +190,7 @@ internal class DokArkivClientTest : WiremockBase {
 
         client.opprettJournalpost(
             Journalpost.Søknadspost(
-                sakId = "1",
+                saksnummer = Saksnummer(1),
                 person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf
@@ -228,7 +228,7 @@ internal class DokArkivClientTest : WiremockBase {
                 brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 person = person,
                 pdf = pdf,
-                sakId = sakId.toString()
+                saksnummer = Saksnummer(saksnummer)
             )
         ) shouldBe(
             JournalpostId("1").right()

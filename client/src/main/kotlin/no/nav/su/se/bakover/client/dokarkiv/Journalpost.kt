@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import java.util.Base64
@@ -22,7 +23,7 @@ sealed class Journalpost {
 
     data class Søknadspost(
         val person: Person,
-        val sakId: String,
+        val saksnummer: Saksnummer,
         val søknadInnhold: SøknadInnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
@@ -32,7 +33,7 @@ sealed class Journalpost {
             navn = søkersNavn(person)
         )
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
-        override val sak: Fagsak = Fagsak(sakId)
+        override val sak: Fagsak = Fagsak(saksnummer)
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String? = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: String = "9999"
@@ -55,7 +56,7 @@ sealed class Journalpost {
 
     data class Vedtakspost(
         val person: Person,
-        val sakId: String,
+        val saksnummer: Saksnummer,
         val brevInnhold: BrevInnhold,
         val pdf: ByteArray
     ) : Journalpost() {
@@ -64,7 +65,7 @@ sealed class Journalpost {
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
-        override val sak: Fagsak = Fagsak(sakId)
+        override val sak: Fagsak = Fagsak(saksnummer)
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -85,7 +86,7 @@ sealed class Journalpost {
 
     data class Info(
         val person: Person,
-        val sakId: String,
+        val saksnummer: Saksnummer,
         val brevInnhold: BrevInnhold,
         val pdf: ByteArray,
     ) : Journalpost() {
@@ -94,7 +95,7 @@ sealed class Journalpost {
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
-        override val sak: Fagsak = Fagsak(sakId)
+        override val sak: Fagsak = Fagsak(saksnummer)
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -139,7 +140,7 @@ data class Bruker(
 )
 
 data class Fagsak(
-    val fagsakId: String,
+    val fagsakId: Saksnummer,
     val fagsaksystem: String = "SUPSTONAD",
     val sakstype: String = "FAGSAK"
 )

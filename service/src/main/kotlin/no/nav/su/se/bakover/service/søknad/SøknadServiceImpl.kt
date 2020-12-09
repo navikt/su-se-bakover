@@ -85,11 +85,11 @@ internal class SøknadServiceImpl(
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(sak.id, sak.saksnummer, person, søknad)
+        opprettJournalpostOgOppgave(sak.saksnummer, person, søknad)
         return Pair(sak.saksnummer, søknad).right()
     }
 
-    private fun opprettJournalpostOgOppgave(sakId: UUID, saksnummer: Saksnummer, person: Person, søknad: Søknad) {
+    private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad) {
         // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         pdfGenerator.genererPdf(
@@ -110,7 +110,7 @@ internal class SøknadServiceImpl(
                     Journalpost.Søknadspost(
                         søknadInnhold = søknad.søknadInnhold,
                         pdf = pdfByteArray,
-                        sakId = sakId.toString(),
+                        saksnummer = saksnummer,
                         person = person
                     )
                 ).fold(

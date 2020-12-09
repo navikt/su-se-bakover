@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.service.argThat
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class BrevServiceImplTest {
 
@@ -86,7 +86,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `journalfører brev`() {
         val pdf = "".toByteArray()
-        val sakId = UUID.randomUUID()
+        val saksnummer = Saksnummer(1337)
 
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
@@ -99,11 +99,11 @@ internal class BrevServiceImplTest {
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
             dokDistFordeling = mock()
-        ).journalførBrev(DummyRequest, sakId) shouldBe JournalpostId("journalpostId").right()
+        ).journalførBrev(DummyRequest, saksnummer) shouldBe JournalpostId("journalpostId").right()
 
         verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
         verify(dokArkivMock).opprettJournalpost(
-            argThat { it shouldBe Journalpost.Vedtakspost(person, sakId.toString(), DummyBrevInnhold, pdf) }
+            argThat { it shouldBe Journalpost.Vedtakspost(person, saksnummer, DummyBrevInnhold, pdf) }
         )
         verifyNoMoreInteractions(pdfGeneratorMock, dokArkivMock)
     }

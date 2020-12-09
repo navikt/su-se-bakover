@@ -419,7 +419,7 @@ internal class IverksettBehandlingTest {
                         saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
-                sakId = argThat { it shouldBe behandling.sakId }
+                saksnummer = argThat { it shouldBe behandling.sakId }
             )
         }
         verifyNoMoreInteractions(
@@ -503,7 +503,7 @@ internal class IverksettBehandlingTest {
                         saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                     )
                 },
-                sakId = argThat { it shouldBe behandling.sakId }
+                saksnummer = argThat { it shouldBe behandling.sakId }
             )
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
                 behandlingId = argThat { it shouldBe behandling.id },
@@ -609,7 +609,7 @@ internal class IverksettBehandlingTest {
                     attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                     saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName
                 ),
-                behandling.sakId
+                behandling.saksnummer
             )
 
             verify(behandlingRepoMock).oppdaterIverksattJournalpostId(

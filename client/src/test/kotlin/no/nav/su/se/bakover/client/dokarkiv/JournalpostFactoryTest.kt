@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import org.junit.jupiter.api.Test
 import java.util.Base64
-import java.util.UUID
 
 internal class JournalpostFactoryTest {
 
@@ -20,7 +20,7 @@ internal class JournalpostFactoryTest {
         on { ident } doReturn Ident(Fnr("12345678910"), AktørId("12345"))
         on { navn } doReturn Person.Navn("fornavn", "mellomnavn", "etternavn")
     }
-    private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(Math.random().toLong())
     private val pdf = "".toByteArray()
 
     @Test
@@ -29,7 +29,7 @@ internal class JournalpostFactoryTest {
             on { brevTemplate } doReturn BrevTemplate.AvslagsVedtak
             on { toJson() } doReturn ""
         }
-        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
@@ -42,7 +42,7 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
 
-        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
@@ -54,7 +54,7 @@ internal class JournalpostFactoryTest {
             on { brevTemplate } doReturn BrevTemplate.TrukketSøknad
             on { toJson() } doReturn ""
         }
-        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Info>()
             assertInfopost(it, brevdata)
         }
@@ -66,7 +66,7 @@ internal class JournalpostFactoryTest {
             on { brevTemplate } doReturn BrevTemplate.AvvistSøknadVedtak
             on { toJson() } doReturn ""
         }
-        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assertVedtakspost(it, brevdata)
         }
@@ -79,7 +79,7 @@ internal class JournalpostFactoryTest {
             on { toJson() } doReturn ""
         }
 
-        JournalpostFactory.lagJournalpost(personMock, sakId, brevdata, pdf).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Info>()
             assertInfopost(it, brevdata)
         }
@@ -103,7 +103,7 @@ internal class JournalpostFactoryTest {
         journalpost.kanal shouldBe null
         journalpost.journalfoerendeEnhet shouldBe "4815"
         journalpost.journalpostType shouldBe JournalPostType.UTGAAENDE
-        journalpost.sak shouldBe Fagsak(sakId.toString())
+        journalpost.sak shouldBe Fagsak(saksnummer)
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
                 tittel = brevInnhold.brevTemplate.tittel(),
