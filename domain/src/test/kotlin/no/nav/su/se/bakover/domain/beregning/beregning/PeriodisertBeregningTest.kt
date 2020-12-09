@@ -34,7 +34,7 @@ internal class PeriodisertBeregningTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
-                    beløp = 5000.0,
+                    månedsbeløp = 5000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -53,7 +53,7 @@ internal class PeriodisertBeregningTest {
                 fradrag = listOf(
                     IkkePeriodisertFradrag(
                         type = Fradragstype.Kontantstøtte,
-                        beløp = 5000.0,
+                        månedsbeløp = 5000.0,
                         periode = Periode(1.desember(2020), 31.desember(2020)),
                         tilhører = FradragTilhører.BRUKER
                     )
@@ -82,7 +82,7 @@ internal class PeriodisertBeregningTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
-                    beløp = 123000.0,
+                    månedsbeløp = 123000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -100,7 +100,7 @@ internal class PeriodisertBeregningTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
-                    beløp = 123000.0,
+                    månedsbeløp = 123000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -131,7 +131,7 @@ internal class PeriodisertBeregningTest {
     fun `henter fradrag for aktuell måned`() {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 1234.56,
+            månedsbeløp = 1234.56,
             periode = Periode(1.januar(2020), 31.januar(2020)),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER

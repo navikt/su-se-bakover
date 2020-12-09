@@ -115,7 +115,7 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
-                    beløp = epsFradrag.sumByDouble { it.getTotaltFradrag() },
+                    månedsbeløp = epsFradrag.sumByDouble { it.getMånedsbeløp() },
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -137,7 +137,7 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
         val forventetInntekt =
             fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt }
 
-        return if (arbeidsinntekter.sumByDouble { it.getTotaltFradrag() } > forventetInntekt.sumByDouble { it.getTotaltFradrag() })
+        return if (arbeidsinntekter.sumByDouble { it.getMånedsbeløp() } > forventetInntekt.sumByDouble { it.getMånedsbeløp() })
             fradrag.minus(forventetInntekt)
         else
             fradrag.minus(arbeidsinntekter)
@@ -149,7 +149,7 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
         fradrag: List<Fradrag>
     ): List<Fradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
-        val epsFradragSum = epsFradrag.sumByDouble { it.getTotaltFradrag() }
+        val epsFradragSum = epsFradrag.sumByDouble { it.getMånedsbeløp() }
 
         val beregnetFradragEps = epsFradragSum - beløpsgrense
 
@@ -161,7 +161,7 @@ internal sealed class FradragStrategy(private val name: FradragStrategyName) {
             FradragFactory.periodiser(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
-                    beløp = beregnetFradragEps,
+                    månedsbeløp = beregnetFradragEps,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS

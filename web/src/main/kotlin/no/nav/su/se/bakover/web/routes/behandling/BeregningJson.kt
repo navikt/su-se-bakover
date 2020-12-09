@@ -46,7 +46,7 @@ internal fun Beregning.toJson(): BeregningJson {
 internal fun Fradrag.toJson() =
     FradragJson(
         type = getFradragstype().toString(),
-        beløp = getTotaltFradrag(),
+        beløp = getMånedsbeløp(),
         utenlandskInntekt = getUtenlandskInntekt(),
         periode = getPeriode().toJson(),
         tilhører = getTilhører().toString()
@@ -61,7 +61,7 @@ internal data class FradragJson(
 ) {
     fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
         type = Fradragstype.valueOf(type),
-        beløp = beløp,
+        månedsbeløp = beløp,
         periode = this.periode?.toPeriode() ?: periode,
         utenlandskInntekt = utenlandskInntekt,
         tilhører = FradragTilhører.valueOf(tilhører)

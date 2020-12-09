@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.beregning
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -57,13 +58,14 @@ internal data class PersistertMånedsberegning(
 
 internal data class PersistertFradrag(
     private val fradragstype: Fradragstype,
-    private val totaltFradrag: Double,
+    private val månedsbeløp: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
     private val periode: Periode,
     private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
-    override fun getTotaltFradrag(): Double = totaltFradrag
+    @JsonAlias("totaltFradrag")
+    override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun getTilhører(): FradragTilhører = tilhører
 
@@ -95,7 +97,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
     fradragstype = getFradragstype(),
-    totaltFradrag = getTotaltFradrag(),
+    månedsbeløp = getMånedsbeløp(),
     utenlandskInntekt = getUtenlandskInntekt(),
     periode = getPeriode(),
     tilhører = getTilhører()
