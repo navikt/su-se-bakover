@@ -52,26 +52,26 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
         ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
         satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToInt(),
         epsFribeløp =
-            FradragStrategy.fromName(beregning.getFradragStrategyName())
-                .getEpsFribeløp(førsteMånedsberegning.getPeriode())
-                .roundToTwoDecimals(),
+        FradragStrategy.fromName(beregning.getFradragStrategyName())
+            .getEpsFribeløp(førsteMånedsberegning.getPeriode())
+            .roundToTwoDecimals(),
         fradrag = when (beregning.getFradrag().isEmpty()) {
             true ->
                 null
             false ->
                 BrevInnhold.Beregning.Fradrag(
                     bruker =
-                        førsteMånedsberegning.getFradrag()
-                            .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                            .let {
-                                BrevInnhold.Beregning.FradragForBruker(
-                                    fradrag = it.toMånedsfradragPerType(),
-                                    sum = it.sumByDouble { f -> f.getTotaltFradrag() }
-                                        .roundToTwoDecimals(),
-                                    harBruktForventetInntektIStedetForArbeidsinntekt = it
-                                        .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
-                                )
-                            },
+                    førsteMånedsberegning.getFradrag()
+                        .filter { it.getTilhører() == FradragTilhører.BRUKER }
+                        .let {
+                            BrevInnhold.Beregning.FradragForBruker(
+                                fradrag = it.toMånedsfradragPerType(),
+                                sum = it.sumByDouble { f -> f.getTotaltFradrag() }
+                                    .roundToTwoDecimals(),
+                                harBruktForventetInntektIStedetForArbeidsinntekt = it
+                                    .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
+                            )
+                        },
                     eps = beregning
                         .getFradrag()
                         .filter { it.getTilhører() == FradragTilhører.EPS }
@@ -116,6 +116,7 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfr
                 utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )
         }
+        .sortedBy { it.type }
 
 fun Double.roundToTwoDecimals() =
     BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
