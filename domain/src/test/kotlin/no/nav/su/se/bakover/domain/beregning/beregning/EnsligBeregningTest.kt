@@ -32,7 +32,7 @@ internal class EnsligBeregningTest {
         val arbeidsinntektPrÅr = 180000.0
         val folketrygdPrÅr = 66323.0
         val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
-        val folketrydPrMnd = folketrygdPrÅr / 12
+        val folketrygdPrMnd = folketrygdPrÅr / 12
 
         val beregningsgrunnlag = Beregningsgrunnlag(
             periode = periode,
@@ -47,7 +47,7 @@ internal class EnsligBeregningTest {
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrydPrMnd,
+                    beløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
