@@ -33,7 +33,7 @@ sealed class Journalpost {
             navn = søkersNavn(person)
         )
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
-        override val sak: Fagsak = Fagsak(saksnummer)
+        override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String? = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: String = "9999"
@@ -65,7 +65,7 @@ sealed class Journalpost {
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
-        override val sak: Fagsak = Fagsak(saksnummer)
+        override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -95,7 +95,7 @@ sealed class Journalpost {
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person)
         )
-        override val sak: Fagsak = Fagsak(saksnummer)
+        override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
@@ -140,7 +140,7 @@ data class Bruker(
 )
 
 data class Fagsak(
-    val fagsakId: Saksnummer,
+    val fagsakId: String,
     val fagsaksystem: String = "SUPSTONAD",
     val sakstype: String = "FAGSAK"
 )

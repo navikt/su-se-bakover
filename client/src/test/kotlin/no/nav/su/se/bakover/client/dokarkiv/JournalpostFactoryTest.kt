@@ -103,7 +103,7 @@ internal class JournalpostFactoryTest {
         journalpost.kanal shouldBe null
         journalpost.journalfoerendeEnhet shouldBe "4815"
         journalpost.journalpostType shouldBe JournalPostType.UTGAAENDE
-        journalpost.sak shouldBe Fagsak(saksnummer)
+        journalpost.sak shouldBe Fagsak(saksnummer.nummer.toString())
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
                 tittel = brevInnhold.brevTemplate.tittel(),
