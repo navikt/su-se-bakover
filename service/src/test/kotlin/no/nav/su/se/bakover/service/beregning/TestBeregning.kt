@@ -39,7 +39,7 @@ internal object TestMånedsberegning : Månedsberegning {
 
 internal object TestFradrag : Fradrag {
     override fun getFradragstype(): Fradragstype = Fradragstype.ForventetInntekt
-    override fun getTotaltFradrag(): Double = 12000.0
+    override fun getMånedsbeløp(): Double = 12000.0
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
     override fun getTilhører(): FradragTilhører = FradragTilhører.BRUKER
     override fun getPeriode(): Periode = Periode(1.januar(2020), 31.januar(2020))

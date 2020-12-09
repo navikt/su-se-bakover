@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 
 interface Fradrag : PeriodisertInformasjon {
     fun getFradragstype(): Fradragstype
-    fun getTotaltFradrag(): Double
+    fun getMånedsbeløp(): Double
     fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
     fun getTilhører(): FradragTilhører
 }

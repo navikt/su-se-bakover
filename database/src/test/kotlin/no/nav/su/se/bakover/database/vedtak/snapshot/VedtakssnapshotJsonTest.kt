@@ -344,7 +344,7 @@ internal class VedtakssnapshotJsonTest {
         val fradrag = listOf(
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
-                totaltFradrag = 155.9,
+                månedsbeløp = 155.9,
                 utenlandskInntekt = UtenlandskInntekt(
                     beløpIUtenlandskValuta = 12345,
                     valuta = "Simoleons",
@@ -457,7 +457,7 @@ internal class VedtakssnapshotJsonTest {
                             "fradrag":[
                                 {
                                     "fradragstype":"Arbeidsinntekt",
-                                    "totaltFradrag":155.9,
+                                    "månedsbeløp":155.9,
                                     "utenlandskInntekt": {
                                         "beløpIUtenlandskValuta": 12345,
                                         "valuta": "Simoleons",
@@ -481,7 +481,7 @@ internal class VedtakssnapshotJsonTest {
                     "fradrag":[
                       {
                         "fradragstype":"Arbeidsinntekt",
-                        "totaltFradrag":155.9,
+                        "månedsbeløp":155.9,
                         "utenlandskInntekt":{
                             "beløpIUtenlandskValuta": 12345,
                             "valuta": "Simoleons",

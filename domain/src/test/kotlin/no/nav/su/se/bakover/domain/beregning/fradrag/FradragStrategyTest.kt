@@ -109,7 +109,7 @@ internal fun lagFradrag(
     tilhører: FradragTilhører = FradragTilhører.BRUKER
 ) = FradragFactory.ny(
     type = type,
-    beløp = beløp,
+    månedsbeløp = beløp,
     periode = periode,
     utenlandskInntekt = null,
     tilhører = tilhører
@@ -122,7 +122,7 @@ internal fun lagPeriodisertFradrag(
     tilhører: FradragTilhører = FradragTilhører.BRUKER
 ) = PeriodisertFradrag(
     type = type,
-    beløp = beløp,
+    månedsbeløp = beløp,
     periode = periode,
     utenlandskInntekt = null,
     tilhører = tilhører

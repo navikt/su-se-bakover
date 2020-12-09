@@ -28,7 +28,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -48,8 +48,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 IkkePeriodisertFradrag(
-                    type = Fradragstype.ForventetInntekt,
-                    beløp = 1000.0,
+                    type = Fradragstype.ForventetInntekt, månedsbeløp = 1000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -70,13 +69,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 500.0,
+                    månedsbeløp = 500.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = 6000.0,
+                    månedsbeløp = 6000.0,
                     periode = Periode(1.juni(2020), 30.juni(2020)),
                     tilhører = FradragTilhører.BRUKER
                 ),
@@ -97,13 +96,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 500.0,
+                    månedsbeløp = 500.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
-                    beløp = 6000.0,
+                    månedsbeløp = 6000.0,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -143,7 +142,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 20426.42,
+                    månedsbeløp = 20426.42,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -163,7 +162,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = Periode(1.januar(2020), 31.mars(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -187,13 +186,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = totaltFradrag,
+                    månedsbeløp = totaltFradrag,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -224,13 +223,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = totaltFradrag,
+                    månedsbeløp = totaltFradrag,
                     periode = Periode(1.januar(2020), 31.januar(2020)),
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -244,13 +243,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = totaltFradrag,
+                    månedsbeløp = totaltFradrag,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )

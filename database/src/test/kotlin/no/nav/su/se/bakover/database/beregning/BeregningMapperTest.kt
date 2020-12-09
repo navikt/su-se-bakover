@@ -1,10 +1,15 @@
 package no.nav.su.se.bakover.database.beregning
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -43,7 +48,7 @@ internal class BeregningMapperTest {
                   "fradrag": [
                     {
                       "fradragstype": "ForventetInntekt",
-                      "totaltFradrag": 12000.0,
+                      "månedsbeløp": 12000.0,
                       "utenlandskInntekt": null,
                       "periode": {
                         "fraOgMed": "2020-01-01",
@@ -63,7 +68,7 @@ internal class BeregningMapperTest {
               "fradrag": [
                 {
                   "fradragstype": "ForventetInntekt",
-                  "totaltFradrag": 12000.0,
+                  "månedsbeløp": 12000.0,
                   "utenlandskInntekt": null,
                   "periode": {
                     "fraOgMed": "2020-01-01",
@@ -85,12 +90,38 @@ internal class BeregningMapperTest {
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
     }
+
+    @Test
+    fun `kan deserialisere fradrag ved hjelp av alias for månedsbeløp`() {
+        //language=json
+        val json = """
+            {
+                  "fradragstype": "ForventetInntekt",
+                  "totaltFradrag": 12000.0,
+                  "utenlandskInntekt": null,
+                  "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-01-31",
+                    "antallMåneder": 1
+                  },
+                  "tilhører": "BRUKER"
+                }
+        """.trimIndent()
+
+        objectMapper.readValue<PersistertFradrag>(json) shouldBe PersistertFradrag(
+            fradragstype = Fradragstype.ForventetInntekt,
+            månedsbeløp = 12000.0,
+            utenlandskInntekt = null,
+            periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
+            tilhører = FradragTilhører.BRUKER
+        )
+    }
 }
 
 internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {
     mapped.getPeriode() shouldBe original.getPeriode()
     mapped.getUtenlandskInntekt() shouldBe original.getUtenlandskInntekt()
-    mapped.getTotaltFradrag() shouldBe original.getTotaltFradrag()
+    mapped.getMånedsbeløp() shouldBe original.getMånedsbeløp()
 }
 
 internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: Månedsberegning) {

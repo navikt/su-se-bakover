@@ -14,7 +14,7 @@ internal class IkkePeriodisertFradragTest {
         assertThrows<IllegalArgumentException> {
             FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = -5.0,
+                månedsbeløp = -5.0,
                 periode = Periode(1.januar(2020), 31.januar(2020)),
                 tilhører = FradragTilhører.BRUKER
             )
@@ -25,32 +25,32 @@ internal class IkkePeriodisertFradragTest {
     fun `summerer beløp for måned og total`() {
         val f1 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 12000.0,
+            månedsbeløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
-        f1.getTotaltFradrag() shouldBe 12000.0
+        f1.getMånedsbeløp() shouldBe 12000.0
 
         val f2 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 12000.0,
+            månedsbeløp = 12000.0,
             periode = Periode(1.januar(2020), 31.desember(2020)),
             tilhører = FradragTilhører.BRUKER
         )
-        f2.getTotaltFradrag() shouldBe 12000.0
+        f2.getMånedsbeløp() shouldBe 12000.0
     }
 
     @Test
     fun `periodisering av ikke periodisert fradrag for enkeltmåned er det samme som periodisert fradrag for samme måned`() {
         val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 12000.0,
+            månedsbeløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
         val periodisert = PeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 12000.0,
+            månedsbeløp = 12000.0,
             periode = Periode(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 object FradragFactory {
     fun ny(
         type: Fradragstype,
-        beløp: Double,
+        månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
         tilhører: FradragTilhører
@@ -13,7 +13,7 @@ object FradragFactory {
         return IkkePeriodisertFradrag(
             periode = periode,
             type = type,
-            beløp = beløp,
+            månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører
         )
@@ -23,7 +23,7 @@ object FradragFactory {
         fradrag.getPeriode().tilMånedsperioder().map {
             PeriodisertFradrag(
                 type = fradrag.getFradragstype(),
-                beløp = fradrag.getTotaltFradrag(),
+                månedsbeløp = fradrag.getMånedsbeløp(),
                 periode = it,
                 utenlandskInntekt = fradrag.getUtenlandskInntekt(),
                 tilhører = fradrag.getTilhører()

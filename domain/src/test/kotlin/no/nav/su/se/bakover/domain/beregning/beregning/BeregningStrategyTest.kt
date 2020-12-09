@@ -27,7 +27,7 @@ internal class BeregningStrategyTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
-                    beløp = 1500.0,
+                    månedsbeløp = 1500.0,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER

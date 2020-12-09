@@ -135,7 +135,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
 
         val expectedBeregnetEpsFradrag = lagPeriodisertFradrag(
             type = BeregnetFradragEPS,
-            beløp = (epsKapitalinntekt.getTotaltFradrag() + epsPrivatPensjon.getTotaltFradrag() - 18973.02),
+            beløp = (epsKapitalinntekt.getMånedsbeløp() + epsPrivatPensjon.getMånedsbeløp() - 18973.02),
             periode,
             tilhører = EPS
         )
@@ -162,7 +162,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumByDouble { it.getTotaltFradrag() } shouldBe arbeidsinntekt.getTotaltFradrag() }
+            it.values.forEach { it.sumByDouble { it.getMånedsbeløp() } shouldBe arbeidsinntekt.getMånedsbeløp() }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }

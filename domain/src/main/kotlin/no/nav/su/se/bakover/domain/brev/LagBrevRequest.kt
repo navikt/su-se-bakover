@@ -66,7 +66,7 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
                         .let {
                             BrevInnhold.Beregning.FradragForBruker(
                                 fradrag = it.toMånedsfradragPerType(),
-                                sum = it.sumByDouble { f -> f.getTotaltFradrag() }
+                                sum = it.sumByDouble { f -> f.getMånedsbeløp() }
                                     .roundToTwoDecimals(),
                                 harBruktForventetInntektIStedetForArbeidsinntekt = it
                                     .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
@@ -80,7 +80,7 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
                                 fradrag = it.toMånedsfradragPerType(),
                                 sum = førsteMånedsberegning.getFradrag()
                                     .filter { f -> f.getTilhører() == FradragTilhører.EPS }
-                                    .sumByDouble { f -> f.getTotaltFradrag() }
+                                    .sumByDouble { f -> f.getMånedsbeløp() }
                                     .roundToTwoDecimals()
                             )
                         }
@@ -111,7 +111,7 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfr
                         utenlandsk = fradrag[0].getUtenlandskInntekt() != null
                     ),
                 beløp = fradrag
-                    .sumByDouble { it.getTotaltFradrag() }
+                    .sumByDouble { it.getMånedsbeløp() }
                     .roundToTwoDecimals(),
                 utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )

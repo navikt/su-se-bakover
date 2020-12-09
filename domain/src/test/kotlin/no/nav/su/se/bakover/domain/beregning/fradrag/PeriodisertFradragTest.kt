@@ -12,7 +12,7 @@ internal class PeriodisertFradragTest {
         assertThrows<IllegalArgumentException> {
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = 2000.0,
+                månedsbeløp = 2000.0,
                 periode = Periode(1.januar(2020), 30.april(2002)),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
