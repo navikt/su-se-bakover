@@ -23,7 +23,7 @@ object FradragFactory {
         fradrag.getPeriode().tilMånedsperioder().map {
             PeriodisertFradrag(
                 type = fradrag.getFradragstype(),
-                beløp = fradrag.getTotaltFradrag() / fradrag.getPeriode().getAntallMåneder(),
+                beløp = fradrag.getTotaltFradrag(),
                 periode = it,
                 utenlandskInntekt = fradrag.getUtenlandskInntekt(),
                 tilhører = fradrag.getTilhører()

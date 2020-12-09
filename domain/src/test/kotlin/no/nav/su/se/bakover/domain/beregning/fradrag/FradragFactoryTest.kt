@@ -37,25 +37,25 @@ internal class FradragFactoryTest {
         FradragFactory.periodiser(f1) shouldBe listOf(
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = 3000.0,
+                beløp = 12000.0,
                 periode = Periode(1.januar(2020), 31.januar(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = 3000.0,
+                beløp = 12000.0,
                 periode = Periode(1.februar(2020), 29.februar(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = 3000.0,
+                beløp = 12000.0,
                 periode = Periode(1.mars(2020), 31.mars(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
-                beløp = 3000.0,
+                beløp = 12000.0,
                 periode = Periode(1.april(2020), 30.april(2020)),
                 tilhører = FradragTilhører.BRUKER
             )

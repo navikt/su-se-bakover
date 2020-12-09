@@ -394,7 +394,7 @@ internal class BehandlingTest {
                 tilOgMed = 31.desember(2020),
             )
 
-            val inntektSomGirMinstebeløp = Sats.HØY.årsbeløp(periode.getFraOgMed()) * 0.98
+            val inntektSomGirMinstebeløp = Sats.HØY.månedsbeløp(periode.getFraOgMed()) * 0.98
 
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,

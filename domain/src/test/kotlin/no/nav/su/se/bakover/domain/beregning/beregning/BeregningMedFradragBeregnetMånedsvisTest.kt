@@ -49,7 +49,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 12000.0,
+                    beløp = 1000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -70,7 +70,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 6000.0,
+                    beløp = 500.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
@@ -97,7 +97,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 6000.0,
+                    beløp = 500.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 ),
@@ -143,7 +143,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 245117.0,
+                    beløp = 20426.42,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -201,7 +201,9 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = Sats.HØY.månedsbeløp(periodeMedFradrag.getFraOgMed()) - Sats.toProsentAvHøy(periodeMedFradrag),
+                    beløp = Sats.HØY.månedsbeløp(periodeMedFradrag.getFraOgMed()) - Sats.toProsentAvHøy(
+                        periodeMedFradrag
+                    ),
                     periode = periodeMedFradrag,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -213,9 +215,8 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     }
 
     /**
-     * Justerer beløpsgrensen i forhold til antall måneder som beregnes.
      * Månedsbeløp: Jan-Mar = 20637.32 -> * 0.02 = 412,7464
-     * Beløpsgrense regnet måned for måned: (412,7464 * 3) = 1238,2392 -> rund til nærmeste hele = 1238
+     * Beløpsgrense regnet måned for måned: (412,7464 * 3) = 1238,2392
      */
     @Test
     fun `sum under minstebeløp for utbetaling (2 prosent av høy sats) for færre enn 12 måneder`() {
@@ -226,7 +227,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradrag = listOf(
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 60700.0,
+                    beløp = 20233.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -235,8 +236,8 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         )
 
         beregning.getSumYtelse() shouldBe 1212
-        beregning.getSumFradrag() shouldBe 60700
-        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 61912
+        beregning.getSumFradrag() shouldBe 60699.0
+        (beregning.getSumYtelse() + beregning.getSumFradrag()) shouldBe 61911
         beregning.getSumYtelseErUnderMinstebeløp() shouldBe true
     }
 

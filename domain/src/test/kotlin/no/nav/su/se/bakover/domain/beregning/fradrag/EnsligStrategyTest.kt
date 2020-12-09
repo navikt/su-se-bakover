@@ -16,9 +16,9 @@ internal class EnsligStrategyTest {
     @Test
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 24000.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 6000.0, periode)
-        val forventetInntekt = lagFradrag(ForventetInntekt, 6000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
+        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 500.0, periode)
 
         val expectedArbeidsinntekt =
             lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -30,12 +30,10 @@ internal class EnsligStrategyTest {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll (
-                listOf(
-                    expectedArbeidsinntekt,
-                    expectedKontantstøtte
-                )
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                expectedArbeidsinntekt,
+                expectedKontantstøtte
+            )
             it.values.forEach { it.none { it.getFradragstype() == ForventetInntekt } }
         }
     }
@@ -43,9 +41,9 @@ internal class EnsligStrategyTest {
     @Test
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
         val periode = Periode(1.januar(2020), 31.desember(2020))
-        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 6000.0, periode)
-        val kontantstøtte = lagFradrag(Kontantstøtte, 6000.0, periode)
-        val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, periode)
+        val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 500.0, periode)
+        val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
+        val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
 
         val expectedForventetInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -57,12 +55,10 @@ internal class EnsligStrategyTest {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll (
-                listOf(
-                    expectedForventetInntekt,
-                    expectedKontantstøtte
-                )
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+                expectedForventetInntekt,
+                expectedKontantstøtte
+            )
             it.values.forEach { it.none { it.getFradragstype() == Arbeidsinntekt } }
         }
     }
@@ -86,7 +82,7 @@ internal class EnsligStrategyTest {
     fun `varierer bruk av arbeidsinntekt og forventet inntekt for forskjellige måneder`() {
         val arbeidsinntektJanuar = lagFradrag(Arbeidsinntekt, 6000.0, Periode(1.januar(2020), 31.januar(2020)))
         val arbeidsinntektJuni = lagFradrag(Arbeidsinntekt, 1000.0, Periode(1.juni(2020), 30.juni(2020)))
-        val forventetInntekt = lagFradrag(ForventetInntekt, 24000.0, Periode(1.januar(2020), 31.desember(2020)))
+        val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.desember(2020)))
 
         val expectedInntektJanuar =
             lagPeriodisertFradrag(Arbeidsinntekt, 6000.0, Periode(1.januar(2020), 31.januar(2020)))
@@ -97,12 +93,8 @@ internal class EnsligStrategyTest {
             fradrag = listOf(arbeidsinntektJanuar, forventetInntekt, arbeidsinntektJuni),
             beregningsperiode = Periode(1.januar(2020), 31.desember(2020))
         ).let {
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldBe (
-                listOf(expectedInntektJanuar)
-                )
-            it[Periode(1.juni(2020), 30.juni(2020))]!! shouldBe (
-                listOf(expectedInntektJuni)
-                )
+            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldBe (listOf(expectedInntektJanuar))
+            it[Periode(1.juni(2020), 30.juni(2020))]!! shouldBe (listOf(expectedInntektJuni))
             it.values.forEach { it shouldHaveSize 1 }
         }
     }
