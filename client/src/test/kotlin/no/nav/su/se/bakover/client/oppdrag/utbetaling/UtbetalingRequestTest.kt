@@ -124,38 +124,6 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger simulering request til bruker som allerede har fått penger`() {
         val eksisterendeOppdragslinjeId = UUID30.randomUUID()
-//        val eksisterendeUtbetalinger = listOf(
-//                Utbetaling.OversendtUtbetaling.MedKvittering(
-//                    saksnummer = saksnummer,
-//                    utbetalingsrequest = Utbetalingsrequest(
-//                        value = ""
-//                    ),
-//                    simulering = Simulering(
-//                        gjelderId = FNR,
-//                        gjelderNavn = "",
-//                        datoBeregnet = idag(),
-//                        nettoBeløp = 0,
-//                        periodeList = listOf()
-//                    ),
-//                    kvittering = Kvittering(
-//                        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-//                        originalKvittering = "someFakeData",
-//                        mottattTidspunkt = Tidspunkt.EPOCH.plusSeconds(10)
-//                    ),
-//                    utbetalingslinjer = listOf(
-//                        Utbetalingslinje(
-//                            id = eksisterendeOppdragslinjeId,
-//                            fraOgMed = 1.januar(2019),
-//                            tilOgMed = 31.desember(2019),
-//                            beløp = BELØP,
-//                            forrigeUtbetalingslinjeId = null,
-//                        )
-//                    ),
-//                    fnr = FNR,
-//                    type = Utbetaling.UtbetalingsType.NY,
-//                    behandler = NavIdentBruker.Saksbehandler("Z123")
-//            )
-//        )
         val nyOppdragslinjeid1 = UUID30.randomUUID()
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
