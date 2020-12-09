@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
@@ -40,19 +39,9 @@ internal class UtbetalingsstrategiNyTest {
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(1234)
 
-    //    private lateinit var oppdrag: Oppdrag
     private val fnr = Fnr("12345678910")
 
     private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
-
-    @BeforeEach
-    fun beforeEach() {
-//        oppdrag = Oppdrag(
-//            id = UUID30.randomUUID(),
-//            opprettet = Tidspunkt.EPOCH,
-//            sakId = sakId
-//        )
-    }
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
@@ -65,14 +54,6 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             clock = fixedClock,
         ).generate()
-//        val actual = oppdrag.genererUtbetaling(
-//            Utbetalingsstrategi.Ny(
-//                NavIdentBruker.Saksbehandler("Z123"),
-//                createBeregning(1.januar(2020), 30.april(2020)),
-//                fixedClock
-//            ),
-//            fnr = fnr
-//        )
 
         val first = actual.utbetalingslinjer.first()
         actual shouldBe expectedUtbetaling(

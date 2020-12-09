@@ -318,13 +318,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
     //     verifyNoMoreInteractions(repoMock)
     // }
 
-//    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
-//        id = UUID30.randomUUID(),
-//        opprettet = Tidspunkt.now(),
-//        sakId = UUID.randomUUID(),
-//        utbetalinger = utbetalinger
-//    )
-
     private fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.UtenKvittering(
             sakId = sakId,
