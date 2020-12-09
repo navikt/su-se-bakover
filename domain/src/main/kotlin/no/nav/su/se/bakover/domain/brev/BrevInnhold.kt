@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -79,7 +80,8 @@ abstract class BrevInnhold {
 
     data class Månedsfradrag(
         val type: String,
-        val beløp: Double
+        val beløp: Double,
+        val utenlandskInntekt: UtenlandskInntekt?
     )
 }
 
