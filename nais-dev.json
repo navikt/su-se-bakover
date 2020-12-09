@@ -16,6 +16,13 @@
     "DOKDIST_URL": "http://dokdistfordeling.q2.svc.nais.local",
     "SIMULERING_URL": "https://cics-q1.adeo.no/oppdrag/simulerFpServiceWSBinding",
     "STS_URL_SOAP": "https://sts-q1.preprod.local/SecurityTokenServiceProvider/",
-    "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local"
+    "SKJERMING_URL": "https://skjermede-personer-pip.nais.preprod.local",
+    "MQ_QUEUE_MANAGER": "MQ1LSC02",
+    "MQ_PORT": 1413,
+    "MQ_HOSTNAME": "b27apvl176.preprod.local",
+    "MQ_CHANNEL": "Q1_SU_SE_BAKOVER",
+    "MQ_SEND_QUEUE_UTBETALING": "QA.Q1_231.OB04_OPPDRAG_XML",
+    "MQ_REPLY_TO": "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING",
+    "MQ_SEND_QUEUE_AVSTEMMING": "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1"
   }
 }

@@ -67,13 +67,13 @@ object Config {
         val simulering: Simulering = Simulering(),
     ) {
         data class Utbetaling internal constructor(
-            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
+            val mqSendQueue: String = env["MQ_SEND_QUEUE_UTBETALING"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
             val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
         )
 
         data class Avstemming internal constructor(
             /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
-            val mqSendQueue: String = env["MQ_SEND_QUEUE"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
+            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
         )
 
         data class Simulering internal constructor(
