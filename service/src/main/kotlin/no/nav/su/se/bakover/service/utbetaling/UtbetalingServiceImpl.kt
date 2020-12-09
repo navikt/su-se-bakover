@@ -54,14 +54,6 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
-//    private fun lagUtbetaling(
-//        sakId: UUID,
-//        strategy: Utbetalingsstrategi
-//    ): Utbetaling.UtbetalingForSimulering {
-//        val sak = sakService.hentSak(sakId).orNull()!!
-//        return strategy.generate(sak.fnr)
-//    }
-
     override fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
