@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -55,12 +56,23 @@ internal class BrevInnholdTest {
                     bruker = BrevInnhold.Beregning.FradragForBruker(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(),
-                                beløp = 10.0
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                                beløp = 10.0,
+                                utenlandskInntekt = null
                             ),
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon.toReadableTypeName(),
-                                beløp = 35.0
+                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                                beløp = 35.0,
+                                utenlandskInntekt = null
+                            ),
+                            BrevInnhold.Månedsfradrag(
+                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
+                                beløp = 70.0,
+                                utenlandskInntekt = UtenlandskInntekt(
+                                    beløpIUtenlandskValuta = 140,
+                                    valuta = "SEK",
+                                    kurs = 0.5
+                                )
                             )
                         ),
                         sum = 45.0,
@@ -69,12 +81,14 @@ internal class BrevInnholdTest {
                     eps = BrevInnhold.Beregning.FradragForEps(
                         fradrag = listOf(
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(),
-                                beløp = 20.0
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                                beløp = 20.0,
+                                utenlandskInntekt = null
                             ),
                             BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon.toReadableTypeName(),
-                                beløp = 70.0
+                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                                beløp = 70.0,
+                                utenlandskInntekt = null
                             )
                         ),
                         sum = 0.0
@@ -110,11 +124,22 @@ internal class BrevInnholdTest {
                             "fradrag": [
                                 {
                                     "type": "Arbeidsinntekt",
-                                    "beløp": 10.0
+                                    "beløp": 10.0,
+                                    "utenlandskInntekt": null
                                 },
                                 {
                                     "type": "Offentlig pensjon",
-                                    "beløp": 35.0
+                                    "beløp": 35.0,
+                                    "utenlandskInntekt": null
+                                },
+                                {
+                                    "type": "Offentlig pensjon — fra utlandet",
+                                    "beløp": 70.0,
+                                    "utenlandskInntekt": {
+                                        "beløpIUtenlandskValuta": 140,
+                                        "valuta": "SEK",
+                                        "kurs": 0.5
+                                    }
                                 }
                             ],
                             "sum": 45.0,
@@ -124,11 +149,13 @@ internal class BrevInnholdTest {
                             "fradrag": [
                                 {
                                     "type": "Arbeidsinntekt",
-                                    "beløp": 20.0
+                                    "beløp": 20.0,
+                                    "utenlandskInntekt": null
                                 },
                                 {
                                     "type": "Offentlig pensjon",
-                                    "beløp": 70.0
+                                    "beløp": 70.0,
+                                    "utenlandskInntekt": null
                                 }
                             ],
                             "sum": 0.0

@@ -68,9 +68,8 @@ fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
                                 fradrag = it.toMånedsfradragPerType(),
                                 sum = it.sumByDouble { f -> f.getTotaltFradrag() }
                                     .roundToTwoDecimals(),
-                                harBruktForventetInntektIStedetForArbeidsinntekt =
-                                it.any
-                                { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
+                                harBruktForventetInntektIStedetForArbeidsinntekt = it
+                                    .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
                             )
                         },
                     eps = beregning
@@ -96,21 +95,34 @@ fun LocalDate.formatMonthYear(): String =
 
 internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfradrag> =
     this
-        .groupBy { it.getFradragstype() }
-        .map { (type, fradrag) ->
+        .groupBy {
+            "${it.getFradragstype()}${
+            it.getUtenlandskInntekt()
+                ?.let { u ->
+                    "${u.valuta}${u.beløpIUtenlandskValuta}"
+                }
+            }"
+        }
+        .map { (_, fradrag) ->
             BrevInnhold.Månedsfradrag(
-                type = type.toReadableTypeName(),
+                type = fradrag[0]
+                    .getFradragstype()
+                    .toReadableTypeName(
+                        utenlandsk = fradrag[0].getUtenlandskInntekt() != null
+                    ),
                 beløp = fradrag
                     .sumByDouble { it.getTotaltFradrag() }
-                    .roundToTwoDecimals()
+                    .roundToTwoDecimals(),
+                utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )
         }
+        .sortedBy { it.type }
 
 fun Double.roundToTwoDecimals() =
     BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
         .toDouble()
 
-fun Fradragstype.toReadableTypeName() =
+fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
     when (this) {
         Fradragstype.NAVytelserTilLivsopphold ->
             "NAV-ytelser til livsopphold"
@@ -136,4 +148,10 @@ fun Fradragstype.toReadableTypeName() =
             "Forventet inntekt etter uførhet"
         Fradragstype.BeregnetFradragEPS ->
             "Utregnet fradrag for ektefelle/samboers inntekter"
+    }.let { fradragsnavn ->
+        if (utenlandsk) {
+            "$fradragsnavn — fra utlandet"
+        } else {
+            fradragsnavn
+        }
     }
