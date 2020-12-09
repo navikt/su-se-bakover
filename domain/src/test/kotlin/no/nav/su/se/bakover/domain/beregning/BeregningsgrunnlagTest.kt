@@ -19,7 +19,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
-                    beløp = 2000.0,
+                    månedsbeløp = 2000.0,
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -28,14 +28,14 @@ internal class BeregningsgrunnlagTest {
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.Kapitalinntekt,
-                beløp = 2000.0,
+                månedsbeløp = 2000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             ),
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
-                beløp = 10_000.0,
+                månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
@@ -52,7 +52,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
-                    beløp = 2000.0,
+                    månedsbeløp = 2000.0,
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -61,14 +61,14 @@ internal class BeregningsgrunnlagTest {
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.Kapitalinntekt,
-                beløp = 2000.0,
+                månedsbeløp = 2000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             ),
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
-                beløp = 10_000.0,
+                månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
@@ -86,7 +86,7 @@ internal class BeregningsgrunnlagTest {
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
-                beløp = 0.0,
+                månedsbeløp = 0.0,
                 periode = beregningsperiode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER

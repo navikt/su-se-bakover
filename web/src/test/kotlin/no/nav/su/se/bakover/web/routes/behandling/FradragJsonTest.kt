@@ -61,7 +61,7 @@ internal class FradragJsonTest {
     fun `bruker innsendt periode ved konvertering til fradrag`() {
         val expected = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
-            beløp = 10.0,
+            månedsbeløp = 10.0,
             periode = Periode(1.januar(2020), 31.januar(2020)),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER

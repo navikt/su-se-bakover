@@ -318,7 +318,7 @@ internal class OppdragNyStrategyTest {
         fradrag = listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
-                beløp = 0.0,
+                månedsbeløp = 0.0,
                 periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER

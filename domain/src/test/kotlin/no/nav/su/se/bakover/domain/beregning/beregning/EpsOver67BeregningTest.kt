@@ -46,21 +46,21 @@ internal class EpsOver67BeregningTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntektPrMnd,
+                    månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygdPrMnd,
+                    månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = epsFolketrygdPrMnd,
+                    månedsbeløp = epsFolketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS

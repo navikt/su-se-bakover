@@ -47,21 +47,21 @@ internal class EnsligBorMedVoksneBeregningTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntektPrMnd,
+                    månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygdPrMnd,
+                    månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = utenlandskInntektPrMnd,
+                    månedsbeløp = utenlandskInntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = UtenlandskInntekt(
                         beløpIUtenlandskValuta = 10,

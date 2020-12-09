@@ -48,35 +48,35 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
-                    beløp = arbeidsinntektPrMnd,
+                    månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = folketrygdPrMnd,
+                    månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
-                    beløp = 0.0,
+                    månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.OffentligPensjon,
-                    beløp = epsFolketrygdPrMnd,
+                    månedsbeløp = epsFolketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.PrivatPensjon,
-                    beløp = epsAnnenNorskPrMnd,
+                    månedsbeløp = epsAnnenNorskPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS

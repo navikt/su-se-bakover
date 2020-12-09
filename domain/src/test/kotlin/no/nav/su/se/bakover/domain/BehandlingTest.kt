@@ -327,7 +327,7 @@ internal class BehandlingTest {
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = 600000.0,
+                        månedsbeløp = 600000.0,
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
@@ -376,7 +376,7 @@ internal class BehandlingTest {
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = (maxUtbetaling2020 * 0.99),
+                        månedsbeløp = (maxUtbetaling2020 * 0.99),
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
@@ -403,7 +403,7 @@ internal class BehandlingTest {
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        beløp = inntektSomGirMinstebeløp,
+                        månedsbeløp = inntektSomGirMinstebeløp,
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
@@ -639,7 +639,7 @@ internal class BehandlingTest {
                     fradrag = listOf(
                         FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
-                            beløp = 1000000.0,
+                            månedsbeløp = 1000000.0,
                             periode = periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER
