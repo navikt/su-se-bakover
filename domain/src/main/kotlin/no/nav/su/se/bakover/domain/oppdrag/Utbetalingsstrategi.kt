@@ -14,46 +14,6 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
 import java.util.UUID
 
-// class Oppdrag(
-//    val id: UUID30,
-//    val opprettet: Tidspunkt,
-//    val sakId: UUID,
-//    private val utbetalinger: List<Utbetaling.OversendtUtbetaling> = emptyList()
-// ) {
-// private fun sisteOversendteUtbetaling(): Utbetaling? = hentOversendteUtbetalingerUtenFeil().lastOrNull()
-
-/**
- * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
- * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
- */
-//    fun hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-//        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
-//            .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
-
-//    private fun harOversendteUtbetalingerEtter(value: LocalDate) = hentOversendteUtbetalingerUtenFeil()
-//        .flatMap { it.utbetalingslinjer }
-//        .any {
-//            it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
-//        }
-
-// TODO: Returner Either istedet for å kaste?
-//    fun genererUtbetaling(strategy: UtbetalingStrategy, fnr: Fnr): Utbetaling.UtbetalingForSimulering =
-//        when (strategy) {
-//            is UtbetalingStrategy.Stans -> Strategy().Stans(
-//                behandler = strategy.behandler,
-//                clock = strategy.clock
-//            ).generate(fnr)
-//            is UtbetalingStrategy.Ny -> Strategy().Ny(
-//                behandler = strategy.behandler,
-//                beregning = strategy.beregning,
-//                clock = strategy.clock
-//            ).generate(fnr)
-//            is UtbetalingStrategy.Gjenoppta -> Strategy().Gjenoppta(
-//                behandler = strategy.behandler,
-//                clock = strategy.clock
-//            ).generate(fnr)
-//        }
-
 sealed class Utbetalingsstrategi {
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
