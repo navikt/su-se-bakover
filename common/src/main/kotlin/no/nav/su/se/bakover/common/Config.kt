@@ -22,12 +22,10 @@ object Config {
     val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "d75164fa-39e6-4149-956e-8404bc9080b6"
     val azureGroupSaksbehandler = env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d"
     val azureGroupVeileder = env["AZURE_GROUP_VEILEDER"] ?: "062d4814-8538-4f3a-bcb9-32821af7909a"
-    val suInntektAzureClientId = env["SU_INNTEKT_AZURE_CLIENT_ID"] ?: "9cd61904-33ad-40e8-9cc8-19e4dab588c5"
     val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
-    val suInntektUrl = env["SU_INNTEKT_URL"] ?: "http://su-inntekt.default.svc.nais.local"
     val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.default.svc.nais.local"
     val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
     val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.default.svc.nais.local"
@@ -50,7 +48,7 @@ object Config {
     val fnrForPersonMedSkjerming = env["DEV_FNR_WITH_SKJERMING"]
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
-    val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
+    private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
 

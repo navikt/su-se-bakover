@@ -49,7 +49,7 @@ allprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.3")
         implementation("net.logstash.logback:logstash-logback-encoder:6.5")
-        implementation("io.github.cdimascio:java-dotenv:5.2.2")
+        implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
