@@ -14,6 +14,5 @@ interface Beregning : PeriodisertInformasjon {
     fun getFradrag(): List<Fradrag>
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
-    fun getSumYtelseErUnderMinstebeløp(): Boolean
     fun getFradragStrategyName(): FradragStrategyName
 }
