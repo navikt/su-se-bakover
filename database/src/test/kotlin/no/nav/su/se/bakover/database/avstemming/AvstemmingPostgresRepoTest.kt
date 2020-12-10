@@ -91,12 +91,12 @@ internal class AvstemmingPostgresRepoTest {
             EmbeddedDatabase.instance().withSession { session ->
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
-                    values (:id, :opprettet, :oppdragId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
+                    values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to Tidspunkt.now(),
-                        "sakId" to sak.id.toString(),
+                        "sakId" to sak.id,
                         "fnr" to sak.fnr,
                         "type" to "NY",
                         "behandler" to "Z123",

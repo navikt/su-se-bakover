@@ -12,7 +12,7 @@ truncate
 
 alter table vedtakssnapshot
     add column if not exists
-        behandlingId uuid
+        behandlingId uuid not null
             references behandling (id);
 
 alter table utbetaling
@@ -20,7 +20,7 @@ alter table utbetaling
 
 alter table utbetaling
     add column if not exists
-        sakId uuid
+        sakId uuid not null
             references sak (id);
 
 drop table if exists oppdrag;

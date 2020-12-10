@@ -12,11 +12,12 @@ class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotR
         val json = vedtakssnapshot.toJson()
         dataSource.withSession { session ->
             """
-            insert into vedtakssnapshot(id,opprettet,vedtakstype,json) values (:id,:opprettet,:vedtakstype, to_json(:vedtak::json))
+            insert into vedtakssnapshot(id, opprettet, behandlingId, vedtakstype, json) values (:id, :opprettet, :behandlingId, :vedtakstype, to_json(:vedtak::json))
         """.oppdatering(
                 mapOf(
                     "id" to vedtakssnapshot.id,
                     "opprettet" to vedtakssnapshot.opprettet,
+                    "behandlingId" to vedtakssnapshot.behandling.id,
                     "vedtakstype" to json.type,
                     "vedtak" to objectMapper.writeValueAsString(json)
                 ),
