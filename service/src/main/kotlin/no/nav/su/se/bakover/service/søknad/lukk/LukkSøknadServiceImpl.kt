@@ -144,9 +144,10 @@ internal class LukkSøknadServiceImpl(
         søknad: Søknad
     ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
+        val sak = hentSak(søknad.sakId)
         return brevService.journalførBrev(
             request = lagBrevRequest(person, lukketSøknad, request),
-            sakId = søknad.sakId
+            saksnummer = sak.saksnummer
         ).mapLeft {
             log.error("Kunne ikke lukke søknad ${søknad.id} fordi journalføring feilet")
             return KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left()

@@ -21,7 +21,6 @@ internal data class PersistertBeregning(
     private val fradrag: List<PersistertFradrag>,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    private val sumYtelseErUnderMinstebeløp: Boolean,
     private val periode: Periode,
     private val fradragStrategyName: FradragStrategyName
 ) : Beregning {
@@ -32,7 +31,6 @@ internal data class PersistertBeregning(
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
-    override fun getSumYtelseErUnderMinstebeløp(): Boolean = sumYtelseErUnderMinstebeløp
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
 
     override fun getPeriode(): Periode = periode
@@ -80,7 +78,6 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     fradrag = getFradrag().map { it.toSnapshot() },
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
-    sumYtelseErUnderMinstebeløp = getSumYtelseErUnderMinstebeløp(),
     periode = getPeriode(),
     fradragStrategyName = getFradragStrategyName()
 )

@@ -208,6 +208,7 @@ internal class LukkSøknadServiceImplTest {
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -219,7 +220,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe saksnummer }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -340,6 +341,7 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe AvvistSøknadBrevRequest(
@@ -347,7 +349,7 @@ internal class LukkSøknadServiceImplTest {
                         BrevConfig.Fritekst("Fritekst")
                     )
                 },
-                argThat { it shouldBe nySøknad.sakId }
+                argThat { it shouldBe saksnummer }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -710,6 +712,7 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -722,7 +725,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                argThat { it shouldBe nySøknad.sakId }
+                argThat { it shouldBe saksnummer }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -787,6 +790,7 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknad.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -797,8 +801,8 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat {
-                    it shouldBe søknad.sakId
+                saksnummer = argThat {
+                    it shouldBe saksnummer
                 }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
@@ -853,6 +857,7 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -861,8 +866,8 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020),
                     )
                 },
-                sakId = argThat {
-                    it shouldBe nySøknad.sakId
+                saksnummer = argThat {
+                    it shouldBe saksnummer
                 }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
@@ -917,6 +922,7 @@ internal class LukkSøknadServiceImplTest {
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -928,7 +934,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020),
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe saksnummer }
             )
             verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
             verify(søknadRepoMock).oppdaterSøknad(
@@ -954,7 +960,9 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService>()
+        val sakServiceMock = mock<SakService>() {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
         }
@@ -980,6 +988,7 @@ internal class LukkSøknadServiceImplTest {
             verify(personOppslagMock).person(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
+            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
                 request = argThat {
                     it shouldBe TrukketSøknadBrevRequest(
@@ -991,7 +1000,7 @@ internal class LukkSøknadServiceImplTest {
                         trukketDato = 1.januar(2020)
                     )
                 },
-                sakId = argThat { it shouldBe journalførtSøknadMedOppgave.sakId }
+                saksnummer = argThat { it shouldBe sak.saksnummer }
             )
         }
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)

@@ -381,7 +381,6 @@ internal class VedtakssnapshotJsonTest {
                     fradrag = fradrag,
                     sumYtelse = 3,
                     sumFradrag = 2.1,
-                    sumYtelseErUnderMinstebeløp = false,
                     periode = beregningsPeriode,
                     fradragStrategyName = Enslig,
                 ),
@@ -503,7 +502,6 @@ internal class VedtakssnapshotJsonTest {
                     ],
                     "sumYtelse":3,
                     "sumFradrag":2.1,
-                    "sumYtelseErUnderMinstebeløp":false,
                     "periode":{
                         "fraOgMed":"1970-01-01",
                         "tilOgMed":"1970-01-31",
