@@ -163,7 +163,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     }
 
     @Test
-    fun `sum ytelse vurders før minstegrense`() {
+    fun `sum ytelse vurderes før minstegrense`() {
         val januar = mock<Månedsberegning> {
             on { getPeriode() } doReturn Periode(1.januar(2020), 31.januar(2020))
             on { getSumYtelse() } doReturn 250
