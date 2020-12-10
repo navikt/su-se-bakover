@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.UUID30
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -77,7 +77,7 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.NY
         )
 
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Stans(
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -105,7 +105,7 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.STANS
         )
 
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Stans(
                 sakId = sakId,
                 saksnummer = saksnummer,

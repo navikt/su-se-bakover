@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
@@ -18,7 +21,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class UtbetalingsstrategiGjenopptaTest {
@@ -87,7 +89,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Gjenoppta(
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -95,9 +97,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 utbetalinger = emptyList(),
                 behandler = attestant
             ).generate()
-        }.also {
-            it.message shouldContain "Ingen oversendte utbetalinger"
-        }
+        }.message shouldContain "Ingen oversendte utbetalinger"
     }
 
     @Test
@@ -144,7 +144,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje(
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
-                    forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
+                    forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
                     beløp = 5100
                 )
             ),
@@ -193,12 +193,63 @@ internal class UtbetalingsstrategiGjenopptaTest {
             type = Utbetaling.UtbetalingsType.NY
         )
 
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Gjenoppta(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalinger = listOf(første),
+                behandler = attestant
+            ).generate()
+        }.also {
+            it.message shouldContain "Fant ingen utbetalinger som kan gjenopptas"
+        }
+    }
+
+    @Test
+    fun `kan ikke gjenoppta utbetalinger hvis siste ikke er stanset`() {
+        val første = createOversendtUtbetaling(
+            listOf(
+                Utbetalingslinje(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.juli(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 1500
+                )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
+        )
+
+        val andre = createOversendtUtbetaling(
+            listOf(
+                Utbetalingslinje(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.juli(2020),
+                    forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
+                    beløp = 1500
+                )
+            ),
+            type = Utbetaling.UtbetalingsType.STANS
+        )
+
+        val tredje = createOversendtUtbetaling(
+            listOf(
+                Utbetalingslinje(
+                    fraOgMed = 1.august(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
+                    beløp = 1500
+                )
+            ),
+            type = Utbetaling.UtbetalingsType.NY
+        )
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Gjenoppta(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(første, andre, tredje),
                 behandler = attestant
             ).generate()
         }.also {
@@ -257,66 +308,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
             )
         }
     }
-
-    // TODO consider for test - moved from gjenoppta utbetaling service
-    //
-    // @Test
-    // fun `Har ingen oversendte utbetalinger`() {
-    //     val setup = Setup()
-    //
-    //     val sak = setup.eksisterendeSak.copy(
-    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
-    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger()
-    //                 .map { Utbetaling.Ny(utbetalingslinjer = emptyList(), fnr = setup.fnr) }.toMutableList()
-    //         )
-    //     )
-    //     val repoMock = mock<SakService> {
-    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
-    //     }
-    //
-    //     val service = StartUtbetalingerService(
-    //         utbetalingPublisher = mock(),
-    //         utbetalingService = mock(),
-    //         sakService = repoMock,
-    //         clock = setup.clock
-    //     )
-    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
-    //
-    //     actualResponse shouldBe StartUtbetalingFeilet.HarIngenOversendteUtbetalinger.left()
-    //
-    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
-    //     verifyNoMoreInteractions(repoMock)
-    // }
-    //
-    // @Test
-    // fun `Siste utbetaling er ikke en stansutbetaling`() {
-    //     val setup = Setup()
-    //
-    //     val sak = setup.eksisterendeSak.copy(
-    //         oppdrag = setup.eksisterendeSak.oppdrag.copy(
-    //             utbetalinger = setup.eksisterendeSak.oppdrag.hentUtbetalinger().toMutableList().also {
-    //                 it.removeLast()
-    //             }
-    //         )
-    //     )
-    //     val repoMock = mock<SakService> {
-    //         on { hentSak(argThat<UUID> { it shouldBe setup.sakId }) } doReturn sak.right()
-    //     }
-    //
-    //     val service = StartUtbetalingerService(
-    //         utbetalingPublisher = mock(),
-    //         utbetalingService = mock(),
-    //         sakService = repoMock,
-    //         clock = setup.clock
-    //     )
-    //     val actualResponse = service.startUtbetalinger(sakId = setup.sakId)
-    //
-    //     actualResponse shouldBe StartUtbetalingFeilet.SisteUtbetalingErIkkeEnStansutbetaling.left()
-    //
-    //     verify(repoMock, Times(1)).hentSak(any<UUID>())
-    //
-    //     verifyNoMoreInteractions(repoMock)
-    // }
 
     private fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.UtenKvittering(
