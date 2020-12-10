@@ -10,7 +10,6 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -23,6 +22,8 @@ import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.avstemmingsnøkkelIXml
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
 import org.junit.jupiter.api.Test
@@ -54,6 +55,8 @@ internal class UtbetalingKvitteringConsumerTest {
     fun `should add kvittering`() {
 
         val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+            sakId = sakId,
+            saksnummer = saksnummer,
             utbetalingslinjer = emptyList(),
             fnr = FnrGenerator.random(),
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -65,7 +68,6 @@ internal class UtbetalingKvitteringConsumerTest {
                 periodeList = listOf()
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Attestant("Z123")
         )
         val xmlMessage = kvitteringXml()

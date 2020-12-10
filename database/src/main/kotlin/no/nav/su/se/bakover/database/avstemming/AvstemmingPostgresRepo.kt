@@ -76,9 +76,9 @@ internal class AvstemmingPostgresRepo(
         tilOgMed: Tidspunkt
     ): List<Utbetaling.OversendtUtbetaling> =
         dataSource.withSession { session ->
-            val fraOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
-            val tilOgMedCondition = """(avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
-            """select * from utbetaling where $fraOgMedCondition and $tilOgMedCondition"""
+            val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
+            val tilOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
+            """select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
                 .hentListe(
                     mapOf(
                         "fom" to fraOgMed,

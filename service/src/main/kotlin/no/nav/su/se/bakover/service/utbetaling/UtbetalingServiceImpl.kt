@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -32,6 +32,7 @@ internal class UtbetalingServiceImpl(
     private val utbetalingPublisher: UtbetalingPublisher,
     private val clock: Clock = Clock.systemUTC()
 ) : UtbetalingService {
+
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {
@@ -51,14 +52,6 @@ internal class UtbetalingServiceImpl(
                     utbetalingRepo.oppdaterMedKvittering(it.id, kvittering)
                 }.right()
             } ?: FantIkkeUtbetaling.left()
-    }
-
-    private fun lagUtbetaling(
-        sakId: UUID,
-        strategy: Oppdrag.UtbetalingStrategy
-    ): Utbetaling.UtbetalingForSimulering {
-        val sak = sakService.hentSak(sakId).orNull()!!
-        return sak.oppdrag.genererUtbetaling(strategy, sak.fnr)
     }
 
     override fun utbetal(
@@ -105,14 +98,17 @@ internal class UtbetalingServiceImpl(
         saksbehandler: NavIdentBruker,
         beregning: Beregning
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        val sak: Sak = sakService.hentSak(sakId).orNull()!!
         return simulerUtbetaling(
-            lagUtbetaling(
-                sakId = sakId,
-                strategy = Oppdrag.UtbetalingStrategy.Ny(
-                    behandler = saksbehandler,
-                    beregning = beregning
-                ),
-            )
+            Utbetalingsstrategi.Ny(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+            ).generate()
         )
     }
 
@@ -140,7 +136,14 @@ internal class UtbetalingServiceImpl(
             return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
         }
         val utbetalingTilSimulering =
-            sak.oppdrag.genererUtbetaling(Oppdrag.UtbetalingStrategy.Stans(saksbehandler), sak.fnr)
+            Utbetalingsstrategi.Stans(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = saksbehandler,
+                clock = clock,
+            ).generate()
         return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
             KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
         }.flatMap {
@@ -169,7 +172,14 @@ internal class UtbetalingServiceImpl(
             return KunneIkkeGjenopptaUtbetalinger.FantIkkeSak.left()
         }
         val utbetalingTilSimulering =
-            sak.oppdrag.genererUtbetaling(Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler), sak.fnr)
+            Utbetalingsstrategi.Gjenoppta(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = saksbehandler,
+                clock = clock,
+            ).generate()
 
         return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
             KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet

@@ -13,7 +13,7 @@ class UtbetalingMqPublisher(
 ) : UtbetalingPublisher {
 
     override fun publish(
-        utbetaling: Utbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
         val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
         return mqPublisher.publish(xml)

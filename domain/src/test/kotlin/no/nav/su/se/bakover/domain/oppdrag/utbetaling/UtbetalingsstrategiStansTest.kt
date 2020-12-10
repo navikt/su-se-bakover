@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
@@ -12,16 +12,14 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag.UtbetalingStrategy.Stans
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingStrategyException
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -31,6 +29,8 @@ internal class OppdragStansTest {
 
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private val fnr = Fnr("12345678910")
+    private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(1234)
 
     @Test
     fun `stans av utbetaling`() {
@@ -46,13 +46,14 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.NY
         )
 
-        val stans = createOppdrag(listOf(utbetaling)).genererUtbetaling(
-            Stans(
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock
-            ),
-            fnr = fnr
-        )
+        val stans = Utbetalingsstrategi.Stans(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = listOf(utbetaling),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            clock = fixedClock
+        ).generate()
 
         stans.utbetalingslinjer[0].assert(
             fraOgMed = 1.juli(2020),
@@ -76,14 +77,15 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.NY
         )
 
-        assertThrows<UtbetalingStrategyException> {
-            createOppdrag(listOf(utbetaling)).genererUtbetaling(
-                Stans(
-                    behandler = NavIdentBruker.Saksbehandler("Z123"),
-                    clock = fixedClock
-                ),
-                fnr = fnr
-            )
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock
+            ).generate()
         }.also {
             it.message shouldContain "${1.juli(2020)}"
         }
@@ -103,28 +105,24 @@ internal class OppdragStansTest {
             type = Utbetaling.UtbetalingsType.STANS
         )
 
-        assertThrows<UtbetalingStrategyException> {
-            createOppdrag(listOf(utbetaling)).genererUtbetaling(
-                Stans(
-                    behandler = NavIdentBruker.Saksbehandler("Z123"),
-                    clock = fixedClock
-                ),
-                fnr = fnr
-            )
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock
+            ).generate()
         }.also {
             it.message shouldContain "allerede er stanset"
         }
     }
 
-    private fun createOppdrag(utbetalinger: List<Utbetaling.OversendtUtbetaling>) = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = UUID.randomUUID(),
-        utbetalinger = utbetalinger
-    )
-
     private fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.MedKvittering(
+            sakId = sakId,
+            saksnummer = saksnummer,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -139,7 +137,6 @@ internal class OppdragStansTest {
             utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
             type = type,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 }

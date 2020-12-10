@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -47,7 +46,6 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -90,11 +88,7 @@ internal class SøknadRoutesKtTest {
         saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
         fnr = FnrGenerator.random(),
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = tidspunkt,
-            sakId = sakId
-        )
+        utbetalinger = emptyList()
     )
     private val søknadId = UUID.randomUUID()
 
@@ -109,7 +103,6 @@ internal class SøknadRoutesKtTest {
     private val mockServices = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),

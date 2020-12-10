@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -45,8 +44,6 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.oppdrag.FantIkkeOppdrag
-import no.nav.su.se.bakover.service.oppdrag.OppdragService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -69,6 +66,8 @@ class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val clients: Clients
 ) {
+    private val brenteFnrIOppdragPreprodValidator = BrenteFnrIOppdragPreprodValidator()
+
     fun proxy(services: Services): Services {
         return Services(
             avstemming = object : AvstemmingService {
@@ -132,13 +131,6 @@ class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
 
                     return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
-                }
-            },
-            oppdrag = object : OppdragService {
-                override fun hentOppdrag(sakId: UUID): Either<FantIkkeOppdrag, Oppdrag> {
-                    assertHarTilgangTilSak(sakId)
-
-                    return services.oppdrag.hentOppdrag(sakId)
                 }
             },
             behandling = object : BehandlingService {
@@ -314,6 +306,7 @@ class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
+        brenteFnrIOppdragPreprodValidator.assertUbrentFødselsnummerIOppdragPreprod(fnr)
         clients.personOppslag.person(fnr)
             .getOrHandle {
                 throw Tilgangssjekkfeil(it, fnr)

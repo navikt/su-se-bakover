@@ -9,8 +9,10 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
@@ -18,8 +20,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -31,19 +33,84 @@ import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
 
+    private val tidspunkt = 15.juni(2020).startOfDay()
+    private val fnr = Fnr("12345678910")
+    private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(1234)
+    private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
+    private val avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
+
+    private val simulering = Simulering(
+        gjelderId = fnr,
+        gjelderNavn = "navn",
+        datoBeregnet = idag(),
+        nettoBeløp = 13,
+        periodeList = listOf()
+    )
+
+    private val oppdragsmelding = Utbetalingsrequest("<xml></xml>")
+
+    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
+        id = UUID30.randomUUID(),
+        opprettet = tidspunkt,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = listOf(),
+        type = Utbetaling.UtbetalingsType.GJENOPPTA,
+        behandler = saksbehandler,
+        avstemmingsnøkkel = avstemmingsnøkkel
+    )
+
+    private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
+
+    private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
+
+    private val førsteUtbetalingslinjeId = UUID30.randomUUID()
+
+    private val førsteUtbetalingslinje = Utbetalingslinje(
+        id = førsteUtbetalingslinjeId,
+        opprettet = Tidspunkt.EPOCH,
+        fraOgMed = 1.januar(2020),
+        tilOgMed = 31.januar(2020),
+        forrigeUtbetalingslinjeId = null,
+        beløp = 5
+    )
+    private val andreUtbetalingslinjeId = UUID30.randomUUID()
+    private val sak: Sak = Sak(
+        id = sakId,
+        saksnummer = saksnummer,
+        opprettet = tidspunkt,
+        fnr = fnr,
+        utbetalinger = listOf(
+            oversendtUtbetaling.copy(
+                type = Utbetaling.UtbetalingsType.NY,
+                utbetalingslinjer = listOf(
+                    førsteUtbetalingslinje
+                )
+            ),
+            oversendtUtbetaling.copy(
+                type = Utbetaling.UtbetalingsType.STANS,
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje(
+                        id = andreUtbetalingslinjeId,
+                        opprettet = Tidspunkt.EPOCH,
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                        forrigeUtbetalingslinjeId = førsteUtbetalingslinjeId,
+                        beløp = 0
+                    )
+                )
+            )
+        )
+    )
+
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
-
-        val oppdragMock = mock<Oppdrag> {
-            on { genererUtbetaling(any(), any()) } doReturn utbetalingForSimulering
-        }
-        val sak = sak.copy(oppdrag = oppdragMock)
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -65,17 +132,16 @@ internal class GjenopptaUtbetalingerServiceTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val response = UtbetalingServiceImpl(
+        val actual = UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
-        response shouldBe sak.right()
+        actual shouldBe sak.right()
         inOrder(
             sakServiceMock,
-            oppdragMock,
             simuleringClientMock,
             utbetalingPublisherMock,
             utbetalingRepoMock
@@ -83,20 +149,53 @@ internal class GjenopptaUtbetalingerServiceTest {
             verify(sakServiceMock).hentSak(
                 sakId = argThat { it shouldBe sak.id }
             )
-            verify(oppdragMock).genererUtbetaling(
-                strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler) },
-                fnr = argThat { it shouldBe fnr }
-            )
             verify(simuleringClientMock).simulerUtbetaling(
-                argThat { it shouldBe utbetalingForSimulering }
+                argThat {
+                    it shouldBe utbetalingForSimulering.copy(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        utbetalingslinjer = listOf(
+                            førsteUtbetalingslinje.copy(
+                                id = it.utbetalingslinjer[0].id,
+                                opprettet = it.utbetalingslinjer[0].opprettet,
+                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
+                            )
+                        )
+                    )
+                }
             )
             verify(utbetalingPublisherMock).publish(
-                argThat { it shouldBe simulertUtbetaling }
+                argThat {
+                    it shouldBe utbetalingForSimulering.copy(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        utbetalingslinjer = listOf(
+                            førsteUtbetalingslinje.copy(
+                                id = it.utbetalingslinjer[0].id,
+                                opprettet = it.utbetalingslinjer[0].opprettet,
+                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
+                            )
+                        )
+                    ).toSimulertUtbetaling(simulering)
+                }
             )
 
             verify(utbetalingRepoMock).opprettUtbetaling(
                 argThat {
-                    it shouldBe oversendtUtbetaling
+                    it shouldBe utbetalingForSimulering.copy(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        utbetalingslinjer = listOf(
+                            førsteUtbetalingslinje.copy(
+                                id = it.utbetalingslinjer[0].id,
+                                opprettet = it.utbetalingslinjer[0].opprettet,
+                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
+                            )
+                        )
+                    ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
                 }
             )
             verify(sakServiceMock).hentSak(
@@ -105,7 +204,6 @@ internal class GjenopptaUtbetalingerServiceTest {
         }
         verifyNoMoreInteractions(
             sakServiceMock,
-            oppdragMock,
             simuleringClientMock,
             utbetalingRepoMock,
             utbetalingPublisherMock
@@ -137,10 +235,7 @@ internal class GjenopptaUtbetalingerServiceTest {
     @Test
     fun `Simulering feiler`() {
 
-        val oppdragMock = mock<Oppdrag> {
-            on { genererUtbetaling(any(), any()) } doReturn utbetalingForSimulering
-        }
-        val sak = sak.copy(oppdrag = oppdragMock)
+        val sak = sak
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -152,27 +247,37 @@ internal class GjenopptaUtbetalingerServiceTest {
 
         val utbetalingRepoMock = mock<UtbetalingRepo>()
         val utbetalingPublisherMock = mock<UtbetalingPublisher>()
-        val response = UtbetalingServiceImpl(
+        val actual = UtbetalingServiceImpl(
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
-        response shouldBe KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet.left()
+        actual shouldBe KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet.left()
 
-        inOrder(sakServiceMock, oppdragMock, simuleringClientMock) {
+        inOrder(sakServiceMock, simuleringClientMock) {
             verify(sakServiceMock).hentSak(sakId = argThat { it shouldBe sak.id })
-            verify(oppdragMock).genererUtbetaling(
-                strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler) },
-                fnr = argThat { it shouldBe fnr }
+
+            verify(simuleringClientMock).simulerUtbetaling(
+                argThat {
+                    it shouldBe utbetalingForSimulering.copy(
+                        id = it.id,
+                        opprettet = it.opprettet,
+                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        utbetalingslinjer = listOf(
+                            førsteUtbetalingslinje.copy(
+                                id = it.utbetalingslinjer[0].id,
+                                opprettet = it.utbetalingslinjer[0].opprettet,
+                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
+                            )
+                        )
+                    )
+                }
             )
-            verify(simuleringClientMock).simulerUtbetaling(argThat { it shouldBe utbetalingForSimulering })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
-            oppdragMock,
             simuleringClientMock,
             utbetalingRepoMock,
             utbetalingPublisherMock
@@ -181,10 +286,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
-        val oppdragMock = mock<Oppdrag> {
-            on { genererUtbetaling(any(), any()) } doReturn utbetalingForSimulering
-        }
-        val sak = sak.copy(oppdrag = oppdragMock)
+        val sak = sak
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -211,67 +313,17 @@ internal class GjenopptaUtbetalingerServiceTest {
 
         response shouldBe KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
 
-        inOrder(sakServiceMock, oppdragMock, simuleringClientMock, utbetalingPublisherMock) {
+        inOrder(sakServiceMock, simuleringClientMock, utbetalingPublisherMock) {
             verify(sakServiceMock).hentSak(sakId = argThat { sak.id })
-            verify(oppdragMock).genererUtbetaling(
-                strategy = argThat { it shouldBe Oppdrag.UtbetalingStrategy.Gjenoppta(saksbehandler) },
-                fnr = argThat { it shouldBe fnr }
-            )
+
             verify(simuleringClientMock).simulerUtbetaling(argThat { utbetalingForSimulering })
             verify(utbetalingPublisherMock).publish(argThat { simulertUtbetaling })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
-            oppdragMock,
             simuleringClientMock,
             utbetalingRepoMock,
             utbetalingRepoMock
         )
     }
-
-    private val tidspunkt = 15.juni(2020).startOfDay()
-    private val fixedClock = Clock.fixed(tidspunkt.instant, ZoneOffset.UTC)
-    private val fnr = Fnr("12345678910")
-    private val sakId = UUID.randomUUID()
-    private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
-    private val avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
-
-    private val oppdrag: Oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = tidspunkt,
-        sakId = sakId,
-        utbetalinger = emptyList()
-    )
-
-    private val sak: Sak = Sak(
-        id = sakId,
-        saksnummer = Saksnummer(Math.random().toLong()),
-        opprettet = tidspunkt,
-        fnr = fnr,
-        oppdrag = oppdrag
-    )
-
-    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        id = UUID30.randomUUID(),
-        opprettet = tidspunkt,
-        fnr = fnr,
-        utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.GJENOPPTA,
-        oppdragId = oppdrag.id,
-        behandler = saksbehandler,
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
-
-    private val simulering = Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "navn",
-        datoBeregnet = idag(),
-        nettoBeløp = 13,
-        periodeList = listOf()
-    )
-    private val oppdragsmelding = Utbetalingsrequest(
-        value = ""
-    )
-    private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
-    private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 }

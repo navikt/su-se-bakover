@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.time.Clock
 import java.util.UUID
 
@@ -19,7 +19,7 @@ data class Sak(
     val fnr: Fnr,
     private val søknader: List<Søknad> = emptyList(),
     private val behandlinger: List<Behandling> = emptyList(),
-    val oppdrag: Oppdrag,
+    val utbetalinger: List<Utbetaling>,
 ) {
     fun søknader() = søknader.toList()
 
@@ -31,7 +31,6 @@ data class NySak(
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
     val søknad: Søknad.Ny,
-    val oppdrag: Oppdrag
 )
 
 class SakFactory(
@@ -50,11 +49,6 @@ class SakFactory(
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
-            ),
-            oppdrag = Oppdrag(
-                id = uuidFactory.newUUID30(),
-                opprettet = opprettet,
-                sakId = sakId
             )
         )
     }

@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -23,7 +22,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -171,12 +169,6 @@ internal class BehandlingssimuleringTest {
 
     private val beregning = TestBeregning
 
-    private val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = sakId,
-    )
-
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "NAVN",
@@ -186,10 +178,11 @@ internal class BehandlingssimuleringTest {
     )
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
+        sakId = sakId,
+        saksnummer = saksnummer,
         utbetalingslinjer = listOf(),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = oppdrag.id,
         behandler = attestant,
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )

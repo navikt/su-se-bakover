@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.oppdrag.OppdragRepoInternal
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -28,14 +28,12 @@ internal class SakPostgresRepo(
         dataSource.withSession { session ->
             """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
-            , inserted_oppdrag as (insert into oppdrag (id, opprettet, sakId) values (:oppdragId, :opprettet, :sakId)) 
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
         """.oppdatering(
                 mapOf(
                     "sakId" to sak.id,
                     "fnr" to sak.fnr,
                     "opprettet" to sak.opprettet,
-                    "oppdragId" to sak.oppdrag.id,
                     "soknadId" to sak.søknad.id,
                     "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold)
                 ),
@@ -59,7 +57,7 @@ internal class SakPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
             behandlinger = behandlingRepo.hentBehandlingerForSak(sakId, session),
-            oppdrag = OppdragRepoInternal.hentOppdragForSak(sakId, session)!!
+            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session)
         )
     }
 }

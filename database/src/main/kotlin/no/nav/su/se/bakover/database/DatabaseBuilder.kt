@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.oppdrag.OppdragPostgresRepo
-import no.nav.su.se.bakover.database.oppdrag.OppdragRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -49,7 +47,6 @@ object DatabaseBuilder {
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
-            oppdrag = OppdragPostgresRepo(dataSource),
             søknad = SøknadPostgresRepo(dataSource),
             behandling = behandlingRepo,
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
@@ -63,7 +60,6 @@ object DatabaseBuilder {
 data class DatabaseRepos(
     val avstemming: AvstemmingRepo,
     val utbetaling: UtbetalingRepo,
-    val oppdrag: OppdragRepo,
     val søknad: SøknadRepo,
     val behandling: BehandlingRepo,
     val hendelseslogg: HendelsesloggRepo,

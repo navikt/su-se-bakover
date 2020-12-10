@@ -7,14 +7,12 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.client.StubClientsBuilder
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import org.junit.jupiter.api.Nested
@@ -25,7 +23,6 @@ internal class AccessCheckProxyTest {
     private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),
@@ -67,11 +64,7 @@ internal class AccessCheckProxyTest {
                                 id = sakId,
                                 saksnummer = Saksnummer(1234),
                                 fnr = fnr,
-                                oppdrag = Oppdrag(
-                                    id = UUID30.randomUUID(),
-                                    opprettet = Tidspunkt.EPOCH,
-                                    sakId = sakId
-                                )
+                                utbetalinger = emptyList()
                             )
                         )
                     }
@@ -179,11 +172,7 @@ internal class AccessCheckProxyTest {
                         id = UUID.randomUUID(),
                         saksnummer = Saksnummer(1234),
                         fnr = fnr,
-                        oppdrag = Oppdrag(
-                            id = UUID30.randomUUID(),
-                            opprettet = Tidspunkt.EPOCH,
-                            sakId = UUID.randomUUID()
-                        )
+                        utbetalinger = emptyList()
                     )
                 )
             }

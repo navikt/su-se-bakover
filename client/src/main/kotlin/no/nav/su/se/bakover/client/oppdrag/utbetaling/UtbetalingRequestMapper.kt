@@ -14,7 +14,7 @@ internal fun toUtbetalingRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
             kodeEndring = if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
-            fagsystemId = utbetaling.oppdragId.toString(),
+            fagsystemId = utbetaling.saksnummer.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
             oppdragGjelderId = utbetaling.fnr.toString(),
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
@@ -39,7 +39,7 @@ internal fun toUtbetalingRequest(
                     saksbehId = OppdragslinjeDefaults.SAKSBEHANDLER_ID,
                     utbetalesTilId = utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
-                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.oppdragId.toString() },
+                    refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                     attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent))
                 )
             }

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -47,6 +46,7 @@ import java.util.UUID
 internal class VedtakssnapshotJsonTest {
 
     private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
+    private val saksnummer = 1234L
     private val behandlingId = "62478b8d-8c5a-4da4-8fcf-b48c9b426698"
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
     private val avslagId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
@@ -340,7 +340,12 @@ internal class VedtakssnapshotJsonTest {
     @Test
     fun `kan serialisere innvilgelse`() {
 
-        val utbetaling = defaultOversendtUtbetaling(UUID30.randomUUID(), behandling.fnr, LocalDate.EPOCH)
+        val utbetaling = defaultOversendtUtbetaling(
+            sakId = UUID.fromString(sakId),
+            saksnummer = Saksnummer(saksnummer),
+            fnr = behandling.fnr,
+            datoBeregnet = LocalDate.EPOCH
+        )
         val fradrag = listOf(
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
@@ -767,7 +772,8 @@ internal class VedtakssnapshotJsonTest {
                          }
                       ],
                       "type":"NY",
-                      "oppdragId":"${utbetaling.oppdragId}",
+                      "sakId":"$sakId",
+                      "saksnummer":$saksnummer,
                       "behandler":"Z123",
                       "avstemmingsnøkkel":{
                          "opprettet":"${utbetaling.avstemmingsnøkkel.opprettet}",

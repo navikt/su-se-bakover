@@ -87,9 +87,8 @@ internal class PersonPostgresRepo(
                     sak.fnr søkersFnr,
                     behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
                FROM utbetaling
-               INNER JOIN oppdrag ON utbetaling.oppdragid = oppdrag.id
-               INNER JOIN sak ON oppdrag.sakid = sak.id
-               LEFT JOIN behandling ON behandling.sakid = sak.id
+               INNER JOIN sak on sak.id = utbetaling.sakId
+               LEFT JOIN behandling ON behandling.sakid = utbetaling.sakId
                WHERE utbetaling.id=:utbetalingId
             """
                 .trimMargin()

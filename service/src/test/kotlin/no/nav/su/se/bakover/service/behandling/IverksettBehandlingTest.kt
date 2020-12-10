@@ -11,7 +11,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -35,7 +34,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -784,12 +782,6 @@ internal class IverksettBehandlingTest {
 
     private val beregning = TestBeregning
 
-    private val oppdrag = Oppdrag(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = sakId,
-    )
-
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "NAVN",
@@ -799,10 +791,11 @@ internal class IverksettBehandlingTest {
     )
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
+        sakId = sakId,
+        saksnummer = saksnummer,
         utbetalingslinjer = listOf(),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        oppdragId = oppdrag.id,
         behandler = attestant,
         avstemmingsnøkkel = Avstemmingsnøkkel()
     )

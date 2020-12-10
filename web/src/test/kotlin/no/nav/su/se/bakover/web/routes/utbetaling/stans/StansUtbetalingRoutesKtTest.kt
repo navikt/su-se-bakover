@@ -10,12 +10,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppdrag.Oppdrag
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -36,16 +34,11 @@ internal class StansUtbetalingRoutesKtTest {
         saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
         fnr = fnr,
-        oppdrag = Oppdrag(
-            id = UUID30.randomUUID(),
-            opprettet = tidspunkt,
-            sakId = sakId
-        )
+        utbetalinger = emptyList()
     )
     private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        oppdrag = mock(),
         behandling = mock(),
         sak = mock(),
         søknad = mock(),

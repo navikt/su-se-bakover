@@ -6,12 +6,14 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class UtbetalingMapperTest {
 
@@ -20,6 +22,8 @@ internal class UtbetalingMapperTest {
         UtbetalingMapper(
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.now(),
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(1234),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
@@ -36,13 +40,14 @@ internal class UtbetalingMapperTest {
             ),
             kvittering = null,
             avstemmingId = null,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
         UtbetalingMapper(
             id = UUID30.randomUUID(),
             opprettet = Tidspunkt.now(),
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(1234),
             fnr = Fnr(fnr = "12345678910"),
             utbetalingslinjer = listOf(),
             type = Utbetaling.UtbetalingsType.NY,
@@ -64,7 +69,6 @@ internal class UtbetalingMapperTest {
 
             ),
             avstemmingId = null,
-            oppdragId = UUID30.randomUUID(),
             behandler = NavIdentBruker.Saksbehandler("Z123")
         ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
     }

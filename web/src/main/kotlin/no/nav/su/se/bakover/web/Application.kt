@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
+import no.nav.su.se.bakover.service.BrentFnrIOppdragPreprod
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
@@ -182,6 +183,14 @@ internal fun Application.susebakover(
         exception<Behandling.TilstandException> {
             log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
+        }
+        exception<BrentFnrIOppdragPreprod> {
+            // Antar at det er trygt å logge disse siden det bare kan skje i preprod.
+            log.warn("Det ble benyttet et fødselsnummer ${it.fnr} som er \"brent\" i Oppdrag/Økonomi. Anbefaler å slette Dolly-brukeren.")
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorJson("Fødselsnummeret ${it.fnr} kan ikke brukes lenger mot Oppdrag/Økonomi. Anbefaler å slette dolly-brukeren.")
+            )
         }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
