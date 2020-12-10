@@ -139,8 +139,6 @@ internal class GjenopptaUtbetalingerServiceTest {
             simuleringClient = simuleringClientMock
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
-        actual.orNull()!!.utbetalinger[0]
-
         actual shouldBe sak.right()
         inOrder(
             sakServiceMock,
