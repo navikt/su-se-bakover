@@ -304,7 +304,7 @@ internal class BehandlingServiceImpl(
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn
             ),
-            behandling.sakId
+            behandling.saksnummer
         ).map {
             behandling.oppdaterIverksattJournalpostId(it)
             it
@@ -402,7 +402,7 @@ internal class BehandlingServiceImpl(
                         saksbehandlerNavn,
                         attestantNavn
                     ),
-                    behandling.sakId
+                    behandling.saksnummer
                 )
                     .mapLeft {
                         log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")

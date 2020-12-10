@@ -50,9 +50,10 @@ class NySøknadTest {
     private val person: Person = PersonOppslagStub.person(fnr).orNull()!!
     private val sakFactory: SakFactory = SakFactory()
     private val sakId = UUID.randomUUID()
+    private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(
         id = sakId,
-        saksnummer = Saksnummer(2021),
+        saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         oppdrag = Oppdrag(
@@ -264,7 +265,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
                         person = person,
-                        sakId = sakId.toString(),
+                        saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
                         pdf = pdf
                     )
@@ -347,7 +348,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
                         person = person,
-                        sakId = sakId.toString(),
+                        saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
                         pdf = pdf
                     )
@@ -439,7 +440,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
                         person = person,
-                        sakId = sakId.toString(),
+                        saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
                         pdf = pdf
                     )
@@ -545,7 +546,7 @@ class NySøknadTest {
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
                         person = person,
-                        sakId = sakId.toString(),
+                        saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
                         pdf = pdf
                     )
