@@ -40,6 +40,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             borSøkerMedEPS = formue?.borSøkerMedEPS ?: false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 0,
+                verdiEiendommer = formue?.verdier?.verdiEiendommer ?: 0,
                 verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,
                 innskudd = formue?.verdier?.innskudd ?: 0,
                 verdipapir = formue?.verdier?.verdipapir ?: 0,
@@ -49,6 +50,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             ),
             epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = formue?.epsVerdier?.verdiIkkePrimærbolig ?: 0,
+                verdiEiendommer = formue?.epsVerdier?.verdiEiendommer ?: 0,
                 verdiKjøretøy = formue?.epsVerdier?.verdiKjøretøy ?: 0,
                 innskudd = formue?.epsVerdier?.innskudd ?: 0,
                 verdipapir = formue?.epsVerdier?.verdipapir ?: 0,

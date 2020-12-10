@@ -193,6 +193,7 @@ data class Behandlingsinformasjon(
     ) : Base() {
         data class Verdier(
             val verdiIkkePrimærbolig: Int?,
+            val verdiEiendommer: Int?,
             val verdiKjøretøy: Int?,
             val innskudd: Int?,
             val verdipapir: Int?,

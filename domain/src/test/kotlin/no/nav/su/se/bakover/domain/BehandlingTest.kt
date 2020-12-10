@@ -111,6 +111,7 @@ internal class BehandlingTest {
                         borSøkerMedEPS = false,
                         verdier = Behandlingsinformasjon.Formue.Verdier(
                             verdiIkkePrimærbolig = 52889,
+                            verdiEiendommer = 133337,
                             verdiKjøretøy = 8823,
                             innskudd = 3291,
                             verdipapir = 291,

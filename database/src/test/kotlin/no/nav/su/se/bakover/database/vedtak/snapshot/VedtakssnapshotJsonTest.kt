@@ -149,6 +149,7 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårOppfylt",
                         "verdier":{
                            "verdiIkkePrimærbolig":0,
+                           "verdiEiendommer":0,
                            "verdiKjøretøy":0,
                            "innskudd":0,
                            "verdipapir":0,
@@ -159,6 +160,7 @@ internal class VedtakssnapshotJsonTest {
                         "borSøkerMedEPS":false,
                         "epsVerdier":{
                            "verdiIkkePrimærbolig":0,
+                           "verdiEiendommer":0,
                            "verdiKjøretøy":0,
                            "innskudd":0,
                            "verdipapir":0,
@@ -535,6 +537,7 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårOppfylt",
                         "verdier":{
                            "verdiIkkePrimærbolig":0,
+                           "verdiEiendommer":0,
                            "verdiKjøretøy":0,
                            "innskudd":0,
                            "verdipapir":0,
@@ -545,6 +548,7 @@ internal class VedtakssnapshotJsonTest {
                         "borSøkerMedEPS":false,
                         "epsVerdier":{
                            "verdiIkkePrimærbolig":0,
+                           "verdiEiendommer":0,
                            "verdiKjøretøy":0,
                            "innskudd":0,
                            "verdipapir":0,

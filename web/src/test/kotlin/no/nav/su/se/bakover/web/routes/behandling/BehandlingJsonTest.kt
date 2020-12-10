@@ -62,6 +62,7 @@ internal class BehandlingJsonTest {
                     "borSøkerMedEPS": true,
                     "verdier": {
                         "verdiIkkePrimærbolig": 0,
+                        "verdiEiendommer": 0,
                         "verdiKjøretøy": 0,
                         "innskudd": 0,
                         "verdipapir": 0,
@@ -71,6 +72,7 @@ internal class BehandlingJsonTest {
                     },
                     "epsVerdier": {
                         "verdiIkkePrimærbolig": 0,
+                        "verdiEiendommer": 0,
                         "verdiKjøretøy": 0,
                         "innskudd": 0,
                         "verdipapir": 0,

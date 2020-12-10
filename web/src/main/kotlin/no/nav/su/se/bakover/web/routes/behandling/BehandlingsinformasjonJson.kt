@@ -93,6 +93,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 borSøkerMedEPS = f.borSøkerMedEPS,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
+                    verdiEiendommer = f.verdier?.verdiEiendommer,
                     verdiKjøretøy = f.verdier?.verdiKjøretøy,
                     innskudd = f.verdier?.innskudd,
                     verdipapir = f.verdier?.verdipapir,
@@ -103,6 +104,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 epsVerdier = b.ektefelle?.fnr?.let {
                     Behandlingsinformasjon.Formue.Verdier(
                         verdiIkkePrimærbolig = f.epsVerdier?.verdiIkkePrimærbolig,
+                        verdiEiendommer = f.epsVerdier?.verdiEiendommer,
                         verdiKjøretøy = f.epsVerdier?.verdiKjøretøy,
                         innskudd = f.epsVerdier?.innskudd,
                         verdipapir = f.epsVerdier?.verdipapir,
@@ -191,6 +193,7 @@ internal fun Behandlingsinformasjon.Formue.toJson() =
 internal fun Behandlingsinformasjon.Formue.Verdier.toJson() =
     VerdierJson(
         verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+        verdiEiendommer = verdiEiendommer,
         verdiKjøretøy = verdiKjøretøy,
         innskudd = innskudd,
         verdipapir = verdipapir,
@@ -294,6 +297,7 @@ data class FormueJson(
 
 data class VerdierJson(
     val verdiIkkePrimærbolig: Int?,
+    val verdiEiendommer: Int?,
     val verdiKjøretøy: Int?,
     val innskudd: Int?,
     val verdipapir: Int?,

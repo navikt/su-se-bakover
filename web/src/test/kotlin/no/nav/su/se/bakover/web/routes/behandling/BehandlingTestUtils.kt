@@ -72,6 +72,7 @@ object BehandlingTestUtils {
                 borSøkerMedEPS = true,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
                     verdiKjøretøy = 0,
                     innskudd = 0,
                     verdipapir = 0,
@@ -81,6 +82,7 @@ object BehandlingTestUtils {
                 ),
                 epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
                     verdiKjøretøy = 0,
                     innskudd = 0,
                     verdipapir = 0,
