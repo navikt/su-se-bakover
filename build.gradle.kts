@@ -69,6 +69,9 @@ allprojects {
             implementation("commons-collections:commons-collections:3.2.2") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
             }
+            implementation("commons-codec:commons-codec:1.15") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCODEC-561518")
+            }
             implementation("com.google.guava:guava:30.0-jre") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415")
             }
@@ -98,6 +101,7 @@ allprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
         testLogging {
+            // We only want to log failed and skipped tests when running Gradle.
             events("skipped", "failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
