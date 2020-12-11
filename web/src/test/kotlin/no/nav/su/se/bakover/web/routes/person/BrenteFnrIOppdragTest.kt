@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.web.routes.person
 
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock

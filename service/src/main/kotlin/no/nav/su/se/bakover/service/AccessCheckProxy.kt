@@ -66,8 +66,6 @@ class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val clients: Clients
 ) {
-    private val brenteFnrIOppdragPreprodValidator = BrenteFnrIOppdragPreprodValidator()
-
     fun proxy(services: Services): Services {
         return Services(
             avstemming = object : AvstemmingService {
@@ -306,7 +304,6 @@ class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        brenteFnrIOppdragPreprodValidator.assertUbrentFødselsnummerIOppdragPreprod(fnr)
         clients.personOppslag.person(fnr)
             .getOrHandle {
                 throw Tilgangssjekkfeil(it, fnr)

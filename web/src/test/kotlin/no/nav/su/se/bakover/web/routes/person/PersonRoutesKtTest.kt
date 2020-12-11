@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.person
 
 import arrow.core.Either
 import arrow.core.left
