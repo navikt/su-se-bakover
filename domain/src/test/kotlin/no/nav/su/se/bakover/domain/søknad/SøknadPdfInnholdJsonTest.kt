@@ -376,7 +376,8 @@ class SøknadPdfInnholdJsonTest {
                     oppgittAdresse = Boforhold.OppgittAdresse.BorPåAdresse(
                         adresselinje = "Oslogata 12",
                         postnummer = "0050",
-                        poststed = "OSLO"
+                        poststed = "OSLO",
+                        bruksenhet = null
                     )
                 )
             )
@@ -422,7 +423,8 @@ class SøknadPdfInnholdJsonTest {
                             "type":"BorPåAdresse",
                             "poststed":"OSLO",
                             "postnummer":"0050",
-                            "adresselinje":"Oslogata 12"
+                            "adresselinje":"Oslogata 12",
+                            "bruksenhet": null
                           }
                       },
                       "utenlandsopphold": {
