@@ -117,6 +117,7 @@ object BehandlingsinformasjonTestData {
             borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 0,
+                verdiEiendommer = 0,
                 verdiKjøretøy = 12000,
                 innskudd = 0,
                 verdipapir = 0,
@@ -126,6 +127,7 @@ object BehandlingsinformasjonTestData {
             ),
             epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 74500,
+                verdiEiendommer = 0,
                 verdiKjøretøy = 0,
                 innskudd = 13000,
                 verdipapir = 2500,
@@ -140,6 +142,7 @@ object BehandlingsinformasjonTestData {
             borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 999999999,
+                verdiEiendommer = 50000,
                 verdiKjøretøy = 12000,
                 innskudd = 0,
                 verdipapir = 0,
@@ -149,6 +152,7 @@ object BehandlingsinformasjonTestData {
             ),
             epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 74500,
+                verdiEiendommer = 50000,
                 verdiKjøretøy = 0,
                 innskudd = 13000,
                 verdipapir = 2500,
