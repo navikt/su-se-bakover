@@ -254,18 +254,19 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             withUser {
+                meRoutes()
+                personRoutes(clients.personOppslag)
+
                 withAccessProtectedServices(
                     services,
                     AccessCheckProxy(databaseRepos.person, clients)
                 ) { accessProtectedServices ->
-                    personRoutes(clients.personOppslag)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    meRoutes()
                 }
             }
         }
