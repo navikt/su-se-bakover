@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -29,7 +29,7 @@ internal class LukkSøknadServiceImpl(
     private val sakService: SakService,
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
-    private val personOppslag: PersonOppslag,
+    private val personService: PersonService,
     private val clock: Clock = Clock.systemUTC(),
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -39,7 +39,7 @@ internal class LukkSøknadServiceImpl(
             return it.left()
         }
 
-        val person: Person = personOppslag.person(søknad.søknadInnhold.personopplysninger.fnr)
+        val person: Person = personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
             .getOrElse {
                 log.error("Kan ikke lukke søknad ${søknad.id}. Fant ikke person.")
                 return KunneIkkeLukkeSøknad.FantIkkePerson.left()
@@ -102,7 +102,7 @@ internal class LukkSøknadServiceImpl(
         return hentSøknad(request.søknadId).mapLeft {
             KunneIkkeLageBrevutkast.FantIkkeSøknad
         }.flatMap { søknad ->
-            personOppslag.person(søknad.søknadInnhold.personopplysninger.fnr)
+            personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
                 .mapLeft {
                     log.error("Kunne ikke lage brevutkast siden vi ikke fant personen for søknad ${request.søknadId}")
                     KunneIkkeLageBrevutkast.FantIkkePerson

@@ -29,12 +29,12 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -74,13 +74,13 @@ internal class LagBrevUtkastForBehandlingTest {
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn pdf.right()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
@@ -98,18 +98,18 @@ internal class LagBrevUtkastForBehandlingTest {
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn pdf.right()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
         response shouldBe pdf.right()
-        verify(personOppslagMock).person(argThat { it shouldBe fnr })
+        verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.InnvilgetVedtak>() })
     }
 
@@ -135,13 +135,13 @@ internal class LagBrevUtkastForBehandlingTest {
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 

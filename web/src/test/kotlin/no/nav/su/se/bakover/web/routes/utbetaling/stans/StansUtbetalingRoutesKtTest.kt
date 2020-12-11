@@ -9,11 +9,7 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -25,17 +21,7 @@ import java.util.UUID
 
 internal class StansUtbetalingRoutesKtTest {
 
-    private val fnr = Fnr("12345678911")
     private val sakId: UUID = UUID.randomUUID()
-    private val saksnummer = Math.random().toLong()
-    private val tidspunkt = Tidspunkt.EPOCH
-    private val sak: Sak = Sak(
-        id = sakId,
-        saksnummer = Saksnummer(saksnummer),
-        opprettet = tidspunkt,
-        fnr = fnr,
-        utbetalinger = emptyList()
-    )
     private val services = Services(
         avstemming = mock(),
         utbetaling = mock(),
@@ -44,7 +30,8 @@ internal class StansUtbetalingRoutesKtTest {
         søknad = mock(),
         brev = mock(),
         lukkSøknad = mock(),
-        oppgave = mock()
+        oppgave = mock(),
+        person = mock(),
     )
 
     @Test

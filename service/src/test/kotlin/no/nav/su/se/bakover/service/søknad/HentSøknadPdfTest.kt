@@ -24,9 +24,9 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
@@ -82,7 +82,7 @@ class HentSøknadPdfTest {
             sakFactory = mock(),
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = mock(),
-            personOppslag = mock(),
+            personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
@@ -101,8 +101,8 @@ class HentSøknadPdfTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
@@ -114,7 +114,7 @@ class HentSøknadPdfTest {
             sakFactory = mock(),
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = mock(),
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
@@ -122,10 +122,10 @@ class HentSøknadPdfTest {
         val actual = søknadService.hentSøknadPdf(søknadId)
         actual shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
 
-        inOrder(søknadRepoMock, sakServiceMock, personOppslagMock, pdfGeneratorMock) {
+        inOrder(søknadRepoMock, sakServiceMock, personServiceMock, pdfGeneratorMock) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personOppslagMock).person(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold(
@@ -151,8 +151,8 @@ class HentSøknadPdfTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -164,18 +164,18 @@ class HentSøknadPdfTest {
             sakFactory = mock(),
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = mock(),
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
 
         val actual = søknadService.hentSøknadPdf(søknadId)
         actual shouldBe pdf.right()
-        inOrder(søknadRepoMock, sakServiceMock, personOppslagMock, pdfGeneratorMock) {
+        inOrder(søknadRepoMock, sakServiceMock, personServiceMock, pdfGeneratorMock) {
 
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personOppslagMock).person(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold(

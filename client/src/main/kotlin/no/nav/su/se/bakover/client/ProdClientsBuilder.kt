@@ -67,14 +67,12 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             ),
             dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag),
             avstemmingPublisher = AvstemmingMqPublisher(
-                mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
-                    IbmMqPublisher(
-                        MqPublisherConfig(
-                            sendQueue = it.avstemming.mqSendQueue
-                        ),
-                        jmsContext = jmsContext
-                    )
-                }
+                mqPublisher = IbmMqPublisher(
+                    MqPublisherConfig(
+                        sendQueue = Config.Oppdrag(serviceUser = Config.serviceUser).avstemming.mqSendQueue
+                    ),
+                    jmsContext = jmsContext
+                )
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,

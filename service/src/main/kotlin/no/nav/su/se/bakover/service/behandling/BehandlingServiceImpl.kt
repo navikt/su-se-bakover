@@ -30,10 +30,10 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -50,7 +50,7 @@ internal class BehandlingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val søknadService: SøknadService,
     private val søknadRepo: SøknadRepo, // TODO use services or repos? probably services
-    private val personOppslag: PersonOppslag,
+    private val personService: PersonService,
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val behandlingMetrics: BehandlingMetrics,
@@ -78,7 +78,7 @@ internal class BehandlingServiceImpl(
                     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
                 }
                 .map {
-                    val aktørId: AktørId = personOppslag.aktørId(behandling.fnr).getOrElse {
+                    val aktørId: AktørId = personService.hentAktørId(behandling.fnr).getOrElse {
                         log.error("Kunne ikke underkjenne behandling; fant ikke aktør id")
                         return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
@@ -206,7 +206,7 @@ internal class BehandlingServiceImpl(
                 return KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
-        val aktørId = personOppslag.aktørId(behandlingTilAttestering.fnr).getOrElse {
+        val aktørId = personService.hentAktørId(behandlingTilAttestering.fnr).getOrElse {
             log.error("Fant ikke aktør-id med for fødselsnummer : ${behandlingTilAttestering.fnr}")
             return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
@@ -249,7 +249,7 @@ internal class BehandlingServiceImpl(
         val behandling = behandlingRepo.hentBehandling(behandlingId)
             ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
-        val person: Person = personOppslag.person(behandling.fnr).getOrElse {
+        val person: Person = personService.hentPerson(behandling.fnr).getOrElse {
             log.error("Kunne ikke iverksette behandling; fant ikke person")
             return KunneIkkeIverksetteBehandling.FantIkkePerson.left()
         }
@@ -492,7 +492,7 @@ internal class BehandlingServiceImpl(
                     hentNavnForNavIdent(it.navIdent)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
-                personOppslag.person(behandling.fnr)
+                personService.hentPerson(behandling.fnr)
                     .mapLeft {
                         KunneIkkeLageBrevutkast.FantIkkePerson
                     }.flatMap { person ->

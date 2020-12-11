@@ -46,7 +46,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -70,7 +70,6 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.person.BrentFnrIOppdragPreprod
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
@@ -184,14 +183,6 @@ internal fun Application.susebakover(
             log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
         }
-        exception<BrentFnrIOppdragPreprod> {
-            // Antar at det er trygt å logge disse siden det bare kan skje i preprod.
-            log.warn("Det ble benyttet et fødselsnummer ${it.fnr} som er \"brent\" i Oppdrag/Økonomi. Anbefaler å slette Dolly-brukeren.")
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorJson("Fødselsnummeret ${it.fnr} kan ikke brukes lenger mot Oppdrag/Økonomi. Anbefaler å slette dolly-brukeren.")
-            )
-        }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
             call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
@@ -255,12 +246,11 @@ internal fun Application.susebakover(
         authenticate("jwt") {
             withUser {
                 meRoutes()
-                personRoutes(clients.personOppslag)
 
                 withAccessProtectedServices(
-                    services,
-                    AccessCheckProxy(databaseRepos.person, clients)
+                    AccessCheckProxy(databaseRepos.person, services)
                 ) { accessProtectedServices ->
+                    personRoutes(accessProtectedServices.person)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)
@@ -292,7 +282,6 @@ internal fun Application.susebakover(
 }
 
 fun Route.withAccessProtectedServices(
-    services: Services,
     accessCheckProxy: AccessCheckProxy,
     build: Route.(services: Services) -> Unit
-) = build(accessCheckProxy.proxy(services))
+) = build(accessCheckProxy.proxy())

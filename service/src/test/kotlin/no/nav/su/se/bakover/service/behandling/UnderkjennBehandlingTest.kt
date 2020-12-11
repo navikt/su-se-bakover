@@ -32,12 +32,12 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -104,14 +104,14 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn null
         }
 
-        val personOppslagMock = mock<PersonOppslag>()
+        val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -129,7 +129,7 @@ class UnderkjennBehandlingTest {
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             hendelsesloggRepoMock
@@ -145,7 +145,7 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock = mock<PersonOppslag>()
+        val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
@@ -153,7 +153,7 @@ class UnderkjennBehandlingTest {
         shouldThrow<Behandling.TilstandException> {
             BehandlingTestUtils.createService(
                 behandlingRepo = behandlingRepoMock,
-                personOppslag = personOppslagMock,
+                personService = personServiceMock,
                 oppgaveService = oppgaveServiceMock,
                 behandlingMetrics = behandlingMetricsMock,
                 hendelsesloggRepo = hendelsesloggRepoMock,
@@ -170,7 +170,7 @@ class UnderkjennBehandlingTest {
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             hendelsesloggRepoMock
@@ -188,14 +188,14 @@ class UnderkjennBehandlingTest {
 
         val attestantSomErLikSaksbehandler = NavIdentBruker.Attestant(saksbehandler.navIdent)
 
-        val personOppslagMock = mock<PersonOppslag>()
+        val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -217,7 +217,7 @@ class UnderkjennBehandlingTest {
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             hendelsesloggRepoMock
@@ -232,8 +232,8 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { aktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -241,7 +241,7 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -253,14 +253,14 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
 
-        inOrder(behandlingRepoMock, personOppslagMock) {
+        inOrder(behandlingRepoMock, personServiceMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
-            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
         }
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             hendelsesloggRepoMock
@@ -275,10 +275,10 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { aktørId(any()) } doReturn aktørId.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
@@ -287,7 +287,7 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -299,15 +299,15 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
 
-        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
+        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
-            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
         }
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             hendelsesloggRepoMock
@@ -322,8 +322,8 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { aktørId(any()) } doReturn aktørId.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -335,7 +335,7 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -356,12 +356,12 @@ class UnderkjennBehandlingTest {
 
         inOrder(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
-            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
@@ -389,7 +389,7 @@ class UnderkjennBehandlingTest {
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
         )
@@ -403,8 +403,8 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+        val personServiceMock: PersonService = mock {
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -418,7 +418,7 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
@@ -435,12 +435,12 @@ class UnderkjennBehandlingTest {
 
         inOrder(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
-            verify(personOppslagMock).aktørId(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
@@ -468,7 +468,7 @@ class UnderkjennBehandlingTest {
 
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            personOppslagMock,
+            personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
         )
