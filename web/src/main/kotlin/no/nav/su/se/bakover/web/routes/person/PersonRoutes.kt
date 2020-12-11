@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes
+package no.nav.su.se.bakover.web.routes.person
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.PersonResponseJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 
 internal const val personPath = "/person"
@@ -28,6 +29,8 @@ internal fun Route.personRoutes(
         call.lesFnr("fnr").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { fnr ->
+                BrenteFnrIOppdragPreprodValidator(Config).assertUbrentFødselsnummerIOppdragPreprod(fnr)
+
                 call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     personOppslag.person(fnr).fold(

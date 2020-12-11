@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
-import no.nav.su.se.bakover.web.routes.personPath
+import no.nav.su.se.bakover.web.routes.person.personPath
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory

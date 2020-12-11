@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.web.routes.person
 
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Fnr
@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
  * Inneholder sjekk på fødselsnumre i preprod som har historikk i Oppdrag/Økonomi som vi har mistet referansen til og ikke lenger vil virke.
  * Typisk pgr. sletting av databasen i preprod eller manuelle utbetalingskall mot oppdrag.
  */
-class BrenteFnrIOppdragPreprodValidator(
+internal class BrenteFnrIOppdragPreprodValidator(
     val config: Config = Config
 ) {
 
@@ -61,4 +61,4 @@ class BrenteFnrIOppdragPreprodValidator(
     }
 }
 
-class BrentFnrIOppdragPreprod(val fnr: Fnr) : RuntimeException()
+internal class BrentFnrIOppdragPreprod(val fnr: Fnr) : RuntimeException()
