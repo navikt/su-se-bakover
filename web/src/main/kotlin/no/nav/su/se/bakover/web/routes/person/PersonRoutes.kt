@@ -30,8 +30,6 @@ internal fun Route.personRoutes(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { fnr ->
                 BrenteFnrIOppdragPreprodValidator(Config).assertUbrentFødselsnummerIOppdragPreprod(fnr)
-
-                call.audit("Gjør oppslag på person: $fnr")
                 call.svar(
                     personOppslag.person(fnr).fold(
                         {
@@ -47,7 +45,10 @@ internal fun Route.personRoutes(
                                 )
                             }
                         },
-                        { Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson())) }
+                        {
+                            call.audit("Gjorde personoppslag på fødselsnummer $fnr")
+                            Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson()))
+                        }
                     )
                 )
             }

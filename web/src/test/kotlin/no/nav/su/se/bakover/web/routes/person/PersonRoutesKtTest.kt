@@ -127,7 +127,8 @@ internal class PersonRoutesKtTest {
         }
     }
 
-    private fun personoppslag(feil: KunneIkkeHentePerson = KunneIkkeHentePerson.Ukjent, testIdent: String?) = object : PersonOppslag {
+    private fun personoppslag(feil: KunneIkkeHentePerson = KunneIkkeHentePerson.Ukjent, testIdent: String?) = object :
+        PersonOppslag {
         override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
             fnr.toString() -> PersonOppslagStub.person(fnr)
             else -> feil.left()
