@@ -56,9 +56,6 @@ internal class PersonRoutesKtTest {
                 {
                     "fnr": "12345678910",
                     "aktorId": "2437280977705",
-                    "fornavn": "Tore",
-                    "mellomnavn": "Johnas",
-                    "etternavn": "Strømøy",
                     "navn": {
                         "fornavn": "Tore",
                         "mellomnavn": "Johnas",

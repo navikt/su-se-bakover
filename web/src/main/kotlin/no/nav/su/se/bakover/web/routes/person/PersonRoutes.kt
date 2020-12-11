@@ -58,9 +58,6 @@ internal fun Route.personRoutes(
 data class PersonResponseJson(
     val fnr: String,
     val aktorId: String,
-    val fornavn: String, // deprecated
-    val mellomnavn: String?, // deprecated
-    val etternavn: String, // deprecated
     val navn: NavnJson,
     val telefonnummer: TelefonnummerJson?,
     val adresse: List<AdresseJson>?,
@@ -106,9 +103,6 @@ data class PersonResponseJson(
         fun Person.toJson() = PersonResponseJson(
             fnr = this.ident.fnr.toString(),
             aktorId = this.ident.aktørId.toString(),
-            fornavn = this.navn.fornavn,
-            mellomnavn = this.navn.mellomnavn,
-            etternavn = this.navn.etternavn,
             navn = NavnJson(
                 fornavn = this.navn.fornavn,
                 mellomnavn = this.navn.mellomnavn,
