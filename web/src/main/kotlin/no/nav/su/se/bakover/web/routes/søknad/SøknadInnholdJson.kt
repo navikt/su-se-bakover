@@ -139,7 +139,8 @@ data class SøknadInnholdJson(
         data class AdresseFraSøknad(
             val adresselinje: String,
             val postnummer: String,
-            val poststed: String?
+            val poststed: String?,
+            val bruksenhet: String?
         )
 
         fun toBoforhold(): Boforhold {
@@ -151,7 +152,8 @@ data class SøknadInnholdJson(
                 borPåAdresse != null -> Boforhold.OppgittAdresse.BorPåAdresse(
                     adresselinje = borPåAdresse.adresselinje,
                     postnummer = borPåAdresse.postnummer,
-                    poststed = borPåAdresse.poststed
+                    poststed = borPåAdresse.poststed,
+                    bruksenhet = borPåAdresse.bruksenhet
                 )
                 ingenAdresseGrunn != null -> Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
                 else -> null
@@ -191,7 +193,8 @@ data class SøknadInnholdJson(
                         is Boforhold.OppgittAdresse.BorPåAdresse -> AdresseFraSøknad(
                             adresselinje = o.adresselinje,
                             postnummer = o.postnummer,
-                            poststed = o.poststed
+                            poststed = o.poststed,
+                            bruksenhet = o.bruksenhet
                         )
                         is Boforhold.OppgittAdresse.IngenAdresse -> null
                         null -> null

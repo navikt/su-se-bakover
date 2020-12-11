@@ -74,8 +74,14 @@ data class Boforhold(
         data class BorPåAdresse(
             val adresselinje: String,
             val postnummer: String,
-            val poststed: String?
-        ) : OppgittAdresse()
+            val poststed: String?,
+            val bruksenhet: String?
+        ) : OppgittAdresse() {
+            override fun toString() = "${hentGateAdresse()}, ${hentPostAdresse()}"
+
+            private fun hentGateAdresse() = if (bruksenhet != null) "$adresselinje $bruksenhet" else adresselinje
+            private fun hentPostAdresse() = if (poststed != null) "$postnummer $poststed" else postnummer
+        }
 
         data class IngenAdresse(
             val grunn: IngenAdresseGrunn
