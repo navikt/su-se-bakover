@@ -227,7 +227,8 @@ internal fun Application.susebakover(
         level = Level.INFO
         filter { call ->
             val path = call.request.path()
-            (naisPaths + AUTH_CALLBACK_PATH).none {
+            // Fjerner loggrader som starter med dette
+            (naisPaths + AUTH_CALLBACK_PATH + PERSON_PATH).none {
                 path.startsWith(it)
             }
         }

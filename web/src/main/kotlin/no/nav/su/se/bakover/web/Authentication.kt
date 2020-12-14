@@ -116,6 +116,7 @@ private fun errorMessage(date: Date) =
     } else ""
 
 internal const val AUTH_CALLBACK_PATH = "/callback"
+internal const val PERSON_PATH = "/person"
 internal const val LOGOUT_CALLBACK_PATH = "$AUTH_CALLBACK_PATH/logout-complete"
 
 internal fun Application.oauthRoutes(
