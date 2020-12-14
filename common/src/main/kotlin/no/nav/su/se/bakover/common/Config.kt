@@ -16,7 +16,7 @@ object Config {
     val databaseName = env["DATABASE_NAME"] ?: "supstonad-db-local"
     val jdbcUrl = env["DATABASE_JDBC_URL"] ?: "jdbc:postgresql://localhost:5432/supstonad-db-local"
 
-    val azureClientSecret = env["AZURE_CLIENT_SECRET"] ?: "secret"
+    val azureClientSecret = env["AZURE_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
     val azureWellKnownUrl = env["AZURE_WELLKNOWN_URL"] ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
     val azureClientId = env["AZURE_CLIENT_ID"] ?: "24ea4acb-547e-45de-a6d3-474bd8bed46e"
     val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "http://localhost:8080/callback"
@@ -29,7 +29,7 @@ object Config {
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
     val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.default.svc.nais.local"
     val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
-    val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.default.svc.nais.local"
+    val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.oppgavehandtering.svc.nais.local"
     val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
     val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
     val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
