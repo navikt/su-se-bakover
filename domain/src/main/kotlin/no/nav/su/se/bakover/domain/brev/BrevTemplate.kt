@@ -24,11 +24,11 @@ sealed class BrevTemplate(
 
     object AvvistSøknadVedtak : BrevTemplate(
         pdfTemplate = PdfTemplate.AvvistSøknadVedtak,
-        brevTittel = "Vedtak om avvist søknad"
+        brevTittel = "Søknaden din om supplerende stønad er avvist"
     )
 
     object AvvistSøknadFritekst : BrevTemplate(
         pdfTemplate = PdfTemplate.AvvistSøknadFritekst,
-        brevTittel = "Info om avvist søknad"
+        brevTittel = "Søknaden din om supplerende stønad er avvist"
     )
 }
