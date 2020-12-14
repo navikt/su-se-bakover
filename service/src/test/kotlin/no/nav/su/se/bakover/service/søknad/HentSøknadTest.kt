@@ -33,7 +33,7 @@ class HentSøknadTest {
             sakFactory = mock(),
             pdfGenerator = mock(),
             dokArkiv = mock(),
-            personOppslag = mock(),
+            personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock()
         )
@@ -62,7 +62,7 @@ class HentSøknadTest {
             sakFactory = mock(),
             pdfGenerator = mock(),
             dokArkiv = mock(),
-            personOppslag = mock(),
+            personService = mock(),
             oppgaveService = mock(),
             søknadMetrics = mock()
         )

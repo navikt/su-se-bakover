@@ -29,9 +29,9 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOp
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
@@ -51,7 +51,7 @@ object BehandlingTestUtils {
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
         søknadRepo: SøknadRepo = mock(),
-        personOppslag: PersonOppslag = mock(),
+        personService: PersonService = mock(),
         brevService: BrevService = mock(),
         opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
@@ -63,7 +63,7 @@ object BehandlingTestUtils {
         oppgaveService = oppgaveService,
         søknadService = søknadService,
         søknadRepo = søknadRepo,
-        personOppslag = personOppslag,
+        personService = personService,
         brevService = brevService,
         opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         behandlingMetrics = behandlingMetrics,

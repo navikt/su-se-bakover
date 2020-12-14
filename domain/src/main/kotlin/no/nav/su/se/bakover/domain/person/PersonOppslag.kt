@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.Person
 interface PersonOppslag {
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
+}
 
-    sealed class KunneIkkeHentePerson {
-        object FantIkkePerson : KunneIkkeHentePerson()
-        object IkkeTilgangTilPerson : KunneIkkeHentePerson()
-        object Ukjent : KunneIkkeHentePerson()
-    }
+sealed class KunneIkkeHentePerson {
+    object FantIkkePerson : KunneIkkeHentePerson()
+    object IkkeTilgangTilPerson : KunneIkkeHentePerson()
+    object Ukjent : KunneIkkeHentePerson()
 }

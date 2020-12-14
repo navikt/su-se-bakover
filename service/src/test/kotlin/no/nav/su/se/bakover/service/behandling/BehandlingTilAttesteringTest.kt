@@ -24,12 +24,12 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -81,8 +81,8 @@ class BehandlingTilAttesteringTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock: PersonOppslag = mock {
-            on { aktørId(any()) } doReturn aktørId.right()
+        val personServiceMock: PersonService = mock {
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -92,7 +92,7 @@ class BehandlingTilAttesteringTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).sendTilAttestering(behandling.id, saksbehandler)
@@ -103,9 +103,9 @@ class BehandlingTilAttesteringTest {
             oppgaveId = nyOppgaveId
         ).right()
 
-        inOrder(behandlingRepoMock, personOppslagMock, oppgaveServiceMock) {
+        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
-            verify(personOppslagMock).aktørId(fnr)
+            verify(personServiceMock).hentAktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
                     søknadId = søknadId,
@@ -119,11 +119,14 @@ class BehandlingTilAttesteringTest {
             )
 
             verify(behandlingRepoMock).settSaksbehandler(simulertBehandling.id, saksbehandler)
-            verify(behandlingRepoMock).oppdaterBehandlingStatus(simulertBehandling.id, Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET)
+            verify(behandlingRepoMock).oppdaterBehandlingStatus(
+                simulertBehandling.id,
+                Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            )
 
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
+        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock)
     }
 
     @Test
@@ -134,13 +137,13 @@ class BehandlingTilAttesteringTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        val personOppslagMock: PersonOppslag = mock()
+        val personServiceMock: PersonService = mock()
 
         val oppgaveServiceMock = mock<OppgaveService> ()
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).sendTilAttestering(behandling.id, saksbehandler)
@@ -148,6 +151,6 @@ class BehandlingTilAttesteringTest {
         actual shouldBe KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
-        verifyNoMoreInteractions(behandlingRepoMock, personOppslagMock, oppgaveServiceMock)
+        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock)
     }
 }

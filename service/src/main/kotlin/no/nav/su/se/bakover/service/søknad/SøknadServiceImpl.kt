@@ -21,10 +21,10 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -35,7 +35,7 @@ internal class SøknadServiceImpl(
     private val sakFactory: SakFactory,
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
-    private val personOppslag: PersonOppslag,
+    private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics
 ) : SøknadService {
@@ -44,7 +44,7 @@ internal class SøknadServiceImpl(
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
-        val person = personOppslag.person(innsendtFødselsnummer).getOrHandle {
+        val person = personService.hentPerson(innsendtFødselsnummer).getOrHandle {
             // Dette bør ikke skje i normal flyt, siden vi allerede har gjort en tilgangssjekk mot PDL (kode6/7).
             log.error("Ny søknad: Fant ikke person med gitt fødselsnummer. Originalfeil: $it")
             return KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -153,7 +153,7 @@ internal class SøknadServiceImpl(
                 sakService.hentSak(søknad.sakId).mapLeft {
                     return KunneIkkeLageSøknadPdf.FantIkkeSak.left()
                 }.flatMap { sak ->
-                    personOppslag.person(søknad.søknadInnhold.personopplysninger.fnr).mapLeft {
+                    personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr).mapLeft {
                         log.error("Hent søknad-PDF: Fant ikke person")
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->

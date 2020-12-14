@@ -2,13 +2,14 @@ package no.nav.su.se.bakover.service
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -28,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -45,6 +46,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -64,9 +66,9 @@ import java.util.UUID
 
 class AccessCheckProxy(
     private val personRepo: PersonRepo,
-    private val clients: Clients
+    private val services: Services
 ) {
-    fun proxy(services: Services): Services {
+    fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
                 override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
@@ -290,8 +292,20 @@ class AccessCheckProxy(
             oppgave = object : OppgaveService {
                 override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
-            }
+            },
+            person = object : PersonService {
+                override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+                    assertHarTilgangTilPerson(fnr)
 
+                    return services.person.hentPerson(fnr)
+                }
+
+                override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
+                    assertHarTilgangTilPerson(fnr)
+
+                    return services.person.hentAktørId(fnr)
+                }
+            }
         )
     }
 
@@ -304,7 +318,7 @@ class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        clients.personOppslag.person(fnr)
+        services.person.hentPerson(fnr)
             .getOrHandle {
                 throw Tilgangssjekkfeil(it, fnr)
             }

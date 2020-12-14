@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
+import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -48,13 +50,16 @@ class ServiceBuilder(
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient
         )
+        val personService = PersonServiceImpl(
+            personOppslag = clients.personOppslag
+        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
             sakFactory = SakFactory(),
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
-            personOppslag = clients.personOppslag,
+            personService = personService,
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics
         )
@@ -72,7 +77,7 @@ class ServiceBuilder(
                 oppgaveService = oppgaveService,
                 søknadService = søknadService,
                 søknadRepo = databaseRepos.søknad,
-                personOppslag = clients.personOppslag,
+                personService = personService,
                 brevService = brevService,
                 behandlingMetrics = behandlingMetrics,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
@@ -87,11 +92,10 @@ class ServiceBuilder(
                 sakService = sakService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-                personOppslag = clients.personOppslag
+                personService = personService
             ),
-            oppgave = OppgaveServiceImpl(
-                oppgaveClient = clients.oppgaveClient
-            )
+            oppgave = oppgaveService,
+            person = personService
         )
     }
 }
@@ -104,5 +108,6 @@ data class Services(
     val søknad: SøknadService,
     val brev: BrevService,
     val lukkSøknad: LukkSøknadService,
-    val oppgave: OppgaveService
+    val oppgave: OppgaveService,
+    val person: PersonService,
 )

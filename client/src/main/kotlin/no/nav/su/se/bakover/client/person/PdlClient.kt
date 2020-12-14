@@ -18,13 +18,12 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.IkkeTilgangTilPerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import java.lang.IllegalStateException
 import java.time.LocalDate
 
 const val NAV_CONSUMER_TOKEN = "Nav-Consumer-Token"

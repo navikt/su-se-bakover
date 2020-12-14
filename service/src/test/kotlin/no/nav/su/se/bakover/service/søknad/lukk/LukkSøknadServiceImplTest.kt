@@ -1,4 +1,5 @@
 package no.nav.su.se.bakover.service.søknad.lukk
+
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -30,7 +31,7 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -122,8 +124,8 @@ internal class LukkSøknadServiceImplTest {
         val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -131,12 +133,12 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
 
         verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -147,8 +149,8 @@ internal class LukkSøknadServiceImplTest {
         val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn PersonOppslag.KunneIkkeHentePerson.FantIkkePerson.left()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         LukkSøknadServiceImpl(
@@ -156,17 +158,17 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
 
         inOrder(
-            søknadRepoMock, personOppslagMock
+            søknadRepoMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -188,8 +190,8 @@ internal class LukkSøknadServiceImplTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -197,15 +199,15 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -236,7 +238,7 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -257,8 +259,8 @@ internal class LukkSøknadServiceImplTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -266,7 +268,7 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.AvvistSøknad(
@@ -276,10 +278,10 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, oppgaveServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, oppgaveServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).oppdaterSøknad(
                 argThat {
@@ -293,7 +295,7 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -317,15 +319,15 @@ internal class LukkSøknadServiceImplTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.MedBrev.AvvistSøknad(
@@ -336,10 +338,10 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, oppgaveServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, oppgaveServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
@@ -366,7 +368,7 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -387,8 +389,8 @@ internal class LukkSøknadServiceImplTest {
         val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -396,7 +398,7 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -407,13 +409,13 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe KunneIkkeLukkeSøknad.UgyldigDato.left()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe treDagerGammelSøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -427,15 +429,15 @@ internal class LukkSøknadServiceImplTest {
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
@@ -445,14 +447,14 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -469,8 +471,8 @@ internal class LukkSøknadServiceImplTest {
         val sakServiceMock = mock<SakService>()
 
         val brevServiceMock = mock<BrevService>()
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService>()
@@ -479,16 +481,16 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
 
-        inOrder(søknadRepoMock, personOppslagMock) {
+        inOrder(søknadRepoMock, personServiceMock) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe trukketSøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe trukketSøknad.id })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -504,8 +506,8 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -513,15 +515,15 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
 
         inOrder(
-            søknadRepoMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
 
             verify(brevServiceMock).lagBrev(
                 argThat {
@@ -530,7 +532,7 @@ internal class LukkSøknadServiceImplTest {
             )
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -543,8 +545,8 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn PersonOppslag.KunneIkkeHentePerson.FantIkkePerson.left()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         LukkSøknadServiceImpl(
@@ -552,18 +554,18 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
 
         inOrder(
-            søknadRepoMock, personOppslagMock
+            søknadRepoMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -574,8 +576,8 @@ internal class LukkSøknadServiceImplTest {
         val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>()
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -583,7 +585,7 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
 
@@ -593,7 +595,7 @@ internal class LukkSøknadServiceImplTest {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -608,23 +610,23 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
 
         inOrder(
-            søknadRepoMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
 
             verify(brevServiceMock).lagBrev(
                 argThat {
@@ -633,7 +635,7 @@ internal class LukkSøknadServiceImplTest {
             )
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -648,15 +650,15 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lagBrevutkast(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
@@ -666,13 +668,13 @@ internal class LukkSøknadServiceImplTest {
         ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
 
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -693,8 +695,8 @@ internal class LukkSøknadServiceImplTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -702,15 +704,15 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(brevServiceMock).journalførBrev(
@@ -742,7 +744,7 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -770,25 +772,25 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest)
 
         actual shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
             verify(brevServiceMock).journalførBrev(
@@ -817,7 +819,7 @@ internal class LukkSøknadServiceImplTest {
             )
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -837,25 +839,25 @@ internal class LukkSøknadServiceImplTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest)
 
         actual shouldBe LukketSøknad.UtenMangler(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
             verify(brevServiceMock).journalførBrev(
@@ -881,7 +883,7 @@ internal class LukkSøknadServiceImplTest {
             )
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe nySøknad.sakId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -902,8 +904,8 @@ internal class LukkSøknadServiceImplTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -911,15 +913,15 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak).right()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -950,7 +952,7 @@ internal class LukkSøknadServiceImplTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -960,7 +962,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
@@ -968,8 +970,8 @@ internal class LukkSøknadServiceImplTest {
         }
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val personOppslagMock = mock<PersonOppslag> {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
 
         LukkSøknadServiceImpl(
@@ -977,15 +979,15 @@ internal class LukkSøknadServiceImplTest {
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left()
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
 
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -1003,6 +1005,6 @@ internal class LukkSøknadServiceImplTest {
                 saksnummer = argThat { it shouldBe sak.saksnummer }
             )
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personOppslagMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 }

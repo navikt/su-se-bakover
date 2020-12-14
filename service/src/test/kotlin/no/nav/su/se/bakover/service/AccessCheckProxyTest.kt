@@ -9,12 +9,11 @@ import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -28,7 +27,8 @@ internal class AccessCheckProxyTest {
         søknad = mock(),
         brev = mock(),
         lukkSøknad = mock(),
-        oppgave = mock()
+        oppgave = mock(),
+        person = mock(),
     )
 
     @Nested
@@ -44,18 +44,7 @@ internal class AccessCheckProxyTest {
                         hentFnrForSak(sakId)
                     } doReturn listOf(fnr)
                 },
-                clients = StubClientsBuilder.build().copy(
-                    personOppslag = object : PersonOppslag {
-                        override fun person(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                            TODO("Not yet implemented")
-                        }
-                    }
-                )
-            ).proxy(
-                services.copy(
+                services = services.copy(
                     sak = mock {
                         on {
                             hentSak(fnr)
@@ -67,9 +56,13 @@ internal class AccessCheckProxyTest {
                                 utbetalinger = emptyList()
                             )
                         )
+                    },
+                    person = object : PersonService {
+                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                     }
                 )
-            )
+            ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr) }
         }
@@ -80,17 +73,13 @@ internal class AccessCheckProxyTest {
                 personRepo = mock {
                     on { hentFnrForSak(any()) } doReturn listOf(FnrGenerator.random())
                 },
-                clients = StubClientsBuilder.build().copy(
-                    personOppslag = object : PersonOppslag {
-                        override fun person(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                            TODO("Not yet implemented")
-                        }
+                services = services.copy(
+                    person = object : PersonService {
+                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                     }
                 )
-            ).proxy(services)
+            ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(UUID.randomUUID()) }
         }
@@ -101,17 +90,13 @@ internal class AccessCheckProxyTest {
                 personRepo = mock {
                     on { hentFnrForSøknad(any()) } doReturn listOf(FnrGenerator.random())
                 },
-                clients = StubClientsBuilder.build().copy(
-                    personOppslag = object : PersonOppslag {
-                        override fun person(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                            TODO("Not yet implemented")
-                        }
-                    }
+                services = services.copy(
+                    person = object : PersonService {
+                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                    },
                 )
-            ).proxy(services)
+            ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.søknad.hentSøknad(UUID.randomUUID()) }
         }
@@ -122,17 +107,13 @@ internal class AccessCheckProxyTest {
                 personRepo = mock {
                     on { hentFnrForBehandling(any()) } doReturn listOf(FnrGenerator.random())
                 },
-                clients = StubClientsBuilder.build().copy(
-                    personOppslag = object : PersonOppslag {
-                        override fun person(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                            TODO("Not yet implemented")
-                        }
+                services = services.copy(
+                    person = object : PersonService {
+                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                     }
                 )
-            ).proxy(services)
+            ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.behandling.hentBehandling(UUID.randomUUID()) }
         }
@@ -143,17 +124,13 @@ internal class AccessCheckProxyTest {
                 personRepo = mock {
                     on { hentFnrForUtbetaling(any()) } doReturn listOf(FnrGenerator.random())
                 },
-                clients = StubClientsBuilder.build().copy(
-                    personOppslag = object : PersonOppslag {
-                        override fun person(fnr: Fnr) =
-                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-
-                        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-                            TODO("Not yet implemented")
-                        }
+                services = services.copy(
+                    person = object : PersonService {
+                        override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                     }
                 )
-            ).proxy(services)
+            ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.utbetaling.hentUtbetaling(UUID30.randomUUID()) }
         }
@@ -195,8 +172,14 @@ internal class AccessCheckProxyTest {
                     return listOf(FnrGenerator.random())
                 }
             },
-            clients = StubClientsBuilder.build()
-        ).proxy(servicesReturningSak)
+            services = servicesReturningSak.copy(
+                person = mock {
+                    on { hentPerson(any()) } doAnswer { fnr: Fnr ->
+                        StubClientsBuilder.build().personOppslag.person(fnr)
+                    }
+                }
+            )
+        ).proxy()
 
         @Test
         fun `Når man gjør oppslag på fnr`() {

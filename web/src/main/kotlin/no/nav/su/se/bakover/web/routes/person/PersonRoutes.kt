@@ -6,13 +6,12 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.FantIkkePerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.IkkeTilgangTilPerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
@@ -23,15 +22,14 @@ import no.nav.su.se.bakover.web.svar
 internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
-    personOppslag: PersonOppslag
+    personService: PersonService
 ) {
     get("$personPath/{fnr}") {
         call.lesFnr("fnr").fold(
             ifLeft = { call.svar(BadRequest.message(it)) },
             ifRight = { fnr ->
-                BrenteFnrIOppdragPreprodValidator(Config).assertUbrentFødselsnummerIOppdragPreprod(fnr)
                 call.svar(
-                    personOppslag.person(fnr).fold(
+                    personService.hentPerson(fnr).fold(
                         {
                             when (it) {
                                 FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")

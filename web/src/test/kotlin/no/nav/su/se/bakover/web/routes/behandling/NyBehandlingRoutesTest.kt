@@ -37,7 +37,8 @@ class NyBehandlingRoutesTest {
         søknad = mock(),
         brev = mock(),
         lukkSøknad = mock(),
-        oppgave = mock()
+        oppgave = mock(),
+        person = mock(),
     )
 
     @Test

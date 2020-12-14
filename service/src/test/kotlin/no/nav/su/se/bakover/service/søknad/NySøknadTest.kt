@@ -30,12 +30,12 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.person.PersonOppslag.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -62,8 +62,8 @@ class NySøknadTest {
 
     @Test
     fun `Fant ikke person`() {
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
         val søknadRepoMock: SøknadRepo = mock()
         val sakServiceMock: SakService = mock()
@@ -76,15 +76,15 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
-        verify(personOppslagMock).person(argThat { it shouldBe fnr })
+        verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         verifyNoMoreInteractions(
-            personOppslagMock,
+            personServiceMock,
             søknadRepoMock,
             sakServiceMock,
             pdfGeneratorMock,
@@ -95,8 +95,8 @@ class NySøknadTest {
 
     @Test
     fun `ny sak med søknad hvor pdf-generering feilet`() {
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left() doReturn sak.right()
@@ -115,7 +115,7 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
@@ -124,11 +124,11 @@ class NySøknadTest {
 
         lateinit var expected: Søknad
         inOrder(
-            personOppslagMock,
+            personServiceMock,
             sakServiceMock,
             pdfGeneratorMock
         ) {
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(sakServiceMock).opprettSak(
                 argThat {
@@ -161,7 +161,7 @@ class NySøknadTest {
             )
         }
         verifyNoMoreInteractions(
-            personOppslagMock,
+            personServiceMock,
             søknadRepoMock,
             sakServiceMock,
             pdfGeneratorMock,
@@ -183,8 +183,8 @@ class NySøknadTest {
                 )
             )
         )
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
@@ -211,7 +211,7 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
@@ -219,13 +219,13 @@ class NySøknadTest {
         val nySøknad = søknadService.nySøknad(søknadInnhold)
 
         inOrder(
-            personOppslagMock,
+            personServiceMock,
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock
         ) {
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
@@ -267,8 +267,8 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor journalføring feiler`() {
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
@@ -291,7 +291,7 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
@@ -300,13 +300,13 @@ class NySøknadTest {
 
         lateinit var expectedSøknad: Søknad
         inOrder(
-            personOppslagMock,
+            personServiceMock,
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock
         ) {
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
@@ -343,7 +343,7 @@ class NySøknadTest {
             )
         }
         verifyNoMoreInteractions(
-            personOppslagMock,
+            personServiceMock,
             søknadRepoMock,
             sakServiceMock,
             pdfGeneratorMock,
@@ -356,8 +356,8 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
@@ -383,7 +383,7 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
@@ -391,14 +391,14 @@ class NySøknadTest {
         val actual = søknadService.nySøknad(søknadInnhold)
         lateinit var expectedSøknad: Søknad
         inOrder(
-            personOppslagMock,
+            personServiceMock,
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
             oppgaveServiceMock
         ) {
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
@@ -448,7 +448,7 @@ class NySøknadTest {
             )
         }
         verifyNoMoreInteractions(
-            personOppslagMock,
+            personServiceMock,
             søknadRepoMock,
             sakServiceMock,
             pdfGeneratorMock,
@@ -461,8 +461,8 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgavekallet går bra`() {
-        val personOppslagMock: PersonOppslag = mock {
-            on { person(any()) } doReturn person.right()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
@@ -489,7 +489,7 @@ class NySøknadTest {
             sakFactory = sakFactory,
             pdfGenerator = pdfGeneratorMock,
             dokArkiv = dokArkivMock,
-            personOppslag = personOppslagMock,
+            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock()
         )
@@ -497,14 +497,14 @@ class NySøknadTest {
         val actual = søknadService.nySøknad(søknadInnhold)
         lateinit var expectedSøknad: Søknad
         inOrder(
-            personOppslagMock,
+            personServiceMock,
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
             oppgaveServiceMock
         ) {
-            verify(personOppslagMock).person(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(søknadRepoMock).opprettSøknad(
                 argThat {
@@ -558,7 +558,7 @@ class NySøknadTest {
             )
         }
         verifyNoMoreInteractions(
-            personOppslagMock,
+            personServiceMock,
             søknadRepoMock,
             sakServiceMock,
             pdfGeneratorMock,
