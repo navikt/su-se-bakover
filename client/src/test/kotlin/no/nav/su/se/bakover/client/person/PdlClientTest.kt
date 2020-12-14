@@ -555,6 +555,50 @@ internal class PdlClientTest : WiremockBase {
         ).right()
     }
 
+    @Test
+    fun `hent person OK, men med tomme verdier`() {
+
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "navn": [],
+                  "telefonnummer": [],
+                  "bostedsadresse": [],
+                  "kontaktadresse": [],
+                  "oppholdsadresse": [],
+                  "statsborgerskap": [],
+                  "kjoenn": [],
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
+                },
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+        wireMockServer.stubFor(
+            wiremockBuilder
+                .willReturn(WireMock.ok(suksessResponseJson))
+        )
+
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        client.person(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+    }
+
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
         .withHeader("Authorization", WireMock.equalTo("Bearer abc"))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))

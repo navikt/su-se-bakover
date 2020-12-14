@@ -41,7 +41,11 @@ internal class PdlClient(
 
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
-            val hentPerson = response.hentPerson!!
+            val hentPerson = response.hentPerson ?: return FantIkkePerson.left()
+            if (hentPerson.navn.isNullOrEmpty()) {
+                log.info("Fant person i pdl, men feltene var tomme")
+                return FantIkkePerson.left()
+            }
             val navn = hentPerson.navn.minByOrNull {
                 folkeregisteretAsMaster(it.metadata)
             }!!
