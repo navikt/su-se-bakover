@@ -26,9 +26,7 @@ class IbmMqPublisher(
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
             runBlocking {
                 Either.catch {
-                    val producer = context.createProducer().apply {
-                        deliveryDelay = 10000 // forsinkelse for å unngå at vi mottar kvittering før vi har lagret ferdig i basen.
-                    }
+                    val producer = context.createProducer()
                     messages.forEach {
                         producer.send(
                             MQQueue(publisherConfig.sendQueue),
