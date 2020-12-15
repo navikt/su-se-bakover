@@ -48,7 +48,7 @@ internal class UtbetalingKvitteringConsumerTest {
         }.also {
             it.message shouldBe "Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel"
         }
-        verify(serviceMock, Times(1)).oppdaterMedKvittering(any(), any())
+        verify(serviceMock, Times(2)).oppdaterMedKvittering(any(), any())
     }
 
     @Test

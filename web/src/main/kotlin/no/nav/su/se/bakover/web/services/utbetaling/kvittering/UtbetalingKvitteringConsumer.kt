@@ -5,9 +5,12 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
+import org.slf4j.LoggerFactory
 import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
@@ -15,6 +18,8 @@ class UtbetalingKvitteringConsumer(
     private val clock: Clock = Clock.systemUTC(),
     private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     companion object {
         val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
             registerModule(KotlinModule())
@@ -26,9 +31,28 @@ class UtbetalingKvitteringConsumer(
     internal fun onMessage(xmlMessage: String) {
         val kvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
 
-        val avstemmingsnøkkel =
-            kvitteringResponse.oppdragRequest.avstemming.nokkelAvstemming.let { Avstemmingsnøkkel.fromString(it) }
+        val avstemmingsnøkkel = kvitteringResponse.oppdragRequest.avstemming.nokkelAvstemming.let {
+            Avstemmingsnøkkel.fromString(it)
+        }
+
         utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvitteringResponse.toKvittering(xmlMessage, clock))
-            .mapLeft { throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel") }
+            .mapLeft {
+                runBlocking {
+                    /**
+                     * //TODO finn en bedre løsning på dette?
+                     * Prøver på nytt etter litt delay dersom utbetalingen ikke finnes. Opplever en del tilfeller
+                     * hvor dette skjer, selv om utbetalingen i ettertid finnes i databasen.
+                     */
+                    val delayMs = 1000L
+                    log.info("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel, venter $delayMs før retry")
+                    delay(delayMs)
+                    utbetalingService.oppdaterMedKvittering(
+                        avstemmingsnøkkel,
+                        kvitteringResponse.toKvittering(xmlMessage, clock)
+                    ).mapLeft {
+                        throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
+                    }
+                }
+            }
     }
 }
