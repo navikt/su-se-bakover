@@ -26,7 +26,9 @@ class IbmMqPublisher(
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
             runBlocking {
                 Either.catch {
-                    val producer = context.createProducer()
+                    val producer = context.createProducer().apply {
+                        deliveryDelay = 10000 // forsinkelse for å unngå at vi mottar kvittering før vi har lagret ferdig i basen.
+                    }
                     messages.forEach {
                         producer.send(
                             MQQueue(publisherConfig.sendQueue),
@@ -38,7 +40,9 @@ class IbmMqPublisher(
                         )
                     }
                     log.info("${messages.size} meldinger sendt, kaller commit()")
+                    val start = System.currentTimeMillis()
                     context.commit()
+                    log.info("commit() tok: ${System.currentTimeMillis() - start} ms")
                     Unit
                 }.mapLeft {
                     log.error("Kunne ikke sende meldinger med config $publisherConfig, kaller rollback()", it)
