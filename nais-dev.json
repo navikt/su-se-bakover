@@ -2,6 +2,7 @@
   "ingress": "https://su-se-bakover.nais.preprod.local",
   "secret_env": "dev",
   "cluster": "preprod",
+  "kafka-pool": "nav-dev",
   "env": {
     "ALLOW_CORS_ORIGIN": "su-se-framover.nais.preprod.local",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.preprod.local/callback",
