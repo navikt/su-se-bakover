@@ -2,10 +2,16 @@ apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
   name: su-se-bakover
-  namespace: default
+  namespace: supstonad
   labels:
     team: supstonad
 spec:
+  azure:
+    application:
+      enabled: true
+      replyURLs:
+        - "http://localhost:8080/callback"
+        - {{ env.BACKEND_CALLBACK_URL }}
   image: {{ image }}
   liveness:
     path: /isalive
