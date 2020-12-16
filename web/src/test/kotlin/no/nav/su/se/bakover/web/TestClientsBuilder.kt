@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.client.stubs.statistikk.StatistikkProducerStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject
@@ -35,7 +36,8 @@ object TestClientsBuilder : ClientsBuilder {
         avstemmingPublisher = AvstemmingStub,
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
         digitalKontaktinformasjon = DkifClientStub,
-        leaderPodLookup = LeaderPodLookupStub
+        leaderPodLookup = LeaderPodLookupStub,
+        statistikkProducer = StatistikkProducerStub
     )
 
     override fun build(): Clients = testClients
