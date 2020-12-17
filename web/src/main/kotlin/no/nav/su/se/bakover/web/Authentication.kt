@@ -29,7 +29,6 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.Config
-import no.nav.su.se.bakover.common.sikkerLogg
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.time.Instant
@@ -42,25 +41,14 @@ internal fun Application.setupAuthentication(
     jwkProvider: JwkProvider,
     httpClient: HttpClient
 ) {
-    if (Config.isPreprod) {
-        sikkerLogg.info("jwkConfig=$jwkConfig")
-    }
     install(Authentication) {
         oauth("azure") {
             client = httpClient
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                     name = "azure",
-                    authorizeUrl = jwkConfig.getString("authorization_endpoint").also {
-                        if (Config.isPreprod) {
-                            sikkerLogg.info("Henter OAUTH authorizeUrl fra JWK 'authorization_endpoint' $it")
-                        }
-                    },
-                    accessTokenUrl = jwkConfig.getString("token_endpoint").also {
-                        if (Config.isPreprod) {
-                            sikkerLogg.info("Henter OAUTH accessTokenUrl fra JWK 'token_endpoint' $it")
-                        }
-                    },
+                    authorizeUrl = jwkConfig.getString("authorization_endpoint"),
+                    accessTokenUrl = jwkConfig.getString("token_endpoint"),
                     requestMethod = Post,
                     clientId = Config.azureClientId,
                     clientSecret = Config.azureClientSecret,
@@ -71,11 +59,7 @@ internal fun Application.setupAuthentication(
         }
 
         jwt("jwt") {
-            verifier(jwkProvider, jwkConfig.getString("issuer")).also {
-                if (Config.isPreprod) {
-                    sikkerLogg.info("Henter OAUTH issuer fra JWK 'issuer' $it")
-                }
-            }
+            verifier(jwkProvider, jwkConfig.getString("issuer"))
             validate { credential ->
                 val validAudience = Config.azureClientId in credential.payload.audience
                 val groupsFromToken = credential.payload.getClaim("groups")?.asList(String::class.java) ?: emptyList()

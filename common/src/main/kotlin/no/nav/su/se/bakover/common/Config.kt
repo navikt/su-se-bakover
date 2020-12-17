@@ -2,31 +2,35 @@ package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
-import org.slf4j.LoggerFactory
 
 object Config {
-
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     private val env by lazy { init() }
 
     val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
-    val isPreprod = env["NAIS_CLUSTER_NAME"] == "dev-fss"
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
     val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 
-    val databaseName = env["DATABASE_NAME"] ?: "supstonad-db-local"
-    val jdbcUrl = env["DATABASE_JDBC_URL"] ?: "jdbc:postgresql://localhost:5432/supstonad-db-local"
+    val databaseName by lazy {
+        getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
+    }
+
+    val jdbcUrl by lazy {
+        getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
+    }
 
     val azureClientSecret = env["AZURE_APP_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureWellKnownUrl = env["AZURE_APP_WELL_KNOWN_URL"] ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
-    val azureClientId = env["AZURE_APP_CLIENT_ID"] ?: "26a62d18-70ce-48a6-9f4d-664607bd5188"
-    val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "http://localhost:8080/callback"
-    val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "d75164fa-39e6-4149-956e-8404bc9080b6"
-    val azureGroupSaksbehandler = env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d"
-    val azureGroupVeileder = env["AZURE_GROUP_VEILEDER"] ?: "062d4814-8538-4f3a-bcb9-32821af7909a"
-    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+    val azureWellKnownUrl =
+        env["AZURE_APP_WELL_KNOWN_URL"] ?: "http://localhost:12345/denne-haandteres-av-nais/og/maa-ligge-i-env-lokalt"
+    val azureClientId = env["AZURE_APP_CLIENT_ID"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
+    val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
+    val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
+    val azureGroupSaksbehandler =
+        env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d" // Tester feiler hvis denne endres
+    val azureGroupVeileder =
+        env["AZURE_GROUP_VEILEDER"] ?: "062d4814-8538-4f3a-bcb9-32821af7909a" // Tester feiler hvis denne endres
+    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
@@ -38,10 +42,11 @@ object Config {
     val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
     val dkifUrl = env["DKIF_URL"] ?: "http://dkif.default.svc.nais.local"
 
-    val serviceUser = ServiceUser()
+    val serviceUser by lazy { ServiceUser() }
+
     data class ServiceUser(
-        val username: String = env["username"] ?: "username",
-        val password: String = env["password"] ?: "password"
+        val username: String = getEnvironmentVariableOrThrow("username"),
+        val password: String = getEnvironmentVariableOrThrow("password"),
     ) {
         override fun toString(): String {
             return "ServiceUser(username='$username', password='****')"
@@ -49,14 +54,13 @@ object Config {
     }
 
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
-    val fnrForPersonMedSkjerming = env["DEV_FNR_WITH_SKJERMING"]
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
 
-    val oppdrag = Oppdrag(serviceUser = serviceUser)
+    val oppdrag by lazy { Oppdrag(serviceUser = serviceUser) }
 
     data class Oppdrag(
         val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
@@ -75,7 +79,8 @@ object Config {
 
         data class Avstemming internal constructor(
             /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
+            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"]
+                ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
         )
 
         data class Simulering internal constructor(
@@ -88,14 +93,14 @@ object Config {
         return dotenv {
             ignoreIfMissing = true
             systemProperties = true
-        }.also {
-            if (isPreprod) {
-                sikkerLogg.info("System.getenv(): " + System.getenv().map { "key: ${it.key} -> value: ${it.value}" })
-                sikkerLogg.info("System.getProperties(): " + System.getProperties().map { "key: ${it.key} -> value: ${it.value}" })
-                sikkerLogg.info("dotEnv.entries(): " + it.entries().map { "key: ${it.key} -> value: ${it.value}" })
-            } else {
-                sikkerLogg.info("Vi logger kun system properties/env variables i preprod")
-            }
         }
+    }
+
+    private fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
+        return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
+    }
+
+    private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
+        throw IllegalStateException("Mangler environment variabelen '$environmentVariableName'. Dersom du prøver kjøre lokalt må den legges til i '.env'-fila. Se eksempler i '.env.template'.")
     }
 }

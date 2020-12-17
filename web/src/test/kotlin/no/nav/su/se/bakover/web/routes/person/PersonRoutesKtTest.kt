@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.person
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
@@ -130,7 +131,7 @@ internal class PersonRoutesKtTest {
     private fun personoppslag(feil: KunneIkkeHentePerson = KunneIkkeHentePerson.Ukjent, testIdent: String?) = object :
         PersonOppslag {
         override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
-            fnr.toString() -> PersonOppslagStub.person(fnr)
+            fnr.toString() -> PersonOppslagStub.nyTestPerson(fnr).right()
             else -> feil.left()
         }
 

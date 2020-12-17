@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.service
 
 import arrow.core.Either
+import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -175,7 +176,7 @@ internal class AccessCheckProxyTest {
             services = servicesReturningSak.copy(
                 person = mock {
                     on { hentPerson(any()) } doAnswer { fnr: Fnr ->
-                        StubClientsBuilder.build().personOppslag.person(fnr)
+                        PersonOppslagStub.nyTestPerson(fnr).right()
                     }
                 }
             )
