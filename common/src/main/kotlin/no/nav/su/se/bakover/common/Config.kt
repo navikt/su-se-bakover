@@ -2,8 +2,11 @@ package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
+import org.slf4j.LoggerFactory
 
 object Config {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     private val env by lazy { init() }
 
@@ -85,6 +88,14 @@ object Config {
         return dotenv {
             ignoreIfMissing = true
             systemProperties = true
+        }.also {
+            if (isPreprod) {
+                sikkerLogg.info("System.getenv(): " + System.getenv().map { "key: ${it.key} -> value: ${it.value}" })
+                sikkerLogg.info("System.getProperties(): " + System.getProperties().map { "key: ${it.key} -> value: ${it.value}" })
+                sikkerLogg.info("dotEnv.entries(): " + it.entries().map { "key: ${it.key} -> value: ${it.value}" })
+            } else {
+                sikkerLogg.info("Vi logger kun system properties/env variables i preprod")
+            }
         }
     }
 }
