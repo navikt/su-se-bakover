@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.statistikk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -10,39 +11,23 @@ import java.util.UUID
 internal class StatistikkSchemaValidatorTest {
     companion object {
         val gyldigBehandling: Statistikk.Behandling = Statistikk.Behandling(
-            funksjonellTid = Tidspunkt.now().toString(),
-            tekniskTid = Tidspunkt.now().toString(),
-            mottattDato = LocalDate.now().toString(),
-            registrertDato = LocalDate.now().toString(),
-            behandlingId = "55",
-            relatertBehandlingId = null,
-            sakId = UUID.randomUUID().toString(),
-            saksnummer = "2022",
-            behandlingType = "førstegangsbehandling",
-            behandlingTypeBeskrivelse = null,
-            behandlingStatus = "Avslått",
-            utenlandstilsnitt = "nei",
-            utenlandstilsnittBeskrivelse = null,
-            ansvarligEnhetKode = "1",
-            ansvarligEnhetType = "NORG",
-            behandlendeEnhetKode = "4815",
-            behandlendeEnhetType = "NORG",
-            totrinnsbehandling = false,
-            avsender = "su-se-bakover",
-            versjon = 1,
+            funksjonellTid = Tidspunkt.now(),
+            tekniskTid = Tidspunkt.now(),
+            mottattDato = LocalDate.now(),
+            registrertDato = LocalDate.now(),
+            behandlingId = UUID.randomUUID(),
+            sakId = UUID.randomUUID(),
+            saksnummer = 2021,
+            behandlingStatus = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
         )
 
         val gyldigSak = Statistikk.Sak(
-            funksjonellTid = Tidspunkt.now().toString(),
-            tekniskTid = Tidspunkt.now().toString(),
-            opprettetDato = LocalDate.now().toString(),
-            sakId = "12345",
+            funksjonellTid = Tidspunkt.now(),
+            tekniskTid = Tidspunkt.now(),
+            opprettetDato = LocalDate.now(),
+            sakId = UUID.randomUUID(),
             aktorId = 12345,
-            saksnummer = "1235",
-            ytelseType = "ytelsetype",
-            sakStatus = "status",
-            avsender = "sup",
-            versjon = 1,
+            saksnummer = 2021,
             aktorer = listOf(
                 Statistikk.Aktør(
                     aktorId = 1235,
@@ -50,40 +35,11 @@ internal class StatistikkSchemaValidatorTest {
                     rolleBeskrivelse = "rollebeskrivelse"
                 )
             ),
-            underType = "undertype",
-            ytelseTypeBeskrivelse = "ytelsetypebeskrivelse",
-            underTypeBeskrivelse = "unertypebeskrivelse",
-            sakStatusBeskrivelse = "sakstatusbeskrivelse"
         )
     }
 
     @Test
-    fun `tomt statistikkobjekt for sak er ikke gyldig`() {
-        StatistikkSchemaValidator.validerSak(
-            objectMapper.writeValueAsString(
-                Statistikk.Sak(
-                    funksjonellTid = "",
-                    tekniskTid = "",
-                    opprettetDato = "",
-                    sakId = "",
-                    aktorId = 0,
-                    saksnummer = "",
-                    ytelseType = "",
-                    sakStatus = "",
-                    avsender = "",
-                    versjon = 0,
-                    aktorer = listOf(),
-                    underType = null,
-                    ytelseTypeBeskrivelse = null,
-                    underTypeBeskrivelse = null,
-                    sakStatusBeskrivelse = null
-                )
-            )
-        ) shouldBe false
-    }
-
-    @Test
-    fun `alle felter utfylt er med gyldige verdier er gyldig`() {
+    fun `alle felter utfylt med gyldige verdier er gyldig`() {
         StatistikkSchemaValidator.validerSak(
             objectMapper.writeValueAsString(gyldigSak)
         ) shouldBe true
@@ -94,28 +50,15 @@ internal class StatistikkSchemaValidatorTest {
         StatistikkSchemaValidator.validerSak(
             objectMapper.writeValueAsString(
                 Statistikk.Sak(
-                    funksjonellTid = Tidspunkt.now().toString(),
-                    tekniskTid = Tidspunkt.now().toString(),
-                    opprettetDato = LocalDate.now().toString(),
-                    sakId = "12345",
-                    aktorId = 12345,
-                    saksnummer = "1235",
-                    ytelseType = "ytelsetype",
-                    sakStatus = "status",
-                    avsender = "sup",
-                    versjon = 1
+                    funksjonellTid = Tidspunkt.now(),
+                    tekniskTid = Tidspunkt.now(),
+                    opprettetDato = LocalDate.now(),
+                    sakId = UUID.randomUUID(),
+                    aktorId = 2020,
+                    saksnummer = 2025,
                 )
             )
         ) shouldBe true
-    }
-
-    @Test
-    fun `feil format på tidspunkt gjør at validering feiler`() {
-        StatistikkSchemaValidator.validerSak(
-            objectMapper.writeValueAsString(
-                gyldigSak.copy(funksjonellTid = "05 Jan 2020")
-            )
-        ) shouldBe false
     }
 
     @Test
