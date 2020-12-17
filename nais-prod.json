@@ -4,9 +4,9 @@
   "cluster": "prod",
   "kafka-pool": "nav-prod",
   "env": {
-    "ALLOW_CORS_ORIGIN": "su-se-framover.nais.adeo.no",
+    "ALLOW_CORS_ORIGIN": "supplerendestonad.nais.adeo.no",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.adeo.no/callback",
-    "FRONTEND_BASE_URL": "https://su-se-framover.nais.adeo.no",
+    "FRONTEND_BASE_URL": "https://supplerendestonad.nais.adeo.no",
     "VAULT_MOUNTPATH": "postgresql/prod-fss/",
     "DATABASE_NAME": "supstonad-db-prod",
     "DATABASE_JDBC_URL": "jdbc:postgresql://A01DBVL011.adeo.no:5432/supstonad-db-prod",
