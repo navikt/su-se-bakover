@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
+import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
@@ -125,6 +126,10 @@ internal fun Application.susebakover(
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
+    clients.kafkaPublisher.publiser(
+        topic = Config.Kafka.StatistikkTopic.Sak.name,
+        melding = "Test works"
+    )
 
     install(CORS) {
         method(Options)
