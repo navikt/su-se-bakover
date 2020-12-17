@@ -16,6 +16,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -26,6 +27,25 @@ import no.nav.su.se.bakover.service.Services
 import java.util.Base64
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
+
+val azureConfig = Config.AzureConfig(
+    clientSecret = "testClientSecret",
+    wellKnownUrl = "http://localhost/test/wellKnownUrl",
+    clientId = "testClientId",
+    backendCallbackUrl = "http://localhost/test/backendCallbackUrl",
+    groups = Config.AzureConfig.AzureGroups(
+        attestant = "testAzureGroupAttestant",
+        saksbehandler = "testAzureGroupSaksbehandler",
+        veileder = "testAzureGroupVeileder"
+    )
+)
+
+fun toAzureTestGroup(rolle: Brukerrolle) =
+    when (rolle) {
+        Brukerrolle.Attestant -> azureConfig.groups.attestant
+        Brukerrolle.Saksbehandler -> azureConfig.groups.saksbehandler
+        Brukerrolle.Veileder -> azureConfig.groups.veileder
+    }
 
 fun authenticationHttpClient() = HttpClient(MockEngine) {
     followRedirects = false
@@ -65,7 +85,8 @@ internal fun Application.testSusebakover(
         clients = clients,
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
-        services = services
+        services = services,
+        azureConfig = azureConfig,
     )
 }
 

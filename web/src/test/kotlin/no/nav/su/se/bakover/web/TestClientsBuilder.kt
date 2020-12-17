@@ -38,7 +38,8 @@ object TestClientsBuilder : ClientsBuilder {
         leaderPodLookup = LeaderPodLookupStub
     )
 
-    override fun build(): Clients = testClients
+    fun build(): Clients = testClients
+    override fun build(azureConfig: Config.AzureConfig): Clients = testClients
 
     internal class OauthStub : OAuth {
         override fun onBehalfOFToken(originalToken: String, otherAppId: String) = "ONBEHALFOFTOKEN"

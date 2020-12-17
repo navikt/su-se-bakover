@@ -33,8 +33,10 @@ object StubClientsBuilder : ClientsBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun build(): Clients {
-        val azureClient = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
+    override fun build(azureConfig: Config.AzureConfig): Clients {
+
+        val azureClient =
+            AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         return Clients(
             oauth = azureClient,
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },

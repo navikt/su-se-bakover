@@ -22,16 +22,19 @@ import no.nav.su.se.bakover.common.Config
 import java.time.Clock
 import javax.jms.JMSContext
 
-data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuilder {
+data class ProdClientsBuilder(
+    private val jmsContext: JMSContext,
+) : ClientsBuilder {
 
-    override fun build(): Clients {
+    override fun build(azureConfig: Config.AzureConfig): Clients {
         val consumerId = "srvsupstonad"
 
-        val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
+        val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
         val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
         val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
-        val personOppslag = PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
+        val personOppslag =
+            PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
 
         return Clients(
             oauth = oAuth,

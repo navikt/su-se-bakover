@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -111,7 +110,10 @@ internal fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
+    azureConfig: Config.AzureConfig = Config.AzureConfig.createFromEnvironmentVariables(),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(azureConfig) else ProdClientsBuilder(
+        jmsContext
+    ).build(azureConfig),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     authenticationHttpClient: HttpClient = HttpClient(Apache) {
@@ -196,18 +198,22 @@ internal fun Application.susebakover(
     setupAuthentication(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
-        httpClient = authenticationHttpClient
+        httpClient = authenticationHttpClient,
+        azureConfig = azureConfig
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
+        logoutRedirectUrl = azureConfig.backendCallbackUrl,
     )
+    val azureGroupMapper = AzureGroupMapper(azureConfig.groups)
 
     install(Authorization) {
+
         getRoller { principal ->
             getGroupsFromJWT(principal)
-                .filterMap { Brukerrolle.fromAzureGroup(it) }
+                .filterMap { azureGroupMapper.fromAzureGroup(it) }
                 .toSet()
         }
     }
@@ -246,7 +252,7 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             withUser {
-                meRoutes()
+                meRoutes(azureGroupMapper)
 
                 withAccessProtectedServices(
                     AccessCheckProxy(databaseRepos.person, services)

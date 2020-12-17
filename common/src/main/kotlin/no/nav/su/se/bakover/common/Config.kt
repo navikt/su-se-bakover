@@ -12,24 +12,40 @@ object Config {
 
     val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 
-    val databaseName by lazy {
-        getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
+    val databaseName by lazy { getEnvironmentVariableOrThrow("DATABASE_NAME") }
+    val jdbcUrl by lazy { getEnvironmentVariableOrThrow("DATABASE_JDBC_URL") }
+
+    data class AzureConfig(
+        val clientSecret: String,
+        val wellKnownUrl: String,
+        val clientId: String,
+        val backendCallbackUrl: String,
+        val groups: AzureGroups,
+    ) {
+        data class AzureGroups(
+            val attestant: String,
+            val saksbehandler: String,
+            val veileder: String,
+        ) {
+            fun asList() = listOf(attestant, saksbehandler, veileder)
+        }
+
+        companion object {
+            fun createFromEnvironmentVariables() = AzureConfig(
+                clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
+                wellKnownUrl = getEnvironmentVariableOrThrow("AZURE_APP_WELL_KNOWN_URL"),
+                clientId = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_ID"),
+                backendCallbackUrl = getEnvironmentVariableOrThrow("BACKEND_CALLBACK_URL"),
+                groups = AzureGroups(
+                    attestant = getEnvironmentVariableOrThrow("AZURE_GROUP_ATTESTANT"),
+                    saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
+                    veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
+                )
+
+            )
+        }
     }
 
-    val jdbcUrl by lazy {
-        getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
-    }
-
-    val azureClientSecret = env["AZURE_APP_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureWellKnownUrl =
-        env["AZURE_APP_WELL_KNOWN_URL"] ?: "http://localhost:12345/denne-haandteres-av-nais/og/maa-ligge-i-env-lokalt"
-    val azureClientId = env["AZURE_APP_CLIENT_ID"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
-    val azureGroupSaksbehandler =
-        env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d" // Tester feiler hvis denne endres
-    val azureGroupVeileder =
-        env["AZURE_GROUP_VEILEDER"] ?: "062d4814-8538-4f3a-bcb9-32821af7909a" // Tester feiler hvis denne endres
     val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"

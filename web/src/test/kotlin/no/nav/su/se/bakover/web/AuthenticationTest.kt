@@ -66,7 +66,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create(roller = emptyList()))
+                addHeader(Authorization, Jwt.create())
             }
         }.apply {
             assertEquals(Forbidden, response.status())
