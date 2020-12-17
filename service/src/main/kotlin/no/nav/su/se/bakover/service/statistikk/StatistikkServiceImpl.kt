@@ -15,12 +15,19 @@ internal class StatistikkServiceImpl(
         val json = objectMapper.writeValueAsString(statistikk)
         val isValid = when (statistikk) {
             is Statistikk.Sak -> schemaValidator.validerSak(json)
+            is Statistikk.Behandling -> schemaValidator.validerBehandling(json)
         }
         if (isValid) {
-            publisher.publiser(
-                topic = Config.Kafka.StatistikkTopic.Sak.name,
-                melding = json
-            )
+            when (statistikk) {
+                is Statistikk.Sak -> publisher.publiser(
+                    topic = Config.Kafka.StatistikkTopic.Sak.name,
+                    melding = json
+                )
+                is Statistikk.Behandling -> publisher.publiser(
+                    topic = Config.Kafka.StatistikkTopic.Behandling.name,
+                    melding = json
+                )
+            }
         } else {
             log.error("Statistikk-objekt validerer ikke mot json-schema!")
         }

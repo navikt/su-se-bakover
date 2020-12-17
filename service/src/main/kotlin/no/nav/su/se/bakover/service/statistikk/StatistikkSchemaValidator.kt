@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory
 internal object StatistikkSchemaValidator {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val sakSchema: JsonSchema = createSchema("/statistikk/sak_schema.json")
+    private val behandlingSchema: JsonSchema = createSchema("/statistikk/behandling_schema.json")
 
     fun validerSak(json: String): Boolean = validate(json, sakSchema)
+    fun validerBehandling(json: String): Boolean = validate(json, behandlingSchema)
 
     private fun validate(json: String, schema: JsonSchema): Boolean {
         val errors = schema.validate(objectMapper.readTree(json))
