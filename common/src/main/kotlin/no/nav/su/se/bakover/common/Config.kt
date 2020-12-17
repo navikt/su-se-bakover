@@ -35,34 +35,6 @@ object Config {
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
 
-    val oppdrag by lazy { Oppdrag() }
-
-    data class Oppdrag(
-        val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
-        val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1413,
-        val mqHostname: String = env["MQ_HOSTNAME"] ?: "b27apvl176.preprod.local",
-        val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_SU_SE_BAKOVER",
-        val utbetaling: Utbetaling = Utbetaling(),
-        val avstemming: Avstemming = Avstemming(),
-        val simulering: Simulering = Simulering(),
-    ) {
-        data class Utbetaling internal constructor(
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_UTBETALING"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
-            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
-        )
-
-        data class Avstemming internal constructor(
-            /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"]
-                ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
-        )
-
-        data class Simulering internal constructor(
-            val url: String = env["SIMULERING_URL"] ?: "",
-            val stsSoapUrl: String = env["STS_URL_SOAP"] ?: ""
-        )
-    }
-
     fun init(): Dotenv {
         return dotenv {
             ignoreIfMissing = true
@@ -85,10 +57,11 @@ object Config {
  * We could consider to return an ApplicationConfig based on if you're running locally or in preprod/prod.
  */
 data class ApplicationConfig(
-    val serviceUser: ServiceUser,
-    val azureConfig: AzureConfig,
+    val serviceUser: ServiceUserConfig,
+    val azure: AzureConfig,
+    val oppdrag: OppdragConfig,
 ) {
-    data class ServiceUser(
+    data class ServiceUserConfig(
         val username: String,
         val password: String,
     ) {
@@ -97,7 +70,7 @@ data class ApplicationConfig(
         }
 
         companion object {
-            fun createFromEnvironmentVariables() = ServiceUser(
+            fun createFromEnvironmentVariables() = ServiceUserConfig(
                 username = getEnvironmentVariableOrThrow("username"),
                 password = getEnvironmentVariableOrThrow("password"),
             )
@@ -134,10 +107,69 @@ data class ApplicationConfig(
             )
         }
     }
+
+    data class OppdragConfig(
+        val mqQueueManager: String,
+        val mqPort: Int,
+        val mqHostname: String,
+        val mqChannel: String,
+        val utbetaling: UtbetalingConfig,
+        val avstemming: AvstemmingConfig,
+        val simulering: SimuleringConfig,
+    ) {
+        data class UtbetalingConfig constructor(
+            val mqSendQueue: String,
+            val mqReplyTo: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = UtbetalingConfig(
+                    mqSendQueue = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_UTBETALING"),
+                    mqReplyTo = getEnvironmentVariableOrThrow("QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"),
+                )
+            }
+        }
+
+        data class AvstemmingConfig constructor(
+            val mqSendQueue: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = AvstemmingConfig(
+                    mqSendQueue = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_AVSTEMMING"),
+                )
+            }
+        }
+
+        data class SimuleringConfig constructor(
+            val url: String,
+            val stsSoapUrl: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SimuleringConfig(
+                    url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
+                    stsSoapUrl = getEnvironmentVariableOrThrow("STS_URL_SOAP"),
+                )
+            }
+        }
+
+        companion object {
+            fun createFromEnvironmentVariables() = OppdragConfig(
+                mqQueueManager = getEnvironmentVariableOrThrow("MQ_QUEUE_MANAGER"),
+                mqPort = getEnvironmentVariableOrThrow("MQ_PORT").toInt(),
+                mqHostname = getEnvironmentVariableOrThrow("MQ_HOSTNAME"),
+                mqChannel = getEnvironmentVariableOrThrow("MQ_CHANNEL"),
+                utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
+                avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
+                simulering = SimuleringConfig.createFromEnvironmentVariables(),
+
+            )
+        }
+    }
+
     companion object {
         fun createFromEnvironmentVariables() = ApplicationConfig(
-            serviceUser = ServiceUser.createFromEnvironmentVariables(),
-            azureConfig = AzureConfig.createFromEnvironmentVariables(),
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
+            azure = AzureConfig.createFromEnvironmentVariables(),
+            oppdrag = OppdragConfig.createFromEnvironmentVariables(),
         )
     }
 }

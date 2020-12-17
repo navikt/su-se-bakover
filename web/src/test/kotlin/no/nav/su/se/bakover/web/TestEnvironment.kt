@@ -29,11 +29,11 @@ import java.util.Base64
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
 val applicationConfig = ApplicationConfig(
-    serviceUser = ApplicationConfig.ServiceUser(
+    serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",
     ),
-    azureConfig = ApplicationConfig.AzureConfig(
+    azure = ApplicationConfig.AzureConfig(
         clientSecret = "testClientSecret",
         wellKnownUrl = "http://localhost/test/wellKnownUrl",
         clientId = "testClientId",
@@ -43,14 +43,29 @@ val applicationConfig = ApplicationConfig(
             saksbehandler = "testAzureGroupSaksbehandler",
             veileder = "testAzureGroupVeileder"
         )
+    ),
+    oppdrag = ApplicationConfig.OppdragConfig(
+        mqQueueManager = "testMqQueueManager",
+        mqPort = -22,
+        mqHostname = "testMqHostname",
+        mqChannel = "testMqChannel",
+        utbetaling = ApplicationConfig.OppdragConfig.UtbetalingConfig(
+            mqSendQueue = "testMqSendQueue",
+            mqReplyTo = "testMqReplyTo"
+        ),
+        avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqTestSendQueue"),
+        simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
+            url = "simuleringTestUrl",
+            stsSoapUrl = "simuleringStsTestSoapUrl"
+        )
     )
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =
     when (rolle) {
-        Brukerrolle.Attestant -> applicationConfig.azureConfig.groups.attestant
-        Brukerrolle.Saksbehandler -> applicationConfig.azureConfig.groups.saksbehandler
-        Brukerrolle.Veileder -> applicationConfig.azureConfig.groups.veileder
+        Brukerrolle.Attestant -> applicationConfig.azure.groups.attestant
+        Brukerrolle.Saksbehandler -> applicationConfig.azure.groups.saksbehandler
+        Brukerrolle.Veileder -> applicationConfig.azure.groups.veileder
     }
 
 fun authenticationHttpClient() = HttpClient(MockEngine) {

@@ -93,16 +93,16 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-private fun createJmsContext(serviceUser: ApplicationConfig.ServiceUser): JMSContext {
+private fun createJmsContext(applicationConfig: ApplicationConfig): JMSContext {
     return MQConnectionFactory().apply {
-        Config.oppdrag.let {
+        applicationConfig.oppdrag.let {
             hostName = it.mqHostname
             port = it.mqPort
             channel = it.mqChannel
             queueManager = it.mqQueueManager
             transportType = WMQConstants.WMQ_CM_CLIENT
         }
-    }.createContext(serviceUser.username, serviceUser.password)
+    }.createContext(applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
 }
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
@@ -112,7 +112,7 @@ internal fun Application.susebakover(
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
     applicationConfig: ApplicationConfig = ApplicationConfig.createFromEnvironmentVariables(),
-    jmsContext: JMSContext = createJmsContext(applicationConfig.serviceUser),
+    jmsContext: JMSContext = createJmsContext(applicationConfig),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsContext
     ).build(applicationConfig),
@@ -201,15 +201,15 @@ internal fun Application.susebakover(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
         httpClient = authenticationHttpClient,
-        azureConfig = applicationConfig.azureConfig
+        azureConfig = applicationConfig.azure
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
-        logoutRedirectUrl = applicationConfig.azureConfig.backendCallbackUrl,
+        logoutRedirectUrl = applicationConfig.azure.backendCallbackUrl,
     )
-    val azureGroupMapper = AzureGroupMapper(applicationConfig.azureConfig.groups)
+    val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(Authorization) {
 
@@ -272,7 +272,7 @@ internal fun Application.susebakover(
     }
     if (!Config.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
-            kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
+            kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
                 utbetalingService = services.utbetaling

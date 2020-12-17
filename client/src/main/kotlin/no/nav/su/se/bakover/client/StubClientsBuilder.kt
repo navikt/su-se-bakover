@@ -36,7 +36,7 @@ object StubClientsBuilder : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
 
-        val azureConfig = applicationConfig.azureConfig
+        val azureConfig = applicationConfig.azure
         val azureClient =
             AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         return Clients(

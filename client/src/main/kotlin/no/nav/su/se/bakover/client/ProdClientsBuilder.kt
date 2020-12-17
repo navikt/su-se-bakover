@@ -30,7 +30,7 @@ data class ProdClientsBuilder(
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val consumerId = "srvsupstonad"
 
-        val azureConfig = applicationConfig.azureConfig
+        val azureConfig = applicationConfig.azure
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
         val tokenOppslag = StsClient(Config.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
@@ -53,14 +53,14 @@ data class ProdClientsBuilder(
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 SimuleringConfig(
-                    simuleringServiceUrl = Config.oppdrag.simulering.url,
-                    stsSoapUrl = Config.oppdrag.simulering.stsSoapUrl,
+                    simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
+                    stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
                     serviceUser = applicationConfig.serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
-                mqPublisher = Config.Oppdrag().let {
+                mqPublisher = applicationConfig.oppdrag.let {
                     IbmMqPublisher(
                         MqPublisherConfig(
                             sendQueue = it.utbetaling.mqSendQueue,
@@ -74,7 +74,7 @@ data class ProdClientsBuilder(
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
-                        sendQueue = Config.Oppdrag().avstemming.mqSendQueue
+                        sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue
                     ),
                     jmsContext = jmsContext
                 )
