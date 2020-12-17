@@ -9,6 +9,7 @@ spec:
   azure:
     application:
       enabled: true
+      tenant: {{ tenant }}
       replyURLs:
         - "http://localhost:8080/callback"
         - {{ env.BACKEND_CALLBACK_URL }}
@@ -40,8 +41,6 @@ spec:
         kvPath: /kv/{{ cluster }}/fss/su-se-bakover/default
       - mountPath: /var/run/secrets/nais.io/srvuser
         kvPath: /serviceuser/data/{{ secret_env }}/srvsupstonad
-      - mountPath: /var/run/secrets/nais.io/azuread
-        kvPath: /azuread/data/{{ secret_env }}/creds/su-se-bakover
   env:
      {{#each env}}
       - name: {{@key}}

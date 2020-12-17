@@ -2,6 +2,7 @@
   "ingress": "https://su-se-bakover.dev.adeo.no",
   "secret_env": "dev",
   "cluster": "preprod",
+  "tenant": "trygdeetaten.no",
   "env": {
     "ALLOW_CORS_ORIGIN": "supplerendestonad.dev.adeo.no",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.dev.adeo.no/callback",

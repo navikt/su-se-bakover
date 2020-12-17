@@ -2,6 +2,7 @@
   "ingress": "https://su-se-bakover.nais.adeo.no",
   "secret_env": "prod",
   "cluster": "prod",
+  "tenant": "nav.no",
   "env": {
     "ALLOW_CORS_ORIGIN": "supplerendestonad.nais.adeo.no",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.adeo.no/callback",
