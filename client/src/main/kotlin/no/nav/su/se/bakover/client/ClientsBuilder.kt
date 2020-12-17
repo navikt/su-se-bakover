@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
+import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.statistikk.StatistikkProducer
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -36,7 +36,7 @@ data class Clients(
     val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
-    val statistikkProducer: StatistikkProducer
+    val kafkaPublisher: KafkaPublisher
 ) {
     init {
         // https://fuel.gitbook.io/documentation/core/fuel

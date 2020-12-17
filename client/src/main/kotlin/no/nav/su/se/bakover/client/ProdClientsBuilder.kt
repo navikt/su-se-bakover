@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
-import no.nav.su.se.bakover.client.statistikk.KafkaStatistikkProducer
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.Config
 import java.time.Clock
@@ -79,7 +79,7 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath),
-            statistikkProducer = KafkaStatistikkProducer()
+            kafkaPublisher = KafkaPublisherClient()
         )
     }
 }

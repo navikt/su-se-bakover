@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.statistikk.StatistikkService
+import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -95,7 +97,8 @@ class ServiceBuilder(
                 personService = personService
             ),
             oppgave = oppgaveService,
-            person = personService
+            person = personService,
+            statistikk = StatistikkServiceImpl(clients.kafkaPublisher)
         )
     }
 }
@@ -110,4 +113,5 @@ data class Services(
     val lukkSøknad: LukkSøknadService,
     val oppgave: OppgaveService,
     val person: PersonService,
+    val statistikk: StatistikkService
 )

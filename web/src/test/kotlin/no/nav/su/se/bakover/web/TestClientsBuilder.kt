@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
+import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.client.stubs.statistikk.StatistikkProducerStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject
@@ -37,7 +37,7 @@ object TestClientsBuilder : ClientsBuilder {
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
-        statistikkProducer = StatistikkProducerStub
+        kafkaPublisher = KafkaPublisherStub
     )
 
     override fun build(): Clients = testClients
