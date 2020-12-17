@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import java.time.Clock
 import javax.jms.JMSContext
@@ -26,12 +27,13 @@ data class ProdClientsBuilder(
     private val jmsContext: JMSContext,
 ) : ClientsBuilder {
 
-    override fun build(azureConfig: Config.AzureConfig): Clients {
+    override fun build(applicationConfig: ApplicationConfig): Clients {
         val consumerId = "srvsupstonad"
 
+        val azureConfig = applicationConfig.azureConfig
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
-        val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
+        val tokenOppslag = StsClient(Config.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
         val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
         val personOppslag =
             PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
@@ -54,11 +56,11 @@ data class ProdClientsBuilder(
                     simuleringServiceUrl = Config.oppdrag.simulering.url,
                     stsSoapUrl = Config.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
-                    serviceUser = Config.serviceUser
+                    serviceUser = applicationConfig.serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
-                mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
+                mqPublisher = Config.Oppdrag().let {
                     IbmMqPublisher(
                         MqPublisherConfig(
                             sendQueue = it.utbetaling.mqSendQueue,
@@ -72,7 +74,7 @@ data class ProdClientsBuilder(
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
-                        sendQueue = Config.Oppdrag(serviceUser = Config.serviceUser).avstemming.mqSendQueue
+                        sendQueue = Config.Oppdrag().avstemming.mqSendQueue
                     ),
                     jmsContext = jmsContext
                 )

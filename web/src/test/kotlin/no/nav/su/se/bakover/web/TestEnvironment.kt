@@ -16,7 +16,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -28,23 +28,29 @@ import java.util.Base64
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
-val azureConfig = Config.AzureConfig(
-    clientSecret = "testClientSecret",
-    wellKnownUrl = "http://localhost/test/wellKnownUrl",
-    clientId = "testClientId",
-    backendCallbackUrl = "http://localhost/test/backendCallbackUrl",
-    groups = Config.AzureConfig.AzureGroups(
-        attestant = "testAzureGroupAttestant",
-        saksbehandler = "testAzureGroupSaksbehandler",
-        veileder = "testAzureGroupVeileder"
+val applicationConfig = ApplicationConfig(
+    serviceUser = ApplicationConfig.ServiceUser(
+        username = "serviceUserTestUsername",
+        password = "serviceUserTestPassword",
+    ),
+    azureConfig = ApplicationConfig.AzureConfig(
+        clientSecret = "testClientSecret",
+        wellKnownUrl = "http://localhost/test/wellKnownUrl",
+        clientId = "testClientId",
+        backendCallbackUrl = "http://localhost/test/backendCallbackUrl",
+        groups = ApplicationConfig.AzureConfig.AzureGroups(
+            attestant = "testAzureGroupAttestant",
+            saksbehandler = "testAzureGroupSaksbehandler",
+            veileder = "testAzureGroupVeileder"
+        )
     )
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =
     when (rolle) {
-        Brukerrolle.Attestant -> azureConfig.groups.attestant
-        Brukerrolle.Saksbehandler -> azureConfig.groups.saksbehandler
-        Brukerrolle.Veileder -> azureConfig.groups.veileder
+        Brukerrolle.Attestant -> applicationConfig.azureConfig.groups.attestant
+        Brukerrolle.Saksbehandler -> applicationConfig.azureConfig.groups.saksbehandler
+        Brukerrolle.Veileder -> applicationConfig.azureConfig.groups.veileder
     }
 
 fun authenticationHttpClient() = HttpClient(MockEngine) {
@@ -86,7 +92,7 @@ internal fun Application.testSusebakover(
         jwkProvider = jwkProvider,
         authenticationHttpClient = authenticationHttpClient,
         services = services,
-        azureConfig = azureConfig,
+        applicationConfig = applicationConfig,
     )
 }
 

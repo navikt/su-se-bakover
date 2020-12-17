@@ -36,6 +36,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
@@ -92,8 +93,8 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-private val jmsContext: JMSContext by lazy {
-    MQConnectionFactory().apply {
+private fun createJmsContext(serviceUser: ApplicationConfig.ServiceUser): JMSContext {
+    return MQConnectionFactory().apply {
         Config.oppdrag.let {
             hostName = it.mqHostname
             port = it.mqPort
@@ -101,7 +102,7 @@ private val jmsContext: JMSContext by lazy {
             queueManager = it.mqQueueManager
             transportType = WMQConstants.WMQ_CM_CLIENT
         }
-    }.createContext(Config.serviceUser.username, Config.serviceUser.password)
+    }.createContext(serviceUser.username, serviceUser.password)
 }
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
@@ -110,10 +111,11 @@ internal fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
-    azureConfig: Config.AzureConfig = Config.AzureConfig.createFromEnvironmentVariables(),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(azureConfig) else ProdClientsBuilder(
+    applicationConfig: ApplicationConfig = ApplicationConfig.createFromEnvironmentVariables(),
+    jmsContext: JMSContext = createJmsContext(applicationConfig.serviceUser),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsContext
-    ).build(azureConfig),
+    ).build(applicationConfig),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
     authenticationHttpClient: HttpClient = HttpClient(Apache) {
@@ -199,15 +201,15 @@ internal fun Application.susebakover(
         jwkConfig = jwkConfig,
         jwkProvider = jwkProvider,
         httpClient = authenticationHttpClient,
-        azureConfig = azureConfig
+        azureConfig = applicationConfig.azureConfig
     )
     oauthRoutes(
         frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
-        logoutRedirectUrl = azureConfig.backendCallbackUrl,
+        logoutRedirectUrl = applicationConfig.azureConfig.backendCallbackUrl,
     )
-    val azureGroupMapper = AzureGroupMapper(azureConfig.groups)
+    val azureGroupMapper = AzureGroupMapper(applicationConfig.azureConfig.groups)
 
     install(Authorization) {
 

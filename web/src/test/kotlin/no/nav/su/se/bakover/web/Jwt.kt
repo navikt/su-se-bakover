@@ -14,7 +14,7 @@ object Jwt {
     fun create(
         subject: String = "enSaksbehandler",
         roller: List<Brukerrolle> = emptyList(),
-        audience: String = azureConfig.clientId,
+        audience: String = applicationConfig.azureConfig.clientId,
         expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
         algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
     ): String {

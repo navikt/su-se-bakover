@@ -28,6 +28,7 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import org.json.JSONObject
 import java.net.URLEncoder
@@ -40,7 +41,7 @@ internal fun Application.setupAuthentication(
     jwkConfig: JSONObject,
     jwkProvider: JwkProvider,
     httpClient: HttpClient,
-    azureConfig: Config.AzureConfig
+    azureConfig: ApplicationConfig.AzureConfig
 ) {
     install(Authentication) {
         oauth("azure") {

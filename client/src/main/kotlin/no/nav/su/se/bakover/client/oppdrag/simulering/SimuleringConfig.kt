@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
-import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import org.apache.cxf.Bus
 import org.apache.cxf.binding.soap.Soap12
@@ -26,18 +26,18 @@ class SimuleringConfig(
     private val simuleringServiceUrl: String,
     private val stsSoapUrl: String,
     private val disableCNCheck: Boolean,
-    private val serviceUser: Config.ServiceUser
+    private val serviceUser: ApplicationConfig.ServiceUser
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private companion object {
-        private val WSDL = "wsdl/no/nav/system/os/eksponering/simulerFpServiceWSBinding.wsdl"
-        private val NAMESPACE = "http://nav.no/system/os/eksponering/simulerFpServiceWSBinding"
+        private const val WSDL = "wsdl/no/nav/system/os/eksponering/simulerFpServiceWSBinding.wsdl"
+        private const val NAMESPACE = "http://nav.no/system/os/eksponering/simulerFpServiceWSBinding"
         private val SERVICE = QName(NAMESPACE, "simulerFpService")
         private val PORT = QName(NAMESPACE, "simulerFpServicePort")
-        private val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:untPolicy.xml"
-        private val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
+        private const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:untPolicy.xml"
+        private const val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
     }
 
     fun wrapWithSTSSimulerFpService(bus: Bus = ExtensionManagerBus()): SimulerFpService {
