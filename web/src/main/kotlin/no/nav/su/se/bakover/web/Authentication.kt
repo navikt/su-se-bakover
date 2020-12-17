@@ -78,7 +78,7 @@ internal fun Application.setupAuthentication(
             }
             validate { credential ->
                 val validAudience = Config.azureClientId in credential.payload.audience
-                val groupsFromToken = credential.payload.getClaim("groups").asList(String::class.java)
+                val groupsFromToken = credential.payload.getClaim("groups")?.asList(String::class.java) ?: emptyList()
 
                 val allowedGroups =
                     listOf(Config.azureGroupVeileder, Config.azureGroupSaksbehandler, Config.azureGroupAttestant)
