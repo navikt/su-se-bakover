@@ -15,11 +15,11 @@ sealed class Statistikk {
         val sakStatus: String,
         val avsender: String,
         val versjon: Int,
-        val aktorer: List<Aktør>?,
-        val underType: String?,
-        val ytelseTypeBeskrivelse: String?,
-        val underTypeBeskrivelse: String?,
-        val sakStatusBeskrivelse: String?,
+        val aktorer: List<Aktør>? = null,
+        val underType: String? = null,
+        val ytelseTypeBeskrivelse: String? = null,
+        val underTypeBeskrivelse: String? = null,
+        val sakStatusBeskrivelse: String? = null,
     ) : Statistikk()
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)

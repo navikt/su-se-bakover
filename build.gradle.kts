@@ -51,7 +51,7 @@ allprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:6.5")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.6.0")
-        implementation("com.worldturner.medeia:medeia-validator-jackson:1.1.0")
+        implementation("com.networknt:json-schema-validator:1.0.45")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 

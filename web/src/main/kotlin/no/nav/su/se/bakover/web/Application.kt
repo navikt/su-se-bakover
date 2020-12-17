@@ -125,7 +125,6 @@ internal fun Application.susebakover(
 ) {
     // Application er allerede reservert av Ktor
     val log: Logger = LoggerFactory.getLogger("su-se-bakover")
-    clients.kafkaPublisher.publiser("", "testmelding")
 
     install(CORS) {
         method(Options)
