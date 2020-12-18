@@ -19,18 +19,22 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.JmsConfig
 import java.time.Clock
-import javax.jms.JMSContext
 
-data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuilder {
+data class ProdClientsBuilder(
+    private val jmsConfig: JmsConfig,
+) : ClientsBuilder {
 
-    override fun build(): Clients {
+    override fun build(applicationConfig: ApplicationConfig): Clients {
         val consumerId = "srvsupstonad"
 
-        val oAuth = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
+        val azureConfig = applicationConfig.azure
+        val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
-        val tokenOppslag = StsClient(Config.stsUrl, Config.serviceUser.username, Config.serviceUser.password)
+        val tokenOppslag = StsClient(Config.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
         val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
         val personOppslag =
             PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
@@ -50,20 +54,20 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(
                 SimuleringConfig(
-                    simuleringServiceUrl = Config.oppdrag.simulering.url,
-                    stsSoapUrl = Config.oppdrag.simulering.stsSoapUrl,
+                    simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
+                    stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
-                    serviceUser = Config.serviceUser
+                    serviceUser = applicationConfig.serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
-                mqPublisher = Config.Oppdrag(serviceUser = Config.serviceUser).let {
+                mqPublisher = applicationConfig.oppdrag.let {
                     IbmMqPublisher(
                         MqPublisherConfig(
                             sendQueue = it.utbetaling.mqSendQueue,
                             replyTo = it.utbetaling.mqReplyTo
                         ),
-                        jmsContext = jmsContext
+                        jmsContext = jmsConfig.jmsContext
                     )
                 }
             ),
@@ -71,9 +75,9 @@ data class ProdClientsBuilder(internal val jmsContext: JMSContext) : ClientsBuil
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
-                        sendQueue = Config.Oppdrag(serviceUser = Config.serviceUser).avstemming.mqSendQueue
+                        sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue
                     ),
-                    jmsContext = jmsContext
+                    jmsContext = jmsConfig.jmsContext
                 )
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),

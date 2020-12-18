@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
+import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
@@ -13,22 +14,14 @@ object Config {
     private val env by lazy { init() }
 
     val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
-    val isPreprod = env["NAIS_CLUSTER_NAME"] == "dev-fss"
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
     val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 
-    val databaseName = env["DATABASE_NAME"] ?: "supstonad-db-local"
-    val jdbcUrl = env["DATABASE_JDBC_URL"] ?: "jdbc:postgresql://localhost:5432/supstonad-db-local"
+    val databaseName by lazy { getEnvironmentVariableOrThrow("DATABASE_NAME") }
+    val jdbcUrl by lazy { getEnvironmentVariableOrThrow("DATABASE_JDBC_URL") }
 
-    val azureClientSecret = env["AZURE_APP_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureWellKnownUrl = env["AZURE_APP_WELL_KNOWN_URL"] ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
-    val azureClientId = env["AZURE_APP_CLIENT_ID"] ?: "26a62d18-70ce-48a6-9f4d-664607bd5188"
-    val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "http://localhost:8080/callback"
-    val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "d75164fa-39e6-4149-956e-8404bc9080b6"
-    val azureGroupSaksbehandler = env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d"
-    val azureGroupVeileder = env["AZURE_GROUP_VEILEDER"] ?: "062d4814-8538-4f3a-bcb9-32821af7909a"
-    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "41ca50ba-e44f-4bc8-9e31-b745a0041926"
+    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
@@ -40,54 +33,13 @@ object Config {
     val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
     val dkifUrl = env["DKIF_URL"] ?: "http://dkif.default.svc.nais.local"
 
-    val serviceUser = ServiceUser()
-    val kafka = Kafka()
-
-    data class ServiceUser(
-        val username: String = env["username"] ?: "username",
-        val password: String = env["password"] ?: "password"
-    ) {
-        override fun toString(): String {
-            return "ServiceUser(username='$username', password='****')"
-        }
-    }
-
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
-    val fnrForPersonMedSkjerming = env["DEV_FNR_WITH_SKJERMING"]
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
-
-    val oppdrag = Oppdrag(serviceUser = serviceUser)
-
-    data class Oppdrag(
-        val mqQueueManager: String = env["MQ_QUEUE_MANAGER"] ?: "MQ1LSC02",
-        val mqPort: Int = env["MQ_PORT"]?.toInt() ?: 1413,
-        val mqHostname: String = env["MQ_HOSTNAME"] ?: "b27apvl176.preprod.local",
-        val mqChannel: String = env["MQ_CHANNEL"] ?: "Q1_SU_SE_BAKOVER",
-        val serviceUser: ServiceUser,
-        val utbetaling: Utbetaling = Utbetaling(),
-        val avstemming: Avstemming = Avstemming(),
-        val simulering: Simulering = Simulering(),
-    ) {
-        data class Utbetaling internal constructor(
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_UTBETALING"] ?: "QA.Q1_231.OB04_OPPDRAG_XML",
-            val mqReplyTo: String = env["MQ_REPLY_TO"] ?: "QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"
-        )
-
-        data class Avstemming internal constructor(
-            /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
-        )
-
-        data class Simulering internal constructor(
-            val url: String = env["SIMULERING_URL"] ?: "",
-            val stsSoapUrl: String = env["STS_URL_SOAP"] ?: ""
-        )
-    }
-
+    val kafka = Kafka()
     data class Kafka(
         private val common: Map<String, String> = Common().configure(),
         val producerConfig: Map<String, Any> = common + mapOf(
@@ -134,11 +86,166 @@ object Config {
             }
         }
     }
-
     fun init(): Dotenv {
         return dotenv {
             ignoreIfMissing = true
             systemProperties = true
         }
+    }
+
+    internal fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
+        return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
+    }
+
+    private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
+        throw IllegalStateException("Mangler environment variabelen '$environmentVariableName'. Dersom du prøver kjøre lokalt må den legges til i '.env'-fila. Se eksempler i '.env.template'.")
+    }
+}
+
+/**
+ * This class will gradually replace the Config object - to make config possible to test without defaults.
+ * Will start by just moving the easy part and the stuff that shouldn't have default config.
+ * We could consider to return an ApplicationConfig based on if you're running locally or in preprod/prod.
+ */
+data class ApplicationConfig(
+    val serviceUser: ServiceUserConfig,
+    val azure: AzureConfig,
+    val oppdrag: OppdragConfig,
+) {
+    data class ServiceUserConfig(
+        val username: String,
+        val password: String,
+    ) {
+        override fun toString(): String {
+            return "ServiceUser(username='$username', password='****')"
+        }
+
+        companion object {
+            fun createFromEnvironmentVariables() = ServiceUserConfig(
+                username = getEnvironmentVariableOrThrow("username"),
+                password = getEnvironmentVariableOrThrow("password"),
+            )
+
+            fun createLocalConfig() = ServiceUserConfig(
+                username = "unused",
+                password = "unused",
+            )
+        }
+    }
+
+    data class AzureConfig(
+        val clientSecret: String,
+        val wellKnownUrl: String,
+        val clientId: String,
+        val backendCallbackUrl: String,
+        val groups: AzureGroups,
+    ) {
+        data class AzureGroups(
+            val attestant: String,
+            val saksbehandler: String,
+            val veileder: String,
+        ) {
+            fun asList() = listOf(attestant, saksbehandler, veileder)
+        }
+
+        companion object {
+            fun createFromEnvironmentVariables() = AzureConfig(
+                clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
+                wellKnownUrl = getEnvironmentVariableOrThrow("AZURE_APP_WELL_KNOWN_URL"),
+                clientId = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_ID"),
+                backendCallbackUrl = getEnvironmentVariableOrThrow("BACKEND_CALLBACK_URL"),
+                groups = AzureGroups(
+                    attestant = getEnvironmentVariableOrThrow("AZURE_GROUP_ATTESTANT"),
+                    saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
+                    veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
+                )
+            )
+        }
+    }
+
+    data class OppdragConfig(
+        val mqQueueManager: String,
+        val mqPort: Int,
+        val mqHostname: String,
+        val mqChannel: String,
+        val utbetaling: UtbetalingConfig,
+        val avstemming: AvstemmingConfig,
+        val simulering: SimuleringConfig,
+    ) {
+        data class UtbetalingConfig constructor(
+            val mqSendQueue: String,
+            val mqReplyTo: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = UtbetalingConfig(
+                    mqSendQueue = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_UTBETALING"),
+                    mqReplyTo = getEnvironmentVariableOrThrow("QA.Q1_SU_SE_BAKOVER.OPPDRAG_KVITTERING"),
+                )
+            }
+        }
+
+        data class AvstemmingConfig constructor(
+            val mqSendQueue: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = AvstemmingConfig(
+                    mqSendQueue = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_AVSTEMMING"),
+                )
+            }
+        }
+
+        data class SimuleringConfig constructor(
+            val url: String,
+            val stsSoapUrl: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = SimuleringConfig(
+                    url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
+                    stsSoapUrl = getEnvironmentVariableOrThrow("STS_URL_SOAP"),
+                )
+            }
+        }
+
+        companion object {
+            fun createFromEnvironmentVariables() = OppdragConfig(
+                mqQueueManager = getEnvironmentVariableOrThrow("MQ_QUEUE_MANAGER"),
+                mqPort = getEnvironmentVariableOrThrow("MQ_PORT").toInt(),
+                mqHostname = getEnvironmentVariableOrThrow("MQ_HOSTNAME"),
+                mqChannel = getEnvironmentVariableOrThrow("MQ_CHANNEL"),
+                utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
+                avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
+                simulering = SimuleringConfig.createFromEnvironmentVariables(),
+            )
+
+            fun createLocalConfig() = OppdragConfig(
+                mqQueueManager = "unused",
+                mqPort = -1,
+                mqHostname = "unused",
+                mqChannel = "unused",
+                utbetaling = UtbetalingConfig(
+                    mqSendQueue = "unused",
+                    mqReplyTo = "unused"
+                ),
+                avstemming = AvstemmingConfig(mqSendQueue = "unused"),
+                simulering = SimuleringConfig(
+                    url = "unused",
+                    stsSoapUrl = "unused"
+                )
+            )
+        }
+    }
+
+    companion object {
+        fun createFromEnvironmentVariables() = ApplicationConfig(
+            serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
+            azure = AzureConfig.createFromEnvironmentVariables(),
+            oppdrag = OppdragConfig.createFromEnvironmentVariables(),
+        )
+
+        fun createLocalConfig() = ApplicationConfig(
+            serviceUser = ServiceUserConfig.createLocalConfig(),
+            azure = AzureConfig.createFromEnvironmentVariables(),
+            oppdrag = OppdragConfig.createLocalConfig(),
+        )
     }
 }

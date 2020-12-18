@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -35,8 +36,11 @@ object StubClientsBuilder : ClientsBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun build(): Clients {
-        val azureClient = AzureClient(Config.azureClientId, Config.azureClientSecret, Config.azureWellKnownUrl)
+    override fun build(applicationConfig: ApplicationConfig): Clients {
+
+        val azureConfig = applicationConfig.azure
+        val azureClient =
+            AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         return Clients(
             oauth = azureClient,
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },

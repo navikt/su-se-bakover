@@ -28,8 +28,8 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
-import no.nav.su.se.bakover.common.sikkerLogg
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.time.Instant
@@ -40,48 +40,33 @@ import java.util.Date
 internal fun Application.setupAuthentication(
     jwkConfig: JSONObject,
     jwkProvider: JwkProvider,
-    httpClient: HttpClient
+    httpClient: HttpClient,
+    azureConfig: ApplicationConfig.AzureConfig
 ) {
-    if (Config.isPreprod) {
-        sikkerLogg.info("jwkConfig=$jwkConfig")
-    }
     install(Authentication) {
         oauth("azure") {
             client = httpClient
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                     name = "azure",
-                    authorizeUrl = jwkConfig.getString("authorization_endpoint").also {
-                        if (Config.isPreprod) {
-                            sikkerLogg.info("Henter OAUTH authorizeUrl fra JWK 'authorization_endpoint' $it")
-                        }
-                    },
-                    accessTokenUrl = jwkConfig.getString("token_endpoint").also {
-                        if (Config.isPreprod) {
-                            sikkerLogg.info("Henter OAUTH accessTokenUrl fra JWK 'token_endpoint' $it")
-                        }
-                    },
+                    authorizeUrl = jwkConfig.getString("authorization_endpoint"),
+                    accessTokenUrl = jwkConfig.getString("token_endpoint"),
                     requestMethod = Post,
-                    clientId = Config.azureClientId,
-                    clientSecret = Config.azureClientSecret,
-                    defaultScopes = listOf("${Config.azureClientId}/.default", "openid", "offline_access")
+                    clientId = azureConfig.clientId,
+                    clientSecret = azureConfig.clientSecret,
+                    defaultScopes = listOf("${azureConfig.clientId}/.default", "openid", "offline_access")
                 )
             }
-            urlProvider = { Config.azureBackendCallbackUrl }
+            urlProvider = { azureConfig.backendCallbackUrl }
         }
 
         jwt("jwt") {
-            verifier(jwkProvider, jwkConfig.getString("issuer")).also {
-                if (Config.isPreprod) {
-                    sikkerLogg.info("Henter OAUTH issuer fra JWK 'issuer' $it")
-                }
-            }
+            verifier(jwkProvider, jwkConfig.getString("issuer"))
             validate { credential ->
-                val validAudience = Config.azureClientId in credential.payload.audience
+                val validAudience = azureConfig.clientId in credential.payload.audience
                 val groupsFromToken = credential.payload.getClaim("groups")?.asList(String::class.java) ?: emptyList()
 
-                val allowedGroups =
-                    listOf(Config.azureGroupVeileder, Config.azureGroupSaksbehandler, Config.azureGroupAttestant)
+                val allowedGroups = azureConfig.groups.asList()
                 val validGroup = groupsFromToken.any { it in allowedGroups }
 
                 if (validAudience && validGroup) {
@@ -138,7 +123,8 @@ internal const val LOGOUT_CALLBACK_PATH = "$AUTH_CALLBACK_PATH/logout-complete"
 internal fun Application.oauthRoutes(
     frontendRedirectUrl: String,
     jwkConfig: JSONObject,
-    oAuth: OAuth
+    oAuth: OAuth,
+    logoutRedirectUrl: String,
 ) {
     routing {
         authenticate("azure") {
@@ -155,7 +141,7 @@ internal fun Application.oauthRoutes(
         get("/logout") {
             val endSessionEndpoint = jwkConfig.getString("end_session_endpoint")
 
-            val redirectUri = URLEncoder.encode("${Config.azureBackendCallbackUrl}/logout-complete", "utf-8")
+            val redirectUri = URLEncoder.encode("$logoutRedirectUrl/logout-complete", "utf-8")
 
             call.respondRedirect("$endSessionEndpoint?post_logout_redirect_uri=$redirectUri")
         }

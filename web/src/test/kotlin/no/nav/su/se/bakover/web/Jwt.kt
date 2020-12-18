@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Brukerrolle
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
@@ -15,22 +14,24 @@ object Jwt {
     fun create(
         subject: String = "enSaksbehandler",
         roller: List<Brukerrolle> = emptyList(),
-        audience: String = Config.azureClientId,
+        audience: String = applicationConfig.azure.clientId,
         expiresAt: Date = Date.from(Instant.now().plusSeconds(3600)),
         algorithm: Algorithm = Algorithm.RSA256(keys.first, keys.second)
     ): String {
-        return "Bearer ${JWT.create()
+        return "Bearer ${
+        JWT.create()
             .withIssuer("azure")
             .withAudience(audience)
             .withKeyId("key-1234")
             .withSubject(subject)
-            .withArrayClaim("groups", roller.map(Brukerrolle::toAzureGroup).toTypedArray())
+            .withArrayClaim("groups", roller.map(::toAzureTestGroup).toTypedArray())
             .withClaim("oid", subject + "oid")
             .withExpiresAt(expiresAt)
-            .sign(algorithm)}"
+            .sign(algorithm)
+        }"
     }
 
-    fun generate(): Pair<RSAPublicKey, RSAPrivateKey> {
+    private fun generate(): Pair<RSAPublicKey, RSAPrivateKey> {
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
         keyPairGenerator.initialize(512)
         val keypair = keyPairGenerator.genKeyPair()
