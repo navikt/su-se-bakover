@@ -3,6 +3,11 @@ package no.nav.su.se.bakover.common
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.security.auth.SecurityProtocol
+import org.apache.kafka.common.serialization.StringSerializer
 
 object Config {
 
@@ -34,7 +39,53 @@ object Config {
     private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
+    val kafka = Kafka()
+    data class Kafka(
+        private val common: Map<String, String> = Common().configure(),
+        val producerConfig: Map<String, Any> = common + mapOf(
+            ProducerConfig.ACKS_CONFIG to "all",
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+        )
+    ) {
+        data class Common(
+            val brokers: String = env["KAFKA_BROKERS"] ?: "brokers",
+            val sslConfig: Map<String, String> = SslConfig().configure()
+        ) {
+            fun configure(): Map<String, String> =
+                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
+        }
 
+        data class SslConfig(
+            val truststorePath: String = env["KAFKA_TRUSTSTORE_PATH"] ?: "truststorePath",
+            val keystorePath: String = env["KAFKA_KEYSTORE_PATH"] ?: "keystorePath",
+            val credstorePwd: String = env["KAFKA_CREDSTORE_PASSWORD"] ?: "credstorePwd"
+        ) {
+            fun configure(): Map<String, String> = mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
+                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
+                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
+                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
+                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
+            )
+        }
+
+        sealed class StatistikkTopic {
+            abstract val name: String
+
+            object Sak : StatistikkTopic() {
+                override val name: String = "supstonad.aapen-su-sak-statistikk-v1"
+            }
+
+            object Behandling : StatistikkTopic() {
+                override val name: String = "supstonad.aapen-su-behandling-statistikk-v1"
+            }
+        }
+    }
     fun init(): Dotenv {
         return dotenv {
             ignoreIfMissing = true

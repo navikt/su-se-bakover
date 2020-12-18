@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
+import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -36,7 +37,8 @@ object TestClientsBuilder : ClientsBuilder {
         avstemmingPublisher = AvstemmingStub,
         microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
         digitalKontaktinformasjon = DkifClientStub,
-        leaderPodLookup = LeaderPodLookupStub
+        leaderPodLookup = LeaderPodLookupStub,
+        kafkaPublisher = KafkaPublisherStub
     )
 
     fun build(): Clients = testClients

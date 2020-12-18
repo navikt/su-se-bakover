@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
@@ -81,7 +82,8 @@ data class ProdClientsBuilder(
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
-            leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath)
+            leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath),
+            kafkaPublisher = KafkaPublisherClient()
         )
     }
 }

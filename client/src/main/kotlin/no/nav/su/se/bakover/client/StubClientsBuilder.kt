@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
+import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -57,7 +59,8 @@ object StubClientsBuilder : ClientsBuilder {
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
             microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
             digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") },
-            leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") }
+            leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") },
+            kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") }
         )
     }
 }
