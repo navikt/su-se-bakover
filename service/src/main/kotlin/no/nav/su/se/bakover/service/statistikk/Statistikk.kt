@@ -1,55 +1,64 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
+import java.time.LocalDate
+import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 sealed class Statistikk {
     data class Sak(
-        val funksjonellTid: String,
-        val tekniskTid: String,
-        val opprettetDato: String,
-        val sakId: String,
+        val funksjonellTid: Tidspunkt,
+        val tekniskTid: Tidspunkt,
+        val opprettetDato: LocalDate,
+        val sakId: UUID,
         val aktorId: Int,
-        val saksnummer: String,
-        val ytelseType: String,
-        val sakStatus: String,
-        val avsender: String,
-        val versjon: Int,
-        val aktorer: List<Aktør>? = null,
-        val underType: String? = null,
-        val ytelseTypeBeskrivelse: String? = null,
-        val underTypeBeskrivelse: String? = null,
+        @JsonSerialize(using = ToStringSerializer::class)
+        val saksnummer: Long,
+        val ytelseType: String = "SU",
+        val ytelseTypeBeskrivelse: String? = "Supplerende stønad",
+        val sakStatus: String = "OPPRETTET",
         val sakStatusBeskrivelse: String? = null,
+        val avsender: String = "su-se-bakover",
+        val versjon: Int = -1,
+        val aktorer: List<Aktør>? = null,
+        val underType: String? = "SUUFORE",
+        val underTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
     ) : Statistikk()
 
     data class Behandling(
-        val funksjonellTid: String,
-        val tekniskTid: String,
-        val mottattDato: String,
-        val registrertDato: String,
-        val behandlingId: String,
-        val relatertBehandlingId: String? = null,
-        val sakId: String,
-        val saksnummer: String,
-        val behandlingType: String,
-        val behandlingTypeBeskrivelse: String? = null,
-        val behandlingStatus: String,
-        val utenlandstilsnitt: String,
+        val funksjonellTid: Tidspunkt,
+        val tekniskTid: Tidspunkt,
+        val mottattDato: LocalDate,
+        val registrertDato: LocalDate,
+        val behandlingId: UUID,
+        val relatertBehandlingId: UUID? = null,
+        val sakId: UUID,
+        @JsonSerialize(using = ToStringSerializer::class)
+        val saksnummer: Long,
+        val behandlingType: String = "SOKNAD",
+        val behandlingTypeBeskrivelse: String? = "Søknad for SU Uføre",
+        val behandlingStatus: BehandlingsStatus,
+        val utenlandstilsnitt: String = "",
         val utenlandstilsnittBeskrivelse: String? = null,
-        val ansvarligEnhetKode: String,
-        val ansvarligEnhetType: String,
-        val behandlendeEnhetKode: String,
-        val behandlendeEnhetType: String,
-        val totrinnsbehandling: Boolean,
-        val avsender: String,
-        val versjon: Int,
-        val vedtaksDato: String? = null,
-        val resultat: String? = null,
+        val ansvarligEnhetKode: String = "4815",
+        val ansvarligEnhetType: String = "NORG",
+        val behandlendeEnhetKode: String = "4815",
+        val behandlendeEnhetType: String = "NORG",
+        val totrinnsbehandling: Boolean = true,
+        val avsender: String = "su-se-bakover",
+        val versjon: Int = -1, // TODO ai: Diskuter og finn løsning på versjonering av koden
+        val vedtaksDato: LocalDate? = null,
+        val resultat: LocalDate? = null,
         val resultatBegrunnelse: String? = null,
         val resultatBegrunnelseBeskrivelse: String? = null,
         val resultatBeskrivelse: String? = null,
-        val beslutter: String? = null,
-        val saksbehandler: String? = null,
+        val beslutter: NavIdentBruker.Attestant? = null,
+        val saksbehandler: NavIdentBruker.Saksbehandler? = null,
         val behandlingOpprettetAv: String? = null,
         val behandlingOpprettetType: String? = null,
         val behandlingOpprettetTypeBeskrivelse: String? = null,
