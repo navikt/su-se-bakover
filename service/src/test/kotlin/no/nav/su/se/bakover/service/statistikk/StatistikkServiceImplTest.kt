@@ -14,18 +14,16 @@ internal class StatistikkServiceImplTest {
     private val sakTopicName = "supstonad.aapen-su-sak-statistikk-v1"
     private val behandlingTopicName = "supstonad.aapen-su-behandling-statistikk-v1"
 
-    private val sak = StatistikkSchemaValidatorTest.gyldigSak
-
     @Test
     fun `Gyldig sak publiserer till kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock).publiser(sak)
+        StatistikkServiceImpl(kafkaPublisherMock).publiser(StatistikkSchemaValidatorTest.gyldigSak)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(sak) }
+            argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigSak) }
         )
     }
 
