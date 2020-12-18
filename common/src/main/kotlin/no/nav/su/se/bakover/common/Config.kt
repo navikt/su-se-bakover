@@ -18,9 +18,6 @@ object Config {
 
     val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 
-    val databaseName by lazy { getEnvironmentVariableOrThrow("DATABASE_NAME") }
-    val jdbcUrl by lazy { getEnvironmentVariableOrThrow("DATABASE_JDBC_URL") }
-
     val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
@@ -111,6 +108,7 @@ data class ApplicationConfig(
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
+    val database: DatabaseConfig,
 ) {
     data class ServiceUserConfig(
         val username: String,
@@ -235,17 +233,31 @@ data class ApplicationConfig(
         }
     }
 
+    data class DatabaseConfig(
+        val databaseName: String,
+        val jdbcUrl: String,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = DatabaseConfig(
+                databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
+                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
+            )
+        }
+    }
+
     companion object {
         fun createFromEnvironmentVariables() = ApplicationConfig(
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
+            database = DatabaseConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createLocalConfig(),
+            database = DatabaseConfig.createFromEnvironmentVariables(),
         )
     }
 }

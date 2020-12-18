@@ -58,6 +58,10 @@ val applicationConfig = ApplicationConfig(
             url = "simuleringTestUrl",
             stsSoapUrl = "simuleringStsTestSoapUrl"
         )
+    ),
+    database = ApplicationConfig.DatabaseConfig(
+        databaseName = "databaseTestname",
+        jdbcUrl = "jdbcTestUrl",
     )
 )
 

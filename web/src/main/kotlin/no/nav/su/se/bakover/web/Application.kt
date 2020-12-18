@@ -96,8 +96,8 @@ internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
     applicationConfig: ApplicationConfig = if (Config.isLocalOrRunningTests) ApplicationConfig.createLocalConfig() else ApplicationConfig.createFromEnvironmentVariables(),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig

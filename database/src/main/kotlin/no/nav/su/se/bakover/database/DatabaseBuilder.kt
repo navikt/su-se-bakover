@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
@@ -21,10 +22,10 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import javax.sql.DataSource
 
 object DatabaseBuilder {
-    fun build(behandlingFactory: BehandlingFactory): DatabaseRepos {
-        val databaseName = Config.databaseName
+    fun build(behandlingFactory: BehandlingFactory, databaseConfig: ApplicationConfig.DatabaseConfig): DatabaseRepos {
+        val databaseName = databaseConfig.databaseName
         val abstractDatasource = Postgres(
-            jdbcUrl = Config.jdbcUrl,
+            jdbcUrl = databaseConfig.jdbcUrl,
             vaultMountPath = Config.vaultMountPath,
             databaseName = databaseName,
             username = "user",
