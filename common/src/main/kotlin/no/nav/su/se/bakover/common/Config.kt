@@ -179,7 +179,7 @@ data class ApplicationConfig(
             companion object {
                 fun createFromEnvironmentVariables() = UtbetalingConfig(
                     mqSendQueue = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_UTBETALING"),
-                    mqReplyTo = getEnvironmentVariableOrThrow("MQ_SEND_QUEUE_UTBETALING"),
+                    mqReplyTo = getEnvironmentVariableOrThrow("MQ_REPLY_TO"),
                 )
             }
         }
