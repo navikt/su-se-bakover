@@ -74,6 +74,11 @@ data class ApplicationConfig(
                 username = getEnvironmentVariableOrThrow("username"),
                 password = getEnvironmentVariableOrThrow("password"),
             )
+
+            fun createLocalConfig() = ServiceUserConfig(
+                username = "unused",
+                password = "unused",
+            )
         }
     }
 
@@ -160,6 +165,22 @@ data class ApplicationConfig(
                 utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
                 avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
                 simulering = SimuleringConfig.createFromEnvironmentVariables(),
+            )
+
+            fun createLocalConfig() = OppdragConfig(
+                mqQueueManager = "unused",
+                mqPort = -1,
+                mqHostname = "unused",
+                mqChannel = "unused",
+                utbetaling = UtbetalingConfig(
+                    mqSendQueue = "unused",
+                    mqReplyTo = "unused"
+                ),
+                avstemming = AvstemmingConfig(mqSendQueue = "unused"),
+                simulering = SimuleringConfig(
+                    url = "unused",
+                    stsSoapUrl = "unused"
+                )
 
             )
         }
@@ -170,6 +191,12 @@ data class ApplicationConfig(
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
+        )
+
+        fun createLocalConfig() = ApplicationConfig(
+            serviceUser = ServiceUserConfig.createLocalConfig(),
+            azure = AzureConfig.createFromEnvironmentVariables(),
+            oppdrag = OppdragConfig.createLocalConfig(),
         )
     }
 }
