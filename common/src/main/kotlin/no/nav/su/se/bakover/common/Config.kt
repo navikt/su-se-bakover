@@ -21,10 +21,9 @@ object Config {
     val databaseName = env["DATABASE_NAME"] ?: "supstonad-db-local"
     val jdbcUrl = env["DATABASE_JDBC_URL"] ?: "jdbc:postgresql://localhost:5432/supstonad-db-local"
 
-    val azureClientSecret = env["AZURE_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
-    val azureWellKnownUrl = env["AZURE_WELLKNOWN_URL"]
-        ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
-    val azureClientId = env["AZURE_CLIENT_ID"] ?: "24ea4acb-547e-45de-a6d3-474bd8bed46e"
+    val azureClientSecret = env["AZURE_APP_CLIENT_SECRET"] ?: "Denne håndteres av nais. Må ligge i .env lokalt."
+    val azureWellKnownUrl = env["AZURE_APP_WELL_KNOWN_URL"] ?: "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+    val azureClientId = env["AZURE_APP_CLIENT_ID"] ?: "26a62d18-70ce-48a6-9f4d-664607bd5188"
     val azureBackendCallbackUrl = env["BACKEND_CALLBACK_URL"] ?: "http://localhost:8080/callback"
     val azureGroupAttestant = env["AZURE_GROUP_ATTESTANT"] ?: "d75164fa-39e6-4149-956e-8404bc9080b6"
     val azureGroupSaksbehandler = env["AZURE_GROUP_SAKSBEHANDLER"] ?: "0ba009c4-d148-4a51-b501-4b1cf906889d"
@@ -33,7 +32,7 @@ object Config {
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
-    val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.default.svc.nais.local"
+    val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.supstonad.svc.nais.local"
     val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
     val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.oppgavehandtering.svc.nais.local"
     val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
@@ -80,8 +79,7 @@ object Config {
 
         data class Avstemming internal constructor(
             /* Setter target client = 1 for bakoverkompabilitet med stormaskin */
-            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"]
-                ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
+            val mqSendQueue: String = env["MQ_SEND_QUEUE_AVSTEMMING"] ?: "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
         )
 
         data class Simulering internal constructor(

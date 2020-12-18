@@ -34,7 +34,7 @@ docker-compose up
 
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
 Krever environmentvariablene:
-* AZURE_CLIENT_SECRET
+* AZURE_APP_CLIENT_SECRET
 * AZURE_GROUP_VEILEDER
 * AZURE_GROUP_SAKSBEHANDLER
 * AZURE_GROUP_ATTESTANT
