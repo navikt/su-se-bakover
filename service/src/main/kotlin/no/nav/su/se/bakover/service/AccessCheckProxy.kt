@@ -49,6 +49,8 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Statistikk
+import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -304,6 +306,11 @@ class AccessCheckProxy(
                     assertHarTilgangTilPerson(fnr)
 
                     return services.person.hentAktørId(fnr)
+                }
+            },
+            statistikk = object : StatistikkService {
+                override fun publiser(statistikk: Statistikk) {
+                    kastKanKunKallesFraAnnenService()
                 }
             }
         )
