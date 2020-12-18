@@ -108,7 +108,6 @@ data class ApplicationConfig(
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
                 )
-
             )
         }
     }
@@ -181,7 +180,6 @@ data class ApplicationConfig(
                     url = "unused",
                     stsSoapUrl = "unused"
                 )
-
             )
         }
     }

@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.web
 import ch.qos.logback.classic.util.ContextInitializer
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import com.ibm.mq.jms.MQConnectionFactory
-import com.ibm.msg.client.wmq.WMQConstants
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -38,6 +36,7 @@ import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -83,7 +82,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
-import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
@@ -93,18 +91,6 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-private fun createJmsContext(applicationConfig: ApplicationConfig): JMSContext {
-    return MQConnectionFactory().apply {
-        applicationConfig.oppdrag.let {
-            hostName = it.mqHostname
-            port = it.mqPort
-            channel = it.mqChannel
-            queueManager = it.mqQueueManager
-            transportType = WMQConstants.WMQ_CM_CLIENT
-        }
-    }.createContext(applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
-}
-
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
@@ -112,9 +98,9 @@ internal fun Application.susebakover(
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
     applicationConfig: ApplicationConfig = if (Config.isLocalOrRunningTests) ApplicationConfig.createLocalConfig() else ApplicationConfig.createFromEnvironmentVariables(),
-    jmsContext: JMSContext = createJmsContext(applicationConfig),
+    jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
-        jmsContext
+        jmsConfig
     ).build(applicationConfig),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
     jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
@@ -273,7 +259,7 @@ internal fun Application.susebakover(
     if (!Config.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
-            globalJmsContext = jmsContext,
+            globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
                 utbetalingService = services.utbetaling
             )

@@ -20,11 +20,11 @@ import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.JmsConfig
 import java.time.Clock
-import javax.jms.JMSContext
 
 data class ProdClientsBuilder(
-    private val jmsContext: JMSContext,
+    private val jmsConfig: JmsConfig,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -66,7 +66,7 @@ data class ProdClientsBuilder(
                             sendQueue = it.utbetaling.mqSendQueue,
                             replyTo = it.utbetaling.mqReplyTo
                         ),
-                        jmsContext = jmsContext
+                        jmsContext = jmsConfig.jmsContext
                     )
                 }
             ),
@@ -76,7 +76,7 @@ data class ProdClientsBuilder(
                     MqPublisherConfig(
                         sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue
                     ),
-                    jmsContext = jmsContext
+                    jmsContext = jmsConfig.jmsContext
                 )
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
