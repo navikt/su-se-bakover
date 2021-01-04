@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -45,7 +44,7 @@ object StubClientsBuilder : ClientsBuilder {
             oauth = azureClient,
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
-            pdfGenerator = if (Config.pdfgenLocal) {
+            pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
             } else {
                 PdfGeneratorStub.also { log.warn("********** Using stub for ${PdfGenerator::class.java} **********") }

@@ -8,6 +8,9 @@ internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
         isLocalOrRunningTests = false,
+        leaderPodLookupPath = "leaderPodLookupPath",
+        pdfgenLocal = false,
+        corsAllowOrigin = "corsAllowOrigin",
         serviceUser = ApplicationConfig.ServiceUserConfig(
             username = "username",
             password = "password"
@@ -91,6 +94,8 @@ internal class ApplicationConfigTest {
                 "DOKARKIV_URL" to "dokarkivUrl",
                 "STS_URL" to "stsUrl",
                 "SKJERMING_URL" to "skjermingUrl",
+                "ELECTOR_PATH" to "leaderPodLookupPath",
+                "ALLOW_CORS_ORIGIN" to "corsAllowOrigin",
             )
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -112,6 +117,8 @@ internal class ApplicationConfigTest {
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
                 isLocalOrRunningTests = true,
+                corsAllowOrigin = "localhost:1234",
+                leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
                     username = "unused",
                     password = "unused"

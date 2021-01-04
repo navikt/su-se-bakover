@@ -30,6 +30,9 @@ const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
 val applicationConfig = ApplicationConfig(
     isLocalOrRunningTests = true,
+    leaderPodLookupPath = "leaderPodLookupPath",
+    pdfgenLocal = false,
+    corsAllowOrigin = "corsAllowOrigin",
     serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",

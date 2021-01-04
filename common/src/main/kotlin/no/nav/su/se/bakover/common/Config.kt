@@ -15,11 +15,6 @@ object Config {
 
     internal val env by lazy { init() }
 
-    val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
-
-    val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
-
-    val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
     private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
     val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
     val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
@@ -97,6 +92,9 @@ object Config {
  */
 data class ApplicationConfig(
     val isLocalOrRunningTests: Boolean,
+    val leaderPodLookupPath: String,
+    val pdfgenLocal: Boolean,
+    val corsAllowOrigin: String,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -309,6 +307,9 @@ data class ApplicationConfig(
         fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
         fun createFromEnvironmentVariables() = ApplicationConfig(
             isLocalOrRunningTests = false,
+            leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
+            pdfgenLocal = false,
+            corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -318,6 +319,9 @@ data class ApplicationConfig(
 
         fun createLocalConfig() = ApplicationConfig(
             isLocalOrRunningTests = true,
+            leaderPodLookupPath = "",
+            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
+            corsAllowOrigin = "localhost:1234",
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createLocalConfig(),

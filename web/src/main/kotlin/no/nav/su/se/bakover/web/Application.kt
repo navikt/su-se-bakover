@@ -126,7 +126,7 @@ internal fun Application.susebakover(
         exposeHeader(WWWAuthenticate)
         exposeHeader("access_token")
         exposeHeader("refresh_token")
-        host(Config.corsAllowOrigin, listOf("http", "https"))
+        host(applicationConfig.corsAllowOrigin, listOf("http", "https"))
     }
 
     install(StatusPages) {

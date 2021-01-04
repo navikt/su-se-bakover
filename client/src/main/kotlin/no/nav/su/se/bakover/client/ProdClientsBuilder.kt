@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.JmsConfig
 import java.time.Clock
 
@@ -83,7 +82,7 @@ data class ProdClientsBuilder(
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
-            leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath),
+            leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient()
         )
     }
