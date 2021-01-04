@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 
@@ -39,7 +39,9 @@ internal class MeRoutesKtTest {
             testSusebakover(
                 clients = TestClientsBuilder.testClients.copy(
                     microsoftGraphApiClient = object : MicrosoftGraphApiOppslag {
-                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(microsoftGraphResponse)
+                        override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
+                            Either.Right(microsoftGraphResponse)
+
                         override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
                             TODO("Not yet implemented")
                         }
@@ -53,7 +55,7 @@ internal class MeRoutesKtTest {
             ) {
                 addHeader(
                     HttpHeaders.Authorization,
-                    Jwt.create(
+                    JwtStub.create(
                         subject = "random",
                         roller = listOf(Brukerrolle.Attestant)
                     )

@@ -15,8 +15,8 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.web.stubs.JwtStub
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.Date
@@ -53,7 +53,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create(audience = "wrong_audience"))
+                addHeader(Authorization, JwtStub.create(audience = "wrong_audience"))
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -66,7 +66,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create(roller = emptyList()))
+                addHeader(Authorization, JwtStub.create(roller = emptyList()))
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -79,7 +79,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, Jwt.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
+                addHeader(Authorization, JwtStub.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
@@ -120,9 +120,9 @@ internal class AuthenticationTest {
                 addHeader("refresh_token", "my.refresh.token")
             }
         }.apply {
-            assertTrue(response.headers.contains("access_token"))
-            assertTrue(response.headers.contains("refresh_token"))
-            assertEquals(OK, response.status())
+            response.headers.contains("access_token") shouldBe true
+            response.headers.contains("refresh_token") shouldBe true
+            response.status() shouldBe OK
         }
     }
 }

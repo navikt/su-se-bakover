@@ -31,9 +31,15 @@ docker-compose up
 ```
 
 #### Starte applikasjon lokalt
-
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
-Krever environmentvariablene:
+
+#### Uten innlogging i Azure (default)
+Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i "TODO".
+
+#### Med innlogging i Azure
+Ved behov for "ekte" innlogging mot Azure kan dette aktiveres for lokal utvikling ved å endre konfigurasjonen i filen `AuthenticationConfig.kt`.
+
+Dette krever miljøvariablene:
 * AZURE_APP_CLIENT_SECRET
 * AZURE_GROUP_VEILEDER
 * AZURE_GROUP_SAKSBEHANDLER

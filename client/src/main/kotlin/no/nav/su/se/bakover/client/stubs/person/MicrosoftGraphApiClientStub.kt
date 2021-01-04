@@ -22,7 +22,7 @@ class MicrosoftGraphApiClientStub :
     )
 
     override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(
-        MicrosoftGraphResponse(
+        MicrosoftGraphResponse( // TODO consider values
             onPremisesSamAccountName = "navident",
             displayName = "dn",
             givenName = "gn",

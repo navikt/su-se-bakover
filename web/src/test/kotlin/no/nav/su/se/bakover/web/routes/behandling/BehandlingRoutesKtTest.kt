@@ -51,12 +51,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.Jwt
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -429,7 +429,10 @@ internal class BehandlingRoutesKtTest {
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
-            objects.behandling.oppdaterBehandlingsinformasjon(saksbehandler, extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt())
+            objects.behandling.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
 
             defaultRequest(
                 HttpMethod.Post,
@@ -633,7 +636,7 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        Jwt.create(
+                        JwtStub.create(
                             subject = "random",
                             roller = listOf(Brukerrolle.Attestant)
                         )
@@ -788,7 +791,7 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        Jwt.create(
+                        JwtStub.create(
                             subject = "S123456",
                             roller = listOf(Brukerrolle.Attestant)
                         )
