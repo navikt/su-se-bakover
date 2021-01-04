@@ -46,9 +46,8 @@ data class ProdClientsBuilder(
             pdfGenerator = PdfClient(Config.pdfgenUrl),
             dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),
             oppgaveClient = OppgaveHttpClient(
-                baseUrl = Config.oppgaveUrl,
+                connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
-                oppgaveClientId = Config.oppgaveClientId,
                 clock = Clock.systemUTC(),
             ),
             kodeverk = kodeverk,

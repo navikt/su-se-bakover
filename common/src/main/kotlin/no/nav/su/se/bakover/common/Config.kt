@@ -17,13 +17,11 @@ object Config {
     val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
-    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
-
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
     val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
     val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.supstonad.svc.nais.local"
     val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
-    val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.oppgavehandtering.svc.nais.local"
+
     val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
     val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
     val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
@@ -112,6 +110,7 @@ data class ApplicationConfig(
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
+    val clientsConfig: ClientsConfig
 ) {
     data class ServiceUserConfig(
         val username: String,
@@ -259,12 +258,44 @@ data class ApplicationConfig(
         }
     }
 
+    data class ClientsConfig(
+        val oppgaveConfig: OppgaveConfig
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = ClientsConfig(
+                oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables()
+            )
+
+            fun createLocalConfig() = ClientsConfig(
+                oppgaveConfig = OppgaveConfig.createLocalConfig()
+            )
+        }
+
+        data class OppgaveConfig(
+            val clientId: String,
+            val url: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = OppgaveConfig(
+                    clientId = getEnvironmentVariableOrThrow("OPPGAVE_CLIENT_ID"),
+                    url = getEnvironmentVariableOrThrow("OPPGAVE_URL"),
+                )
+
+                fun createLocalConfig() = OppgaveConfig(
+                    clientId = "unused",
+                    url = "unused",
+                )
+            }
+        }
+    }
+
     companion object {
         fun createFromEnvironmentVariables() = ApplicationConfig(
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
+            clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -272,6 +303,7 @@ data class ApplicationConfig(
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
+            clientsConfig = ClientsConfig.createLocalConfig(),
         )
     }
 }

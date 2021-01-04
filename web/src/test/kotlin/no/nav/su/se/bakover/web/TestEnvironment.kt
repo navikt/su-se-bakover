@@ -63,7 +63,13 @@ val applicationConfig = ApplicationConfig(
         databaseName = "databaseTestname",
         jdbcUrl = "jdbcTestUrl",
         vaultMountPath = "",
-    )
+    ),
+    clientsConfig = ApplicationConfig.ClientsConfig(
+        oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+            clientId = "oppgaveClientId",
+            url = "oppgaveUrl"
+        )
+    ),
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =
