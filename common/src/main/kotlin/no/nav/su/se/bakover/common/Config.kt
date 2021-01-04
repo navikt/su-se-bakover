@@ -15,53 +15,6 @@ object Config {
 
     internal val env by lazy { init() }
 
-    val kafka = Kafka()
-    data class Kafka(
-        private val common: Map<String, String> = Common().configure(),
-        val producerConfig: Map<String, Any> = common + mapOf(
-            ProducerConfig.ACKS_CONFIG to "all",
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
-        )
-    ) {
-        data class Common(
-            val brokers: String = env["KAFKA_BROKERS"] ?: "brokers",
-            val sslConfig: Map<String, String> = SslConfig().configure()
-        ) {
-            fun configure(): Map<String, String> =
-                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
-        }
-
-        data class SslConfig(
-            val truststorePath: String = env["KAFKA_TRUSTSTORE_PATH"] ?: "truststorePath",
-            val keystorePath: String = env["KAFKA_KEYSTORE_PATH"] ?: "keystorePath",
-            val credstorePwd: String = env["KAFKA_CREDSTORE_PASSWORD"] ?: "credstorePwd"
-        ) {
-            fun configure(): Map<String, String> = mapOf(
-                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
-                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
-                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
-                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
-                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
-                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
-                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
-            )
-        }
-
-        sealed class StatistikkTopic {
-            abstract val name: String
-
-            object Sak : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-sak-statistikk-v1"
-            }
-
-            object Behandling : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-behandling-statistikk-v1"
-            }
-        }
-    }
     fun init(): Dotenv {
         return dotenv {
             ignoreIfMissing = true
@@ -98,6 +51,7 @@ data class ApplicationConfig(
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
     val frontendCallbackUrls: FrontendCallbackUrls,
+    val kafkaConfig: KafkaConfig,
 ) {
     data class ServiceUserConfig(
         val username: String,
@@ -302,7 +256,6 @@ data class ApplicationConfig(
 
     data class FrontendCallbackUrls(
         private val frontendBaseUrl: String,
-
     ) {
         val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
         val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
@@ -318,9 +271,57 @@ data class ApplicationConfig(
         }
     }
 
+    data class KafkaConfig(
+        private val common: Map<String, String> = Common().configure(),
+        val producerConfig: Map<String, Any> = common + mapOf(
+            ProducerConfig.ACKS_CONFIG to "all",
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+        )
+    ) {
+        data class Common(
+            val brokers: String = env["KAFKA_BROKERS"] ?: "brokers",
+            val sslConfig: Map<String, String> = SslConfig().configure()
+        ) {
+            fun configure(): Map<String, String> =
+                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
+        }
+
+        data class SslConfig(
+            val truststorePath: String = env["KAFKA_TRUSTSTORE_PATH"] ?: "truststorePath",
+            val keystorePath: String = env["KAFKA_KEYSTORE_PATH"] ?: "keystorePath",
+            val credstorePwd: String = env["KAFKA_CREDSTORE_PASSWORD"] ?: "credstorePwd"
+        ) {
+            fun configure(): Map<String, String> = mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
+                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
+                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
+                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
+                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
+            )
+        }
+
+        sealed class StatistikkTopic {
+            abstract val name: String
+
+            object Sak : StatistikkTopic() {
+                override val name: String = "supstonad.aapen-su-sak-statistikk-v1"
+            }
+
+            object Behandling : StatistikkTopic() {
+                override val name: String = "supstonad.aapen-su-behandling-statistikk-v1"
+            }
+        }
+    }
+
     companion object {
 
         fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
+
         fun createFromEnvironmentVariables() = ApplicationConfig(
             isLocalOrRunningTests = false,
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
@@ -332,6 +333,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             frontendCallbackUrls = FrontendCallbackUrls.createFromEnvironmentVariables(),
+            kafkaConfig = KafkaConfig()
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -345,7 +347,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
             frontendCallbackUrls = FrontendCallbackUrls.createLocalConfig(),
-
+            kafkaConfig = KafkaConfig(emptyMap(), emptyMap())
         )
 
         fun isLocalOrRunningTests() = env["NAIS_CLUSTER_NAME"] == null

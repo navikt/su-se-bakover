@@ -83,6 +83,7 @@ val applicationConfig = ApplicationConfig(
         dkifUrl = "dkifUrl",
     ),
     frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
+    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), emptyMap())
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =

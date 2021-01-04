@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
+import org.apache.kafka.clients.producer.KafkaProducer
 import java.time.Clock
 
 data class ProdClientsBuilder(
@@ -83,7 +84,7 @@ data class ProdClientsBuilder(
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
-            kafkaPublisher = KafkaPublisherClient()
+            kafkaPublisher = KafkaPublisherClient(KafkaProducer(applicationConfig.kafkaConfig.producerConfig))
         )
     }
 }

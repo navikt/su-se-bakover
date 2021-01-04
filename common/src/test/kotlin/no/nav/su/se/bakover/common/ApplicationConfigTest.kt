@@ -61,6 +61,7 @@ internal class ApplicationConfigTest {
             dkifUrl = "http://dkif.default.svc.nais.local",
         ),
         frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
+        kafkaConfig = ApplicationConfig.KafkaConfig(),
     )
 
     @Test
@@ -159,7 +160,8 @@ internal class ApplicationConfigTest {
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
                 ),
-                frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls("http://localhost:1234")
+                frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls("http://localhost:1234"),
+                kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), emptyMap()),
             )
         }
     }
