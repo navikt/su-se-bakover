@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
@@ -26,7 +25,7 @@ object DatabaseBuilder {
         val databaseName = databaseConfig.databaseName
         val abstractDatasource = Postgres(
             jdbcUrl = databaseConfig.jdbcUrl,
-            vaultMountPath = Config.vaultMountPath,
+            vaultMountPath = databaseConfig.vaultMountPath,
             databaseName = databaseName,
             username = "user",
             password = "pwd"

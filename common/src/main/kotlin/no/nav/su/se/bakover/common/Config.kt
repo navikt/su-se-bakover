@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
+import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -15,8 +16,6 @@ object Config {
 
     val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
-
-    val vaultMountPath = env["VAULT_MOUNTPATH"] ?: ""
 
     val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
 
@@ -92,6 +91,10 @@ object Config {
 
     internal fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
         return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
+    }
+
+    internal fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
+        return env[environmentVariableName] ?: default
     }
 
     private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
@@ -236,11 +239,22 @@ data class ApplicationConfig(
     data class DatabaseConfig(
         val databaseName: String,
         val jdbcUrl: String,
+        val vaultMountPath: String,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = DatabaseConfig(
                 databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
-                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL")
+                jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
+                vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
+            )
+
+            fun createLocalConfig() = DatabaseConfig(
+                databaseName = getEnvironmentVariableOrDefault("DATABASE_NAME", "supstonad-db-local"),
+                jdbcUrl = getEnvironmentVariableOrDefault(
+                    "DATABASE_JDBC_URL",
+                    "jdbc:postgresql://localhost:5432/supstonad-db-local"
+                ),
+                vaultMountPath = "",
             )
         }
     }
@@ -257,7 +271,7 @@ data class ApplicationConfig(
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createLocalConfig(),
-            database = DatabaseConfig.createFromEnvironmentVariables(),
+            database = DatabaseConfig.createLocalConfig(),
         )
     }
 }

@@ -62,6 +62,7 @@ val applicationConfig = ApplicationConfig(
     database = ApplicationConfig.DatabaseConfig(
         databaseName = "databaseTestname",
         jdbcUrl = "jdbcTestUrl",
+        vaultMountPath = "",
     )
 )
 
