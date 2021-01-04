@@ -1,33 +1,33 @@
 package no.nav.su.se.bakover.common
 
-import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
-import no.nav.su.se.bakover.common.Config.env
-import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrDefault
-import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
+import no.nav.su.se.bakover.common.EnvironmentConfig.exists
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 
-object Config {
-
-    internal val env by lazy { init() }
-
-    fun init(): Dotenv {
-        return dotenv {
+private object EnvironmentConfig {
+    private val env by lazy {
+        dotenv {
             ignoreIfMissing = true
             systemProperties = true
         }
     }
 
-    internal fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
+    fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
         return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
     }
 
-    internal fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
+    fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
+    }
+
+    fun exists(environmentVariableName: String): Boolean {
+        return env[environmentVariableName] != null
     }
 
     private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
@@ -35,11 +35,6 @@ object Config {
     }
 }
 
-/**
- * This class will gradually replace the Config object - to make config possible to test without defaults.
- * Will start by just moving the easy part and the stuff that shouldn't have default config.
- * We could consider to return an ApplicationConfig based on if you're running locally or in preprod/prod.
- */
 data class ApplicationConfig(
     val isLocalOrRunningTests: Boolean,
     val leaderPodLookupPath: String,
@@ -53,6 +48,7 @@ data class ApplicationConfig(
     val frontendCallbackUrls: FrontendCallbackUrls,
     val kafkaConfig: KafkaConfig,
 ) {
+
     data class ServiceUserConfig(
         val username: String,
         val password: String,
@@ -280,7 +276,7 @@ data class ApplicationConfig(
         )
     ) {
         data class Common(
-            val brokers: String = env["KAFKA_BROKERS"] ?: "brokers",
+            val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
             val sslConfig: Map<String, String> = SslConfig().configure()
         ) {
             fun configure(): Map<String, String> =
@@ -288,9 +284,9 @@ data class ApplicationConfig(
         }
 
         data class SslConfig(
-            val truststorePath: String = env["KAFKA_TRUSTSTORE_PATH"] ?: "truststorePath",
-            val keystorePath: String = env["KAFKA_KEYSTORE_PATH"] ?: "keystorePath",
-            val credstorePwd: String = env["KAFKA_CREDSTORE_PASSWORD"] ?: "credstorePwd"
+            val truststorePath: String = getEnvironmentVariableOrDefault("KAFKA_TRUSTSTORE_PATH", "truststorePath"),
+            val keystorePath: String = getEnvironmentVariableOrDefault("KAFKA_KEYSTORE_PATH", "keystorePath"),
+            val credstorePwd: String = getEnvironmentVariableOrDefault("KAFKA_CREDSTORE_PASSWORD", "credstorePwd"),
         ) {
             fun configure(): Map<String, String> = mapOf(
                 CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
@@ -350,6 +346,6 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig(emptyMap(), emptyMap())
         )
 
-        fun isLocalOrRunningTests() = env["NAIS_CLUSTER_NAME"] == null
+        fun isLocalOrRunningTests() = exists("NAIS_CLUSTER_NAME")
     }
 }

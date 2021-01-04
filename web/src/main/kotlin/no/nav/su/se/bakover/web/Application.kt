@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
@@ -84,7 +83,6 @@ import org.slf4j.event.Level
 import java.net.URL
 
 fun main(args: Array<String>) {
-    Config.init()
     if (ApplicationConfig.isLocalOrRunningTests()) {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
