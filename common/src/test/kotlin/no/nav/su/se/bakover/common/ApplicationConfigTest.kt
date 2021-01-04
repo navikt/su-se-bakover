@@ -47,7 +47,15 @@ internal class ApplicationConfigTest {
             oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                 clientId = "oppgaveClientId",
                 url = "oppgaveUrl"
-            )
+            ),
+            pdlUrl = "http://pdl-api.default.svc.nais.local",
+            dokDistUrl = "dokDistUrl",
+            pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
+            dokarkivUrl = "dokarkivUrl",
+            kodeverkUrl = "http://kodeverk.default.svc.nais.local",
+            stsUrl = "stsUrl",
+            skjermingUrl = "skjermingUrl",
+            dkifUrl = "http://dkif.default.svc.nais.local",
         ),
     )
 
@@ -79,6 +87,10 @@ internal class ApplicationConfigTest {
                 "VAULT_MOUNTPATH" to "vaultMountPath",
                 "OPPGAVE_CLIENT_ID" to "oppgaveClientId",
                 "OPPGAVE_URL" to "oppgaveUrl",
+                "DOKDIST_URL" to "dokDistUrl",
+                "DOKARKIV_URL" to "dokarkivUrl",
+                "STS_URL" to "stsUrl",
+                "SKJERMING_URL" to "skjermingUrl",
             )
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -126,9 +138,17 @@ internal class ApplicationConfigTest {
                 ),
                 clientsConfig = ApplicationConfig.ClientsConfig(
                     oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
-                        clientId = "unused",
-                        url = "unused"
-                    )
+                        clientId = "mocked",
+                        url = "mocked"
+                    ),
+                    pdlUrl = "mocked",
+                    dokDistUrl = "mocked",
+                    pdfgenUrl = "mocked",
+                    dokarkivUrl = "mocked",
+                    kodeverkUrl = "mocked",
+                    stsUrl = "mocked",
+                    skjermingUrl = "mocked",
+                    dkifUrl = "mocked",
                 )
             )
         }

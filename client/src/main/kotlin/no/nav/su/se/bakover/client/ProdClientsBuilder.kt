@@ -31,20 +31,22 @@ data class ProdClientsBuilder(
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val consumerId = "srvsupstonad"
 
+        val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
-        val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
-        val tokenOppslag = StsClient(Config.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
-        val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
-        val personOppslag =
-            PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
+        val kodeverk = KodeverkHttpClient(clientsConfig.kodeverkUrl, consumerId)
+        val serviceUser = applicationConfig.serviceUser
+        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
+        val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
+        val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
+        val personOppslag = PersonClient(clientsConfig.pdlUrl, kodeverk, skjermingClient, dkif, tokenOppslag)
 
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
             tokenOppslag = tokenOppslag,
-            pdfGenerator = PdfClient(Config.pdfgenUrl),
-            dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),
+            pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
+            dokArkiv = DokArkivClient(clientsConfig.dokarkivUrl, tokenOppslag),
             oppgaveClient = OppgaveHttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
@@ -56,7 +58,7 @@ data class ProdClientsBuilder(
                     simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
-                    serviceUser = applicationConfig.serviceUser
+                    serviceUser = serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
@@ -70,7 +72,7 @@ data class ProdClientsBuilder(
                     )
                 }
             ),
-            dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag),
+            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistUrl, tokenOppslag),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(

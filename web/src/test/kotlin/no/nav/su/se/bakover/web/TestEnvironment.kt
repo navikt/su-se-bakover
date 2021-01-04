@@ -69,7 +69,15 @@ val applicationConfig = ApplicationConfig(
         oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
             clientId = "oppgaveClientId",
             url = "oppgaveUrl"
-        )
+        ),
+        pdlUrl = "pdlUrl",
+        dokDistUrl = "dokDistUrl",
+        pdfgenUrl = "pdfgenUrl",
+        dokarkivUrl = "dokarkivUrl",
+        kodeverkUrl = "kodeverkUrl",
+        stsUrl = "stsUrl",
+        skjermingUrl = "skjermingUrl",
+        dkifUrl = "dkifUrl",
     ),
 )
 

@@ -52,7 +52,7 @@ object StubClientsBuilder : ClientsBuilder {
             },
             dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
-            kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "srvsupstonad"),
+            kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, "srvsupstonad"),
             simuleringClient = SimuleringStub.also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },

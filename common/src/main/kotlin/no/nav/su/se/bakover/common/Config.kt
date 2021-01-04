@@ -17,16 +17,6 @@ object Config {
 
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
-    val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
-    val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
-    val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.supstonad.svc.nais.local"
-    val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
-
-    val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
-    val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
-    val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
-    val dkifUrl = env["DKIF_URL"] ?: "http://dkif.default.svc.nais.local"
-
     val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
 
     val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
@@ -260,15 +250,39 @@ data class ApplicationConfig(
     }
 
     data class ClientsConfig(
-        val oppgaveConfig: OppgaveConfig
+        val oppgaveConfig: OppgaveConfig,
+        val pdlUrl: String,
+        val dokDistUrl: String,
+        val pdfgenUrl: String,
+        val dokarkivUrl: String,
+        val kodeverkUrl: String,
+        val stsUrl: String,
+        val skjermingUrl: String,
+        val dkifUrl: String,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
-                oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables()
+                oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
+                pdlUrl = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                dokDistUrl = getEnvironmentVariableOrThrow("DOKDIST_URL"),
+                pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
+                dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
+                kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
+                stsUrl = getEnvironmentVariableOrThrow("STS_URL"),
+                skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
+                dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
             )
 
             fun createLocalConfig() = ClientsConfig(
-                oppgaveConfig = OppgaveConfig.createLocalConfig()
+                oppgaveConfig = OppgaveConfig.createLocalConfig(),
+                pdlUrl = "mocked",
+                dokDistUrl = "mocked",
+                pdfgenUrl = "mocked",
+                dokarkivUrl = "mocked",
+                kodeverkUrl = "mocked",
+                stsUrl = "mocked",
+                skjermingUrl = "mocked",
+                dkifUrl = "mocked",
             )
         }
 
@@ -283,8 +297,8 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = OppgaveConfig(
-                    clientId = "unused",
-                    url = "unused",
+                    clientId = "mocked",
+                    url = "mocked",
                 )
             }
         }
