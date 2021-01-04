@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common
 
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
+import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 
 internal class ApplicationConfigTest {
@@ -41,7 +42,7 @@ internal class ApplicationConfigTest {
                 stsSoapUrl = "stsSoapUrl"
             )
         ),
-        database = ApplicationConfig.DatabaseConfig(
+        database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
             databaseName = "databaseName",
             jdbcUrl = "jdbcUrl",
             vaultMountPath = "vaultMountPath",
@@ -61,7 +62,35 @@ internal class ApplicationConfigTest {
             dkifUrl = "http://dkif.default.svc.nais.local",
         ),
         frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
-        kafkaConfig = ApplicationConfig.KafkaConfig(),
+        kafkaConfig = ApplicationConfig.KafkaConfig(
+            common = mapOf(
+                "bootstrap.servers" to "brokers",
+                "security.protocol" to "SSL",
+                "ssl.endpoint.identification.algorithm" to "",
+                "ssl.truststore.type" to "jks",
+                "ssl.keystore.type" to "PKCS12",
+                "ssl.truststore.location" to "truststorePath",
+                "ssl.truststore.password" to "credstorePwd",
+                "ssl.keystore.location" to "keystorePath",
+                "ssl.keystore.password" to "credstorePwd",
+                "ssl.key.password" to "credstorePwd",
+            ),
+            producerConfig = mapOf(
+                "bootstrap.servers" to "brokers",
+                "security.protocol" to "SSL",
+                "ssl.endpoint.identification.algorithm" to "",
+                "ssl.truststore.type" to "jks",
+                "ssl.keystore.type" to "PKCS12",
+                "ssl.truststore.location" to "truststorePath",
+                "ssl.truststore.password" to "credstorePwd",
+                "ssl.keystore.location" to "keystorePath",
+                "ssl.keystore.password" to "credstorePwd",
+                "ssl.key.password" to "credstorePwd",
+                "acks" to "all",
+                "key.serializer" to StringSerializer::class.java,
+                "value.serializer" to StringSerializer::class.java,
+            )
+        ),
     )
 
     @Test
@@ -141,10 +170,8 @@ internal class ApplicationConfigTest {
                         stsSoapUrl = "unused"
                     )
                 ),
-                database = ApplicationConfig.DatabaseConfig(
-                    databaseName = "supstonad-db-local",
+                database = ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "jdbc:postgresql://localhost:5432/supstonad-db-local",
-                    vaultMountPath = ""
                 ),
                 clientsConfig = ApplicationConfig.ClientsConfig(
                     oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(

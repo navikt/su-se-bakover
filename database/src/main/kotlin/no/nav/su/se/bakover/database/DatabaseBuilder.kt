@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database
 
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
+import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
@@ -22,19 +24,16 @@ import javax.sql.DataSource
 
 object DatabaseBuilder {
     fun build(behandlingFactory: BehandlingFactory, databaseConfig: ApplicationConfig.DatabaseConfig): DatabaseRepos {
-        val databaseName = databaseConfig.databaseName
-        val abstractDatasource = Postgres(
-            jdbcUrl = databaseConfig.jdbcUrl,
-            vaultMountPath = databaseConfig.vaultMountPath,
-            databaseName = databaseName,
-            username = "user",
-            password = "pwd"
-        ).build()
+        val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
-        Flyway(
-            abstractDatasource.getDatasource(Postgres.Role.Admin),
-            "${databaseConfig.databaseName}-${Postgres.Role.Admin}"
-        ).migrate()
+        val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
+        when (databaseConfig) {
+            is StaticCredentials -> Flyway(dataSource)
+            is RotatingCredentials -> Flyway(
+                dataSource = dataSource,
+                role = "${databaseConfig.databaseName}-${Postgres.Role.Admin}"
+            )
+        }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         return buildInternal(userDatastore, behandlingFactory)

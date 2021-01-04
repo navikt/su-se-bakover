@@ -63,10 +63,8 @@ val applicationConfig = ApplicationConfig(
             stsSoapUrl = "simuleringStsTestSoapUrl"
         )
     ),
-    database = ApplicationConfig.DatabaseConfig(
-        databaseName = "databaseTestname",
+    database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
-        vaultMountPath = "",
     ),
     clientsConfig = ApplicationConfig.ClientsConfig(
         oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(

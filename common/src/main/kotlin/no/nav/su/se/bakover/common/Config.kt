@@ -9,6 +9,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.LoggerFactory
 
 private object EnvironmentConfig {
     private val env by lazy {
@@ -97,6 +98,36 @@ data class ApplicationConfig(
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
                 )
             )
+
+            fun createLocalConfig() = AzureConfig(
+                clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
+                wellKnownUrl = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_WELL_KNOWN_URL",
+                    "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+                ),
+                clientId = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_CLIENT_ID",
+                    "26a62d18-70ce-48a6-9f4d-664607bd5188"
+                ),
+                backendCallbackUrl = getEnvironmentVariableOrDefault(
+                    "BACKEND_CALLBACK_URL",
+                    "http://localhost:8080/callback"
+                ),
+                groups = AzureGroups(
+                    attestant = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_ATTESTANT",
+                        "d75164fa-39e6-4149-956e-8404bc9080b6"
+                    ),
+                    saksbehandler = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_SAKSBEHANDLER",
+                        "0ba009c4-d148-4a51-b501-4b1cf906889d"
+                    ),
+                    veileder = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_VEILEDER",
+                        "062d4814-8538-4f3a-bcb9-32821af7909a"
+                    ),
+                )
+            )
         }
     }
 
@@ -172,25 +203,34 @@ data class ApplicationConfig(
         }
     }
 
-    data class DatabaseConfig(
-        val databaseName: String,
-        val jdbcUrl: String,
-        val vaultMountPath: String,
-    ) {
+    sealed class DatabaseConfig {
+        abstract val jdbcUrl: String
+
+        data class RotatingCredentials(
+            val databaseName: String,
+            override val jdbcUrl: String,
+            val vaultMountPath: String,
+        ) : DatabaseConfig()
+
+        data class StaticCredentials(
+            override val jdbcUrl: String,
+        ) : DatabaseConfig() {
+            val username = "user"
+            val password = "pwd"
+        }
+
         companion object {
-            fun createFromEnvironmentVariables() = DatabaseConfig(
+            fun createFromEnvironmentVariables() = RotatingCredentials(
                 databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
                 jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
                 vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
             )
 
-            fun createLocalConfig() = DatabaseConfig(
-                databaseName = getEnvironmentVariableOrDefault("DATABASE_NAME", "supstonad-db-local"),
+            fun createLocalConfig() = StaticCredentials(
                 jdbcUrl = getEnvironmentVariableOrDefault(
                     "DATABASE_JDBC_URL",
                     "jdbc:postgresql://localhost:5432/supstonad-db-local"
                 ),
-                vaultMountPath = "",
             )
         }
     }
@@ -268,14 +308,26 @@ data class ApplicationConfig(
     }
 
     data class KafkaConfig(
-        private val common: Map<String, String> = Common().configure(),
-        val producerConfig: Map<String, Any> = common + mapOf(
-            ProducerConfig.ACKS_CONFIG to "all",
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
-        )
+        private val common: Map<String, String>,
+        val producerConfig: Map<String, Any>,
     ) {
-        data class Common(
+        companion object {
+            fun createFromEnvironmentVariables() = KafkaConfig(
+                common = Common().configure(),
+                producerConfig = Common().configure() + mapOf(
+                    ProducerConfig.ACKS_CONFIG to "all",
+                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+                )
+            )
+
+            fun createLocalConfig() = KafkaConfig(
+                common = emptyMap(),
+                producerConfig = emptyMap()
+            )
+        }
+
+        private data class Common(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
             val sslConfig: Map<String, String> = SslConfig().configure()
         ) {
@@ -283,7 +335,7 @@ data class ApplicationConfig(
                 mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
         }
 
-        data class SslConfig(
+        private data class SslConfig(
             val truststorePath: String = getEnvironmentVariableOrDefault("KAFKA_TRUSTSTORE_PATH", "truststorePath"),
             val keystorePath: String = getEnvironmentVariableOrDefault("KAFKA_KEYSTORE_PATH", "keystorePath"),
             val credstorePwd: String = getEnvironmentVariableOrDefault("KAFKA_CREDSTORE_PASSWORD", "credstorePwd"),
@@ -300,21 +352,15 @@ data class ApplicationConfig(
                 SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
             )
         }
-
-        sealed class StatistikkTopic {
-            abstract val name: String
-
-            object Sak : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-sak-statistikk-v1"
-            }
-
-            object Behandling : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-behandling-statistikk-v1"
-            }
-        }
     }
 
     companion object {
+
+        private val log by lazy {
+            // We have to delay logback initialization until after we can determine if we are running locally or not.
+            // Ref logback-local.xml
+            LoggerFactory.getLogger(this::class.java)
+        }
 
         fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
 
@@ -329,7 +375,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             frontendCallbackUrls = FrontendCallbackUrls.createFromEnvironmentVariables(),
-            kafkaConfig = KafkaConfig()
+            kafkaConfig = KafkaConfig.createFromEnvironmentVariables()
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -338,14 +384,16 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             corsAllowOrigin = "localhost:1234",
             serviceUser = ServiceUserConfig.createLocalConfig(),
-            azure = AzureConfig.createFromEnvironmentVariables(),
+            azure = AzureConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
             frontendCallbackUrls = FrontendCallbackUrls.createLocalConfig(),
-            kafkaConfig = KafkaConfig(emptyMap(), emptyMap())
-        )
+            kafkaConfig = KafkaConfig.createLocalConfig()
+        ).also {
+            log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
+        }
 
-        fun isLocalOrRunningTests() = exists("NAIS_CLUSTER_NAME")
+        fun isLocalOrRunningTests() = !exists("NAIS_CLUSTER_NAME")
     }
 }
