@@ -85,7 +85,7 @@ import java.net.URL
 
 fun main(args: Array<String>) {
     Config.init()
-    if (Config.isLocalOrRunningTests) {
+    if (ApplicationConfig.isLocalOrRunningTests()) {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
     io.ktor.server.netty.EngineMain.main(args)
@@ -96,10 +96,10 @@ internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
-    applicationConfig: ApplicationConfig = if (Config.isLocalOrRunningTests) ApplicationConfig.createLocalConfig() else ApplicationConfig.createFromEnvironmentVariables(),
+    applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
+    clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig
     ).build(applicationConfig),
     jwkConfig: JSONObject = clients.oauth.jwkConfig(),
@@ -256,7 +256,7 @@ internal fun Application.susebakover(
             }
         }
     }
-    if (!Config.isLocalOrRunningTests) {
+    if (!applicationConfig.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,

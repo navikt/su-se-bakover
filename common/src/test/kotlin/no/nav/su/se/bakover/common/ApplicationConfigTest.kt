@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
+        isLocalOrRunningTests = false,
         serviceUser = ApplicationConfig.ServiceUserConfig(
             username = "username",
             password = "password"
@@ -40,7 +41,7 @@ internal class ApplicationConfigTest {
         database = ApplicationConfig.DatabaseConfig(
             databaseName = "databaseName",
             jdbcUrl = "jdbcUrl",
-            vaultMountPath = "vaultMountPath"
+            vaultMountPath = "vaultMountPath",
         ),
         clientsConfig = ApplicationConfig.ClientsConfig(
             oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -54,6 +55,7 @@ internal class ApplicationConfigTest {
     fun `environment variables`() {
         withEnvironment(
             mapOf(
+                "NAIS_CLUSTER_NAME" to "prod-fss",
                 "username" to "username",
                 "password" to "password",
                 "AZURE_APP_CLIENT_SECRET" to "clientSecret",
@@ -97,6 +99,7 @@ internal class ApplicationConfigTest {
             )
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
+                isLocalOrRunningTests = true,
                 serviceUser = ApplicationConfig.ServiceUserConfig(
                     username = "unused",
                     password = "unused"

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
+import no.nav.su.se.bakover.common.Config.env
 import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
@@ -12,9 +13,8 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 object Config {
 
-    private val env by lazy { init() }
+    internal val env by lazy { init() }
 
-    val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
     val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
 
     val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
@@ -106,6 +106,7 @@ object Config {
  * We could consider to return an ApplicationConfig based on if you're running locally or in preprod/prod.
  */
 data class ApplicationConfig(
+    val isLocalOrRunningTests: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -290,7 +291,10 @@ data class ApplicationConfig(
     }
 
     companion object {
+
+        fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
         fun createFromEnvironmentVariables() = ApplicationConfig(
+            isLocalOrRunningTests = false,
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -299,11 +303,14 @@ data class ApplicationConfig(
         )
 
         fun createLocalConfig() = ApplicationConfig(
+            isLocalOrRunningTests = true,
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
         )
+
+        fun isLocalOrRunningTests() = env["NAIS_CLUSTER_NAME"] == null
     }
 }

@@ -29,6 +29,7 @@ import java.util.Base64
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
 val applicationConfig = ApplicationConfig(
+    isLocalOrRunningTests = true,
     serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",

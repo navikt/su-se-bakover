@@ -31,14 +31,17 @@ object DatabaseBuilder {
             password = "pwd"
         ).build()
 
-        Flyway(abstractDatasource.getDatasource(Postgres.Role.Admin), databaseName).migrate()
+        Flyway(
+            abstractDatasource.getDatasource(Postgres.Role.Admin),
+            "${databaseConfig.databaseName}-${Postgres.Role.Admin}"
+        ).migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
         return buildInternal(userDatastore, behandlingFactory)
     }
 
     fun build(embeddedDatasource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
-        Flyway(embeddedDatasource, "postgres").migrate()
+        Flyway(embeddedDatasource).migrate()
         return buildInternal(embeddedDatasource, behandlingFactory)
     }
 
