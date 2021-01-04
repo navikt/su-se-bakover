@@ -60,6 +60,7 @@ internal class ApplicationConfigTest {
             skjermingUrl = "skjermingUrl",
             dkifUrl = "http://dkif.default.svc.nais.local",
         ),
+        frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
     )
 
     @Test
@@ -96,6 +97,7 @@ internal class ApplicationConfigTest {
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "ALLOW_CORS_ORIGIN" to "corsAllowOrigin",
+                "FRONTEND_BASE_URL" to "frontendBaseUrl",
             )
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -156,7 +158,8 @@ internal class ApplicationConfigTest {
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
-                )
+                ),
+                frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls("http://localhost:1234")
             )
         }
     }

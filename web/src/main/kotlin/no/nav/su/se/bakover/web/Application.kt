@@ -190,7 +190,7 @@ internal fun Application.susebakover(
         azureConfig = applicationConfig.azure
     )
     oauthRoutes(
-        frontendRedirectUrl = Config.suSeFramoverLoginSuccessUrl,
+        frontendCallbackUrls = applicationConfig.frontendCallbackUrls,
         jwkConfig = jwkConfig,
         oAuth = clients.oauth,
         logoutRedirectUrl = applicationConfig.azure.backendCallbackUrl,

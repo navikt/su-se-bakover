@@ -82,6 +82,7 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
     ),
+    frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =

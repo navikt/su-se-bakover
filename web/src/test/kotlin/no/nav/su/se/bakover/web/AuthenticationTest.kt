@@ -13,7 +13,6 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Brukerrolle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -107,7 +106,7 @@ internal class AuthenticationTest {
                 it.message shouldNotContain "callback"
             }
             response.status() shouldBe Found
-            response.headers["Location"] shouldBe "${Config.suSeFramoverLoginSuccessUrl}#access#refresh"
+            response.headers["Location"] shouldBe "frontendBaseUrl/auth/complete#access#refresh"
         }
     }
 

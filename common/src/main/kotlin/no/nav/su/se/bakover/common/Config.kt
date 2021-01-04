@@ -15,9 +15,6 @@ object Config {
 
     internal val env by lazy { init() }
 
-    private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
-    val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
-    val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
     val kafka = Kafka()
     data class Kafka(
         private val common: Map<String, String> = Common().configure(),
@@ -99,7 +96,8 @@ data class ApplicationConfig(
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
-    val clientsConfig: ClientsConfig
+    val clientsConfig: ClientsConfig,
+    val frontendCallbackUrls: FrontendCallbackUrls,
 ) {
     data class ServiceUserConfig(
         val username: String,
@@ -302,6 +300,24 @@ data class ApplicationConfig(
         }
     }
 
+    data class FrontendCallbackUrls(
+        private val frontendBaseUrl: String,
+
+    ) {
+        val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
+        val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
+
+        companion object {
+            fun createFromEnvironmentVariables() = FrontendCallbackUrls(
+                frontendBaseUrl = getEnvironmentVariableOrThrow("FRONTEND_BASE_URL")
+            )
+
+            fun createLocalConfig() = FrontendCallbackUrls(
+                frontendBaseUrl = "http://localhost:1234"
+            )
+        }
+    }
+
     companion object {
 
         fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
@@ -315,6 +331,7 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
+            frontendCallbackUrls = FrontendCallbackUrls.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -327,6 +344,8 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
+            frontendCallbackUrls = FrontendCallbackUrls.createLocalConfig(),
+
         )
 
         fun isLocalOrRunningTests() = env["NAIS_CLUSTER_NAME"] == null
