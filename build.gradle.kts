@@ -54,7 +54,7 @@ allprojects {
         implementation("org.apache.kafka:kafka-clients:2.6.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.1.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
