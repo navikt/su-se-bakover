@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -637,10 +638,10 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        jwtStub.create(
+                        jwtStub.createJwtToken(
                             subject = "random",
                             roller = listOf(Brukerrolle.Attestant)
-                        )
+                        ).asBearerToken()
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -792,10 +793,10 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        jwtStub.create(
+                        jwtStub.createJwtToken(
                             subject = "S123456",
                             roller = listOf(Brukerrolle.Attestant)
-                        )
+                        ).asBearerToken()
                     )
                     setBody(
                         """

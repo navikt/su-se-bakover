@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -59,7 +60,7 @@ val applicationConfig = ApplicationConfig(
     )
 )
 
-val jwtStub = JwtStub(applicationConfig)
+internal val jwtStub = JwtStub(applicationConfig)
 
 internal fun Application.testSusebakover(
     clients: Clients = TestClientsBuilder.build(applicationConfig),
@@ -89,7 +90,7 @@ fun TestApplicationEngine.defaultRequest(
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, jwtStub.create(roller = roller))
+        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller).asBearerToken())
         setup()
     }
 }
@@ -103,7 +104,7 @@ fun TestApplicationEngine.requestSomAttestant(
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
         addHeader(
             HttpHeaders.Authorization,
-            jwtStub.create(roller = listOf(Brukerrolle.Attestant))
+            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant)).asBearerToken()
         )
         setup()
     }

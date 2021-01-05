@@ -66,11 +66,11 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
         provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             when (val bearerToken = context.call.request.header("Authorization")?.replace("Bearer ", "")) {
                 null -> {
-                    val jwt = jwtStub.create(
+                    val jwt = jwtStub.createJwtToken(
                         audience = applicationConfig.azure.clientId,
                         roller = listOf(Brukerrolle.Saksbehandler)
-                    ).replace("Bearer ", "")
-                    context.principal(JWTPrincipal(JWT.decode(jwt))) // TODO single invocation of jwt creation
+                    )
+                    context.principal(JWTPrincipal(JWT.decode(jwt)))
                 }
                 else -> context.principal(JWTPrincipal(JWT.decode(bearerToken)))
             }
@@ -89,11 +89,9 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
             get("/login") {
                 call.respondRedirect(
                     "${Config.suSeFramoverLoginSuccessUrl}#${
-                    jwtStub.create(audience = applicationConfig.azure.clientId)
-                        .replace("Bearer ", "")
+                    jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
                     }#${
-                    jwtStub.create(audience = applicationConfig.azure.clientId)
-                        .replace("Bearer ", "") // TODO single invocation of jwl creation
+                    jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
                     }"
                 )
             }
@@ -103,8 +101,7 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {
-                val refreshedTokens = jwtStub.create(audience = applicationConfig.azure.clientId)
-                    .replace("Bearer ", "")
+                val refreshedTokens = jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
                 call.response.header("access_token", refreshedTokens)
                 call.response.header("refresh_token", refreshedTokens)
                 call.svar(HttpStatusCode.OK.message("Tokens refreshed successfully"))

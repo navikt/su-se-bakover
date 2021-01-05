@@ -15,6 +15,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -52,7 +53,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.create(audience = "wrong_audience"))
+                addHeader(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -65,7 +66,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.create(roller = emptyList()))
+                addHeader(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -78,7 +79,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, jwtStub.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
+                addHeader(Authorization, jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken())
             }
         }.apply {
             assertEquals(Unauthorized, response.status())
@@ -122,6 +123,19 @@ internal class AuthenticationTest {
             response.headers.contains("access_token") shouldBe true
             response.headers.contains("refresh_token") shouldBe true
             response.status() shouldBe OK
+        }
+    }
+
+    @Test
+    fun `forespørsel med feil issuer skal svare med 403`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            handleRequest(Get, secureEndpoint) {
+                addHeader(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
+            }
+        }.apply {
+            assertEquals(Forbidden, response.status())
         }
     }
 }

@@ -1,11 +1,13 @@
-package no.nav.su.se.bakover.web.stubs
+package no.nav.su.se.bakover.common.stubs
 
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
-internal object AuthStubSiginingKeys {
+object AuthStubCommonConfig {
     private val keypair = generateKeypair()
+    val keyId = "key-1234"
+    val issuer = "localhost"
     val public = keypair.first
     val private = keypair.second
 

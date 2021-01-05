@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.stubs.azure
 
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import org.json.JSONObject
 
 object AzureClientStub : OAuth {
@@ -13,7 +14,7 @@ object AzureClientStub : OAuth {
             mapOf(
                 "authorization_endpoint" to "http://localhost:8080/login",
                 "token_endpoint" to "http://localhost:8080/login",
-                "issuer" to "localhost", // TODO connection to JWT token values
+                "issuer" to AuthStubCommonConfig.issuer,
                 "end_session_endpoint" to "http://localhost:8080/logout",
                 "jwks_uri" to "http://localhost:8080/jwks"
             )

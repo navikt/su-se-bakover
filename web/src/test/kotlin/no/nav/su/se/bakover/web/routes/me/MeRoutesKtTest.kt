@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.jwtStub
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 
@@ -55,10 +56,10 @@ internal class MeRoutesKtTest {
             ) {
                 addHeader(
                     HttpHeaders.Authorization,
-                    jwtStub.create(
+                    jwtStub.createJwtToken(
                         subject = "random",
                         roller = listOf(Brukerrolle.Attestant)
-                    )
+                    ).asBearerToken()
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.person.personPath
+import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
@@ -50,7 +51,7 @@ class RoutesTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, jwtStub.create(roller = listOf(Brukerrolle.Veileder)))
+                addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken())
             }
         }.apply {
             assertEquals(OK, response.status())
@@ -70,7 +71,7 @@ class RoutesTest {
         }) {
             applog.apply { addAppender(appender) }
             handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, jwtStub.create(roller = listOf(Brukerrolle.Veileder)))
+                addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken())
             }
         }
         val logStatement = appender.list.first { it.message.contains("200 OK") }
