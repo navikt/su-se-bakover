@@ -24,7 +24,8 @@ internal class ApplicationConfigTest {
             groups = ApplicationConfig.AzureConfig.AzureGroups(
                 attestant = "attestant",
                 saksbehandler = "saksbehandler",
-                veileder = "veileder"
+                veileder = "veileder",
+                drift = "drift",
             )
         ),
         oppdrag = ApplicationConfig.OppdragConfig(
@@ -107,6 +108,7 @@ internal class ApplicationConfigTest {
                 "AZURE_GROUP_ATTESTANT" to "attestant",
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
+                "AZURE_GROUP_DRIFT" to "drift",
                 "MQ_QUEUE_MANAGER" to "oppdragMqQueueManager",
                 "MQ_PORT" to "77665",
                 "MQ_HOSTNAME" to "mqHostname",
@@ -145,6 +147,7 @@ internal class ApplicationConfigTest {
                 "AZURE_GROUP_ATTESTANT" to "attestant",
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
+                "AZURE_GROUP_DRIFT" to "drift",
             )
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(

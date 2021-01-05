@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
+import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
@@ -74,7 +75,6 @@ import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
-import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
 fun main(args: Array<String>) {
@@ -221,6 +221,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
+                    driftRoutes(accessProtectedServices.søknad)
                 }
             }
         }

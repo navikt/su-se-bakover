@@ -39,7 +39,8 @@ val applicationConfig = ApplicationConfig(
         groups = ApplicationConfig.AzureConfig.AzureGroups(
             attestant = "testAzureGroupAttestant",
             saksbehandler = "testAzureGroupSaksbehandler",
-            veileder = "testAzureGroupVeileder"
+            veileder = "testAzureGroupVeileder",
+            drift = "testAzureGroupDrift",
         )
     ),
     oppdrag = ApplicationConfig.OppdragConfig(

@@ -36,6 +36,7 @@ internal class JwtStub(
             Brukerrolle.Attestant -> applicationConfig.azure.groups.attestant
             Brukerrolle.Saksbehandler -> applicationConfig.azure.groups.saksbehandler
             Brukerrolle.Veileder -> applicationConfig.azure.groups.veileder
+            Brukerrolle.Drift -> applicationConfig.azure.groups.drift
         }
 }
 

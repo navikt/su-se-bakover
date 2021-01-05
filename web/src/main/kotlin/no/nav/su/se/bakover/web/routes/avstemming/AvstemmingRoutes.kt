@@ -6,63 +6,69 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.web.features.authorize
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 private const val AVSTEMMING_PATH = "/avstem"
 
-// TODO automatic job or something probably
+// TODO jah Jacob: Consider if this is still needed.
+@KtorExperimentalAPI
 internal fun Route.avstemmingRoutes(
     service: AvstemmingService
 ) {
-    post(AVSTEMMING_PATH) {
-        val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
-        val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
+    authorize(Brukerrolle.Drift) {
+        post(AVSTEMMING_PATH) {
+            val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
+            val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
 
-        val periode: Either<Unit, Pair<LocalDate, LocalDate>> =
-            when {
-                erBeggeNullOrEmpty(fraOgMed, tilOgMed) ->
-                    Either.left(Unit)
-                erIngenNullOrEmpty(fraOgMed, tilOgMed) ->
-                    Either.catch {
-                        Pair(
-                            fraOgMed,
-                            tilOgMed
-                        ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
-                    }
-                        .mapLeft {
-                            return@post call.respond(
-                                HttpStatusCode.BadRequest,
-                                "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}"
-                            )
+            val periode: Either<Unit, Pair<LocalDate, LocalDate>> =
+                when {
+                    erBeggeNullOrEmpty(fraOgMed, tilOgMed) ->
+                        Either.left(Unit)
+                    erIngenNullOrEmpty(fraOgMed, tilOgMed) ->
+                        Either.catch {
+                            Pair(
+                                fraOgMed,
+                                tilOgMed
+                            ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
                         }
-                        .map {
-                            if (!isValidAvstemmingsperiode(it)) {
+                            .mapLeft {
                                 return@post call.respond(
                                     HttpStatusCode.BadRequest,
-                                    "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!"
+                                    "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}"
                                 )
                             }
-                            it
-                        }
-                else ->
-                    return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
-            }
+                            .map {
+                                if (!isValidAvstemmingsperiode(it)) {
+                                    return@post call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!"
+                                    )
+                                }
+                                it
+                            }
+                    else ->
+                        return@post call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
+                }
 
-        periode.fold(
-            { service.avstemming() },
-            {
-                service.avstemming(it.first.startOfDay(), it.second.endOfDay())
-            }
-        )
-            .fold(
-                { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-                { call.respond("Avstemt ok") }
+            periode.fold(
+                { service.avstemming() },
+                {
+                    service.avstemming(it.first.startOfDay(), it.second.endOfDay())
+                }
             )
+                .fold(
+                    { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
+                    { call.respond("Avstemt ok") }
+                )
+        }
     }
 }
 

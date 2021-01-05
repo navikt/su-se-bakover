@@ -9,6 +9,7 @@ class AzureGroupMapper(private val azureGroups: ApplicationConfig.AzureConfig.Az
             azureGroups.attestant -> Brukerrolle.Attestant
             azureGroups.saksbehandler -> Brukerrolle.Saksbehandler
             azureGroups.veileder -> Brukerrolle.Veileder
+            azureGroups.drift -> Brukerrolle.Drift
             else -> null
         }
     }

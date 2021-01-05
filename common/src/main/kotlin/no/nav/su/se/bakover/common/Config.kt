@@ -82,8 +82,9 @@ data class ApplicationConfig(
             val attestant: String,
             val saksbehandler: String,
             val veileder: String,
+            val drift: String,
         ) {
-            fun asList() = listOf(attestant, saksbehandler, veileder)
+            fun asList() = listOf(attestant, saksbehandler, veileder, drift)
         }
 
         companion object {
@@ -96,6 +97,7 @@ data class ApplicationConfig(
                     attestant = getEnvironmentVariableOrThrow("AZURE_GROUP_ATTESTANT"),
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
+                    drift = getEnvironmentVariableOrThrow("AZURE_GROUP_DRIFT"),
                 )
             )
 
@@ -126,6 +128,10 @@ data class ApplicationConfig(
                         "AZURE_GROUP_VEILEDER",
                         "062d4814-8538-4f3a-bcb9-32821af7909a"
                     ),
+                    drift = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_DRIFT",
+                        "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
+                    )
                 )
             )
         }

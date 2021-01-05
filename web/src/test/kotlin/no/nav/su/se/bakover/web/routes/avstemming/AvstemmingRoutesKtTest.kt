@@ -75,7 +75,7 @@ internal class AvstemmingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "/avstem",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Drift)
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
             }
@@ -94,7 +94,7 @@ internal class AvstemmingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "/avstem?fraOgMed=2020-11-01",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Drift)
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
@@ -102,7 +102,7 @@ internal class AvstemmingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "/avstem?tilOgMed=2020-11-01",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Drift)
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
             }
@@ -125,7 +125,7 @@ internal class AvstemmingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Post,
                     it,
-                    listOf(Brukerrolle.Veileder)
+                    listOf(Brukerrolle.Drift)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -149,7 +149,7 @@ internal class AvstemmingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Post,
                     it,
-                    listOf(Brukerrolle.Veileder)
+                    listOf(Brukerrolle.Drift)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -174,7 +174,7 @@ internal class AvstemmingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Post,
                     it,
-                    listOf(Brukerrolle.Veileder)
+                    listOf(Brukerrolle.Drift)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
