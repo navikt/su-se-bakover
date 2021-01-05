@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import org.json.JSONObject
@@ -61,17 +60,10 @@ internal fun Application.configureAuthentication(
 internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationConfig: ApplicationConfig) {
     val jwtStub = JwtStub(applicationConfig)
     install(Authentication) {
-        val provider =
-            LocalhostAuthProvider(LocalhostAuthProvider.Configuration("azure")) // TODO name for auth-mechanism
+        val provider = LocalhostAuthProvider(LocalhostAuthProvider.Configuration("azure"))
         provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             when (val bearerToken = context.call.request.header("Authorization")?.replace("Bearer ", "")) {
-                null -> {
-                    val jwt = jwtStub.createJwtToken(
-                        audience = applicationConfig.azure.clientId,
-                        roller = listOf(Brukerrolle.Saksbehandler)
-                    )
-                    context.principal(JWTPrincipal(JWT.decode(jwt)))
-                }
+                null -> context.principal(JWTPrincipal(JWT.decode(jwtStub.createJwtToken())))
                 else -> context.principal(JWTPrincipal(JWT.decode(bearerToken)))
             }
         }
@@ -85,14 +77,10 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
     }
 
     routing {
-        authenticate("azure") { // TODO name for auth-mechanism
+        authenticate("azure") {
             get("/login") {
                 call.respondRedirect(
-                    "${Config.suSeFramoverLoginSuccessUrl}#${
-                    jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
-                    }#${
-                    jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
-                    }"
+                    "${Config.suSeFramoverLoginSuccessUrl}#${jwtStub.createJwtToken()}#${jwtStub.createJwtToken()}"
                 )
             }
             get(AUTH_CALLBACK_PATH) { // Only for test to verify that we are not logging the tokens
@@ -101,7 +89,7 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {
-                val refreshedTokens = jwtStub.createJwtToken(audience = applicationConfig.azure.clientId)
+                val refreshedTokens = jwtStub.createJwtToken()
                 call.response.header("access_token", refreshedTokens)
                 call.response.header("refresh_token", refreshedTokens)
                 call.svar(HttpStatusCode.OK.message("Tokens refreshed successfully"))
@@ -128,7 +116,7 @@ internal fun Application.configureNonLocalAuth(
     }
 
     install(Authentication) {
-        oauth("azure") { // TODO name for auth-mechanism
+        oauth("azure") {
             client = httpClient
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
@@ -146,13 +134,13 @@ internal fun Application.configureNonLocalAuth(
 
         installJwt(
             jwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-            issuer = jwkConfig.getString("issuer"), // TODO extract to object
+            issuer = jwkConfig.getString("issuer"),
             applicationConfig = applicationConfig
         )
     }
 
     routing {
-        authenticate("azure") { // TODO name for auth-mechanism
+        authenticate("azure") {
             get("/login") {
                 // Initiate login sequence
             }

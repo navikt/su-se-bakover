@@ -34,7 +34,7 @@ docker-compose up
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
 
 #### Uten innlogging i Azure (default)
-Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i "TODO".
+Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i `JwtStub.kt`.
 
 #### Med innlogging i Azure
 Ved behov for "ekte" innlogging mot Azure kan dette aktiveres for lokal utvikling ved å endre konfigurasjonen i filen `AuthenticationConfig.kt`.
