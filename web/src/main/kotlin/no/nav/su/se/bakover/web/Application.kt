@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
 import io.ktor.features.CORS
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
@@ -37,6 +33,7 @@ import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.filterMap
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -68,6 +65,7 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
+import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
@@ -76,11 +74,8 @@ import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
-import org.json.JSONObject
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.net.URL
 
 fun main(args: Array<String>) {
     if (ApplicationConfig.isLocalOrRunningTests()) {
@@ -100,20 +95,8 @@ internal fun Application.susebakover(
     clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig
     ).build(applicationConfig),
-    jwkConfig: JSONObject = clients.oauth.jwkConfig(),
-    jwkProvider: JwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-    authenticationHttpClient: HttpClient = HttpClient(Apache) {
-        engine {
-            customizeClient {
-                useSystemProperties()
-            }
-        }
-    },
     services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build()
 ) {
-    // Application er allerede reservert av Ktor
-    val log: Logger = LoggerFactory.getLogger("su-se-bakover")
-
     install(CORS) {
         method(Options)
         method(Patch)
@@ -181,22 +164,10 @@ internal fun Application.susebakover(
     installMetrics(prometheusMeterRegistry)
     naisRoutes(collectorRegistry)
 
-    setupAuthentication(
-        jwkConfig = jwkConfig,
-        jwkProvider = jwkProvider,
-        httpClient = authenticationHttpClient,
-        azureConfig = applicationConfig.azure
-    )
-    oauthRoutes(
-        frontendCallbackUrls = applicationConfig.frontendCallbackUrls,
-        jwkConfig = jwkConfig,
-        oAuth = clients.oauth,
-        logoutRedirectUrl = applicationConfig.azure.backendCallbackUrl,
-    )
+    configureAuthentication(clients.oauth, applicationConfig)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(Authorization) {
-
         getRoller { principal ->
             getGroupsFromJWT(principal)
                 .filterMap { azureGroupMapper.fromAzureGroup(it) }
@@ -220,7 +191,7 @@ internal fun Application.susebakover(
         filter { call ->
             val path = call.request.path()
             // Fjerner loggrader som starter med dette
-            (naisPaths + AUTH_CALLBACK_PATH + PERSON_PATH).none {
+            (naisPaths + AUTH_CALLBACK_PATH + personPath).none {
                 path.startsWith(it)
             }
         }

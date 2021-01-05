@@ -31,9 +31,20 @@ docker-compose up
 ```
 
 #### Starte applikasjon lokalt
-
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
-Krever environmentvariablene:
+
+#### Uten innlogging i Azure (default)
+Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i `JwtStub.kt`.
+
+Merk at tokens som genereres automatisk av appen kun vil være gyldige for den aktuelle instansen som genererte den.
+For å unngå at man må starte helt fra "login" når applikasjonen restartes, kan man heller slette gamle `access_token`fra browser,
+dette fører til at det gjenværende `refresh_token` benyttes til å generere nye.
+
+#### Med innlogging i Azure
+Ved behov for "ekte" innlogging mot Azure kan dette aktiveres for lokal utvikling ved å endre konfigurasjonen i filen `AuthenticationConfig.kt`.
+For at dette skal fungere må man i tillegg bytte ut Azure-stubben i `StubClientsBuilder.kt` med en faktisk Azure-klient.
+
+Bruk av faktisk klient krever miljøvariabelen:
 * AZURE_APP_CLIENT_SECRET
 
 Dette kan man enten legge inn i `Run Configuration` i IntelliJ eller lage en `.env` fil på rot-nivå. Se `.env.template`

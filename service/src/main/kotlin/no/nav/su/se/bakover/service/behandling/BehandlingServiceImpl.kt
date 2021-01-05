@@ -292,9 +292,9 @@ internal class BehandlingServiceImpl(
 
         )
 
-        val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
+        val attestantNavn = hentNavnForNavIdent(attestant)
             .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!)
             .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
 
         val journalpostId = brevService.journalførBrev(
@@ -355,7 +355,7 @@ internal class BehandlingServiceImpl(
         )
     }
 
-    private fun hentNavnForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, String> {
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
             .map { it.displayName }
     }
@@ -367,9 +367,9 @@ internal class BehandlingServiceImpl(
         behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
 
-        val attestantNavn = hentNavnForNavIdent(attestant.navIdent)
+        val attestantNavn = hentNavnForNavIdent(attestant)
             .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!.navIdent)
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!)
             .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
 
         return utbetalingService.utbetal(
@@ -485,11 +485,11 @@ internal class BehandlingServiceImpl(
             .mapLeft { KunneIkkeLageBrevutkast.FantIkkeBehandling }
             .flatMap { behandling ->
                 val attestantNavn = behandling.attestering()?.let {
-                    hentNavnForNavIdent(it.attestant.navIdent)
+                    hentNavnForNavIdent(it.attestant)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
                 val saksbehandlerNavn = behandling.saksbehandler()?.let {
-                    hentNavnForNavIdent(it.navIdent)
+                    hentNavnForNavIdent(it)
                         .getOrHandle { return KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
                 }
                 personService.hentPerson(behandling.fnr)

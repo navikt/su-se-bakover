@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.se.bakover.client.azure.AzureClient
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
@@ -8,8 +8,9 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
 import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
+import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -36,12 +38,8 @@ object StubClientsBuilder : ClientsBuilder {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
-
-        val azureConfig = applicationConfig.azure
-        val azureClient =
-            AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         return Clients(
-            oauth = azureClient,
+            oauth = AzureClientStub.also { log.warn("********** Using stub for ${OAuth::class.java} **********") },
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
@@ -56,7 +54,7 @@ object StubClientsBuilder : ClientsBuilder {
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
-            microsoftGraphApiClient = MicrosoftGraphApiClient(azureClient),
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub.also { log.warn("********** Using stub for ${MicrosoftGraphApiOppslag::class.java} **********") },
             digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") },
             leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") },
             kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") }

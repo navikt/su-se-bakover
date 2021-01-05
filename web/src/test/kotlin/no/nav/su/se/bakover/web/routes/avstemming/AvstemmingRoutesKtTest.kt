@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -27,7 +28,7 @@ internal class AvstemmingRoutesKtTest {
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val services = ServiceBuilder(
         databaseRepos = repos,
-        clients = TestClientsBuilder.build(),
+        clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock()
     ).build()

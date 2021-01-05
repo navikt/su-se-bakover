@@ -16,7 +16,7 @@ internal class AzureClient(
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    override fun onBehalfOFToken(originalToken: String, otherAppId: String): String {
+    override fun onBehalfOfToken(originalToken: String, otherAppId: String): String {
         val (_, _, result) = tokenEndpoint.httpPost(
             listOf(
                 "grant_type" to AZURE_ON_BEHALF_OF_GRANT_TYPE,

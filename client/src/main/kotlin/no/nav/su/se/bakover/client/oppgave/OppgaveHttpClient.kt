@@ -41,7 +41,7 @@ internal class OppgaveHttpClient(
 
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.unsafeCatch {
-            exchange.onBehalfOFToken(MDC.get("Authorization"), connectionConfig.clientId)
+            exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
         }.mapLeft {
             log.error("Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}")
             KunneIkkeLageToken
