@@ -94,7 +94,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
         val client = OppgaveHttpClient(
@@ -170,7 +170,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             )
         )
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
         val client = OppgaveHttpClient(
@@ -245,7 +245,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -268,7 +268,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -354,7 +354,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
@@ -454,7 +454,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         val oathMock = mock<OAuth> {
-            on { onBehalfOFToken(any(), any()) } doReturn "token"
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(

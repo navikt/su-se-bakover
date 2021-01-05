@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.unsafeCatch
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -33,7 +34,7 @@ data class ListOfMicrosoftGraphResponse(
 
 interface MicrosoftGraphApiOppslag {
     fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse>
-    fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse>
+    fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse>
 }
 
 sealed class MicrosoftGraphApiOppslagFeil {
@@ -55,7 +56,7 @@ class MicrosoftGraphApiClient(
 
     override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
         val onBehalfOfToken = Either.unsafeCatch {
-            exchange.onBehalfOFToken(userToken, graphApiAppId)
+            exchange.onBehalfOfToken(userToken, graphApiAppId)
         }.let {
             when (it) {
                 is Either.Left -> return MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
@@ -74,7 +75,7 @@ class MicrosoftGraphApiClient(
         )
     }
 
-    override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
+    override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
         val token = exchange.getSystemToken(graphApiAppId)
 
         return doReq<ListOfMicrosoftGraphResponse>(

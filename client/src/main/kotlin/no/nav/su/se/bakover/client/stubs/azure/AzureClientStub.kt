@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import org.json.JSONObject
 
 object AzureClientStub : OAuth {
-    override fun onBehalfOFToken(originalToken: String, otherAppId: String): String = originalToken
+    override fun onBehalfOfToken(originalToken: String, otherAppId: String): String = originalToken
 
     override fun refreshTokens(refreshToken: String): JSONObject = throw NotImplementedError()
 

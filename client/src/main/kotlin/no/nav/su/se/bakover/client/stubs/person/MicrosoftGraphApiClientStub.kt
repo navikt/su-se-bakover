@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import java.util.UUID
 
 object MicrosoftGraphApiClientStub : MicrosoftGraphApiOppslag {
@@ -20,5 +21,5 @@ object MicrosoftGraphApiClientStub : MicrosoftGraphApiOppslag {
     )
 
     override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(response)
-    override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(response)
+    override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> = Either.Right(response)
 }

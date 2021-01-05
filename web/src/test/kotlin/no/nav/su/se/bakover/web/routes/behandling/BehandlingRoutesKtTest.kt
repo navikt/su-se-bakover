@@ -936,10 +936,10 @@ internal class BehandlingRoutesKtTest {
                     )
                 )
 
-            override fun hentBrukerinformasjonForNavIdent(navIdent: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
+            override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                 Either.right(
                     MicrosoftGraphResponse(
-                        onPremisesSamAccountName = navIdent,
+                        onPremisesSamAccountName = navIdent.toString(),
                         displayName = "displayName",
                         givenName = "givenName",
                         mail = "mail",

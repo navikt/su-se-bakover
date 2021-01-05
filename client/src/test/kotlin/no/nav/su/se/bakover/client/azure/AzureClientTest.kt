@@ -44,7 +44,7 @@ internal class AzureClientTest : WiremockBase {
                 .willReturn(WireMock.okJson(okAzureResponse))
         )
 
-        val exchangedToken: String = oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "personClientId")
+        val exchangedToken: String = oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "personClientId")
         assertEquals(EXCHANGED_TOKEN, exchangedToken)
     }
 
@@ -63,7 +63,7 @@ internal class AzureClientTest : WiremockBase {
                 )
             ).willReturn(WireMock.okJson(errorAzureResponse))
         )
-        assertThrows<RuntimeException> { oauth.onBehalfOFToken(TOKEN_TO_EXCHANGE, "someAppId") }
+        assertThrows<RuntimeException> { oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "someAppId") }
     }
 
     private fun urlEncode(string: String): String {
