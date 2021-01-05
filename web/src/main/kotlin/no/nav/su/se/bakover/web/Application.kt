@@ -262,15 +262,10 @@ internal fun Application.susebakover(
                 utbetalingService = services.utbetaling
             )
         )
-        if (System.getenv("NAIS_CLUSTER_NAME") == "prod-fss") {
-            LoggerFactory.getLogger("su-se-bakover")
-                .warn("AvstemmingJob er deaktivert inntil oppdrag har prodsatt endringer for SUUFORE")
-        } else {
-            AvstemmingJob(
-                avstemmingService = services.avstemming,
-                leaderPodLookup = clients.leaderPodLookup
-            ).schedule()
-        }
+        AvstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup
+        ).schedule()
     }
 }
 
