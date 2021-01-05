@@ -1,100 +1,34 @@
 package no.nav.su.se.bakover.common
 
-import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
-import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrDefault
-import no.nav.su.se.bakover.common.Config.getEnvironmentVariableOrThrow
+import no.nav.su.se.bakover.common.EnvironmentConfig.exists
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.LoggerFactory
 
-object Config {
-
-    private val env by lazy { init() }
-
-    val isLocalOrRunningTests = env["NAIS_CLUSTER_NAME"] == null
-    val leaderPodLookupPath = env["ELECTOR_PATH"] ?: ""
-
-    val oppgaveClientId = env["OPPGAVE_CLIENT_ID"] ?: "Denne er forskjellig per miljø. Må ligge i .env lokalt."
-
-    val pdlUrl = env["PDL_URL"] ?: "http://pdl-api.default.svc.nais.local"
-    val dokDistUrl = env["DOKDIST_URL"] ?: "http://dokdistfordeling.default.svc.nais.local"
-    val pdfgenUrl = env["PDFGEN_URL"] ?: "http://su-pdfgen.supstonad.svc.nais.local"
-    val dokarkivUrl = env["DOKARKIV_URL"] ?: "http://dokarkiv.default.svc.nais.local"
-    val oppgaveUrl = env["OPPGAVE_URL"] ?: "http://oppgave.oppgavehandtering.svc.nais.local"
-    val kodeverkUrl = env["KODEVERK_URL"] ?: "http://kodeverk.default.svc.nais.local"
-    val stsUrl = env["STS_URL"] ?: "http://security-token-service.default.svc.nais.local"
-    val skjermingUrl = env["SKJERMING_URL"] ?: "https://skjermede-personer-pip.nais.adeo.no"
-    val dkifUrl = env["DKIF_URL"] ?: "http://dkif.default.svc.nais.local"
-
-    val pdfgenLocal = env["PDFGEN_LOCAL"]?.toBoolean() ?: false
-
-    val corsAllowOrigin = env["ALLOW_CORS_ORIGIN"] ?: "localhost:1234"
-    private val frontendBaseUrl = env["FRONTEND_BASE_URL"] ?: "http://localhost:1234"
-    val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
-    val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
-    val kafka = Kafka()
-    data class Kafka(
-        private val common: Map<String, String> = Common().configure(),
-        val producerConfig: Map<String, Any> = common + mapOf(
-            ProducerConfig.ACKS_CONFIG to "all",
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
-        )
-    ) {
-        data class Common(
-            val brokers: String = env["KAFKA_BROKERS"] ?: "brokers",
-            val sslConfig: Map<String, String> = SslConfig().configure()
-        ) {
-            fun configure(): Map<String, String> =
-                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
-        }
-
-        data class SslConfig(
-            val truststorePath: String = env["KAFKA_TRUSTSTORE_PATH"] ?: "truststorePath",
-            val keystorePath: String = env["KAFKA_KEYSTORE_PATH"] ?: "keystorePath",
-            val credstorePwd: String = env["KAFKA_CREDSTORE_PASSWORD"] ?: "credstorePwd"
-        ) {
-            fun configure(): Map<String, String> = mapOf(
-                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
-                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
-                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
-                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
-                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
-                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
-                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
-            )
-        }
-
-        sealed class StatistikkTopic {
-            abstract val name: String
-
-            object Sak : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-sak-statistikk-v1"
-            }
-
-            object Behandling : StatistikkTopic() {
-                override val name: String = "supstonad.aapen-su-behandling-statistikk-v1"
-            }
-        }
-    }
-    fun init(): Dotenv {
-        return dotenv {
+private object EnvironmentConfig {
+    private val env by lazy {
+        dotenv {
             ignoreIfMissing = true
             systemProperties = true
         }
     }
 
-    internal fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
+    fun getEnvironmentVariableOrThrow(environmentVariableName: String): String {
         return env[environmentVariableName] ?: throwMissingEnvironmentVariable(environmentVariableName)
     }
 
-    internal fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
+    fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
+    }
+
+    fun exists(environmentVariableName: String): Boolean {
+        return env[environmentVariableName] != null
     }
 
     private fun throwMissingEnvironmentVariable(environmentVariableName: String): Nothing {
@@ -102,17 +36,20 @@ object Config {
     }
 }
 
-/**
- * This class will gradually replace the Config object - to make config possible to test without defaults.
- * Will start by just moving the easy part and the stuff that shouldn't have default config.
- * We could consider to return an ApplicationConfig based on if you're running locally or in preprod/prod.
- */
 data class ApplicationConfig(
+    val isLocalOrRunningTests: Boolean,
+    val leaderPodLookupPath: String,
+    val pdfgenLocal: Boolean,
+    val corsAllowOrigin: String,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
+    val clientsConfig: ClientsConfig,
+    val frontendCallbackUrls: FrontendCallbackUrls,
+    val kafkaConfig: KafkaConfig,
 ) {
+
     data class ServiceUserConfig(
         val username: String,
         val password: String,
@@ -159,6 +96,36 @@ data class ApplicationConfig(
                     attestant = getEnvironmentVariableOrThrow("AZURE_GROUP_ATTESTANT"),
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
+                )
+            )
+
+            fun createLocalConfig() = AzureConfig(
+                clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
+                wellKnownUrl = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_WELL_KNOWN_URL",
+                    "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+                ),
+                clientId = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_CLIENT_ID",
+                    "26a62d18-70ce-48a6-9f4d-664607bd5188"
+                ),
+                backendCallbackUrl = getEnvironmentVariableOrDefault(
+                    "BACKEND_CALLBACK_URL",
+                    "http://localhost:8080/callback"
+                ),
+                groups = AzureGroups(
+                    attestant = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_ATTESTANT",
+                        "d75164fa-39e6-4149-956e-8404bc9080b6"
+                    ),
+                    saksbehandler = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_SAKSBEHANDLER",
+                        "0ba009c4-d148-4a51-b501-4b1cf906889d"
+                    ),
+                    veileder = getEnvironmentVariableOrDefault(
+                        "AZURE_GROUP_VEILEDER",
+                        "062d4814-8538-4f3a-bcb9-32821af7909a"
+                    ),
                 )
             )
         }
@@ -236,42 +203,197 @@ data class ApplicationConfig(
         }
     }
 
-    data class DatabaseConfig(
-        val databaseName: String,
-        val jdbcUrl: String,
-        val vaultMountPath: String,
-    ) {
+    sealed class DatabaseConfig {
+        abstract val jdbcUrl: String
+
+        data class RotatingCredentials(
+            val databaseName: String,
+            override val jdbcUrl: String,
+            val vaultMountPath: String,
+        ) : DatabaseConfig()
+
+        data class StaticCredentials(
+            override val jdbcUrl: String,
+        ) : DatabaseConfig() {
+            val username = "user"
+            val password = "pwd"
+        }
+
         companion object {
-            fun createFromEnvironmentVariables() = DatabaseConfig(
+            fun createFromEnvironmentVariables() = RotatingCredentials(
                 databaseName = getEnvironmentVariableOrThrow("DATABASE_NAME"),
                 jdbcUrl = getEnvironmentVariableOrThrow("DATABASE_JDBC_URL"),
                 vaultMountPath = getEnvironmentVariableOrThrow("VAULT_MOUNTPATH"),
             )
 
-            fun createLocalConfig() = DatabaseConfig(
-                databaseName = getEnvironmentVariableOrDefault("DATABASE_NAME", "supstonad-db-local"),
+            fun createLocalConfig() = StaticCredentials(
                 jdbcUrl = getEnvironmentVariableOrDefault(
                     "DATABASE_JDBC_URL",
                     "jdbc:postgresql://localhost:5432/supstonad-db-local"
                 ),
-                vaultMountPath = "",
+            )
+        }
+    }
+
+    data class ClientsConfig(
+        val oppgaveConfig: OppgaveConfig,
+        val pdlUrl: String,
+        val dokDistUrl: String,
+        val pdfgenUrl: String,
+        val dokarkivUrl: String,
+        val kodeverkUrl: String,
+        val stsUrl: String,
+        val skjermingUrl: String,
+        val dkifUrl: String,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = ClientsConfig(
+                oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
+                pdlUrl = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                dokDistUrl = getEnvironmentVariableOrThrow("DOKDIST_URL"),
+                pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
+                dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
+                kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
+                stsUrl = getEnvironmentVariableOrThrow("STS_URL"),
+                skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
+                dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
+            )
+
+            fun createLocalConfig() = ClientsConfig(
+                oppgaveConfig = OppgaveConfig.createLocalConfig(),
+                pdlUrl = "mocked",
+                dokDistUrl = "mocked",
+                pdfgenUrl = "mocked",
+                dokarkivUrl = "mocked",
+                kodeverkUrl = "mocked",
+                stsUrl = "mocked",
+                skjermingUrl = "mocked",
+                dkifUrl = "mocked",
+            )
+        }
+
+        data class OppgaveConfig(
+            val clientId: String,
+            val url: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = OppgaveConfig(
+                    clientId = getEnvironmentVariableOrThrow("OPPGAVE_CLIENT_ID"),
+                    url = getEnvironmentVariableOrThrow("OPPGAVE_URL"),
+                )
+
+                fun createLocalConfig() = OppgaveConfig(
+                    clientId = "mocked",
+                    url = "mocked",
+                )
+            }
+        }
+    }
+
+    data class FrontendCallbackUrls(
+        private val frontendBaseUrl: String,
+    ) {
+        val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
+        val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
+
+        companion object {
+            fun createFromEnvironmentVariables() = FrontendCallbackUrls(
+                frontendBaseUrl = getEnvironmentVariableOrThrow("FRONTEND_BASE_URL")
+            )
+
+            fun createLocalConfig() = FrontendCallbackUrls(
+                frontendBaseUrl = "http://localhost:1234"
+            )
+        }
+    }
+
+    data class KafkaConfig(
+        private val common: Map<String, String>,
+        val producerConfig: Map<String, Any>,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = KafkaConfig(
+                common = Common().configure(),
+                producerConfig = Common().configure() + mapOf(
+                    ProducerConfig.ACKS_CONFIG to "all",
+                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+                )
+            )
+
+            fun createLocalConfig() = KafkaConfig(
+                common = emptyMap(),
+                producerConfig = emptyMap()
+            )
+        }
+
+        private data class Common(
+            val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
+            val sslConfig: Map<String, String> = SslConfig().configure()
+        ) {
+            fun configure(): Map<String, String> =
+                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
+        }
+
+        private data class SslConfig(
+            val truststorePath: String = getEnvironmentVariableOrDefault("KAFKA_TRUSTSTORE_PATH", "truststorePath"),
+            val keystorePath: String = getEnvironmentVariableOrDefault("KAFKA_KEYSTORE_PATH", "keystorePath"),
+            val credstorePwd: String = getEnvironmentVariableOrDefault("KAFKA_CREDSTORE_PASSWORD", "credstorePwd"),
+        ) {
+            fun configure(): Map<String, String> = mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SSL.name,
+                SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG to "", // Disable server host name verification
+                SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "jks",
+                SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
+                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
             )
         }
     }
 
     companion object {
+
+        private val log by lazy {
+            // We have to delay logback initialization until after we can determine if we are running locally or not.
+            // Ref logback-local.xml
+            LoggerFactory.getLogger(this::class.java)
+        }
+
+        fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
+
         fun createFromEnvironmentVariables() = ApplicationConfig(
+            isLocalOrRunningTests = false,
+            leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
+            pdfgenLocal = false,
+            corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
+            clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
+            frontendCallbackUrls = FrontendCallbackUrls.createFromEnvironmentVariables(),
+            kafkaConfig = KafkaConfig.createFromEnvironmentVariables()
         )
 
         fun createLocalConfig() = ApplicationConfig(
+            isLocalOrRunningTests = true,
+            leaderPodLookupPath = "",
+            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
+            corsAllowOrigin = "localhost:1234",
             serviceUser = ServiceUserConfig.createLocalConfig(),
-            azure = AzureConfig.createFromEnvironmentVariables(),
+            azure = AzureConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
-        )
+            clientsConfig = ClientsConfig.createLocalConfig(),
+            frontendCallbackUrls = FrontendCallbackUrls.createLocalConfig(),
+            kafkaConfig = KafkaConfig.createLocalConfig()
+        ).also {
+            log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
+        }
+
+        fun isLocalOrRunningTests() = !exists("NAIS_CLUSTER_NAME")
     }
 }

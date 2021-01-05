@@ -29,6 +29,10 @@ import java.util.Base64
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
 val applicationConfig = ApplicationConfig(
+    isLocalOrRunningTests = true,
+    leaderPodLookupPath = "leaderPodLookupPath",
+    pdfgenLocal = false,
+    corsAllowOrigin = "corsAllowOrigin",
     serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",
@@ -59,11 +63,25 @@ val applicationConfig = ApplicationConfig(
             stsSoapUrl = "simuleringStsTestSoapUrl"
         )
     ),
-    database = ApplicationConfig.DatabaseConfig(
-        databaseName = "databaseTestname",
+    database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
-        vaultMountPath = "",
-    )
+    ),
+    clientsConfig = ApplicationConfig.ClientsConfig(
+        oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+            clientId = "oppgaveClientId",
+            url = "oppgaveUrl"
+        ),
+        pdlUrl = "pdlUrl",
+        dokDistUrl = "dokDistUrl",
+        pdfgenUrl = "pdfgenUrl",
+        dokarkivUrl = "dokarkivUrl",
+        kodeverkUrl = "kodeverkUrl",
+        stsUrl = "stsUrl",
+        skjermingUrl = "skjermingUrl",
+        dkifUrl = "dkifUrl",
+    ),
+    frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
+    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), emptyMap())
 )
 
 fun toAzureTestGroup(rolle: Brukerrolle) =

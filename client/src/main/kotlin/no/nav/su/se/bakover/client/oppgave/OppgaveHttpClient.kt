@@ -11,6 +11,7 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -31,9 +32,8 @@ import java.time.format.DateTimeFormatter
 internal const val oppgavePath = "/api/v1/oppgaver"
 
 internal class OppgaveHttpClient(
-    private val baseUrl: String,
+    private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
     private val exchange: OAuth,
-    private val oppgaveClientId: String,
     private val clock: Clock
 ) : OppgaveClient {
 
@@ -41,9 +41,9 @@ internal class OppgaveHttpClient(
 
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.unsafeCatch {
-            exchange.onBehalfOFToken(MDC.get("Authorization"), oppgaveClientId)
+            exchange.onBehalfOFToken(MDC.get("Authorization"), connectionConfig.clientId)
         }.mapLeft {
-            log.error("Kunne ikke lage onBehalfOfToken for oppgave med klient id $oppgaveClientId")
+            log.error("Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}")
             KunneIkkeLageToken
         }.map {
             it
@@ -57,7 +57,7 @@ internal class OppgaveHttpClient(
         }
         val beskrivelse =
             "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
-        val (_, response, result) = "$baseUrl$oppgavePath".httpPost()
+        val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -115,7 +115,7 @@ internal class OppgaveHttpClient(
         val onBehalfOfToken = onBehalfOfToken().getOrElse {
             return KunneIkkeSøkeEtterOppgave.left()
         }
-        val (_, _, result) = "$baseUrl$oppgavePath/$oppgaveId".httpGet()
+        val (_, _, result) = "${connectionConfig.url}$oppgavePath/$oppgaveId".httpGet()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -140,7 +140,7 @@ internal class OppgaveHttpClient(
         }
         val beskrivelse =
             "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
-        val (_, response, result) = "$baseUrl$oppgavePath/${oppgave.id}".httpPatch()
+        val (_, response, result) = "${connectionConfig.url}$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(onBehalfOfToken)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
