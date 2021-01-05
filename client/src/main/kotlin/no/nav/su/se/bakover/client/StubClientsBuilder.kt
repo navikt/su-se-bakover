@@ -55,7 +55,7 @@ object StubClientsBuilder : ClientsBuilder {
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub().also { log.warn("********** Using stub for ${MicrosoftGraphApiOppslag::class.java} **********") },
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub.also { log.warn("********** Using stub for ${MicrosoftGraphApiOppslag::class.java} **********") },
             digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") },
             leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") },
             kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") }

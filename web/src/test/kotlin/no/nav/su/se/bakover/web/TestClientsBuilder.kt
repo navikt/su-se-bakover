@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 
 object TestClientsBuilder : ClientsBuilder {
-
     val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
@@ -34,7 +33,7 @@ object TestClientsBuilder : ClientsBuilder {
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
-        microsoftGraphApiClient = MicrosoftGraphApiClientStub(),
+        microsoftGraphApiClient = MicrosoftGraphApiClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub
