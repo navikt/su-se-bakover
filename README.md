@@ -36,6 +36,10 @@ Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)
 #### Uten innlogging i Azure (default)
 Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i `JwtStub.kt`.
 
+Merk at tokens som genereres automatisk av appen kun vil være gyldige for den aktuelle instansen som genererte den.
+For å unngå at man må starte helt fra "login" når applikasjonen restartes, kan man heller slette gamle `access_token`fra browser,
+dette fører til at det gjenværende `refresh_token` benyttes til å generere nye.
+
 #### Med innlogging i Azure
 Ved behov for "ekte" innlogging mot Azure kan dette aktiveres for lokal utvikling ved å endre konfigurasjonen i filen `AuthenticationConfig.kt`.
 
