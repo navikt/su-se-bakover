@@ -42,8 +42,9 @@ dette fører til at det gjenværende `refresh_token` benyttes til å generere ny
 
 #### Med innlogging i Azure
 Ved behov for "ekte" innlogging mot Azure kan dette aktiveres for lokal utvikling ved å endre konfigurasjonen i filen `AuthenticationConfig.kt`.
+For at dette skal fungere må man i tillegg bytte ut Azure-stubben i `StubClientsBuilder.kt` med en faktisk Azure-klient.
 
-Dette krever miljøvariablene:
+Bruk av faktisk klient krever miljøvariabelen:
 * AZURE_APP_CLIENT_SECRET
 
 Dette kan man enten legge inn i `Run Configuration` i IntelliJ eller lage en `.env` fil på rot-nivå. Se `.env.template`
