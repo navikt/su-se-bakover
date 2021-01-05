@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.LoggerFactory
 
@@ -20,11 +19,11 @@ internal class StatistikkServiceImpl(
         if (isValid) {
             when (statistikk) {
                 is Statistikk.Sak -> publisher.publiser(
-                    topic = Config.Kafka.StatistikkTopic.Sak.name,
+                    topic = "supstonad.aapen-su-sak-statistikk-v1",
                     melding = json
                 )
                 is Statistikk.Behandling -> publisher.publiser(
-                    topic = Config.Kafka.StatistikkTopic.Behandling.name,
+                    topic = "supstonad.aapen-su-behandling-statistikk-v1",
                     melding = json
                 )
             }

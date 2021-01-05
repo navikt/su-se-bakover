@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web
 
+import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
-import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 
 object TestClientsBuilder : ClientsBuilder {
     val testClients = Clients(
@@ -28,7 +27,7 @@ object TestClientsBuilder : ClientsBuilder {
         pdfGenerator = PdfGeneratorStub,
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
-        kodeverk = KodeverkHttpClient(Config.kodeverkUrl, "kodeverkConsumerId"),
+        kodeverk = mock(),
         simuleringClient = SimuleringStub,
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,

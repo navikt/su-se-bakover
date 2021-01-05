@@ -14,7 +14,7 @@ import org.slf4j.MDC
 internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/betydninger"
 internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"
 
-class KodeverkHttpClient(val baseUrl: String, val consumerId: String) : Kodeverk {
+class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : Kodeverk {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 

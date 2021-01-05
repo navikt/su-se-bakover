@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.client.kafka
 
-import no.nav.su.se.bakover.common.Config
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 
 internal class KafkaPublisherClient(
-    private val producer: KafkaProducer<String, String> = KafkaProducer(Config.kafka.producerConfig)
+    private val producer: KafkaProducer<String, String>
 ) : KafkaPublisher {
     private val log = LoggerFactory.getLogger(this::class.java)
 

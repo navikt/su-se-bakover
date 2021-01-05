@@ -1,53 +1,48 @@
 package no.nav.su.se.bakover.database
 
-import org.junit.jupiter.api.Assertions.assertTrue
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.ApplicationConfig
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 
 internal class PostgresTest {
 
     @Test
     internal fun `bygger riktig datasource basert på vaultMountPath`() {
-        assertTrue(
-            Postgres(
+
+        Postgres(
+            ApplicationConfig.DatabaseConfig.StaticCredentials(
                 jdbcUrl = "postgresql://localhost",
-                vaultMountPath = "",
-                username = "postgres",
-                password = "postgres",
-                databaseName = "dbName"
             )
-                .build() is NonVaultPostgres
-        )
-        assertTrue(
-            Postgres(
+        ).build().shouldBeTypeOf<NonVaultPostgres>()
+
+        Postgres(
+            ApplicationConfig.DatabaseConfig.RotatingCredentials(
                 jdbcUrl = "postgresql://localhost",
                 vaultMountPath = "aVaultPath",
-                username = "postgres",
-                password = "postgres",
                 databaseName = "dbName"
-            ).build() is VaultPostgres
-        )
+            )
+        ).build().shouldBeTypeOf<VaultPostgres>()
     }
 
     @Test
     internal fun `kaster ikke exception når tilkobling konfigureres riktig`() {
-        assertDoesNotThrow {
+
+        shouldNotThrowAny {
             Postgres(
-                jdbcUrl = "postgresql://localhost",
-                vaultMountPath = "aVaultPath",
-                username = "",
-                password = "",
-                databaseName = "dbName"
+                ApplicationConfig.DatabaseConfig.RotatingCredentials(
+                    jdbcUrl = "postgresql://localhost",
+                    vaultMountPath = "aVaultPath",
+                    databaseName = "dbName"
+                )
             ).build()
         }
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Postgres(
-                jdbcUrl = "postgresql://localhost",
-                vaultMountPath = "",
-                username = "postgres",
-                password = "postgres",
-                databaseName = ""
+                ApplicationConfig.DatabaseConfig.StaticCredentials(
+                    jdbcUrl = "postgresql://localhost",
+                )
             ).build()
         }
     }

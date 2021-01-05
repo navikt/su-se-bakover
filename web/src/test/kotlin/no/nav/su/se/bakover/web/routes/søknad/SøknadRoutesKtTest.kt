@@ -97,7 +97,7 @@ internal class SøknadRoutesKtTest {
     private val sakRepo = databaseRepos.sak
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
-        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navident"),
+        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z990Lokal"),
         trukketDato = 1.januar(2020)
     )
 

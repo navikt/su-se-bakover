@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.log
@@ -79,8 +78,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
 fun main(args: Array<String>) {
-    Config.init()
-    if (Config.isLocalOrRunningTests) {
+    if (ApplicationConfig.isLocalOrRunningTests()) {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
     io.ktor.server.netty.EngineMain.main(args)
@@ -91,10 +89,10 @@ internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
-    applicationConfig: ApplicationConfig = if (Config.isLocalOrRunningTests) ApplicationConfig.createLocalConfig() else ApplicationConfig.createFromEnvironmentVariables(),
+    applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
+    clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig
     ).build(applicationConfig),
     services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build()
@@ -109,7 +107,7 @@ internal fun Application.susebakover(
         exposeHeader(WWWAuthenticate)
         exposeHeader("access_token")
         exposeHeader("refresh_token")
-        host(Config.corsAllowOrigin, listOf("http", "https"))
+        host(applicationConfig.corsAllowOrigin, listOf("http", "https"))
     }
 
     install(StatusPages) {
@@ -227,7 +225,7 @@ internal fun Application.susebakover(
             }
         }
     }
-    if (!Config.isLocalOrRunningTests) {
+    if (!applicationConfig.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,

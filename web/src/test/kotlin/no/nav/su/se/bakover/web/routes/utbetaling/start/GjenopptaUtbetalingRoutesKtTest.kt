@@ -52,7 +52,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         person = mock(),
         statistikk = mock()
     )
-    private val saksbehandler = NavIdentBruker.Saksbehandler("navident")
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal")
 
     @Test
     fun `Fant ikke sak returnerer not found`() {

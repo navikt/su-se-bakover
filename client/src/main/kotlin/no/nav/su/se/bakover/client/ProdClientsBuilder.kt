@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.JmsConfig
+import org.apache.kafka.clients.producer.KafkaProducer
 import java.time.Clock
 
 data class ProdClientsBuilder(
@@ -31,24 +31,25 @@ data class ProdClientsBuilder(
     override fun build(applicationConfig: ApplicationConfig): Clients {
         val consumerId = "srvsupstonad"
 
+        val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
-        val kodeverk = KodeverkHttpClient(Config.kodeverkUrl, consumerId)
-        val tokenOppslag = StsClient(Config.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
-        val dkif = DkifClient(Config.dkifUrl, tokenOppslag, consumerId)
-        val personOppslag =
-            PersonClient(Config.pdlUrl, kodeverk, SkjermingClient(Config.skjermingUrl), dkif, tokenOppslag)
+        val kodeverk = KodeverkHttpClient(clientsConfig.kodeverkUrl, consumerId)
+        val serviceUser = applicationConfig.serviceUser
+        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
+        val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
+        val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
+        val personOppslag = PersonClient(clientsConfig.pdlUrl, kodeverk, skjermingClient, dkif, tokenOppslag)
 
         return Clients(
             oauth = oAuth,
             personOppslag = personOppslag,
             tokenOppslag = tokenOppslag,
-            pdfGenerator = PdfClient(Config.pdfgenUrl),
-            dokArkiv = DokArkivClient(Config.dokarkivUrl, tokenOppslag),
+            pdfGenerator = PdfClient(clientsConfig.pdfgenUrl),
+            dokArkiv = DokArkivClient(clientsConfig.dokarkivUrl, tokenOppslag),
             oppgaveClient = OppgaveHttpClient(
-                baseUrl = Config.oppgaveUrl,
+                connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
-                oppgaveClientId = Config.oppgaveClientId,
                 clock = Clock.systemUTC(),
             ),
             kodeverk = kodeverk,
@@ -57,7 +58,7 @@ data class ProdClientsBuilder(
                     simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
-                    serviceUser = applicationConfig.serviceUser
+                    serviceUser = serviceUser
                 ).wrapWithSTSSimulerFpService()
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
@@ -71,7 +72,7 @@ data class ProdClientsBuilder(
                     )
                 }
             ),
-            dokDistFordeling = DokDistFordelingClient(Config.dokDistUrl, tokenOppslag),
+            dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistUrl, tokenOppslag),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
@@ -82,8 +83,8 @@ data class ProdClientsBuilder(
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
-            leaderPodLookup = LeaderPodLookupClient(Config.leaderPodLookupPath),
-            kafkaPublisher = KafkaPublisherClient()
+            leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
+            kafkaPublisher = KafkaPublisherClient(KafkaProducer(applicationConfig.kafkaConfig.producerConfig))
         )
     }
 }

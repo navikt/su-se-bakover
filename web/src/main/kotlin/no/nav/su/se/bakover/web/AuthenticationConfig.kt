@@ -32,7 +32,6 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import no.nav.su.se.bakover.web.stubs.JwtStub
@@ -51,7 +50,7 @@ internal fun Application.configureAuthentication(
     applicationConfig: ApplicationConfig
 ) {
     val jwkConfig = oAuth.jwkConfig()
-    when (Config.isLocalOrRunningTests) {
+    when (applicationConfig.isLocalOrRunningTests) {
         true -> configureLocalAuth(jwkConfig, applicationConfig)
         false -> configureNonLocalAuth(jwkConfig, oAuth, applicationConfig)
     }
@@ -80,11 +79,11 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationCo
         authenticate("azure") {
             get("/login") {
                 call.respondRedirect(
-                    "${Config.suSeFramoverLoginSuccessUrl}#${jwtStub.createJwtToken()}#${jwtStub.createJwtToken()}"
+                    "${applicationConfig.frontendCallbackUrls.suSeFramoverLoginSuccessUrl}#${jwtStub.createJwtToken()}#${jwtStub.createJwtToken()}"
                 )
             }
             get(AUTH_CALLBACK_PATH) { // Only for test to verify that we are not logging the tokens
-                call.respondRedirect("${Config.suSeFramoverLoginSuccessUrl}#access#refresh")
+                call.respondRedirect("${applicationConfig.frontendCallbackUrls.suSeFramoverLoginSuccessUrl}#access#refresh")
             }
         }
         get("/auth/refresh") {
@@ -148,7 +147,7 @@ internal fun Application.configureNonLocalAuth(
                 val tokenResponse =
                     call.authentication.principal<OAuthAccessTokenResponse>() as OAuthAccessTokenResponse.OAuth2
 
-                call.respondRedirect("${Config.suSeFramoverLoginSuccessUrl}#${tokenResponse.accessToken}#${tokenResponse.refreshToken}")
+                call.respondRedirect("${applicationConfig.frontendCallbackUrls.suSeFramoverLoginSuccessUrl}#${tokenResponse.accessToken}#${tokenResponse.refreshToken}")
             }
         }
         get("/logout") {
@@ -160,7 +159,7 @@ internal fun Application.configureNonLocalAuth(
             call.respondRedirect("$endSessionEndpoint?post_logout_redirect_uri=$redirectUri")
         }
         get(LOGOUT_CALLBACK_PATH) {
-            call.respondRedirect(Config.suSeFramoverLogoutSuccessUrl)
+            call.respondRedirect(applicationConfig.frontendCallbackUrls.suSeFramoverLogoutSuccessUrl)
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {

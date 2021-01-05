@@ -54,6 +54,7 @@ allprojects {
         implementation("org.apache.kafka:kafka-clients:2.6.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
 
+        // The 9.2.1.0 version fails to connect to the MQ server.
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -63,6 +64,7 @@ allprojects {
         testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotestVersion")
+        testImplementation("io.kotest:kotest-extensions-jvm:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
         testImplementation("org.mockito:mockito-core:3.6.28")
