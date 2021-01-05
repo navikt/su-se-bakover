@@ -25,7 +25,6 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.0")
-    implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

@@ -45,7 +45,7 @@ Dette krever miljøvariablene:
 * AZURE_GROUP_SAKSBEHANDLER
 * AZURE_GROUP_ATTESTANT
 
-Dette kan man enten legge inn i `Run Configuration` i IntelliJ eller lage en `.env` fil på rot-nivå.
+Dette kan man enten legge inn i `Run Configuration` i IntelliJ eller lage en `.env` fil på rot-nivå. Se `.env.template` for fungerende defaults.
 
 Spør en fra teamet, eller hent de fra `Vault` under team-secrets for  `supstonad`
 

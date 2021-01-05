@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.SakJson
@@ -196,7 +197,7 @@ internal class SøknadRoutesKtTest {
             }
         }
 
-        val clients = TestClientsBuilder.build().copy(
+        val clients = TestClientsBuilder.build(applicationConfig).copy(
             pdfGenerator = pdfGenerator,
             dokArkiv = dokArkiv,
             personOppslag = personOppslag,

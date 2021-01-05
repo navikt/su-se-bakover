@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
-import com.ibm.mq.jms.MQConnectionFactory
-import com.ibm.msg.client.wmq.WMQConstants
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -32,13 +30,14 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
+import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -78,7 +77,6 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitter
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import javax.jms.JMSContext
 
 fun main(args: Array<String>) {
     Config.init()
@@ -88,25 +86,17 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-private val jmsContext: JMSContext by lazy {
-    MQConnectionFactory().apply {
-        Config.oppdrag.let {
-            hostName = it.mqHostname
-            port = it.mqPort
-            channel = it.mqChannel
-            queueManager = it.mqQueueManager
-            transportType = WMQConstants.WMQ_CM_CLIENT
-        }
-    }.createContext(Config.serviceUser.username, Config.serviceUser.password)
-}
-
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory),
-    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build() else ProdClientsBuilder(jmsContext).build(),
+    applicationConfig: ApplicationConfig = if (Config.isLocalOrRunningTests) ApplicationConfig.createLocalConfig() else ApplicationConfig.createFromEnvironmentVariables(),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
+    jmsConfig: JmsConfig = JmsConfig(applicationConfig),
+    clients: Clients = if (Config.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
+        jmsConfig
+    ).build(applicationConfig),
     services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build()
 ) {
     install(CORS) {
@@ -176,12 +166,13 @@ internal fun Application.susebakover(
     installMetrics(prometheusMeterRegistry)
     naisRoutes(collectorRegistry)
 
-    configureAuthentication(clients.oauth)
+    configureAuthentication(clients.oauth, applicationConfig)
+    val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(Authorization) {
         getRoller { principal ->
             getGroupsFromJWT(principal)
-                .filterMap { Brukerrolle.fromAzureGroup(it) }
+                .filterMap { azureGroupMapper.fromAzureGroup(it) }
                 .toSet()
         }
     }
@@ -220,7 +211,7 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             withUser {
-                meRoutes()
+                meRoutes(azureGroupMapper)
 
                 withAccessProtectedServices(
                     AccessCheckProxy(databaseRepos.person, services)
@@ -238,8 +229,8 @@ internal fun Application.susebakover(
     }
     if (!Config.isLocalOrRunningTests) {
         UtbetalingKvitteringIbmMqConsumer(
-            kvitteringQueueName = Config.oppdrag.utbetaling.mqReplyTo,
-            globalJmsContext = jmsContext,
+            kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
+            globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
                 utbetalingService = services.utbetaling
             )

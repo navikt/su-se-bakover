@@ -7,9 +7,8 @@ import java.time.Month.JANUARY
 import java.time.Month.JULY
 
 fun fnrUnder67(): Fnr {
-    val femtiÅrSiden = (LocalDate.now().year - 50).toString().substring(2, 4)
-
-    return Fnr("0101${femtiÅrSiden}01337")
+    // Bør ikke basere oss på .now() i tester. Dersom vi begynner å validere på dette, bør vi sende inn en klokke hit.
+    return Fnr("01017001337")
 }
 
 object SøknadInnholdTestdataBuilder {

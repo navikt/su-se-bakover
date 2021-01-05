@@ -15,8 +15,8 @@ internal object JwkProviderStub : JwkProvider {
         null,
         null,
         mapOf(
-            "e" to String(Base64.getEncoder().encode(JwtStub.keys.first.publicExponent.toByteArray())),
-            "n" to String(Base64.getEncoder().encode(JwtStub.keys.first.modulus.toByteArray()))
+            "e" to String(Base64.getEncoder().encode(AuthStubSiginingKeys.public.publicExponent.toByteArray())),
+            "n" to String(Base64.getEncoder().encode(AuthStubSiginingKeys.public.modulus.toByteArray()))
         )
     )
 }

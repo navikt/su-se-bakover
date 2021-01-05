@@ -37,6 +37,7 @@ allprojects {
     val kotestVersion = "4.3.1"
     val jacksonVersion = "2.12.0"
     val ktlintVersion = "0.40.0"
+    val bouncycastleVersion = "1.68"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
@@ -52,6 +53,8 @@ allprojects {
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.6.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
+
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
@@ -88,6 +91,12 @@ allprojects {
             }
             implementation("junit:junit:4.13.1") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
+            }
+            implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448")
+            }
+            implementation("org.bouncycastle:bcpkix-jdk15on:$bouncycastleVersion") {
+                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448")
             }
         }
     }

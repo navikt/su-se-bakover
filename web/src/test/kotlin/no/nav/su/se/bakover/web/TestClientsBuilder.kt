@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 
 object TestClientsBuilder : ClientsBuilder {
@@ -39,5 +40,5 @@ object TestClientsBuilder : ClientsBuilder {
         kafkaPublisher = KafkaPublisherStub
     )
 
-    override fun build(): Clients = testClients
+    override fun build(applicationConfig: ApplicationConfig): Clients = testClients
 }

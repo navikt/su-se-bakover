@@ -15,7 +15,6 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.web.stubs.JwtStub
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -53,7 +52,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, JwtStub.create(audience = "wrong_audience"))
+                addHeader(Authorization, jwtStub.create(audience = "wrong_audience"))
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -66,7 +65,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, JwtStub.create(roller = emptyList()))
+                addHeader(Authorization, jwtStub.create(roller = emptyList()))
             }
         }.apply {
             assertEquals(Forbidden, response.status())
@@ -79,7 +78,7 @@ internal class AuthenticationTest {
             testSusebakover()
         }) {
             handleRequest(Get, secureEndpoint) {
-                addHeader(Authorization, JwtStub.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
+                addHeader(Authorization, jwtStub.create(expiresAt = Date.from(Instant.now().minusSeconds(1))))
             }
         }.apply {
             assertEquals(Unauthorized, response.status())

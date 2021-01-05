@@ -53,10 +53,11 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
+import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -71,7 +72,7 @@ internal class BehandlingRoutesKtTest {
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
     private val services = ServiceBuilder(
         databaseRepos = repos,
-        clients = TestClientsBuilder.build(),
+        clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock()
     ).build()
@@ -636,7 +637,7 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        JwtStub.create(
+                        jwtStub.create(
                             subject = "random",
                             roller = listOf(Brukerrolle.Attestant)
                         )
@@ -791,7 +792,7 @@ internal class BehandlingRoutesKtTest {
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
-                        JwtStub.create(
+                        jwtStub.create(
                             subject = "S123456",
                             roller = listOf(Brukerrolle.Attestant)
                         )

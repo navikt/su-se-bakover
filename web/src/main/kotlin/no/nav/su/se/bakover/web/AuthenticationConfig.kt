@@ -31,6 +31,7 @@ import io.ktor.response.respondRedirect
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Config
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -47,23 +48,28 @@ internal const val AUTH_CALLBACK_PATH = "/callback"
 internal const val LOGOUT_CALLBACK_PATH = "$AUTH_CALLBACK_PATH/logout-complete"
 
 internal fun Application.configureAuthentication(
-    oAuth: OAuth
+    oAuth: OAuth,
+    applicationConfig: ApplicationConfig
 ) {
     val jwkConfig = oAuth.jwkConfig()
     when (Config.isLocalOrRunningTests) {
-        true -> configureLocalAuth(jwkConfig)
-        false -> configureNonLocalAuth(jwkConfig, oAuth)
+        true -> configureLocalAuth(jwkConfig, applicationConfig)
+        false -> configureNonLocalAuth(jwkConfig, oAuth, applicationConfig)
     }
 }
 
-internal fun Application.configureLocalAuth(jwkConfig: JSONObject) {
+internal fun Application.configureLocalAuth(jwkConfig: JSONObject, applicationConfig: ApplicationConfig) {
+    val jwtStub = JwtStub(applicationConfig)
     install(Authentication) {
         val provider =
             LocalhostAuthProvider(LocalhostAuthProvider.Configuration("azure")) // TODO name for auth-mechanism
         provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             when (val bearerToken = context.call.request.header("Authorization")?.replace("Bearer ", "")) {
                 null -> {
-                    val jwt = JwtStub.create(roller = listOf(Brukerrolle.Saksbehandler)).replace("Bearer ", "")
+                    val jwt = jwtStub.create(
+                        audience = applicationConfig.azure.clientId,
+                        roller = listOf(Brukerrolle.Saksbehandler)
+                    ).replace("Bearer ", "")
                     context.principal(JWTPrincipal(JWT.decode(jwt))) // TODO single invocation of jwt creation
                 }
                 else -> context.principal(JWTPrincipal(JWT.decode(bearerToken)))
@@ -73,7 +79,8 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject) {
 
         installJwt(
             jwkProvider = JwkProviderStub,
-            issuer = jwkConfig.getString("issuer")
+            issuer = jwkConfig.getString("issuer"),
+            applicationConfig = applicationConfig
         )
     }
 
@@ -81,8 +88,12 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject) {
         authenticate("azure") { // TODO name for auth-mechanism
             get("/login") {
                 call.respondRedirect(
-                    "${Config.suSeFramoverLoginSuccessUrl}#${JwtStub.create().replace("Bearer ", "")}#${
-                    JwtStub.create().replace("Bearer ", "") // TODO single invocation of jwl creation
+                    "${Config.suSeFramoverLoginSuccessUrl}#${
+                    jwtStub.create(audience = applicationConfig.azure.clientId)
+                        .replace("Bearer ", "")
+                    }#${
+                    jwtStub.create(audience = applicationConfig.azure.clientId)
+                        .replace("Bearer ", "") // TODO single invocation of jwl creation
                     }"
                 )
             }
@@ -92,7 +103,8 @@ internal fun Application.configureLocalAuth(jwkConfig: JSONObject) {
         }
         get("/auth/refresh") {
             call.request.headers["refresh_token"]?.let {
-                val refreshedTokens = JwtStub.create().replace("Bearer ", "")
+                val refreshedTokens = jwtStub.create(audience = applicationConfig.azure.clientId)
+                    .replace("Bearer ", "")
                 call.response.header("access_token", refreshedTokens)
                 call.response.header("refresh_token", refreshedTokens)
                 call.svar(HttpStatusCode.OK.message("Tokens refreshed successfully"))
@@ -105,7 +117,11 @@ class LocalhostAuthProvider(configuration: Configuration) : AuthenticationProvid
     class Configuration(name: String) : AuthenticationProvider.Configuration(name)
 }
 
-internal fun Application.configureNonLocalAuth(jwkConfig: JSONObject, oAuth: OAuth) {
+internal fun Application.configureNonLocalAuth(
+    jwkConfig: JSONObject,
+    oAuth: OAuth,
+    applicationConfig: ApplicationConfig
+) {
     val httpClient = HttpClient(Apache) {
         engine {
             customizeClient {
@@ -123,17 +139,18 @@ internal fun Application.configureNonLocalAuth(jwkConfig: JSONObject, oAuth: OAu
                     authorizeUrl = jwkConfig.getString("authorization_endpoint"),
                     accessTokenUrl = jwkConfig.getString("token_endpoint"),
                     requestMethod = HttpMethod.Post,
-                    clientId = Config.azureClientId,
-                    clientSecret = Config.azureClientSecret,
-                    defaultScopes = listOf("${Config.azureClientId}/.default", "openid", "offline_access")
+                    clientId = applicationConfig.azure.clientId,
+                    clientSecret = applicationConfig.azure.clientSecret,
+                    defaultScopes = listOf("${applicationConfig.azure.clientId}/.default", "openid", "offline_access")
                 )
             }
-            urlProvider = { Config.azureBackendCallbackUrl }
+            urlProvider = { applicationConfig.azure.backendCallbackUrl }
         }
 
         installJwt(
             jwkProvider = JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri"))).build(),
-            issuer = jwkConfig.getString("issuer") // TODO extract to object
+            issuer = jwkConfig.getString("issuer"), // TODO extract to object
+            applicationConfig = applicationConfig
         )
     }
 
@@ -152,7 +169,8 @@ internal fun Application.configureNonLocalAuth(jwkConfig: JSONObject, oAuth: OAu
         get("/logout") {
             val endSessionEndpoint = jwkConfig.getString("end_session_endpoint")
 
-            val redirectUri = URLEncoder.encode("${Config.azureBackendCallbackUrl}/logout-complete", "utf-8")
+            val redirectUri =
+                URLEncoder.encode("${applicationConfig.azure.backendCallbackUrl}/logout-complete", "utf-8")
 
             call.respondRedirect("$endSessionEndpoint?post_logout_redirect_uri=$redirectUri")
         }
@@ -170,15 +188,18 @@ internal fun Application.configureNonLocalAuth(jwkConfig: JSONObject, oAuth: OAu
     }
 }
 
-internal fun Authentication.Configuration.installJwt(jwkProvider: JwkProvider, issuer: String) {
+internal fun Authentication.Configuration.installJwt(
+    jwkProvider: JwkProvider,
+    issuer: String,
+    applicationConfig: ApplicationConfig
+) {
     jwt("jwt") {
         verifier(jwkProvider, issuer)
         validate { credential ->
-            val validAudience = Config.azureClientId in credential.payload.audience
+            val validAudience = applicationConfig.azure.clientId in credential.payload.audience
             val groupsFromToken = credential.payload.getClaim("groups")?.asList(String::class.java) ?: emptyList()
 
-            val allowedGroups =
-                listOf(Config.azureGroupVeileder, Config.azureGroupSaksbehandler, Config.azureGroupAttestant)
+            val allowedGroups = applicationConfig.azure.groups.asList()
             val validGroup = groupsFromToken.any { it in allowedGroups }
 
             if (validAudience && validGroup) {

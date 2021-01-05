@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.stubs.JwtStub
+import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 
@@ -55,7 +55,7 @@ internal class MeRoutesKtTest {
             ) {
                 addHeader(
                     HttpHeaders.Authorization,
-                    JwtStub.create(
+                    jwtStub.create(
                         subject = "random",
                         roller = listOf(Brukerrolle.Attestant)
                     )
