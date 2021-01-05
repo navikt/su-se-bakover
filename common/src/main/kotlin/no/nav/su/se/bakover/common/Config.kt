@@ -254,7 +254,7 @@ data class ApplicationConfig(
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
-                stsUrl = getEnvironmentVariableOrThrow("STS_URL"),
+                stsUrl = getEnvironmentVariableOrDefault("STS_URL", "http://security-token-service.default.svc.nais.local"),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
             )
