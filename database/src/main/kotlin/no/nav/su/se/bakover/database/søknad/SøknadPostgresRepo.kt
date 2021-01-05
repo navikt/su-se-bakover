@@ -74,4 +74,24 @@ internal class SøknadPostgresRepo(
             )
         }
     }
+
+    override fun hentSøknaderUtenJournalpost(): List<Søknad> {
+        return dataSource.withSession { session ->
+            "select * from søknad where journalpostId is null".hentListe(
+                session = session
+            ) {
+                it.toSøknad()
+            }
+        }
+    }
+
+    override fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad> {
+        return dataSource.withSession { session ->
+            "select * from søknad where journalpostId is not null and oppgaveId is null".hentListe(
+                session = session
+            ) {
+                it.toSøknad()
+            }
+        }
+    }
 }
