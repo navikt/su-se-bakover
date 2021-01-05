@@ -28,9 +28,13 @@ object DatabaseBuilder {
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
         when (databaseConfig) {
-            is StaticCredentials -> Flyway(dataSource)
+            is StaticCredentials -> {
+                // Lokalt ønsker vi ikke noe herjing med rolle; Docker-oppsettet sørger for at vi har riktige tilganger her.
+                Flyway(dataSource)
+            }
             is RotatingCredentials -> Flyway(
                 dataSource = dataSource,
+                // Pga roterende credentials i preprod/prod må tabeller opprettes/endres av samme rolle hver gang. Se https://github.com/navikt/utvikling/blob/master/PostgreSQL.md#hvordan-kj%C3%B8re-flyway-migreringerendre-p%C3%A5-databaseskjemaet
                 role = "${databaseConfig.databaseName}-${Postgres.Role.Admin}"
             )
         }.migrate()
@@ -40,6 +44,7 @@ object DatabaseBuilder {
     }
 
     fun build(embeddedDatasource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
+        // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger her.
         Flyway(embeddedDatasource).migrate()
         return buildInternal(embeddedDatasource, behandlingFactory)
     }
