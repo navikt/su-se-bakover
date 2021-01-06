@@ -66,6 +66,9 @@ class ServiceBuilder(
             søknadMetrics = søknadMetrics
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
+        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService)
+        sakService.observers.add(statistikkService)
+
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -98,7 +101,7 @@ class ServiceBuilder(
             ),
             oppgave = oppgaveService,
             person = personService,
-            statistikk = StatistikkServiceImpl(clients.kafkaPublisher)
+            statistikk = statistikkService
         )
     }
 }

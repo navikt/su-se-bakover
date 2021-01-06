@@ -16,18 +16,18 @@ sealed class Statistikk {
         val tekniskTid: Tidspunkt,
         val opprettetDato: LocalDate,
         val sakId: UUID,
-        val aktorId: Int,
+        val aktorId: Long,
         @JsonSerialize(using = ToStringSerializer::class)
         val saksnummer: Long,
-        val ytelseType: String = "SU",
-        val ytelseTypeBeskrivelse: String? = "Supplerende stønad",
+        val ytelseType: String = "SUUFORE",
+        val ytelseTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
         val sakStatus: String = "OPPRETTET",
         val sakStatusBeskrivelse: String? = null,
         val avsender: String = "su-se-bakover",
         val versjon: Int = -1,
         val aktorer: List<Aktør>? = null,
-        val underType: String? = "SUUFORE",
-        val underTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
+        val underType: String? = null,
+        val underTypeBeskrivelse: String? = null,
     ) : Statistikk()
 
     data class Behandling(

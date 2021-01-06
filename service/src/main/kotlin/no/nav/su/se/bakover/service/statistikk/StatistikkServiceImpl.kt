@@ -2,11 +2,14 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 
 internal class StatistikkServiceImpl(
-    private val publisher: KafkaPublisher
-) : StatistikkService {
+    private val publisher: KafkaPublisher,
+    private val personService: PersonService
+) : StatistikkService, EventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val schemaValidator = StatistikkSchemaValidator
 
@@ -29,6 +32,31 @@ internal class StatistikkServiceImpl(
             }
         } else {
             log.error("Statistikk-objekt validerer ikke mot json-schema!")
+        }
+    }
+
+    override fun handle(event: Event) {
+        when (event) {
+            is Event.Statistikk.SakOpprettet -> {
+                val sak = event.sak
+                personService.hentAktørId(sak.fnr).fold(
+                    { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
+                    { aktørId ->
+                        publiser(
+                            Statistikk.Sak(
+                                funksjonellTid = sak.opprettet,
+                                tekniskTid = sak.opprettet,
+                                opprettetDato = sak.opprettet.toLocalDate(zoneIdOslo),
+                                sakId = sak.id,
+                                aktorId = aktørId.toString().toLong(),
+                                saksnummer = sak.saksnummer.nummer,
+                                sakStatus = "OPPRETTET",
+                                sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
+                            )
+                        )
+                    }
+                )
+            }
         }
     }
 }
