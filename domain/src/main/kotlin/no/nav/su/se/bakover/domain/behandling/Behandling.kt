@@ -86,6 +86,7 @@ data class Behandling internal constructor(
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
+        BehandlingsStatus.UNDERKJENT -> Underkjent()
         BehandlingsStatus.IVERKSATT_INNVILGET -> Iverksatt().Innvilget()
         BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
@@ -470,8 +471,57 @@ data class Behandling internal constructor(
             }
 
             this@Behandling.attestering = attestering
-            nyTilstand(Simulert())
+            nyTilstand(Underkjent())
             return this@Behandling.right()
+        }
+
+        override fun oppdaterOppgaveId(
+            oppgaveId: OppgaveId
+        ): Behandling {
+            this@Behandling.oppgaveId = oppgaveId
+            return this@Behandling
+        }
+    }
+
+    private inner class Underkjent : Tilstand {
+        override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT
+
+        override fun sendTilAttestering(
+            saksbehandler: Saksbehandler
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
+                return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+            this@Behandling.saksbehandler = saksbehandler
+            if (erInnvilget()) {
+                nyTilstand(TilAttestering().Innvilget())
+            } else {
+                nyTilstand(TilAttestering().Avslag())
+            }
+            return this@Behandling.right()
+        }
+
+        override fun oppdaterBehandlingsinformasjon(
+            saksbehandler: Saksbehandler,
+            oppdatert: Behandlingsinformasjon
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Opprettet()).oppdaterBehandlingsinformasjon(saksbehandler, oppdatert)
+        }
+
+        override fun opprettBeregning(
+            saksbehandler: Saksbehandler,
+            fraOgMed: LocalDate,
+            tilOgMed: LocalDate,
+            fradrag: List<Fradrag>
+        ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
+            return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+        }
+
+        override fun leggTilSimulering(
+            saksbehandler: Saksbehandler,
+            simulering: () -> Simulering?
+        ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
+            return nyTilstand(Beregnet()).leggTilSimulering(saksbehandler, simulering)
         }
 
         override fun oppdaterOppgaveId(
@@ -520,6 +570,7 @@ data class Behandling internal constructor(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
+        UNDERKJENT,
         IVERKSATT_INNVILGET,
         IVERKSATT_AVSLAG,
     }
