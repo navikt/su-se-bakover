@@ -58,7 +58,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "journalpostType": "INNGAAENDE",
                       "tema": "SUP",
                       "kanal": "INNSENDT_NAV_ANSATT",
-                      "behandlingstema": "ab0268",
+                      "behandlingstema": "ab0431",
                       "journalfoerendeEnhet": "9999",
                       "avsenderMottaker": {
                         "id": "$fnr",
@@ -106,7 +106,7 @@ internal class DokArkivClientTest : WiremockBase {
                       "journalpostType": "UTGAAENDE",
                       "tema": "SUP",
                       "kanal": null,
-                      "behandlingstema": "ab0268",
+                      "behandlingstema": "ab0431",
                       "journalfoerendeEnhet": "4815",
                       "avsenderMottaker": {
                         "id": "$fnr",
