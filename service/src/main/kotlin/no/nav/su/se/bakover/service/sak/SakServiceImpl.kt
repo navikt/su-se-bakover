@@ -7,11 +7,17 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class SakServiceImpl(
     private val sakRepo: SakRepo
 ) : SakService {
+    private val log = LoggerFactory.getLogger(this::class.java)
+    val observers: MutableList<EventObserver> = mutableListOf()
+
     override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
     }
@@ -21,6 +27,13 @@ internal class SakServiceImpl(
     }
 
     override fun opprettSak(sak: NySak) {
-        return sakRepo.opprettSak(sak)
+        sakRepo.opprettSak(sak).also {
+            hentSak(sak.id).fold(
+                ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
+                ifRight = {
+                    observers.forEach { observer -> observer.handle(Event.Statistikk.SakOpprettet(it)) }
+                }
+            )
+        }
     }
 }

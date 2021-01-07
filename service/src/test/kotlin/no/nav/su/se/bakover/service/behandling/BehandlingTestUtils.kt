@@ -30,8 +30,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOp
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
@@ -43,6 +45,7 @@ object BehandlingTestUtils {
     internal val tidspunkt = 15.juni(2020).atStartOfDay().toTidspunkt(ZoneOffset.UTC)
 
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+    private val observerMock: EventObserver = mock { on { handle(any()) }.doNothing() }
 
     internal fun createService(
         behandlingRepo: BehandlingRepo = mock(),
@@ -55,7 +58,8 @@ object BehandlingTestUtils {
         brevService: BrevService = mock(),
         opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
+        observer: EventObserver = observerMock,
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
         hendelsesloggRepo = hendelsesloggRepo,
@@ -69,7 +73,7 @@ object BehandlingTestUtils {
         behandlingMetrics = behandlingMetrics,
         clock = fixedClock,
         microsoftGraphApiClient = microsoftGraphApiOppslag
-    )
+    ).apply { observers.add(observer) }
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = Uførhet(
