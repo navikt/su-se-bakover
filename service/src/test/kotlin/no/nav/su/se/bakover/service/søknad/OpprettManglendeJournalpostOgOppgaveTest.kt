@@ -128,8 +128,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId).left()),
-            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId).left())
+            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke sak").left()),
+            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, nySøknad.id, journalførtSøknad.journalpostId, "Fant ikke sak").left())
         )
 
         inOrder(
@@ -172,8 +172,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId).left()),
-            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId).left())
+            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke person").left()),
+            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Fant ikke person").left())
         )
         inOrder(
             personServiceMock,
@@ -222,7 +222,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId).left()),
+            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Kunne ikke genere PDF").left()),
             oppgaveResultat = emptyList()
         )
         inOrder(
@@ -283,7 +283,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
             journalpostResultat = emptyList(),
-            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId).left())
+            oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Kunne ikke opprette oppgave").left())
         )
 
         inOrder(
@@ -353,8 +353,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = listOf(OpprettetJournalpost(sakId, journalførtSøknad.journalpostId).right()),
-            oppgaveResultat = listOf(OpprettetOppgave(sakId, oppgaveId).right())
+            journalpostResultat = listOf(journalførtSøknad.right()),
+            oppgaveResultat = listOf(journalførtSøknad.medOppgave(oppgaveId).right())
         )
 
         inOrder(
