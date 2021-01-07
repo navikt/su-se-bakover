@@ -6,6 +6,7 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -97,8 +98,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ) {
             verify(søknadRepoMock).hentSøknaderUtenJournalpost()
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock)
     }
 
     @Test
@@ -139,8 +140,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock)
     }
 
     @Test
@@ -185,8 +186,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock)
     }
 
     @Test
@@ -245,8 +246,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 }
             )
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock, pdfGeneratorMock)
     }
 
     @Test
@@ -304,8 +305,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     )
                 }
             )
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock, oppgaveServiceMock)
     }
 
     @Test
@@ -401,7 +402,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 }
             )
             verify(søknadRepoMock).oppdaterOppgaveId(argThat { it shouldBe journalførtSøknad.id }, argThat { it shouldBe oppgaveId })
-            verifyNoMoreInteractions()
         }
+        verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock, pdfGeneratorMock, dokArkivMock, oppgaveServiceMock)
     }
 }
