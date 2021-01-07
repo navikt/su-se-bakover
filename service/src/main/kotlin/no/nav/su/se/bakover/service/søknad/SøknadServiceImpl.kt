@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -62,7 +61,7 @@ internal class SøknadServiceImpl(
             log.error("Ny søknad: Personen har et nyere fødselsnummer i PDL enn det som ble sendt inn. Bruker det nyeste fødselsnummeret istedet. Personoppslaget burde ha returnert det nyeste fødselsnummeret og bør sjekkes opp.")
         }
 
-        val (sak: Sak, søknad: Søknad) = sakService.hentSak(fnr).fold(
+        val (sak: Sak, søknad: Søknad.Ny) = sakService.hentSak(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
                 val nySak = sakFactory.nySak(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
@@ -97,16 +96,16 @@ internal class SøknadServiceImpl(
         )
     }
 
-    private fun opprettManglendeJournalposteringer(): List<Either<KunneIkkeOppretteJournalpost, OpprettetJournalpost>> {
+    private fun opprettManglendeJournalposteringer(): List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>> {
         return søknadRepo.hentSøknaderUtenJournalpost().map { søknad ->
             // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
-                return@map KunneIkkeOppretteJournalpost(søknad.sakId).left()
+                return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
             }
             val person = personService.hentPerson(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
-                return@map KunneIkkeOppretteJournalpost(sak.id).left()
+                return@map KunneIkkeOppretteJournalpost(sak.id, søknad.id, "Fant ikke person").left()
             }
             opprettJournalpost(
                 sak.saksnummer,
@@ -116,37 +115,36 @@ internal class SøknadServiceImpl(
         }
     }
 
-    private fun opprettManglendeOppgaver(): List<Either<KunneIkkeOppretteOppgave, OpprettetOppgave>> {
+    private fun opprettManglendeOppgaver(): List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>> {
         return søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave().map { søknad ->
             // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
-                return@map KunneIkkeOppretteOppgave(søknad.sakId).left()
+                return@map KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Fant ikke sak").left()
             }
             val person = personService.hentPerson(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
-                return@map KunneIkkeOppretteOppgave(sak.id).left()
+                return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
             }
             opprettOppgave(
-                søknad.journalpostId,
                 søknad,
                 person
             )
         }
     }
 
-    private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad) {
+    private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad.Ny) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        opprettJournalpost(saksnummer, søknad, person).map { opprettetJournalpost ->
-            opprettOppgave(opprettetJournalpost.journalpostId, søknad, person)
+        opprettJournalpost(saksnummer, søknad, person).map { journalførtSøknad ->
+            opprettOppgave(journalførtSøknad, person)
         }
     }
 
     private fun opprettJournalpost(
         saksnummer: Saksnummer,
-        søknad: Søknad,
+        søknad: Søknad.Ny,
         person: Person
-    ): Either<KunneIkkeOppretteJournalpost, OpprettetJournalpost> {
+    ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val pdfByteArray = pdfGenerator.genererPdf(
             SøknadPdfInnhold(
                 saksnummer = saksnummer,
@@ -157,7 +155,7 @@ internal class SøknadServiceImpl(
             )
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
-            return KunneIkkeOppretteJournalpost(søknad.sakId).left()
+            return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere PDF").left()
         }
         log.info("Ny søknad: Generert PDF ok.")
 
@@ -170,32 +168,34 @@ internal class SøknadServiceImpl(
             )
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
-            return KunneIkkeOppretteJournalpost(søknad.sakId).left()
+            return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke opprette journalpost").left()
         }
         log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
-        søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
-        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
-        return OpprettetJournalpost(søknad.sakId, journalpostId).right()
+        return søknad.journalfør(journalpostId).also {
+            søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
+            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
+        }.right()
     }
 
     private fun opprettOppgave(
-        journalpostId: JournalpostId,
-        søknad: Søknad,
+        søknad: Søknad.Journalført.UtenOppgave,
         person: Person
-    ): Either<KunneIkkeOppretteOppgave, OpprettetOppgave> = oppgaveService.opprettOppgave(
+    ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> = oppgaveService.opprettOppgave(
         OppgaveConfig.Saksbehandling(
-            journalpostId = journalpostId,
+            journalpostId = søknad.journalpostId,
             søknadId = søknad.id,
             aktørId = person.ident.aktørId
         )
     ).mapLeft {
         log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
-        KunneIkkeOppretteOppgave(søknad.sakId)
+        KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
     }.map { oppgaveId ->
         log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
-        søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
-        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
-        OpprettetOppgave(søknad.sakId, oppgaveId)
+
+        return søknad.medOppgave(oppgaveId).also {
+            søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
+            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
+        }.right()
     }
 
     override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
