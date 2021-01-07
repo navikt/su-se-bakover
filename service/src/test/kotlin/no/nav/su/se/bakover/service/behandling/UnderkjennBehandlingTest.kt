@@ -768,7 +768,6 @@ class UnderkjennBehandlingTest {
         }
     }
 
-
     @Test
     fun `En behandling med ingen avslag blir sendt til attestering som innvilget`() {
         val behandling: Behandling =
@@ -801,5 +800,4 @@ class UnderkjennBehandlingTest {
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
         ).right()
     }
-
 }

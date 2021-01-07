@@ -827,7 +827,7 @@ internal class BehandlingRoutesKtTest {
                 }.apply {
                     response.status() shouldBe HttpStatusCode.OK
                     deserialize<BehandlingJson>(response.content!!).let {
-                        it.status shouldBe "UNDERKJENT"
+                        it.status shouldBe "ATTESTERING_UNDERKJENT"
                     }
                 }
             }

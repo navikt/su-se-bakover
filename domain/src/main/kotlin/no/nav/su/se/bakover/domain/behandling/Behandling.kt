@@ -542,15 +542,15 @@ data class Behandling internal constructor(
         }
 
         private fun kanSimulere(): Boolean {
-            return kanBeregne() && this@Behandling.beregning() != null
-                && vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei
+            return kanBeregne() && this@Behandling.beregning() != null &&
+                vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei
         }
 
         private fun kanSendeTilAttesteringOgErInnvilget(): Boolean {
-            return kanBeregne()
-                && this@Behandling.beregning() != null
-                && vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei
-                && this@Behandling.simulering() != null
+            return kanBeregne() &&
+                this@Behandling.beregning() != null &&
+                vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei &&
+                this@Behandling.simulering() != null
         }
     }
 
