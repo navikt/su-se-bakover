@@ -77,6 +77,10 @@ data class Behandling internal constructor(
         return null
     }
 
+    fun kanBeregne(): Boolean {
+        return behandlingsinformasjon.erAlleVilkårOppfylt()
+    }
+
     private fun resolve(status: BehandlingsStatus): Tilstand = when (status) {
         BehandlingsStatus.OPPRETTET -> Opprettet()
         BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Vilkårsvurdert().Innvilget()
@@ -86,7 +90,7 @@ data class Behandling internal constructor(
         BehandlingsStatus.SIMULERT -> Simulert()
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> TilAttestering().Innvilget()
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> TilAttestering().Avslag()
-        BehandlingsStatus.UNDERKJENT -> Underkjent()
+        BehandlingsStatus.ATTESTERING_UNDERKJENT -> Underkjent()
         BehandlingsStatus.IVERKSATT_INNVILGET -> Iverksatt().Innvilget()
         BehandlingsStatus.IVERKSATT_AVSLAG -> Iverksatt().Avslag()
     }
@@ -379,7 +383,7 @@ data class Behandling internal constructor(
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeLeggeTilSimulering()
     }
 
-    private inner class Simulert : Tilstand {
+    private open inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
@@ -483,8 +487,8 @@ data class Behandling internal constructor(
         }
     }
 
-    private inner class Underkjent : Tilstand {
-        override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT
+    private inner class Underkjent : Simulert() {
+        override val status: BehandlingsStatus = BehandlingsStatus.ATTESTERING_UNDERKJENT
 
         override fun sendTilAttestering(
             saksbehandler: Saksbehandler
@@ -493,7 +497,7 @@ data class Behandling internal constructor(
                 return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
             this@Behandling.saksbehandler = saksbehandler
-            if (erInnvilget()) {
+            if (kanSendeTilAttesteringOgErInnvilget()) {
                 nyTilstand(TilAttestering().Innvilget())
             } else {
                 nyTilstand(TilAttestering().Avslag())
@@ -514,14 +518,20 @@ data class Behandling internal constructor(
             tilOgMed: LocalDate,
             fradrag: List<Fradrag>
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-            return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+            if (kanBeregne()) {
+                return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+            }
+            throw TilstandException(status, this::opprettBeregning.toString())
         }
 
         override fun leggTilSimulering(
             saksbehandler: Saksbehandler,
             simulering: () -> Simulering?
         ): Either<KunneIkkeLeggeTilSimulering, Behandling> {
-            return nyTilstand(Beregnet()).leggTilSimulering(saksbehandler, simulering)
+            if (kanSimulere()) {
+                return nyTilstand(Beregnet()).leggTilSimulering(saksbehandler, simulering)
+            }
+            throw TilstandException(status, this::leggTilSimulering.toString())
         }
 
         override fun oppdaterOppgaveId(
@@ -529,6 +539,18 @@ data class Behandling internal constructor(
         ): Behandling {
             this@Behandling.oppgaveId = oppgaveId
             return this@Behandling
+        }
+
+        private fun kanSimulere(): Boolean {
+            return kanBeregne() && this@Behandling.beregning() != null
+                && vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei
+        }
+
+        private fun kanSendeTilAttesteringOgErInnvilget(): Boolean {
+            return kanBeregne()
+                && this@Behandling.beregning() != null
+                && vurderAvslagGrunnetBeregning(beregning) is AvslagGrunnetBeregning.Nei
+                && this@Behandling.simulering() != null
         }
     }
 
@@ -570,7 +592,7 @@ data class Behandling internal constructor(
         SIMULERT,
         TIL_ATTESTERING_INNVILGET,
         TIL_ATTESTERING_AVSLAG,
-        UNDERKJENT,
+        ATTESTERING_UNDERKJENT,
         IVERKSATT_INNVILGET,
         IVERKSATT_AVSLAG,
     }
