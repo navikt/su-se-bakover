@@ -11,15 +11,22 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
@@ -141,6 +148,102 @@ internal class StatistikkServiceImplTest {
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
             Event.Statistikk.BehandlingOpprettet(behandling)
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+
+    @Test
+    fun `publiserer BehandlingIverksatt-event på kafka ved innvilgelse`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+        val beregning: Beregning = mock {
+            on { getPeriode() } doReturn Periode(1.januar(2021), 31.januar(2021))
+        }
+
+        val behandling: Behandling = mock {
+            on { opprettet } doReturn Tidspunkt.now()
+            on { søknad } doReturn søknadMock
+            on { opprettet } doReturn Tidspunkt.now()
+            on { id } doReturn UUID.randomUUID()
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(5959)
+            on { status() } doReturn Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            on { beregning() } doReturn beregning
+            on { saksbehandler() } doReturn NavIdentBruker.Saksbehandler("55")
+            on { attestering() } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+        }
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = 1.januar(2021).startOfDay(zoneIdOslo),
+            tekniskTid = Tidspunkt.now(clock),
+            registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = behandling.id,
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer.nummer,
+            behandlingStatus = behandling.status(),
+            versjon = clock.millis(),
+            resultat = "Innvilget",
+            saksbehandler = "55",
+            beslutter = "56",
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.BehandlingIverksatt(IverksattBehandling.UtenMangler(behandling))
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+
+    @Test
+    fun `publiserer BehandlingIverksatt-event på kafka ved avslag`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+
+        val behandling: Behandling = mock {
+            on { opprettet } doReturn Tidspunkt.now()
+            on { søknad } doReturn søknadMock
+            on { opprettet } doReturn Tidspunkt.now()
+            on { id } doReturn UUID.randomUUID()
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(5959)
+            on { status() } doReturn Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+            on { saksbehandler() } doReturn NavIdentBruker.Saksbehandler("55")
+            on { attestering() } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { utledAvslagsgrunner() } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
+        }
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = behandling.opprettet,
+            tekniskTid = Tidspunkt.now(clock),
+            registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = behandling.id,
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer.nummer,
+            behandlingStatus = behandling.status(),
+            versjon = clock.millis(),
+            resultat = "Avslått",
+            saksbehandler = "55",
+            beslutter = "56",
+            resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER"
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.BehandlingIverksatt(IverksattBehandling.UtenMangler(behandling))
         )
 
         verify(kafkaPublisherMock).publiser(

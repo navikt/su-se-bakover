@@ -276,6 +276,10 @@ internal class BehandlingServiceImpl(
                         state = iverksattBehandling.status(),
                         operation = iverksattBehandling::iverksett.toString()
                     )
+                }.also {
+                    it.map {
+                        observers.forEach { observer -> observer.handle(Event.Statistikk.BehandlingIverksatt(it)) }
+                    }
                 }
             }
     }

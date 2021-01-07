@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import java.time.LocalDate
 import java.util.UUID
@@ -53,12 +52,12 @@ sealed class Statistikk {
         val avsender: String = "su-se-bakover",
         val versjon: Long = System.currentTimeMillis(),
         val vedtaksDato: LocalDate? = null,
-        val resultat: LocalDate? = null,
+        val resultat: String? = null,
         val resultatBegrunnelse: String? = null,
         val resultatBegrunnelseBeskrivelse: String? = null,
         val resultatBeskrivelse: String? = null,
-        val beslutter: NavIdentBruker.Attestant? = null,
-        val saksbehandler: NavIdentBruker.Saksbehandler? = null,
+        val beslutter: String? = null,
+        val saksbehandler: String? = null,
         val behandlingOpprettetAv: String? = null,
         val behandlingOpprettetType: String? = null,
         val behandlingOpprettetTypeBeskrivelse: String? = null,
