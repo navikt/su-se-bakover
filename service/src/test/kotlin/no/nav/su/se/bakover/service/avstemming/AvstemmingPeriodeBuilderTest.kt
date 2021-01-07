@@ -18,7 +18,7 @@ internal class AvstemmingPeriodeBuilderTest {
     @Test
     fun `periode for første avstemming`() {
         val periode = AvstemmingPeriodeBuilder(null, fixedClock).build()
-        periode.fraOgMed shouldBe 1.januar(2020).startOfDay()
+        periode.fraOgMed shouldBe 1.januar(2021).startOfDay()
         periode.tilOgMed shouldBe 9.januar(2020).endOfDay()
     }
 
