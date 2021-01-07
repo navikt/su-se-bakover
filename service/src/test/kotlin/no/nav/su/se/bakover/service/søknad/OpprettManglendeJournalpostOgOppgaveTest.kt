@@ -222,7 +222,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
         actual shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
-            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Kunne ikke genere PDF").left()),
+            journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Kunne ikke generere PDF").left()),
             oppgaveResultat = emptyList()
         )
         inOrder(

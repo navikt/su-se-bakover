@@ -115,17 +115,17 @@ internal class DriftRoutesKtTest {
             oppgaveId = OppgaveId("2")
         )
 
-        val kunneIkkeOppretteJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
-        val kunneIkkeOppretteOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
+        val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
+        val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
         val søknadServiceMock = mock<SøknadService> {
             on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(
                     journalførtSøknadUtenOppgave.right(),
-                    KunneIkkeOppretteJournalpost(kunneIkkeOppretteJournalpost, kunneIkkeOppretteJournalpost, "Fant ikke Person").left(),
+                    KunneIkkeOppretteJournalpost(sakId, søknadIdJournalpost, "Fant ikke Person").left(),
                 ),
                 oppgaveResultat = listOf(
                     journalførtSøknadMedOppgave.right(),
-                    KunneIkkeOppretteOppgave(kunneIkkeOppretteOppgave, kunneIkkeOppretteOppgave, JournalpostId("1"),"Kunne ikke opprette oppgave").left(),
+                    KunneIkkeOppretteOppgave(sakId, søknadIdOppgave, JournalpostId("1"), "Kunne ikke opprette oppgave").left(),
                 )
             )
         }
@@ -139,6 +139,7 @@ internal class DriftRoutesKtTest {
             ) {
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
+                //language=JSON
                 JSONAssert.assertEquals(
                     """
                         {
@@ -151,7 +152,9 @@ internal class DriftRoutesKtTest {
                               ],
                               "feilet":[
                                  {
-                                    "sakId":"18e19f68-029d-4731-ad4a-48d902fc92a2"
+                                    "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
+                                    "søknadId":"18e19f68-029d-4731-ad4a-48d902fc92a2",
+                                    "grunn": "Fant ikke Person"
                                  }
                               ]
                            },
@@ -164,7 +167,9 @@ internal class DriftRoutesKtTest {
                               ],
                               "feilet":[
                                  {
-                                    "sakId":"22770c98-31b0-412e-9e63-9a878330386e"
+                                    "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
+                                    "søknadId":"22770c98-31b0-412e-9e63-9a878330386e",
+                                    "grunn": "Kunne ikke opprette oppgave"
                                  }
                               ]
                            }

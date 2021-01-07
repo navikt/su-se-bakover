@@ -28,6 +28,8 @@ data class FixSøknaderResponseJson(
 
     data class Feilet(
         val sakId: String,
+        val søknadId: String,
+        val grunn: String
     )
 
     companion object {
@@ -37,7 +39,7 @@ data class FixSøknaderResponseJson(
                     Journalpost(it.sakId.toString(), it.journalpostId.toString())
                 },
                 feilet = this.journalpostResultat.mapNotNull { it.swap().orNull() }.map {
-                    Feilet(it.sakId.toString())
+                    Feilet(it.sakId.toString(), it.søknadId.toString(), it.grunn)
                 }
             ),
             oppgaver = Oppgaver(
@@ -45,7 +47,7 @@ data class FixSøknaderResponseJson(
                     Oppgave(it.sakId.toString(), it.oppgaveId.toString())
                 },
                 feilet = this.oppgaveResultat.mapNotNull { it.swap().orNull() }.map {
-                    Feilet(it.sakId.toString())
+                    Feilet(it.sakId.toString(), it.søknadId.toString(), it.grunn)
                 }
             )
         )
