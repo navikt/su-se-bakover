@@ -12,4 +12,6 @@ interface SøknadRepo {
     fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean
     fun oppdaterjournalpostId(søknadId: UUID, journalpostId: JournalpostId)
     fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: OppgaveId)
+    fun hentSøknaderUtenJournalpost(): List<Søknad.Ny>
+    fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad.Journalført.UtenOppgave>
 }

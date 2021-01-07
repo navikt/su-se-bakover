@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
+import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -263,6 +264,12 @@ class AccessCheckProxy(
                     assertHarTilgangTilSøknad(søknadId)
 
                     return services.søknad.hentSøknadPdf(søknadId)
+                }
+
+                override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
+                    // Dette er et drifts endepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
+
+                    return services.søknad.opprettManglendeJournalpostOgOppgave()
                 }
             },
             brev = object : BrevService {

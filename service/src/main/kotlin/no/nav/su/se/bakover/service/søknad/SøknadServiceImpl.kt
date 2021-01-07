@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -89,10 +90,64 @@ internal class SøknadServiceImpl(
         return Pair(sak.saksnummer, søknad).right()
     }
 
+    override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
+        return OpprettManglendeJournalpostOgOppgaveResultat(
+            journalpostResultat = opprettManglendeJournalposteringer(),
+            oppgaveResultat = opprettManglendeOppgaver()
+        )
+    }
+
+    private fun opprettManglendeJournalposteringer(): List<Either<KunneIkkeOppretteJournalpost, OpprettetJournalpost>> {
+        return søknadRepo.hentSøknaderUtenJournalpost().map { søknad ->
+            // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
+            val sak = sakService.hentSak(søknad.sakId).getOrElse {
+                log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
+                return@map KunneIkkeOppretteJournalpost(søknad.sakId).left()
+            }
+            val person = personService.hentPerson(sak.fnr).getOrElse {
+                log.error("Fant ikke person med sakId ${sak.id}.")
+                return@map KunneIkkeOppretteJournalpost(sak.id).left()
+            }
+            opprettJournalpost(
+                sak.saksnummer,
+                søknad,
+                person
+            )
+        }
+    }
+
+    private fun opprettManglendeOppgaver(): List<Either<KunneIkkeOppretteOppgave, OpprettetOppgave>> {
+        return søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave().map { søknad ->
+            // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
+            val sak = sakService.hentSak(søknad.sakId).getOrElse {
+                log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
+                return@map KunneIkkeOppretteOppgave(søknad.sakId).left()
+            }
+            val person = personService.hentPerson(sak.fnr).getOrElse {
+                log.error("Fant ikke person med sakId ${sak.id}.")
+                return@map KunneIkkeOppretteOppgave(sak.id).left()
+            }
+            opprettOppgave(
+                søknad.journalpostId,
+                søknad,
+                person
+            )
+        }
+    }
+
     private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad) {
-        // TODO jah: Lagre stegene på søknaden etterhvert som de blir utført, og kanskje et admin-kall som kan utføre de stegene som mangler.
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        pdfGenerator.genererPdf(
+        opprettJournalpost(saksnummer, søknad, person).map { opprettetJournalpost ->
+            opprettOppgave(opprettetJournalpost.journalpostId, søknad, person)
+        }
+    }
+
+    private fun opprettJournalpost(
+        saksnummer: Saksnummer,
+        søknad: Søknad,
+        person: Person
+    ): Either<KunneIkkeOppretteJournalpost, OpprettetJournalpost> {
+        val pdfByteArray = pdfGenerator.genererPdf(
             SøknadPdfInnhold(
                 saksnummer = saksnummer,
                 søknadsId = søknad.id,
@@ -100,44 +155,47 @@ internal class SøknadServiceImpl(
                 søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
                 søknadInnhold = søknad.søknadInnhold
             )
-        ).fold(
-            {
-                log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
-            },
-            { pdfByteArray ->
-                log.info("Ny søknad: Generert PDF ok.")
-                dokArkiv.opprettJournalpost(
-                    Journalpost.Søknadspost(
-                        søknadInnhold = søknad.søknadInnhold,
-                        pdf = pdfByteArray,
-                        saksnummer = saksnummer,
-                        person = person
-                    )
-                ).fold(
-                    {
-                        log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
-                    },
-                    { journalpostId ->
-                        log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
-                        søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
-                        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
-                        oppgaveService.opprettOppgave(
-                            OppgaveConfig.Saksbehandling(
-                                journalpostId = journalpostId,
-                                søknadId = søknad.id,
-                                aktørId = person.ident.aktørId
-                            )
-                        ).mapLeft {
-                            log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
-                        }.map { oppgaveId ->
-                            log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
-                            søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
-                            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
-                        }
-                    }
-                )
-            }
+        ).getOrHandle {
+            log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
+            return KunneIkkeOppretteJournalpost(søknad.sakId).left()
+        }
+        log.info("Ny søknad: Generert PDF ok.")
+
+        val journalpostId = dokArkiv.opprettJournalpost(
+            Journalpost.Søknadspost(
+                søknadInnhold = søknad.søknadInnhold,
+                pdf = pdfByteArray,
+                saksnummer = saksnummer,
+                person = person
+            )
+        ).getOrHandle {
+            log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
+            return KunneIkkeOppretteJournalpost(søknad.sakId).left()
+        }
+        log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
+        søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
+        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
+        return OpprettetJournalpost(søknad.sakId, journalpostId).right()
+    }
+
+    private fun opprettOppgave(
+        journalpostId: JournalpostId,
+        søknad: Søknad,
+        person: Person
+    ): Either<KunneIkkeOppretteOppgave, OpprettetOppgave> = oppgaveService.opprettOppgave(
+        OppgaveConfig.Saksbehandling(
+            journalpostId = journalpostId,
+            søknadId = søknad.id,
+            aktørId = person.ident.aktørId
         )
+    ).mapLeft {
+        log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
+        KunneIkkeOppretteOppgave(søknad.sakId)
+    }.map { oppgaveId ->
+        log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
+        søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
+        søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
+        OpprettetOppgave(søknad.sakId, oppgaveId)
     }
 
     override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {

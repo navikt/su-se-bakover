@@ -138,4 +138,54 @@ internal class SøknadPostgresRepoTest {
             hentetSøknad.oppgaveId shouldBe oppgaveId
         }
     }
+
+    @Test
+    fun `hent søknader uten journalpost`() {
+        withMigratedDb {
+            val journalpostId = JournalpostId("j")
+            val sak = testDataHelper.insertSak(FNR)
+            testDataHelper.insertSøknad(sak.id).journalfør(journalpostId).let {
+                søknadRepo.oppdaterjournalpostId(it.id, it.journalpostId)
+            }
+            testDataHelper.insertSøknad(sak.id).lukk(
+                lukketAv = Saksbehandler("saksbehandler"),
+                type = Søknad.Lukket.LukketType.TRUKKET,
+                lukketTidspunkt = Tidspunkt.EPOCH
+            ).let {
+                søknadRepo.oppdaterSøknad(it)
+            }
+            søknadRepo.hentSøknaderUtenJournalpost() shouldBe listOf(
+                sak.søknad
+            )
+        }
+    }
+
+    @Test
+    fun `hent søknader med journalpost men uten oppgave`() {
+        withMigratedDb {
+            val journalpostId = JournalpostId("j")
+            val journalpostId2 = JournalpostId("j2")
+            val oppgaveId = OppgaveId("o")
+            val sak = testDataHelper.insertSak(FNR)
+            val journalførtSøknad = testDataHelper.insertSøknad(sak.id).journalfør(journalpostId).also { journalførtSøknad ->
+                søknadRepo.oppdaterjournalpostId(journalførtSøknad.id, journalførtSøknad.journalpostId)
+            }
+            testDataHelper.insertSøknad(sak.id).journalfør(journalpostId2).let { journalførtSøknad2 ->
+                søknadRepo.oppdaterjournalpostId(journalførtSøknad2.id, journalførtSøknad2.journalpostId)
+                journalførtSøknad2.medOppgave(oppgaveId).also { søknadMedOppgave ->
+                    søknadRepo.oppdaterOppgaveId(søknadMedOppgave.id, søknadMedOppgave.oppgaveId)
+                }
+            }
+            testDataHelper.insertSøknad(sak.id).lukk(
+                lukketAv = Saksbehandler("saksbehandler"),
+                type = Søknad.Lukket.LukketType.TRUKKET,
+                lukketTidspunkt = Tidspunkt.EPOCH
+            ).let {
+                søknadRepo.oppdaterSøknad(it)
+            }
+            søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave() shouldBe listOf(
+                journalførtSøknad
+            )
+        }
+    }
 }

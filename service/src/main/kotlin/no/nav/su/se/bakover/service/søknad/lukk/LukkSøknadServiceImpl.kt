@@ -59,6 +59,7 @@ internal class LukkSøknadServiceImpl(
                 KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
             }
             is Søknad.Ny -> {
+                // TODO jah: Kanskje vi bør kreve at en søknad er journalført før den blir lukket? (kan prøve journalføre her)
                 log.info("Lukker søknad ${søknad.id} som mangler journalføring og oppgave")
                 lukkSøknad(person, request, søknad)
             }
