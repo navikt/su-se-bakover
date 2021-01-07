@@ -4,8 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.capture
-import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -27,9 +25,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub
-import no.nav.su.se.bakover.client.stubs.pdf.PdfGeneratorStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
@@ -46,8 +41,10 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -67,7 +64,6 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toS�
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.internal.verification.Times
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -172,29 +168,23 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
+        val fnr = FnrGenerator.random()
+        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
+        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
+
         val pdfGenerator: PdfGenerator = mock {
-            val captor = ArgumentCaptor.forClass(SøknadPdfInnhold::class.java)
-            on { genererPdf(capture<SøknadPdfInnhold>(captor)) } doAnswer { PdfGeneratorStub.genererPdf(captor.value) }
+            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn "pdf innhold".toByteArray().right()
         }
         val dokArkiv: DokArkiv = mock {
-            val captor = ArgumentCaptor.forClass(Journalpost.Søknadspost::class.java)
-            on { opprettJournalpost(capture<Journalpost.Søknadspost>(captor)) } doAnswer {
-                DokArkivStub.opprettJournalpost(
-                    captor.value
-                )
-            }
+            on { opprettJournalpost(any<Journalpost.Søknadspost>()) } doReturn JournalpostId("9").right()
         }
+
         val personOppslag: PersonOppslag = mock {
-            val fnrCaptor = ArgumentCaptor.forClass(Fnr::class.java)
-            on { person(capture<Fnr>(fnrCaptor)) } doAnswer { PersonOppslagStub.person(fnrCaptor.value) }
+            on { person(any()) } doReturn PersonOppslagStub.person(fnr)
+            on { aktørId(any()) } doReturn PersonOppslagStub.aktørId(fnr)
         }
         val oppgaveClient: OppgaveClient = mock {
-            val captor = ArgumentCaptor.forClass(OppgaveConfig.Saksbehandling::class.java)
-            on { opprettOppgave(capture<OppgaveConfig.Saksbehandling>(captor)) } doAnswer {
-                OppgaveClientStub.opprettOppgave(
-                    captor.value
-                )
-            }
+            on { opprettOppgave(any<OppgaveConfig.Saksbehandling>()) } doReturn OppgaveId("11").right()
         }
 
         val clients = TestClientsBuilder.build(applicationConfig).copy(
@@ -211,10 +201,6 @@ internal class SøknadRoutesKtTest {
             søknadMetrics = mock()
         ).build()
 
-        val fnr = FnrGenerator.random()
-        val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-
         withTestApplication({
             testSusebakover(
                 clients = clients,
@@ -230,11 +216,12 @@ internal class SøknadRoutesKtTest {
                 setBody(soknadJson)
             }.apply {
                 response.status() shouldBe Created
-                verify(pdfGenerator, Times(1)).genererPdf(any<SøknadPdfInnhold>())
-                verify(dokArkiv, Times(1)).opprettJournalpost(any())
+                verify(pdfGenerator).genererPdf(any<SøknadPdfInnhold>())
+                verify(dokArkiv).opprettJournalpost(any())
                 // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
-                verify(personOppslag, Times(2)).person(any())
-                verify(oppgaveClient, Times(1)).opprettOppgave(any())
+                verify(personOppslag, Times(2)).person(argThat { it shouldBe fnr })
+                verify(personOppslag).aktørId(argThat { it shouldBe fnr })
+                verify(oppgaveClient).opprettOppgave(any())
             }
         }
     }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import java.time.LocalDate
 import java.util.UUID
@@ -16,18 +15,18 @@ sealed class Statistikk {
         val tekniskTid: Tidspunkt,
         val opprettetDato: LocalDate,
         val sakId: UUID,
-        val aktorId: Int,
+        val aktorId: Long,
         @JsonSerialize(using = ToStringSerializer::class)
         val saksnummer: Long,
-        val ytelseType: String = "SU",
-        val ytelseTypeBeskrivelse: String? = "Supplerende stønad",
+        val ytelseType: String = "SUUFORE",
+        val ytelseTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
         val sakStatus: String = "OPPRETTET",
         val sakStatusBeskrivelse: String? = null,
         val avsender: String = "su-se-bakover",
-        val versjon: Int = -1,
+        val versjon: Long = System.currentTimeMillis(),
         val aktorer: List<Aktør>? = null,
-        val underType: String? = "SUUFORE",
-        val underTypeBeskrivelse: String? = "Supplerende stønad for uføre flyktninger",
+        val underType: String? = null,
+        val underTypeBeskrivelse: String? = null,
     ) : Statistikk()
 
     data class Behandling(
@@ -43,7 +42,7 @@ sealed class Statistikk {
         val behandlingType: String = "SOKNAD",
         val behandlingTypeBeskrivelse: String? = "Søknad for SU Uføre",
         val behandlingStatus: BehandlingsStatus,
-        val utenlandstilsnitt: String = "",
+        val utenlandstilsnitt: String = "NASJONAL",
         val utenlandstilsnittBeskrivelse: String? = null,
         val ansvarligEnhetKode: String = "4815",
         val ansvarligEnhetType: String = "NORG",
@@ -51,14 +50,14 @@ sealed class Statistikk {
         val behandlendeEnhetType: String = "NORG",
         val totrinnsbehandling: Boolean = true,
         val avsender: String = "su-se-bakover",
-        val versjon: Int = -1, // TODO ai: Diskuter og finn løsning på versjonering av koden
+        val versjon: Long = System.currentTimeMillis(),
         val vedtaksDato: LocalDate? = null,
-        val resultat: LocalDate? = null,
+        val resultat: String? = null,
         val resultatBegrunnelse: String? = null,
         val resultatBegrunnelseBeskrivelse: String? = null,
         val resultatBeskrivelse: String? = null,
-        val beslutter: NavIdentBruker.Attestant? = null,
-        val saksbehandler: NavIdentBruker.Saksbehandler? = null,
+        val beslutter: String? = null,
+        val saksbehandler: String? = null,
         val behandlingOpprettetAv: String? = null,
         val behandlingOpprettetType: String? = null,
         val behandlingOpprettetTypeBeskrivelse: String? = null,

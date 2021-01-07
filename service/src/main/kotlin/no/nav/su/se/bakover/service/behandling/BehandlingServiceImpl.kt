@@ -34,6 +34,8 @@ import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -57,8 +59,8 @@ internal class BehandlingServiceImpl(
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag
 ) : BehandlingService {
-
     private val log = LoggerFactory.getLogger(this::class.java)
+    val observers: MutableList<EventObserver> = mutableListOf()
 
     override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
@@ -274,6 +276,10 @@ internal class BehandlingServiceImpl(
                         state = iverksattBehandling.status(),
                         operation = iverksattBehandling::iverksett.toString()
                     )
+                }.also {
+                    it.map {
+                        observers.forEach { observer -> observer.handle(Event.Statistikk.BehandlingIverksatt(it)) }
+                    }
                 }
             }
     }
@@ -477,7 +483,11 @@ internal class BehandlingServiceImpl(
         behandlingRepo.opprettSøknadsbehandling(
             nySøknadsbehandling
         )
-        return behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!.right()
+
+        return behandlingRepo.hentBehandling(nySøknadsbehandling.id)!!.let {
+            observers.forEach { observer -> observer.handle(Event.Statistikk.BehandlingOpprettet(it)) }
+            it.right()
+        }
     }
 
     override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {

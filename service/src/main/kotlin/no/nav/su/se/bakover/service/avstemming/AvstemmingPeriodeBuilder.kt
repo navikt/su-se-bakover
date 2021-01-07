@@ -16,7 +16,7 @@ internal class AvstemmingPeriodeBuilder(
 
     fun build() = when (sisteAvstemming) {
         null -> AvstemmingsPeriode(
-            fraOgMed = 1.januar(2020).startOfDay(zoneId = zoneIdOslo),
+            fraOgMed = 1.januar(2021).startOfDay(zoneId = zoneIdOslo),
             tilOgMed = LocalDate.now(clock).minusDays(1).endOfDay(zoneIdOslo)
         )
         else -> {

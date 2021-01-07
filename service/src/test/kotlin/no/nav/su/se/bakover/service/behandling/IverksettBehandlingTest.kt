@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -48,8 +49,11 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
@@ -389,6 +393,9 @@ internal class IverksettBehandlingTest {
 
         val utbetalingServiceMock: UtbetalingService = mock()
         val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
@@ -397,7 +404,8 @@ internal class IverksettBehandlingTest {
             oppgaveService = oppgaveServiceMock,
             utbetalingService = utbetalingServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
+            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock,
+            observer = observerMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
@@ -427,8 +435,9 @@ internal class IverksettBehandlingTest {
             personServiceMock,
             oppgaveServiceMock,
             utbetalingServiceMock,
-            opprettVedtakssnapshotServiceMock
+            opprettVedtakssnapshotServiceMock,
         )
+        verifyZeroInteractions(observerMock)
     }
 
     @Test
@@ -562,6 +571,9 @@ internal class IverksettBehandlingTest {
         val behandlingMetricsMock: BehandlingMetrics = mock()
 
         val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
@@ -572,6 +584,7 @@ internal class IverksettBehandlingTest {
             opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            observer = observerMock
         ).iverksett(behandling.id, attestant)
 
         response shouldBe IverksattBehandling.UtenMangler(behandling).right()
@@ -583,7 +596,8 @@ internal class IverksettBehandlingTest {
             brevServiceMock,
             behandlingMetricsMock,
             oppgaveServiceMock,
-            opprettVedtakssnapshotServiceMock
+            opprettVedtakssnapshotServiceMock,
+            observerMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
@@ -636,6 +650,7 @@ internal class IverksettBehandlingTest {
                     )
                 }
             )
+            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.BehandlingIverksatt(IverksattBehandling.UtenMangler(behandling)) })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,

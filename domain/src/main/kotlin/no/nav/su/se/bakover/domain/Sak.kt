@@ -48,7 +48,6 @@ class SakFactory(
                 id = uuidFactory.newUUID(),
                 opprettet = opprettet,
                 sakId = sakId,
-
                 søknadInnhold = søknadInnhold,
             )
         )
