@@ -389,6 +389,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     )
                 }
             )
+            verify(søknadRepoMock).oppdaterjournalpostId(argThat { journalførtSøknad.id }, argThat { journalførtSøknad.journalpostId })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
