@@ -35,9 +35,11 @@ class ServiceBuilder(
     private val søknadMetrics: SøknadMetrics
 ) {
     fun build(): Services {
+        val personService = PersonServiceImpl(clients.personOppslag)
+        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService)
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak
-        )
+        ).apply { observers.add(statistikkService) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
             sakService = sakService,
@@ -52,9 +54,6 @@ class ServiceBuilder(
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient
         )
-        val personService = PersonServiceImpl(
-            personOppslag = clients.personOppslag
-        )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
@@ -66,8 +65,6 @@ class ServiceBuilder(
             søknadMetrics = søknadMetrics
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService)
-        sakService.observers.add(statistikkService)
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -88,7 +85,7 @@ class ServiceBuilder(
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 clock = Clock.systemUTC()
-            ),
+            ).apply { observers.add(statistikkService) },
             sak = sakService,
             søknad = søknadService,
             brev = brevService,

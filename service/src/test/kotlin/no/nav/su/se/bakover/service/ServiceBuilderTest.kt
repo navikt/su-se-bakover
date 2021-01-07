@@ -4,6 +4,7 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import org.junit.jupiter.api.Test
 
@@ -42,6 +43,7 @@ internal class ServiceBuilderTest {
             søknadMetrics = mock()
         ).build().let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
+            (it.behandling as BehandlingServiceImpl).observers shouldContain it.statistikk
         }
     }
 }
