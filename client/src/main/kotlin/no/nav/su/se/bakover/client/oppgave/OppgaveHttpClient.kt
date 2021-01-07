@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -68,7 +69,7 @@ internal class OppgaveHttpClient(
                         journalpostId = config.journalpostId?.toString(),
                         saksreferanse = config.søknadId.toString(),
                         aktoerId = config.aktørId.toString(),
-                        tema = "SUP",
+                        tema = Tema.SUPPLERENDE_STØNAD.value,
                         behandlesAvApplikasjon = "SUPSTONAD",
                         beskrivelse = beskrivelse,
                         oppgavetype = config.oppgavetype.toString(),

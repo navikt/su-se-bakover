@@ -97,7 +97,7 @@ internal class JournalpostFactoryTest {
             id = personMock.ident.fnr.toString(),
             navn = "${personMock.navn.etternavn}, ${personMock.navn.fornavn} ${personMock.navn.mellomnavn}"
         )
-        journalpost.behandlingstema shouldBe "ab0268"
+        journalpost.behandlingstema shouldBe "ab0431"
         journalpost.tema shouldBe "SUP"
         journalpost.bruker shouldBe Bruker(id = personMock.ident.fnr.toString())
         journalpost.kanal shouldBe null

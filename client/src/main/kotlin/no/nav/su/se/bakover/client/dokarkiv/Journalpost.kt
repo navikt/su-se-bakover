@@ -1,15 +1,17 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import java.util.Base64
 
 sealed class Journalpost {
-    val tema: String = "SUP"
-    val behandlingstema: String = "ab0268"
+    val tema: String = Tema.SUPPLERENDE_STØNAD.value
+    val behandlingstema: String = Behandlingstema.SU_UFØRE_FLYKNING.value
     abstract val journalfoerendeEnhet: String
     abstract val tittel: String
     abstract val journalpostType: JournalPostType
@@ -35,7 +37,7 @@ sealed class Journalpost {
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
-        override val kanal: String? = "INNSENDT_NAV_ANSATT"
+        override val kanal: String = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: String = "9999"
         override val dokumenter: List<JournalpostDokument> = søknadInnhold.toJournalpostDokument()
 
