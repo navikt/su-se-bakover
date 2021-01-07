@@ -8,7 +8,6 @@ import org.apache.cxf.binding.soap.SoapMessage
 import org.apache.cxf.bus.extension.ExtensionManagerBus
 import org.apache.cxf.configuration.jsse.TLSClientParameters
 import org.apache.cxf.endpoint.Client
-import org.apache.cxf.ext.logging.LoggingFeature
 import org.apache.cxf.frontend.ClientProxy
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.apache.cxf.transport.http.HTTPConduit
@@ -48,7 +47,7 @@ class SimuleringConfig(
             serviceName = SERVICE
             endpointName = PORT
             serviceClass = SimulerFpService::class.java
-            features = listOf(WSAddressingFeature(), LoggingFeature())
+            features = listOf(WSAddressingFeature()) // Add LoggingFeature() to enable full logging of req/resp
         }
         return factory.create(SimulerFpService::class.java).apply {
             val sts = STSClient(bus).apply {
