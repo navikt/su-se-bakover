@@ -38,36 +38,31 @@ internal class LukkSøknadServiceImpl(
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
-
-        val person: Person = personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
-            .getOrElse {
-                log.error("Kan ikke lukke søknad ${søknad.id}. Fant ikke person.")
-                return KunneIkkeLukkeSøknad.FantIkkePerson.left()
-            }
         val opprettetDato = søknad.opprettet.toLocalDate(zoneIdOslo)
         if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato)) {
             log.info("Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag")
-            return KunneIkkeLukkeSøknad.UgyldigDato.left()
+            return KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
             log.info("Kan ikke lukke søknad ${søknad.id} siden det finnes en behandling")
             return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
         }
+
         return when (søknad) {
             is Søknad.Lukket -> {
                 log.info("Søknad ${søknad.id} er allerede lukket")
                 KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
             }
-            is Søknad.Ny -> {
-                // TODO jah: Kanskje vi bør kreve at en søknad er journalført før den blir lukket? (kan prøve journalføre her)
-                log.info("Lukker søknad ${søknad.id} som mangler journalføring og oppgave")
-                lukkSøknad(person, request, søknad)
-            }
-            is Søknad.Journalført.UtenOppgave -> {
-                log.info("Lukker journalført søknad ${søknad.id} som mangler oppgave")
-                lukkSøknad(person, request, søknad)
+            is Søknad.Ny, is Søknad.Journalført.UtenOppgave -> {
+                log.warn("Kan ikke lukke søknad ${søknad.id} siden den mangler oppgave. Se drifts-endepunktet /drift/søknader/fix.")
+                KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
             }
             is Søknad.Journalført.MedOppgave -> {
+                val person: Person = personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
+                    .getOrElse {
+                        log.error("Kan ikke lukke søknad ${søknad.id}. Fant ikke person.")
+                        return KunneIkkeLukkeSøknad.FantIkkePerson.left()
+                    }
                 log.info("Lukker journalført søknad ${søknad.id} og tilhørende oppgave ${søknad.oppgaveId}")
                 lukkSøknad(person, request, søknad)
                     .flatMap { lukketSøknad ->

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.lukk
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -42,41 +43,47 @@ internal class LukkSøknadErrorHandlerTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
             trukketDato = 1.oktober(2020)
         )
-        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
-            request = medBrevRequest,
-            error = KunneIkkeLukkeSøknad.SøknadErAlleredeLukket
-        ) shouldBe Resultat.message(
-            HttpStatusCode.BadRequest,
-            "Søknad er allerede trukket"
-        )
+        assertSoftly {
 
-        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
-            request = medBrevRequest,
-            error = KunneIkkeLukkeSøknad.SøknadHarEnBehandling
-        ) shouldBe Resultat.message(
-            HttpStatusCode.BadRequest,
-            "Søknaden har en behandling"
-        )
+            LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+                request = medBrevRequest,
+                error = KunneIkkeLukkeSøknad.SøknadErAlleredeLukket
+            ) shouldBe Resultat.message(
+                HttpStatusCode.BadRequest,
+                "Søknad med id ${medBrevRequest.søknadId} er allerede trukket"
+            )
 
-        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(medBrevRequest, KunneIkkeLukkeSøknad.FantIkkeSøknad) shouldBe Resultat.message(
-            httpCode = HttpStatusCode.NotFound,
-            message = "Fant ikke søknad for ${medBrevRequest.søknadId}"
-        )
+            LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+                request = medBrevRequest,
+                error = KunneIkkeLukkeSøknad.SøknadHarEnBehandling
+            ) shouldBe Resultat.message(
+                HttpStatusCode.BadRequest,
+                "Søknad med id ${medBrevRequest.søknadId} har en aktiv behandling og kan derfor ikke lukkes"
+            )
 
-        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
-            request = medBrevRequest,
-            error = KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
-        ) shouldBe Resultat.message(
-            HttpStatusCode.InternalServerError,
-            "Kunne ikke journalføre brev"
-        )
+            LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+                medBrevRequest,
+                KunneIkkeLukkeSøknad.FantIkkeSøknad
+            ) shouldBe Resultat.message(
+                httpCode = HttpStatusCode.NotFound,
+                message = "Fant ikke søknad med id ${medBrevRequest.søknadId}"
+            )
 
-        LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
-            request = medBrevRequest,
-            error = KunneIkkeLukkeSøknad.UgyldigDato
-        ) shouldBe Resultat.message(
-            HttpStatusCode.BadRequest,
-            "Kan ikke trekke søknad før den er opprettet eller frem i tid"
-        )
+            LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+                request = medBrevRequest,
+                error = KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
+            ) shouldBe Resultat.message(
+                HttpStatusCode.InternalServerError,
+                "Kunne ikke journalføre brev"
+            )
+
+            LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
+                request = medBrevRequest,
+                error = KunneIkkeLukkeSøknad.UgyldigTrukketDato
+            ) shouldBe Resultat.message(
+                HttpStatusCode.BadRequest,
+                "Ugyldig lukket dato. Dato må være etter opprettet og kan ikke være frem i tid"
+            )
+        }
     }
 }

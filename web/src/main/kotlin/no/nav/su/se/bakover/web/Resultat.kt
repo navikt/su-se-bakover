@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
-internal class Resultat private constructor(
+internal data class Resultat private constructor(
     val httpCode: HttpStatusCode,
     private val json: String,
     private val contentType: ContentType
@@ -15,14 +15,12 @@ internal class Resultat private constructor(
         require(httpCode in HttpStatusCode.allStatusCodes) { "Unknown http status code:$httpCode" }
     }
 
-    override fun equals(other: Any?) = other is Resultat && other.httpCode == this.httpCode && other.json == this.json
-    override fun hashCode(): Int = 31 * httpCode.value + json.hashCode()
     suspend fun svar(call: ApplicationCall) =
         call.respondText(contentType = contentType, status = httpCode, text = json)
 
     companion object {
-        fun message(httpCode: HttpStatusCode, message: String) = json(httpCode, """{"message": "$message"}""")
-        fun json(httpCode: HttpStatusCode, json: String) =
+        fun message(httpCode: HttpStatusCode, message: String): Resultat = json(httpCode, """{"message": "$message"}""")
+        fun json(httpCode: HttpStatusCode, json: String): Resultat =
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
     }
 }

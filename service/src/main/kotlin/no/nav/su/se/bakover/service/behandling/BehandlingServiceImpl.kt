@@ -466,7 +466,7 @@ internal class BehandlingServiceImpl(
             return KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
         }
         if (søknad !is Søknad.Journalført.MedOppgave) {
-            // TODO Prøv å opprette oppgaven hvis den mangler?
+            // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
             return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
