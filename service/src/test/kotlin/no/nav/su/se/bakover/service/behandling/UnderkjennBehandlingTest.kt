@@ -377,7 +377,9 @@ class UnderkjennBehandlingTest {
 
     @Test
     fun `Underkjenner selvom vi ikke klarer lukke oppgave`() {
-        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy(
+            behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        )
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -411,7 +413,7 @@ class UnderkjennBehandlingTest {
         )
 
         actual shouldBe behandling.copy(
-            status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+            status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
             attestering = Attestering.Underkjent(
                 attestant = attestant,
                 grunn = underkjentAttestering.grunn,
@@ -446,7 +448,7 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                status = argThat { it shouldBe Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT }
+                status = argThat { it shouldBe Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET }
             )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe PERSISTERT })
@@ -464,7 +466,9 @@ class UnderkjennBehandlingTest {
 
     @Test
     fun `underkjenner behandling`() {
-        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy(
+            behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        )
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -496,7 +500,7 @@ class UnderkjennBehandlingTest {
         )
 
         actual shouldBe behandling.copy(
-            status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+            status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
             attestering = underkjentAttestering
         ).right()
 
@@ -525,7 +529,7 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                status = argThat { it shouldBe Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT }
+                status = argThat { it shouldBe Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET }
             )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(PERSISTERT)
@@ -542,9 +546,9 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `kan oppdatere behandlingsinformasjon med status UNDERKJENT`() {
+    fun `kan oppdatere behandlingsinformasjon med status UNDERKJENT_INNVILGET`() {
         val behandling: Behandling =
-            innvilgetBehandlingTilAttestering.copy(status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT)
+            innvilgetBehandlingTilAttestering.copy(status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET)
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -590,10 +594,58 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `kan lage ny beregning med status UNDERKJENT`() {
+    fun `kan oppdatere behandlingsinformasjon med status UNDERKJENT_AVSLAG`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(status = Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG)
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+        ).oppdaterBehandlingsinformasjon(
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    uføregrad = null,
+                    forventetInntekt = null,
+                    begrunnelse = null
+                ),
+                flyktning = Behandlingsinformasjon.Flyktning(
+                    status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                    begrunnelse = null
+                )
+            )
+        )
+
+        actual shouldBe behandling.copy(
+            status = Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    uføregrad = null,
+                    forventetInntekt = null,
+                    begrunnelse = null
+                ),
+                flyktning = Behandlingsinformasjon.Flyktning(
+                    status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                    begrunnelse = null
+                )
+            )
+        ).right()
+
+        verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
+    }
+
+    @Test
+    fun `kan lage ny beregning med status UNDERKJENT_INNVILGET`() {
         val behandling: Behandling =
             innvilgetBehandlingTilAttestering.copy(
-                status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+                status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
                 behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
                     bosituasjon = Behandlingsinformasjon.Bosituasjon(
                         epsFnr = null,
@@ -603,7 +655,6 @@ class UnderkjennBehandlingTest {
                     )
                 )
             )
-
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
         }
@@ -635,10 +686,54 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `kan ikke lage ny beregning med status UNDERKJENT der uførhet ikke er oppfylt`() {
+    fun `kan lage ny beregning med status UNDERKJENT_AVSLAG`() {
         val behandling: Behandling =
             innvilgetBehandlingTilAttestering.copy(
-                status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+                status = Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG,
+                behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                        epsFnr = null,
+                        delerBolig = false,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+        ).opprettBeregning(
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+            fraOgMed = 1.januar(2021),
+            tilOgMed = 31.desember(2021),
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.OffentligPensjon,
+                    månedsbeløp = 100.0,
+                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
+        )
+
+        actual shouldBe behandling.copy(
+            status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+        ).right()
+
+        verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
+    }
+
+    @Test
+    fun `kan ikke lage ny beregning med status UNDERKJENT_INNVILGET der uførhet ikke er oppfylt`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(
+                status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
                 behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
@@ -659,7 +754,7 @@ class UnderkjennBehandlingTest {
             on { hentBehandling(any()) } doReturn behandling
         }
 
-        assertThrows<Exception> {
+        assertThrows<Behandling.TilstandException> {
             BehandlingTestUtils.createService(
                 behandlingRepo = behandlingRepoMock,
                 microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
@@ -684,10 +779,59 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `kan lage ny simulering med status UNDERKJENT`() {
+    fun `kan ikke lage ny beregning med status UNDERKJENT_AVSLAG der uførhet ikke er oppfylt`() {
         val behandling: Behandling =
             innvilgetBehandlingTilAttestering.copy(
-                status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+                status = Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG,
+                behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    ),
+                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                        epsFnr = null,
+                        delerBolig = false,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        assertThrows<Behandling.TilstandException> {
+            BehandlingTestUtils.createService(
+                behandlingRepo = behandlingRepoMock,
+                microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+            ).opprettBeregning(
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = 100.0,
+                        periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        }
+
+        verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe behandling.id })
+    }
+
+    @Test
+    fun `kan lage ny simulering med status UNDERKJENT_INNVILGET`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(
+                status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
                 behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
             )
 
@@ -727,10 +871,33 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `kan ikke lage ny simulering med status UNDERKJENT hvis beregning gir avslag`() {
+    fun `kan ikke lage ny simulering med status UNDERKJENT_AVLSAG`() {
         val behandling: Behandling =
             innvilgetBehandlingTilAttestering.copy(
-                status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+                status = Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG,
+                behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+            )
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+
+        assertThrows<Behandling.TilstandException> {
+            BehandlingTestUtils.createService(
+                behandlingRepo = behandlingRepoMock,
+                microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+            ).simuler(
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler
+            )
+        }
+    }
+
+    @Test
+    fun `kan ikke lage ny simulering med status UNDERKJENT_INNVILGET hvis beregning gir avslag`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(
+                status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
                 behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
                 beregning = TestBeregningSomGirAvslag,
             )
@@ -769,10 +936,10 @@ class UnderkjennBehandlingTest {
     }
 
     @Test
-    fun `En behandling med ingen avslag blir sendt til attestering som innvilget`() {
+    fun `En behandling med status UNDERKJENT_INNVILGET med ingen avslag blir sendt til attestering som innvilget`() {
         val behandling: Behandling =
             innvilgetBehandlingTilAttestering.copy(
-                status = Behandling.BehandlingsStatus.ATTESTERING_UNDERKJENT,
+                status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
                 behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
             )
 
@@ -798,6 +965,46 @@ class UnderkjennBehandlingTest {
 
         actual shouldBe behandling.copy(
             status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+        ).right()
+    }
+
+    @Test
+    fun `En behandling med status UNDERKJENT_AVSLAG med avslag blir sendt til attestering som avslag`() {
+        val behandling: Behandling =
+            innvilgetBehandlingTilAttestering.copy(
+                status = Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG,
+                behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    )
+                ),
+            )
+
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+        val personServiceMock: PersonService = mock {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
+        val behandlingMetricsMock = mock<BehandlingMetrics>()
+
+        val actual = BehandlingTestUtils.createService(
+            behandlingRepo = behandlingRepoMock,
+            personService = personServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+        ).sendTilAttestering(behandlingId = behandling.id, saksbehandler = saksbehandler)
+
+        actual shouldBe behandling.copy(
+            status = Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
         ).right()
     }
 }
