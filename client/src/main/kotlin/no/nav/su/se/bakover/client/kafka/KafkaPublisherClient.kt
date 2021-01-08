@@ -5,6 +5,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.errors.AuthorizationException
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 internal class KafkaPublisherClient(
     private val kafkaConfig: ApplicationConfig.KafkaConfig
@@ -23,7 +24,7 @@ internal class KafkaPublisherClient(
                     null -> log.info("Publiserte meldig til $topic med offset: ${recordMetadata.offset()}")
                     is AuthorizationException -> {
                         log.warn("Autorisasjonsfeil ved publisering av melding til $topic, rekonfigurerer producer før retry.")
-                        producer.close()
+                        producer.close(Duration.ZERO)
                         producer = KafkaProducer<String, String>(kafkaConfig.producerConfig).also {
                             if (retries < 3) {
                                 log.info("Resender melding til $topic med ny producer, retry antall: $retries")
