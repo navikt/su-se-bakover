@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 import java.time.ZoneOffset
 
@@ -44,8 +43,8 @@ object BehandlingTestUtils {
 
     internal val tidspunkt = 15.juni(2020).atStartOfDay().toTidspunkt(ZoneOffset.UTC)
 
-    private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-    private val observerMock: EventObserver = mock { on { handle(any()) }.doNothing() }
+    internal val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+    internal val observerMock: EventObserver = mock { on { handle(any()) }.doNothing() }
 
     internal fun createService(
         behandlingRepo: BehandlingRepo = mock(),
@@ -56,9 +55,9 @@ object BehandlingTestUtils {
         søknadRepo: SøknadRepo = mock(),
         personService: PersonService = mock(),
         brevService: BrevService = mock(),
-        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+        iverksettBehandlingService: IverksettBehandlingService = mock(),
         observer: EventObserver = observerMock,
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
@@ -69,11 +68,11 @@ object BehandlingTestUtils {
         søknadRepo = søknadRepo,
         personService = personService,
         brevService = brevService,
-        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         behandlingMetrics = behandlingMetrics,
         clock = fixedClock,
-        microsoftGraphApiClient = microsoftGraphApiOppslag
-    ).apply { observers.add(observer) }
+        microsoftGraphApiClient = microsoftGraphApiOppslag,
+        iverksettBehandlingService = iverksettBehandlingService,
+    ).apply { addObserver(observer) }
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = Uførhet(

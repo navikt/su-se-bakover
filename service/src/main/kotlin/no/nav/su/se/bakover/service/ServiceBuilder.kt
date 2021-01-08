@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
+import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -83,9 +84,19 @@ class ServiceBuilder(
                 brevService = brevService,
                 behandlingMetrics = behandlingMetrics,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
-                opprettVedtakssnapshotService = opprettVedtakssnapshotService,
-                clock = Clock.systemUTC()
-            ).apply { observers.add(statistikkService) },
+                clock = Clock.systemUTC(),
+                iverksettBehandlingService = IverksettBehandlingService(
+                    behandlingRepo = databaseRepos.behandling,
+                    utbetalingService = utbetalingService,
+                    oppgaveService = oppgaveService,
+                    personService = personService,
+                    brevService = brevService,
+                    behandlingMetrics = behandlingMetrics,
+                    microsoftGraphApiClient = clients.microsoftGraphApiClient,
+                    opprettVedtakssnapshotService = opprettVedtakssnapshotService,
+                    clock = Clock.systemUTC(),
+                ).apply { addObserver(statistikkService) },
+            ).apply { addObserver(statistikkService) },
             sak = sakService,
             søknad = søknadService,
             brev = brevService,

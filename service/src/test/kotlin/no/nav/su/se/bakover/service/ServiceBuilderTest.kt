@@ -43,7 +43,7 @@ internal class ServiceBuilderTest {
             søknadMetrics = mock()
         ).build().let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
-            (it.behandling as BehandlingServiceImpl).observers shouldContain it.statistikk
+            (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk
         }
     }
 }
