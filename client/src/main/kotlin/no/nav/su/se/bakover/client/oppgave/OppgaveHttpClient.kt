@@ -11,6 +11,7 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
@@ -35,10 +36,21 @@ internal const val oppgavePath = "/api/v1/oppgaver"
 internal class OppgaveHttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
     private val exchange: OAuth,
-    private val clock: Clock
+    private val tokenoppslagForSystembruker: TokenOppslag,
+    private val clock: Clock,
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+        return opprettOppgave(config, tokenoppslagForSystembruker.token())
+    }
+
+    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+        return onBehalfOfToken()
+            .mapLeft { KunneIkkeOppretteOppgave }
+            .flatMap { opprettOppgave(config, it) }
+    }
 
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.unsafeCatch {
@@ -51,15 +63,15 @@ internal class OppgaveHttpClient(
         }
     }
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+    private fun opprettOppgave(config: OppgaveConfig, token: String): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         val aktivDato = LocalDate.now(clock)
-        val onBehalfOfToken = onBehalfOfToken().getOrElse {
-            return KunneIkkeOppretteOppgave.left()
-        }
+
         val beskrivelse =
-            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
+            "--- ${
+            Tidspunkt.now(clock).toOppgaveFormat()
+            } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
         val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
-            .authentication().bearer(onBehalfOfToken)
+            .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))

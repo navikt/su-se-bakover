@@ -179,6 +179,10 @@ internal class BehandlingRoutesKtTest {
                             return Either.left(KunneIkkeOppretteOppgave)
                         }
 
+                        override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+                            return Either.left(KunneIkkeOppretteOppgave)
+                        }
+
                         override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
                             return Unit.right()
                         }

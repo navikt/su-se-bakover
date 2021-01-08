@@ -50,6 +50,7 @@ data class ProdClientsBuilder(
             oppgaveClient = OppgaveHttpClient(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
+                tokenoppslagForSystembruker = tokenOppslag,
                 clock = Clock.systemUTC(),
             ),
             kodeverk = kodeverk,

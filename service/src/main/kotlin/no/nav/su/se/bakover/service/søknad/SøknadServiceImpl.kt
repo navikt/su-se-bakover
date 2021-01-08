@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -127,8 +128,9 @@ internal class SøknadServiceImpl(
                 return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
             }
             opprettOppgave(
-                søknad,
-                person
+                søknad = søknad,
+                person = person,
+                opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker
             )
         }
     }
@@ -179,23 +181,27 @@ internal class SøknadServiceImpl(
 
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
-        person: Person
-    ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> = oppgaveService.opprettOppgave(
-        OppgaveConfig.Saksbehandling(
-            journalpostId = søknad.journalpostId,
-            søknadId = søknad.id,
-            aktørId = person.ident.aktørId
-        )
-    ).mapLeft {
-        log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
-        KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
-    }.map { oppgaveId ->
-        log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
+        person: Person,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.Saksbehandling) -> Either<no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave
+    ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
-        return søknad.medOppgave(oppgaveId).also {
-            søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
-            søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
-        }.right()
+        return opprettOppgave(
+            OppgaveConfig.Saksbehandling(
+                journalpostId = søknad.journalpostId,
+                søknadId = søknad.id,
+                aktørId = person.ident.aktørId
+            )
+        ).mapLeft {
+            log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
+            KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
+        }.map { oppgaveId ->
+            log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
+
+            return søknad.medOppgave(oppgaveId).also {
+                søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
+                søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
+            }.right()
+        }
     }
 
     override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
