@@ -13,6 +13,7 @@ data class FixSøknaderResponseJson(
 
     data class Journalpost(
         val sakId: String,
+        val søknadId: String,
         val journalpostId: String,
     )
 
@@ -23,6 +24,7 @@ data class FixSøknaderResponseJson(
 
     data class Oppgave(
         val sakId: String,
+        val søknadId: String,
         val oppgaveId: String,
     )
 
@@ -36,18 +38,34 @@ data class FixSøknaderResponseJson(
         fun OpprettManglendeJournalpostOgOppgaveResultat.toJson() = FixSøknaderResponseJson(
             journalposteringer = Journalposteringer(
                 ok = this.journalpostResultat.mapNotNull { it.orNull() }.map {
-                    Journalpost(it.sakId.toString(), it.journalpostId.toString())
+                    Journalpost(
+                        sakId = it.sakId.toString(),
+                        søknadId = it.id.toString(),
+                        journalpostId = it.journalpostId.toString()
+                    )
                 },
                 feilet = this.journalpostResultat.mapNotNull { it.swap().orNull() }.map {
-                    Feilet(it.sakId.toString(), it.søknadId.toString(), it.grunn)
+                    Feilet(
+                        it.sakId.toString(),
+                        søknadId = it.søknadId.toString(),
+                        grunn = it.grunn
+                    )
                 }
             ),
             oppgaver = Oppgaver(
                 ok = this.oppgaveResultat.mapNotNull { it.orNull() }.map {
-                    Oppgave(it.sakId.toString(), it.oppgaveId.toString())
+                    Oppgave(
+                        it.sakId.toString(),
+                        søknadId = it.id.toString(),
+                        oppgaveId = it.oppgaveId.toString()
+                    )
                 },
                 feilet = this.oppgaveResultat.mapNotNull { it.swap().orNull() }.map {
-                    Feilet(it.sakId.toString(), it.søknadId.toString(), it.grunn)
+                    Feilet(
+                        it.sakId.toString(),
+                        søknadId = it.søknadId.toString(),
+                        grunn = it.grunn
+                    )
                 }
             )
         )
