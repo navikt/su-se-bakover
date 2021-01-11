@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -58,16 +59,8 @@ internal class FradragJsonTest {
     }
 
     @Test
-    fun `bruker innsendt periode ved konvertering til fradrag`() {
-        val expected = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
-            månedsbeløp = 10.0,
-            periode = Periode(1.januar(2020), 31.januar(2020)),
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
-        )
-
-        val json = FradragJson(
+    fun `fradrag som ikke har egen periode bruker den som sendes inn i mappingfunksjonen`() {
+        val jsonUtenPeriode = FradragJson(
             periode = null,
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
@@ -75,6 +68,36 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER.toString()
         )
 
-        json.toFradrag(Periode(1.januar(2020), 31.januar(2020))) shouldBe expected
+        val expectedPeriode = Periode(1.januar(2020), 31.januar(2020))
+        val expected = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 10.0,
+            periode = expectedPeriode,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER
+        )
+
+        jsonUtenPeriode.toFradrag(expectedPeriode) shouldBe expected
+    }
+
+    @Test
+    fun `fradrag som har egen periode bruker benytter denne`() {
+        val jsonUtenPeriode = FradragJson(
+            periode = PeriodeJson("2021-01-01", "2021-01-31"),
+            type = Fradragstype.Arbeidsinntekt.toString(),
+            beløp = 10.0,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER.toString()
+        )
+
+        val expected = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 10.0,
+            periode = Periode(1.januar(2021), 31.januar(2021)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER
+        )
+
+        jsonUtenPeriode.toFradrag(Periode(1.januar(2021), 31.desember(2021))) shouldBe expected
     }
 }
