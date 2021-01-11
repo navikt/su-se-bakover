@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.OPPRE
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
@@ -886,6 +888,174 @@ internal class BehandlingTest {
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
+            }
+        }
+    }
+
+    @Nested
+    inner class UnderkjentInnvilget {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "En fin kommentar om hvorfor denne innvilgelsen er feil."
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_INNVILGET
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler, extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `kan kjøre en ny beregning`() {
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf()
+            )
+            underkjent.status() shouldBe BEREGNET_INNVILGET
+        }
+
+        @Test
+        fun `kan simulere`() {
+            underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            underkjent.status() shouldBe SIMULERT
+        }
+
+        @Test
+        fun `kan sende til attestering`() {
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.status() shouldBe TIL_ATTESTERING_INNVILGET
+        }
+    }
+
+    @Nested
+    inner class UnderkjentAvslag_vilkårsvurderinger {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
+                    kommentar = "En ufin kommentar om hvorfor dette avslaget er feil"
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_INNVILGET
+        }
+
+        @Test
+        fun `kan ikke beregne`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.opprettBeregning(
+                    saksbehandler = saksbehandler,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                    fradrag = listOf()
+                )
+            }
+        }
+
+        @Test
+        fun `kan ikke simulere`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            }
+        }
+
+        @Test
+        fun `kan sende til attestering`() {
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.status() shouldBe TIL_ATTESTERING_AVSLAG
+        }
+    }
+
+    @Nested
+    inner class UnderkjentAvslag_Beregning {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = 2000000000.0,
+                        periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+                    kommentar = "En ufin kommentar om hvorfor denne beregningen er feil"
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_AVSLAG
+        }
+
+        @Test
+        fun `kan beregne`() {
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf()
+            )
+            underkjent.status() shouldBe BEREGNET_INNVILGET
+        }
+
+        @Test
+        fun `kan ikke simulere`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
             }
         }
     }

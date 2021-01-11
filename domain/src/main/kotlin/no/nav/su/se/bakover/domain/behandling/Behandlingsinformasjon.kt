@@ -61,9 +61,6 @@ data class Behandlingsinformasjon(
         return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() ||
             (vilkår.all { it !== null } && vilkår.any { it!!.erVilkårIkkeOppfylt() })
     }
-    fun erAlleVilkårOppfylt(): Boolean {
-        return vilkår.all { it != null && it.erVilkårOppfylt() }
-    }
 
     private fun uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt(): Boolean {
         if (uførhet != null && flyktning != null) {
