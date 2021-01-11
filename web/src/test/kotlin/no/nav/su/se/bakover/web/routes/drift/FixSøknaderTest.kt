@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
-internal class DriftRoutesKtTest {
+internal class FixSøknaderTest {
 
     private val services = Services(
         avstemming = mock(),
