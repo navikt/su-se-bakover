@@ -12,10 +12,14 @@ import org.junit.jupiter.api.assertDoesNotThrow
 
 internal class KafkaPublisherClientTest {
 
+    private val config = ApplicationConfig.KafkaConfig.createLocalConfig().copy(
+        producerConfig = mapOf("RETRY_INTERVAL" to 1L)
+    )
+
     @Test
     fun `publiserer meldinger til kafka`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
-        KafkaPublisherClient(ApplicationConfig.KafkaConfig.createLocalConfig()) { autoProducer(producers) }.publiser(
+        KafkaPublisherClient(config) { autoProducer(producers) }.publiser(
             topic = "happy",
             melding = "path"
         )
@@ -29,7 +33,7 @@ internal class KafkaPublisherClientTest {
     fun `fanger exception hvis kall til send() feiler`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         assertDoesNotThrow {
-            KafkaPublisherClient(ApplicationConfig.KafkaConfig.createLocalConfig()) {
+            KafkaPublisherClient(config) {
                 autoProducer(producers).apply {
                     sendException = IllegalStateException()
                 }
@@ -46,7 +50,7 @@ internal class KafkaPublisherClientTest {
     fun `overlever ukjente feil i callback`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         assertDoesNotThrow {
-            KafkaPublisherClient(ApplicationConfig.KafkaConfig.createLocalConfig()) { manualProducer(producers) }.publiser(
+            KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
                 topic = "not so happy",
                 melding = "path"
             )
@@ -61,21 +65,41 @@ internal class KafkaPublisherClientTest {
     @Test
     fun `stenger eksisterende producer og oppretter ny dersom callback responderer med authorization-exception`() {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
-        assertDoesNotThrow {
-            KafkaPublisherClient(ApplicationConfig.KafkaConfig.createLocalConfig()) { manualProducer(producers) }.publiser(
-                topic = "not so happy",
-                melding = "path"
-            )
+        KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
+            topic = "not so happy",
+            melding = "path"
+        )
 
-            val producer = producers.first()
-            // fail with auth-exception to invoke instantiation of new producer
-            producer.errorNext(TopicAuthorizationException("forbidden"))
+        val producer = producers.first()
+        // fail with auth-exception to invoke instantiation of new producer
+        producer.errorNext(TopicAuthorizationException("forbidden"))
 
-            producers shouldHaveSize 2
-            producers.let {
-                it[0].closed() shouldBe true // first instance should be closed
-                it[1].closed() shouldBe false // second instance should be alive
-            }
+        producers shouldHaveSize 2
+        producers.let {
+            it[0].closed() shouldBe true // first instance should be closed
+            it[1].closed() shouldBe false // second instance should be alive
+        }
+    }
+
+    @Test
+    fun `forsøker å sende meldinger som har feilet på nytt`() {
+        val producers: MutableList<MockProducer<String, String>> = mutableListOf()
+        KafkaPublisherClient(config) { manualProducer(producers) }.publiser(
+            topic = "not so happy",
+            melding = "path"
+        )
+
+        val producer = producers.first()
+        producer.errorNext(TopicAuthorizationException("forbidden"))
+        producer.completeNext()
+
+        Thread.sleep(50)
+
+        producers shouldHaveSize 2
+        producers.let {
+            it[0].history() shouldHaveSize 1
+            it[1].history() shouldHaveSize 1
+            it[0].history() shouldBe it[1].history() // attempt to send the same record
         }
     }
 
@@ -86,7 +110,7 @@ internal class KafkaPublisherClientTest {
         MockProducer(true, StringSerializer(), StringSerializer()).also { producers.add(it) }
 
     /**
-     * autoCompleteFuture = false -> completion of future is controlled manully through completeNext()/errorNext() before callback is invoked.
+     * autoCompleteFuture = false -> completion of future is controlled manually through completeNext()/errorNext() before callback is invoked.
      */
     private fun manualProducer(producers: MutableList<MockProducer<String, String>> = mutableListOf()): MockProducer<String, String> =
         MockProducer(false, StringSerializer(), StringSerializer()).also { producers.add(it) }

@@ -90,6 +90,7 @@ internal class ApplicationConfigTest {
                 "acks" to "all",
                 "key.serializer" to StringSerializer::class.java,
                 "value.serializer" to StringSerializer::class.java,
+                "RETRY_INTERVAL" to 15_000L
             )
         ),
     )

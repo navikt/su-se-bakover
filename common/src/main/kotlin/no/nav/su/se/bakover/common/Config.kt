@@ -260,7 +260,10 @@ data class ApplicationConfig(
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
-                stsUrl = getEnvironmentVariableOrDefault("STS_URL", "http://security-token-service.default.svc.nais.local"),
+                stsUrl = getEnvironmentVariableOrDefault(
+                    "STS_URL",
+                    "http://security-token-service.default.svc.nais.local"
+                ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
             )
@@ -323,7 +326,8 @@ data class ApplicationConfig(
                 producerConfig = Common().configure() + mapOf(
                     ProducerConfig.ACKS_CONFIG to "all",
                     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                    "RETRY_INTERVAL" to 15_000L
                 )
             )
 
