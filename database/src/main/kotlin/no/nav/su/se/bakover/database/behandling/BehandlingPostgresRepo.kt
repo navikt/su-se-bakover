@@ -127,7 +127,16 @@ internal class BehandlingPostgresRepo(
 
     override fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Behandling> {
         return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is null and status like 'IVERKSATT_%'"
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is null and status = 'IVERKSATT_INNVILGET'"
+                .hentListe(emptyMap(), session) { row ->
+                    row.toBehandling(session)
+                }
+        }
+    }
+
+    override fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Behandling> {
+        return dataSource.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is not null and iverksattBrevbestillingId is null and status like 'IVERKSATT_%'"
                 .hentListe(emptyMap(), session) { row ->
                     row.toBehandling(session)
                 }

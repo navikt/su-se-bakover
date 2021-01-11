@@ -28,4 +28,5 @@ interface BehandlingRepo {
     fun oppdaterIverksattJournalpostId(behandlingId: UUID, journalpostId: JournalpostId)
     fun oppdaterIverksattBrevbestillingId(behandlingId: UUID, bestillingId: BrevbestillingId)
     fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Behandling>
+    fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Behandling>
 }
