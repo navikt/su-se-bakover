@@ -318,24 +318,30 @@ data class ApplicationConfig(
 
     data class KafkaConfig(
         private val common: Map<String, String>,
-        val producerConfig: Map<String, Any>,
+        val producerCfg: ProducerCfg,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KafkaConfig(
                 common = Common().configure(),
-                producerConfig = Common().configure() + mapOf(
-                    ProducerConfig.ACKS_CONFIG to "all",
-                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                    "RETRY_INTERVAL" to 15_000L
+                producerCfg = ProducerCfg(
+                    kafkaConfig = Common().configure() + mapOf(
+                        ProducerConfig.ACKS_CONFIG to "all",
+                        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                    )
                 )
             )
 
             fun createLocalConfig() = KafkaConfig(
                 common = emptyMap(),
-                producerConfig = emptyMap()
+                producerCfg = ProducerCfg(emptyMap())
             )
         }
+
+        data class ProducerCfg(
+            val kafkaConfig: Map<String, Any>,
+            val retryTaskInterval: Long = 15_000L
+        )
 
         private data class Common(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),

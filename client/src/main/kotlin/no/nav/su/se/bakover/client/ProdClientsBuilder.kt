@@ -84,7 +84,7 @@ data class ProdClientsBuilder(
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
-            kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig)
+            kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg)
         )
     }
 }

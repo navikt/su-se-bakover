@@ -12,8 +12,9 @@ import org.junit.jupiter.api.assertDoesNotThrow
 
 internal class KafkaPublisherClientTest {
 
-    private val config = ApplicationConfig.KafkaConfig.createLocalConfig().copy(
-        producerConfig = mapOf("RETRY_INTERVAL" to 1L)
+    private val config = ApplicationConfig.KafkaConfig.ProducerCfg(
+        kafkaConfig = mapOf(),
+        retryTaskInterval = 1L
     )
 
     @Test

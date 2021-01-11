@@ -13,15 +13,15 @@ import java.util.Timer
 import kotlin.concurrent.timer
 
 internal class KafkaPublisherClient(
-    private val kafkaConfig: ApplicationConfig.KafkaConfig,
-    private val initProducer: () -> Producer<String, String> = { KafkaProducer(kafkaConfig.producerConfig) }
+    private val producerConfig: ApplicationConfig.KafkaConfig.ProducerCfg,
+    private val initProducer: () -> Producer<String, String> = { KafkaProducer(producerConfig.kafkaConfig) }
 ) : KafkaPublisher {
     private val log = LoggerFactory.getLogger(this::class.java)
     private var producer: Producer<String, String> = initProducer()
     private val failed: Queue<ProducerRecord<String, String>> = LinkedList()
 
     init {
-        retryTask(kafkaConfig)
+        retryTask(producerConfig)
     }
 
     override fun publiser(topic: String, melding: String) {
@@ -48,8 +48,8 @@ internal class KafkaPublisherClient(
         }
     }
 
-    private fun retryTask(kafkaConfig: ApplicationConfig.KafkaConfig): Timer {
-        val period = kafkaConfig.producerConfig["RETRY_INTERVAL"]?.let { it as Long } ?: 15_000L
+    private fun retryTask(kafkaConfig: ApplicationConfig.KafkaConfig.ProducerCfg): Timer {
+        val period = kafkaConfig.retryTaskInterval
         log.info("Konfigurerer retry task med intervall $period ms for KafkaPublisherClient")
         return timer(
             name = "KafkaPublisherClient retry task",
