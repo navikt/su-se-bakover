@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.common.periode
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mars
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -61,5 +63,17 @@ internal class PeriodeTest {
         assertThrows<IllegalArgumentException> {
             Periode(10.januar(2002), 1.januar(2020))
         }
+    }
+
+    @Test
+    fun `periode inneholder en annen periode`() {
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.januar(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.desember(2021), 31.desember(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2020), 31.desember(2021)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2022)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2021), 31.august(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2019), 31.august(2019)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2022), 31.august(2022)) shouldBe false
     }
 }

@@ -23,6 +23,7 @@ interface BehandlingService {
         saksbehandler: Saksbehandler,
         behandlingsinformasjon: Behandlingsinformasjon
     ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling>
+
     fun opprettBeregning(
         behandlingId: UUID,
         saksbehandler: Saksbehandler,
@@ -102,6 +103,7 @@ sealed class KunneIkkeOppdatereBehandlingsinformasjon {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOppdatereBehandlingsinformasjon()
     object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
 }
+
 sealed class IverksattBehandling {
     abstract val behandling: Behandling
 

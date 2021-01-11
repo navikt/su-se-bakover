@@ -24,4 +24,8 @@ data class Periode(
                 Periode(firstInMonth, lastInMonth)
             }
     }
+
+    infix fun inneholder(other: Periode): Boolean =
+        (fraOgMed.isEqual(other.fraOgMed) || fraOgMed.isBefore(other.fraOgMed)) &&
+            (tilOgMed.isEqual(other.tilOgMed) || tilOgMed.isAfter(other.tilOgMed))
 }

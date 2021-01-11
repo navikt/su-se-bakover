@@ -59,10 +59,10 @@ internal data class FradragJson(
     val utenlandskInntekt: UtenlandskInntekt?,
     val tilhører: String
 ) {
-    fun toFradrag(periode: Periode): Fradrag = FradragFactory.ny(
+    fun toFradrag(beregningsperiode: Periode): Fradrag = FradragFactory.ny(
         type = Fradragstype.valueOf(type),
         månedsbeløp = beløp,
-        periode = this.periode?.toPeriode() ?: periode,
+        periode = this.periode?.toPeriode() ?: beregningsperiode,
         utenlandskInntekt = utenlandskInntekt,
         tilhører = FradragTilhører.valueOf(tilhører)
     )

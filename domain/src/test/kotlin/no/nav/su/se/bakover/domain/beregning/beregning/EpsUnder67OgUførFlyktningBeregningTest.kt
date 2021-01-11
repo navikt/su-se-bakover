@@ -43,7 +43,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
 
         val uføreOrdinærSatsbeløp = 231080.0
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
+            beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
