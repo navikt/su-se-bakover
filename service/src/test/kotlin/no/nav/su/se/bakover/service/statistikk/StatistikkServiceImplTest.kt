@@ -157,6 +157,50 @@ internal class StatistikkServiceImplTest {
     }
 
     @Test
+    fun `publiserer BehandlingTilAttestering-event på kafka`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+
+        val behandling: Behandling = mock {
+            on { opprettet } doReturn Tidspunkt.now()
+            on { søknad } doReturn søknadMock
+            on { opprettet } doReturn Tidspunkt.now()
+            on { id } doReturn UUID.randomUUID()
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(5959)
+            on { status() } doReturn Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+            on { saksbehandler() } doReturn NavIdentBruker.Saksbehandler("Z1595")
+            on { attestering() } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("Z1596"))
+            on { utledAvslagsgrunner() } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
+        }
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = behandling.opprettet,
+            tekniskTid = Tidspunkt.now(clock),
+            registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = behandling.id,
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer.nummer,
+            behandlingStatus = behandling.status(),
+            versjon = clock.millis(),
+            saksbehandler = "Z1595",
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.BehandlingTilAttestering(behandling)
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+
+    @Test
     fun `publiserer BehandlingIverksatt-event på kafka ved innvilgelse`() {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
