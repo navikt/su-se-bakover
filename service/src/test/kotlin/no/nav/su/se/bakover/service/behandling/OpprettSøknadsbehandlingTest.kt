@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -60,17 +59,15 @@ internal class OpprettSøknadsbehandlingTest {
             søknadRepo = søknadRepo,
             personService = mock(),
             brevService = mock(),
-            opprettVedtakssnapshotService = OpprettVedtakssnapshotService(
-                vedtakssnapshotRepo = mock()
-            ),
             behandlingMetrics = mock(),
             clock = Clock.systemUTC(),
-            microsoftGraphApiClient = mock()
+            microsoftGraphApiClient = mock(),
+            iverksettBehandlingService = mock(),
         )
         val eventObserver: EventObserver = mock {
             on { handle(any()) }.doNothing()
         }
-        behandlingService.observers.add(eventObserver)
+        behandlingService.addObserver(eventObserver)
 
         behandlingService.opprettSøknadsbehandling(søknad.id) shouldBe behandlingMock.right()
         verify(søknadService).hentSøknad(argThat { it shouldBe søknad.id })

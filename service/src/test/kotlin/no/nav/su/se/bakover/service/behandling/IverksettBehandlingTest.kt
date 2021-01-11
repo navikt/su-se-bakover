@@ -11,6 +11,7 @@ import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
@@ -43,7 +44,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -342,7 +342,7 @@ internal class IverksettBehandlingTest {
         val opprettVedtakssnapshotServiceMock = mock<OpprettVedtakssnapshotService>()
 
         val exception = shouldThrow<Behandling.TilstandException> {
-            createService(
+            val iverksett = createService(
                 behandlingRepo = behandlingRepoMock,
                 utbetalingService = utbetalingServiceMock,
                 brevService = brevServiceMock,
@@ -351,6 +351,7 @@ internal class IverksettBehandlingTest {
                 microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock
             ).iverksett(behandlingId, attestant)
+            iverksett
         }
 
         exception.state shouldBe SIMULERT
@@ -404,7 +405,6 @@ internal class IverksettBehandlingTest {
             oppgaveService = oppgaveServiceMock,
             utbetalingService = utbetalingServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotServiceMock,
             observer = observerMock
         ).iverksett(behandling.id, attestant)
 
@@ -819,4 +819,26 @@ internal class IverksettBehandlingTest {
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
 
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
+
+    private fun createService(
+        behandlingRepo: BehandlingRepo = mock(),
+        utbetalingService: UtbetalingService = mock(),
+        oppgaveService: OppgaveService = mock(),
+        personService: PersonService = mock(),
+        brevService: BrevService = mock(),
+        behandlingMetrics: BehandlingMetrics = mock(),
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
+        observer: EventObserver = BehandlingTestUtils.observerMock,
+    ) = IverksettBehandlingService(
+        behandlingRepo = behandlingRepo,
+        utbetalingService = utbetalingService,
+        oppgaveService = oppgaveService,
+        personService = personService,
+        brevService = brevService,
+        behandlingMetrics = behandlingMetrics,
+        clock = BehandlingTestUtils.fixedClock,
+        microsoftGraphApiClient = microsoftGraphApiOppslag,
+        opprettVedtakssnapshotService = opprettVedtakssnapshotService
+    ).apply { addObserver(observer) }
 }

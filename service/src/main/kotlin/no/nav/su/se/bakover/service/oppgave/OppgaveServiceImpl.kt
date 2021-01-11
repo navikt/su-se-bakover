@@ -15,6 +15,10 @@ internal class OppgaveServiceImpl(
         return oppgaveClient.opprettOppgave(config)
     }
 
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+        return oppgaveClient.opprettOppgaveMedSystembruker(config)
+    }
+
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
         return oppgaveClient.lukkOppgave(oppgaveId)
     }

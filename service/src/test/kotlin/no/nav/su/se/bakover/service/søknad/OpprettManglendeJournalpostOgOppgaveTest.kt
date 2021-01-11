@@ -266,7 +266,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave.left()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave.left()
         }
 
         val søknadService = SøknadServiceImpl(
@@ -296,7 +296,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).opprettOppgave(
+            verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalførtSøknad.journalpostId,
@@ -329,7 +329,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn oppgaveId.right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn oppgaveId.right()
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -393,7 +393,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).opprettOppgave(
+            verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
                         journalpostId = journalførtSøknad.journalpostId,
@@ -402,7 +402,10 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     )
                 }
             )
-            verify(søknadRepoMock).oppdaterOppgaveId(argThat { it shouldBe journalførtSøknad.id }, argThat { it shouldBe oppgaveId })
+            verify(søknadRepoMock).oppdaterOppgaveId(
+                argThat { it shouldBe journalførtSøknad.id },
+                argThat { it shouldBe oppgaveId }
+            )
         }
         verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock, pdfGeneratorMock, dokArkivMock, oppgaveServiceMock)
     }

@@ -7,15 +7,19 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.verify
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
@@ -97,12 +101,16 @@ internal class OppgaveHttpClientTest : WiremockBase {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
+        val tokenoppslagMock = mock<TokenOppslag> {
+            on { token() } doReturn "token"
+        }
         val client = OppgaveHttpClient(
             connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                 clientId = "oppgaveClientId",
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = tokenoppslagMock,
             clock = fixedEpochClock,
         )
 
@@ -113,6 +121,23 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 AktørId(aktørId)
             )
         ) shouldBeRight OppgaveId("111")
+
+        verify(oathMock).onBehalfOfToken(
+            originalToken = argThat { it shouldBe "Bearer token" },
+            otherAppId = argThat { it shouldBe "oppgaveClientId" },
+        )
+        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+
+        client.opprettOppgaveMedSystembruker(
+            OppgaveConfig.Saksbehandling(
+                journalpostId,
+                søknadId,
+                AktørId(aktørId)
+            )
+        ) shouldBeRight OppgaveId("111")
+
+        verify(tokenoppslagMock).token()
+        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
     }
 
     @Test
@@ -179,6 +204,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
@@ -253,6 +279,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
@@ -276,6 +303,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
@@ -362,12 +390,13 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
         WireMock.configureFor(wireMockServer.port())
-        verify(
+        WireMock.verify(
             1,
             patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
                 .withRequestBody(
@@ -462,12 +491,13 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 url = wireMockServer.baseUrl(),
             ),
             exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
         WireMock.configureFor(wireMockServer.port())
-        verify(
+        WireMock.verify(
             1,
             patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
                 .withRequestBody(
@@ -486,7 +516,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
     }
 
-    private val stubMapping = WireMock.post(WireMock.urlPathEqualTo(oppgavePath))
+    private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))
         .withHeader("Authorization", WireMock.equalTo("Bearer token"))
         .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
         .withHeader("Accept", WireMock.equalTo("application/json"))

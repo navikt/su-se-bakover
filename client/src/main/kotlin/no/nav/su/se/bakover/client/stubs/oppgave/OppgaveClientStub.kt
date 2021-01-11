@@ -10,6 +10,8 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun opprettOppgave(config: OppgaveConfig) = generateOppgaveId().right()
 
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig) = generateOppgaveId().right()
+
     override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
 
     private fun generateOppgaveId() = OppgaveId(Random.nextLong(0, Long.MAX_VALUE).toString())

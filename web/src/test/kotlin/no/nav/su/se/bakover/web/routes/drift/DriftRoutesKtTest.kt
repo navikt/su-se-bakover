@@ -107,7 +107,7 @@ internal class DriftRoutesKtTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
         val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
-            id = UUID.fromString("e8c3325c-4c4e-436c-90ad-7ac72f963a8c"),
+            id = UUID.fromString("e38df38a-c3fc-48d1-adca-0a9264024a2e"),
             sakId = sakId,
             journalpostId = JournalpostId("2"),
             opprettet = Tidspunkt.EPOCH,
@@ -147,6 +147,7 @@ internal class DriftRoutesKtTest {
                               "ok":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
+                                    "søknadId":"51c51049-6c55-40d6-8013-b99505a0ef14",
                                     "journalpostId":"1"
                                  }
                               ],
@@ -162,6 +163,7 @@ internal class DriftRoutesKtTest {
                               "ok":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
+                                    "søknadId":"e38df38a-c3fc-48d1-adca-0a9264024a2e",
                                     "oppgaveId":"2"
                                  }
                               ],
