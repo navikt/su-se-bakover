@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
@@ -28,8 +29,11 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -90,11 +94,16 @@ class BehandlingTilAttesteringTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            observer = eventObserver
         ).sendTilAttestering(behandling.id, saksbehandler)
 
         actual shouldBe simulertBehandling.copy(
@@ -103,7 +112,7 @@ class BehandlingTilAttesteringTest {
             oppgaveId = nyOppgaveId
         ).right()
 
-        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock) {
+        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
             verify(oppgaveServiceMock).opprettOppgave(
@@ -125,13 +134,15 @@ class BehandlingTilAttesteringTest {
             )
 
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
+            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.BehandlingTilAttestering(behandling) })
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock)
+        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     @Test
     fun `attestant kan ikke saksbehandle underkjent behandling`() {
-        val behandling = simulertBehandling.copy(attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(saksbehandler.navIdent)))
+        val behandling =
+            simulertBehandling.copy(attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(saksbehandler.navIdent)))
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -139,7 +150,11 @@ class BehandlingTilAttesteringTest {
 
         val personServiceMock: PersonService = mock()
 
-        val oppgaveServiceMock = mock<OppgaveService> ()
+        val oppgaveServiceMock = mock<OppgaveService>()
+
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
@@ -152,5 +167,6 @@ class BehandlingTilAttesteringTest {
 
         verify(behandlingRepoMock).hentBehandling(simulertBehandling.id)
         verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock)
+        verifyZeroInteractions(eventObserver)
     }
 }

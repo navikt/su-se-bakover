@@ -83,6 +83,50 @@ internal class StatistikkServiceImpl(
                     )
                 )
             }
+            is Event.Statistikk.BehandlingTilAttestering -> {
+                val behandling = event.behandling
+                publiser(
+                    Statistikk.Behandling(
+                        funksjonellTid = behandling.beregning()?.getPeriode()?.getFraOgMed()?.startOfDay(zoneIdOslo)
+                            ?: behandling.opprettet,
+                        tekniskTid = Tidspunkt.now(clock),
+                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
+                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
+                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
+                        },
+                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+                        behandlingId = behandling.id,
+                        sakId = behandling.sakId,
+                        saksnummer = behandling.saksnummer.nummer,
+                        behandlingStatus = behandling.status(),
+                        versjon = clock.millis(),
+                        saksbehandler = behandling.saksbehandler()?.navIdent,
+                    )
+                )
+            }
+            is Event.Statistikk.BehandlingAttesteringUnderkjent -> {
+                val behandling = event.behandling
+                publiser(
+                    Statistikk.Behandling(
+                        funksjonellTid = behandling.beregning()?.getPeriode()?.getFraOgMed()?.startOfDay(zoneIdOslo)
+                            ?: behandling.opprettet,
+                        tekniskTid = Tidspunkt.now(clock),
+                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
+                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
+                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
+                        },
+                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+                        behandlingId = behandling.id,
+                        sakId = behandling.sakId,
+                        saksnummer = behandling.saksnummer.nummer,
+                        behandlingStatus = behandling.status(),
+                        behandlingStatusBeskrivelse = "Sendt tilbake til saksbehandler",
+                        versjon = clock.millis(),
+                        saksbehandler = behandling.saksbehandler()?.navIdent,
+                        beslutter = behandling.attestering()?.attestant?.navIdent,
+                    )
+                )
+            }
             is Event.Statistikk.BehandlingIverksatt -> {
                 val behandling = event.behandling.behandling
                 publiser(
@@ -108,7 +152,8 @@ internal class StatistikkServiceImpl(
                             else -> null
                         },
                         resultatBegrunnelse = when (behandling.status()) {
-                            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> behandling.utledAvslagsgrunner().joinToString(",")
+                            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> behandling.utledAvslagsgrunner()
+                                .joinToString(",")
                             else -> null
                         },
                     )
