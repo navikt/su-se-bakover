@@ -48,8 +48,8 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirAvslag
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
