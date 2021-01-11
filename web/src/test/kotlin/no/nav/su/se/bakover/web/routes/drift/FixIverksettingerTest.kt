@@ -8,24 +8,23 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
-import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
-import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.BestiltBrev
+import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteJournalpostForIverksetting
+import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
+import no.nav.su.se.bakover.service.behandling.OpprettetJournalpostForIverksetting
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
-internal class FixSøknaderTest {
+internal class FixIverksettingerTest {
 
     private val services = Services(
         avstemming = mock(),
@@ -41,14 +40,14 @@ internal class FixSøknaderTest {
     )
 
     @Test
-    fun `Kun Drift har tilgang til fix-søknader-endepunktet`() {
+    fun `Kun Drift har tilgang til fix-iverksettinger-endepunktet`() {
         Brukerrolle.values().filterNot { it == Brukerrolle.Drift }.forEach {
             withTestApplication({
                 testSusebakover(services = services)
             }) {
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$DRIFT_PATH/søknader/fix",
+                    "$DRIFT_PATH/iverksettinger/fix",
                     listOf(it)
                 ) {
                 }.apply {
@@ -59,19 +58,19 @@ internal class FixSøknaderTest {
     }
 
     @Test
-    fun `fix-søknader-endepunktet gir tomt resultat`() {
-        val søknadServiceMock = mock<SøknadService> {
-            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
-                journalpostResultat = emptyList(),
-                oppgaveResultat = emptyList()
+    fun `fix-iverksettinger-endepunktet gir tomt resultat`() {
+        val behandlingServiceMock = mock<BehandlingService> {
+            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = emptyList(),
+                brevbestillingsresultat = emptyList()
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(søknad = søknadServiceMock))
+            testSusebakover(services = services.copy(behandling = behandlingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,
-                "$DRIFT_PATH/søknader/fix",
+                "$DRIFT_PATH/iverksettinger/fix",
                 listOf(Brukerrolle.Drift)
             ) {
             }.apply {
@@ -83,7 +82,7 @@ internal class FixSøknaderTest {
                                 "ok":[],
                                 "feilet":[]
                             },
-                            "oppgaver":{
+                            "brevbestillinger":{
                                 "ok":[],
                                 "feilet":[]
                             }
@@ -97,44 +96,45 @@ internal class FixSøknaderTest {
     }
 
     @Test
-    fun `fix-søknader-endepunktet med journalposteringer og oppgaver`() {
+    fun `fix-iverksettinger-endepunktet med journalposteringer og bestilling av brev`() {
         val sakId = UUID.fromString("e8c3325c-4c4e-436c-90ad-7ac72f963a8c")
-        val journalførtSøknadUtenOppgave = Søknad.Journalført.UtenOppgave(
-            id = UUID.fromString("51c51049-6c55-40d6-8013-b99505a0ef14"),
+        val journalført = OpprettetJournalpostForIverksetting(
+            behandlingId = UUID.fromString("51c51049-6c55-40d6-8013-b99505a0ef14"),
             sakId = sakId,
             journalpostId = JournalpostId("1"),
-            opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
-        val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
-            id = UUID.fromString("e38df38a-c3fc-48d1-adca-0a9264024a2e"),
+        val bestiltBrev = BestiltBrev(
+            behandlingId = UUID.fromString("e38df38a-c3fc-48d1-adca-0a9264024a2e"),
             sakId = sakId,
             journalpostId = JournalpostId("2"),
-            opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = OppgaveId("2")
+            brevbestillingId = BrevbestillingId("3")
         )
 
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
         val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
-        val søknadServiceMock = mock<SøknadService> {
-            on { opprettManglendeJournalpostOgOppgave() } doReturn OpprettManglendeJournalpostOgOppgaveResultat(
-                journalpostResultat = listOf(
-                    journalførtSøknadUtenOppgave.right(),
-                    KunneIkkeOppretteJournalpost(sakId, søknadIdJournalpost, "Fant ikke Person").left(),
+        val behandlingServiceMock = mock<BehandlingService> {
+            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = listOf(
+                    journalført.right(),
+                    KunneIkkeOppretteJournalpostForIverksetting(sakId, søknadIdJournalpost, "Fant ikke Person").left(),
                 ),
-                oppgaveResultat = listOf(
-                    journalførtSøknadMedOppgave.right(),
-                    KunneIkkeOppretteOppgave(sakId, søknadIdOppgave, JournalpostId("1"), "Kunne ikke opprette oppgave").left(),
+                brevbestillingsresultat = listOf(
+                    bestiltBrev.right(),
+                    KunneIkkeBestilleBrev(
+                        sakId,
+                        søknadIdOppgave,
+                        JournalpostId("1"),
+                        "Kunne ikke bestille brev"
+                    ).left(),
                 )
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(søknad = søknadServiceMock))
+            testSusebakover(services = services.copy(behandling = behandlingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,
-                "$DRIFT_PATH/søknader/fix",
+                "$DRIFT_PATH/iverksettinger/fix",
                 listOf(Brukerrolle.Drift)
             ) {
             }.apply {
@@ -147,31 +147,31 @@ internal class FixSøknaderTest {
                               "ok":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
-                                    "søknadId":"51c51049-6c55-40d6-8013-b99505a0ef14",
+                                    "behandlingId":"51c51049-6c55-40d6-8013-b99505a0ef14",
                                     "journalpostId":"1"
                                  }
                               ],
                               "feilet":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
-                                    "søknadId":"18e19f68-029d-4731-ad4a-48d902fc92a2",
+                                    "behandlingId":"18e19f68-029d-4731-ad4a-48d902fc92a2",
                                     "grunn": "Fant ikke Person"
                                  }
                               ]
                            },
-                           "oppgaver":{
+                           "brevbestillinger":{
                               "ok":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
-                                    "søknadId":"e38df38a-c3fc-48d1-adca-0a9264024a2e",
-                                    "oppgaveId":"2"
+                                    "behandlingId":"e38df38a-c3fc-48d1-adca-0a9264024a2e",
+                                    "brevbestillingId":"3"
                                  }
                               ],
                               "feilet":[
                                  {
                                     "sakId":"e8c3325c-4c4e-436c-90ad-7ac72f963a8c",
-                                    "søknadId":"22770c98-31b0-412e-9e63-9a878330386e",
-                                    "grunn": "Kunne ikke opprette oppgave"
+                                    "behandlingId":"22770c98-31b0-412e-9e63-9a878330386e",
+                                    "grunn": "Kunne ikke bestille brev"
                                  }
                               ]
                            }

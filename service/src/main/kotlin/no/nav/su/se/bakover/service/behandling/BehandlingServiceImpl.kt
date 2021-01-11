@@ -254,7 +254,7 @@ internal class BehandlingServiceImpl(
         return iverksettBehandlingService.iverksett(behandlingId, attestant)
     }
 
-    override fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat {
+    override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         return iverksettBehandlingService.opprettManglendeJournalpostOgBrevdistribusjon()
     }
 

@@ -264,8 +264,8 @@ class IverksettBehandlingService(
         }
     }
 
-    fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return OprettManglendeJournalpostOgBrevdistribusjonResultat(
+    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+        return OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(),
             brevbestillingsresultat = listOf()
         )

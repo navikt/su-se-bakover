@@ -44,7 +44,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
-import no.nav.su.se.bakover.service.behandling.OprettManglendeJournalpostOgBrevdistribusjonResultat
+import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -212,7 +212,7 @@ class AccessCheckProxy(
                     return services.behandling.iverksett(behandlingId, attestant)
                 }
 
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
 
                     return services.behandling.opprettManglendeJournalpostOgBrevdistribusjon()

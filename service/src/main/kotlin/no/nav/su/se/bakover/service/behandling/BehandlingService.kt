@@ -46,7 +46,7 @@ interface BehandlingService {
 
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
-    fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat
+    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
 }
 
 sealed class KunneIkkeLageBrevutkast {
@@ -118,7 +118,7 @@ sealed class IverksattBehandling {
     }
 }
 
-data class OprettManglendeJournalpostOgBrevdistribusjonResultat(
+data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
     val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
     val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>
 ) {
