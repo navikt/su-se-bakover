@@ -76,20 +76,23 @@ internal class ApplicationConfigTest {
                 "ssl.keystore.password" to "credstorePwd",
                 "ssl.key.password" to "credstorePwd",
             ),
-            producerConfig = mapOf(
-                "bootstrap.servers" to "brokers",
-                "security.protocol" to "SSL",
-                "ssl.endpoint.identification.algorithm" to "",
-                "ssl.truststore.type" to "jks",
-                "ssl.keystore.type" to "PKCS12",
-                "ssl.truststore.location" to "truststorePath",
-                "ssl.truststore.password" to "credstorePwd",
-                "ssl.keystore.location" to "keystorePath",
-                "ssl.keystore.password" to "credstorePwd",
-                "ssl.key.password" to "credstorePwd",
-                "acks" to "all",
-                "key.serializer" to StringSerializer::class.java,
-                "value.serializer" to StringSerializer::class.java,
+            producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
+                mapOf(
+                    "bootstrap.servers" to "brokers",
+                    "security.protocol" to "SSL",
+                    "ssl.endpoint.identification.algorithm" to "",
+                    "ssl.truststore.type" to "jks",
+                    "ssl.keystore.type" to "PKCS12",
+                    "ssl.truststore.location" to "truststorePath",
+                    "ssl.truststore.password" to "credstorePwd",
+                    "ssl.keystore.location" to "keystorePath",
+                    "ssl.keystore.password" to "credstorePwd",
+                    "ssl.key.password" to "credstorePwd",
+                    "acks" to "all",
+                    "key.serializer" to StringSerializer::class.java,
+                    "value.serializer" to StringSerializer::class.java
+                ),
+                retryTaskInterval = 15_000L
             )
         ),
     )
@@ -191,7 +194,9 @@ internal class ApplicationConfigTest {
                     dkifUrl = "mocked",
                 ),
                 frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls("http://localhost:1234"),
-                kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), emptyMap()),
+                kafkaConfig = ApplicationConfig.KafkaConfig(
+                    emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
+                )
             )
         }
     }
