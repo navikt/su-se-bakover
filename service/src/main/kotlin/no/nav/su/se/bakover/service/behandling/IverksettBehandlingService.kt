@@ -169,12 +169,12 @@ class IverksettBehandlingService(
         )
     }
 
-    internal fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
             .map { it.displayName }
     }
 
-    internal fun iverksettInnvilgning(
+    private fun iverksettInnvilgning(
         person: Person,
         behandling: Behandling,
         attestant: NavIdentBruker.Attestant,
@@ -262,5 +262,12 @@ class IverksettBehandlingService(
                 { it.right() }
             )
         }
+    }
+
+    fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat {
+        return OprettManglendeJournalpostOgBrevdistribusjonResultat(
+            journalpostresultat = listOf(),
+            brevbestillingsresultat = listOf()
+        )
     }
 }

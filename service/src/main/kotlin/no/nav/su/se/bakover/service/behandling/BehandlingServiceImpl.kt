@@ -254,9 +254,8 @@ internal class BehandlingServiceImpl(
         return iverksettBehandlingService.iverksett(behandlingId, attestant)
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .map { it.displayName }
+    override fun opprettManglendeJournalpostOgBrevdistribusjon(): OprettManglendeJournalpostOgBrevdistribusjonResultat {
+        return iverksettBehandlingService.opprettManglendeJournalpostOgBrevdistribusjon()
     }
 
     override fun opprettSøknadsbehandling(
@@ -320,6 +319,11 @@ internal class BehandlingServiceImpl(
                         }
                     }
             }
+    }
+
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
+            .map { it.displayName }
     }
 
     private fun lagBrevRequestForBrevutkast(
