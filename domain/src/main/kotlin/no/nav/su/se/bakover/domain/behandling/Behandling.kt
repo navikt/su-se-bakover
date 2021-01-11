@@ -100,14 +100,16 @@ data class Behandling internal constructor(
         BehandlingsStatus.SIMULERT,
         BehandlingsStatus.BEREGNET_INNVILGET,
         BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
-        BehandlingsStatus.IVERKSATT_INNVILGET
+        BehandlingsStatus.IVERKSATT_INNVILGET,
+        BehandlingsStatus.UNDERKJENT_INNVILGET
     ).contains(status)
 
     fun erAvslag() = listOf(
         BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
         BehandlingsStatus.BEREGNET_AVSLAG,
         BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
-        BehandlingsStatus.IVERKSATT_AVSLAG
+        BehandlingsStatus.IVERKSATT_AVSLAG,
+        BehandlingsStatus.UNDERKJENT_AVSLAG
     ).contains(status)
 
     fun oppdaterBehandlingsinformasjon(
@@ -552,6 +554,9 @@ data class Behandling internal constructor(
             this@Behandling.oppgaveId = oppgaveId
             return this@Behandling
         }
+
+        override fun utledAvslagsgrunner(): List<Avslagsgrunn> =
+            behandlingsinformasjon().utledAvslagsgrunner() + utledAvslagsgrunnForBeregning()
 
         private fun kanSimulere(): Boolean {
             return kanBeregne() && this@Behandling.beregning() != null &&
