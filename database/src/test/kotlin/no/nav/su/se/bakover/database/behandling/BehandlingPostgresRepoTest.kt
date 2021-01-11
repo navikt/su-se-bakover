@@ -111,6 +111,31 @@ internal class BehandlingPostgresRepoTest {
     }
 
     @Test
+    fun `hentIverksatteBehandlingerUtenJournalposteringer`() {
+        withMigratedDb {
+
+            val iverksattBehandling = FnrGenerator.random().let {
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                }
+            }
+
+            FnrGenerator.random().let {
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId)
+            }
+
+            val actual = repo.hentIverksatteBehandlingerUtenJournalposteringer()
+            actual shouldBe listOf(
+                repo.hentBehandling(iverksattBehandling.id)
+            )
+        }
+    }
+
+    @Test
     fun `attesterer behandling`() {
         withMigratedDb {
             val fnr = FnrGenerator.random()

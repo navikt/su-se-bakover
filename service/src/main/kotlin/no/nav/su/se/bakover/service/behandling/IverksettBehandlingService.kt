@@ -7,7 +7,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -92,6 +92,64 @@ class IverksettBehandlingService(
             }
     }
 
+    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+        return OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+            journalpostresultat = behandlingRepo.hentIverksatteBehandlingerUtenJournalposteringer().map { behandling ->
+                val person = personService.hentPerson(behandling.fnr).getOrElse {
+                    return@map KunneIkkeOppretteJournalpostForIverksetting(
+                        sakId = behandling.sakId,
+                        behandlingId = behandling.id,
+                        grunn = "Kunne ikke hente person"
+                    ).left()
+                }
+                if (behandling.iverksattJournalpostId() != null) {
+                    return@map KunneIkkeOppretteJournalpostForIverksetting(
+                        sakId = behandling.sakId,
+                        behandlingId = behandling.id,
+                        grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
+                    ).left()
+                }
+
+                if (behandling.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET) {
+                    val saksbehandlerNavn =
+                        hentNavnForNavIdent(behandling.saksbehandler()!!).getOrHandle {
+                            return@map KunneIkkeOppretteJournalpostForIverksetting(
+                                sakId = behandling.sakId,
+                                behandlingId = behandling.id,
+                                grunn = "Kunne ikke hente saksbehandlers navn"
+                            ).left()
+                        }
+                    val attestantNavn =
+                        hentNavnForNavIdent(behandling.attestering()!!.attestant).getOrHandle {
+                            return@map KunneIkkeOppretteJournalpostForIverksetting(
+                                sakId = behandling.sakId,
+                                behandlingId = behandling.id,
+                                grunn = "Kunne ikke hente attestants navn "
+                            ).left()
+                        }
+                    return@map opprettJournalpostForInnvilgelse(
+                        behandling = behandling,
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        attestantNavn = attestantNavn,
+                    ).mapLeft {
+                        KunneIkkeOppretteJournalpostForIverksetting(
+                            sakId = behandling.sakId,
+                            behandlingId = behandling.id,
+                            grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
+                        )
+                    }
+                }
+                return@map KunneIkkeOppretteJournalpostForIverksetting(
+                    sakId = behandling.sakId,
+                    behandlingId = behandling.id,
+                    grunn = "Kunne ikke opprette journalpost for status ${behandling.status()}"
+                ).left()
+            },
+            brevbestillingsresultat = listOf()
+        )
+    }
+
     private fun iverksettAvslag(
         person: Person,
         behandling: Behandling,
@@ -103,29 +161,16 @@ class IverksettBehandlingService(
             avslagsgrunner = behandling.utledAvslagsgrunner(),
             harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
             beregning = behandling.beregning()
-
         )
 
-        val attestantNavn = hentNavnForNavIdent(attestant)
-            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!)
-            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-
-        val journalpostId = brevService.journalførBrev(
-            AvslagBrevRequest(
-                person = person,
-                avslag = avslag,
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn
-            ),
-            behandling.saksnummer
-        ).map {
-            behandling.oppdaterIverksattJournalpostId(it)
-            it
-        }.getOrElse {
-            log.error("Behandling ${behandling.id} ble ikke avslått siden vi ikke klarte journalføre. Saksbehandleren må prøve på nytt.")
-            return KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
-        }
+        val journalpostId = opprettJournalpostForAvslag(
+            behandling = behandling,
+            person = person,
+            avslag = avslag,
+            attestant = attestant,
+        ).getOrHandle {
+            return it.left()
+        }.journalpostId
 
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
 
@@ -169,8 +214,78 @@ class IverksettBehandlingService(
         )
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+    private fun opprettJournalpostForAvslag(
+        behandling: Behandling,
+        person: Person,
+        avslag: Avslag,
+        attestant: NavIdentBruker,
+    ): Either<KunneIkkeIverksetteBehandling, OpprettetJournalpostForIverksetting> {
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!).getOrHandle { return it.left() }
+        val attestantNavn = hentNavnForNavIdent(attestant).getOrHandle { return it.left() }
+
+        return opprettJournalpost(
+            behandling,
+            AvslagBrevRequest(
+                person = person,
+                avslag = avslag,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn
+            )
+        ).map {
+            OpprettetJournalpostForIverksetting(
+                sakId = behandling.sakId,
+                behandlingId = behandling.id,
+                journalpostId = it
+            )
+        }
+    }
+
+    private fun opprettJournalpostForInnvilgelse(
+        behandling: Behandling,
+        person: Person,
+        saksbehandlerNavn: String,
+        attestantNavn: String,
+    ): Either<IverksattBehandling.MedMangler, OpprettetJournalpostForIverksetting> {
+
+        return opprettJournalpost(
+            behandling,
+            LagBrevRequest.InnvilgetVedtak(
+                person = person,
+                behandling = behandling,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn
+            )
+        ).mapLeft {
+            IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
+        }.map {
+            OpprettetJournalpostForIverksetting(
+                sakId = behandling.sakId,
+                behandlingId = behandling.id,
+                journalpostId = it
+            )
+        }
+    }
+
+    private fun opprettJournalpost(
+        behandling: Behandling,
+        lagBrevRequest: LagBrevRequest,
+    ): Either<KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev, JournalpostId> {
+        val journalpostId = brevService.journalførBrev(
+            lagBrevRequest,
+            behandling.saksnummer,
+        ).map {
+            behandling.oppdaterIverksattJournalpostId(it)
+            it
+        }.getOrElse {
+            log.error("Behandling ${behandling.id} ble ikke iverksatt siden vi ikke klarte journalføre. Saksbehandleren må prøve på nytt.")
+            return KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
+        }
+        return journalpostId.right()
+    }
+
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
+            .mapLeft { KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant }
             .map { it.displayName }
     }
 
@@ -181,10 +296,8 @@ class IverksettBehandlingService(
         behandlingId: UUID,
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
 
-        val attestantNavn = hentNavnForNavIdent(attestant)
-            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
-        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!)
-            .getOrHandle { return KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant.left() }
+        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!).getOrHandle { return it.left() }
+        val attestantNavn = hentNavnForNavIdent(attestant).getOrHandle { return it.left() }
 
         return utbetalingService.utbetal(
             sakId = behandling.sakId,
@@ -209,25 +322,22 @@ class IverksettBehandlingService(
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
             val journalføringOgBrevResultat =
-                brevService.journalførBrev(
-                    LagBrevRequest.InnvilgetVedtak(
-                        person,
-                        behandling,
-                        saksbehandlerNavn,
-                        attestantNavn
-                    ),
-                    behandling.saksnummer
+                opprettJournalpostForInnvilgelse(
+                    behandling = behandling,
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    attestantNavn = attestantNavn
                 )
                     .mapLeft {
                         log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
                         IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
                     }
                     .flatMap {
-                        behandling.oppdaterIverksattJournalpostId(it)
-                        behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it)
+                        behandling.oppdaterIverksattJournalpostId(it.journalpostId)
+                        behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it.journalpostId)
                         log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-                        brevService.distribuerBrev(it)
+                        brevService.distribuerBrev(it.journalpostId)
                             .mapLeft {
                                 log.error("Bestilling av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
                                 IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
@@ -262,12 +372,5 @@ class IverksettBehandlingService(
                 { it.right() }
             )
         }
-    }
-
-    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = listOf(),
-            brevbestillingsresultat = listOf()
-        )
     }
 }
