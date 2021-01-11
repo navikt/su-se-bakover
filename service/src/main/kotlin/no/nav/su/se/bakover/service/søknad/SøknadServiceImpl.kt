@@ -172,7 +172,7 @@ internal class SøknadServiceImpl(
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke opprette journalpost").left()
         }
-        log.info("Ny søknad: Opprettet journalpost med id $journalpostId")
+
         return søknad.journalfør(journalpostId).also {
             søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
             søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
@@ -195,8 +195,6 @@ internal class SøknadServiceImpl(
             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
         }.map { oppgaveId ->
-            log.info("Ny søknad: Opprettet oppgave med id $oppgaveId.")
-
             return søknad.medOppgave(oppgaveId).also {
                 søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
                 søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)

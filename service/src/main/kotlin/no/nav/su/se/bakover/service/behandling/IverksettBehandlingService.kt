@@ -219,23 +219,23 @@ class IverksettBehandlingService(
                     behandling.saksnummer
                 )
                     .mapLeft {
-                        log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                        log.error("Journalføring av innvilgelsesbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
                         IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev(behandling)
                     }
                     .flatMap {
                         behandling.oppdaterIverksattJournalpostId(it)
                         behandlingRepo.oppdaterIverksattJournalpostId(behandling.id, it)
-                        log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
+                        log.info("Journalført innvilgelsesbrev $it for behandling ${behandling.id}")
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
                         brevService.distribuerBrev(it)
                             .mapLeft {
-                                log.error("Bestilling av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
+                                log.error("Bestilling av innvilgelsesbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
                                 IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
                             }
                             .map { brevbestillingId ->
                                 behandling.oppdaterIverksattBrevbestillingId(brevbestillingId)
                                 behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, brevbestillingId)
-                                log.info("Bestilt iverksettingsbrev $brevbestillingId for behandling ${behandling.id}")
+                                log.info("Bestilt innvilgelsesbrev $brevbestillingId for behandling ${behandling.id}")
                                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
                                 IverksattBehandling.UtenMangler(behandling)
                             }
