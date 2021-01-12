@@ -147,7 +147,7 @@ class IverksettBehandlingService(
                 KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = behandling.sakId,
                     behandlingId = behandling.id,
-                    grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
+                    grunn = "Kunne ikke opprette journalpost mot eksternt system"
                 )
             }
         }
