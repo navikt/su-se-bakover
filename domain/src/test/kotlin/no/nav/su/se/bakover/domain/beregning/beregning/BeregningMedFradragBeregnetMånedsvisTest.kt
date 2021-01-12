@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
@@ -260,5 +261,43 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
         beregning.getSumFradrag() shouldNotBe beregning2.getSumFradrag()
         beregning.getSumYtelse() shouldNotBe beregning2.getSumYtelse()
+    }
+
+    @Test
+    fun `fradrag må være innenfor beregningsperioden`() {
+        val beregningsperiode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        assertThrows<IllegalArgumentException> {
+            BeregningFactory.ny(
+                periode = beregningsperiode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 12000.0,
+                        periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 31.januar(2022)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                ),
+                fradragStrategy = FradragStrategy.Enslig
+            )
+        }
+
+        assertThrows<IllegalArgumentException> {
+            BeregningFactory.ny(
+                periode = beregningsperiode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 12000.0,
+                        periode = Periode(fraOgMed = 1.januar(2019), tilOgMed = 31.januar(2022)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                ),
+                fradragStrategy = FradragStrategy.Enslig
+            )
+        }
     }
 }

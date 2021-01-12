@@ -17,6 +17,10 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
 ) : Beregning {
     private val beregning = beregn()
 
+    init {
+        require(fradrag.all { periode inneholder it.getPeriode() })
+    }
+
     override fun getId(): UUID = id
 
     override fun getOpprettet(): Tidspunkt = opprettet
