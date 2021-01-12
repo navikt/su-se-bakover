@@ -80,6 +80,11 @@ prod: https://prometheus.prod-fss.nais.io
 preprod: https://alertmanager.dev-fss.nais.io
 prod: https://alertmanager.prod-fss.nais.io
 
+### Kubectl commands
+* View alerts: `kubectl --namespace=supstonad get alerts`
+* Describe alert: `kubectl --namespace=supstonad describe alert su-se-bakover`
+* Delete alert: `kubectl --namespace=supstonad delete alert su-se-bakover`
+* Deploy new alert: Just run the `alerts-deploy.yml` github actions workflow
 ## Upgrade versions
 * Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
 * Automatically use newest versions: `./gradlew useLatestVersions --refresh-dependencies`
