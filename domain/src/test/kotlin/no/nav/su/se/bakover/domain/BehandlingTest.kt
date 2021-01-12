@@ -980,6 +980,22 @@ internal class BehandlingTest {
         }
 
         @Test
+        fun `kan oppdatere behandlingsinformasjon for å gå tilbake til OPPRETTET`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt().copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+            underkjent.status() shouldBe OPPRETTET
+        }
+
+        @Test
         fun `kan ikke beregne`() {
             assertThrows<Behandling.TilstandException> {
                 underkjent.opprettBeregning(
@@ -1039,6 +1055,31 @@ internal class BehandlingTest {
                 )
             )
             underkjent.status() shouldBe UNDERKJENT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon for å gå tilbake til OPPRETTET`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt().copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+            underkjent.status() shouldBe OPPRETTET
         }
 
         @Test
