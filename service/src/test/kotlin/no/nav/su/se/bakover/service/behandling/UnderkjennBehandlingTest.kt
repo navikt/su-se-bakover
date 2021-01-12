@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -36,8 +37,11 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -192,6 +196,7 @@ class UnderkjennBehandlingTest {
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+        val observerMock: EventObserver = mock()
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
@@ -199,7 +204,8 @@ class UnderkjennBehandlingTest {
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
-            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            observer = observerMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestering = Attestering.Underkjent(
@@ -222,6 +228,7 @@ class UnderkjennBehandlingTest {
             behandlingMetricsMock,
             hendelsesloggRepoMock
         )
+        verifyZeroInteractions(observerMock)
     }
 
     @Test
@@ -332,6 +339,9 @@ class UnderkjennBehandlingTest {
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
@@ -339,7 +349,8 @@ class UnderkjennBehandlingTest {
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
-            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
+            observer = observerMock
         ).underkjenn(
             behandlingId = behandling.id,
             attestering = underkjentAttestering
@@ -359,6 +370,7 @@ class UnderkjennBehandlingTest {
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
+            observerMock
         ) {
             verify(behandlingRepoMock).hentBehandling(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -385,6 +397,7 @@ class UnderkjennBehandlingTest {
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe PERSISTERT })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.BehandlingAttesteringUnderkjent(behandling) })
         }
 
         verifyNoMoreInteractions(

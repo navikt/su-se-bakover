@@ -260,7 +260,10 @@ data class ApplicationConfig(
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
-                stsUrl = getEnvironmentVariableOrDefault("STS_URL", "http://security-token-service.default.svc.nais.local"),
+                stsUrl = getEnvironmentVariableOrDefault(
+                    "STS_URL",
+                    "http://security-token-service.default.svc.nais.local"
+                ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
             )
@@ -315,23 +318,30 @@ data class ApplicationConfig(
 
     data class KafkaConfig(
         private val common: Map<String, String>,
-        val producerConfig: Map<String, Any>,
+        val producerCfg: ProducerCfg,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KafkaConfig(
                 common = Common().configure(),
-                producerConfig = Common().configure() + mapOf(
-                    ProducerConfig.ACKS_CONFIG to "all",
-                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
+                producerCfg = ProducerCfg(
+                    kafkaConfig = Common().configure() + mapOf(
+                        ProducerConfig.ACKS_CONFIG to "all",
+                        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                    )
                 )
             )
 
             fun createLocalConfig() = KafkaConfig(
                 common = emptyMap(),
-                producerConfig = emptyMap()
+                producerCfg = ProducerCfg(emptyMap())
             )
         }
+
+        data class ProducerCfg(
+            val kafkaConfig: Map<String, Any>,
+            val retryTaskInterval: Long = 15_000L
+        )
 
         private data class Common(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),

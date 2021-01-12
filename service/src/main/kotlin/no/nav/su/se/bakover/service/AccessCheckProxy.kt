@@ -322,6 +322,10 @@ class AccessCheckProxy(
 
                     return services.person.hentAktørId(fnr)
                 }
+
+                override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
+                    return services.person.sjekkTilgangTilPerson(fnr)
+                }
             },
             statistikk = object : StatistikkService {
                 override fun publiser(statistikk: Statistikk) {
@@ -340,7 +344,7 @@ class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        services.person.hentPerson(fnr)
+        services.person.sjekkTilgangTilPerson(fnr)
             .getOrHandle {
                 throw Tilgangssjekkfeil(it, fnr)
             }

@@ -76,7 +76,7 @@ val applicationConfig = ApplicationConfig(
         dkifUrl = "dkifUrl",
     ),
     frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
-    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), emptyMap())
+    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()))
 )
 
 internal val jwtStub = JwtStub(applicationConfig)

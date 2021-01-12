@@ -37,11 +37,7 @@ class IbmMqPublisher(
                             }
                         )
                     }
-                    log.info("${messages.size} meldinger sendt, kaller commit()")
-                    val start = System.currentTimeMillis()
                     context.commit()
-                    log.info("commit() tok: ${System.currentTimeMillis() - start} ms")
-                    Unit
                 }.mapLeft {
                     log.error("Kunne ikke sende meldinger med config $publisherConfig, kaller rollback()", it)
                     context.rollback()

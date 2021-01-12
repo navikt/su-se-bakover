@@ -119,7 +119,9 @@ internal class BehandlingServiceImpl(
                             log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
                             behandlingMetrics.incrementUnderkjentCounter(UnderkjentHandlinger.LUKKET_OPPGAVE)
                         }
-                    behandling
+                    behandling.also {
+                        observers.forEach { observer -> observer.handle(Event.Statistikk.BehandlingAttesteringUnderkjent(it)) }
+                    }
                 }
         }
     }
@@ -244,7 +246,10 @@ internal class BehandlingServiceImpl(
         }.mapLeft {
             log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${behandlingTilAttestering.oppgaveId()} feilet")
         }
-        return behandlingTilAttestering.right()
+        return behandlingTilAttestering.let {
+            observers.forEach { observer -> observer.handle(Event.Statistikk.BehandlingTilAttestering(it)) }
+            it.right()
+        }
     }
 
     override fun iverksett(

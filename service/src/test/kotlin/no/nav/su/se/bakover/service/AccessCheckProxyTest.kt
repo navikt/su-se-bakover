@@ -7,7 +7,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -62,6 +61,7 @@ internal class AccessCheckProxyTest {
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
                 )
             ).proxy()
@@ -79,6 +79,7 @@ internal class AccessCheckProxyTest {
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
                 )
             ).proxy()
@@ -96,6 +97,7 @@ internal class AccessCheckProxyTest {
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
                 )
             ).proxy()
@@ -113,6 +115,7 @@ internal class AccessCheckProxyTest {
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
                 )
             ).proxy()
@@ -130,6 +133,7 @@ internal class AccessCheckProxyTest {
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
                 )
             ).proxy()
@@ -176,9 +180,7 @@ internal class AccessCheckProxyTest {
             },
             services = servicesReturningSak.copy(
                 person = mock {
-                    on { hentPerson(any()) } doAnswer { fnr: Fnr ->
-                        PersonOppslagStub.nyTestPerson(fnr).right()
-                    }
+                    on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
                 }
             )
         ).proxy()
