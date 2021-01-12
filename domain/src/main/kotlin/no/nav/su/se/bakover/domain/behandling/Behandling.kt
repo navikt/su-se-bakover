@@ -383,7 +383,7 @@ data class Behandling internal constructor(
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeLeggeTilSimulering()
     }
 
-    private open inner class Simulert : Tilstand {
+    private inner class Simulert : Tilstand {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun sendTilAttestering(
