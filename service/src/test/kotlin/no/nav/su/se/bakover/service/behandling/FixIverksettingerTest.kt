@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.behandling
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.microsoftGraphMock.oppslagMock
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
@@ -105,12 +105,6 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
-            brevService = mock {},
-            personService = mock {},
-            oppgaveService = mock {},
-            microsoftGraphApiOppslag = mock {},
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -145,12 +139,8 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
-            brevService = mock { },
             personService = personServiceMock,
-            oppgaveService = mock {},
             microsoftGraphApiOppslag = oppslagMock,
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -189,14 +179,14 @@ internal class FixIverksettingerTest {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
+        val oppslagMock: MicrosoftGraphApiOppslag = mock {
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+        }
+
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
-            brevService = mock { },
             personService = personServiceMock,
-            oppgaveService = mock {},
             microsoftGraphApiOppslag = oppslagMock,
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -240,14 +230,17 @@ internal class FixIverksettingerTest {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left()
         }
 
+        val oppslagMock = mock<MicrosoftGraphApiOppslag> {
+            on {
+                hentBrukerinformasjonForNavIdent(any())
+            } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+        }
+
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
             brevService = brevServiceMock,
             personService = personServiceMock,
-            oppgaveService = mock {},
             microsoftGraphApiOppslag = oppslagMock,
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -292,12 +285,6 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
-            brevService = mock {},
-            personService = mock {},
-            oppgaveService = mock {},
-            microsoftGraphApiOppslag = mock {},
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -340,12 +327,7 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
             brevService = brevServiceMock,
-            personService = mock {},
-            oppgaveService = mock {},
-            microsoftGraphApiOppslag = mock {},
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -395,14 +377,15 @@ internal class FixIverksettingerTest {
             on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
 
+        val oppslagMock: MicrosoftGraphApiOppslag = mock {
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+        }
+
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            utbetalingService = mock {},
             brevService = brevServiceMock,
             personService = personServiceMock,
-            oppgaveService = mock {},
             microsoftGraphApiOppslag = oppslagMock,
-            opprettVedtakssnapshotService = mock {}
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -442,7 +425,7 @@ internal class FixIverksettingerTest {
         personService: PersonService = mock(),
         brevService: BrevService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = oppslagMock,
+        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         observer: EventObserver = BehandlingTestUtils.observerMock,
     ) = IverksettBehandlingService(

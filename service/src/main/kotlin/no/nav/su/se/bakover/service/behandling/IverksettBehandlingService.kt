@@ -50,8 +50,6 @@ class IverksettBehandlingService(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // TODO need to define responsibilities for domain and services.
-    // TODO refactor the beast
     internal fun iverksett(
         behandlingId: UUID,
         attestant: NavIdentBruker.Attestant
