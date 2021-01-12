@@ -24,6 +24,7 @@ class PersonClient(
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = pdlClient.person(fnr).map { toPerson(it) }
     override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = pdlClient.aktørId(fnr)
+    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = pdlClient.person(fnr).map {}
 
     private fun toPerson(pdlData: PdlData) =
         Person(

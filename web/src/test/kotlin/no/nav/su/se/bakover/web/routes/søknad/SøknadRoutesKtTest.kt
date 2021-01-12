@@ -64,7 +64,6 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toS�
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import java.util.UUID
 import kotlin.test.assertEquals
 
@@ -182,6 +181,7 @@ internal class SøknadRoutesKtTest {
         val personOppslag: PersonOppslag = mock {
             on { person(any()) } doReturn PersonOppslagStub.person(fnr)
             on { aktørId(any()) } doReturn PersonOppslagStub.aktørId(fnr)
+            on { sjekkTilgangTilPerson(any()) } doReturn PersonOppslagStub.sjekkTilgangTilPerson(fnr)
         }
         val oppgaveClient: OppgaveClient = mock {
             on { opprettOppgave(any<OppgaveConfig.Saksbehandling>()) } doReturn OppgaveId("11").right()
@@ -219,7 +219,7 @@ internal class SøknadRoutesKtTest {
                 verify(pdfGenerator).genererPdf(any<SøknadPdfInnhold>())
                 verify(dokArkiv).opprettJournalpost(any())
                 // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
-                verify(personOppslag, Times(2)).person(argThat { it shouldBe fnr })
+                verify(personOppslag).person(argThat { it shouldBe fnr })
                 verify(personOppslag).aktørId(argThat { it shouldBe fnr })
                 verify(oppgaveClient).opprettOppgave(any())
             }

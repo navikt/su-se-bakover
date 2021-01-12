@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
@@ -22,6 +23,7 @@ import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
+import io.ktor.request.httpMethod
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Route
@@ -189,11 +191,10 @@ internal fun Application.susebakover(
     install(CallLogging) {
         level = Level.INFO
         filter { call ->
-            val path = call.request.path()
-            // Fjerner loggrader som starter med dette
-            (naisPaths + AUTH_CALLBACK_PATH + personPath).none {
-                path.startsWith(it)
-            }
+            if (call.request.httpMethod.value == "OPTIONS") return@filter false
+            if (call.pathShouldBeExcluded(naisPaths + AUTH_CALLBACK_PATH + personPath)) return@filter false
+
+            return@filter true
         }
         callIdMdc("X-Correlation-ID")
 
@@ -238,6 +239,12 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup
         ).schedule()
+    }
+}
+
+fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
+    return paths.any {
+        this.request.path().startsWith(it)
     }
 }
 
