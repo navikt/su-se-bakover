@@ -10,7 +10,6 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -212,7 +211,7 @@ internal fun Route.behandlingRoutes(
                             is KunneIkkeLageBrevutkast.FantIkkePerson -> NotFound.message("Fant ikke person")
                             is KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
                         }
-                        call.respond(resultat)
+                        call.svar(resultat)
                     },
                     {
                         call.audit("Hentet behandling med id $behandlingId")

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.left
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
@@ -22,10 +23,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.OPPRE
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -887,6 +891,286 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
             }
+        }
+    }
+
+    @Nested
+    inner class UnderkjentInnvilget {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "En fin kommentar om hvorfor denne innvilgelsen er feil."
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_INNVILGET
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler, extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `kan kjøre en ny beregning`() {
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf()
+            )
+            underkjent.status() shouldBe BEREGNET_INNVILGET
+        }
+
+        @Test
+        fun `kan simulere`() {
+            underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            underkjent.status() shouldBe SIMULERT
+        }
+
+        @Test
+        fun `kan sende til attestering`() {
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.status() shouldBe TIL_ATTESTERING_INNVILGET
+        }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan ikke utlede avslagsgrunner`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.utledAvslagsgrunner()
+            }
+        }
+    }
+
+    @Nested
+    inner class UnderkjentAvslag_vilkårsvurderinger {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
+                    kommentar = "En ufin kommentar om hvorfor dette avslaget er feil"
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_INNVILGET
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon for å gå tilbake til OPPRETTET`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt().copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+            underkjent.status() shouldBe OPPRETTET
+        }
+
+        @Test
+        fun `kan ikke beregne`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.opprettBeregning(
+                    saksbehandler = saksbehandler,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021),
+                    fradrag = listOf()
+                )
+            }
+        }
+
+        @Test
+        fun `kan ikke simulere`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            }
+        }
+
+        @Test
+        fun `kan sende til attestering`() {
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.status() shouldBe TIL_ATTESTERING_AVSLAG
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan utlede avslagsgrunner`() {
+            underkjent.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET)
+        }
+    }
+
+    @Nested
+    inner class UnderkjentAvslag_Beregning {
+        private lateinit var underkjent: Behandling
+
+        @BeforeEach
+        fun beforeEach() {
+            underkjent = createBehandling(id1, OPPRETTET)
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
+            )
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = 2000000000.0,
+                        periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+            underkjent.sendTilAttestering(saksbehandler)
+            underkjent.underkjenn(
+                Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "1234"),
+                    grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+                    kommentar = "En ufin kommentar om hvorfor denne beregningen er feil"
+                )
+            )
+            underkjent.status() shouldBe UNDERKJENT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withVilkårAvslått()
+            )
+            underkjent.status() shouldBe VILKÅRSVURDERT_AVSLAG
+        }
+
+        @Test
+        fun `kan oppdatere behandlingsinformasjon for å gå tilbake til OPPRETTET`() {
+            underkjent.oppdaterBehandlingsinformasjon(
+                saksbehandler,
+                extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt().copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                        uføregrad = null,
+                        forventetInntekt = null,
+                        begrunnelse = null
+                    )
+                )
+            )
+            underkjent.status() shouldBe OPPRETTET
+        }
+
+        @Test
+        fun `kan beregne`() {
+            underkjent.opprettBeregning(
+                saksbehandler = saksbehandler,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021),
+                fradrag = listOf()
+            )
+            underkjent.status() shouldBe BEREGNET_INNVILGET
+        }
+
+        @Test
+        fun `kan ikke simulere`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
+            }
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan utlede avslagsgrunner`() {
+            underkjent.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.FOR_HØY_INNTEKT)
         }
     }
 

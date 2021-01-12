@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -146,6 +148,60 @@ internal class LagBrevUtkastForBehandlingTest {
         ).lagBrevutkast(behandlingId)
 
         response shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+    }
+
+    @Test
+    fun `kan lage brevutkast for behandling som er UNDERKJENT_INNVILGET`() {
+        val pdf = "pdf-doc".toByteArray()
+        val behandling = behandlingTilAttestering().copy(
+            status = UNDERKJENT_INNVILGET
+        )
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(any()) } doReturn pdf.right()
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+        ).lagBrevutkast(behandlingId)
+
+        response shouldBe pdf.right()
+        verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<LagBrevRequest.InnvilgetVedtak>() })
+    }
+
+    @Test
+    fun `kan lage brevutkast for behandling som er UNDERKJENT_AVSLAG`() {
+        val pdf = "pdf-doc".toByteArray()
+        val behandling = behandlingTilAttestering().copy(
+            status = UNDERKJENT_AVSLAG
+        )
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentBehandling(any()) } doReturn behandling
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { lagBrev(any()) } doReturn pdf.right()
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+        val response = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
+        ).lagBrevutkast(behandlingId)
+
+        response shouldBe pdf.right()
+        verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+        verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<AvslagBrevRequest>() })
     }
 
     private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(

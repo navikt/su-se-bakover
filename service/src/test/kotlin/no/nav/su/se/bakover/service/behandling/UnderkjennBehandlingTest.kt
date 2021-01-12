@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.PERSISTERT
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
@@ -98,6 +99,46 @@ class UnderkjennBehandlingTest {
         søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler
+    )
+
+    private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+        uførhet = Behandlingsinformasjon.Uførhet(
+            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+            uføregrad = 10,
+            forventetInntekt = 10,
+            begrunnelse = null
+        ),
+        flyktning = Behandlingsinformasjon.Flyktning(
+            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
+            begrunnelse = null
+        ),
+        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+            begrunnelse = null
+        ),
+        formue = Behandlingsinformasjon.Formue(
+            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            borSøkerMedEPS = false,
+            verdier = null,
+            epsVerdier = null,
+            begrunnelse = null
+        ),
+        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
+            begrunnelse = null
+        ),
     )
 
     @Test
@@ -323,7 +364,9 @@ class UnderkjennBehandlingTest {
 
     @Test
     fun `Underkjenner selvom vi ikke klarer lukke oppgave`() {
-        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy(
+            behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        )
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -357,7 +400,7 @@ class UnderkjennBehandlingTest {
         )
 
         actual shouldBe behandling.copy(
-            status = Behandling.BehandlingsStatus.SIMULERT,
+            status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
             attestering = Attestering.Underkjent(
                 attestant = attestant,
                 grunn = underkjentAttestering.grunn,
@@ -392,7 +435,7 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
+                status = argThat { it shouldBe Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET }
             )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe PERSISTERT })
@@ -410,7 +453,9 @@ class UnderkjennBehandlingTest {
 
     @Test
     fun `underkjenner behandling`() {
-        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy()
+        val behandling: Behandling = innvilgetBehandlingTilAttestering.copy(
+            behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        )
 
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn behandling
@@ -442,7 +487,7 @@ class UnderkjennBehandlingTest {
         )
 
         actual shouldBe behandling.copy(
-            status = Behandling.BehandlingsStatus.SIMULERT,
+            status = Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET,
             attestering = underkjentAttestering
         ).right()
 
@@ -471,7 +516,7 @@ class UnderkjennBehandlingTest {
             )
             verify(behandlingRepoMock).oppdaterBehandlingStatus(
                 behandlingId = argThat { it shouldBe innvilgetBehandlingTilAttestering.id },
-                status = argThat { it shouldBe Behandling.BehandlingsStatus.SIMULERT }
+                status = argThat { it shouldBe Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET }
             )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(PERSISTERT)
