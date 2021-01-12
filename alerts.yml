@@ -28,7 +28,7 @@ spec:
       expr: '(2 * sum(ny_soknad_counter_total{type="PERSISTERT"}) - sum(ny_soknad_counter_total{type="OPPGAVE"}) - sum(ny_soknad_counter_total{type="JOURNALFØRT"})) > 0'
       for: 1m
       description: "Vi har sannsynligvis ikke klart å journalføre / lage oppgave for ny søknad."
-      action: "`Se: `https://logs.adeo.no/goto/51a967971d281df8f31dba7fc49ee376`"
+      action: "`Se: `https://logs.adeo.no`"
     - alert: su-se-bakover-pods-available
       expr: sum(kube_deployment_status_replicas_available{deployment="su-se-bakover"}) < 1
       for: 1m

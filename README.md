@@ -72,6 +72,14 @@ Se https://doc.nais.io/observability/metrics.
 `alerts.yml` deployes automatisk vha. `.github/workflows/alerts-deploy.yml` og benytter [Prometheus Query Language](https://prometheus.io/docs/prometheus/latest/querying/basics/) for å sette opp alerts basert på metrikker.
 Se https://doc.nais.io/observability/alerts.
 
+### Experiment writing prometheus queries and view graphs
+preprod: https://prometheus.dev-fss.nais.io
+prod: https://prometheus.prod-fss.nais.io
+
+### View ongoing alerts and manage silences
+preprod: https://alertmanager.dev-fss.nais.io
+prod: https://alertmanager.prod-fss.nais.io
+
 ## Upgrade versions
 * Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
 * Automatically use newest versions: `./gradlew useLatestVersions --refresh-dependencies`
