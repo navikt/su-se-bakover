@@ -148,6 +148,6 @@ data class BestiltBrev(
 data class KunneIkkeBestilleBrev(
     val sakId: UUID,
     val behandlingId: UUID,
-    val journalpostId: JournalpostId,
+    val journalpostId: JournalpostId?,
     val grunn: String,
 )
