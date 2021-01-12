@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.beregning.Beregning
 
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
@@ -20,7 +21,7 @@ object VedtakInnholdTestdataBuilder {
         sats = "100",
         satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
         harEktefelle = true,
-        beregning = BrevInnhold.Beregning(
+        beregning = Beregning(
             ytelsePerMåned = 0,
             satsbeløpPerMåned = 0,
             epsFribeløp = 0.0,

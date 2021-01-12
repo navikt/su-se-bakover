@@ -20,22 +20,7 @@ class AvslagsBrevInnholdTest {
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         harEktefelle = false,
         halvGrunnbeløp = 10,
-        beregning = BrevInnhold.Beregning(
-            ytelsePerMåned = 0,
-            satsbeløpPerMåned = 31,
-            epsFribeløp = 0.0,
-            fradrag = BrevInnhold.Beregning.Fradrag(
-                bruker = BrevInnhold.Beregning.FradragForBruker(
-                    fradrag = emptyList(),
-                    sum = 0.0,
-                    harBruktForventetInntektIStedetForArbeidsinntekt = false
-                ),
-                eps = BrevInnhold.Beregning.FradragForEps(
-                    fradrag = emptyList(),
-                    sum = 0.0
-                )
-            )
-        ),
+        beregning = null,
         saksbehandlerNavn = "Sak Sakesen",
         attestantNavn = "Att Attestantsen"
     )
@@ -56,22 +41,7 @@ class AvslagsBrevInnholdTest {
               "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
-              "beregning": {
-                    "ytelsePerMåned": 0,
-                    "satsbeløpPerMåned": 31,
-                    "epsFribeløp": 0,
-                    "fradrag": {
-                        "bruker": {
-                            "fradrag": [],
-                            "sum": 0.0,
-                            "harBruktForventetInntektIStedetForArbeidsinntekt": false
-                        },
-                        "eps": {
-                            "fradrag": [],
-                            "sum": 0.0
-                        }
-                    }
-                },
+              "beregning": null,
               "avslagsparagrafer": [1,2],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen"

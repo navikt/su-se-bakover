@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.AvslagsBrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.brev.getBrevinnholdberegning
+import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 
 data class AvslagBrevRequest(
     private val person: Person,
@@ -18,7 +18,7 @@ data class AvslagBrevRequest(
         avslagsgrunner = avslag.avslagsgrunner,
         harEktefelle = avslag.harEktefelle,
         halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-        beregning = avslag.beregning?.let { getBrevinnholdberegning(it) },
+        beregning = avslag.beregning?.let { LagBrevinnholdForBeregning(it).get() },
         saksbehandlerNavn = saksbehandlerNavn,
         attestantNavn = attestantNavn
     )

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.brev.beregning.Beregning
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -53,35 +53,6 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
-    )
-
-    data class Beregning(
-        val ytelsePerMåned: Int,
-        val satsbeløpPerMåned: Int,
-        val epsFribeløp: Double,
-        val fradrag: Fradrag?,
-    ) {
-        data class Fradrag(
-            val bruker: FradragForBruker,
-            val eps: FradragForEps,
-        )
-
-        data class FradragForBruker(
-            val fradrag: List<Månedsfradrag>,
-            val sum: Double,
-            val harBruktForventetInntektIStedetForArbeidsinntekt: Boolean,
-        )
-
-        data class FradragForEps(
-            val fradrag: List<Månedsfradrag>,
-            val sum: Double,
-        )
-    }
-
-    data class Månedsfradrag(
-        val type: String,
-        val beløp: Double,
-        val utenlandskInntekt: UtenlandskInntekt?
     )
 }
 

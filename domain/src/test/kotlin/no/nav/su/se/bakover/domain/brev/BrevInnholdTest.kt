@@ -6,8 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.brev.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -48,52 +47,11 @@ internal class BrevInnholdTest {
             sats = Sats.HØY.toString(),
             satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
             harEktefelle = true,
-            beregning = BrevInnhold.Beregning(
+            beregning = Beregning(
                 ytelsePerMåned = 100,
                 satsbeløpPerMåned = 100,
                 epsFribeløp = 100.0,
-                fradrag = BrevInnhold.Beregning.Fradrag(
-                    bruker = BrevInnhold.Beregning.FradragForBruker(
-                        fradrag = listOf(
-                            BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                                beløp = 10.0,
-                                utenlandskInntekt = null
-                            ),
-                            BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                                beløp = 35.0,
-                                utenlandskInntekt = null
-                            ),
-                            BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
-                                beløp = 70.0,
-                                utenlandskInntekt = UtenlandskInntekt(
-                                    beløpIUtenlandskValuta = 140,
-                                    valuta = "SEK",
-                                    kurs = 0.5
-                                )
-                            )
-                        ),
-                        sum = 45.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = false
-                    ),
-                    eps = BrevInnhold.Beregning.FradragForEps(
-                        fradrag = listOf(
-                            BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                                beløp = 20.0,
-                                utenlandskInntekt = null
-                            ),
-                            BrevInnhold.Månedsfradrag(
-                                type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                                beløp = 70.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 0.0
-                    )
-                ),
+                fradrag = null
             ),
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp"
@@ -119,48 +77,7 @@ internal class BrevInnholdTest {
                     "ytelsePerMåned": 100,
                     "satsbeløpPerMåned": 100,
                     "epsFribeløp": 100.0,
-                    "fradrag": {
-                        "bruker": {
-                            "fradrag": [
-                                {
-                                    "type": "Arbeidsinntekt",
-                                    "beløp": 10.0,
-                                    "utenlandskInntekt": null
-                                },
-                                {
-                                    "type": "Offentlig pensjon",
-                                    "beløp": 35.0,
-                                    "utenlandskInntekt": null
-                                },
-                                {
-                                    "type": "Offentlig pensjon — fra utlandet",
-                                    "beløp": 70.0,
-                                    "utenlandskInntekt": {
-                                        "beløpIUtenlandskValuta": 140,
-                                        "valuta": "SEK",
-                                        "kurs": 0.5
-                                    }
-                                }
-                            ],
-                            "sum": 45.0,
-                            "harBruktForventetInntektIStedetForArbeidsinntekt": false
-                        },
-                        "eps": {
-                            "fradrag": [
-                                {
-                                    "type": "Arbeidsinntekt",
-                                    "beløp": 20.0,
-                                    "utenlandskInntekt": null
-                                },
-                                {
-                                    "type": "Offentlig pensjon",
-                                    "beløp": 70.0,
-                                    "utenlandskInntekt": null
-                                }
-                            ],
-                            "sum": 0.0
-                        }
-                    }
+                    "fradrag": null
                 },
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp"
