@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.left
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.arrow.either.shouldBeLeftOfType
 import io.kotest.matchers.shouldBe
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILK�
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -946,6 +948,31 @@ internal class BehandlingTest {
             underkjent.sendTilAttestering(saksbehandler)
             underkjent.status() shouldBe TIL_ATTESTERING_INNVILGET
         }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan ikke utlede avslagsgrunner`() {
+            assertThrows<Behandling.TilstandException> {
+                underkjent.utledAvslagsgrunner()
+            }
+        }
     }
 
     @Nested
@@ -1018,6 +1045,29 @@ internal class BehandlingTest {
         fun `kan sende til attestering`() {
             underkjent.sendTilAttestering(saksbehandler)
             underkjent.status() shouldBe TIL_ATTESTERING_AVSLAG
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan utlede avslagsgrunner`() {
+            underkjent.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET)
         }
     }
 
@@ -1098,6 +1148,29 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
             }
+        }
+
+        @Test
+        fun `kan ikke sende til attestering hvis SB og Att er samme person`() {
+            val behandlingMedSammeSaksbehandlerOgAtt = underkjent.copy(
+                attestering = Attestering.Underkjent(
+                    attestant = Attestant(navIdent = "Z12345"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "Vi er den samme"
+                )
+            )
+            behandlingMedSammeSaksbehandlerOgAtt.sendTilAttestering(saksbehandler) shouldBe AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kan oppdatere oppgaveId`() {
+            underkjent.oppdaterOppgaveId(OppgaveId("9900"))
+            underkjent.oppgaveId().toString() shouldBe "9900"
+        }
+
+        @Test
+        fun `kan utlede avslagsgrunner`() {
+            underkjent.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.FOR_HØY_INNTEKT)
         }
     }
 
