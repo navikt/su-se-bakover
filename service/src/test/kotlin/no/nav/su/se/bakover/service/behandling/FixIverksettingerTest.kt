@@ -355,7 +355,61 @@ internal class FixIverksettingerTest {
     }
 
     @Test
-    fun `happy case`() {
+    fun `distribuerer brev for iverksatt avlsag`() {
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(
+                innvilgetBehandlingUtenJournalpost.copy(
+                    status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+                )
+            )
+            on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
+                innvilgetBehandlingUtenJournalpost.copy(
+                    id = behandlingIdBestiltBrev,
+                    sakId = sakIdBestiltBrev,
+                    iverksattJournalpostId = journalpostIdBestiltBrev,
+                    status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
+                ),
+            )
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+        }
+
+        val actual = createService(
+            behandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
+        ).opprettManglendeJournalpostOgBrevdistribusjon()
+
+        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+            journalpostresultat = listOf(
+                KunneIkkeOppretteJournalpostForIverksetting(
+                    sakId = innvilgetBehandlingUtenJournalpost.sakId,
+                    behandlingId = innvilgetBehandlingUtenJournalpost.id,
+                    grunn = "Kunne ikke opprette journalpost for status IVERKSATT_AVSLAG"
+                ).left()
+            ),
+            brevbestillingsresultat = listOf(bestiltBrev.right())
+        )
+
+        inOrder(
+            behandlingRepoMock,
+            brevServiceMock,
+        ) {
+            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+
+            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
+            verify(brevServiceMock).distribuerBrev(journalpostIdBestiltBrev)
+            verify(behandlingRepoMock).oppdaterIverksattBrevbestillingId(
+                argThat { it shouldBe behandlingIdBestiltBrev },
+                argThat { it shouldBe brevbestillingId }
+            )
+        }
+        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
+    }
+
+    @Test
+    fun `journalfører og distribuerer brev for iverksatt innvilget`() {
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
@@ -363,7 +417,7 @@ internal class FixIverksettingerTest {
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
                     iverksattJournalpostId = journalpostIdBestiltBrev
-                )
+                ),
             )
             on { oppdaterIverksattJournalpostId(any(), any()) }.doNothing()
         }

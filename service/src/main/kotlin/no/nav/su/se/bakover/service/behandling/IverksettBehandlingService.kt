@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
@@ -67,12 +69,12 @@ class IverksettBehandlingService(
             }
             .map { iverksattBehandling ->
                 return when (iverksattBehandling.status()) {
-                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> iverksettAvslag(
+                    IVERKSATT_AVSLAG -> iverksettAvslag(
                         person = person,
                         behandling = iverksattBehandling,
                         attestant = attestant,
                     )
-                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> iverksettInnvilgning(
+                    IVERKSATT_INNVILGET -> iverksettInnvilgning(
                         person = person,
                         behandling = iverksattBehandling,
                         attestant = attestant,
@@ -106,7 +108,7 @@ class IverksettBehandlingService(
                     grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
                 ).left()
             }
-            if (behandling.status() != Behandling.BehandlingsStatus.IVERKSATT_INNVILGET) {
+            if (behandling.status() != IVERKSATT_INNVILGET) {
                 return@map KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = behandling.sakId,
                     behandlingId = behandling.id,
@@ -168,33 +170,32 @@ class IverksettBehandlingService(
                 ).left()
             }
 
-            if (behandling.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET) {
-                return@map distribuerBrev(
-                    behandling = behandling,
+            if (listOf(IVERKSATT_INNVILGET, IVERKSATT_AVSLAG).none { it == behandling.status() }) {
+                return@map KunneIkkeBestilleBrev(
+                    sakId = behandling.sakId,
+                    behandlingId = behandling.id,
                     journalpostId = journalpostId,
-                ).mapLeft {
-                    KunneIkkeBestilleBrev(
-                        sakId = behandling.sakId,
-                        behandlingId = behandling.id,
-                        journalpostId = journalpostId,
-                        grunn = "Kunne ikke bestille brev"
-                    )
-                }.map {
-                    BestiltBrev(
-                        sakId = behandling.sakId,
-                        behandlingId = behandling.id,
-                        journalpostId = journalpostId,
-                        brevbestillingId = it.behandling.iverksattBrevbestillingId()!!
-                    )
-                }
+                    grunn = "Kunne ikke bestille brev for status ${behandling.status()}"
+                ).left()
             }
-
-            return@map KunneIkkeBestilleBrev(
-                sakId = behandling.sakId,
-                behandlingId = behandling.id,
+            return@map distribuerBrev(
+                behandling = behandling,
                 journalpostId = journalpostId,
-                grunn = "Kunne ikke bestille brev for status ${behandling.status()}"
-            ).left()
+            ).mapLeft {
+                KunneIkkeBestilleBrev(
+                    sakId = behandling.sakId,
+                    behandlingId = behandling.id,
+                    journalpostId = journalpostId,
+                    grunn = "Kunne ikke bestille brev"
+                )
+            }.map {
+                BestiltBrev(
+                    sakId = behandling.sakId,
+                    behandlingId = behandling.id,
+                    journalpostId = journalpostId,
+                    brevbestillingId = it.behandling.iverksattBrevbestillingId()!!
+                )
+            }
         }
     }
 
