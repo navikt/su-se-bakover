@@ -22,7 +22,7 @@ object Grupperer {
         }.toMap()
     }
 
-    internal infix fun Månedsberegning.likehetUtenDato(other: Månedsberegning): Boolean =
+    private infix fun Månedsberegning.likehetUtenDato(other: Månedsberegning): Boolean =
         this.getSumYtelse() == other.getSumYtelse() &&
             this.getSumFradrag() == other.getSumFradrag() &&
             this.getBenyttetGrunnbeløp() == other.getBenyttetGrunnbeløp() &&
@@ -30,13 +30,13 @@ object Grupperer {
             this.getSatsbeløp() == other.getSatsbeløp() &&
             this.getFradrag().cmpFradrag(other.getFradrag())
 
-    internal infix fun Fradrag.likhetUtenDato(other: Fradrag): Boolean =
+    private infix fun Fradrag.likhetUtenDato(other: Fradrag): Boolean =
         this.getFradragstype() == other.getFradragstype() &&
             this.getMånedsbeløp() == other.getMånedsbeløp() &&
             this.getUtenlandskInntekt() == other.getUtenlandskInntekt() &&
             this.getTilhører() == other.getTilhører()
 
-    internal infix fun List<Fradrag>.cmpFradrag(other: List<Fradrag>): Boolean {
+    private infix fun List<Fradrag>.cmpFradrag(other: List<Fradrag>): Boolean {
         if (this.size != other.size) return false
         val sortedThis = this.sortedBy { it.getFradragstype() }
         val sortedThat = other.sortedBy { it.getFradragstype() }

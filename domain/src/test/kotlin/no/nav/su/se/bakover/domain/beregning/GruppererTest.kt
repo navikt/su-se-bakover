@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.Grupperer.likehetUtenDato
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -111,7 +110,9 @@ internal class GruppererTest {
             fradrag = listOf()
         )
 
-        januar likehetUtenDato februar shouldBe true
+        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
+            Periode(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)) to listOf(januar, februar),
+        )
     }
 
     @Test
@@ -136,7 +137,10 @@ internal class GruppererTest {
             fradrag = listOf()
         )
 
-        januar likehetUtenDato februar shouldBe false
+        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
+            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
+            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
+        )
     }
 
     @Test
@@ -169,7 +173,9 @@ internal class GruppererTest {
             )
         )
 
-        januar likehetUtenDato februar shouldBe true
+        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
+            Periode(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)) to listOf(januar, februar),
+        )
     }
 
     @Test
@@ -202,7 +208,10 @@ internal class GruppererTest {
             )
         )
 
-        januar likehetUtenDato februar shouldBe false
+        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
+            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
+            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
+        )
     }
 
     @Test
@@ -235,6 +244,9 @@ internal class GruppererTest {
             )
         )
 
-        januar likehetUtenDato februar shouldBe false
+        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
+            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
+            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
+        )
     }
 }
