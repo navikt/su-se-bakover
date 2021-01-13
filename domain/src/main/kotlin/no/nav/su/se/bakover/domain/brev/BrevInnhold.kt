@@ -46,6 +46,10 @@ abstract class BrevInnhold {
         val attestantNavn: String
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
+
+        @Suppress("unused")
+        @JsonInclude
+        val totalSumForBeregningsperioder: Int = beregningsperioder.sumBy { it.periode.getAntallMåneder() * it.ytelsePerMåned }
     }
 
     data class Personalia(

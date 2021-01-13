@@ -88,6 +88,7 @@ internal class BrevInnholdTest {
                     "epsFribeløp": 100.0,
                     "fradrag": null
                 }],
+                "totalSumForBeregningsperioder": 1200,
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp"
             }
