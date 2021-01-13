@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 
-internal class GruppererTest {
+internal class GrupperEkvivalenteMånedsberegningerTest {
     @Test
-    fun `grupper 1`() {
+    fun `tilstøtende månedsberegninger hvor alt er likt bortsett fra dato grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
@@ -26,16 +26,16 @@ internal class GruppererTest {
             fradrag = listOf()
         )
 
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(1.januar(2021), 28.februar(2021)) to listOf(
-                januar,
-                februar
-            )
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)).also {
+                it.periode.getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
+                it.periode.getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+            }
         )
     }
 
     @Test
-    fun `grupper 2`() {
+    fun `tilstøtende månedsberegninger som har forskjellige fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
@@ -56,14 +56,20 @@ internal class GruppererTest {
             )
         )
 
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(1.januar(2021), 31.januar(2021)) to listOf(januar),
-            Periode(1.februar(2021), 28.februar(2021)) to listOf(februar),
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)).also {
+                it.periode.getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
+                it.periode.getTilOgMed() shouldBe januar.getPeriode().getTilOgMed()
+            },
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)).also {
+                it.periode.getFraOgMed() shouldBe februar.getPeriode().getFraOgMed()
+                it.periode.getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+            },
         )
     }
 
     @Test
-    fun `grupper 3`() {
+    fun `like månedsberegninger som ikke tilstøter hverandre grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
@@ -88,35 +94,16 @@ internal class GruppererTest {
             fradrag = listOf()
         )
 
-        Grupperer.grupper(listOf(januar, februar, mars, april)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
-            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
-            Periode(fraOgMed = 1.mars(2021), tilOgMed = 31.mars(2021)) to listOf(mars),
-            Periode(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)) to listOf(april),
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar, mars, april)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(mars)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(april)),
         )
     }
 
     @Test
-    fun `likhet uten dato`() {
-        val januar = MånedsberegningFactory.ny(
-            periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-            sats = Sats.HØY,
-            fradrag = listOf()
-        )
-
-        val februar = MånedsberegningFactory.ny(
-            periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
-            sats = Sats.HØY,
-            fradrag = listOf()
-        )
-
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)) to listOf(januar, februar),
-        )
-    }
-
-    @Test
-    fun `likhet uten dato 1`() {
+    fun `månedsberegninger som har forskjellig antall fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
@@ -134,21 +121,43 @@ internal class GruppererTest {
         val februar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
             sats = Sats.HØY,
-            fradrag = listOf()
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 500.0,
+                    periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 500.0,
+                    periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
         )
 
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
-            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)),
         )
     }
 
     @Test
-    fun `likhet uten dato 3`() {
+    fun `månedsberegninger med flere fradrag av samme type grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
                 FradragFactory.ny(
                     type = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
@@ -169,17 +178,24 @@ internal class GruppererTest {
                     periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
         )
 
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)) to listOf(januar, februar),
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)),
         )
     }
 
     @Test
-    fun `likhet uten dato 4`() {
+    fun `grupperer like månedsberegninger sammen selv om fradragene i utgangspunktet ikke ligger på nøyaktig samme indeks`() {
         val januar = MånedsberegningFactory.ny(
             periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             sats = Sats.HØY,
@@ -187,6 +203,27 @@ internal class GruppererTest {
                 FradragFactory.ny(
                     type = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 2000.0,
                     periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
@@ -203,39 +240,24 @@ internal class GruppererTest {
                     månedsbeløp = 1000.0,
                     periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
-        )
-
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
-            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
-        )
-    }
-
-    @Test
-    fun `likhet uten dato 5`() {
-        val januar = MånedsberegningFactory.ny(
-            periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-            sats = Sats.HØY,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Sosialstønad,
-                    månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
-        )
-
-        val februar = MånedsberegningFactory.ny(
-            periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
-            sats = Sats.HØY,
-            fradrag = listOf(
+                    tilhører = FradragTilhører.EPS
+                ),
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 2000.0,
+                    periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
                     månedsbeløp = 1000.0,
                     periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
                     utenlandskInntekt = null,
@@ -244,9 +266,8 @@ internal class GruppererTest {
             )
         )
 
-        Grupperer.grupper(listOf(januar, februar)) shouldBe mapOf(
-            Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)) to listOf(januar),
-            Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)) to listOf(februar),
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar))
         )
     }
 }
