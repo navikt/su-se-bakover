@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common.periode
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
 import java.time.Period
 
@@ -15,6 +16,8 @@ data class Periode(
 
     fun getFraOgMed() = fraOgMed
     fun getTilOgMed() = tilOgMed
+
+    @JsonIgnore
     fun getAntallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     fun tilMånedsperioder(): List<Periode> {
         return (0L until getAntallMåneder())
